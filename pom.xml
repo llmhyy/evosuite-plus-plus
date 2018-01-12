@@ -129,11 +129,11 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
                 <file>
-                    <exists>${java.home}/../lib/tools.jar</exists>
+                    <exists>C:\Users\linyun\Documents\git_space\evosuite\libs\tools.jar</exists>
                 </file>
             </activation>
             <properties>
-                <toolsjar>${java.home}/../lib/tools.jar</toolsjar>
+                <toolsjar>C:\Users\linyun\Documents\git_space\evosuite\libs\tools.jar</toolsjar>
             </properties>
         </profile>
         <profile>
