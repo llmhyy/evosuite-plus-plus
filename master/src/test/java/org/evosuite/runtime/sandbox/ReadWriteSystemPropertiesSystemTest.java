@@ -95,7 +95,7 @@ public class ReadWriteSystemPropertiesSystemTest extends SystemTestBase {
 		}
 		Assert.assertEquals(n, list.size());
 
-		TestGenerationResult tgr = TestGenerationResultBuilder.buildSuccessResult();
+		TestGenerationResult tgr = TestGenerationResultBuilder.buildSuccessResult(null);
 		String code = tgr.getTestSuiteCode();
 		Assert.assertTrue("Test code:\n" + code, code.contains("user.timezone"));
 		

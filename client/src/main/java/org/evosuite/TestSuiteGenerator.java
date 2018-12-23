@@ -118,6 +118,11 @@ public class TestSuiteGenerator {
 	 */
 	public TestGenerationResult generateTestSuite() {
 
+//		Properties.LOCAL_SEARCH_PROBABILITY = 1.0;
+//        Properties.LOCAL_SEARCH_RATE = 1;
+//        Properties.DSE_PROBABILITY = 0;
+//        Properties.LOCAL_SEARCH_BUDGET = 5000;
+		
 		LoggingUtils.getEvoLogger().info("* Analyzing classpath: ");
 
 		ClientServices.getInstance().getClientNode().changeState(ClientState.INITIALIZATION);
@@ -698,7 +703,7 @@ public class TestSuiteGenerator {
 			LoggingUtils.getEvoLogger().info("* Writing JUnit test case '" + (name + suffix) + "' to " + testDir);
 			suiteWriter.writeTestSuite(name + suffix, testDir, testSuite.getLastExecutionResults());
 		}
-		return TestGenerationResultBuilder.buildSuccessResult();
+		return TestGenerationResultBuilder.buildSuccessResult(testSuite);
 	}
 
 	/**

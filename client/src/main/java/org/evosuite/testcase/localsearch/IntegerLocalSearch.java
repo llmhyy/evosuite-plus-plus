@@ -70,6 +70,9 @@ public class IntegerLocalSearch<T> extends StatementLocalSearch {
 
 		NumericalPrimitiveStatement<T> p = (NumericalPrimitiveStatement<T>) test.getTestCase().getStatement(statement);
 		ExecutionResult oldResult = test.getLastExecutionResult();
+		
+		Integer integer = (Integer) p.getValue();
+		
 		oldValue = p.getValue();
 		logger.info("Applying search to: " + p.getCode());
 

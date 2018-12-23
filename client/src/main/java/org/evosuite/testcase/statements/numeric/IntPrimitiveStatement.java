@@ -106,7 +106,9 @@ public class IntPrimitiveStatement extends NumericalPrimitiveStatement<Integer> 
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();
 			value = constantPool.getRandomInt();
+			System.currentTimeMillis();
 		}
+//		value = (int)(Randomness.nextGaussian() * Properties.MAX_INT) ;
 	}
 
 	/* (non-Javadoc)

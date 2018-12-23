@@ -89,5 +89,10 @@ public interface TestGenerationResult extends Serializable {
 
 	/** Comment for that test */
 	public String getComment(String name);
+	
+	public int getElapseTime();
+	public void setElapseTime(int elapseTime);
+	public double getCoverage();
+	public void setCoverage(double coverage);
 
 }

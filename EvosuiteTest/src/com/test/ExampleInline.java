@@ -1,9 +1,9 @@
 package com.test;
 
-public class Example {
+public class ExampleInline {
 	public boolean test(int a, int b){
 		if(Util.isOk(a, b)){
-			if(Util.isCornerCase(a, b)){
+			if(a-b < -49){
 				return true;
 			}	
 		}

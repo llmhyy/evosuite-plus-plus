@@ -1586,7 +1586,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	 * Adds trace information to the active MethodCall in this.stack
 	 */
 	private void updateTopStackMethodCall(int branch, int bytecode_id, double true_distance, double false_distance) {
-
+		
 		if (traceCalls) {
 			if (stack.isEmpty()) {
 				return;

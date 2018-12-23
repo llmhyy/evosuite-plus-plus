@@ -142,6 +142,9 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 					+ testSuite.getFitness());
 		}
 
+		int timeUsed = (int) (endTime - startTime);
+		testSuite.setTimeUsed(timeUsed);
+		
 		// Search is finished, send statistics
 		sendExecutionStatistics();
 

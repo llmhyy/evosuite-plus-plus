@@ -20,6 +20,7 @@
 package org.evosuite.ga.metaheuristics;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.evosuite.Properties;
@@ -136,9 +137,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			// The two offspring replace the parents if and only if one of
 			// the offspring is not worse than the best parent.
 			for (FitnessFunction<T> fitnessFunction : fitnessFunctions) {
-				fitnessFunction.getFitness(offspring1);
+				double d1 = fitnessFunction.getFitness(offspring1);
 				notifyEvaluation(offspring1);
-				fitnessFunction.getFitness(offspring2);
+				double d2 = fitnessFunction.getFitness(offspring2);
 				notifyEvaluation(offspring2);
 			}
 
@@ -215,6 +216,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	/** {@inheritDoc} */
 	@Override
 	public void generateSolution() {
+		logger.warn("monotonic ga");
 		if (Properties.ENABLE_SECONDARY_OBJECTIVE_AFTER > 0 || Properties.ENABLE_SECONDARY_OBJECTIVE_STARVATION) {
 			disableFirstSecondaryCriterion();
 		}
@@ -245,7 +247,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				evolve();
 				sortPopulation();
 				double bestFitnessAfterEvolution = getBestFitness();
-
+				
 				if (getFitnessFunction().isMaximizationFunction())
 					assert(bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
 							- DELTA)) : "best fitness before evolve()/sortPopulation() was: " + bestFitnessBeforeEvolution

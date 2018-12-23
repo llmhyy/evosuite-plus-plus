@@ -54,7 +54,7 @@ public class StandardGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void evolve() {
-
+		logger.warn("standard ga");
 		List<T> newGeneration = new ArrayList<T>();
 
 		// Elitism

@@ -39,6 +39,7 @@ import org.evosuite.instrumentation.LinePool;
 import org.evosuite.result.TestGenerationResult.Status;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.LoggingUtils;
 
 public class TestGenerationResultBuilder {
@@ -62,12 +63,16 @@ public class TestGenerationResultBuilder {
 		return result;
 	}
 
-	public static TestGenerationResult buildSuccessResult() {
+	public static TestGenerationResult buildSuccessResult(TestSuiteChromosome testSuite) {
 		TestGenerationResultImpl result = new TestGenerationResultImpl();
 		result.setStatus(Status.SUCCESS);
 		getInstance().fillInformationFromConfiguration(result);
 		getInstance().fillInformationFromTestData(result);
 		getInstance().resetTestData();
+		
+		result.setElapseTime(testSuite.getTimeUsed());
+		result.setCoverage(testSuite.getCoverage());
+		
 		return result;
 	}
 	

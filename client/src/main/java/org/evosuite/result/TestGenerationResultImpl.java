@@ -31,6 +31,10 @@ import org.evosuite.testcase.TestCase;
 
 class TestGenerationResultImpl implements TestGenerationResult {
 
+	private int elapseTime = 0;
+	
+	private double coverage = 0;
+	
 	private static final long serialVersionUID = 1306033906557741929L;
 
 	private Status status = Status.ERROR;
@@ -283,6 +287,22 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	public void setUncoveredMutants(Set<MutationInfo> mutants) {
 		uncoveredMutants.addAll(mutants);
+	}
+
+	public int getElapseTime() {
+		return elapseTime;
+	}
+
+	public void setElapseTime(int elapseTime) {
+		this.elapseTime = elapseTime;
+	}
+
+	public double getCoverage() {
+		return coverage;
+	}
+
+	public void setCoverage(double coverage) {
+		this.coverage = coverage;
 	}
 
 }

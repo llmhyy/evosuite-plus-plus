@@ -292,5 +292,15 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 		}
 		return result;
 	}
+	
+	private int timeUsed;
+
+	public void setTimeUsed(int timeUsed) {
+		this.timeUsed = timeUsed;
+	}
+	
+	public int getTimeUsed(){
+		return this.timeUsed;
+	}
  
 }
