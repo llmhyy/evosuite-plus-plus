@@ -117,6 +117,7 @@ For example:
     </properties>
 ```
 
+It is fine that the "generated" project has some compilation errors. Nevertheless, the "evsouite-master" project may have some compilation error. In this case, we may include the target/generated-sources/jaxb folder as build path. Thus, we can close "generated" project.
 
 # More Information
 
