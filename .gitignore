@@ -10,6 +10,9 @@ plugins/jenkins/work
 build
 transitionLog.txt
 .DS_Store
+.project
+.settings
+.classpath
 .idea
 bin/
 examples/mine/
