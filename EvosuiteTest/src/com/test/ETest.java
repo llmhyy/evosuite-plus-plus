@@ -37,10 +37,10 @@ public class ETest {
 //		Properties.STRATEGY = Strategy.RANDOM;
 
 		String[] command = new String[] { 
-				//"-generateRandom",
-//				"-generateSuite",
+//				"-generateRandom",
+				"-generateSuite",
 				// "-generateMOSuite",
-				"-generateSuiteUsingDSE",
+//				"-generateSuiteUsingDSE",
 				"-class", targetClass, 
 				"-projectCP", cp, 
 				"-Dtarget_method", targetMethod, 

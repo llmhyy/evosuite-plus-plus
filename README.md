@@ -89,6 +89,35 @@ use Maven as well:
 
 To build EvoSuite in Eclipse, make sure you have the [M2Eclipse](http://www.eclipse.org/m2e/) plugin installed, and import EvoSuite as Maven project. This will ensure that Eclipse uses Maven to build the project.
 
+# Building EvoSuite in Eclipse
+
+In eclipse, we need to import Evosuite projects by "Import>>Maven>>Existing Maven Projects". In general, we may import the following projects for compiling Evosuite:
+1. evosuite
+2. evosuite-client
+3. evosuite-master
+4. evosuite-runtime
+5. generated 
+6. shaded
+7. standalone-runtime
+8. EvsouiteTest
+
+After importing all the above projects, we need to modify pom.xml in evosuite project as follows:
+We find <id>tools-default</id> and replace its <exists> and <toolsjar> element into the file location inside project.
+For example:
+```
+<id>tools-default</id>
+  <activation>
+    <activeByDefault>true</activeByDefault>
+    <file>
+      <exists>C:\Users\linyun\Documents\git_space\evosuite\libs\tools.jar</exists>
+    </file>
+    </activation>
+    <properties>
+       <toolsjar>C:\Users\linyun\Documents\git_space\evosuite\libs\tools.jar</toolsjar>
+    </properties>
+```
+
+It is fine that the "generated" project has some compilation errors. Nevertheless, the "evsouite-master" project may have some compilation error. In this case, we may include the target/generated-sources/jaxb folder as build path. Thus, we can close "generated" project.
 
 # More Information
 
