@@ -148,7 +148,7 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 		// Search is finished, send statistics
 		sendExecutionStatistics();
 		
-		testSuite.setProgressInfomation(null);
+		testSuite.setProgressInfomation(algorithm.getProgressInformation());
 		return testSuite;
 	}
 	

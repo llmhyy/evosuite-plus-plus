@@ -107,6 +107,8 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	protected double localSearchProbability = Properties.LOCAL_SEARCH_PROBABILITY;
 	
 	protected transient Archive<T> archive = null;
+	
+	private List<Double> progressInformation = new ArrayList<>();
 
 	/**
 	 * Constructor
@@ -1137,6 +1139,14 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 			r += sc.toString() + " ";
 
 		return r;
+	}
+
+	public List<Double> getProgressInformation() {
+		return progressInformation;
+	}
+
+	public void setProgressInformation(List<Double> progressInformation) {
+		this.progressInformation = progressInformation;
 	}
 
 	/*

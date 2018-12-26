@@ -142,6 +142,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				double d2 = fitnessFunction.getFitness(offspring2);
 				notifyEvaluation(offspring2);
 			}
+			
+			//TODO guanjie
+			//this.getProgressInformation().add(0.1);
 
 			if (keepOffspring(parent1, parent2, offspring1, offspring2)) {
 				logger.debug("Keeping offspring");
