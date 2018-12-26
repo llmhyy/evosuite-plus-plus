@@ -48,6 +48,8 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private static final List<SecondaryObjective<?>> secondaryObjectives = new ArrayList<SecondaryObjective<?>>();
 	private static int secondaryObjIndex = 0;
 	private static final long serialVersionUID = 88380759969800800L;
+	
+	private List<Double> progressInfomation = new ArrayList<>();
 
 	/**
 	 * Add an additional secondary objective to the end of the list of
@@ -301,6 +303,14 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	
 	public int getTimeUsed(){
 		return this.timeUsed;
+	}
+
+	public List<Double> getProgressInfomation() {
+		return progressInfomation;
+	}
+
+	public void setProgressInfomation(List<Double> progressInfomation) {
+		this.progressInfomation = progressInfomation;
 	}
  
 }

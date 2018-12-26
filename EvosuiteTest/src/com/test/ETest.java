@@ -31,7 +31,7 @@ public class ETest {
 		EvoSuite evo = new EvoSuite();
 		Properties.TARGET_CLASS = targetClass;
 		// Properties.TARGET_METHOD = targetClass+".test(DDI)V";
-		Properties.ALGORITHM = Algorithm.STANDARDGA;
+		Properties.ALGORITHM = Algorithm.MONOTONICGA;
 		Properties.TRACK_COVERED_GRADIENT_BRANCHES = true;
 		Properties.CRITERION = new Criterion[] { Criterion.ONLYBRANCH };
 //		Properties.STRATEGY = Strategy.RANDOM;
@@ -58,6 +58,7 @@ public class ETest {
 		for (List<TestGenerationResult> l : list) {
 			for (TestGenerationResult r : l) {
 				// System.out.println(r);
+				System.out.println(r.getProgressInformation());
 				return new Tuple(r.getElapseTime(), r.getCoverage());
 			}
 		}
@@ -75,10 +76,10 @@ public class ETest {
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
 //		Properties.PORT = 8000;
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-		int timeBudget = 10;
+		int timeBudget = 3;
 		ETest t = new ETest();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, false);
 	}

@@ -21,10 +21,10 @@ package org.evosuite.result;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.evosuite.Properties;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.testcase.TestCase;
@@ -34,6 +34,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	private int elapseTime = 0;
 	
 	private double coverage = 0;
+	
+	private List<Double> progressInformation;
 	
 	private static final long serialVersionUID = 1306033906557741929L;
 
@@ -303,6 +305,16 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	public void setCoverage(double coverage) {
 		this.coverage = coverage;
+	}
+
+	@Override
+	public List<Double> getProgressInformation() {
+		return progressInformation;
+	}
+
+	@Override
+	public void setProgressInformation(List<Double> progressInformation) {
+		this.progressInformation = progressInformation;
 	}
 
 }

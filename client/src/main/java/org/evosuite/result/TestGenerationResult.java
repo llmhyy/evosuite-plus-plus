@@ -20,6 +20,7 @@
 package org.evosuite.result;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 import org.evosuite.ga.FitnessFunction;
@@ -94,5 +95,8 @@ public interface TestGenerationResult extends Serializable {
 	public void setElapseTime(int elapseTime);
 	public double getCoverage();
 	public void setCoverage(double coverage);
+	
+	public List<Double> getProgressInformation();
+	public void setProgressInformation(List<Double> progressInformtion);
 
 }

@@ -72,6 +72,7 @@ public class TestGenerationResultBuilder {
 		
 		result.setElapseTime(testSuite.getTimeUsed());
 		result.setCoverage(testSuite.getCoverage());
+		result.setProgressInformation(testSuite.getProgressInfomation());
 		
 		return result;
 	}
