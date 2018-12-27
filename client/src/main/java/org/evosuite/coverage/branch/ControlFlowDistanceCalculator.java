@@ -217,7 +217,7 @@ public class ControlFlowDistanceCalculator {
 		String className = branch.getClassName();
 		String methodName = branch.getMethodName();
 		
-		CallGraph graph = CallGraphGenerator.analyze(className);
+//		CallGraph graph = CallGraphGenerator.analyze(className);
 
 		ControlFlowDistance r = new ControlFlowDistance(); 
 		r.setApproachLevel(branch.getInstruction().getActualCFG().getDiameter() + 1);

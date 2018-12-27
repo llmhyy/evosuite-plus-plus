@@ -71,7 +71,9 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 		algorithm.addFitnessFunctions((List)fitnessFunctions);
 //		for(TestSuiteFitnessFunction f : fitnessFunctions) 
 //			algorithm.addFitnessFunction(f);
-
+		
+		algorithm.addListener(fitnessLogger);
+		
 		// if (Properties.SHOW_PROGRESS && !logger.isInfoEnabled())
 		algorithm.addListener(progressMonitor); // FIXME progressMonitor may cause
 		// client hang if EvoSuite is

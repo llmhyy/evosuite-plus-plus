@@ -92,6 +92,17 @@ public class FitnessLogger implements SearchListener {
 		evaluations_history.add(evaluations);
 		statements_history.add(MaxStatementsStoppingCondition.getNumExecutedStatements());
 		fitness_history.add(algorithm.getBestIndividual().getFitness());
+		
+		if(fitness_history.size() > 2) {
+			int size = fitness_history.size();
+			Double lastFitness = fitness_history.get(size-1);
+			Double lastFitnessButOne = fitness_history.get(size-2);
+			
+			if(lastFitnessButOne < lastFitness) {
+				System.currentTimeMillis();
+			}
+		}
+		
 		size_history.add(algorithm.getBestIndividual().size());
 	}
 

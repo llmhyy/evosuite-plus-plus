@@ -38,7 +38,7 @@ public class Util {
 	
 	public static boolean isCornerCase(int a, int b){
 //		return a-b>8;
-		return a-b < -49;
+		return a-b <= -49;
 	}
 	
 	public static boolean isOk(int a, int b){

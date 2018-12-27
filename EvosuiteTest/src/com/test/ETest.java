@@ -33,8 +33,9 @@ public class ETest {
 		// Properties.TARGET_METHOD = targetClass+".test(DDI)V";
 		Properties.ALGORITHM = Algorithm.MONOTONICGA;
 		Properties.TRACK_COVERED_GRADIENT_BRANCHES = true;
-		Properties.CRITERION = new Criterion[] { Criterion.ONLYBRANCH };
+		Properties.CRITERION = new Criterion[] { Criterion.CBRANCH };
 //		Properties.STRATEGY = Strategy.RANDOM;
+		
 
 		String[] command = new String[] { 
 //				"-generateRandom",
@@ -44,11 +45,10 @@ public class ETest {
 				"-class", targetClass, 
 				"-projectCP", cp, 
 				"-Dtarget_method", targetMethod, 
-				"-Dsearch_budget",
-				String.valueOf(seconds), 
-				"-criterion", "branch", 
-				"-Dinstrument_context",
-				String.valueOf(instrumentContext) };
+				"-Dsearch_budget", String.valueOf(seconds),
+//				"-Dcriterion", "cbranch",
+				"-Dinstrument_context", String.valueOf(instrumentContext) 
+				};
 
 		// command = new String[] { "-generateSuite", "-class", targetClass,
 		// "-projectCP", cp, "-Dsearch_budget",
@@ -79,9 +79,9 @@ public class ETest {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-		int timeBudget = 3;
+		int timeBudget = 300;
 		ETest t = new ETest();
-		t.evosuite(targetClass, targetMethod, cp, timeBudget, false);
+		t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
 	}
 
 	public static String getSignature(Method m) {

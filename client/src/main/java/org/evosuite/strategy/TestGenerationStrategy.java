@@ -27,10 +27,8 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.Algorithm;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.FitnessFunctions;
+import org.evosuite.coverage.FitnessLogger;
 import org.evosuite.coverage.TestFitnessFactory;
-import org.evosuite.graphs.cfg.CFGMethodAdapter;
-import org.evosuite.rmi.ClientServices;
-import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.stoppingconditions.GlobalTimeStoppingCondition;
 import org.evosuite.ga.stoppingconditions.MaxFitnessEvaluationsStoppingCondition;
 import org.evosuite.ga.stoppingconditions.MaxGenerationStoppingCondition;
@@ -39,6 +37,8 @@ import org.evosuite.ga.stoppingconditions.MaxTestsStoppingCondition;
 import org.evosuite.ga.stoppingconditions.MaxTimeStoppingCondition;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
 import org.evosuite.ga.stoppingconditions.ZeroFitnessStoppingCondition;
+import org.evosuite.graphs.cfg.CFGMethodAdapter;
+import org.evosuite.rmi.ClientServices;
 import org.evosuite.setup.TestCluster;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -65,6 +65,8 @@ public abstract class TestGenerationStrategy {
 	
 	/** There should only be one */
 	protected final ProgressMonitor progressMonitor = new ProgressMonitor();
+	
+	protected FitnessLogger fitnessLogger = new FitnessLogger();
 
 	/** There should only be one */
 	protected ZeroFitnessStoppingCondition zeroFitness = new ZeroFitnessStoppingCondition();
