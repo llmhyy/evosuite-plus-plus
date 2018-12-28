@@ -37,6 +37,8 @@ import org.evosuite.coverage.exception.ExceptionCoverageFactory;
 import org.evosuite.coverage.exception.ExceptionCoverageSuiteFitness;
 import org.evosuite.coverage.exception.TryCatchCoverageFactory;
 import org.evosuite.coverage.exception.TryCatchCoverageSuiteFitness;
+import org.evosuite.coverage.fbranch.FBranchFitnessFactory;
+import org.evosuite.coverage.fbranch.FBranchSuiteFitness;
 import org.evosuite.coverage.ibranch.IBranchFitnessFactory;
 import org.evosuite.coverage.ibranch.IBranchSuiteFitness;
 import org.evosuite.coverage.io.input.InputCoverageFactory;
@@ -46,8 +48,17 @@ import org.evosuite.coverage.io.output.OutputCoverageSuiteFitness;
 import org.evosuite.coverage.line.LineCoverageFactory;
 import org.evosuite.coverage.line.LineCoverageSuiteFitness;
 import org.evosuite.coverage.line.OnlyLineCoverageSuiteFitness;
-import org.evosuite.coverage.method.*;
-import org.evosuite.coverage.mutation.*;
+import org.evosuite.coverage.method.MethodCoverageFactory;
+import org.evosuite.coverage.method.MethodCoverageSuiteFitness;
+import org.evosuite.coverage.method.MethodNoExceptionCoverageFactory;
+import org.evosuite.coverage.method.MethodNoExceptionCoverageSuiteFitness;
+import org.evosuite.coverage.method.MethodTraceCoverageFactory;
+import org.evosuite.coverage.method.MethodTraceCoverageSuiteFitness;
+import org.evosuite.coverage.mutation.MutationFactory;
+import org.evosuite.coverage.mutation.OnlyMutationFactory;
+import org.evosuite.coverage.mutation.OnlyMutationSuiteFitness;
+import org.evosuite.coverage.mutation.StrongMutationSuiteFitness;
+import org.evosuite.coverage.mutation.WeakMutationSuiteFitness;
 import org.evosuite.coverage.readability.ReadabilitySuiteFitness;
 import org.evosuite.coverage.rho.RhoCoverageFactory;
 import org.evosuite.coverage.rho.RhoCoverageSuiteFitness;
@@ -91,6 +102,8 @@ public class FitnessFunctions {
 			return new DefUseCoverageSuiteFitness();
 		case BRANCH:
 			return new BranchCoverageSuiteFitness();
+		case FBRANCH:
+			return new FBranchSuiteFitness();
 		case CBRANCH:
 			return new CBranchSuiteFitness();
 		case IBRANCH:
@@ -157,6 +170,8 @@ public class FitnessFunctions {
 			return new DefUseCoverageFactory();
 		case BRANCH:
 			return new BranchCoverageFactory();
+		case FBRANCH:
+			return new FBranchFitnessFactory();
 		case CBRANCH:
 			return new CBranchFitnessFactory();
 		case IBRANCH:

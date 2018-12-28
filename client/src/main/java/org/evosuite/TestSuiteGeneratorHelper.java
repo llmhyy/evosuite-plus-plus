@@ -107,6 +107,9 @@ public class TestSuiteGeneratorHelper {
       case IBRANCH:
         LoggingUtils.getEvoLogger().info("  - Interprocedural Context Branch Coverage");
         break;
+      case FBRANCH:
+		LoggingUtils.getEvoLogger().info("  - Flag Branch Coverage");
+		break;
       case TRYCATCH:
         LoggingUtils.getEvoLogger().info("  - Try-Catch Branch Coverage");
         break;

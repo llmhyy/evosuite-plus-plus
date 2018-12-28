@@ -139,6 +139,8 @@ public class CoverageCriteriaAnalyzer {
                 return RuntimeVariable.AllDefCoverage;
             case BRANCH:
                 return RuntimeVariable.BranchCoverage;
+            case FBRANCH:
+            	return RuntimeVariable.FBranchCoverage;
             case CBRANCH:
                 return RuntimeVariable.CBranchCoverage;
             case EXCEPTION:
