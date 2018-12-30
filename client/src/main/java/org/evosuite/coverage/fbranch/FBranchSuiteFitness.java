@@ -9,6 +9,7 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.coverage.archive.TestsArchive;
 import org.evosuite.testcase.ExecutableChromosome;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.AbstractTestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
@@ -54,7 +55,10 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				FBranchTestFitness goalT = getGoal(branchId, true);
 				if (goalT == null || removedBranchesT.contains(goalT))
 					continue;
-				double distanceT = normalize(result.getTrace().getTrueDistances().get(branchId));
+				TestChromosome tc = new TestChromosome();
+				tc.setTestCase(result.test);
+				double f = goalT.getFitness(tc, result);
+				double distanceT = normalize(f);
 				if (distanceMap.get(goalT) == null || distanceMap.get(goalT) > distanceT) {
 					distanceMap.put(goalT, distanceT);
 				}
@@ -72,7 +76,10 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				FBranchTestFitness goalF = getGoal(branchId, false);
 				if (goalF == null || removedBranchesF.contains(goalF))
 					continue;
-				double distanceF = normalize(result.getTrace().getFalseDistances().get(branchId));
+				TestChromosome tc = new TestChromosome();
+				tc.setTestCase(result.test);
+				double f = goalF.getFitness(tc, result);
+				double distanceF = normalize(f);
 				if (distanceMap.get(goalF) == null || distanceMap.get(goalF) > distanceF) {
 					distanceMap.put(goalF, distanceF);
 				}
