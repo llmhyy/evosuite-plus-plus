@@ -866,4 +866,8 @@ public class ActualControlFlowGraph extends ControlFlowGraph<BasicBlock> {
 	public String getCFGType() {
 		return "ACFG";
 	}
+
+	public int size() {
+		return this.rawGraph.edgeCount();
+	}
 }

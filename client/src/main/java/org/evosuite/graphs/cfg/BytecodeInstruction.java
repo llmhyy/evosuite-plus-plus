@@ -686,7 +686,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		 * current.getInstruction().getControlDependentBranch(); } return r;
 		 */
 	}
-
+	
 	// String methods
 
 	/**
@@ -1241,6 +1241,26 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	@Override
 	public int compareTo(BytecodeInstruction o) {
 		return getLineNumber() - o.getLineNumber();
+	}
+
+	public BytecodeInstruction getPreviousInstruction() {
+		ActualControlFlowGraph graph = this.getActualCFG();
+		if(this.instructionId == 0){
+			return null;
+		}
+		else{
+			return graph.getInstruction(this.instructionId-1);
+		}
+	}
+	
+	public BytecodeInstruction getNextInstruction(){
+		ActualControlFlowGraph graph = this.getActualCFG();
+		if(this.instructionId == graph.size()-1){
+			return null;
+		}
+		else{
+			return graph.getInstruction(this.instructionId+1);
+		}
 	}
 
 }
