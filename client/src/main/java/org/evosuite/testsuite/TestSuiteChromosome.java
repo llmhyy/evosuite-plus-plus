@@ -30,6 +30,7 @@ import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.SecondaryObjective;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
+import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -50,6 +51,7 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private static final long serialVersionUID = 88380759969800800L;
 	
 	private List<Double> progressInfomation = new ArrayList<>();
+	private GeneticAlgorithm<? extends Chromosome> geneticAlgorithm;
 
 	/**
 	 * Add an additional secondary objective to the end of the list of
@@ -311,6 +313,14 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 
 	public void setProgressInfomation(List<Double> progressInfomation) {
 		this.progressInfomation = progressInfomation;
+	}
+
+	public GeneticAlgorithm<? extends Chromosome> getGeneticAlgorithm() {
+		return geneticAlgorithm;
+	}
+
+	public void setGeneticAlgorithm(GeneticAlgorithm<? extends Chromosome> geneticAlgorithm) {
+		this.geneticAlgorithm = geneticAlgorithm;
 	}
  
 }

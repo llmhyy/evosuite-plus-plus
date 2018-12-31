@@ -246,6 +246,7 @@ public class TestSuiteGenerator {
 
 		// progressMonitor.setCurrentPhase("Writing JUnit test cases");
 		TestGenerationResult result = writeJUnitTestsAndCreateResult(testCases);
+		
 		writeJUnitFailingTests();
 		TestCaseExecutor.pullDown();
 		/*

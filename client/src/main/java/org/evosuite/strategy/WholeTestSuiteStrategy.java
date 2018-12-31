@@ -151,6 +151,7 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 		sendExecutionStatistics();
 		
 		testSuite.setProgressInfomation(algorithm.getProgressInformation());
+		testSuite.setGeneticAlgorithm(algorithm);
 		return testSuite;
 	}
 	
