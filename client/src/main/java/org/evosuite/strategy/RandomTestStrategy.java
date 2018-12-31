@@ -87,6 +87,13 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		for (FitnessFunction<?> fitness_function : fitnessFunctions)
 			((TestSuiteFitnessFunction)fitness_function).getFitness(suite);
 		ClientServices.getInstance().getClientNode().changeState(ClientState.SEARCH);
+		
+		//setting information gathering
+		int interval = 5000;
+		ArrayList<Double> progress = new ArrayList<Double>();
+		progress.add(suite.getCoverage());
+		long begintime = System.currentTimeMillis();
+		long endtime = System.currentTimeMillis();
 
 		int number_generations = 0;
 		while (!isFinished(suite, stoppingCondition)) {
@@ -103,8 +110,14 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 				suite = clone;
 				StatisticsSender.executedAndThenSendIndividualToMaster(clone);				
 			}
-			StatisticsSender.executedAndThenSendIndividualToMaster(clone);	
+			StatisticsSender.executedAndThenSendIndividualToMaster(clone);
+			endtime = System.currentTimeMillis();
+			if(endtime - begintime >= interval) {
+				progress.add(suite.getCoverage());
+				begintime = endtime;
+			}
 		}
+		progress.add(suite.getCoverage());
 		//statistics.searchFinished(suiteGA);
 		LoggingUtils.getEvoLogger().info("* Search Budget:");
 		LoggingUtils.getEvoLogger().info("\t- " + stoppingCondition.toString());
@@ -118,7 +131,7 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Generations, number_generations);
 
 		//TODO guanjie
-		suite.setProgressInfomation(null);
+		suite.setProgressInfomation(progress);
 		return suite;	
 	}
 

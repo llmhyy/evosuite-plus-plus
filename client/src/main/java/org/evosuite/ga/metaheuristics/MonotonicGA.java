@@ -94,6 +94,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		// Add random elements
 		// new_generation.addAll(randomism());
 
+		
+
 		while (!isNextPopulationFull(newGeneration) && !isFinished()) {
 			logger.debug("Generating offspring");
 
@@ -142,9 +144,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				double d2 = fitnessFunction.getFitness(offspring2);
 				notifyEvaluation(offspring2);
 			}
-			
+		
 			//TODO guanjie
-			//this.getProgressInformation().add(0.1);
+
 
 			if (keepOffspring(parent1, parent2, offspring1, offspring2)) {
 				logger.debug("Keeping offspring");
@@ -180,10 +182,14 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				newGeneration.add(parent1);
 				newGeneration.add(parent2);
 			}
+			
 
 		}
 
 		population = newGeneration;
+		
+
+
 		// archive
 		updateFitnessFunctionsAndValues();
 
@@ -237,6 +243,12 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			bestFitness = 0.0;
 			lastBestFitness = 0.0;
 		}
+		int interval = 5000;
+		ArrayList<Double> progress = new ArrayList<Double>();
+		long begintime = System.currentTimeMillis();
+		long endtime = System.currentTimeMillis();
+		T bestIndividual = null;
+		
 
 		while (!isFinished()) {
 			
@@ -288,6 +300,14 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			// sortPopulation();
 
 			double newFitness = getBestFitness();
+			endtime = System.currentTimeMillis();
+			if(endtime - begintime >= interval) {
+				bestIndividual = getBestIndividual();
+				if(bestIndividual != null) {
+				progress.add(bestIndividual.getCoverage());
+				}
+				begintime = endtime;
+			}
 
 			if (getFitnessFunction().isMaximizationFunction())
 				assert(newFitness >= (bestFitness - DELTA)) : "best fitness was: " + bestFitness
@@ -314,8 +334,14 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			logger.info("Population size: " + population.size());
 			logger.info("Best individual has fitness: " + population.get(0).getFitness());
 			logger.info("Worst individual has fitness: " + population.get(population.size() - 1).getFitness());
+			
 
 		}
+		bestIndividual = getBestIndividual();
+		if(bestIndividual != null) {
+		progress.add(bestIndividual.getCoverage());
+		}
+		this.setProgressInformation(progress);
 		// archive
 		TimeController.execute(this::updateBestIndividualFromArchive, "update from archive", 5_000);
 
