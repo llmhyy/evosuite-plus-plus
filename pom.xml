@@ -701,18 +701,19 @@
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
-						<phase>post-clean</phase>
+						<phase>install</phase>
 						<goals>
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
 							<outputDirectory>${jars-destination}</outputDirectory>
 							<includeArtifactIds>evosuite-client,evosuite-master,evosuite-runtime,evosuite-shaded,evosuite-standalone-runtime</includeArtifactIds>
+							<overWriteIfNewer>true</overWriteIfNewer>
 						</configuration>
 					</execution>
 					<execution>
 						<id>sources</id>
-						<phase>post-clean</phase>
+						<phase>install</phase>
 						<goals>
 							<goal>copy-dependencies</goal>
 						</goals>
@@ -720,6 +721,7 @@
 							<classifier>sources</classifier>
 							<outputDirectory>${jars-destination}</outputDirectory>
 							<includeArtifactIds>evosuite-client,evosuite-master,evosuite-runtime,evosuite-shaded,evosuite-standalone-runtime</includeArtifactIds>
+						 	<overWriteIfNewer>true</overWriteIfNewer>
 						</configuration>
 					</execution>
 				</executions>

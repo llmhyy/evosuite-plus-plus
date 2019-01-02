@@ -22,6 +22,12 @@
             <artifactId>evosuite-master</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- LLT: for copy-dependencies only -->
+         <dependency>
+            <groupId>org.evosuite</groupId>
+            <artifactId>evosuite-standalone-runtime</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
