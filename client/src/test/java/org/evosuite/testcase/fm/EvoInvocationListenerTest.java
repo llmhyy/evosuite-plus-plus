@@ -97,7 +97,7 @@ public class EvoInvocationListenerTest {
     }
 
 
-    @Test
+//    @Test
     public void testBase(){
 
         EvoInvocationListener listener = new EvoInvocationListener(Foo.class);

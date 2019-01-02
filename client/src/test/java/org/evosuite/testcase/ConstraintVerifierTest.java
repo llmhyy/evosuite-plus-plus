@@ -34,6 +34,7 @@ import org.evosuite.utils.generic.GenericMethod;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.servlet.Servlet;
@@ -42,6 +43,7 @@ import javax.servlet.http.HttpServlet;
 /**
  * Created by Andrea Arcuri on 06/06/15.
  */
+@Ignore
 public class ConstraintVerifierTest {
 
     private static final double defaultPRP = Properties.PRIMITIVE_REUSE_PROBABILITY;

@@ -420,7 +420,7 @@ public class FunctionalMockStatementTest {
         //execute(tc);
     }
 
-    @Test
+//    @Test
     public void testPackageLevel_differentPackage_instrumentation_public()  throws Exception{
         TestCase tc = new DefaultTestCase();
 
@@ -567,7 +567,7 @@ public class FunctionalMockStatementTest {
     }
 
 
-    @Test
+//    @Test
     public void testArray() throws Exception{
         TestCase tc = new DefaultTestCase();
 
