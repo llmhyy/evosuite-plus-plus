@@ -130,10 +130,12 @@
                 <activeByDefault>true</activeByDefault>
                 <file>
                     <exists>C:\Users\linyun\Documents\git_space\evosuite\libs\tools.jar</exists>
+<!--                	 <exists>/Users/lylytran/Projects/Evosuite/modified-version/evosuite/libs/tools.jar</exists> -->
                 </file>
             </activation>
             <properties>
                 <toolsjar>C:\Users\linyun\Documents\git_space\evosuite\libs\tools.jar</toolsjar>
+<!--            <toolsjar>/Users/lylytran/Projects/Evosuite/modified-version/evosuite/libs/tools.jar</toolsjar> -->
             </properties>
         </profile>
         <profile>
@@ -693,6 +695,35 @@
                     </execution>
                 </executions>
             </plugin>
+            
+            <!-- copy generated evosuite jars to  -->
+            <plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>post-clean</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${jars-destination}</outputDirectory>
+							<includeArtifactIds>evosuite-client,evosuite-master,evosuite-runtime,evosuite-shaded,evosuite-standalone-runtime</includeArtifactIds>
+						</configuration>
+					</execution>
+					<execution>
+						<id>sources</id>
+						<phase>post-clean</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<classifier>sources</classifier>
+							<outputDirectory>${jars-destination}</outputDirectory>
+							<includeArtifactIds>evosuite-client,evosuite-master,evosuite-runtime,evosuite-shaded,evosuite-standalone-runtime</includeArtifactIds>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
         </plugins>
 
         <pluginManagement>
@@ -829,8 +860,6 @@
                         </execution>
                     </executions>
                 </plugin>
-
-
             </plugins>
         </pluginManagement>
     </build>
@@ -845,7 +874,7 @@
         <systemTests>**/*SystemTest.java</systemTests>
         <integrationTests>**/*IntTest.java</integrationTests>
         <rerunFailingTestsCount>0</rerunFailingTestsCount>
-
+		<jars-destination>${project.basedir}/../generated-jars</jars-destination>
     </properties>
 
 </project>

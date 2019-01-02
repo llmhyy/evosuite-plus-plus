@@ -1,0 +1,12 @@
+HOW TO PACKAGE EVOSUITE JARS FOR USE?
+After importing evosuite modules, below launches will be found under Run --> Run Configuration --> Maven Build
+
+Build with this order:
+	+ evosuite-client build
+	+ evosuite clean install skip test
+	+ evosuite generate jars
+
+Evosuite jars can be found in folder evosuite/generated-jars
+
+If you encounter any strange error after running maven, try to run "evosuite clean install skip test", 
+and then Project --> Clean, then refresh all projects.
