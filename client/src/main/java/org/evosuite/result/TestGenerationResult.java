@@ -98,5 +98,7 @@ public interface TestGenerationResult extends Serializable {
 	
 	public List<Double> getProgressInformation();
 	public void setProgressInformation(List<Double> progressInformtion);
+	public int[] getDistribution();
+	public void setDistribution(int[] distribution);
 
 }

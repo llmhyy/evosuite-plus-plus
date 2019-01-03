@@ -621,4 +621,8 @@ public interface ExecutionTrace {
 	 * @return
 	 */
 	public List<String> getInitializedClasses();
+	
+	public Map<Integer, Integer> getCoveredTrue();
+	
+	public Map<Integer, Integer> getCoveredFalse();
 }

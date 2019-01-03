@@ -3,6 +3,7 @@ package com.test;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.evosuite.EvoSuite;
@@ -17,11 +18,13 @@ public class ETest {
 	class Tuple {
 		int time;
 		double coverage;
+		int age;
 
-		public Tuple(int time, double coverage) {
+		public Tuple(int time, double coverage, int age) {
 			super();
 			this.time = time;
 			this.coverage = coverage;
+			this.age = age;
 		}
 
 	}
@@ -46,7 +49,7 @@ public class ETest {
 				"-projectCP", cp, 
 				"-Dtarget_method", targetMethod, 
 				"-Dsearch_budget", String.valueOf(seconds),
-//				"-Dcriterion", "cbranch",
+				"-Dcriterion", "cbranch",
 				"-Dinstrument_context", String.valueOf(instrumentContext) 
 				};
 
@@ -59,7 +62,8 @@ public class ETest {
 			for (TestGenerationResult r : l) {
 				// System.out.println(r);
 				System.out.println(r.getProgressInformation());
-				return new Tuple(r.getElapseTime(), r.getCoverage());
+				System.out.println(r.getDistribution());
+				return new Tuple(r.getElapseTime(), r.getCoverage(), r.getGeneticAlgorithm().getAge());
 			}
 		}
 
@@ -79,9 +83,19 @@ public class ETest {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-		int timeBudget = 300;
+		int timeBudget = 30000;
 		ETest t = new ETest();
-		t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
+		Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
+		
+//		List<Tuple> l = new ArrayList<>();
+//		for(int i=0; i<7; i++){
+//			Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
+//			l.add(tu);
+//		}
+//		
+//		for(Tuple lu: l){
+//			System.out.println(lu.time + ", " + lu.age);
+//		}
 	}
 
 	public static String getSignature(Method m) {

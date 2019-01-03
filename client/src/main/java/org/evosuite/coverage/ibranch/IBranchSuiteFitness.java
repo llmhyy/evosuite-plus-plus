@@ -324,4 +324,9 @@ public class IBranchSuiteFitness extends TestSuiteFitnessFunction {
 
 		return true;
 	}
+	
+	@Override
+	public int getTotalGoalNum(){
+		return this.branchGoals.size();
+	}
 }

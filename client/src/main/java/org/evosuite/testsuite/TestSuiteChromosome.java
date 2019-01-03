@@ -51,6 +51,7 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private static final long serialVersionUID = 88380759969800800L;
 	
 	private List<Double> progressInfomation = new ArrayList<>();
+	private int[] distribution; 
 	private GeneticAlgorithm<? extends Chromosome> geneticAlgorithm;
 
 	/**
@@ -322,5 +323,13 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	public void setGeneticAlgorithm(GeneticAlgorithm<? extends Chromosome> geneticAlgorithm) {
 		this.geneticAlgorithm = geneticAlgorithm;
 	}
- 
+
+	public int[] getDistribution() {
+		return distribution;
+	}
+
+	public void setDistribution(int[] distribution) {
+		this.distribution = distribution;
+	}
+
 }

@@ -74,6 +74,7 @@ public class TestGenerationResultBuilder {
 		result.setCoverage(testSuite.getCoverage());
 		result.setProgressInformation(testSuite.getProgressInfomation());
 		result.setGeneticAlgorithm(testSuite.getGeneticAlgorithm());
+		result.setDistribution(testSuite.getDistribution());
 		
 		return result;
 	}

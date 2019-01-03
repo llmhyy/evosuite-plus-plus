@@ -1809,4 +1809,15 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 		return this.initializedClasses;
 	}
 
+	@Override
+	public Map<Integer, Integer> getCoveredTrue() {
+		return this.coveredTrue;
+	}
+
+	@Override
+	public Map<Integer, Integer> getCoveredFalse() {
+		// TODO Auto-generated method stub
+		return this.coveredFalse;
+	}
+
 }

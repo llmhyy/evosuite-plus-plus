@@ -109,6 +109,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	protected transient Archive<T> archive = null;
 	
 	private List<Double> progressInformation = new ArrayList<>();
+	private int[] distribution;
 
 	/**
 	 * Constructor
@@ -1147,6 +1148,14 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 
 	public void setProgressInformation(List<Double> progressInformation) {
 		this.progressInformation = progressInformation;
+	}
+
+	public int[] getDistribution() {
+		return distribution;
+	}
+
+	public void setDistribution(int[] distribution) {
+		this.distribution = distribution;
 	}
 
 	/*

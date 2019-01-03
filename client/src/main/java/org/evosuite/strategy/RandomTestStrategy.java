@@ -131,6 +131,7 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Generations, number_generations);
 
 		//TODO guanjie
+		suite.setDistribution(null);
 		suite.setProgressInfomation(progress);
 		return suite;	
 	}

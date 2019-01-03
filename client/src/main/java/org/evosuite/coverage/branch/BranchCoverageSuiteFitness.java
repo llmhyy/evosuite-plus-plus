@@ -526,4 +526,9 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
 			        + suite.totalLengthOfTestCases());
 		}
 	}
+	
+	@Override
+	public int getTotalGoalNum(){
+		return this.totalGoals;
+	}
 }

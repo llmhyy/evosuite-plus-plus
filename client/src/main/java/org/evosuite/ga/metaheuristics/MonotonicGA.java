@@ -20,7 +20,6 @@
 package org.evosuite.ga.metaheuristics;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.evosuite.Properties;
@@ -31,7 +30,11 @@ import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.FitnessReplacementFunction;
 import org.evosuite.ga.ReplacementFunction;
-import org.evosuite.ga.localsearch.LocalSearchBudget;
+import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testsuite.TestSuiteChromosome;
+import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,8 +97,6 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		// Add random elements
 		// new_generation.addAll(randomism());
 
-		
-
 		while (!isNextPopulationFull(newGeneration) && !isFinished()) {
 			logger.debug("Generating offspring");
 
@@ -144,9 +145,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				double d2 = fitnessFunction.getFitness(offspring2);
 				notifyEvaluation(offspring2);
 			}
-		
-			//TODO guanjie
 
+			// TODO guanjie
 
 			if (keepOffspring(parent1, parent2, offspring1, offspring2)) {
 				logger.debug("Keeping offspring");
@@ -182,13 +182,10 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				newGeneration.add(parent1);
 				newGeneration.add(parent2);
 			}
-			
 
 		}
 
 		population = newGeneration;
-		
-
 
 		// archive
 		updateFitnessFunctionsAndValues();
@@ -232,7 +229,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 		if (population.isEmpty()) {
 			initializePopulation();
-			assert!population.isEmpty() : "Could not create any test";
+			assert !population.isEmpty() : "Could not create any test";
 		}
 
 		logger.debug("Starting evolution");
@@ -249,7 +246,14 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		long endtime = System.currentTimeMillis();
 		T bestIndividual = null;
 		
+		int goalSize = 0;
+		if(getFitnessFunction() instanceof TestSuiteFitnessFunction){
+			TestSuiteFitnessFunction tfFunction = (TestSuiteFitnessFunction) getFitnessFunction();			
+			goalSize = tfFunction.getTotalGoalNum();
+		}
+		int[] distribution = new int[goalSize];
 
+		updateDistribution(distribution);
 		while (!isFinished()) {
 			
 			logger.info("Population size before: " + population.size());
@@ -262,15 +266,15 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				evolve();
 				sortPopulation();
 				double bestFitnessAfterEvolution = getBestFitness();
-				
+
 				if (getFitnessFunction().isMaximizationFunction())
-					assert(bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
-							- DELTA)) : "best fitness before evolve()/sortPopulation() was: " + bestFitnessBeforeEvolution
-									+ ", now best fitness is " + bestFitnessAfterEvolution;
+					assert (bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
+							- DELTA)) : "best fitness before evolve()/sortPopulation() was: "
+									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
 				else
-					assert(bestFitnessAfterEvolution <= (bestFitnessBeforeEvolution
-							+ DELTA)) : "best fitness before evolve()/sortPopulation() was: " + bestFitnessBeforeEvolution
-									+ ", now best fitness is " + bestFitnessAfterEvolution;
+					assert (bestFitnessAfterEvolution <= (bestFitnessBeforeEvolution
+							+ DELTA)) : "best fitness before evolve()/sortPopulation() was: "
+									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
 			}
 
 			{
@@ -279,11 +283,11 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				double bestFitnessAfterLocalSearch = getBestFitness();
 
 				if (getFitnessFunction().isMaximizationFunction())
-					assert(bestFitnessAfterLocalSearch >= (bestFitnessBeforeLocalSearch
+					assert (bestFitnessAfterLocalSearch >= (bestFitnessBeforeLocalSearch
 							- DELTA)) : "best fitness before applyLocalSearch() was: " + bestFitnessBeforeLocalSearch
 									+ ", now best fitness is " + bestFitnessAfterLocalSearch;
 				else
-					assert(bestFitnessAfterLocalSearch <= (bestFitnessBeforeLocalSearch
+					assert (bestFitnessAfterLocalSearch <= (bestFitnessBeforeLocalSearch
 							+ DELTA)) : "best fitness before applyLocalSearch() was: " + bestFitnessBeforeLocalSearch
 									+ ", now best fitness is " + bestFitnessAfterLocalSearch;
 			}
@@ -301,19 +305,19 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 			double newFitness = getBestFitness();
 			endtime = System.currentTimeMillis();
-			if(endtime - begintime >= interval) {
+			if (endtime - begintime >= interval) {
 				bestIndividual = getBestIndividual();
-				if(bestIndividual != null) {
-				progress.add(bestIndividual.getCoverage());
+				if (bestIndividual != null) {
+					progress.add(bestIndividual.getCoverage());
 				}
 				begintime = endtime;
 			}
 
 			if (getFitnessFunction().isMaximizationFunction())
-				assert(newFitness >= (bestFitness - DELTA)) : "best fitness was: " + bestFitness
+				assert (newFitness >= (bestFitness - DELTA)) : "best fitness was: " + bestFitness
 						+ ", now best fitness is " + newFitness;
 			else
-				assert(newFitness <= (bestFitness + DELTA)) : "best fitness was: " + bestFitness
+				assert (newFitness <= (bestFitness + DELTA)) : "best fitness was: " + bestFitness
 						+ ", now best fitness is " + newFitness;
 			bestFitness = newFitness;
 
@@ -327,6 +331,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			}
 
 			updateSecondaryCriterion(starvationCounter);
+			updateDistribution(distribution);
 
 			logger.info("Current iteration: " + currentIteration);
 			this.notifyIteration();
@@ -334,18 +339,45 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			logger.info("Population size: " + population.size());
 			logger.info("Best individual has fitness: " + population.get(0).getFitness());
 			logger.info("Worst individual has fitness: " + population.get(population.size() - 1).getFitness());
-			
 
 		}
 		bestIndividual = getBestIndividual();
-		if(bestIndividual != null) {
-		progress.add(bestIndividual.getCoverage());
+		if (bestIndividual != null) {
+			progress.add(bestIndividual.getCoverage());
 		}
 		this.setProgressInformation(progress);
+		this.setDistribution(distribution);
+		
 		// archive
 		TimeController.execute(this::updateBestIndividualFromArchive, "update from archive", 5_000);
 
 		notifySearchFinished();
+	}
+
+	private void updateDistribution(int[] distribution) {
+		if(distribution.length==0){
+			return;
+		}
+		
+		for(T individual: this.population){
+			TestSuiteChromosome testSuite = (TestSuiteChromosome)individual;
+			for(ExecutionResult result: testSuite.getLastExecutionResults()){
+				if(result != null){
+					for(int i=0; i<distribution.length/2; i++){
+						Integer trueNum = result.getTrace().getCoveredTrue().get(i+1);
+						if(trueNum != null){
+							distribution[i] += trueNum;
+						}
+						
+						Integer falseNum = result.getTrace().getCoveredFalse().get(i+1);
+						if(falseNum != null){
+							distribution[i+1] += falseNum;
+						}
+					}
+					
+				}
+			}
+		}
 	}
 
 	private double getBestFitness() {

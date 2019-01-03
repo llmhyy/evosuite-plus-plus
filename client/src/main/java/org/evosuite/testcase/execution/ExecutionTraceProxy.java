@@ -735,4 +735,14 @@ public class ExecutionTraceProxy implements ExecutionTrace, Cloneable {
 		return trace.getInitializedClasses();
 	}
 
+	@Override
+	public Map<Integer, Integer> getCoveredTrue() {
+		return trace.getCoveredTrue();
+	}
+
+	@Override
+	public Map<Integer, Integer> getCoveredFalse() {
+		return trace.getCoveredFalse();
+	}
+
 }

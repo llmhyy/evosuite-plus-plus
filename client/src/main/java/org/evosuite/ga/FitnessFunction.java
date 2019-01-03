@@ -97,6 +97,8 @@ public abstract class FitnessFunction<T extends Chromosome> implements Serializa
 	 */
 	public abstract boolean isMaximizationFunction();
 	
+//	public abstract boolean getGoalNum();
+	
 	/**
 	 * if the fitness function contains an archive, updates the archive and the fitness values of the population, and returns true.
 	 * if the fitness function doesn't contain an archive, return false.
@@ -107,4 +109,5 @@ public abstract class FitnessFunction<T extends Chromosome> implements Serializa
 	public boolean updateCoveredGoals(){
 		return false;
 	}
+
 }

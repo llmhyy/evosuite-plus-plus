@@ -121,4 +121,8 @@ public abstract class TestSuiteFitnessFunction extends
 	public boolean isMaximizationFunction() {
 		return false;
 	}
+
+	public int getTotalGoalNum() {
+		return 0;
+	}
 }

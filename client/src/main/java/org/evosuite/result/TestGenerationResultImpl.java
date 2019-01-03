@@ -37,6 +37,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	
 	private List<Double> progressInformation;
 	
+	private int[] distribution;
+	
 	private static final long serialVersionUID = 1306033906557741929L;
 
 	private Status status = Status.ERROR;
@@ -316,5 +318,14 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	public void setProgressInformation(List<Double> progressInformation) {
 		this.progressInformation = progressInformation;
 	}
+
+	public int[] getDistribution() {
+		return distribution;
+	}
+
+	public void setDistribution(int[] distribution) {
+		this.distribution = distribution;
+	}
+
 
 }

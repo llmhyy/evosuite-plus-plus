@@ -139,5 +139,10 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		
 		return null;
 	}
+	
+	@Override
+	public int getTotalGoalNum(){
+		return this.branchGoals.size();
+	}
 
 }
