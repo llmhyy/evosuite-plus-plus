@@ -140,9 +140,19 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			// The two offspring replace the parents if and only if one of
 			// the offspring is not worse than the best parent.
 			for (FitnessFunction<T> fitnessFunction : fitnessFunctions) {
+//				double d1_ = fitnessFunction.getFitness(parent1);
 				double d1 = fitnessFunction.getFitness(offspring1);
+//				if(d1<d1_ && d1==0){
+//					System.currentTimeMillis();
+//				}
+				
 				notifyEvaluation(offspring1);
+//				double d2_ = fitnessFunction.getFitness(parent2);
 				double d2 = fitnessFunction.getFitness(offspring2);
+//				if(d2<d2_ && d2==0){
+//					System.currentTimeMillis();
+//				}
+				
 				notifyEvaluation(offspring2);
 			}
 
@@ -279,7 +289,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 			{
 				double bestFitnessBeforeLocalSearch = getBestFitness();
-				applyLocalSearch();
+//				applyLocalSearch();
 				double bestFitnessAfterLocalSearch = getBestFitness();
 
 				if (getFitnessFunction().isMaximizationFunction())
@@ -366,12 +376,12 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 					for(int i=0; i<distribution.length/2; i++){
 						Integer trueNum = result.getTrace().getCoveredTrue().get(i+1);
 						if(trueNum != null){
-							distribution[i] += trueNum;
+							distribution[2*i] += trueNum;
 						}
 						
 						Integer falseNum = result.getTrace().getCoveredFalse().get(i+1);
 						if(falseNum != null){
-							distribution[i+1] += falseNum;
+							distribution[2*i+1] += falseNum;
 						}
 					}
 					
