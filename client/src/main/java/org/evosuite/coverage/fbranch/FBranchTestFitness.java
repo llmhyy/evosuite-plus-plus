@@ -62,6 +62,11 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	private double calculateInterproceduralFitness(BytecodeInstruction flagCallInstruction,
 			BranchCoverageGoal branchGoal, ExecutionResult result) {
 		RawControlFlowGraph calledGraph = flagCallInstruction.getCalledCFG();
+		if(calledGraph == null){
+			return 1;
+		}
+		
+//		System.currentTimeMillis();
 		Set<BytecodeInstruction> exits = calledGraph.determineExitPoints();
 
 		List<Double> returnFitnessList = new ArrayList<>();
@@ -87,7 +92,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		BytecodeInstruction sourceIns = getSource(calledGraph, returnIns);
 		Branch newDepBranch = sourceIns.getControlDependentBranch();
 		boolean goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		while(!checkCovered(result, newDepBranch)){
 			BytecodeInstruction originBranchIns = newDepBranch.getInstruction();
 			if(newDepBranch.getInstruction().getControlDependentBranch()==null){
@@ -170,7 +175,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		BytecodeInstruction instruction = goal.getBranch().getInstruction();
 		BytecodeInstruction interproceduralFlagCall = instruction.getSourceOfStackInstruction(0);
 		boolean isInterproceduralFlag = false;
-		if (interproceduralFlagCall.getASMNode() instanceof MethodInsnNode) {
+		if (interproceduralFlagCall != null && 
+				interproceduralFlagCall.getASMNode() instanceof MethodInsnNode) {
 			MethodInsnNode mNode = (MethodInsnNode)interproceduralFlagCall.getASMNode();
 			String desc = mNode.desc;
 			String returnType = getReturnType(desc);

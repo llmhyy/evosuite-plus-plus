@@ -76,7 +76,7 @@ public class ETest {
 	}
 
 	public static void main(String[] args) {
-		Class<?> clazz = Example.class;
+		Class<?> clazz = Example1.class;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = clazz.getMethods()[0];
