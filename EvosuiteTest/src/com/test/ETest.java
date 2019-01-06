@@ -36,7 +36,7 @@ public class ETest {
 		// Properties.TARGET_METHOD = targetClass+".test(DDI)V";
 		Properties.ALGORITHM = Algorithm.MONOTONICGA;
 		Properties.TRACK_COVERED_GRADIENT_BRANCHES = true;
-		Properties.CRITERION = new Criterion[] { Criterion.CBRANCH };
+		Properties.CRITERION = new Criterion[] { Criterion.FBRANCH };
 //		Properties.STRATEGY = Strategy.RANDOM;
 		
 
@@ -49,8 +49,9 @@ public class ETest {
 				"-projectCP", cp, 
 				"-Dtarget_method", targetMethod, 
 				"-Dsearch_budget", String.valueOf(seconds),
-				"-Dcriterion", "cbranch",
-				"-Dinstrument_context", String.valueOf(instrumentContext) 
+				"-Dcriterion", "fbranch",
+				"-Dinstrument_context", String.valueOf(instrumentContext), 
+				"-seed", "100"
 				};
 
 		// command = new String[] { "-generateSuite", "-class", targetClass,
@@ -62,7 +63,11 @@ public class ETest {
 			for (TestGenerationResult r : l) {
 				// System.out.println(r);
 				System.out.println(r.getProgressInformation());
-				System.out.println(r.getDistribution());
+				if(r.getDistribution() != null){
+					for(int i=0; i<r.getDistribution().length; i++){
+						System.out.println(r.getDistribution()[i]);					
+					}					
+				}
 				return new Tuple(r.getElapseTime(), r.getCoverage(), r.getGeneticAlgorithm().getAge());
 			}
 		}
@@ -71,8 +76,10 @@ public class ETest {
 	}
 
 	public static void main(String[] args) {
-		String targetClass = Example.class.getCanonicalName();
-		Method method = Example.class.getMethods()[0];
+		Class<?> clazz = Example.class;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = clazz.getMethods()[0];
 
 		String targetMethod = method.getName() + getSignature(method);
 		String cp = "bin";
@@ -113,10 +120,11 @@ public class ETest {
 		StringBuilder sb = new StringBuilder("(");
 		for (Class<?> c : m.getParameterTypes())
 			sb.append((sig = Array.newInstance(c, 0).toString()).substring(1, sig.indexOf('@')));
-		return sb.append(')')
+		String str = sb.append(')')
 				.append(m.getReturnType() == void.class ? "V"
 						: (sig = Array.newInstance(m.getReturnType(), 0).toString()).substring(1, sig.indexOf('@')))
 				.toString();
+		return str.replace(".", "/");
 	}
 
 }
