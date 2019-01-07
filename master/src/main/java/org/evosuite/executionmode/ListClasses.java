@@ -28,6 +28,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
@@ -65,7 +66,8 @@ public class ListClasses {
 			ClassPathHacker.addFile(target);
 		} catch (IOException e) {
 			// Ignore?
-		}
+		} 
+		System.setProperty("evo_targetClasses", StringUtils.join(classes, ","));
 		for (String sut : classes) {
 			try {
 				if (ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).isClassAnInterface(sut)) {

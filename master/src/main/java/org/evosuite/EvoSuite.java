@@ -94,7 +94,7 @@ public class EvoSuite {
         return outputFile.getAbsolutePath();
     }
 
-    private void setupProperties() {
+    public void setupProperties() {
         if (base_dir_path.equals("")) {
             Properties.getInstanceSilent();
         } else {
