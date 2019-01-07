@@ -1,7 +1,10 @@
 package com.test;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,7 +22,12 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.result.TestGenerationResult;
 import org.objectweb.asm.Type;
 
+import com.test.excel.ExcelWriter;
+
 public class EvosuiteForMethod {
+	private String workingDir = System.getProperty("user.dir");
+	private ExcelWriter distributionExcelWriter;
+	private ExcelWriter progressExcelWriter;
 
 	public static void main(String[] args) throws Exception {
 		EvosuiteForMethod tool = new EvosuiteForMethod();
@@ -28,10 +36,16 @@ public class EvosuiteForMethod {
 
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		
-		runAllMethods(targetClasses, truncatedArgs);
+		tool.runAllMethods(targetClasses, truncatedArgs);
 		System.out.println("Finish!");
 		System.exit(0);
+	}
+	
+	public EvosuiteForMethod() {
+		distributionExcelWriter = new ExcelWriter(new File(workingDir + "/distribution.xlsx"));
+		distributionExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
+		progressExcelWriter = new ExcelWriter(new File(workingDir + "/progress.xlsx"));
+		progressExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
 	}
 	
 	private CommandLine parseCommandLine(String[] args) {
@@ -87,7 +101,7 @@ public class EvosuiteForMethod {
 		return targetClasses;
 	}
 
-	public static void runAllMethods(String[] targetClasses, String[] args) throws Exception {
+	public void runAllMethods(String[] targetClasses, String[] args) throws Exception {
 		List<String> allMethods = new ArrayList<>();
 //		String testMethod = "com.ib.client.EWrapper" + "#" + "tickPrice(IIDI)V";
 //		String testMethod = "com.ib.client.ExecutionFilter#equals(Ljava/lang/Object;)Z";
@@ -103,16 +117,15 @@ public class EvosuiteForMethod {
 			for (Method method : targetClass.getMethods()) {
 				String methodName = method.getName() + Type.getMethodDescriptor(method);
 				String methodId = targetClass.getName() + "#" + methodName;
-//				                                                                                                 
 				allMethods.add(methodId);
-				FileUtils.writeFile(System.getProperty("user.dir") + "/allMethods.txt", methodId + "\n", true);
+				FileUtils.writeFile(workingDir + "/allMethods.txt", methodId + "\n", true);
 				runMethod(methodName, className, args);
 			}
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void runMethod(String methodName, String className, String[] evosuiteArgs) {
+	private void runMethod(String methodName, String className, String[] evosuiteArgs) {
 		System.out.println("Run method: " + className + "#" + methodName);
 		// $EVOSUITE -criterion branch -target tullibee.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore
 		String[] args = ArrayUtils.addAll(evosuiteArgs, 
@@ -126,16 +139,32 @@ public class EvosuiteForMethod {
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
 		for (List<TestGenerationResult> l : list) {
 			for (TestGenerationResult r : l) {
-				// System.out.println(r);
+				if (r.getDistribution() == null || r.getDistribution().length == 0) {
+					continue; // ignore
+				}
 				System.out.println(r.getProgressInformation());
-				if(r.getDistribution() != null){
-					for(int i=0; i<r.getDistribution().length; i++){
-						System.out.println(r.getDistribution()[i]);					
-					}					
+				for(int i=0; i<r.getDistribution().length; i++){
+					System.out.println(r.getDistribution()[i]);					
+				}	
+				List<Object> progressRowData = new ArrayList<>();
+				progressRowData.add(className);
+				progressRowData.add(methodName);
+				progressRowData.addAll(r.getProgressInformation());
+				List<Object> distributionRowData = new ArrayList<>();
+				distributionRowData.add(className);
+				distributionRowData.add(methodName);
+				for (int distr : r.getDistribution()) {
+					distributionRowData.add(distr);
+				}
+				try {
+					progressExcelWriter.writeSheet("data", Arrays.asList(progressRowData));
+					distributionExcelWriter.writeSheet("data", Arrays.asList(distributionRowData));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		}
 	}
-
 
 }
