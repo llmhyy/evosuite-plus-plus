@@ -103,7 +103,7 @@ public class TestCodeVisitorTest {
         tc.accept(visitor); //should not throw exception        
     }
 
-//    @Test
+    @Test
     public void testGenerics_staticMethod() throws NoSuchMethodException, ConstructionFailedException {
 
         //first construct a test case for the Generic method
@@ -135,7 +135,7 @@ public class TestCodeVisitorTest {
         System.out.println(visitor.getCode());
     }
 
-//    @Test
+    @Test
     public void testGenerics_staticMethodWithExtends() throws NoSuchMethodException, ConstructionFailedException {
 
         //first construct a test case for the Generic method
