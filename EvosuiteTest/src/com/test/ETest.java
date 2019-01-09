@@ -34,22 +34,24 @@ public class ETest {
 		EvoSuite evo = new EvoSuite();
 		Properties.TARGET_CLASS = targetClass;
 		// Properties.TARGET_METHOD = targetClass+".test(DDI)V";
-		Properties.ALGORITHM = Algorithm.MONOTONICGA;
+//		Properties.ALGORITHM = Algorithm.MONOTONICGA;
+//		Properties.ALGORITHM = Algorithm.RANDOM;
 		Properties.TRACK_COVERED_GRADIENT_BRANCHES = true;
-		Properties.CRITERION = new Criterion[] { Criterion.FBRANCH };
+		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 //		Properties.STRATEGY = Strategy.RANDOM;
 		
 
 		String[] command = new String[] { 
-//				"-generateRandom",
-				"-generateSuite",
+				"-generateRandom",
+//				"-generateSuite",
 				// "-generateMOSuite",
 //				"-generateSuiteUsingDSE",
+				"-Dstrategy", "random",
 				"-class", targetClass, 
 				"-projectCP", cp, 
 				"-Dtarget_method", targetMethod, 
 				"-Dsearch_budget", String.valueOf(seconds),
-				"-Dcriterion", "fbranch",
+				"-Dcriterion", "branch",
 				"-Dinstrument_context", String.valueOf(instrumentContext), 
 				"-seed", "100"
 				};
@@ -76,7 +78,7 @@ public class ETest {
 	}
 
 	public static void main(String[] args) {
-		Class<?> clazz = Example1.class;
+		Class<?> clazz = Example.class;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = clazz.getMethods()[0];
@@ -90,7 +92,7 @@ public class ETest {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-		int timeBudget = 30000;
+		int timeBudget = 30;
 		ETest t = new ETest();
 		Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
 		

@@ -38,6 +38,7 @@ import org.evosuite.testcase.factories.JUnitTestCarvedChromosomeFactory;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
+import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.evosuite.utils.LoggingUtils;
@@ -60,7 +61,7 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		LoggingUtils.getEvoLogger().info("* Using random test generation");
 
 		List<TestSuiteFitnessFunction> fitnessFunctions = getFitnessFunctions();
-
+		
 		TestSuiteChromosome suite = new TestSuiteChromosome();
 		for (TestSuiteFitnessFunction fitnessFunction : fitnessFunctions)
 			suite.addFitness( fitnessFunction);
@@ -95,6 +96,13 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		long begintime = System.currentTimeMillis();
 		long endtime = System.currentTimeMillis();
 
+		int goalSize = 0;
+		if(!fitnessFunctions.isEmpty()){
+			TestSuiteFitnessFunction tfFunction = fitnessFunctions.get(0);			
+			goalSize = tfFunction.getTotalGoalNum();
+		}
+		int[] distribution = new int[goalSize];
+		
 		int number_generations = 0;
 		while (!isFinished(suite, stoppingCondition)) {
 			number_generations++;
@@ -116,6 +124,9 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 				progress.add(suite.getCoverage());
 				begintime = endtime;
 			}
+			
+			updateDistribution(distribution, clone);
+			
 		}
 		progress.add(suite.getCoverage());
 		//statistics.searchFinished(suiteGA);
@@ -131,9 +142,32 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Generations, number_generations);
 
 		//TODO guanjie
-		suite.setDistribution(null);
+		suite.setDistribution(distribution);
 		suite.setProgressInfomation(progress);
 		return suite;	
+	}
+	
+	private void updateDistribution(int[] distribution, TestSuiteChromosome clone) {
+		if(distribution.length==0){
+			return;
+		}
+		
+		for(ExecutionResult result: clone.getLastExecutionResults()){
+			if(result != null){
+				for(int i=0; i<distribution.length/2; i++){
+					Integer trueNum = result.getTrace().getCoveredTrue().get(i+1);
+					if(trueNum != null){
+						distribution[2*i] += trueNum;
+					}
+					
+					Integer falseNum = result.getTrace().getCoveredFalse().get(i+1);
+					if(falseNum != null){
+						distribution[2*i+1] += falseNum;
+					}
+				}
+				
+			}
+		}
 	}
 
 	protected ChromosomeFactory<TestChromosome> getChromosomeFactory() {
