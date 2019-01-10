@@ -24,19 +24,27 @@ import org.objectweb.asm.Type;
 
 import com.test.excel.ExcelWriter;
 
+@SuppressWarnings("deprecation")
 public class EvosuiteForMethod {
-	private String workingDir = System.getProperty("user.dir");
+	public static final String LIST_METHODS_FILE_NAME = "targetMethods.txt";
+	static String workingDir = System.getProperty("user.dir");
 	private ExcelWriter distributionExcelWriter;
 	private ExcelWriter progressExcelWriter;
 
 	public static void main(String[] args) throws Exception {
-		EvosuiteForMethod tool = new EvosuiteForMethod();
-		String[] targetClasses = tool.listAllTargetClasses(args);
-		String[] truncatedArgs = tool.extractArgs(args);
-
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		tool.runAllMethods(targetClasses, truncatedArgs);
+		EvosuiteForMethod evoTest = new EvosuiteForMethod();
+		if (hasOpt(args, ListMethods.OPT_NAME)) {
+			args = evoTest.extractListMethodsArgs(args);
+			String[] targetClasses = evoTest.listAllTargetClasses(args);
+			ListMethods.execute(targetClasses);
+		} else {
+			String[] targetClasses = evoTest.listAllTargetClasses(args);
+			String[] truncatedArgs = evoTest.extractArgs(args);
+			evoTest.runAllMethods(targetClasses, truncatedArgs);
+		}
+		
 		System.out.println("Finish!");
 		System.exit(0);
 	}
@@ -86,6 +94,26 @@ public class EvosuiteForMethod {
 		return newArgs.toArray(new String[newArgs.size()]);
 	}
 	
+	private String[] extractListMethodsArgs(String[] args) throws Exception {
+		List<String> newArgs = new ArrayList<>();
+		for (int i = 0; i < args.length; i++) {
+			if (ListMethods.OPT_NAME.equals(args[i])) {
+				continue;
+			}
+			newArgs.add(args[i]);
+		}
+		return newArgs.toArray(new String[newArgs.size()]);
+	}
+	
+	private static boolean hasOpt(String[] args, String opt) throws Exception {
+		for (int i = 0; i < args.length; i++) {
+			if (opt.equals(args[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private String[] listAllTargetClasses(String[] args) {
 		CommandLine cmd = parseCommandLine(args);
 		if (cmd.hasOption("class")) {
@@ -97,12 +125,10 @@ public class EvosuiteForMethod {
 		EvoSuite evosuite = new EvoSuite();
 		evosuite.parseCommandLine(listClassesArgs);
 		String[] targetClasses = System.getProperty("evo_targetClasses").split(",");
-		System.out.println(StringUtils.join(targetClasses, "\n"));
 		return targetClasses;
 	}
 
 	public void runAllMethods(String[] targetClasses, String[] args) throws Exception {
-		List<String> allMethods = new ArrayList<>();
 //		String testMethod = "com.ib.client.EWrapper" + "#" + "tickPrice(IIDI)V";
 //		String testMethod = "com.ib.client.ExecutionFilter#equals(Ljava/lang/Object;)Z";
 		for (String className : targetClasses) {
@@ -114,12 +140,12 @@ public class EvosuiteForMethod {
 //			if (!className.equals("com.ib.client.ExecutionFilter")) {
 //				continue;
 //			}
+			List<String> testableMethod = ListMethods.listTestableMethods(targetClass);
 			for (Method method : targetClass.getMethods()) {
 				String methodName = method.getName() + Type.getMethodDescriptor(method);
-				String methodId = targetClass.getName() + "#" + methodName;
-				allMethods.add(methodId);
-				FileUtils.writeFile(workingDir + "/allMethods.txt", methodId + "\n", true);
-				runMethod(methodName, className, args);
+				if (testableMethod.contains(methodName)) {
+					runMethod(methodName, className, args);
+				}
 			}
 		}
 	}
@@ -131,7 +157,7 @@ public class EvosuiteForMethod {
 		String[] args = ArrayUtils.addAll(evosuiteArgs, 
 				"-class", className,
 				"-Dtarget_method", methodName
-				,"-Dsearch_budget", String.valueOf(10)
+//				,"-Dsearch_budget", String.valueOf(10)
 				,"-Dstop_zero", "false"
 				);
 		System.out.println("Run Cmd.." + StringUtils.join((Object[]) args, " "));
@@ -166,5 +192,4 @@ public class EvosuiteForMethod {
 			}
 		}
 	}
-
 }

@@ -96,6 +96,7 @@ public class ExcelWriter {
 					out.close();
 				}
 			} catch (IOException e) {
+				System.out.println(e.getMessage());
 			}
 		}
 	}
