@@ -3,6 +3,8 @@ package com.test;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,7 +20,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.evosuite.CommandLineParameters;
 import org.evosuite.EvoSuite;
-import org.evosuite.TestGenerationContext;
+import org.evosuite.Properties;
 import org.evosuite.result.TestGenerationResult;
 import org.objectweb.asm.Type;
 
@@ -30,15 +32,17 @@ public class EvosuiteForMethod {
 	static String workingDir = System.getProperty("user.dir");
 	private ExcelWriter distributionExcelWriter;
 	private ExcelWriter progressExcelWriter;
+	private URLClassLoader evoTestClassLoader;
 
 	public static void main(String[] args) throws Exception {
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		
 		EvosuiteForMethod evoTest = new EvosuiteForMethod();
 		if (hasOpt(args, ListMethods.OPT_NAME)) {
 			args = evoTest.extractListMethodsArgs(args);
 			String[] targetClasses = evoTest.listAllTargetClasses(args);
-			ListMethods.execute(targetClasses);
+			ListMethods.execute(targetClasses, evoTest.evoTestClassLoader);
 		} else {
 			String[] targetClasses = evoTest.listAllTargetClasses(args);
 			String[] truncatedArgs = evoTest.extractArgs(args);
@@ -116,9 +120,8 @@ public class EvosuiteForMethod {
 	
 	private String[] listAllTargetClasses(String[] args) {
 		CommandLine cmd = parseCommandLine(args);
+		ensureClasspath(cmd);
 		if (cmd.hasOption("class")) {
-			new EvoSuite().setupProperties();
-			CommandLineParameters.handleClassPath(cmd); // ensure classpath
 			return new String[] {cmd.getOptionValue("class")};
 		}
 		String[] listClassesArgs = ArrayUtils.addAll(args, "-listClasses");
@@ -128,11 +131,26 @@ public class EvosuiteForMethod {
 		return targetClasses;
 	}
 
+	private void ensureClasspath(CommandLine cmd) {
+		new EvoSuite().setupProperties();
+		CommandLineParameters.handleClassPath(cmd); // ensure classpath
+		List<URL> urls = new ArrayList<>();
+		for (String classPathElement : Properties.CP.split(File.pathSeparator)) {
+			try {
+				File f = new File(classPathElement);
+				urls.add(f.toURI().toURL());
+			} catch (IOException e) {
+				System.out.println("Warning: Cannot load path " + classPathElement);
+			}
+		}
+		evoTestClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
+	}
+
 	public void runAllMethods(String[] targetClasses, String[] args) throws Exception {
 //		String testMethod = "com.ib.client.EWrapper" + "#" + "tickPrice(IIDI)V";
 //		String testMethod = "com.ib.client.ExecutionFilter#equals(Ljava/lang/Object;)Z";
 		for (String className : targetClasses) {
-			Class<?> targetClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
+			Class<?> targetClass = evoTestClassLoader.loadClass(className);
 			// ignore
 			if (targetClass.isInterface()) {
 				continue;

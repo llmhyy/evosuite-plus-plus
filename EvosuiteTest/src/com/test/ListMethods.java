@@ -20,22 +20,39 @@ public class ListMethods {
 
 	public static final String OPT_NAME = ParameterOptions.LIST_METHODS_OPT;
 
-	public static void execute(String[] targetClasses) throws ClassNotFoundException, IOException {
+	public static void execute(String[] targetClasses, ClassLoader classLoader) throws ClassNotFoundException, IOException {
+		String localMethodsFile = FileUtils.getFilePath(EvosuiteForMethod.workingDir, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
+		String rootFolder = new File(EvosuiteForMethod.workingDir).getParentFile().getAbsolutePath();
+		String globalMethodsFile = FileUtils.getFilePath(rootFolder, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
+		String logFile = FileUtils.getFilePath(rootFolder, "listMethods.log");
+		StringBuilder sb = new StringBuilder();
+		sb.append("#------------------------------------------------------------------------\n")
+			.append("#Working.dir=").append(EvosuiteForMethod.workingDir).append("\n")
+			.append("#------------------------------------------------------------------------\n");
+		FileUtils.writeFile(logFile, sb.toString(), true);
+		FileUtils.writeFile(globalMethodsFile, sb.toString(), true);
 		for (String className : targetClasses) {
-			Class<?> targetClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
-			if (targetClass.isInterface()) {
-				/* although Evosuite does filter to get only testable classes, listClasses still contains interface 
-				 * which leads to error when executing Evosuite, that's why we need to add this additional check here */
-				continue;
+			try {
+				Class<?> targetClass = classLoader.loadClass(className);
+				if (targetClass.isInterface()) {
+					/* although Evosuite does filter to get only testable classes, listClasses still contains interface 
+					 * which leads to error when executing Evosuite, that's why we need to add this additional check here */
+					continue;
+				}
+				System.out.println("Class " + targetClass.getName());
+				List<String> testableMethods = listTestableMethods(targetClass);
+				sb = new StringBuilder();
+				for (String methodName : testableMethods) {
+					sb.append(getMethodId(className, methodName)).append("\n");
+				}
+				FileUtils.writeFile(localMethodsFile, sb.toString(), true);
+				FileUtils.writeFile(globalMethodsFile, sb.toString(), true);
+			} catch (Throwable t) {
+				sb = new StringBuilder();
+				sb.append("Error when executing class ").append(className);
+				sb.append(t.getMessage());
+				FileUtils.writeFile(logFile, sb.toString(), true);
 			}
-			System.out.println("Class " + targetClass.getName());
-			List<String> testableMethods = listTestableMethods(targetClass);
-			StringBuilder sb = new StringBuilder();
-			for (String methodName : testableMethods) {
-				sb.append(getMethodId(className, methodName)).append("\n");
-			}
-			FileUtils.writeFile(EvosuiteForMethod.workingDir + File.pathSeparator + EvosuiteForMethod.LIST_METHODS_FILE_NAME,
-					sb.toString(), true);
 		}
 	}
 	
@@ -65,9 +82,9 @@ public class ListMethods {
 						}
 					}
 				} 
-				if (!isValidMethod) {
-					System.out.println("ingore method: " + methodName);
-				}
+//				if (!isValidMethod) {
+//					System.out.println("ingore method: " + methodName);
+//				}
 			}
 		} finally {
 			is.close(); 

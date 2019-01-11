@@ -7,6 +7,15 @@ import java.io.IOException;
 
 public class FileUtils {
 	
+	public static String getFilePath(String... fragments) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < fragments.length - 1; i++) {
+			sb.append(fragments[i]).append(File.separator);
+		}
+		sb.append(fragments[fragments.length - 1]);
+		return sb.toString();
+	}
+	
 	public static void writeFile(String fileName, String content, boolean append) {
 		File file = getFileCreateIfNotExist(fileName);
 		FileOutputStream stream;
