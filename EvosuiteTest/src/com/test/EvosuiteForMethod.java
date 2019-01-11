@@ -33,11 +33,13 @@ public class EvosuiteForMethod {
 	private ExcelWriter distributionExcelWriter;
 	private ExcelWriter progressExcelWriter;
 	private URLClassLoader evoTestClassLoader;
+	private String logFile;
 
 	public static void main(String[] args) throws Exception {
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		
+		String projectFolder = new File(workingDir).getName();
+		String projectName = projectFolder.substring(projectFolder.indexOf("_") + 1);
 		EvosuiteForMethod evoTest = new EvosuiteForMethod();
 		if (hasOpt(args, ListMethods.OPT_NAME)) {
 			args = evoTest.extractListMethodsArgs(args);
@@ -46,7 +48,7 @@ public class EvosuiteForMethod {
 		} else {
 			String[] targetClasses = evoTest.listAllTargetClasses(args);
 			String[] truncatedArgs = evoTest.extractArgs(args);
-			evoTest.runAllMethods(targetClasses, truncatedArgs);
+			evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
 		}
 		
 		System.out.println("Finish!");
@@ -58,6 +60,7 @@ public class EvosuiteForMethod {
 		distributionExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
 		progressExcelWriter = new ExcelWriter(new File(workingDir + "/progress.xlsx"));
 		progressExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
+		logFile = workingDir + "/EvoTestForMethod.log";
 	}
 	
 	private CommandLine parseCommandLine(String[] args) {
@@ -146,7 +149,7 @@ public class EvosuiteForMethod {
 		evoTestClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 	}
 
-	public void runAllMethods(String[] targetClasses, String[] args) throws Exception {
+	public void runAllMethods(String[] targetClasses, String[] args, String projectName) throws Exception {
 //		String testMethod = "com.ib.client.EWrapper" + "#" + "tickPrice(IIDI)V";
 //		String testMethod = "com.ib.client.ExecutionFilter#equals(Ljava/lang/Object;)Z";
 		for (String className : targetClasses) {
@@ -162,7 +165,16 @@ public class EvosuiteForMethod {
 			for (Method method : targetClass.getMethods()) {
 				String methodName = method.getName() + Type.getMethodDescriptor(method);
 				if (testableMethod.contains(methodName)) {
-					runMethod(methodName, className, args);
+					try {
+						runMethod(methodName, className, args);
+					} catch (Throwable t) {
+						t.printStackTrace();
+						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
+								.append("#").append(methodName).append("\n")
+								.append("Error: \n")
+								.append(t.getMessage()).toString();
+						FileUtils.writeFile(logFile, msg, true);
+					}
 				}
 			}
 		}

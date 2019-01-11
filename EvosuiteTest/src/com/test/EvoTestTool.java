@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 public class EvoTestTool {
 	
 	public static void main(String[] args) throws IOException {
-		if ("-cleanupProp".equals(args[0])) {
+		if ("-refineProp".equals(args[0])) {
 			cleanUpPropertiesFile(args[1]); // SF100 path
 		}
 		System.out.println("Finish!");
