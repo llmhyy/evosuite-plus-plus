@@ -97,7 +97,7 @@
 
 	<!-- Loggers  -->
 
-	<logger name="evo_logger" level="ALL" additivity="false">
+	<logger name="evo_logger" level="ALL" additivity="true">
 		<appender-ref ref="EVO_LOGGER_${evosuite.log.appender:-MASTER}" />
 	</logger>
 

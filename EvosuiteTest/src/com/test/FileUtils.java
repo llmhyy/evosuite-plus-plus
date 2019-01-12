@@ -16,6 +16,22 @@ public class FileUtils {
 		return sb.toString();
 	}
 	
+	public static File newFile(String... fragments) {
+		return new File(getFilePath(fragments));
+	}
+	
+	public static File createFolder(String folderPath) {
+		File folder = new File(folderPath);
+		if (folder.exists()) {
+			if (folder.isDirectory()) {
+				return folder;
+			}
+			throw new RuntimeException(String.format("Path %s is not a folder!", folderPath));
+		}
+		folder.mkdirs();
+		return folder;
+	}
+	
 	public static void writeFile(String fileName, String content, boolean append) {
 		File file = getFileCreateIfNotExist(fileName);
 		FileOutputStream stream;

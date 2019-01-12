@@ -1,12 +1,12 @@
 package com.test;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.evosuite.EvoSuite;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
 import org.objectweb.asm.ClassReader;
@@ -21,16 +21,15 @@ public class ListMethods {
 	public static final String OPT_NAME = ParameterOptions.LIST_METHODS_OPT;
 
 	public static void execute(String[] targetClasses, ClassLoader classLoader) throws ClassNotFoundException, IOException {
-		String localMethodsFile = FileUtils.getFilePath(EvosuiteForMethod.workingDir, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
-		String rootFolder = new File(EvosuiteForMethod.workingDir).getParentFile().getAbsolutePath();
-		String globalMethodsFile = FileUtils.getFilePath(rootFolder, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
-		String logFile = FileUtils.getFilePath(rootFolder, "listMethods.log");
+		String projectMethodsFile = FileUtils.getFilePath(EvoSuite.base_dir_path, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
+		String allTargetMethodsFile = FileUtils.getFilePath(EvosuiteForMethod.outputFolder, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
+		String logFile = FileUtils.getFilePath(EvosuiteForMethod.outputFolder, EvosuiteForMethod.projectId +"_listMethods.log");
 		StringBuilder sb = new StringBuilder();
 		sb.append("#------------------------------------------------------------------------\n")
-			.append("#Working.dir=").append(EvosuiteForMethod.workingDir).append("\n")
+			.append("#Project=").append(EvosuiteForMethod.projectName).append("\n")
 			.append("#------------------------------------------------------------------------\n");
 		FileUtils.writeFile(logFile, sb.toString(), true);
-		FileUtils.writeFile(globalMethodsFile, sb.toString(), true);
+		FileUtils.writeFile(allTargetMethodsFile, sb.toString(), true);
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = classLoader.loadClass(className);
@@ -45,13 +44,14 @@ public class ListMethods {
 				for (String methodName : testableMethods) {
 					sb.append(getMethodId(className, methodName)).append("\n");
 				}
-				FileUtils.writeFile(localMethodsFile, sb.toString(), true);
-				FileUtils.writeFile(globalMethodsFile, sb.toString(), true);
+				FileUtils.writeFile(projectMethodsFile, sb.toString(), true);
+				FileUtils.writeFile(allTargetMethodsFile, sb.toString(), true);
 			} catch (Throwable t) {
 				sb = new StringBuilder();
 				sb.append("Error when executing class ").append(className);
 				sb.append(t.getMessage());
 				FileUtils.writeFile(logFile, sb.toString(), true);
+				t.printStackTrace();
 			}
 		}
 	}
