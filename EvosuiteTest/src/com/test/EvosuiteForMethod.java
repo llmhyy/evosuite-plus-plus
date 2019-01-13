@@ -23,44 +23,108 @@ import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.result.TestGenerationResult;
 import org.objectweb.asm.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.test.excel.ExcelWriter;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
+import ch.qos.logback.core.rolling.RollingFileAppender;
+import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
+import ch.qos.logback.core.util.OptionHelper;
+
 @SuppressWarnings("deprecation")
 public class EvosuiteForMethod {
+	private static Logger log;
 	public static final String LIST_METHODS_FILE_NAME = "targetMethods.txt";
-	static String workingDir = System.getProperty("user.dir");
+	static String projectName;
+	static String outputFolder;
+	static String projectId; // ex: 1_tullibee
+	static FilterConfiguration filter;
 	private ExcelWriter distributionExcelWriter;
 	private ExcelWriter progressExcelWriter;
 	private URLClassLoader evoTestClassLoader;
-	private String logFile;
 
-	public static void main(String[] args) throws Exception {
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		String projectFolder = new File(workingDir).getName();
-		String projectName = projectFolder.substring(projectFolder.indexOf("_") + 1);
-		EvosuiteForMethod evoTest = new EvosuiteForMethod();
-		if (hasOpt(args, ListMethods.OPT_NAME)) {
-			args = evoTest.extractListMethodsArgs(args);
-			String[] targetClasses = evoTest.listAllTargetClasses(args);
-			ListMethods.execute(targetClasses, evoTest.evoTestClassLoader);
-		} else {
-			String[] targetClasses = evoTest.listAllTargetClasses(args);
-			String[] truncatedArgs = evoTest.extractArgs(args);
-			evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
+	public static void main(String[] args) {
+		try {
+			setup();
+	//		Properties.CLIENT_ON_THREAD = true;
+	//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+			EvosuiteForMethod evoTest = new EvosuiteForMethod();
+			if (hasOpt(args, ListMethods.OPT_NAME)) {
+				args = evoTest.extractListMethodsArgs(args);
+				String[] targetClasses = evoTest.listAllTargetClasses(args);
+				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader);
+			} else {
+				if (filter.contains(projectId)) {
+					return;
+				}
+				String[] targetClasses = evoTest.listAllTargetClasses(args);
+				String[] truncatedArgs = evoTest.extractArgs(args);
+				evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
+			}
+		} catch (Throwable e) {
+			log.error("Error!", e);
 		}
 		
-		System.out.println("Finish!");
+		log.info("Finish!");
 		System.exit(0);
+	}
+
+	private static void setup() throws IOException {
+		String workingDir = System.getProperty("user.dir");
+		projectId = new File(workingDir).getName();
+		projectName = projectId.substring(projectId.indexOf("_") + 1);
+		String root = new File(workingDir).getParentFile().getAbsolutePath();
+		outputFolder = root + "/evoTest-reports";
+		File folder = new File(outputFolder);
+		if (!folder.exists()) {
+			folder.mkdir();
+		}
+		setupLogger();
+		filter = new FilterConfiguration(root + "/exclusives.txt");
+	}
+
+	private static void setupLogger() {
+		/* just to trigger Evosuite for it to setup Logger before we hack */
+		String base_dir_path = EvoSuite.base_dir_path; 
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		RollingFileAppender<ILoggingEvent> appender = new RollingFileAppender<ILoggingEvent>();
+		appender.setContext(context);
+		appender.setName("evoTest-file");
+		String logFile = FileUtils.getFilePath(outputFolder, projectId + ".log");
+		appender.setFile(logFile);
+		PatternLayoutEncoder encoder = new PatternLayoutEncoder();
+		String logPattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0} - %msg%n";
+		encoder.setPattern(OptionHelper.substVars(logPattern, context));
+		encoder.setContext(context);
+		encoder.start();
+		appender.setEncoder(encoder);
+		// rollingPolicy
+		FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
+		rollingPolicy.setFileNamePattern(logFile + ".%i");
+		appender.setRollingPolicy(rollingPolicy);
+		rollingPolicy.setParent(appender);
+		// triggeringPolicy
+		SizeBasedTriggeringPolicy<ILoggingEvent> triggeringPolicy = new SizeBasedTriggeringPolicy<ILoggingEvent>();
+		triggeringPolicy.setMaxFileSize("10MB");
+		appender.setTriggeringPolicy(triggeringPolicy);
+		
+		appender.start();
+		context.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME).addAppender(appender);
+		log =  LoggerFactory.getLogger(EvosuiteForMethod.class);
+		((ch.qos.logback.classic.Logger)log).setLevel(Level.ALL);
 	}
 	
 	public EvosuiteForMethod() {
-		distributionExcelWriter = new ExcelWriter(new File(workingDir + "/distribution.xlsx"));
+		distributionExcelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_distribution.xlsx"));
 		distributionExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
-		progressExcelWriter = new ExcelWriter(new File(workingDir + "/progress.xlsx"));
+		progressExcelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_progress.xlsx"));
 		progressExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
-		logFile = workingDir + "/EvoTestForMethod.log";
 	}
 	
 	private CommandLine parseCommandLine(String[] args) {
@@ -143,46 +207,63 @@ public class EvosuiteForMethod {
 				File f = new File(classPathElement);
 				urls.add(f.toURI().toURL());
 			} catch (IOException e) {
-				System.out.println("Warning: Cannot load path " + classPathElement);
+				log.info("Warning: Cannot load path " + classPathElement);
 			}
 		}
 		evoTestClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 	}
 
-	public void runAllMethods(String[] targetClasses, String[] args, String projectName) throws Exception {
+	public void runAllMethods(String[] targetClasses, String[] args, String projectName) {
 //		String testMethod = "com.ib.client.EWrapper" + "#" + "tickPrice(IIDI)V";
 //		String testMethod = "com.ib.client.ExecutionFilter#equals(Ljava/lang/Object;)Z";
 		for (String className : targetClasses) {
-			Class<?> targetClass = evoTestClassLoader.loadClass(className);
-			// ignore
-			if (targetClass.isInterface()) {
+			String classId = projectName + "#" + className;
+			if (filter.contains(classId)) {
 				continue;
 			}
-//			if (!className.equals("com.ib.client.ExecutionFilter")) {
+			try {
+				Class<?> targetClass = evoTestClassLoader.loadClass(className);
+				// ignore
+				if (targetClass.isInterface()) {
+					continue;
+				}
+//			if (!className.equals("simulator.CA.BehaviourReceiveSavePersonalDataRequest")) {
 //				continue;
 //			}
-			List<String> testableMethod = ListMethods.listTestableMethods(targetClass);
-			for (Method method : targetClass.getMethods()) {
-				String methodName = method.getName() + Type.getMethodDescriptor(method);
-				if (testableMethod.contains(methodName)) {
-					try {
-						runMethod(methodName, className, args);
-					} catch (Throwable t) {
-						t.printStackTrace();
-						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
-								.append("#").append(methodName).append("\n")
-								.append("Error: \n")
-								.append(t.getMessage()).toString();
-						FileUtils.writeFile(logFile, msg, true);
+				List<String> testableMethod = ListMethods.listTestableMethods(targetClass);
+				for (Method method : targetClass.getMethods()) {
+					String methodName = method.getName() + Type.getMethodDescriptor(method);
+					String methodId = classId + "#" + methodName;
+					if (filter.contains(methodId)) {
+						continue;
+					}
+					if (testableMethod.contains(methodName)) {
+//					if (!methodName.equals("action()V")) {
+//						continue;
+//					}
+						try {
+							runMethod(methodName, className, args);
+						} catch (Throwable t) {
+							t.printStackTrace();
+							String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
+									.append("#").append(methodName).append("\n")
+									.append("Error: \n")
+									.append(t.getMessage()).toString();
+						}
 					}
 				}
+			} catch (Throwable t) {
+				log.error("Error!", t);
 			}
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	private void runMethod(String methodName, String className, String[] evosuiteArgs) {
-		System.out.println("Run method: " + className + "#" + methodName);
+		log.info("----------------------------------------------------------------------");
+		log.info("RUN METHOD: " + className + "#" + methodName);
+		log.info("----------------------------------------------------------------------");
+		
 		// $EVOSUITE -criterion branch -target tullibee.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore
 		String[] args = ArrayUtils.addAll(evosuiteArgs, 
 				"-class", className,
@@ -190,7 +271,7 @@ public class EvosuiteForMethod {
 //				,"-Dsearch_budget", String.valueOf(10)
 				,"-Dstop_zero", "false"
 				);
-		System.out.println("Run Cmd.." + StringUtils.join((Object[]) args, " "));
+		log.info("evosuite args: " + StringUtils.join((Object[]) args, " "));
 		EvoSuite evosuite = new EvoSuite();
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
 		for (List<TestGenerationResult> l : list) {
@@ -198,9 +279,9 @@ public class EvosuiteForMethod {
 				if (r.getDistribution() == null || r.getDistribution().length == 0) {
 					continue; // ignore
 				}
-				System.out.println(r.getProgressInformation());
+				log.info("" +r.getProgressInformation());
 				for(int i=0; i<r.getDistribution().length; i++){
-					System.out.println(r.getDistribution()[i]);					
+					log.info("" +r.getDistribution()[i]);					
 				}	
 				List<Object> progressRowData = new ArrayList<>();
 				progressRowData.add(className);
@@ -216,7 +297,6 @@ public class EvosuiteForMethod {
 					progressExcelWriter.writeSheet("data", Arrays.asList(progressRowData));
 					distributionExcelWriter.writeSheet("data", Arrays.asList(distributionRowData));
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
