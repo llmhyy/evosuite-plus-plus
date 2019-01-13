@@ -657,13 +657,13 @@ public class TestClusterGenerator {
 
 				Class<?> clazz;
 				try {
-					Sandbox.goingToExecuteUnsafeCodeOnSameThread();
+//					Sandbox.goingToExecuteUnsafeCodeOnSameThread();
 					clazz = TestClusterUtils.getClass(className);
 				} catch (ExceptionInInitializerError ex) {
 					logger.debug("Class class init caused exception " + className);
 					continue;
 				} finally {
-					Sandbox.doneWithExecutingUnsafeCodeOnSameThread();
+//					Sandbox.doneWithExecutingUnsafeCodeOnSameThread();
 				}
 				if (clazz == null) {
 					logger.debug("Class not found " + className);

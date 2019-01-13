@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.math.complex.Complex;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Algorithm;
@@ -42,17 +43,21 @@ public class ETest {
 		
 
 		String[] command = new String[] { 
-				"-generateRandom",
-//				"-generateSuite",
+//				"-generateRandom",
+				"-generateSuite",
 				// "-generateMOSuite",
 //				"-generateSuiteUsingDSE",
-				"-Dstrategy", "random",
+//				"-Dstrategy", "random",
 				"-class", targetClass, 
-				"-projectCP", cp, 
+				"-projectCP", "bin", //;lib/commons-math-2.2.jar
+//				"-setup", "bin", "lib/commons-math-2.2.jar",
 				"-Dtarget_method", targetMethod, 
 				"-Dsearch_budget", String.valueOf(seconds),
-				"-Dcriterion", "branch",
-				"-Dinstrument_context", String.valueOf(instrumentContext), 
+				"-Dcriterion", "fbranch",
+				"-Dinstrument_context", "true", 
+				"-Dinsertion_uut", "0.1",
+//				"-Dinstrument_method_calls", "true",
+//				"-Dinstrument_libraries", "true",
 				"-seed", "100"
 				};
 
@@ -70,18 +75,42 @@ public class ETest {
 						System.out.println(r.getDistribution()[i]);					
 					}					
 				}
-				return new Tuple(r.getElapseTime(), r.getCoverage(), r.getGeneticAlgorithm().getAge());
+				
+				int age = 0;
+				if(r.getGeneticAlgorithm() != null){
+					age = r.getGeneticAlgorithm().getAge();
+				}
+				
+				return new Tuple(r.getElapseTime(), r.getCoverage(), age);
 			}
 		}
 
 		return null;
 	}
 
+	public static Method getTragetMethod(String name, Class<?> clazz, int parameterNum){
+		for(Method method: clazz.getMethods()){
+			if(method.getName().equals(name)
+					&& method.getParameterCount()==parameterNum){
+				return method;
+			}
+		}
+		
+		return null;
+	}
+	
 	public static void main(String[] args) {
+//		Class<?> clazz = org.apache.commons.math.stat.descriptive.moment.Mean.class;
+//		String methodName = "evaluate";
+//		int parameterNum = 4;
+		
 		Class<?> clazz = Example.class;
+		String methodName = "test";
+		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
-		Method method = clazz.getMethods()[0];
+//		Method method = clazz.getMethods()[0];
+		Method method = getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + getSignature(method);
 		String cp = "bin";
@@ -92,7 +121,7 @@ public class ETest {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-		int timeBudget = 30;
+		int timeBudget = 300;
 		ETest t = new ETest();
 		Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
 		
