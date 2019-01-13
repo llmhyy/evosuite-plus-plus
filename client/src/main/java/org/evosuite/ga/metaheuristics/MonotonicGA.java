@@ -289,7 +289,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 			{
 				double bestFitnessBeforeLocalSearch = getBestFitness();
-//				applyLocalSearch();
+				applyLocalSearch();
 				double bestFitnessAfterLocalSearch = getBestFitness();
 
 				if (getFitnessFunction().isMaximizationFunction())

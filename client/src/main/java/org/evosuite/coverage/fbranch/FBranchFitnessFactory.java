@@ -29,7 +29,7 @@ public class FBranchFitnessFactory extends AbstractFitnessFactory<FBranchTestFit
 
 		// retrieve set of branches
 		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
-		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoalsForAllKnownClasses();
+		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
 
 //		CallGraph callGraph = DependencyAnalysis.getCallGraph();
 
