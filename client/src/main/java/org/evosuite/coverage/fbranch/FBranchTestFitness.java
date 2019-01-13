@@ -123,7 +123,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				return fitness;
 			}			
 		} else {
-			// compute
+			//TODO compute
 		}
 
 		System.currentTimeMillis();
@@ -144,17 +144,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			return true;
 		}
 		else if(result.getTrace().getCoveredFalseBranches().contains(newDepBranch.getActualBranchId())){
-			return true;
-		}
-		
-		return false;
-	}
-
-	private boolean checkBranchDirection(ExecutionResult result, Branch newDepBranch) {
-		if(result.getTrace().getTrueDistance(newDepBranch.getActualBranchId())==0){
-			return false;
-		}
-		else if(result.getTrace().getFalseDistance(newDepBranch.getActualBranchId())==0){
 			return true;
 		}
 		
