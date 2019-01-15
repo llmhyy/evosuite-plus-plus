@@ -20,11 +20,15 @@
 package org.evosuite.strategy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.archive.ArchiveTestChromosomeFactory;
+import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.rmi.service.ClientState;
 import org.evosuite.ga.FitnessFunction;
@@ -96,13 +100,17 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		long begintime = System.currentTimeMillis();
 		long endtime = System.currentTimeMillis();
 
-		int goalSize = 0;
-		if(!fitnessFunctions.isEmpty()){
-			TestSuiteFitnessFunction tfFunction = fitnessFunctions.get(0);			
-			goalSize = tfFunction.getTotalGoalNum();
+		Map<Integer, Integer> distributionMap = new HashMap<>();
+		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
+		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
+		for(BranchCoverageTestFitness goal: branchGoals) {
+			Integer key = goal.getBranch().getActualBranchId();
+			if(!goal.getValue()) {
+				key = -key;
+			}
+			distributionMap.put(key, 0);
 		}
-		int[] distribution = new int[goalSize];
-		
+
 		int number_generations = 0;
 		while (!isFinished(suite, stoppingCondition)) {
 			number_generations++;
@@ -125,7 +133,7 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 				begintime = endtime;
 			}
 			
-			updateDistribution(distribution, clone);
+			updateDistribution(distributionMap, clone);
 			
 		}
 		progress.add(suite.getCoverage());
@@ -141,31 +149,37 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Fitness_Evaluations, MaxTestsStoppingCondition.getNumExecutedTests());
 		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Generations, number_generations);
 
-		//TODO guanjie
+		int[] distribution = new int[distributionMap.keySet().size()];
+		int count = 0;
+		for(Integer key: distributionMap.keySet()) {
+			distribution[count++] = distributionMap.get(key);
+		}
 		suite.setDistribution(distribution);
 		suite.setProgressInfomation(progress);
 		return suite;	
 	}
 	
-	private void updateDistribution(int[] distribution, TestSuiteChromosome clone) {
-		if(distribution.length==0){
+	private void updateDistribution(Map<Integer, Integer> distributionMap, TestSuiteChromosome clone) {
+		if(distributionMap.isEmpty()){
 			return;
 		}
 		
 		for(ExecutionResult result: clone.getLastExecutionResults()){
 			if(result != null){
-				for(int i=0; i<distribution.length/2; i++){
-					Integer trueNum = result.getTrace().getCoveredTrue().get(i+1);
-					if(trueNum != null){
-						distribution[2*i] += trueNum;
-					}
-					
-					Integer falseNum = result.getTrace().getCoveredFalse().get(i+1);
-					if(falseNum != null){
-						distribution[2*i+1] += falseNum;
+				
+				for(Integer branchID: result.getTrace().getCoveredTrue().keySet()) {
+					if(distributionMap.get(branchID) != null) {
+						int count = distributionMap.get(branchID) + 1;
+						distributionMap.put(branchID, count);
 					}
 				}
 				
+				for(Integer branchID: result.getTrace().getCoveredFalse().keySet()) {
+					if(distributionMap.get(-branchID) != null) {
+						int count = distributionMap.get(-branchID) + 1;
+						distributionMap.put(-branchID, count);
+					}
+				}
 			}
 		}
 	}

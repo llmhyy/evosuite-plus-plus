@@ -20,18 +20,20 @@
 package org.evosuite.ga.metaheuristics;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.evosuite.Properties;
 import org.evosuite.TimeController;
+import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.FitnessReplacementFunction;
 import org.evosuite.ga.ReplacementFunction;
-import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
@@ -256,14 +258,18 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		long endtime = System.currentTimeMillis();
 		T bestIndividual = null;
 		
-		int goalSize = 0;
-		if(getFitnessFunction() instanceof TestSuiteFitnessFunction){
-			TestSuiteFitnessFunction tfFunction = (TestSuiteFitnessFunction) getFitnessFunction();			
-			goalSize = tfFunction.getTotalGoalNum();
+		Map<Integer, Integer> distributionMap = new HashMap<>();
+		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
+		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
+		for(BranchCoverageTestFitness goal: branchGoals) {
+			Integer key = goal.getBranch().getActualBranchId();
+			if(!goal.getValue()) {
+				key = -key;
+			}
+			distributionMap.put(key, 0);
 		}
-		int[] distribution = new int[goalSize];
 
-		updateDistribution(distribution);
+		updateDistribution(distributionMap);
 		while (!isFinished()) {
 			
 			logger.info("Population size before: " + population.size());
@@ -341,7 +347,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			}
 
 			updateSecondaryCriterion(starvationCounter);
-			updateDistribution(distribution);
+			updateDistribution(distributionMap);
 
 			logger.info("Current iteration: " + currentIteration);
 			this.notifyIteration();
@@ -356,6 +362,12 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			progress.add(bestIndividual.getCoverage());
 		}
 		this.setProgressInformation(progress);
+		
+		int[] distribution = new int[distributionMap.keySet().size()];
+		int count = 0;
+		for(Integer key: distributionMap.keySet()) {
+			distribution[count++] = distributionMap.get(key);
+		}
 		this.setDistribution(distribution);
 		
 		// archive
@@ -364,8 +376,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		notifySearchFinished();
 	}
 
-	private void updateDistribution(int[] distribution) {
-		if(distribution.length==0){
+	private void updateDistribution(Map<Integer, Integer> distributionMap) {
+		if(distributionMap.keySet().size()==0){
 			return;
 		}
 		
@@ -373,18 +385,20 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			TestSuiteChromosome testSuite = (TestSuiteChromosome)individual;
 			for(ExecutionResult result: testSuite.getLastExecutionResults()){
 				if(result != null){
-					for(int i=0; i<distribution.length/2; i++){
-						Integer trueNum = result.getTrace().getCoveredTrue().get(i+1);
-						if(trueNum != null){
-							distribution[2*i] += trueNum;
-						}
-						
-						Integer falseNum = result.getTrace().getCoveredFalse().get(i+1);
-						if(falseNum != null){
-							distribution[2*i+1] += falseNum;
+					
+					for(Integer branchID: result.getTrace().getCoveredTrue().keySet()) {
+						if(distributionMap.get(branchID) != null) {
+							int count = distributionMap.get(branchID) + 1;
+							distributionMap.put(branchID, count);
 						}
 					}
 					
+					for(Integer branchID: result.getTrace().getCoveredFalse().keySet()) {
+						if(distributionMap.get(-branchID) != null) {
+							int count = distributionMap.get(-branchID) + 1;
+							distributionMap.put(-branchID, count);
+						}
+					}
 				}
 			}
 		}
