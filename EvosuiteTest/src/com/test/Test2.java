@@ -66,7 +66,7 @@ public class Test2 {
 
 		int timeBudget = 100;
 		ETest t = new ETest();
-		t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
+		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
 
 //		for (int i = 0; i < 10; i++) {
 //			Test t = new Test();
