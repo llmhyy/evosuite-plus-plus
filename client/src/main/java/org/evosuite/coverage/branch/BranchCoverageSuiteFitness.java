@@ -75,7 +75,7 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
 	private final Set<Integer> removedBranchesF = new HashSet<>();
 	private final Set<String> removedRootBranches = new HashSet<>();	
 	
-	private Map<Integer, Branch> goalMap = new HashMap<>();
+//	private Map<Integer, Branch> goalMap = new HashMap<>();
 	
 	// Total coverage value, used by Regression
 	public double totalCovered = 0.0;	
@@ -142,7 +142,7 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
 				                                        + goal.getMethod(), goal);
 			} else {
 				branchesId.add(goal.getBranch().getActualBranchId());
-				goalMap.put(goal.getBranch().getActualBranchId(), goal.getBranch());
+//				goalMap.put(goal.getBranch().getActualBranchId(), goal.getBranch());
 				if (goal.getBranchExpressionValue())
 					branchCoverageTrueMap.put(goal.getBranch().getActualBranchId(), goal);
 				else
