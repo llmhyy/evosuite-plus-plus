@@ -3,13 +3,10 @@ package com.test;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.math.complex.Complex;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
-import org.evosuite.Properties.Algorithm;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.result.TestGenerationResult;
@@ -31,7 +28,7 @@ public class ETest {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Tuple evosuite(String targetClass, String targetMethod, String cp, int seconds, boolean instrumentContext) {
+	public Tuple evosuite(String targetClass, String targetMethod, String cp, int seconds, boolean instrumentContext, String fitnessAppraoch) {
 		EvoSuite evo = new EvoSuite();
 		Properties.TARGET_CLASS = targetClass;
 		// Properties.TARGET_METHOD = targetClass+".test(DDI)V";
@@ -49,11 +46,11 @@ public class ETest {
 //				"-generateSuiteUsingDSE",
 //				"-Dstrategy", "random",
 				"-class", targetClass, 
-				"-projectCP", "bin", //;lib/commons-math-2.2.jar
+				"-projectCP", cp, //;lib/commons-math-2.2.jar
 //				"-setup", "bin", "lib/commons-math-2.2.jar",
 				"-Dtarget_method", targetMethod, 
 				"-Dsearch_budget", String.valueOf(seconds),
-				"-Dcriterion", "fbranch",
+				"-Dcriterion", fitnessAppraoch,
 				"-Dinstrument_context", "true", 
 				"-Dinsertion_uut", "0.1",
 //				"-Dinstrument_method_calls", "true",
@@ -100,20 +97,20 @@ public class ETest {
 	}
 	
 	public static void main(String[] args) {
-//		Class<?> clazz = org.apache.commons.math.stat.descriptive.moment.Mean.class;
-//		String methodName = "evaluate";
-//		int parameterNum = 4;
+		Class<?> clazz = org.apache.commons.math.stat.descriptive.moment.Mean.class;
+		String methodName = "evaluate";
+		int parameterNum = 4;
 		
-		Class<?> clazz = Example.class;
-		String methodName = "test";
-		int parameterNum = 2;
+//		Class<?> clazz = Example.class;
+//		String methodName = "test";
+//		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
 		Method method = getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + getSignature(method);
-		String cp = "bin";
+		String cp = "bin;lib/commons-math-2.2.jar";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
@@ -121,9 +118,14 @@ public class ETest {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-		int timeBudget = 300;
+//		Properties.TIMEOUT = 10000;
+//		Properties.TIMELINE_INTERVAL = 3000;
+		
+		String fitnessApproach = "fbranch";
+		
+		int timeBudget = 30;
 		ETest t = new ETest();
-		Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
+		Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 //		List<Tuple> l = new ArrayList<>();
 //		for(int i=0; i<7; i++){
