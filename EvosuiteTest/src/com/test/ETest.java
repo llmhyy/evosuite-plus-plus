@@ -97,8 +97,8 @@ public class ETest {
 	}
 	
 	public static void main(String[] args) {
-		Class<?> clazz = org.apache.commons.math.stat.descriptive.moment.Mean.class;
-		String methodName = "evaluate";
+		Class<?> clazz = Example1.class;
+		String methodName = "example";
 		int parameterNum = 4;
 		
 //		Class<?> clazz = Example.class;
@@ -118,12 +118,12 @@ public class ETest {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-//		Properties.TIMEOUT = 10000;
+		Properties.TIMEOUT = 10000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "fbranch";
+		String fitnessApproach = "branch";
 		
-		int timeBudget = 30;
+		int timeBudget = 30000;
 		ETest t = new ETest();
 		Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		

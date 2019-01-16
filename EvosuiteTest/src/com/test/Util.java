@@ -36,21 +36,6 @@ public class Util {
 		return false;
 	}
 	
-	public static boolean isCornerCase(int a, int b){
-//		return a-b>8;
-		return a-b <= -49;
-	}
-	
-	public static boolean isOk(int a, int b){
-		if(Math.pow(a, 2)<=625){
-			if(Math.pow(b, 2)<=625){
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	
 	public static boolean isInScope0(int a, int b){
 		if(Math.pow(a, 2)*100<=2500){
 			if(Math.pow(b, 2)*100<=2500){
