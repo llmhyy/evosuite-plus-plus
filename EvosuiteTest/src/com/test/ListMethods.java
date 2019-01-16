@@ -6,9 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.evosuite.EvoSuite;
+import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.Properties.Criterion;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.utils.ArrayUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -30,6 +34,9 @@ public class ListMethods {
 			.append("#------------------------------------------------------------------------\n");
 		FileUtils.writeFile(logFile, sb.toString(), true);
 		FileUtils.writeFile(allTargetMethodsFile, sb.toString(), true);
+		if (!ArrayUtil.contains(Properties.CRITERION, Criterion.DEFUSE)) {
+			Properties.CRITERION = ArrayUtils.addAll(Properties.CRITERION, Criterion.DEFUSE);
+		}
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = classLoader.loadClass(className);
@@ -39,7 +46,8 @@ public class ListMethods {
 					continue;
 				}
 				System.out.println("Class " + targetClass.getName());
-				List<String> testableMethods = listTestableMethods(targetClass);
+				List<String> testableMethods = MethodFilter.listTestableMethods(targetClass, classLoader);
+//				List<String> testableMethods = listTestableMethods(targetClass);
 				sb = new StringBuilder();
 				for (String methodName : testableMethods) {
 					sb.append(getMethodId(className, methodName)).append("\n");

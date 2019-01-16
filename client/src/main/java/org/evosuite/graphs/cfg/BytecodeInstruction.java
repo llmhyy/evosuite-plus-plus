@@ -1263,4 +1263,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		}
 	}
 
+	public CFGFrame getFrame() {
+		return frame;
+	}
 }
