@@ -236,7 +236,7 @@ public class CFGGenerator {
 	 * 
 	 * @return a {@link org.evosuite.graphs.cfg.RawControlFlowGraph} object.
 	 */
-	protected RawControlFlowGraph getRawGraph() {
+	public RawControlFlowGraph getRawGraph() {
 		return rawGraph;
 	}
 

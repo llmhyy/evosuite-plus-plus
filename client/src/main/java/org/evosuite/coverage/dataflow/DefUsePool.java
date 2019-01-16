@@ -705,4 +705,8 @@ public class DefUsePool {
 		duCounter = 0;
 		DefUseCoverageFactory.clear();		
 	}
+	
+	public static List<Definition> getDefinitions(Use use) {
+		return defMap.get(use.getClassName()).get(use.getMethodName()).get(use.varName);
+	}
 }

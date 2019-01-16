@@ -870,4 +870,8 @@ public class ActualControlFlowGraph extends ControlFlowGraph<BasicBlock> {
 	public int size() {
 		return this.rawGraph.edgeCount();
 	}
+	
+	public RawControlFlowGraph getRawGraph() {
+		return rawGraph;
+	}
 }
