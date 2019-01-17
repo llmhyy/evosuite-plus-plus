@@ -66,7 +66,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			return 1;
 		}
 		
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		Set<BytecodeInstruction> exits = calledGraph.determineExitPoints();
 
 		List<Double> returnFitnessList = new ArrayList<>();
@@ -74,7 +74,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			double f = calculateReturnInsFitness(returnIns, branchGoal, calledGraph, result);
 			
 			if(f != -1){
-				returnFitnessList.add(f);				
+				returnFitnessList.add(f);
 			}
 			
 		}
@@ -91,12 +91,24 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			RawControlFlowGraph calledGraph, ExecutionResult result) {
 		BytecodeInstruction sourceIns = getSource(calledGraph, returnIns);
 		Branch newDepBranch = sourceIns.getControlDependentBranch();
+		
+		
+		if(newDepBranch == null) {
+			String calledMethod = sourceIns.getCalledMethod();
+			if(calledMethod != null) {
+				return calculateInterproceduralFitness(sourceIns, branchGoal, result);
+			}
+		}
+		
 		boolean goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
 //		System.currentTimeMillis();
+		/**
+		 * look for the covered branch
+		 */
 		while(!checkCovered(result, newDepBranch)){
 			BytecodeInstruction originBranchIns = newDepBranch.getInstruction();
 			if(newDepBranch.getInstruction().getControlDependentBranch()==null){
-				return -1;
+				break;
 			}
 			
 			newDepBranch = newDepBranch.getInstruction().getControlDependentBranch();
