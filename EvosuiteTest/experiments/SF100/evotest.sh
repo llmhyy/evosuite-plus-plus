@@ -20,6 +20,5 @@ for I in *_*; do
   fi
   
   $EVOTEST -criterion branch -target $PROJECT.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore -Dsearch_budget 10
-  done	
   popd > /dev/null
 done
