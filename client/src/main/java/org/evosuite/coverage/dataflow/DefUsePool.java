@@ -301,7 +301,11 @@ public class DefUsePool {
 		defuseIdsToDefUses.put(def.getDefUseId(), def);
 		defuseIdsToDefs.put(def.getDefUseId(), def);
 
-		logger.debug("Added to DefUsePool as def: " + def.toString());
+		try {
+			logger.debug("Added to DefUsePool as def: " + def.toString());
+		} catch (Exception e) {
+			// ignore
+		}
 	}
 
 	private static void fillUseMaps(Use use) {
@@ -309,7 +313,11 @@ public class DefUsePool {
 		defuseIdsToDefUses.put(use.getDefUseId(), use);
 		defuseIdsToUses.put(use.getDefUseId(), use);
 
-		logger.debug("Added to DefUsePool as use: " + use.toString());
+		try {
+			logger.debug("Added to DefUsePool as use: " + use.toString());
+		} catch (Exception e) {
+			// ignore
+		}
 	}
 
 	// filling the maps
@@ -707,6 +715,12 @@ public class DefUsePool {
 	}
 	
 	public static List<Definition> getDefinitions(Use use) {
-		return defMap.get(use.getClassName()).get(use.getMethodName()).get(use.varName);
+		try {
+			return defMap.get(use.getClassName()).get(use.getMethodName()).get(use.varName);
+		} catch (NullPointerException nex) {
+			// expected
+			return null;
+		}
+		
 	}
 }

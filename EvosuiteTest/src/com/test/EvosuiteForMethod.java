@@ -21,21 +21,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.evosuite.CommandLineParameters;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
+import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.result.TestGenerationResult;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.test.excel.ExcelWriter;
-
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
-import ch.qos.logback.core.rolling.RollingFileAppender;
-import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
-import ch.qos.logback.core.util.OptionHelper;
 
 @SuppressWarnings("deprecation")
 public class EvosuiteForMethod {
@@ -45,15 +36,14 @@ public class EvosuiteForMethod {
 	static String outputFolder;
 	static String projectId; // ex: 1_tullibee
 	static FilterConfiguration filter;
-	private ExcelWriter distributionExcelWriter;
-	private ExcelWriter progressExcelWriter;
+	
 	private URLClassLoader evoTestClassLoader;
 
 	public static void main(String[] args) {
 		try {
 			setup();
-	//		Properties.CLIENT_ON_THREAD = true;
-	//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//			Properties.CLIENT_ON_THREAD = true;
+//			Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
 			if (hasOpt(args, ListMethods.OPT_NAME)) {
 				args = evoTest.extractListMethodsArgs(args);
@@ -85,48 +75,15 @@ public class EvosuiteForMethod {
 		if (!folder.exists()) {
 			folder.mkdir();
 		}
-		setupLogger();
+		LoggerUtils.setupLogger(outputFolder, projectId);
+		log = LoggerUtils.getLogger(EvosuiteForMethod.class);
 		filter = new FilterConfiguration(root + "/exclusives.txt");
 	}
 
-	private static void setupLogger() {
-		/* just to trigger Evosuite for it to setup Logger before we hack */
-		String base_dir_path = EvoSuite.base_dir_path; 
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		RollingFileAppender<ILoggingEvent> appender = new RollingFileAppender<ILoggingEvent>();
-		appender.setContext(context);
-		appender.setName("evoTest-file");
-		String logFile = FileUtils.getFilePath(outputFolder, projectId + ".log");
-		appender.setFile(logFile);
-		PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-		String logPattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0} - %msg%n";
-		encoder.setPattern(OptionHelper.substVars(logPattern, context));
-		encoder.setContext(context);
-		encoder.start();
-		appender.setEncoder(encoder);
-		// rollingPolicy
-		FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
-		rollingPolicy.setFileNamePattern(logFile + ".%i");
-		appender.setRollingPolicy(rollingPolicy);
-		rollingPolicy.setParent(appender);
-		// triggeringPolicy
-		SizeBasedTriggeringPolicy<ILoggingEvent> triggeringPolicy = new SizeBasedTriggeringPolicy<ILoggingEvent>();
-		triggeringPolicy.setMaxFileSize("10MB");
-		appender.setTriggeringPolicy(triggeringPolicy);
-		
-		appender.start();
-		context.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME).addAppender(appender);
-		log =  LoggerFactory.getLogger(EvosuiteForMethod.class);
-		((ch.qos.logback.classic.Logger)log).setLevel(Level.ALL);
-	}
-	
 	public EvosuiteForMethod() {
-		distributionExcelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_distribution.xlsx"));
-		distributionExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
-		progressExcelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_progress.xlsx"));
-		progressExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
+		
 	}
-	
+
 	private CommandLine parseCommandLine(String[] args) {
 		try {
 			Options options = CommandLineParameters.getCommandLineOptions();
@@ -214,8 +171,7 @@ public class EvosuiteForMethod {
 	}
 
 	public void runAllMethods(String[] targetClasses, String[] args, String projectName) {
-//		String testMethod = "com.ib.client.EWrapper" + "#" + "tickPrice(IIDI)V";
-//		String testMethod = "com.ib.client.ExecutionFilter#equals(Ljava/lang/Object;)Z";
+		ExperimentRecorder recorder = new ExperimentRecorder();
 		for (String className : targetClasses) {
 			String classId = projectName + "#" + className;
 			if (filter.contains(classId)) {
@@ -227,10 +183,7 @@ public class EvosuiteForMethod {
 				if (targetClass.isInterface()) {
 					continue;
 				}
-//			if (!className.equals("simulator.CA.BehaviourReceiveSavePersonalDataRequest")) {
-//				continue;
-//			}
-				List<String> testableMethod = ListMethods.listTestableMethods(targetClass);
+				List<String> testableMethod = MethodFilter.listTestableMethods(targetClass, evoTestClassLoader);
 				for (Method method : targetClass.getMethods()) {
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
 					String methodId = classId + "#" + methodName;
@@ -238,17 +191,14 @@ public class EvosuiteForMethod {
 						continue;
 					}
 					if (testableMethod.contains(methodName)) {
-//					if (!methodName.equals("action()V")) {
-//						continue;
-//					}
 						try {
-							runMethod(methodName, className, args);
+							runMethod(methodName, className, args, recorder);
 						} catch (Throwable t) {
-							t.printStackTrace();
 							String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
 									.append("#").append(methodName).append("\n")
 									.append("Error: \n")
 									.append(t.getMessage()).toString();
+							log.debug(msg, t);
 						}
 					}
 				}
@@ -259,46 +209,73 @@ public class EvosuiteForMethod {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void runMethod(String methodName, String className, String[] evosuiteArgs) {
+	private void runMethod(String methodName, String className, String[] evosuiteArgs, ExperimentRecorder recorder) {
 		log.info("----------------------------------------------------------------------");
 		log.info("RUN METHOD: " + className + "#" + methodName);
 		log.info("----------------------------------------------------------------------");
 		
-		// $EVOSUITE -criterion branch -target tullibee.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore
-		String[] args = ArrayUtils.addAll(evosuiteArgs, 
-				"-class", className,
-				"-Dtarget_method", methodName
-//				,"-Dsearch_budget", String.valueOf(10)
-				,"-Dstop_zero", "false"
-				);
-		log.info("evosuite args: " + StringUtils.join((Object[]) args, " "));
-		EvoSuite evosuite = new EvoSuite();
-		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
-		for (List<TestGenerationResult> l : list) {
-			for (TestGenerationResult r : l) {
-				if (r.getDistribution() == null || r.getDistribution().length == 0) {
-					continue; // ignore
+		try {
+			// $EVOSUITE -criterion branch -target tullibee.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore
+			String[] args = ArrayUtils.addAll(evosuiteArgs, 
+					"-class", className,
+					"-Dtarget_method", methodName
+					,"-Dstop_zero", "false"
+					);
+			log.info("evosuite args: " + StringUtils.join((Object[]) args, " "));
+			EvoSuite evosuite = new EvoSuite();
+			List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
+			for (List<TestGenerationResult> l : list) {
+				for (TestGenerationResult r : l) {
+					if (r.getDistribution() == null || r.getDistribution().length == 0) {
+						continue; // ignore
+					}
+					log.info("" +r.getProgressInformation());
+					for(int i=0; i<r.getDistribution().length; i++){
+						log.info("" +r.getDistribution()[i]);					
+					}	
+					List<Object> progressRowData = new ArrayList<>();
+					progressRowData.add(className);
+					progressRowData.add(methodName);
+					progressRowData.addAll(r.getProgressInformation());
+					List<Object> distributionRowData = new ArrayList<>();
+					distributionRowData.add(className);
+					distributionRowData.add(methodName);
+					for (int distr : r.getDistribution()) {
+						distributionRowData.add(distr);
+					}
+					recorder.record(progressRowData, distributionRowData);
 				}
-				log.info("" +r.getProgressInformation());
-				for(int i=0; i<r.getDistribution().length; i++){
-					log.info("" +r.getDistribution()[i]);					
-				}	
-				List<Object> progressRowData = new ArrayList<>();
-				progressRowData.add(className);
-				progressRowData.add(methodName);
-				progressRowData.addAll(r.getProgressInformation());
-				List<Object> distributionRowData = new ArrayList<>();
-				distributionRowData.add(className);
-				distributionRowData.add(methodName);
-				for (int distr : r.getDistribution()) {
-					distributionRowData.add(distr);
-				}
-				try {
-					progressExcelWriter.writeSheet("data", Arrays.asList(progressRowData));
-					distributionExcelWriter.writeSheet("data", Arrays.asList(distributionRowData));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+			}
+		} catch (Exception e) {
+			List<Object> progressRowData = new ArrayList<>();
+			progressRowData.add(className);
+			progressRowData.add(methodName);
+			progressRowData.add(e.getMessage());
+			List<Object> distributionRowData = new ArrayList<>();
+			distributionRowData.add(className);
+			distributionRowData.add(methodName);
+			progressRowData.add(e.getMessage());
+			recorder.record(progressRowData, distributionRowData);
+		}
+	}
+	
+	private static class ExperimentRecorder {
+		private ExcelWriter distributionExcelWriter;
+		private ExcelWriter progressExcelWriter;
+		
+		public ExperimentRecorder() {
+			distributionExcelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_distribution.xlsx"));
+			distributionExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
+			progressExcelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_progress.xlsx"));
+			progressExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
+		}
+		
+		public void record(List<Object> progressRowData, List<Object> distributionRowData) {
+			try {
+				progressExcelWriter.writeSheet("data", Arrays.asList(progressRowData));
+				distributionExcelWriter.writeSheet("data", Arrays.asList(distributionRowData));
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
