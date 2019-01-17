@@ -23,6 +23,6 @@ for /D %%I in (10_*) do (
 	if exist distribution.xlsx del distribution.xlsx
 	if exist progress.xlsx del progress.xlsx
 	
-	%EVOTEST_SETUP_DEBUG% -refineProp !PROJECT!
+	%EVOTEST_SETUP% -refineProp !PROJECT!
 	popd
 )
