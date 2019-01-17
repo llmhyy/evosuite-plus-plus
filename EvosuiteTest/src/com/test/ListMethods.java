@@ -20,7 +20,7 @@ public class ListMethods {
 		String allTargetMethodsFile = FileUtils.getFilePath(EvosuiteForMethod.outputFolder, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
 		StringBuilder sb = new StringBuilder();
 		sb.append("#------------------------------------------------------------------------\n")
-			.append("#Project=").append(EvosuiteForMethod.projectName).append("\n")
+			.append("#Project=").append(EvosuiteForMethod.projectId).append("\n")
 			.append("#------------------------------------------------------------------------\n");
 		log.info(sb.toString());
 		FileUtils.writeFile(allTargetMethodsFile, sb.toString(), true);
