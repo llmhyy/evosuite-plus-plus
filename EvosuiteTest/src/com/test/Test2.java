@@ -65,7 +65,7 @@ public class Test2 {
 		// Properties.CLIENT_ON_THREAD = true;
 
 		int timeBudget = 100;
-		ETest t = new ETest();
+		ETest1 t = new ETest1();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
 
 //		for (int i = 0; i < 10; i++) {

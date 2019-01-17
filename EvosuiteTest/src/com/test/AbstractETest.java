@@ -8,11 +8,32 @@ import java.util.List;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
-import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.result.TestGenerationResult;
 
-public class ETest {
 
+public class AbstractETest {
+	public static String getSignature(Method m) {
+		String sig;
+		try {
+			Field gSig = Method.class.getDeclaredField("signature");
+			gSig.setAccessible(true);
+			sig = (String) gSig.get(m);
+			if (sig != null)
+				return sig;
+		} catch (IllegalAccessException | NoSuchFieldException e) {
+			e.printStackTrace();
+		}
+
+		StringBuilder sb = new StringBuilder("(");
+		for (Class<?> c : m.getParameterTypes())
+			sb.append((sig = Array.newInstance(c, 0).toString()).substring(1, sig.indexOf('@')));
+		String str = sb.append(')')
+				.append(m.getReturnType() == void.class ? "V"
+						: (sig = Array.newInstance(m.getReturnType(), 0).toString()).substring(1, sig.indexOf('@')))
+				.toString();
+		return str.replace(".", "/");
+	}
+	
 	class Tuple {
 		int time;
 		double coverage;
@@ -95,69 +116,4 @@ public class ETest {
 		
 		return null;
 	}
-	
-	public static void main(String[] args) {
-		Class<?> clazz = Example1.class;
-		String methodName = "example";
-		int parameterNum = 4;
-		
-//		Class<?> clazz = Example.class;
-//		String methodName = "test";
-//		int parameterNum = 2;
-		
-		String targetClass = clazz.getCanonicalName();
-//		Method method = clazz.getMethods()[0];
-		Method method = getTragetMethod(methodName, clazz, parameterNum);
-
-		String targetMethod = method.getName() + getSignature(method);
-		String cp = "bin;lib/commons-math-2.2.jar";
-
-		// Properties.LOCAL_SEARCH_RATE = 1;
-//		Properties.DEBUG = true;
-//		Properties.PORT = 8000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-
-		Properties.TIMEOUT = 10000000;
-//		Properties.TIMELINE_INTERVAL = 3000;
-		
-		String fitnessApproach = "branch";
-		
-		int timeBudget = 30000;
-		ETest t = new ETest();
-		Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		
-//		List<Tuple> l = new ArrayList<>();
-//		for(int i=0; i<7; i++){
-//			Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
-//			l.add(tu);
-//		}
-//		
-//		for(Tuple lu: l){
-//			System.out.println(lu.time + ", " + lu.age);
-//		}
-	}
-
-	public static String getSignature(Method m) {
-		String sig;
-		try {
-			Field gSig = Method.class.getDeclaredField("signature");
-			gSig.setAccessible(true);
-			sig = (String) gSig.get(m);
-			if (sig != null)
-				return sig;
-		} catch (IllegalAccessException | NoSuchFieldException e) {
-			e.printStackTrace();
-		}
-
-		StringBuilder sb = new StringBuilder("(");
-		for (Class<?> c : m.getParameterTypes())
-			sb.append((sig = Array.newInstance(c, 0).toString()).substring(1, sig.indexOf('@')));
-		String str = sb.append(')')
-				.append(m.getReturnType() == void.class ? "V"
-						: (sig = Array.newInstance(m.getReturnType(), 0).toString()).substring(1, sig.indexOf('@')))
-				.toString();
-		return str.replace(".", "/");
-	}
-
 }

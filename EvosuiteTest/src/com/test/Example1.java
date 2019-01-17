@@ -26,7 +26,7 @@ public class Example1 {
 		return 1;
 	}
 
-	public boolean test(double[] values, double[] weights, int begin, int length) {
+	private boolean test(double[] values, double[] weights, int begin, int length) {
 
 		if (weights == null) {
 //			throw new NullArgumentException(LocalizedFormats.INPUT_ARRAY);
@@ -61,7 +61,7 @@ public class Example1 {
 		return test(values, begin, length);
 	}
 
-	public boolean test(final double[] values, final int begin, final int length) {
+	private boolean test(final double[] values, final int begin, final int length) {
 
 		if (values == null) {
 //			throw new NullArgumentException(LocalizedFormats.INPUT_ARRAY);
