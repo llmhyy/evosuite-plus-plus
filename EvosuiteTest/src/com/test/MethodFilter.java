@@ -42,7 +42,7 @@ public class MethodFilter {
 			List<MethodNode> l = cn.methods;
 			for (MethodNode m : l) {
 				/* methodName should be the same as declared in evosuite: String methodName = method.getName() + Type.getMethodDescriptor(method); */
-				String methodName = m.name + m.desc; 
+				String methodName = CommonUtility.getMethodName(m);
 				if ((m.access & Opcodes.ACC_ABSTRACT) == Opcodes.ACC_ABSTRACT) {
 					continue;
 				}
@@ -88,7 +88,7 @@ public class MethodFilter {
 				if (value instanceof SourceValue) {
 					SourceValue srcValue = (SourceValue) value;
 					AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
-					if (isInvokeMethodInsn(condDefinition)) {
+					if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
 						log.info("!FOUND IT! in method " + methodName);
 						return true;
 					} else {
@@ -107,7 +107,7 @@ public class MethodFilter {
 									lastDef = def;
 								}
 							}
-							if (lastDef != null && isInvokeMethodInsn(lastDef.getASMNode())) {
+							if (lastDef != null && CommonUtility.isInvokeMethodInsn(lastDef.getASMNode())) {
 								log.info("!FOUND IT! in method " + methodName);
 								return true;
 							}
@@ -117,15 +117,6 @@ public class MethodFilter {
 			}
 		}
 		return false;
-	}
-
-	private static boolean isInvokeMethodInsn(AbstractInsnNode condDefinition) {
-		return CollectionUtils.existIn(condDefinition.getOpcode(), 
-				Opcodes.INVOKESPECIAL,
-				Opcodes.INVOKESTATIC,
-				Opcodes.INVOKEINTERFACE,
-				Opcodes.INVOKEDYNAMIC,
-				Opcodes.INVOKEVIRTUAL);
 	}
 	
 	
