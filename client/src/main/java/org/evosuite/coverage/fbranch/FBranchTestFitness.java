@@ -143,12 +143,19 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	}
 
 	private double checkDistance(ExecutionResult result, boolean goalValue, Branch newDepBranch) {
+		Double value;
 		if(goalValue){
-			return result.getTrace().getTrueDistances().get(newDepBranch.getActualBranchId());
+			value = result.getTrace().getTrueDistances().get(newDepBranch.getActualBranchId());
 		}
 		else{
-			return result.getTrace().getFalseDistances().get(newDepBranch.getActualBranchId());
+			value = result.getTrace().getFalseDistances().get(newDepBranch.getActualBranchId());
 		}
+		
+		if(value == null) {
+			value = 100000d;
+		}
+		
+		return value;
 	}
 	
 	private boolean checkCovered(ExecutionResult result, Branch newDepBranch){
