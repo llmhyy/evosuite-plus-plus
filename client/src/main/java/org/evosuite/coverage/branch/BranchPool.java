@@ -19,6 +19,7 @@
  */
 package org.evosuite.coverage.branch;
 
+import org.evosuite.Properties;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.Opcodes;
@@ -497,7 +498,11 @@ public class BranchPool {
 				logger.info("Found matching class for branch count: " + className + "/"
 				        + prefix);
 				for (String method : branchMap.get(className).keySet()) {
-					num += branchMap.get(className).get(method).size();
+//					String targetMethod = Properties.TARGET_METHOD;
+//					if(targetMethod.isEmpty() || targetMethod.equals(method)) {
+//						num += branchMap.get(className).get(method).size();						
+//					}
+					num += branchMap.get(className).get(method).size();	
 				}
 			}
 		}
