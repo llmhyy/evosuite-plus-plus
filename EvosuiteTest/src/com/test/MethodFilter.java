@@ -66,12 +66,12 @@ public class MethodFilter {
 	}
 	
 	private static boolean checkCond(ClassLoader classLoader, String className, String methodName, MethodNode node) throws AnalyzerException {
+		log.debug(String.format("#Method %s#%s", className, methodName));
 		GraphPool.clearAll();
 		BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
 		bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
-		ActualControlFlowGraph cfg = bytecodeAnalyzer.retrieveCFGGenerator().computeActualCFG();
-		GraphPool.getInstance(classLoader).registerActualCFG(cfg);
-		GraphPool.getInstance(classLoader).registerRawCFG(cfg.getRawGraph());
+		bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		if (CollectionUtil.isNullOrEmpty(cfg.getBranches())) {
 			return false;
 		} 
