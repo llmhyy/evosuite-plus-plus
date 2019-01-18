@@ -1,4 +1,4 @@
-package com.test;
+package com.example;
 
 //import org.apache.commons.math.exception.DimensionMismatchException;
 //import org.apache.commons.math.exception.NullArgumentException;

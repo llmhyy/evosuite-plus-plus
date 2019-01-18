@@ -10,6 +10,8 @@ import org.evosuite.Properties.Criterion;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.statistics.SearchStatistics;
 
+import com.example.Example0;
+
 public class Test2 {
 
 	class Tuple{

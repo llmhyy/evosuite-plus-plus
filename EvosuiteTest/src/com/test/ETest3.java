@@ -7,6 +7,8 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
+import com.example.Example1;
+
 public class ETest3 extends AbstractETest{
 	
 	@Test
