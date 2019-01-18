@@ -158,8 +158,6 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				notifyEvaluation(offspring2);
 			}
 
-			// TODO guanjie
-
 			if (keepOffspring(parent1, parent2, offspring1, offspring2)) {
 				logger.debug("Keeping offspring");
 
@@ -234,8 +232,6 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	/** {@inheritDoc} */
 	@Override
 	public void generateSolution() {
-		
-		//TODO
 		
 		logger.warn("monotonic ga");
 		if (Properties.ENABLE_SECONDARY_OBJECTIVE_AFTER > 0 || Properties.ENABLE_SECONDARY_OBJECTIVE_STARVATION) {

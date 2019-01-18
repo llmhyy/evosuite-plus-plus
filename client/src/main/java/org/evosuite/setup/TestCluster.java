@@ -42,6 +42,7 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.jee.InstanceOnlyOnce;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.ListUtil;
+import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.generic.GenericAccessibleObject;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
@@ -1271,6 +1272,7 @@ public class TestCluster {
 	 */
 	public GenericAccessibleObject<?> getRandomTestCall(TestCase test)
 	        throws ConstructionFailedException {
+		//TODO ?
 		List<GenericAccessibleObject<?>> candidateTestMethods = new ArrayList<>(testMethods);
 
 		if(candidateTestMethods.isEmpty()) {
