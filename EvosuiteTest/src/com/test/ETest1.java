@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
+import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
 public class ETest1 extends AbstractETest{
@@ -17,19 +18,19 @@ public class ETest1 extends AbstractETest{
 		String targetClass = clazz.getCanonicalName();
 		Method method = getTragetMethod(methodName, clazz, parameterNum);
 
-		String targetMethod = method.getName() + getSignature(method);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes;lib/commons-math-2.2.jar";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
 //		Properties.PORT = 8000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.TIMEOUT = 10000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "fbranch";
+		String fitnessApproach = "branch";
 		
 		int timeBudget = 30;
 		ETest1 t = new ETest1();

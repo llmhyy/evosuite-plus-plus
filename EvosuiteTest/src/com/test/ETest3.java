@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
+import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
 public class ETest3 extends AbstractETest{
@@ -18,7 +19,7 @@ public class ETest3 extends AbstractETest{
 //		Method method = clazz.getMethods()[0];
 		Method method = getTragetMethod(methodName, clazz, parameterNum);
 
-		String targetMethod = method.getName() + getSignature(method);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes;lib/commons-math-2.2.jar";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
