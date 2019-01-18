@@ -20,7 +20,7 @@ public class ListMethods {
 		String allTargetMethodsFile = FileUtils.getFilePath(EvosuiteForMethod.outputFolder, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
 		StringBuilder sb = new StringBuilder();
 		sb.append("#------------------------------------------------------------------------\n")
-			.append("#Project=").append(EvosuiteForMethod.projectId).append("\n")
+			.append("#Project=").append(EvosuiteForMethod.projectName).append("  -   ").append(EvosuiteForMethod.projectId).append("\n")
 			.append("#------------------------------------------------------------------------\n");
 		log.info(sb.toString());
 		FileUtils.writeFile(allTargetMethodsFile, sb.toString(), true);
@@ -39,7 +39,7 @@ public class ListMethods {
 				List<String> testableMethods = MethodFilter.listTestableMethods(targetClass, classLoader);
 				sb = new StringBuilder();
 				for (String methodName : testableMethods) {
-					sb.append(getMethodId(className, methodName)).append("\n");
+					sb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
 				}
 				FileUtils.writeFile(projectMethodsFile, sb.toString(), true);
 				FileUtils.writeFile(allTargetMethodsFile, sb.toString(), true);
@@ -52,7 +52,4 @@ public class ListMethods {
 		}
 	}
 	
-	public static String getMethodId(String className, String methodName) {
-		return className + "#" + methodName;
-	}
 }
