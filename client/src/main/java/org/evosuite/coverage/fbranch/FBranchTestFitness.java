@@ -92,7 +92,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		BytecodeInstruction sourceIns = getSource(calledGraph, returnIns);
 		Branch newDepBranch = sourceIns.getControlDependentBranch();
 		
-		
 		if(newDepBranch == null) {
 			String calledMethod = sourceIns.getCalledMethod();
 			if(calledMethod != null) {
