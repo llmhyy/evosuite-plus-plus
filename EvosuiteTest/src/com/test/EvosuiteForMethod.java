@@ -23,6 +23,7 @@ import org.evosuite.CommandLineParameters;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.result.TestGenerationResult;
+import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 

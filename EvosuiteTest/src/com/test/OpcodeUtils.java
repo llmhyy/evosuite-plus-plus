@@ -1,5 +1,6 @@
 package com.test;
 
+import org.evosuite.utils.CollectionUtil;
 import org.objectweb.asm.Opcodes;
 
 /**
@@ -229,7 +230,7 @@ public final class OpcodeUtils {
 	}
 	
 	public static boolean isReturnInsn(int opCode) {
-		return CollectionUtils.existIn(opCode, Opcodes.IRETURN,
+		return CollectionUtil.existIn(opCode, Opcodes.IRETURN,
 				Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN, Opcodes.ARETURN,
 				Opcodes.RETURN);
 	}

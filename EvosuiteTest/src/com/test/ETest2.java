@@ -30,9 +30,9 @@ public class ETest2 extends AbstractETest{
 		Properties.TIMEOUT = 10000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "fbranch";
+		String fitnessApproach = "branch";
 		
-		int timeBudget = 30000;
+		int timeBudget = 10000000;
 		ETest2 t = new ETest2();
 		Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}

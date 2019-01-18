@@ -8,6 +8,7 @@ import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.utils.ArrayUtil;
+import org.evosuite.utils.CommonUtility;
 import org.slf4j.Logger;
 
 public class ListMethods {

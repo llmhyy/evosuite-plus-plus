@@ -12,6 +12,8 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.evosuite.utils.CollectionUtil;
+import org.evosuite.utils.CommonUtility;
 
 public class FilterConfiguration {
 	private List<Filter> filters;
@@ -97,7 +99,7 @@ public class FilterConfiguration {
 					curProject = line.split("=")[1].split(" ")[0];
 				} else {
 					if (!line.startsWith("#")) {
-						CollectionUtils.getSetInitIfEmpty(inclusives, curProject).add(line);
+						CollectionUtil.getSetInitIfEmpty(inclusives, curProject).add(line);
 					}
 				}
 			}

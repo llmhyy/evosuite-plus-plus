@@ -17,6 +17,7 @@ import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.CFGFrame;
 import org.evosuite.utils.CollectionUtil;
+import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -77,7 +78,7 @@ public class MethodFilter {
 		boolean defuseAnalyzed = false;
 		for (BytecodeInstruction insn : cfg.getBranches()) {
 			AbstractInsnNode insnNode = insn.getASMNode();
-			if (CollectionUtils.existIn(insnNode .getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
+			if (CollectionUtil.existIn(insnNode .getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
 				StringBuilder sb = new StringBuilder()
 							.append(OpcodeUtils.getCode(insnNode.getOpcode()))
 							.append(", prev -- ")
@@ -102,7 +103,7 @@ public class MethodFilter {
 							Use use = DefUseFactory.makeUse(condBcDef);
 							List<Definition> defs = DefUsePool.getDefinitions(use); // null if it is a method parameter.
 							Definition lastDef = null;
-							for (Definition def : CollectionUtils.nullToEmpty(defs)) {
+							for (Definition def : CollectionUtil.nullToEmpty(defs)) {
 								if (lastDef == null || def.getInstructionId() > lastDef.getInstructionId()) {
 									lastDef = def;
 								}
