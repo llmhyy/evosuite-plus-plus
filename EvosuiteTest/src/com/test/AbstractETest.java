@@ -34,7 +34,7 @@ public class AbstractETest {
 //		Properties.ALGORITHM = Algorithm.MONOTONICGA;
 //		Properties.ALGORITHM = Algorithm.RANDOM;
 		Properties.TRACK_COVERED_GRADIENT_BRANCHES = true;
-		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
+//		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 //		Properties.STRATEGY = Strategy.RANDOM;
 		
 
