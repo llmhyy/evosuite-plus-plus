@@ -1,6 +1,7 @@
 package org.evosuite.coverage.fbranch;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -142,8 +143,12 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		/**
 		 * look for the covered branch
 		 */
+		Set<Integer> visitedBranches = new HashSet<>();
+		
 		int approachLevel = 0;
-		while(!checkCovered(result, newDepBranch)){
+		while(!checkCovered(result, newDepBranch) && !visitedBranches.contains(newDepBranch.getActualBranchId())){
+			visitedBranches.add(newDepBranch.getActualBranchId());
+			
 			BytecodeInstruction originBranchIns = newDepBranch.getInstruction();
 			if(newDepBranch.getInstruction().getControlDependentBranch()==null){
 				break;
