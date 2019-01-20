@@ -4,16 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.evosuite.coverage.ControlFlowDistance;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.ga.FitnessFunction;
+import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.objectweb.asm.tree.MethodInsnNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * F stands for flag fitness
@@ -24,6 +27,7 @@ import org.objectweb.asm.tree.MethodInsnNode;
 public class FBranchTestFitness extends TestFitnessFunction {
 
 	private static final long serialVersionUID = -3538507758440177708L;
+	private static Logger logger = LoggerFactory.getLogger(FBranchTestFitness.class);
 
 	private final BranchCoverageGoal branchGoal;
 	private double epsilon = 0.001;
@@ -43,8 +47,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 	@Override
 	public double getFitness(TestChromosome individual, ExecutionResult result) {
-		
-		double fitness = getDistance(result);
+		double fitness = checkOverallDistance(result, this.branchGoal.getValue(), this.branchGoal.getBranch());
 		if(fitness == 0){
 			return fitness;
 		}
@@ -71,12 +74,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 		List<Double> returnFitnessList = new ArrayList<>();
 		for (BytecodeInstruction returnIns : exits) {
-			double f = calculateReturnInsFitness(returnIns, branchGoal, calledGraph, result);
-			
-			if(f != -1){
-				returnFitnessList.add(f);
-			}
-			
+			List<Double> fList = calculateReturnInsFitness(returnIns, branchGoal, calledGraph, result);
+			returnFitnessList.addAll(fList);
 		}
 
 		double sum = this.epsilon;
@@ -87,23 +86,63 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		return 1/sum;
 	}
 
-	private double calculateReturnInsFitness(BytecodeInstruction returnIns, BranchCoverageGoal branchGoal,
+	private List<Double> calculateReturnInsFitness(BytecodeInstruction returnIns, BranchCoverageGoal branchGoal,
 			RawControlFlowGraph calledGraph, ExecutionResult result) {
-		BytecodeInstruction sourceIns = getSource(calledGraph, returnIns);
-		Branch newDepBranch = sourceIns.getControlDependentBranch();
+		List<BytecodeInstruction> sourceInsList = getReturnConstants(calledGraph, returnIns);
+//		System.currentTimeMillis();
+		List<Double> fitnessList = new ArrayList<>();
 		
-		if(newDepBranch == null) {
-			String calledMethod = sourceIns.getCalledMethod();
-			if(calledMethod != null) {
-				return calculateInterproceduralFitness(sourceIns, branchGoal, result);
+		for(BytecodeInstruction sourceIns: sourceInsList) {
+			if (!sourceIns.isConstant()) {
+				logger.error("the source of ireturn is not a constant.");
 			}
+			
+			String explain = sourceIns.explain();
+			if(explain.contains("CONST_1") && !branchGoal.getValue() ||
+					explain.contains("CONST_0") && branchGoal.getValue()) {
+				continue;
+			}
+			
+			
+			Branch newDepBranch = sourceIns.getControlDependentBranch();
+			if(newDepBranch == null) {
+				String calledMethod = sourceIns.getCalledMethod();
+				if(calledMethod != null) {
+					double f = calculateInterproceduralFitness(sourceIns, branchGoal, result);
+					fitnessList.add(f);
+					continue;
+				}
+			}
+			
+			boolean goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
+//			System.currentTimeMillis();
+			double fitness = checkOverallDistance(result, goalValue, newDepBranch);
+			if(fitness==0){
+				continue;
+			}
+			
+			BranchCoverageGoal newGoal = new BranchCoverageGoal(newDepBranch, goalValue, 
+					newDepBranch.getClassName(), newDepBranch.getMethodName(), newDepBranch.getInstruction().getLineNumber());
+			
+			InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
+			if (flagResult.isInterproceduralFlag) {
+				double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall,
+						newGoal, result);
+				fitnessList.add(interproceduralFitness);
+			}
+			else{
+				fitnessList.add(fitness);
+			}	
 		}
 		
-		boolean goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
-//		System.currentTimeMillis();
+		return fitnessList;
+	}
+	
+	private double checkOverallDistance(ExecutionResult result, boolean goalValue, Branch newDepBranch) {
 		/**
 		 * look for the covered branch
 		 */
+		int approachLevel = 0;
 		while(!checkCovered(result, newDepBranch)){
 			BytecodeInstruction originBranchIns = newDepBranch.getInstruction();
 			if(newDepBranch.getInstruction().getControlDependentBranch()==null){
@@ -112,36 +151,15 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			
 			newDepBranch = newDepBranch.getInstruction().getControlDependentBranch();
 			goalValue = originBranchIns.getControlDependency(newDepBranch).getBranchExpressionValue(); 
+			approachLevel++;
 		}
 		
-		double fitness = checkDistance(result, goalValue, newDepBranch);
-		if(fitness==0){
-			return -1;
-		}
+		double fitness = approachLevel + checkBranchDistance(result, goalValue, newDepBranch);
 		
-		BranchCoverageGoal newGoal = new BranchCoverageGoal(newDepBranch, goalValue, 
-				newDepBranch.getClassName(), newDepBranch.getMethodName(), newDepBranch.getInstruction().getLineNumber());
-		
-		//when return a constant 0/1
-		if (sourceIns.isConstant()) {
-			InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
-			if (flagResult.isInterproceduralFlag) {
-				double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall,
-						newGoal, result);
-				return interproceduralFitness;
-			}
-			else{
-				return fitness;
-			}			
-		} else {
-			//TODO compute
-		}
-
-		System.currentTimeMillis();
-		return 0;
+		return fitness;
 	}
 
-	private double checkDistance(ExecutionResult result, boolean goalValue, Branch newDepBranch) {
+	private double checkBranchDistance(ExecutionResult result, boolean goalValue, Branch newDepBranch) {
 		Double value;
 		if(goalValue){
 			value = result.getTrace().getTrueDistances().get(newDepBranch.getActualBranchId());
@@ -154,7 +172,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			value = 100000d;
 		}
 		
-		return value;
+		return FitnessFunction.normalize(value);
 	}
 	
 	private boolean checkCovered(ExecutionResult result, Branch newDepBranch){
@@ -194,24 +212,44 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		return result;
 	}
 
-	private double getDistance(ExecutionResult result) {
-		Double fitness = null;
-		if (branchGoal.getValue() == true) {
-			fitness = result.getTrace().getTrueDistances().get(branchGoal.getBranch().getActualBranchId());
-		} else {
-			fitness = result.getTrace().getFalseDistances().get(branchGoal.getBranch().getActualBranchId());
-		}
+//	private double getDistance(ExecutionResult result) {
+//		Double fitness = null;
+//		if (branchGoal.getValue() == true) {
+//			fitness = result.getTrace().getTrueDistances().get(branchGoal.getBranch().getActualBranchId());
+//		} else {
+//			fitness = result.getTrace().getFalseDistances().get(branchGoal.getBranch().getActualBranchId());
+//		}
+//
+//		if (fitness == null) {
+//			fitness = 1.0;
+//		}
+//
+//		return fitness;
+//	}
 
-		if (fitness == null) {
-			fitness = 1.0;
-		}
-
-		return fitness;
-	}
-
-	private BytecodeInstruction getSource(RawControlFlowGraph calledGraph, BytecodeInstruction returnIns) {
+	private List<BytecodeInstruction> getReturnConstants(RawControlFlowGraph calledGraph, BytecodeInstruction returnIns) {
 		// TODO we need more fine analysis technique to determine the source.
-		return returnIns.getPreviousInstruction();
+		BasicBlock block = returnIns.getBasicBlock();
+		
+		Set<BytecodeInstruction> insParents = calledGraph.getParents(block.getFirstInstruction());
+		List<BytecodeInstruction> sourceInsList = new ArrayList<>();
+		
+		for(BytecodeInstruction parentIns: insParents) {
+			BasicBlock b = parentIns.getBasicBlock();
+			BytecodeInstruction lastIns = b.getLastInstruction();
+			BytecodeInstruction firstIns = b.getFirstInstruction();
+			
+			BytecodeInstruction ins = lastIns;
+			while(ins.getInstructionId()>=firstIns.getInstructionId()) {
+				if(ins.isConstant()) {
+					sourceInsList.add(ins);
+					break;
+				}
+				ins = ins.getPreviousInstruction();
+			}
+		}
+		
+		return sourceInsList;
 	}
 
 	@Override

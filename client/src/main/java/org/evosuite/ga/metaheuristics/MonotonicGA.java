@@ -348,6 +348,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			updateSecondaryCriterion(starvationCounter);
 			updateDistribution(distributionMap);
 
+			logger.error("Best fitness: " + bestFitness);
 			logger.info("Current iteration: " + currentIteration);
 			this.notifyIteration();
 

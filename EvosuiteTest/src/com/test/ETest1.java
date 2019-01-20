@@ -26,13 +26,13 @@ public class ETest1 extends AbstractETest{
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
 //		Properties.PORT = 8000;
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.TIMEOUT = 10000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "branch";
+		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 30;
 		ETest1 t = new ETest1();
