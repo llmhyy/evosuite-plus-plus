@@ -103,7 +103,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				continue;
 			}
 			
-			
 			Branch newDepBranch = sourceIns.getControlDependentBranch();
 			if(newDepBranch == null) {
 				String calledMethod = sourceIns.getCalledMethod();
@@ -114,8 +113,9 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				}
 			}
 			
-			boolean goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
-//			System.currentTimeMillis();
+			//TODO I am not that clear about getControlDependency() method, but I find reverse the direction make it correct.
+			boolean goalValue = !sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
+			System.currentTimeMillis();
 			double fitness = checkOverallDistance(result, goalValue, newDepBranch);
 			if(fitness==0){
 				continue;
@@ -227,25 +227,38 @@ public class FBranchTestFitness extends TestFitnessFunction {
 //		return fitness;
 //	}
 
-	private List<BytecodeInstruction> getReturnConstants(RawControlFlowGraph calledGraph, BytecodeInstruction returnIns) {
-		// TODO we need more fine analysis technique to determine the source.
-		BasicBlock block = returnIns.getBasicBlock();
+	private BytecodeInstruction findLastConstantInstructionInBlock(BasicBlock block) {
+		BytecodeInstruction lastIns = block.getLastInstruction();
+		BytecodeInstruction firstIns = block.getFirstInstruction();
+		BytecodeInstruction ins = lastIns;
+		while(ins.getInstructionId()>=firstIns.getInstructionId()) {
+			if(ins.isConstant()) {
+				return ins;
+			}
+			ins = ins.getPreviousInstruction();
+		}
 		
-		Set<BytecodeInstruction> insParents = calledGraph.getParents(block.getFirstInstruction());
+		return null;
+	}
+	
+	private List<BytecodeInstruction> getReturnConstants(RawControlFlowGraph calledGraph, BytecodeInstruction returnIns) {
 		List<BytecodeInstruction> sourceInsList = new ArrayList<>();
 		
+		
+		BasicBlock block = returnIns.getBasicBlock();
+		BytecodeInstruction constantIns = findLastConstantInstructionInBlock(block);
+		if(constantIns != null) {
+			sourceInsList.add(constantIns);
+			return sourceInsList;
+		}
+		
+		
+		Set<BytecodeInstruction> insParents = calledGraph.getParents(block.getFirstInstruction());
 		for(BytecodeInstruction parentIns: insParents) {
-			BasicBlock b = parentIns.getBasicBlock();
-			BytecodeInstruction lastIns = b.getLastInstruction();
-			BytecodeInstruction firstIns = b.getFirstInstruction();
-			
-			BytecodeInstruction ins = lastIns;
-			while(ins.getInstructionId()>=firstIns.getInstructionId()) {
-				if(ins.isConstant()) {
-					sourceInsList.add(ins);
-					break;
-				}
-				ins = ins.getPreviousInstruction();
+			BasicBlock parentBlock = parentIns.getBasicBlock();
+			constantIns = findLastConstantInstructionInBlock(parentBlock);
+			if(constantIns != null) {
+				sourceInsList.add(constantIns);
 			}
 		}
 		
