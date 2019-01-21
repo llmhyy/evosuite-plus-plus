@@ -31,9 +31,9 @@ public class ETest4 extends AbstractETest{
 //		Properties.TIMEOUT = 300000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "fbranch";
+		String fitnessApproach = "branch";
 		
-		int timeBudget = 30000;
+		int timeBudget = 200;
 		ETest4 t = new ETest4();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}

@@ -433,10 +433,12 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
 
 		// Ensure all methods are called
 		int missingMethods = 0;
-		for (String e : methods) {
-			if (!callCount.containsKey(e)) {
-				fitness += 1.0;
-				missingMethods += 1;
+		if(Properties.TARGET_METHOD.isEmpty()) {
+			for (String e : methods) {
+				if (!callCount.containsKey(e)) {
+					fitness += 1.0;
+					missingMethods += 1;
+				}
 			}
 		}
 		printStatusMessages(suite, numCoveredBranches, totalMethods - missingMethods,
