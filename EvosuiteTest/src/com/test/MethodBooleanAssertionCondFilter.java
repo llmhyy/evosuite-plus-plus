@@ -28,8 +28,11 @@ import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 
-public class MethodFilter {
-	private static Logger log = LoggerUtils.getLogger(MethodFilter.class);
+import com.test.utils.LoggerUtils;
+import com.test.utils.OpcodeUtils;
+
+public class MethodBooleanAssertionCondFilter {
+	private static Logger log = LoggerUtils.getLogger(MethodBooleanAssertionCondFilter.class);
 	
 	@SuppressWarnings("unchecked")
 	public static List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException {

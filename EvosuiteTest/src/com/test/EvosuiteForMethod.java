@@ -27,15 +27,36 @@ import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
-import com.test.excel.ExcelWriter;
+import com.test.utils.LoggerUtils;
 
+/**
+ * 
+ * @author thilyly_tran
+ * 
+ * [Check these scripts: /experiments/SF100/evotest.bat & listMethods.bat for an example]
+ * To Run EvosuiteForMethod
+ * <p>
+ * + ListMethods (with filter)<p>
+ * EvosuiteForMethod -listMethods<p>
+ * (All other options are just the same as which that are used to run evosuite -listClasses)<p>
+ * 		REQUIRE ARGUMENTS: [-jar|-class|-prefix]<p>
+ * <p>
+ * + Run evosuite separately by Methods<p>
+ * (All options from evosuite are reused, except those two options are added for exceptional inclusive/exclusive filtered methods:<p>
+ * 	-inclusiveFile [file path] (check {@link FilterConfiguration.InclusiveFilter}<p>
+ *  -exclusiveFile [file path]<p>
+ *  options to determine target methods:
+ *  	[-jar|-class|-prefix|-]
+ *  <p>
+ * ) 
+ */
 @SuppressWarnings("deprecation")
 public class EvosuiteForMethod {
 	private static Logger log;
 	public static final String LIST_METHODS_FILE_NAME = "targetMethods.txt";
-	static String projectName;
-	static String outputFolder;
-	static String projectId; // ex: 1_tullibee
+	public static String projectName;
+	public static String outputFolder;
+	public static String projectId; // ex: 1_tullibee (project folder name)
 	static FilterConfiguration filter;
 	
 	private URLClassLoader evoTestClassLoader;
@@ -55,7 +76,8 @@ public class EvosuiteForMethod {
 				if (!filter.isValidProject(projectName)) {
 					return;
 				}
-				args = extractArgs(args, Arrays.asList(ParameterOptions.EXCLUSIVE_FILE_OPT, ParameterOptions.INCLUSIVE_FILE_OPT));
+				args = extractArgs(args,
+						Arrays.asList(ParameterOptions.EXCLUSIVE_FILE_OPT, ParameterOptions.INCLUSIVE_FILE_OPT));
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				String[] truncatedArgs = extractArgs(args);
 				evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
@@ -82,10 +104,6 @@ public class EvosuiteForMethod {
 		log = LoggerUtils.getLogger(EvosuiteForMethod.class);
 	}
 
-	public EvosuiteForMethod() {
-		
-	}
-
 	private CommandLine parseCommandLine(String[] args) {
 		try {
 			Options options = CommandLineParameters.getCommandLineOptions();
@@ -107,6 +125,9 @@ public class EvosuiteForMethod {
 		}
 	}
 	
+	/**
+	 * 
+	 * */
 	private static String[] extractArgs(String[] args) throws Exception {
 		Set<String> excludedOpts = new HashSet<>();
 		excludedOpts.add("-target");
@@ -127,8 +148,6 @@ public class EvosuiteForMethod {
 		}
 		return newArgs.toArray(new String[newArgs.size()]);
 	}
-	
-	
 	
 	private String[] extractListMethodsArgs(String[] args) throws Exception {
 		List<String> newArgs = new ArrayList<>();
@@ -170,7 +189,7 @@ public class EvosuiteForMethod {
 	}
 
 	public void runAllMethods(String[] targetClasses, String[] args, String projectName) {
-		ExperimentRecorder recorder = new ExperimentRecorder();
+		FinalRecorder recorder = new FinalRecorder();
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = evoTestClassLoader.loadClass(className);
@@ -178,23 +197,23 @@ public class EvosuiteForMethod {
 				if (targetClass.isInterface()) {
 					continue;
 				}
-				List<String> testableMethod = MethodFilter.listTestableMethods(targetClass, evoTestClassLoader);
+//				List<String> testableMethod = MethodFilter.listTestableMethods(targetClass, evoTestClassLoader);
 				for (Method method : targetClass.getMethods()) {
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
 					if (!filter.isValidMethod(projectName, CommonUtility.getMethodId(className, methodName))) {
 						continue;
 					}
-					if (testableMethod.contains(methodName)) {
-						try {
-							runMethod(methodName, className, args, recorder);
-						} catch (Throwable t) {
-							String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
-									.append("#").append(methodName).append("\n")
-									.append("Error: \n")
-									.append(t.getMessage()).toString();
-							log.debug(msg, t);
-						}
+//					if (testableMethod.contains(methodName)) {
+					try {
+						runMethod(methodName, className, args, recorder);
+					} catch (Throwable t) {
+						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
+								.append("#").append(methodName).append("\n")
+								.append("Error: \n")
+								.append(t.getMessage()).toString();
+						log.debug(msg, t);
 					}
+//					}
 				}
 			} catch (Throwable t) {
 				log.error("Error!", t);
@@ -213,72 +232,18 @@ public class EvosuiteForMethod {
 			String[] args = ArrayUtils.addAll(evosuiteArgs, 
 					"-class", className,
 					"-Dtarget_method", methodName
-					,"-Dstop_zero", "false"
+//					,"-Dstop_zero", "false"
 					);
 			log.info("evosuite args: " + StringUtils.join((Object[]) args, " "));
 			EvoSuite evosuite = new EvoSuite();
 			List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
 			for (List<TestGenerationResult> l : list) {
 				for (TestGenerationResult r : l) {
-					if (r.getDistribution() == null || r.getDistribution().length == 0) {
-						continue; // ignore
-					}
-					log.info("" +r.getProgressInformation());
-					for(int i=0; i<r.getDistribution().length; i++){
-						log.info("" +r.getDistribution()[i]);					
-					}	
-					List<Object> progressRowData = new ArrayList<>();
-					progressRowData.add(className);
-					progressRowData.add(methodName);
-					progressRowData.addAll(r.getProgressInformation());
-					List<Object> distributionRowData = new ArrayList<>();
-					distributionRowData.add(className);
-					distributionRowData.add(methodName);
-					for (int distr : r.getDistribution()) {
-						distributionRowData.add(distr);
-					}
-					recorder.record(progressRowData, distributionRowData);
-					recorder.logSuccessfulMethods(className, methodName);
+					recorder.record(className, methodName, r);
 				}
 			}
 		} catch (Exception e) {
-			List<Object> progressRowData = new ArrayList<>();
-			progressRowData.add(className);
-			progressRowData.add(methodName);
-			progressRowData.add(e.getMessage());
-			List<Object> distributionRowData = new ArrayList<>();
-			distributionRowData.add(className);
-			distributionRowData.add(methodName);
-			progressRowData.add(e.getMessage());
-			recorder.record(progressRowData, distributionRowData);
-		}
-	}
-	
-	private static class ExperimentRecorder {
-		private ExcelWriter distributionExcelWriter;
-		private ExcelWriter progressExcelWriter;
-		private String successfulMethodsFile;
-		
-		public ExperimentRecorder() {
-			distributionExcelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_distribution.xlsx"));
-			distributionExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
-			progressExcelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_progress.xlsx"));
-			progressExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
-			successfulMethodsFile = outputFolder + "successfulMethods.txt";
-			FileUtils.writeFile(successfulMethodsFile, "#Project " + projectId + "\n", false);
-		}
-		
-		public void record(List<Object> progressRowData, List<Object> distributionRowData) {
-			try {
-				progressExcelWriter.writeSheet("data", Arrays.asList(progressRowData));
-				distributionExcelWriter.writeSheet("data", Arrays.asList(distributionRowData));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		public void logSuccessfulMethods(String className, String methodName) {
-			FileUtils.writeFile(successfulMethodsFile, CommonUtility.getMethodId(className, methodName) + "\n", true);
+			recorder.recordError(className, methodName, e);
 		}
 	}
 }
