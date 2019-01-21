@@ -355,7 +355,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			logger.info("Population size: " + population.size());
 			logger.info("Best individual has fitness: " + population.get(0).getFitness());
 			logger.info("Worst individual has fitness: " + population.get(population.size() - 1).getFitness());
-
+			
 		}
 		bestIndividual = getBestIndividual();
 		if (bestIndividual != null) {
@@ -369,6 +369,12 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			distribution[count++] = distributionMap.get(key);
 		}
 		this.setDistribution(distribution);
+		
+		for(Integer branchID: distributionMap.keySet()) {
+			logger.error("branch ID: " + branchID + ": " + distributionMap.get(branchID));
+		}
+		
+		System.currentTimeMillis();
 		
 		// archive
 		TimeController.execute(this::updateBestIndividualFromArchive, "update from archive", 5_000);
