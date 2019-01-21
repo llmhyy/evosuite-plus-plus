@@ -50,8 +50,12 @@ public class AbstractETest {
 				"-Dtarget_method", targetMethod, 
 				"-Dsearch_budget", String.valueOf(seconds),
 				"-Dcriterion", fitnessAppraoch,
-				"-Dinstrument_context", "true", 
-				"-Dinsertion_uut", "0.1",
+				"-Dinstrument_context", String.valueOf(instrumentContext), 
+//				"-Dinsertion_uut", "0.1",
+//				"-Dp_test_delete", "0.1",
+//				"-Dp_test_change", "0.8",
+//				"-Dp_test_insert", "0.1",
+				"-Dlocal_search_rate", "3",
 //				"-Dinstrument_method_calls", "true",
 //				"-Dinstrument_libraries", "true",
 				"-seed", "100"
@@ -75,8 +79,10 @@ public class AbstractETest {
 				int age = 0;
 				if(r.getGeneticAlgorithm() != null){
 					age = r.getGeneticAlgorithm().getAge();
+					System.out.println("Generations: " + age);
 				}
 				
+				System.out.println("Used time: " + r.getElapseTime());
 				return new Tuple(r.getElapseTime(), r.getCoverage(), age);
 			}
 		}
