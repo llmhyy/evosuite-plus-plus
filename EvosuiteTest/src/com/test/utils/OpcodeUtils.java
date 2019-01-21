@@ -1,4 +1,4 @@
-package com.test;
+package com.test.utils;
 
 import org.evosuite.utils.CollectionUtil;
 import org.objectweb.asm.Opcodes;

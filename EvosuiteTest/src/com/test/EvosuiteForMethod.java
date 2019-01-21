@@ -28,14 +28,36 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
 import com.test.excel.ExcelWriter;
+import com.test.utils.LoggerUtils;
 
+/**
+ * 
+ * @author thilyly_tran
+ * 
+ * [Check these scripts: /experiments/SF100/evotest.bat & listMethods.bat for an example]
+ * To Run EvosuiteForMethod
+ * <p>
+ * + ListMethods (with filter)<p>
+ * EvosuiteForMethod -listMethods<p>
+ * (All other options are just the same as which that are used to run evosuite -listClasses)<p>
+ * 		REQUIRE ARGUMENTS: [-jar|-class|-prefix]<p>
+ * <p>
+ * + Run evosuite separately by Methods<p>
+ * (All options from evosuite are reused, except those two options are added for exceptional inclusive/exclusive filtered methods:<p>
+ * 	-inclusiveFile [file path] (check {@link FilterConfiguration.InclusiveFilter}<p>
+ *  -exclusiveFile [file path]<p>
+ *  options to determine target methods:
+ *  	[-jar|-class|-prefix|-]
+ *  <p>
+ * ) 
+ */
 @SuppressWarnings("deprecation")
 public class EvosuiteForMethod {
 	private static Logger log;
 	public static final String LIST_METHODS_FILE_NAME = "targetMethods.txt";
 	static String projectName;
 	static String outputFolder;
-	static String projectId; // ex: 1_tullibee
+	static String projectId; // ex: 1_tullibee (project folder name)
 	static FilterConfiguration filter;
 	
 	private URLClassLoader evoTestClassLoader;
@@ -55,7 +77,8 @@ public class EvosuiteForMethod {
 				if (!filter.isValidProject(projectName)) {
 					return;
 				}
-				args = extractArgs(args, Arrays.asList(ParameterOptions.EXCLUSIVE_FILE_OPT, ParameterOptions.INCLUSIVE_FILE_OPT));
+				args = extractArgs(args,
+						Arrays.asList(ParameterOptions.EXCLUSIVE_FILE_OPT, ParameterOptions.INCLUSIVE_FILE_OPT));
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				String[] truncatedArgs = extractArgs(args);
 				evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
@@ -82,10 +105,6 @@ public class EvosuiteForMethod {
 		log = LoggerUtils.getLogger(EvosuiteForMethod.class);
 	}
 
-	public EvosuiteForMethod() {
-		
-	}
-
 	private CommandLine parseCommandLine(String[] args) {
 		try {
 			Options options = CommandLineParameters.getCommandLineOptions();
@@ -107,6 +126,9 @@ public class EvosuiteForMethod {
 		}
 	}
 	
+	/**
+	 * 
+	 * */
 	private static String[] extractArgs(String[] args) throws Exception {
 		Set<String> excludedOpts = new HashSet<>();
 		excludedOpts.add("-target");
@@ -127,8 +149,6 @@ public class EvosuiteForMethod {
 		}
 		return newArgs.toArray(new String[newArgs.size()]);
 	}
-	
-	
 	
 	private String[] extractListMethodsArgs(String[] args) throws Exception {
 		List<String> newArgs = new ArrayList<>();
@@ -178,23 +198,23 @@ public class EvosuiteForMethod {
 				if (targetClass.isInterface()) {
 					continue;
 				}
-				List<String> testableMethod = MethodFilter.listTestableMethods(targetClass, evoTestClassLoader);
+//				List<String> testableMethod = MethodFilter.listTestableMethods(targetClass, evoTestClassLoader);
 				for (Method method : targetClass.getMethods()) {
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
 					if (!filter.isValidMethod(projectName, CommonUtility.getMethodId(className, methodName))) {
 						continue;
 					}
-					if (testableMethod.contains(methodName)) {
-						try {
-							runMethod(methodName, className, args, recorder);
-						} catch (Throwable t) {
-							String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
-									.append("#").append(methodName).append("\n")
-									.append("Error: \n")
-									.append(t.getMessage()).toString();
-							log.debug(msg, t);
-						}
+//					if (testableMethod.contains(methodName)) {
+					try {
+						runMethod(methodName, className, args, recorder);
+					} catch (Throwable t) {
+						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
+								.append("#").append(methodName).append("\n")
+								.append("Error: \n")
+								.append(t.getMessage()).toString();
+						log.debug(msg, t);
 					}
+//					}
 				}
 			} catch (Throwable t) {
 				log.error("Error!", t);

@@ -1,8 +1,10 @@
-package com.test;
+package com.test.utils;
 
 import org.evosuite.EvoSuite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.test.FileUtils;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;

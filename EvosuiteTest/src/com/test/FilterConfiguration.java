@@ -14,7 +14,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
-
+/**
+ * 
+ * @author thilyly_tran
+ *
+ */
 public class FilterConfiguration {
 	private List<Filter> filters;
 	
@@ -29,11 +33,6 @@ public class FilterConfiguration {
 			filters.add(new InclusiveFilter(inclFile));
 		}
 	}
-
-	public FilterConfiguration(String exclusivesFile, String inclusivesFile) throws IOException {
-		
-	}
-
 
 	public boolean isValidProject(String projectName) {
 		for (Filter filter : filters) {
@@ -88,6 +87,19 @@ public class FilterConfiguration {
 
 	}
 	
+	/**
+	 * format of inclusive file: <p>
+	 *  		#Project=[your_project_name] <p>
+	 *  		[your_method_name_with_this_format: className#methodNameWithSignature]<p>
+	 *  		# all_text_after_this_will_be_consider_as_comment <p>
+	 *  ex: <p>
+	 *  #------------------------------------------------------------------------<p>
+	 *	#Project=fooProject<p>
+	 *	#------------------------------------------------------------------------<p>
+	 *	com.FOO#bar()V<p>
+	 * @author thilyly_tran
+	 *
+	 */
 	private static class InclusiveFilter implements Filter {
 		private Map<String, Set<String>> inclusives = new HashMap<>();
 		
@@ -95,7 +107,7 @@ public class FilterConfiguration {
 			List<String> lines = FileUtils.readLines(new File(inclFile), Charset.defaultCharset());
 			String curProject = null;
 			for (String line : lines) {
-				if (line.startsWith("#Project=")) {
+				if (line.toLowerCase().startsWith("#project=")) {
 					curProject = line.split("=")[1].split(" ")[0];
 				} else {
 					if (!line.startsWith("#")) {

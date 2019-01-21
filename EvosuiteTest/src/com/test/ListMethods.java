@@ -11,6 +11,8 @@ import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.CommonUtility;
 import org.slf4j.Logger;
 
+import com.test.utils.LoggerUtils;
+
 public class ListMethods {
 	private static Logger log = LoggerUtils.getLogger(ListMethods.class);
 	
@@ -37,7 +39,8 @@ public class ListMethods {
 					continue;
 				}
 				System.out.println("Class " + targetClass.getName());
-				List<String> testableMethods = MethodFilter.listTestableMethods(targetClass, classLoader);
+				List<String> testableMethods = MethodHasBranchFilter.listTestableMethods(targetClass, classLoader);
+//				List<String> testableMethods = MethodBooleanAssertionCondFilter.listTestableMethods(targetClass, classLoader);
 				sb = new StringBuilder();
 				for (String methodName : testableMethods) {
 					sb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
