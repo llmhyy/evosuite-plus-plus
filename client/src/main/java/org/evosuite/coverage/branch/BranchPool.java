@@ -502,7 +502,6 @@ public class BranchPool {
 					if(targetMethod.isEmpty() || targetMethod.equals(method)) {
 						num += branchMap.get(className).get(method).size();						
 					}
-					num += branchMap.get(className).get(method).size();	
 				}
 			}
 		}
