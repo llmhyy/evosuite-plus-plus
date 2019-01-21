@@ -1,4 +1,4 @@
-package com.test.tool;
+package com.test.experiment;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,33 +18,12 @@ public class MergeTxt {
 
 	
 	public static void main(String[] args) throws IOException {
-//		String allMethods = "/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/allTargetMethods.txt";
-//		String sndFilteredMethods = "/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/targetMethods-2ndFilter.txt";
-//		String runallFail = "/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/runall-fail_methods.txt";
-//		String runallSuccess = "/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/runall-filtered_methods.txt";
-//		String remainMethodTxt = "/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/remaining_methods.txt";
-//		List<String> inclusiveFiles = Arrays.asList(allMethods);
-//		List<String> exclusivesFiles = Arrays.asList(sndFilteredMethods, runallFail, runallSuccess);
-		
-//		List<String> inclusiveFiles = Arrays.asList("/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/pass_remained_methods.txt",
-//											"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/pass-filter1-methods.txt",
-//											"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/pass-filter2-methods.txt",
-//											"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/remained_remained_methods.txt");
-//		List<String> exclusivesFiles = Arrays.asList();
-		
 		List<String> inclusiveFiles = Arrays.asList(
-//				"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/pass_remained_methods.txt",
-				"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/pass-filter1-methods.txt",
-				"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/pass-filter2-methods.txt",
-				"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/remaining_methods.txt"
-//				"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/remained_remained_methods.txt"
-				);
-		List<String> exclusivesFiles = Arrays.asList();
+				"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/pass-filter2-methods.txt");
+		List<String> exclusivesFiles = Arrays.asList(
+				"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/filter2-targetMethods.txt");
 		
-//		List<String> inclusiveFiles = Arrays.asList("/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/remaining_methods.txt");
-//		List<String> exclusivesFiles = Arrays.asList("/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/executed-remain-methods.txt");
-		
-		String resultTxt = "/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/result.txt";
+		String resultTxt = "/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/fail-filter2-methods.txt";
 		merge(inclusiveFiles, exclusivesFiles, resultTxt);
 	}
 
