@@ -93,11 +93,13 @@ public class SFBenchmarkUtils {
 					String path = line.split("=")[1];
 					if (!new File(path).exists() && new File(EvoSuite.base_dir_path + "/evosuite-files/inheritance.xml.gz").exists()) {
 						line = "inheritance_file=" + EvoSuite.base_dir_path + "/evosuite-files/inheritance.xml.gz";
+						line = line.replace("\\", "/");
 					} 
 				} else if (line.startsWith("test_dir")) {
 					String path = line.split("=")[1];
 					if (!new File(path).exists()) {
 						line = "test_dir=" + EvoSuite.base_dir_path + "/evosuite-tests";
+						line = line.replace("\\", "/");
 					} 
 				}
 				newContents.add(line);
