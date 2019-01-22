@@ -96,6 +96,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		for(BytecodeInstruction sourceIns: sourceInsList) {
 			if (!sourceIns.isConstant()) {
 				logger.error("the source of ireturn is not a constant.");
+				continue;
 			}
 			
 			String explain = sourceIns.explain();
@@ -240,6 +241,9 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			if(ins.isConstant()) {
 				return ins;
 			}
+			else if(ins.isFieldUse()) {
+				return ins;
+			}
 			ins = ins.getPreviousInstruction();
 		}
 		
@@ -253,7 +257,13 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		BasicBlock block = returnIns.getBasicBlock();
 		BytecodeInstruction constantIns = findLastConstantInstructionInBlock(block);
 		if(constantIns != null) {
-			sourceInsList.add(constantIns);
+			if(constantIns.isConstant()) {
+				sourceInsList.add(constantIns);				
+			}
+			else if(constantIns.isFieldUse()) {
+				//TODO need to handle dynamic definition
+				System.currentTimeMillis();
+			}
 			return sourceInsList;
 		}
 		
