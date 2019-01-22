@@ -24,7 +24,7 @@ public class EvoTestTool {
 				System.out.println("Project: " + projFolder.getName());
 				File propertiesFile = new File(projFolder.getAbsolutePath() + "/evosuite-files/evosuite.properties"); 
 				List<String> contents = FileUtils.readLines(propertiesFile, "UTF-8");
-				List<String> newContents = new ArrayList<>(contents);
+				List<String> newContents = new ArrayList<>(contents.size());
 				for (String line : contents) {
 					if (line.startsWith("CP")) {
 						System.out.println(line);
