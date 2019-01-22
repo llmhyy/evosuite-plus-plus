@@ -348,6 +348,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			updateSecondaryCriterion(starvationCounter);
 			updateDistribution(distributionMap);
 
+			printUncoveredBranches(distributionMap, branchGoals);
+			
 			logger.error("Best fitness: " + bestFitness);
 			logger.info("Current iteration: " + currentIteration);
 			this.notifyIteration();
@@ -380,6 +382,17 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		TimeController.execute(this::updateBestIndividualFromArchive, "update from archive", 5_000);
 
 		notifySearchFinished();
+	}
+
+	private void printUncoveredBranches(Map<Integer, Integer> distributionMap, 
+			List<BranchCoverageTestFitness> branchGoals) {
+		for(BranchCoverageTestFitness goal: branchGoals) {
+			int coverage = distributionMap.get(goal.getBranch().getActualBranchId());
+			if(coverage == 0) {
+				logger.error("uncovered:" + goal.getBranch());
+			}
+		}
+															
 	}
 
 	private void updateDistribution(Map<Integer, Integer> distributionMap) {
