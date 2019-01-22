@@ -81,8 +81,9 @@ public class SFBenchmarkUtils {
 						}
 						List<String> entries = new ArrayList<>();
 						for (String path : cp) {
-							if (new File(projFolder.getAbsolutePath() + File.separator + path).exists()) {
-								entries.add(projFolder.getAbsolutePath() + File.separator + path);
+							String newPath = projFolder.getAbsolutePath() + File.separator + path;
+							if (new File(newPath).exists()) {
+								entries.add(newPath.replace("\\", "/"));
 							}
 						}
 						line = "CP=" + StringUtils.join(entries, File.pathSeparator);
