@@ -387,7 +387,11 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	private void printUncoveredBranches(Map<Integer, Integer> distributionMap, 
 			List<BranchCoverageTestFitness> branchGoals) {
 		for(BranchCoverageTestFitness goal: branchGoals) {
-			int coverage = distributionMap.get(goal.getBranch().getActualBranchId());
+			int id = goal.getBranch().getActualBranchId();
+			if(!goal.getBranchExpressionValue()) {
+				id = -id;
+			}
+			int coverage = distributionMap.get(id);
 			if(coverage == 0) {
 				logger.error("uncovered:" + goal.getBranch());
 			}
