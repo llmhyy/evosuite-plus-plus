@@ -174,7 +174,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		}
 		
 		if(value == null) {
-			value = 100000d;
+			value = 1000000d;
 		}
 		
 		return FitnessFunction.normalize(value);
