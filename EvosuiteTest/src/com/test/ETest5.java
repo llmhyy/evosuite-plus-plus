@@ -7,13 +7,13 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-public class ETest4 extends AbstractETest{
+public class ETest5 extends AbstractETest{
 	
 	@Test
 	public void test() {
-		Class<?> clazz = org.apache.commons.math.util.OpenIntToFieldHashMap.class;
-		String methodName = "get";
-		int parameterNum = 1;
+		Class<?> clazz = org.apache.commons.math.complex.Complex.class;
+		String methodName = "abs";
+		int parameterNum = 0;
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
@@ -28,7 +28,7 @@ public class ETest4 extends AbstractETest{
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		
-		//Properties.LOCAL_SEARCH_BUDGET = 1000;
+		Properties.LOCAL_SEARCH_BUDGET = 1000;
 
 //		Properties.TIMEOUT = 300000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
@@ -36,7 +36,7 @@ public class ETest4 extends AbstractETest{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 200000;
-		ETest4 t = new ETest4();
+		ETest5 t = new ETest5();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 
