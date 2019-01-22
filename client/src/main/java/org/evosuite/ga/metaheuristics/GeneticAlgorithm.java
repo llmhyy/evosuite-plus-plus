@@ -228,7 +228,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 		if (!shouldApplyLocalSearch())
 			return;
 
-		logger.debug("Applying local search");
+		logger.error("Applying local search");
 		LocalSearchBudget.getInstance().localSearchStarted();
 
 		boolean improvement = false;
