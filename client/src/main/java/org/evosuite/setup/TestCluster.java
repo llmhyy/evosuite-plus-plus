@@ -1272,7 +1272,6 @@ public class TestCluster {
 	 */
 	public GenericAccessibleObject<?> getRandomTestCall(TestCase test)
 	        throws ConstructionFailedException {
-		//TODO ?
 		List<GenericAccessibleObject<?>> candidateTestMethods = new ArrayList<>(testMethods);
 
 		if(candidateTestMethods.isEmpty()) {
