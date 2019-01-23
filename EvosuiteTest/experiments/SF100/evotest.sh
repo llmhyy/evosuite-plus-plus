@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+ROOT=`pwd`
 for I in *_*; do
   PROJECT=$(echo $I | awk 'BEGIN {FS="_"} ; { print $2}')
   echo $PROJECT
@@ -19,6 +19,6 @@ for I in *_*; do
    exit 1
   fi
   
-  $EVOTEST -criterion branch -target $PROJECT.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore -Dsearch_budget 10
+  $EVOTEST -criterion branch -target $PROJECT.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore -Dsearch_budget 90 -inclusiveFile $ROOT\targetMethods.txt -Djunit_check false
   popd > /dev/null
 done
