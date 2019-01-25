@@ -94,7 +94,7 @@ public class AbstractETest {
 	}
 
 	public static Method getTragetMethod(String name, Class<?> clazz, int parameterNum){
-		for(Method method: clazz.getMethods()){
+		for(Method method: clazz.getDeclaredMethods()){
 			if(method.getName().equals(name)
 					&& method.getParameterCount()==parameterNum){
 				return method;
