@@ -7,12 +7,12 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-public class ETest5 extends AbstractETest{
+public class ETest6 extends AbstractETest{
 	
 	@Test
 	public void test() {
-		Class<?> clazz = org.apache.commons.math.complex.Complex.class;
-		String methodName = "abs";
+		Class<?> clazz = org.apache.commons.math.fraction.BigFraction.class;
+		String methodName = "toString";
 		int parameterNum = 0;
 		
 		String targetClass = clazz.getCanonicalName();
@@ -33,10 +33,10 @@ public class ETest5 extends AbstractETest{
 //		Properties.TIMEOUT = 300000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "fbranch";
+		String fitnessApproach = "branch";
 		
-		int timeBudget = 200000;
-		ETest5 t = new ETest5();
+		int timeBudget = 200;
+		ETest6 t = new ETest6();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 
