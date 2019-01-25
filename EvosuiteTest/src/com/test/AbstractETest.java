@@ -60,7 +60,7 @@ public class AbstractETest {
 				"-Dmock_if_no_generator", "false",
 				"-Dfunctional_mocking_percent", "0",
 //				"-Dinstrument_method_calls", "true",
-//				"-Dinstrument_libraries", "true",
+				"-Dinstrument_libraries", "true",
 				"-seed", "100"
 				};
 
