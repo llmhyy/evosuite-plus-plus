@@ -144,6 +144,9 @@ public class FBranchTestFitness extends TestFitnessFunction {
 					if(fitness!=0) {
 						break;
 					}
+					else {
+						System.currentTimeMillis();
+					}
 				}	
 				else {
 					break;
@@ -292,15 +295,16 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	}
 
 	private Double checkContextDistance(Map<CallContext, Double> contextMap, ContextBranch cBranch) {
+		if(contextMap == null) {
+			return null;
+		}
+		
 		if(cBranch.contextLine == -1) {
 			for(CallContext key: contextMap.keySet()) {
 				return contextMap.get(key);
 			}
 		}
 		
-		if(contextMap == null) {
-			return null;
-		}
 		
 		for(CallContext key: contextMap.keySet()) {
 			List<Call> calls = key.getContext();
