@@ -1320,6 +1320,8 @@ public class MSecurityManager extends SecurityManager {
 				 * is important
 				 */
 				return true;
+			} else if(fp.getName().endsWith("transformation.csv")) {
+				return true;
 			}
 		}
 
