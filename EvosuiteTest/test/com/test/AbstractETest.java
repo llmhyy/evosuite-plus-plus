@@ -93,6 +93,9 @@ public class AbstractETest {
 					if(RuntimeRecord.methodCallAvailabilityMap.get(key)) {
 						count++;
 					}
+					else {
+						System.out.println("Missing analyzing call: " + key);
+					}
 				}
 				int size = RuntimeRecord.methodCallAvailabilityMap.size();
 				double ratio = -1;
