@@ -63,8 +63,8 @@ public class AbstractETest {
 //				"-Dinstrument_method_calls", "true",
 				"-Dinstrument_libraries", "true",
 				"-Dinstrument_parent", "true",
-//				"-DTT", "true",
-//				"-Dtt_scope", "target",
+				"-DTT", "true",
+				"-Dtt_scope", "all",
 				"-seed", "100"
 				};
 

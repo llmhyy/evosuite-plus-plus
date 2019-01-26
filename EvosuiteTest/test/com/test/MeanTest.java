@@ -33,7 +33,7 @@ public class MeanTest extends AbstractETest{
 //		Properties.TIMEOUT = 300000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "fbranch";
+		String fitnessApproach = "branch";
 		
 		int timeBudget = 30;
 		MeanTest t = new MeanTest();
