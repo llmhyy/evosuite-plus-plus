@@ -62,6 +62,9 @@ public class AbstractETest {
 				"-Dfunctional_mocking_percent", "0",
 //				"-Dinstrument_method_calls", "true",
 				"-Dinstrument_libraries", "true",
+				"-Dinstrument_parent", "true",
+//				"-DTT", "true",
+//				"-Dtt_scope", "target",
 				"-seed", "100"
 				};
 
