@@ -30,7 +30,7 @@ public class OpenIntToFieldHashMapTest extends AbstractETest{
 		
 //		Properties.LOCAL_SEARCH_BUDGET = 10000;
 
-		Properties.TIMEOUT = 3000000;
+//		Properties.TIMEOUT = 3000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
 		String fitnessApproach = "fbranch";
