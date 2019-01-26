@@ -34,8 +34,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	private final BranchCoverageGoal branchGoal;
 	private double epsilon = 0.001;
 	
-	private boolean isCallUninstrumentedClass = false;
-
 	public FBranchTestFitness(BranchCoverageGoal branchGoal) {
 		this.branchGoal = branchGoal;
 	}
