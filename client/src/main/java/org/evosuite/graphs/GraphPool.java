@@ -117,8 +117,8 @@ public class GraphPool {
 	public RawControlFlowGraph getRawCFG(String className, String methodName) {
 
 		if (rawCFGs.get(className) == null) {
-			logger.warn("Class unknown: " + className);
-			logger.warn(rawCFGs.keySet().toString());
+//			logger.warn("Class unknown: " + className);
+//			logger.warn(rawCFGs.keySet().toString());
 			return null;
 		}
 
@@ -136,8 +136,8 @@ public class GraphPool {
 	 */
 	public Map<String, RawControlFlowGraph> getRawCFGs(String className) {
 		if (rawCFGs.get(className) == null) {
-			logger.warn("Class unknown: " + className);
-			logger.warn(rawCFGs.keySet().toString());
+//			logger.warn("Class unknown: " + className);
+//			logger.warn(rawCFGs.keySet().toString());
 			return null;
 		}
 
