@@ -124,6 +124,10 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		suite.setNumOfCoveredGoals(this, numCoveredGoals);
 		suite.setNumOfNotCoveredGoals(this, totGoals - numCoveredGoals);
 		updateIndividual(this, suite, fitness);
+		
+		if(suite.getCoverage()==1) {
+			fitness = 0;
+		}
 
 		return fitness;
 	}

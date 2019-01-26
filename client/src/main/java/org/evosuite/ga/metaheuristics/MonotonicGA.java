@@ -353,6 +353,11 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 			printUncoveredBranches(distributionMap, branchGoals);
 			
+			if(bestFitness > 0 && bestIndividual!=null && bestIndividual.getCoverage()==1) {
+				System.currentTimeMillis();
+				getBestFitness();
+			}
+			
 			logger.error("Best fitness: " + bestFitness);
 			logger.info("Current iteration: " + currentIteration);
 			this.notifyIteration();
