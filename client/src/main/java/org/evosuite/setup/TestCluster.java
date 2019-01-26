@@ -22,6 +22,7 @@
  */
 package org.evosuite.setup;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.archive.TestsArchive;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.junit.CoverageAnalysis;
@@ -319,7 +321,12 @@ public class TestCluster {
 		}
 
 		if (Properties.INSTRUMENT_PARENT) {
-			return inheritanceTree.getSubclasses(Properties.TARGET_CLASS).contains(className);
+			if(inheritanceTree==null) {
+				String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+				inheritanceTree = InheritanceTreeGenerator.createFromClassPath(Arrays.asList(cp.split(File.pathSeparator)));
+			}
+			return inheritanceTree.getSuperclasses(Properties.TARGET_CLASS).contains(className);
+//			return inheritanceTree.getSubclasses(Properties.TARGET_CLASS).contains(className);
 		}
 
 		return false;
