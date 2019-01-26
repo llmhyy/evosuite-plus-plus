@@ -28,14 +28,14 @@ public class OpenIntToFieldHashMapTest extends AbstractETest{
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		
-		//Properties.LOCAL_SEARCH_BUDGET = 1000;
+//		Properties.LOCAL_SEARCH_BUDGET = 10000;
 
-//		Properties.TIMEOUT = 300000000;
+		Properties.TIMEOUT = 3000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 200000;
+		int timeBudget = 20000;
 		OpenIntToFieldHashMapTest t = new OpenIntToFieldHashMapTest();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}

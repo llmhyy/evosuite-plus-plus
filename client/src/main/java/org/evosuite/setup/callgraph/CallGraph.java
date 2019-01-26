@@ -179,7 +179,7 @@ public class CallGraph implements Iterable<CallGraphEntry> {
 	public Set<CallContext> getMethodEntryPoint(String className, String methodName) {
 		Set<CallContext> contexts = new HashSet<>();
 		List<Call> cont = new ArrayList<>();
-		cont.add(new Call(className, methodName));
+		cont.add(new Call(className, methodName, -1));
 		CallContext context = new CallContext(cont);
 		if(publicMethods.contains(context)){
 			contexts.add(context);	
@@ -208,7 +208,7 @@ public class CallGraph implements Iterable<CallGraphEntry> {
 	
 	private void addPublicClassMethod(String className, String methodName, Set<CallContext> contexts){
 		List<Call> calls = new ArrayList<>();
-		Call call = new Call(className, methodName);
+		Call call = new Call(className, methodName, -1);
 		calls.add(call);
 		CallContext context = new CallContext(calls);
 		if(publicMethods.contains(context)&&className.equals(this.className))
@@ -230,7 +230,7 @@ public class CallGraph implements Iterable<CallGraphEntry> {
 				}
 				if (insert)
 					cont.add(new Call(list.get(i).getClassName(), list.get(i)
-							.getMethodName()));
+							.getMethodName(), -1));
 			}
 			contexts.add(new CallContext(cont));
 		}

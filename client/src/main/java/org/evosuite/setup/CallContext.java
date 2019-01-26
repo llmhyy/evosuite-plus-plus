@@ -87,7 +87,7 @@ public class CallContext implements Serializable {
 		for (int i = startPos; i >= endPos; i--) {
 			StackTraceElement element = stackTrace[i];
 
-			context.add(new Call(element.getClassName(), element.getMethodName()));
+			context.add(new Call(element.getClassName(), element.getMethodName(), element.getLineNumber()));
 		}
 		this.context=context;
 		hcode = this.context.hashCode();
@@ -103,7 +103,7 @@ public class CallContext implements Serializable {
         addJUnitExcludes();
 
         List<Call> context = new ArrayList<Call>();
-		context.add(new Call(className, methodName));
+		context.add(new Call(className, methodName, -1));
 		this.context=context;
 		hcode = this.context.hashCode();
 	}
