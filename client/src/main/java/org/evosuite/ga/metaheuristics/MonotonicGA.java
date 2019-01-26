@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 	private static final long serialVersionUID = 7846967347821123201L;
-
+	
 	protected ReplacementFunction replacementFunction;
 
 	private final Logger logger = LoggerFactory.getLogger(MonotonicGA.class);
@@ -253,6 +253,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		}
 		int interval = 5000;
 		ArrayList<Double> progress = new ArrayList<Double>();
+		
+		RuntimeRecord.methodCallAvailabilityMap.clear();
+		
 		long begintime = System.currentTimeMillis();
 		long endtime = System.currentTimeMillis();
 		T bestIndividual = null;
@@ -371,6 +374,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			distribution[count++] = distributionMap.get(key);
 		}
 		this.setDistribution(distribution);
+		getFitnessFunction();
+//		this.setCallUninstrumentedMethod(true);
 		
 		for(Integer branchID: distributionMap.keySet()) {
 			logger.error("branch ID: " + branchID + ": " + distributionMap.get(branchID));

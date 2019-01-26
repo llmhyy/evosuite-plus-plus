@@ -9,6 +9,7 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
@@ -32,11 +33,13 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 	private final BranchCoverageGoal branchGoal;
 	private double epsilon = 0.001;
+	
+	private boolean isCallUninstrumentedClass = false;
 
 	public FBranchTestFitness(BranchCoverageGoal branchGoal) {
 		this.branchGoal = branchGoal;
 	}
-
+	
 	public Branch getBranch() {
 		return this.branchGoal.getBranch();
 	}
@@ -66,11 +69,13 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	private double calculateInterproceduralFitness(BytecodeInstruction flagCallInstruction,
 			BranchCoverageGoal branchGoal, ExecutionResult result) {
 		RawControlFlowGraph calledGraph = flagCallInstruction.getCalledCFG();
+		String signature = flagCallInstruction.getCalledMethodsClass() + "." + flagCallInstruction.getCalledMethod();
 		if(calledGraph == null){
+			RuntimeRecord.methodCallAvailabilityMap.put(signature, false);
 			return 1;
 		}
+		RuntimeRecord.methodCallAvailabilityMap.put(signature, true);
 		
-		System.currentTimeMillis();
 		Set<BytecodeInstruction> exits = calledGraph.determineExitPoints();
 
 		List<Double> returnFitnessList = new ArrayList<>();
@@ -330,5 +335,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	public BranchCoverageGoal getBranchGoal() {
 		return branchGoal;
 	}
+
 
 }

@@ -8,6 +8,7 @@ import java.util.List;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
+import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
 
 
@@ -86,6 +87,21 @@ public class AbstractETest {
 				}
 				
 				System.out.println("Used time: " + r.getElapseTime());
+				
+				int count = 0;
+				for(String key: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+					if(RuntimeRecord.methodCallAvailabilityMap.get(key)) {
+						count++;
+					}
+				}
+				int size = RuntimeRecord.methodCallAvailabilityMap.size();
+				double ratio = -1;
+				if(size != 0) {
+					ratio = (double)count/size;
+				}
+				System.out.println("Method call availability: " + ratio);
+				
+				
 				return new Tuple(r.getElapseTime(), r.getCoverage(), age);
 			}
 		}

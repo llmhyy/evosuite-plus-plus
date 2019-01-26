@@ -33,7 +33,7 @@ public class ETest6 extends AbstractETest{
 //		Properties.TIMEOUT = 300000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "branch";
+		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 200;
 		ETest6 t = new ETest6();
