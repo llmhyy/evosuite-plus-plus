@@ -56,6 +56,7 @@ public class AbstractETest {
 				"-Dp_test_delete", "0.1",
 				"-Dp_test_change", "0.8",
 				"-Dp_test_insert", "0.1",
+				"-Dp_change_parameter", "0.6",
 				"-Dlocal_search_rate", "0",
 				"-Dp_functional_mocking", "0",
 				"-Dmock_if_no_generator", "false",
