@@ -56,6 +56,11 @@ public class FixedLengthTestChromosomeFactory implements
 		while (test.size() < size && num < Properties.MAX_ATTEMPTS) {
 			testFactory.insertRandomStatement(test, test.size() - 1);
 			num++;
+			
+			boolean stopInsertion = TestGenerationUtil.checkStopInsertion(test);
+			if(stopInsertion) {
+				break;
+			}
 		}
 		//logger.debug("Randomized test case:" + test.toCode());
 

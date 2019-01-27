@@ -34,6 +34,7 @@ import org.evosuite.symbolic.BranchCondition;
 import org.evosuite.symbolic.ConcolicExecution;
 import org.evosuite.symbolic.ConcolicMutation;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.localsearch.TestCaseLocalSearch;
 import org.evosuite.testcase.statements.FunctionalMockStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
@@ -552,6 +553,11 @@ public class TestChromosome extends ExecutableChromosome {
 		while (Randomness.nextDouble() <= Math.pow(ALPHA, count)
 		        && (!Properties.CHECK_MAX_LENGTH || size() < Properties.CHROMOSOME_LENGTH)) {
 
+			boolean stopInsertion = TestGenerationUtil.checkStopInsertion(test);
+			if(stopInsertion) {
+				break;
+			}
+			
 			count++;
 			// Insert at position as during initialization (i.e., using helper sequences)
 			int position = testFactory.insertRandomStatement(test, getLastMutatableStatement());

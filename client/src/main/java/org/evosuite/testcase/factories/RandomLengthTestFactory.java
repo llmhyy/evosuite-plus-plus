@@ -26,11 +26,7 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.ExecutionTracer;
-import org.evosuite.testcase.statements.MethodStatement;
-import org.evosuite.testcase.statements.Statement;
-import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
-import org.evosuite.utils.generic.GenericMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,13 +68,6 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 		while (test.size() < length && num < Properties.MAX_ATTEMPTS) {
 			testFactory.insertRandomStatement(test, test.size() - 1);
 			num++;
-			
-			boolean stopInsertion = TestGenerationUtil.checkStopInsertion(test);
-			if(stopInsertion) {
-				break;
-			}
-			
-			
 		}
 		if (logger.isDebugEnabled())
 			logger.debug("Randomized test case:" + test.toCode());
