@@ -521,11 +521,13 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 			coveredTrueContext.get(branch).put(context, true_distance);
 			coveredFalseContext.get(branch).put(context, false_distance);
 		} else {
-			coveredPredicateContext.get(branch).put(context, coveredPredicateContext.get(branch).get(context) + 1);
-			coveredTrueContext.get(branch).put(context,
-					Math.min(coveredTrueContext.get(branch).get(context), true_distance));
-			coveredFalseContext.get(branch).put(context,
-					Math.min(coveredFalseContext.get(branch).get(context), false_distance));
+			if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+				coveredPredicateContext.get(branch).put(context, coveredPredicateContext.get(branch).get(context) + 1);
+				coveredTrueContext.get(branch).put(context,
+						Math.min(coveredTrueContext.get(branch).get(context), true_distance));
+				coveredFalseContext.get(branch).put(context,
+						Math.min(coveredFalseContext.get(branch).get(context), false_distance));				
+			}
 		}
 	}
 
