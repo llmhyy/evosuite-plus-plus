@@ -19,6 +19,8 @@
  */
 package org.evosuite.ga.operators.mutation;
 
+import org.evosuite.Properties;
+import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.Randomness;
 
 public class UniformMutation extends MutationDistribution {
@@ -34,6 +36,10 @@ public class UniformMutation extends MutationDistribution {
    */
   @Override
   public boolean toMutate(int index) {
+	if(!Properties.TARGET_METHOD.isEmpty()) {
+		return true;
+	}
+	  
     if (Randomness.nextDouble() < 1.0 / (double) this.sizeOfDistribution) {
       return true;
     }
