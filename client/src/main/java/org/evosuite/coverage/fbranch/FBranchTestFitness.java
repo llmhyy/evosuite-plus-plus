@@ -51,19 +51,37 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		return r;
 	}
 
+	class DistanceCondition{
+		double fitness;
+		BranchCoverageGoal goal;
+		public DistanceCondition(double fitness, BranchCoverageGoal goal) {
+			super();
+			this.fitness = fitness;
+			this.goal = goal;
+		}
+		
+	}
+	
 	@Override
 	public double getFitness(TestChromosome individual, ExecutionResult result) {
 		ContextBranch cBranch = new ContextBranch(this.branchGoal.getBranch(), -1, "null");
-		double fitness = checkOverallDistance(result, this.branchGoal.getValue(), cBranch);
+		DistanceCondition dCondition = checkOverallDistance(result, this.branchGoal.getValue(), cBranch);
+		double fitness = dCondition.fitness;
 		if (fitness == 0) {
 			return fitness;
 		}
+		
+		BranchCoverageGoal goal = this.branchGoal;
+		int approachLevel = (int)fitness;
+		if(approachLevel != 0) {
+			goal = dCondition.goal;
+		}
 
-		InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(this.branchGoal);
+		InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(goal);
 		if (flagResult.isInterproceduralFlag) {
 			double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall,
-					this.branchGoal, result);
-			return interproceduralFitness;
+					goal, result);
+			return approachLevel + interproceduralFitness;
 		}
 		
 //		System.currentTimeMillis();
@@ -137,37 +155,35 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
 				cBranch.branch = newDepBranch;
 				cBranch.branchID = newDepBranch.getActualBranchId();
-				fitness = checkOverallDistance(result, goalValue, cBranch);
+				DistanceCondition dCondition = checkOverallDistance(result, goalValue, cBranch);
+				fitness = dCondition.fitness;
 				if (fitness == 0) {
 					goalValue = !goalValue;
-					fitness = checkOverallDistance(result, goalValue, cBranch);
-					if(fitness!=0) {
-						break;
-					}
-					else {
-						System.currentTimeMillis();
-					}
+					dCondition = checkOverallDistance(result, goalValue, cBranch);
+					fitness = dCondition.fitness;
 				}	
-				else {
-					break;
+				
+				if(fitness==0) {
+					System.err.print("wrong direction judgement");
+					continue;
 				}
+
+				BranchCoverageGoal newGoal = new BranchCoverageGoal(newDepBranch, goalValue, newDepBranch.getClassName(),
+						newDepBranch.getMethodName(), newDepBranch.getInstruction().getLineNumber());
+
+				InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
+				if (flagResult.isInterproceduralFlag) {
+					double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall,
+							newGoal, result);
+					fitnessList.add(interproceduralFitness);
+				} else {
+					fitnessList.add(fitness);
+				}
+				
+				break;
 			}
 
-			if(fitness==0) {
-//				System.err.print("wrong direction judgement");
-			}
 
-			BranchCoverageGoal newGoal = new BranchCoverageGoal(newDepBranch, goalValue, newDepBranch.getClassName(),
-					newDepBranch.getMethodName(), newDepBranch.getInstruction().getLineNumber());
-
-			InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
-			if (flagResult.isInterproceduralFlag) {
-				double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall,
-						newGoal, result);
-				fitnessList.add(interproceduralFitness);
-			} else {
-				fitnessList.add(fitness);
-			}
 		}
 
 		return fitnessList;
@@ -234,7 +250,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 	}
 
-	private double checkOverallDistance(ExecutionResult result, boolean goalValue, ContextBranch cBranch) {
+	private DistanceCondition checkOverallDistance(ExecutionResult result, boolean goalValue, ContextBranch cBranch) {
 		/**
 		 * look for the covered branch
 		 */
@@ -242,6 +258,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 		int approachLevel = 0;
 		while (!checkCovered(result, cBranch) && !visitedBranches.contains(cBranch)) {
+			approachLevel++;
+			
 			visitedBranches.add(cBranch);
 
 			BytecodeInstruction originBranchIns = cBranch.getInstruction();
@@ -253,12 +271,17 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			cBranch = new ContextBranch(newDepBranch, cBranch.contextLine, cBranch.method);
 			
 			goalValue = originBranchIns.getControlDependency(newDepBranch).getBranchExpressionValue();
-			approachLevel++;
+			double branchDistance = checkContextBranchDistance(result, goalValue, cBranch);
+			if(branchDistance == 0) {
+				goalValue = !goalValue;
+			}
+			
 		}
 
 		double fitness = approachLevel + checkContextBranchDistance(result, goalValue, cBranch);
 
-		return fitness;
+		BranchCoverageGoal goal = new BranchCoverageGoal(cBranch.branch, goalValue, cBranch.branch.getClassName(), cBranch.branch.getMethodName());
+		return new DistanceCondition(fitness, goal);
 	}
 
 	private double checkContextBranchDistance(ExecutionResult result, boolean goalValue, ContextBranch cBranch) {
