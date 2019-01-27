@@ -41,83 +41,52 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		branchGoals = factory.getCoverageGoals();
 		totGoals = branchGoals.size();
 	}
+	
+	private double getTestFitness(FBranchTestFitness fBranchFitness, TestChromosome tc, ExecutionResult result) {
+		
+		double f = fBranchFitness.getFitness(tc, result);
+//		double distance = normalize(f);
+//		System.currentTimeMillis();
+		
+		return f;
+	}
 
 	@Override
 	public double getFitness(AbstractTestSuiteChromosome<? extends ExecutableChromosome> suite) {
-		double fitness = 0.0; // branchFitness.getFitness(suite);
 		List<ExecutionResult> results = runTestSuite(suite);
 
-		Map<FBranchTestFitness, Double> distanceMap = new HashMap<>();
-		Map<FBranchTestFitness, Integer> callCount = new HashMap<>();
+//		Map<FBranchTestFitness, Double> distanceMap = new HashMap<>();
+//		Map<FBranchTestFitness, Integer> callCount = new HashMap<>();
 
-		for (ExecutionResult result : results) {
-			for (Integer branchId : result.getTrace().getTrueDistances().keySet()) {
-				FBranchTestFitness goalT = getGoal(branchId, true);
-				if (goalT == null || removedBranchesT.contains(goalT))
-					continue;
-				TestChromosome tc = new TestChromosome();
-				tc.setTestCase(result.test);
-				double f = goalT.getFitness(tc, result);
-				double distanceT = normalize(f);
-				if (distanceMap.get(goalT) == null || distanceMap.get(goalT) > distanceT) {
-					distanceMap.put(goalT, distanceT);
-				}
-				if (Double.compare(distanceT, 0.0) == 0) {
-					result.test.addCoveredGoal(goalT);
-					if (Properties.TEST_ARCHIVE) {
-						TestsArchive.instance.putTest(this, goalT, result);
-						toRemoveBranchesT.add(goalT);
-						suite.isToBeUpdated(true);
-					}
-				}
-			}
-
-			for (Integer branchId : result.getTrace().getFalseDistances().keySet()) {
-				FBranchTestFitness goalF = getGoal(branchId, false);
-				if (goalF == null || removedBranchesF.contains(goalF))
-					continue;
-				TestChromosome tc = new TestChromosome();
-				tc.setTestCase(result.test);
-				double f = goalF.getFitness(tc, result);
-				double distanceF = normalize(f);
-				if (distanceMap.get(goalF) == null || distanceMap.get(goalF) > distanceF) {
-					distanceMap.put(goalF, distanceF);
-				}
-				if (Double.compare(distanceF, 0.0) == 0) {
-					result.test.addCoveredGoal(goalF);
-					if (Properties.TEST_ARCHIVE) {
-						TestsArchive.instance.putTest(this, goalF, result);
-						toRemoveBranchesF.add(goalF);
-						suite.isToBeUpdated(true);
-					}
-				}
+		double[][] fitnessMatrix = new double[results.size()][branchGoals.size()];
+		
+		for (int i=0; i<results.size(); i++) {
+			ExecutionResult result = results.get(i);
+			TestChromosome tc = new TestChromosome();
+			tc.setTestCase(result.test);
+			
+			for(int j=0; j<branchGoals.size(); j++) {
+				FBranchTestFitness fBranchFitness = branchGoals.get(j);
+				double f = getTestFitness(fBranchFitness, tc, result);
+				fitnessMatrix[i][j] = f;
 			}
 		}
 
 		int numCoveredGoals = 0;
-		for (FBranchTestFitness goal : branchGoals) {
-			Double distance = distanceMap.get(goal);
-			if (distance == null)
-				distance = 1.0;
-
-			if (goal.getBranch() == null) {
-				Integer count = callCount.get(goal);
-				if (count == null || count == 0) {
-					fitness += 1;
-				} else {
-					numCoveredGoals++;
-				}
-			} else {
-				if (distance == 0.0) {
-					numCoveredGoals++;
-				}
-				fitness += distance;
+		double fitness = 0;
+		for(int j=0; j<branchGoals.size(); j++) {
+			double goalFitness = 1;
+			for(int i=0; i<results.size(); i++) {
+				goalFitness *= fitnessMatrix[i][j];
 			}
+			
+			if(goalFitness==0) {
+				numCoveredGoals++;
+			}
+			
+			fitness += goalFitness;
 		}
-
-		numCoveredGoals += removedBranchesF.size();
-		numCoveredGoals += removedBranchesT.size();
-		numCoveredGoals += removedRootBranches.size();
+		
 		if (totGoals > 0) {
 			suite.setCoverage(this, (double) numCoveredGoals / (double) totGoals);
 		}
