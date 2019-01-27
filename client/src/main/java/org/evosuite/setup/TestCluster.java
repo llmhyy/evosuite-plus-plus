@@ -1303,18 +1303,16 @@ public class TestCluster {
 
 		GenericAccessibleObject<?> choice = Properties.SORT_CALLS ? ListUtil.selectRankBiased(candidateTestMethods) : Randomness.choice(candidateTestMethods);
 		if(!Properties.TARGET_METHOD.isEmpty()) {
-			if(Randomness.nextDouble() > 0.5) {
-				for(GenericAccessibleObject<?> candidate: candidateTestMethods) {
-					if(candidate instanceof GenericMethod) {
-						GenericMethod method = (GenericMethod)candidate;
-						String sig = method.getName() + MethodUtil.getSignature(method.getMethod());
-						if(sig.equals(Properties.TARGET_METHOD)){
-							choice = candidate;
-							break;
-						}						
-					}
-					
+			for(GenericAccessibleObject<?> candidate: candidateTestMethods) {
+				if(candidate instanceof GenericMethod) {
+					GenericMethod method = (GenericMethod)candidate;
+					String sig = method.getName() + MethodUtil.getSignature(method.getMethod());
+					if(sig.equals(Properties.TARGET_METHOD)){
+						choice = candidate;
+						break;
+					}						
 				}
+				
 			}
 		}
 		
