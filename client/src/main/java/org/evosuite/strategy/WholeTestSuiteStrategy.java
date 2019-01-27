@@ -40,6 +40,7 @@ import org.evosuite.testsuite.similarity.DiversityObserver;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
+import org.hibernate.Criteria;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +87,8 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 				|| ArrayUtil.contains(Properties.CRITERION, Criterion.ALLDEFS)
 				|| ArrayUtil.contains(Properties.CRITERION, Criterion.STATEMENT)
 				|| ArrayUtil.contains(Properties.CRITERION, Criterion.RHO)
-				|| ArrayUtil.contains(Properties.CRITERION, Criterion.AMBIGUITY))
+				|| ArrayUtil.contains(Properties.CRITERION, Criterion.AMBIGUITY)
+				|| ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH))
 			ExecutionTracer.enableTraceCalls();
 
 		// TODO: why it was only if "analyzing"???
