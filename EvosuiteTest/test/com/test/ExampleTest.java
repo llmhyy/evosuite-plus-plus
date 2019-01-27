@@ -34,7 +34,7 @@ public class ExampleTest extends AbstractETest{
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 30;
+		int timeBudget = 30000;
 		ExampleTest t = new ExampleTest();
 		Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		

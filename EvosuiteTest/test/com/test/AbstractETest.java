@@ -53,20 +53,25 @@ public class AbstractETest {
 				"-Dcriterion", fitnessAppraoch,
 				"-Dinstrument_context", String.valueOf(instrumentContext), 
 //				"-Dinsertion_uut", "0.1",
-				"-Dp_test_delete", "0.1",
-				"-Dp_test_change", "0.8",
+				"-Dp_test_delete", "0",
+				"-Dp_test_change", "0.9",
 				"-Dp_test_insert", "0.1",
 				"-Dp_change_parameter", "0.6",
-				"-Dlocal_search_rate", "0",
+				"-Dlocal_search_rate", "-1",
 				"-Dp_functional_mocking", "0",
 				"-Dmock_if_no_generator", "false",
 				"-Dfunctional_mocking_percent", "0",
+				"-Dmin_initial_tests", "1",
+				"-Dmax_initial_tests", "1",
 //				"-Dinstrument_method_calls", "true",
 				"-Dinstrument_libraries", "true",
 				"-Dinstrument_parent", "true",
+				"-Dmax_length", "1",
+				"-Dmax_size", "1",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
 				"-seed", "100"
+				
 				};
 
 		// command = new String[] { "-generateSuite", "-class", targetClass,
