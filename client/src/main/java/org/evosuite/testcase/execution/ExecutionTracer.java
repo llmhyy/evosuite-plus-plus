@@ -30,6 +30,8 @@ import org.objectweb.asm.Opcodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.tools.javac.util.Pair;
+
 
 /**
  * This class collects information about chosen branches/paths at runtime
@@ -63,6 +65,8 @@ public class ExecutionTracer {
 	 * external library), then we don't want its data in the current trace
 	 */
 	private static volatile Thread currentThread = null;
+	
+	private static Pair<Integer, Double> comparisonValue;
 
 	/**
 	 * <p>
@@ -442,6 +446,38 @@ public class ExecutionTracer {
 		// Add current branch to control trace
 		tracer.trace.branchPassed(branch, bytecode_id, 0.0, 0.0);
 	}
+	
+	public static void passedComplexNumberComparison(double value2, double value1, int branchId) {
+		double cmpVariation = 0.0;
+		// value2 - value1
+		if (value1 < 0) {
+			/* check overflow */
+			if (Double.MAX_VALUE + value1 < value2) {
+				cmpVariation = Double.MAX_VALUE;
+			} else {
+				cmpVariation = value2 - value1;
+			}
+		} else {
+			if (-Double.MAX_VALUE + value1 > value2) {
+				cmpVariation = -Double.MAX_VALUE;
+			} else {
+				cmpVariation = value2 - value1;
+			}
+		}
+		comparisonValue = Pair.of(branchId, cmpVariation);
+	}
+	
+	public static void onDcmp(double value1, double value2, int branchId) {
+		passedComplexNumberComparison(value1, value2, branchId);
+	}
+	
+	public static void onLcmp(long value1, long value2, int branchId) {
+		passedComplexNumberComparison(value1, value2, branchId);
+	}
+
+	public static void onFcmp(float value1, float value2, int branchId) {
+		passedComplexNumberComparison(value1, value2, branchId);
+	}
 
 	/**
 	 * Called by the instrumented code each time a new branch is taken
@@ -455,7 +491,7 @@ public class ExecutionTracer {
 	 * @param bytecode_id
 	 *            a int.
 	 */
-	public static void passedBranch(int val, int opcode, int branch, int bytecode_id) {
+	public static void passedBranch(int intVal, int opcode, int branch, int bytecode_id) {
 
 		ExecutionTracer tracer = getExecutionTracer();
 		// logger.info("passedBranch val="+val+", opcode="+opcode+", branch="+branch+", bytecode_id="+bytecode_id);
@@ -467,6 +503,13 @@ public class ExecutionTracer {
 
 		checkTimeout();
 
+		double val = intVal;
+		/* 
+		 * in case of the if instruction which has complex basic type comparison, the real value is stored in comparisonValue
+		 * */
+		if (comparisonValue != null && comparisonValue.fst == branch) {
+			val = comparisonValue.snd;
+		}
 		ConstantPoolManager.getInstance().addDynamicConstant(val);
 
 		// logger.trace("Called passedBranch1 with opcode "+AbstractVisitor.OPCODES[opcode]+" and val "+val+" in branch "+branch);

@@ -31,8 +31,8 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.runtime.instrumentation.AnnotatedLabel;
-import org.evosuite.testcase.execution.ExecutionTrace;
 import org.evosuite.testcase.execution.ExecutionTracer;
+import org.evosuite.utils.CollectionUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -104,6 +104,13 @@ public class BranchInstrumentation implements MethodInstrumentation {
 								}
 							}
 						}
+						
+						/* for special cases in which a CMP instruction is executed before an IF instruction */
+						AbstractInsnNode prevInsn = v.getASMNode().getPrevious();
+						if (CollectionUtil.existIn(prevInsn.getOpcode(), Opcodes.DCMPG,
+								Opcodes.DCMPL, Opcodes.FCMPG, Opcodes.FCMPL, Opcodes.LCMP)) {
+							mn.instructions.insertBefore(prevInsn, getCmpInstrumentation(prevInsn, v));
+						}
 						mn.instructions.insertBefore(v.getASMNode(), getInstrumentation(v));
 
 					} else if (v.isSwitch()) {
@@ -117,6 +124,56 @@ public class BranchInstrumentation implements MethodInstrumentation {
 			}
 		}
 		mn.maxStack += 4;
+	}
+	
+	protected InsnList getCmpInstrumentation(AbstractInsnNode insn, BytecodeInstruction ifBcInsn) {
+		if (insn == null) {
+			throw new IllegalArgumentException("null given");
+		}
+		int branchId = BranchPool.getInstance(classLoader).getActualBranchIdForNormalBranchInstruction(ifBcInsn);
+		InsnList instrumentation = new InsnList();
+		
+		int opcode = insn.getOpcode();
+		switch (opcode) {
+		/* Double and Long are under type2 go with 2bytes */
+		case Opcodes.DCMPG:
+		case Opcodes.DCMPL:
+			/* duplicate values. On stack: v1(+) v2(+) */
+			instrumentation.add(new InsnNode(Opcodes.DUP2_X2)); /* v2 v1 v2 */
+			instrumentation.add(new InsnNode(Opcodes.POP2)); /* v2 v1 */
+			instrumentation.add(new InsnNode(Opcodes.DUP2_X2)); /* v1 v2 v1 */
+			instrumentation.add(new InsnNode(Opcodes.DUP2_X2)); /* v1 v1 v2 v1 */
+			instrumentation.add(new InsnNode(Opcodes.POP2)); /* v1 v1 v2 */
+			instrumentation.add(new InsnNode(Opcodes.DUP2_X2)); /* v1 v2 v1 v2 */
+			instrumentation.add(new LdcInsnNode(branchId)); /* v1 v2 v1 v2 branchId */
+			instrumentation.add(new MethodInsnNode(Opcodes.INVOKESTATIC, EXECUTION_TRACER, "onDcmp", 
+					"(DDI)V", false)); /* v1 v2*/
+			break;
+		
+		case Opcodes.LCMP:
+			/* duplicate values. On stack: v1(+) v2(+) */
+			instrumentation.add(new InsnNode(Opcodes.DUP2_X2)); /* v2 v1 v2 */
+			instrumentation.add(new InsnNode(Opcodes.POP2)); /* v2 v1 */
+			instrumentation.add(new InsnNode(Opcodes.DUP2_X2)); /* v1 v2 v1 */
+			instrumentation.add(new InsnNode(Opcodes.DUP2_X2)); /* v1 v1 v2 v1 */
+			instrumentation.add(new InsnNode(Opcodes.POP2)); /* v1 v1 v2 */
+			instrumentation.add(new InsnNode(Opcodes.DUP2_X2)); /* v1 v2 v1 v2 */
+			instrumentation.add(new LdcInsnNode(branchId)); /* v1 v2 v1 v2 branchId */
+			instrumentation.add(new MethodInsnNode(Opcodes.INVOKESTATIC, EXECUTION_TRACER, "onLcmp", 
+					"(JJI)V", false)); /* v1 v2*/
+			break;
+		
+		/* Float is under type1, go with 1 byte */
+		case Opcodes.FCMPG:
+		case Opcodes.FCMPL:
+			/* duplicate values. On stack: v1 v2 */
+			instrumentation.add(new InsnNode(Opcodes.DUP2)); /* v1 v2 v1 v2*/
+			instrumentation.add(new LdcInsnNode(branchId)); /* v1 v2 v1 v2 branchId */
+			instrumentation.add(new MethodInsnNode(Opcodes.INVOKESTATIC, EXECUTION_TRACER, "onFcmp", 
+					"(FFI)V", false)); /* v1 v2*/
+			break;
+		}
+		return instrumentation;
 	}
 
 	/**
