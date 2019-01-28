@@ -36,10 +36,6 @@ public class UniformMutation extends MutationDistribution {
    */
   @Override
   public boolean toMutate(int index) {
-	if(!Properties.TARGET_METHOD.isEmpty()) {
-		return true;
-	}
-	  
     if (Randomness.nextDouble() < 1.0 / (double) this.sizeOfDistribution) {
       return true;
     }
