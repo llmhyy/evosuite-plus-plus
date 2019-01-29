@@ -492,9 +492,9 @@ public class TestChromosome extends ExecutableChromosome {
 
 		if (!changed) {
 			for (int position = 0; position <= lastMutatableStatement; position++) {
-				if(!Properties.TARGET_METHOD.isEmpty()) {
-					pl = 1;
-				}
+//				if(!Properties.TARGET_METHOD.isEmpty()) {
+//					pl = 1;
+//				}
 				
 				if (Randomness.nextDouble() <= pl) {
 					assert (test.isValid());
