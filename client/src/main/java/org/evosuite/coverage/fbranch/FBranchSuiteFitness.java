@@ -45,10 +45,10 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	private double getTestFitness(FBranchTestFitness fBranchFitness, TestChromosome tc, ExecutionResult result) {
 		
 		double f = fBranchFitness.getFitness(tc, result);
-//		double distance = normalize(f);
+		double d = normalize(f);
 //		System.currentTimeMillis();
 		
-		return f;
+		return d;
 	}
 
 	@Override
