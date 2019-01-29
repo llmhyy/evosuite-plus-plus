@@ -68,11 +68,6 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 		while (test.size() < length && num < Properties.MAX_ATTEMPTS) {
 			testFactory.insertRandomStatement(test, test.size() - 1);
 			num++;
-			
-			boolean stopInsertion = TestGenerationUtil.checkStopInsertion(test);
-			if(stopInsertion) {
-				break;
-			}
 		}
 		if (logger.isDebugEnabled())
 			logger.debug("Randomized test case:" + test.toCode());

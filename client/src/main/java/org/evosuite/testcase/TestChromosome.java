@@ -557,11 +557,6 @@ public class TestChromosome extends ExecutableChromosome {
 		while (Randomness.nextDouble() <= Math.pow(ALPHA, count)
 		        && (!Properties.CHECK_MAX_LENGTH || size() < Properties.CHROMOSOME_LENGTH)) {
 
-			boolean stopInsertion = TestGenerationUtil.checkStopInsertion(test);
-			if(stopInsertion) {
-				break;
-			}
-			
 			count++;
 			// Insert at position as during initialization (i.e., using helper sequences)
 			int position = testFactory.insertRandomStatement(test, getLastMutatableStatement());

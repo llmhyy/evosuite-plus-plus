@@ -680,9 +680,9 @@ public class BooleanTestabilityTransformation {
 
 	private void transformMethodSignature(MethodNode mn) {
 		String method = mn.name + mn.desc;
-		if(!Properties.TARGET_METHOD.isEmpty() && Properties.TARGET_METHOD.equals(method)) {
-			return;
-		}
+//		if(!Properties.TARGET_METHOD.isEmpty() && Properties.TARGET_METHOD.equals(method)) {
+//			return;
+//		}
 		
 		// If the method was declared in java.* then don't instrument
 		// Otherwise change signature

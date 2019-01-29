@@ -30,6 +30,7 @@ import org.evosuite.testcase.ConstraintHelper;
 import org.evosuite.testcase.ConstraintVerifier;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
+import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.statements.FunctionalMockStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.variable.NullReference;
@@ -81,6 +82,10 @@ public class RandomInsertion implements InsertionStrategy {
 			// Insert a call to the UUT at the end
 			position = test.size();
 			success = TestFactory.getInstance().insertRandomCall(test, lastPosition + 1);
+			boolean check = TestGenerationUtil.checkTwiceTargetMethodInvocation(test);
+			if(check) {
+				System.currentTimeMillis();
+			}
 		} else if (insertEnv) {
 			/*
 				Insert a call to the environment. As such call is likely to depend on many constraints,
@@ -88,6 +93,10 @@ public class RandomInsertion implements InsertionStrategy {
 			 */
 			position = TestFactory.getInstance().insertRandomCallOnEnvironment(test,lastPosition);
 			success = (position >= 0);
+			boolean check = TestGenerationUtil.checkTwiceTargetMethodInvocation(test);
+			if(check) {
+				System.currentTimeMillis();
+			}
 		} else if (insertParam){
 			// Insert a call to a parameter
 			VariableReference var = selectRandomVariableForCall(test, lastPosition);
@@ -126,6 +135,11 @@ public class RandomInsertion implements InsertionStrategy {
 				}
 
 				success = TestFactory.getInstance().insertRandomCallOnObjectAt(test, var, position);
+				boolean check = TestGenerationUtil.checkTwiceTargetMethodInvocation(test);
+				if(check) {
+					System.currentTimeMillis();
+					System.currentTimeMillis();
+				}
 			}
 
 			if (!success && TestCluster.getInstance().getNumTestCalls() > 0) {
@@ -134,9 +148,13 @@ public class RandomInsertion implements InsertionStrategy {
 				//position = Randomness.nextInt(max);
 				position = test.size();
 				success = TestFactory.getInstance().insertRandomCall(test, position);
+				boolean check = TestGenerationUtil.checkTwiceTargetMethodInvocation(test);
+				if(check) {
+					System.currentTimeMillis();
+				}
 			}
 		}
-
+		
 		//this can happen if insertion had side effect of adding further previous statements in the test,
 		//eg to handle input parameters
 		if (test.size() - oldSize > 1) {

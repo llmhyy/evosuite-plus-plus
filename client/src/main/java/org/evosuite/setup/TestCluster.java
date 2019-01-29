@@ -41,6 +41,7 @@ import org.evosuite.seeding.CastClassManager;
 import org.evosuite.testcase.ConstraintHelper;
 import org.evosuite.testcase.ConstraintVerifier;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.jee.InstanceOnlyOnce;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.ListUtil;
@@ -667,6 +668,9 @@ public class TestCluster {
 			if (! ConstraintVerifier.isValidPositionForInsertion(gao,test,position)){
 				iter.remove();
 			}
+			else if (TestGenerationUtil.isTargetMethod(gao)) {
+				iter.remove();
+			}
 		}
 
 		if (calls.isEmpty()) {
@@ -1280,6 +1284,8 @@ public class TestCluster {
 	public GenericAccessibleObject<?> getRandomTestCall(TestCase test)
 	        throws ConstructionFailedException {
 		List<GenericAccessibleObject<?>> candidateTestMethods = new ArrayList<>(testMethods);
+		
+		TestGenerationUtil.filterTargetMethod(test, candidateTestMethods);
 
 		if(candidateTestMethods.isEmpty()) {
 			logger.debug("No more calls");
@@ -1291,8 +1297,12 @@ public class TestCluster {
 		if(doesTestHaveSUTInstance(test)) {
 			candidateTestMethods = filterConstructors(candidateTestMethods);
 			// It may happen that all remaining test calls are constructors. In this case it's ok.
-			if(candidateTestMethods.isEmpty())
+			if(candidateTestMethods.isEmpty()) {
 				candidateTestMethods = new ArrayList<>(testMethods);
+				TestGenerationUtil.filterTargetMethod(test, candidateTestMethods);
+//				candidateTestMethods = new ArrayList<>(testMethods);
+			}
+				
 		}
 
 
