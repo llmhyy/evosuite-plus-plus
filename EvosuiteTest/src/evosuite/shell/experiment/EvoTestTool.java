@@ -37,7 +37,8 @@ public class EvoTestTool {
 							}
 							List<String> entries = new ArrayList<>();
 							for (String path : cp) {
-								if (new File(projFolder.getAbsolutePath() + File.separator + path).exists()) {
+								File clp = new File(projFolder.getAbsolutePath() + File.separator + path);
+								if (clp.exists() && clp.getName().endsWith(".jar")) {
 									entries.add(path);
 								}
 							}

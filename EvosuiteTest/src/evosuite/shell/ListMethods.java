@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.utils.ArrayUtil;
@@ -13,13 +12,17 @@ import org.slf4j.Logger;
 
 import evosuite.shell.utils.LoggerUtils;
 
+/**
+ * 
+ * @author thilyly_tran
+ * 
+ */
 public class ListMethods {
 	private static Logger log = LoggerUtils.getLogger(ListMethods.class);
 	
 	public static final String OPT_NAME = ParameterOptions.LIST_METHODS_OPT;
 
 	public static void execute(String[] targetClasses, ClassLoader classLoader) throws ClassNotFoundException, IOException {
-		String projectMethodsFile = FileUtils.getFilePath(EvoSuite.base_dir_path, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
 		String allTargetMethodsFile = FileUtils.getFilePath(EvosuiteForMethod.outputFolder, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
 		StringBuilder sb = new StringBuilder();
 		sb.append("#------------------------------------------------------------------------\n")
@@ -39,13 +42,12 @@ public class ListMethods {
 					continue;
 				}
 				System.out.println("Class " + targetClass.getName());
-				List<String> testableMethods = MethodHasBranchFilter.listTestableMethods(targetClass, classLoader);
-//				List<String> testableMethods = MethodBooleanAssertionCondFilter.listTestableMethods(targetClass, classLoader);
+//				List<String> testableMethods = MethodHasBranchFilter.listTestableMethods(targetClass, classLoader);
+				List<String> testableMethods = MethodBooleanAssertionCondFilter.listTestableMethods(targetClass, classLoader);
 				sb = new StringBuilder();
 				for (String methodName : testableMethods) {
 					sb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
 				}
-				FileUtils.writeFile(projectMethodsFile, sb.toString(), true);
 				FileUtils.writeFile(allTargetMethodsFile, sb.toString(), true);
 			} catch (Throwable t) {
 				sb = new StringBuilder();

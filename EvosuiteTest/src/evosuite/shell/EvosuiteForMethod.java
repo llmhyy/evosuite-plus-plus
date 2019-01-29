@@ -48,7 +48,16 @@ import evosuite.shell.utils.LoggerUtils;
  *  options to determine target methods:
  *  	[-jar|-class|-prefix|-]
  *  <p>
- * ) 
+ *  
+ *  
+ *  Possible outputs: evoTest-reports folder which includes logs, xlsx and other reports (listMethods.txt)
+ *  [base_dir]<p>
+ *  |__ evoTest-reports<p>
+ *  	|__logs<p>
+ *  	|	|__*.log<p>
+ *  	|__*.xlsx	<p>
+ *  	|__targetMethods.txt <p>
+ *  
  */
 @SuppressWarnings("deprecation")
 public class EvosuiteForMethod {
@@ -62,10 +71,16 @@ public class EvosuiteForMethod {
 	private URLClassLoader evoTestClassLoader;
 
 	public static void main(String[] args) {
+		execute(args);
+		System.exit(0);
+	}
+
+	public static void execute(String[] args) {
 		try {
 			setup();
 //			Properties.CLIENT_ON_THREAD = true;
 //			Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+			log.error("enter EvosuiteForMethod!");
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
 			if (CommonUtility.hasOpt(args, ListMethods.OPT_NAME)) {
 				args = evoTest.extractListMethodsArgs(args);
@@ -87,7 +102,6 @@ public class EvosuiteForMethod {
 		}
 		
 		log.info("Finish!");
-		System.exit(0);
 	}
 
 	private static void setup() throws IOException {

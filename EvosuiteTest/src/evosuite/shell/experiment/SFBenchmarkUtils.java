@@ -50,7 +50,7 @@ public class SFBenchmarkUtils {
 		System.setProperty("user.dir", projectFolder.getAbsolutePath());
 		EvoSuite.base_dir_path = System.getProperty("user.dir");
 		
-		File propertiesFile = new File(EvoSuite.base_dir_path + "/" + Properties.PROPERTIES_FILE);
+		File propertiesFile = new File(EvoSuite.base_dir_path + "/evosuite-files/evosuite.properties");
 		File newPropertiesFile = null;
 		if (propertiesFile.exists()) {
 			newPropertiesFile = new File(propertiesFile.getAbsolutePath().replace("evosuite.properties", "evosuite-test.properties"));
