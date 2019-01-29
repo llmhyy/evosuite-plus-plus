@@ -36,7 +36,6 @@ import org.evosuite.ga.FitnessReplacementFunction;
 import org.evosuite.ga.ReplacementFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
-import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,7 +269,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			}
 			distributionMap.put(key, 0);
 		}
-
+		
 		updateDistribution(distributionMap);
 		while (!isFinished()) {
 			
@@ -326,7 +325,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			if (endtime - begintime >= interval) {
 				bestIndividual = getBestIndividual();
 				if (bestIndividual != null) {
-					progress.add(bestIndividual.getCoverage());
+					double coverage = bestIndividual.getCoverage();
+					progress.add(coverage);
 				}
 				begintime = endtime;
 			}
@@ -353,11 +353,6 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 			printUncoveredBranches(distributionMap, branchGoals);
 			
-			if(bestFitness > 0 && bestIndividual!=null && bestIndividual.getCoverage()==1) {
-				System.currentTimeMillis();
-				getBestFitness();
-			}
-			
 			logger.error("Best fitness: " + bestFitness);
 			logger.info("Current iteration: " + currentIteration);
 			this.notifyIteration();
@@ -369,7 +364,11 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		}
 		bestIndividual = getBestIndividual();
 		if (bestIndividual != null) {
-			progress.add(bestIndividual.getCoverage());
+			double coverage = bestIndividual.getCoverage();
+			if(coverage == 0.5) {
+				System.currentTimeMillis();
+			}
+			progress.add(coverage);
 		}
 		this.setProgressInformation(progress);
 		
