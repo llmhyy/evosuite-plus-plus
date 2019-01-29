@@ -523,11 +523,11 @@ public class TestClusterGenerator {
 					if (!orig.equals(name))
 						logger.info("TT name: " + orig + " -> " + name);
 				}
-
+				
 				if (TestUsageChecker.canUse(method, clazz)) {
 					String methodSig = Properties.TARGET_CLASS.replace(".", "/") + "#" + method.getName()
 							+ MethodUtil.getSignature(method);
-					if (invokedList.isEmpty() || !invokedList.contains(methodSig)) {
+					if (invokedList.isEmpty() || !invokedList.contains(methodSig) || methodSig.contains(Properties.TARGET_METHOD)) {
 						logger.debug("Adding method " + clazz.getName() + "." + method.getName()
 								+ org.objectweb.asm.Type.getMethodDescriptor(method));
 
