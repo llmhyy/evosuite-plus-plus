@@ -2,6 +2,7 @@ package org.evosuite.coverage.fbranch;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,7 +85,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			return approachLevel + interproceduralFitness;
 		}
 		
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 
 		return fitness;
 	}
@@ -122,16 +123,12 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		List<BytecodeInstruction> sourceInsList = getReturnConstants(calledGraph, returnIns);
 		// System.currentTimeMillis();
 		List<Double> fitnessList = new ArrayList<>();
+		
+		fileterSourceInsList(result, sourceInsList, cBranch);
 
 		for (BytecodeInstruction sourceIns : sourceInsList) {
 			if (!sourceIns.isConstant()) {
 				logger.error("the source of ireturn is not a constant.");
-				continue;
-			}
-
-			String explain = sourceIns.explain();
-			if (explain.contains("CONST_1") && !branchGoal.getValue()
-					|| explain.contains("CONST_0") && branchGoal.getValue()) {
 				continue;
 			}
 
@@ -156,6 +153,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				cBranch.branch = newDepBranch;
 				cBranch.branchID = newDepBranch.getActualBranchId();
 				DistanceCondition dCondition = checkOverallDistance(result, goalValue, cBranch);
+				System.currentTimeMillis();
 				fitness = dCondition.fitness;
 				if (fitness == 0) {
 					goalValue = !goalValue;
@@ -187,6 +185,42 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		}
 
 		return fitnessList;
+	}
+
+	/**
+	 * only keep the source instruction need to be covered
+	 * 
+	 * @param result
+	 * @param sourceInsList
+	 * @param cBranch
+	 */
+	private void fileterSourceInsList(ExecutionResult result,
+			List<BytecodeInstruction> sourceInsList, ContextBranch cBranch) {
+		List<BytecodeInstruction> coveredInsList = new ArrayList<>();
+		for(BytecodeInstruction ins: sourceInsList) {
+			for(ControlDependency cd: ins.getControlDependencies()) {
+				ContextBranch newCBranch = new ContextBranch(cd.getBranch(), cBranch.contextLine, cBranch.method);
+				
+				boolean branchExpression = cd.getBranchExpressionValue();
+				double distance = checkContextBranchDistance(result, branchExpression, newCBranch);
+				
+				if(distance == 0) {
+					coveredInsList.add(ins);
+					break;
+				}
+			}
+		}
+		
+		Iterator<BytecodeInstruction> iter = sourceInsList.iterator();
+		while(iter.hasNext()) {
+			BytecodeInstruction ins = iter.next();
+			for(BytecodeInstruction coveredIns: coveredInsList) {
+				if(ins.explain().equals(coveredIns.explain())) {
+					iter.remove();
+					break;
+				}
+			}
+		}
 	}
 
 	class ContextBranch {
@@ -279,6 +313,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		}
 
 		double fitness = approachLevel + checkContextBranchDistance(result, goalValue, cBranch);
+		
+		System.currentTimeMillis();
 
 		BranchCoverageGoal goal = new BranchCoverageGoal(cBranch.branch, goalValue, cBranch.branch.getClassName(), cBranch.branch.getMethodName());
 		return new DistanceCondition(fitness, goal);
@@ -298,6 +334,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			value = 1000000d;
 		}
 
+		System.currentTimeMillis();
 		return FitnessFunction.normalize(value);
 	}
 
