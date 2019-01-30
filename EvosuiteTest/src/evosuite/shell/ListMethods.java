@@ -14,8 +14,8 @@ import evosuite.shell.utils.LoggerUtils;
 
 /**
  * 
- * @author thilyly_tran
- * 
+ * @author lyly
+ * cmd: java -jar [EvosuiteTest.jar] -target !PROJECT!.jar -listMethods
  */
 public class ListMethods {
 	private static Logger log = LoggerUtils.getLogger(ListMethods.class);
@@ -43,7 +43,7 @@ public class ListMethods {
 				}
 				System.out.println("Class " + targetClass.getName());
 //				List<String> testableMethods = MethodHasBranchFilter.listTestableMethods(targetClass, classLoader);
-				List<String> testableMethods = MethodBooleanAssertionCondFilter.listTestableMethods(targetClass, classLoader);
+				List<String> testableMethods = MethodFlagCondFilter.listTestableMethods(targetClass, classLoader);
 				sb = new StringBuilder();
 				for (String methodName : testableMethods) {
 					sb.append(CommonUtility.getMethodId(className, methodName)).append("\n");

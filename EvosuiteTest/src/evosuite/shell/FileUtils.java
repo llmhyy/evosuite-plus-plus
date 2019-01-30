@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileUtils {
 	
@@ -60,5 +62,13 @@ public class FileUtils {
 			}
 		}
 		return file;
+	}
+	
+	public static List<String> toFilePath(List<File> files) {
+		List<String> paths = new ArrayList<>(files.size());
+		for (File file : files) {
+			paths.add(file.getAbsolutePath());
+		}
+		return paths;
 	}
 }
