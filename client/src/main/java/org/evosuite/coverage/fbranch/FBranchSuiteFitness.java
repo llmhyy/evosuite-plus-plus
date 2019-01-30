@@ -1,5 +1,7 @@
 package org.evosuite.coverage.fbranch;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,6 +47,11 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	private double getTestFitness(FBranchTestFitness fBranchFitness, TestChromosome tc, ExecutionResult result) {
 		
 		double f = fBranchFitness.getFitness(tc, result);
+		
+		if(fBranchFitness.getBranch().getInstruction().getLineNumber()==206 && f<1 && f!=0) {
+			System.currentTimeMillis();
+		}
+		
 		double d = normalize(f);
 //		System.currentTimeMillis();
 		
@@ -75,9 +82,18 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		int numCoveredGoals = 0;
 		double fitness = 0;
 		for(int j=0; j<branchGoals.size(); j++) {
-			double goalFitness = 1;
+			List<Double> fitnessList = new ArrayList<>();
 			for(int i=0; i<results.size(); i++) {
-				goalFitness *= fitnessMatrix[i][j];
+				fitnessList.add(fitnessMatrix[i][j]);
+			}
+			
+			Collections.sort(fitnessList);
+			
+			double goalFitness = 1;
+			for(double i=0; i<fitnessList.size(); i++) {
+				double d = fitnessList.get((int)i);
+				double transformedFitness = Math.pow(d, 1/(i+1));
+				goalFitness *= transformedFitness;
 			}
 			
 			if(goalFitness==0) {
