@@ -25,6 +25,30 @@ public class AbstractETest {
 			this.age = age;
 		}
 
+		public int getTime() {
+			return time;
+		}
+
+		public void setTime(int time) {
+			this.time = time;
+		}
+
+		public double getCoverage() {
+			return coverage;
+		}
+
+		public void setCoverage(double coverage) {
+			this.coverage = coverage;
+		}
+
+		public int getAge() {
+			return age;
+		}
+
+		public void setAge(int age) {
+			this.age = age;
+		}
+		
 	}
 
 	@SuppressWarnings("unchecked")
@@ -58,18 +82,20 @@ public class AbstractETest {
 				"-Dp_test_insert", "0.1",
 //				"-Dheadless_chicken_test", "true",
 				"-Dp_change_parameter", "0.1",
-				"-Dlocal_search_rate", "3",
+				"-Dlocal_search_rate", "-1",
 				"-Dp_functional_mocking", "0",
 				"-Dmock_if_no_generator", "false",
 				"-Dfunctional_mocking_percent", "0",
 				"-Dprimitive_reuse_probability", "0",
 				"-Dmin_initial_tests", "1",
-				"-Dmax_initial_tests", "10",
+				"-Dmax_initial_tests", "50",
+				"-Ddse_probability", "0",
 //				"-Dinstrument_method_calls", "true",
 				"-Dinstrument_libraries", "true",
 				"-Dinstrument_parent", "true",
 				"-Dmax_length", "1",
 				"-Dmax_size", "1",
+				"-Dmax_attempts", "100",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
 				"-seed", "100"
