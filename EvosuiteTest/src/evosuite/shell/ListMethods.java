@@ -43,7 +43,7 @@ public class ListMethods {
 				}
 				System.out.println("Class " + targetClass.getName());
 //				List<String> testableMethods = MethodHasBranchFilter.listTestableMethods(targetClass, classLoader);
-				List<String> testableMethods = MethodBooleanAssertionCondFilter.listTestableMethods(targetClass, classLoader);
+				List<String> testableMethods = MethodFlagCondFilter.listTestableMethods(targetClass, classLoader);
 				sb = new StringBuilder();
 				for (String methodName : testableMethods) {
 					sb.append(CommonUtility.getMethodId(className, methodName)).append("\n");

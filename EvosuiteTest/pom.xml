@@ -101,7 +101,7 @@
 									<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
 								</manifest>
 								<manifestEntries>
-									<Main-Class>com.test.EvosuiteForMethod</Main-Class>
+									<Main-Class>evosuite.shell.EvosuiteForMethod</Main-Class>
 									<Premain-Class>org.evosuite.runtime.agent.InstrumentingAgent</Premain-Class>
 									<Agent-Class>org.evosuite.runtime.agent.InstrumentingAgent</Agent-Class>
 									<Can-Redefine-Classes>true</Can-Redefine-Classes>
