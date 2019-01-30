@@ -14,8 +14,8 @@ import evosuite.shell.utils.LoggerUtils;
 
 /**
  * 
- * @author thilyly_tran
- * 
+ * @author lyly
+ * cmd: java -jar [EvosuiteTest.jar] -target !PROJECT!.jar -listMethods
  */
 public class ListMethods {
 	private static Logger log = LoggerUtils.getLogger(ListMethods.class);

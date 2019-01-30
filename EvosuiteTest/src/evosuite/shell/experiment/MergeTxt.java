@@ -12,18 +12,26 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.evosuite.Properties;
+import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.CollectionUtil;
+import org.junit.Before;
 
 public class MergeTxt {
 
+	@Before
+	public void setup() {
+		SFConfiguration.sfBenchmarkFolder = "E:/lyly/Projects/evosuite/experiment/SF100-unittest";
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+	}
 	
 	public static void main(String[] args) throws IOException {
-		List<String> inclusiveFiles = Arrays.asList(
-				"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/pass-filter2-methods.txt");
-		List<String> exclusivesFiles = Arrays.asList(
-				"/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/filter2-targetMethods.txt");
+		String root = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports";
+		List<String> inclusiveFiles = Arrays.asList(root + "/flagFilteredMethods.txt");
+		List<String> exclusivesFiles = Arrays.asList(root + "/executed_methods.txt");
 		
-		String resultTxt = "/Users/lylytran/Projects/Evosuite/experiments/mergeTxt/fail-filter2-methods.txt";
+		String resultTxt = root + "/merge.txt";
 		merge(inclusiveFiles, exclusivesFiles, resultTxt);
 	}
 
@@ -36,7 +44,7 @@ public class MergeTxt {
 		}
 		Map<String, Set<String>> exclusives = new HashMap<>();
 		for (String file : exclusivesFiles) {
-			inclusives.putAll(mergeTxt.readData(file));
+			exclusives.putAll(mergeTxt.readData(file));
 		}
 
 		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();

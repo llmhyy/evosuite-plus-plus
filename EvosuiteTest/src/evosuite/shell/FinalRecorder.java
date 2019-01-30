@@ -14,6 +14,11 @@ import org.slf4j.Logger;
 import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.utils.LoggerUtils;
 
+/**
+ * 
+ * @author lyly
+ * Generate report with "Execution Time", "Coverage", "Age" information
+ */
 public class FinalRecorder extends ExperimentRecorder {
 	private Logger log = LoggerUtils.getLogger(FinalRecorder.class);
 	private ExcelWriter excelWriter;

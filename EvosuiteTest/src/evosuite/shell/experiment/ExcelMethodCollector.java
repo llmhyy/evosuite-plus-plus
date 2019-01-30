@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import evosuite.shell.excel.ExcelReader;
 import evosuite.shell.utils.AlphanumComparator;
@@ -20,13 +22,29 @@ public class ExcelMethodCollector {
 //		String methodsFile = root + "/filtered_methods.txt";
 //		String failMethodsFile = root + "/fail_methods.txt";
 //		String folder = root + "/evoTest-reports";
-		String root = "/Users/lylytran/Projects/Evosuite/experiments/SF100_evoTestRun/evoTest-reports-new";
+		String root = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports";
 		String methodsFile = root + "/pass_methods.txt";
 		String failMethodsFile = root + "/fail_methods.txt";
-		String allMethodsFile = root + "/all_methods.txt";
+		String allMethodsFile = root + "/executed_methods.txt";
 		String folder = root;
 		
-		List<File> reports = new ArrayList<>(FileUtils.listFiles(new File(folder), new String[]{"xlsx"}, false));
+		List<File> reports = new ArrayList<>(FileUtils.listFiles(new File(folder), 
+				new IOFileFilter() {
+					
+					@Override
+					public boolean accept(File dir, String name) {
+						return false;
+					}
+					
+					@Override
+					public boolean accept(File file) {
+						if (file.getName().endsWith("_evotest.xlsx")
+								&& !file.getName().startsWith("~")) {
+							return true;
+						}
+						return false;
+					}
+				}, TrueFileFilter.INSTANCE));
 		collectMethods(methodsFile, failMethodsFile, allMethodsFile, reports);
 	}
 
@@ -43,9 +61,6 @@ public class ExcelMethodCollector {
 			}
 		});
 		for (File report : reports) {
-			if (report.getName().startsWith("~")) {
-				continue;
-			}
 			String[] fileName = report.getName().split("_");
 			if (!curProject.equals(fileName[1])) {
 				curProject = fileName[1];
@@ -66,7 +81,7 @@ public class ExcelMethodCollector {
 						continue;
 					}
 					String methodId = row.get(0) + "#" + row.get(1);
-					int i = 2;
+					int i = 4;
 					for (; i < row.size(); i++) {
 						Object value = row.get(i);
 						if (value instanceof Number) {
