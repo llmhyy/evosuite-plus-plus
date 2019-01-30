@@ -37,10 +37,12 @@ import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.localsearch.TestCaseLocalSearch;
 import org.evosuite.testcase.statements.FunctionalMockStatement;
+import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
+import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericAccessibleObject;
 import org.slf4j.Logger;
@@ -469,6 +471,22 @@ public class TestChromosome extends ExecutableChromosome {
 			return false; //modifications were on copy
         }
 	}
+	
+	private int getTargetMethodPosition(int lastMutatableStatement) {
+		for (int position = 0; position <= lastMutatableStatement; position++) {
+			Statement stat = this.test.getStatement(position);
+			if(stat instanceof MethodStatement) {
+				MethodStatement mStat = (MethodStatement)stat;
+				String mSig = mStat.getMethodName() + MethodUtil.getSignature(mStat.getMethod().getMethod());
+				if(mSig.equals(Properties.TARGET_METHOD)) {
+//					System.currentTimeMillis();
+					return position;
+				}
+			}
+		}
+		
+		return -1;
+	}
 
 	/**
 	 * Each statement is replaced with probability 1/length
@@ -480,6 +498,11 @@ public class TestChromosome extends ExecutableChromosome {
 		int lastMutatableStatement = getLastMutatableStatement();
 		double pl = 1d / (lastMutatableStatement + 1);
 		TestFactory testFactory = TestFactory.getInstance();
+		
+		int targetMethodPosition = -1;
+		if(!Properties.TARGET_METHOD.isEmpty()) {
+			targetMethodPosition = getTargetMethodPosition(lastMutatableStatement);
+		}
 
 		if (Randomness.nextDouble() < Properties.CONCOLIC_MUTATION) {
 			try {
@@ -492,9 +515,9 @@ public class TestChromosome extends ExecutableChromosome {
 
 		if (!changed) {
 			for (int position = 0; position <= lastMutatableStatement; position++) {
-//				if(!Properties.TARGET_METHOD.isEmpty()) {
-//					pl = 1;
-//				}
+				if(position < targetMethodPosition && targetMethodPosition != -1) {
+					pl = 1d / (targetMethodPosition + 1);
+				}
 				
 				if (Randomness.nextDouble() <= pl) {
 					assert (test.isValid());
