@@ -10,6 +10,8 @@ import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.archive.TestsArchive;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
+import org.evosuite.coverage.branch.BranchCoverageSuiteFitness;
 import org.evosuite.testcase.ExecutableChromosome;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
@@ -48,22 +50,19 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		
 		double f = fBranchFitness.getFitness(tc, result);
 		
-		if(fBranchFitness.getBranch().getInstruction().getLineNumber()==206 && f<1 && f!=0) {
-			System.currentTimeMillis();
-		}
-		
-		double d = normalize(f);
+//		double d = normalize(f);
 //		System.currentTimeMillis();
 		
-		return d;
+		return f;
 	}
 
 	@Override
 	public double getFitness(AbstractTestSuiteChromosome<? extends ExecutableChromosome> suite) {
+		
+//		BranchCoverageSuiteFitness bFitness = new BranchCoverageSuiteFitness();
+//		return bFitness.getFitness(suite);
+		
 		List<ExecutionResult> results = runTestSuite(suite);
-
-//		Map<FBranchTestFitness, Double> distanceMap = new HashMap<>();
-//		Map<FBranchTestFitness, Integer> callCount = new HashMap<>();
 
 		double[][] fitnessMatrix = new double[results.size()][branchGoals.size()];
 		
@@ -89,12 +88,18 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			
 			Collections.sort(fitnessList);
 			
-			double goalFitness = 1;
-			for(double i=0; i<fitnessList.size(); i++) {
-				double d = fitnessList.get((int)i);
-				double transformedFitness = Math.pow(d, 1/(i+1));
-				goalFitness *= transformedFitness;
+			double goalFitness = fitnessList.get(0);
+			
+			if(goalFitness > 1) {
+				goalFitness = 1;
 			}
+			
+//			double goalFitness = 1;
+//			for(double i=0; i<fitnessList.size(); i++) {
+//				double d = fitnessList.get((int)i);
+//				double transformedFitness = Math.pow(d, 1/(i+1));
+//				goalFitness *= transformedFitness;
+//			}
 			
 			if(goalFitness==0) {
 				numCoveredGoals++;
