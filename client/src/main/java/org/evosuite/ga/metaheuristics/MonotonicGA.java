@@ -282,7 +282,20 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				double bestFitnessBeforeEvolution = getBestFitness();
 				evolve();
 				sortPopulation();
+				
 				double bestFitnessAfterEvolution = getBestFitness();
+				double coverage = getBestIndividual().getCoverage();
+//				for(int i=0; i<this.population.size(); i++) {
+//					T t = this.population.get(i);
+//					if(t instanceof TestSuiteChromosome) {
+//						TestSuiteChromosome suite = (TestSuiteChromosome)t;
+//						if(suite.getCoverage() > coverage) {
+//							double f = getFitnessFunction().getFitness(t);
+//							System.currentTimeMillis();
+//						}
+//					}
+//				}
+				
 
 				if (getFitnessFunction().isMaximizationFunction())
 					assert (bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
@@ -353,7 +366,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 			printUncoveredBranches(distributionMap, branchGoals);
 			
-			logger.error("Best fitness: " + bestFitness);
+			logger.error("Best fitness: " + bestFitness + ", Coverage: " + getBestIndividual().getCoverage());
 			logger.info("Current iteration: " + currentIteration);
 			this.notifyIteration();
 
