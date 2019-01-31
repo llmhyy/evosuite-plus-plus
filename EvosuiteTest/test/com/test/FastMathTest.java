@@ -35,9 +35,10 @@ public class FastMathTest extends AbstractETest{
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 100;
+		int timeBudget = 300000;
 		FastMathTest t = new FastMathTest();
 		Tuple tuple1 = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		System.out.println("coverage:" + tuple1.coverage);
 //		Tuple tuple2 = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
 //		
 //		System.out.println("fbranch: " + tuple1.coverage);
