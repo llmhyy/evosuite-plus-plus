@@ -10,7 +10,7 @@ public class ExperimentRecorder {
 	private String successfulMethodsFile;
 	
 	public ExperimentRecorder() {
-		successfulMethodsFile = outputFolder + "successfulMethods.txt";
+		successfulMethodsFile = outputFolder + "/successfulMethods.txt";
 		FileUtils.writeFile(successfulMethodsFile, "#Project " + projectId + "\n", false);
 	}
 	

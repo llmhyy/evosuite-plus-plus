@@ -71,4 +71,33 @@ public class FileUtils {
 		}
 		return paths;
 	}
+	
+	public static void deleteFolder(File file) {
+		if (!file.exists()) {
+			return;
+		}
+		if (!file.isDirectory()) {
+			if (file.getAbsolutePath().length() > 260) {
+				File newFile = new File(FileUtils.getFilePath(file.getParent(), "$"));
+				file.renameTo(newFile);
+				newFile.delete();
+			} else {
+				file.delete();
+			}
+		} else {
+			for (File sub : file.listFiles()) {
+				deleteFolder(sub);
+			}
+		}
+		file.delete();
+	}
+
+	public static void delete(String... paths) {
+		for (String path : paths) {
+			File file = new File(path);
+			if (file.exists()) {
+				file.delete();
+			}
+		}
+	}
 }

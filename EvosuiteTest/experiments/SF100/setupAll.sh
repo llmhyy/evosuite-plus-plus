@@ -11,8 +11,8 @@ echo JAVA=$JAVA_EXEC
 EVOSUITE="$JAVA_EXEC -cp $PWD/EvosuiteTest-1.0.6-SNAPSHOT.jar org.evosuite.EvoSuite"
 EVOSUITE_DEBUG="$JAVA_EXEC -agentlib:jdwp=transport=dt_socket,server=y,address=9595 -cp $PWD/EvosuiteTest-1.0.6-SNAPSHOT.jar org.evosuite.EvoSuite"
 
-EVOTEST_SETUP="$JAVA_EXEC -cp $PWD/EvosuiteTest-1.0.6-SNAPSHOT.jar com.test.experiment.EvoTestTool" 
-EVOTEST_SETUP_DEBUG="$JAVA_EXEC -agentlib:jdwp=transport=dt_socket,server=y,address=9595 -cp $PWD/EvosuiteTest-1.0.6-SNAPSHOT.jar com.test.experiment.EvoTestTool"
+EVOTEST_SETUP="$JAVA_EXEC -cp $PWD/EvosuiteTest-1.0.6-SNAPSHOT.jar evosuite.shell.experiment.EvoTestTool" 
+EVOTEST_SETUP_DEBUG="$JAVA_EXEC -agentlib:jdwp=transport=dt_socket,server=y,address=9595 -cp $PWD/EvosuiteTest-1.0.6-SNAPSHOT.jar evosuite.shell.experiment.EvoTestTool"
 
 #----------------------------------------------------------
 # clean up

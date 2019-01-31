@@ -19,11 +19,11 @@ import evosuite.shell.utils.LoggerUtils;
  * @author lyly
  * Generate report with "Execution Time", "Coverage", "Age" information
  */
-public class FinalRecorder extends ExperimentRecorder {
-	private Logger log = LoggerUtils.getLogger(FinalRecorder.class);
+public class FitnessEffectiveRecorder extends ExperimentRecorder {
+	private Logger log = LoggerUtils.getLogger(FitnessEffectiveRecorder.class);
 	private ExcelWriter excelWriter;
 	
-	public FinalRecorder() {
+	public FitnessEffectiveRecorder() {
 		super();
 		excelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_evotest.xlsx"));
 		excelWriter.getSheet("data", new String[]{"Class", "Method", "Execution Time", "Coverage", "Age"}, 0);
@@ -39,6 +39,7 @@ public class FinalRecorder extends ExperimentRecorder {
 		rowData.add(r.getGeneticAlgorithm().getAge());
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
+			logSuccessfulMethods(className, methodName);
 		} catch (IOException e) {
 			log.error("Error", e);
 		}
