@@ -22,11 +22,13 @@ public class ExcelMethodCollector {
 //		String methodsFile = root + "/filtered_methods.txt";
 //		String failMethodsFile = root + "/fail_methods.txt";
 //		String folder = root + "/evoTest-reports";
-		String root = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports";
+		String root = args[0] + "/evoTest-reports";
 		String methodsFile = root + "/pass_methods.txt";
 		String failMethodsFile = root + "/fail_methods.txt";
 		String allMethodsFile = root + "/executed_methods.txt";
 		String folder = root;
+		
+		evosuite.shell.FileUtils.delete(methodsFile, failMethodsFile, allMethodsFile);
 		
 		List<File> reports = new ArrayList<>(FileUtils.listFiles(new File(folder), 
 				new IOFileFilter() {

@@ -57,6 +57,7 @@ import evosuite.shell.utils.LoggerUtils;
  *  	|	|__*.log<p>
  *  	|__*.xlsx	<p>
  *  	|__targetMethods.txt <p>
+ *  	|__successfulMethods.txt <p>
  *  
  */
 @SuppressWarnings("deprecation")
@@ -203,7 +204,7 @@ public class EvosuiteForMethod {
 	}
 
 	public void runAllMethods(String[] targetClasses, String[] args, String projectName) {
-		FinalRecorder recorder = new FinalRecorder();
+		FitnessEffectiveRecorder recorder = new FitnessEffectiveRecorder();
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = evoTestClassLoader.loadClass(className);
@@ -211,13 +212,11 @@ public class EvosuiteForMethod {
 				if (targetClass.isInterface()) {
 					continue;
 				}
-//				List<String> testableMethod = MethodFilter.listTestableMethods(targetClass, evoTestClassLoader);
 				for (Method method : targetClass.getMethods()) {
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
 					if (!filter.isValidMethod(projectName, CommonUtility.getMethodId(className, methodName))) {
 						continue;
 					}
-//					if (testableMethod.contains(methodName)) {
 					try {
 						runMethod(methodName, className, args, recorder);
 					} catch (Throwable t) {
@@ -227,7 +226,6 @@ public class EvosuiteForMethod {
 								.append(t.getMessage()).toString();
 						log.debug(msg, t);
 					}
-//					}
 				}
 			} catch (Throwable t) {
 				log.error("Error!", t);

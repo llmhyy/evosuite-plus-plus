@@ -22,6 +22,7 @@ public class EvoTestTool {
 		for (File projFolder : file.listFiles()) {
 			if (projFolder.isDirectory() && projFolder.getName().contains("_")) {
 				System.out.println("Project: " + projFolder.getName());
+				String projectName = projFolder.getName().substring(projFolder.getName().indexOf("_") + 1);
 				File propertiesFile = new File(projFolder.getAbsolutePath() + "/evosuite-files/evosuite.properties"); 
 				List<String> contents = FileUtils.readLines(propertiesFile, "UTF-8");
 				List<String> newContents = new ArrayList<>(contents.size());
@@ -36,9 +37,10 @@ public class EvoTestTool {
 								cp = new String[] {cp[1]};
 							}
 							List<String> entries = new ArrayList<>();
+							entries.add(projectName + ".jar");
 							for (String path : cp) {
 								File clp = new File(projFolder.getAbsolutePath() + File.separator + path);
-								if (clp.exists() && clp.getName().endsWith(".jar")) {
+								if (clp.exists() && clp.getName().endsWith(".jar") && !entries.contains(path)) {
 									entries.add(path);
 								}
 							}

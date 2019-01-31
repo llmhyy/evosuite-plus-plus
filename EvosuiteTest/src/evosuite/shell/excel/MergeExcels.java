@@ -13,6 +13,7 @@ import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.evosuite.utils.CollectionUtil;
+import org.evosuite.utils.CommonUtility;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,11 +23,27 @@ import evosuite.shell.utils.AlphanumComparator;
 
 public class MergeExcels {
 
+	public static void main(String[] args) throws Exception {
+		String root = args[0];
+		String reportFolder = root + "/evoTest-reports";
+		String outputFile = reportFolder + "/allMethods.xlsx";
+		File file = new File(outputFile);
+		if (file.exists()) {
+			file.delete();
+		}
+		List<String> inputFiles = FileUtils.toFilePath(listExcels(reportFolder));
+		boolean filteredNoGAInvolved = false;
+		if (CommonUtility.hasOpt(args, "-filteredNoGAInvolved")) {
+			filteredNoGAInvolved = true;
+		}
+		mergeExcel(outputFile, inputFiles, 0, filteredNoGAInvolved);
+		
+		System.out.println("Done!");
+	}
+
 	@Before
 	public void setup() {
 		SFConfiguration.sfBenchmarkFolder = "E:/lyly/Projects/evosuite/experiment/SF100-unittest";
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 	}
 	
 	@Test
@@ -34,12 +51,14 @@ public class MergeExcels {
 		String reportFolder = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports";
 		String outputFile = reportFolder + "/allMethods-filter.xlsx";
 		List<String> inputFiles = FileUtils.toFilePath(listExcels(reportFolder));
-		mergeExcel(outputFile, inputFiles, 0);
+		mergeExcel(outputFile, inputFiles, 0, true);
 		
 		System.out.println("Done!");
 	}
 	
-	public static void mergeExcel(String outputFile, List<String> inputFiles, int headerRowNum) throws IOException {
+	
+	public static void mergeExcel(String outputFile, List<String> inputFiles, int headerRowNum,
+			boolean filteredNoGAInvolved) throws IOException {
 		if (CollectionUtils.isEmpty(inputFiles)) {
 			return;
 		}
@@ -68,7 +87,7 @@ public class MergeExcels {
 						String methodId = data.get(0) + "#" + data.get(1);
 						double age = ((Number) data.get(4)).doubleValue();
 						/* filter methods with 0 generation */
-						if (age == 0.0) {
+						if (filteredNoGAInvolved && age == 0.0) {
 							continue;
 						}
 						if (!methodIds.contains(methodId)) {

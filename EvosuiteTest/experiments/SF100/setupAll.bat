@@ -10,8 +10,8 @@ DATA=%cd%/classes.txt
 SET EVOSUITE=java -cp %cd%\EvosuiteTest-1.0.6-SNAPSHOT.jar org.evosuite.EvoSuite
 SET EVOSUITE_DEBUG=java -agentlib:jdwp=transport=dt_socket,server=y,address=9595 -cp %cd%\EvosuiteTest-1.0.6-SNAPSHOT.jar org.evosuite.EvoSuite
 
-SET EVOTEST_SETUP=java -cp %cd%\EvosuiteTest-1.0.6-SNAPSHOT.jar com.test.experiment.EvoTestTool 
-SET EVOTEST_SETUP_DEBUG=java -agentlib:jdwp=transport=dt_socket,server=y,address=9595 -cp %cd%\EvosuiteTest-1.0.6-SNAPSHOT.jar com.test.experiment.EvoTestTool 
+SET EVOTEST_SETUP=java -cp %cd%\EvosuiteTest-1.0.6-SNAPSHOT.jar evosuite.shell.experiment.EvoTestTool 
+SET EVOTEST_SETUP_DEBUG=java -agentlib:jdwp=transport=dt_socket,server=y,address=9595 -cp %cd%\EvosuiteTest-1.0.6-SNAPSHOT.jar evosuite.shell.experiment.EvoTestTool 
 echo Evotest=%EVOTEST%
 
 rem----------------------------------------------------------
