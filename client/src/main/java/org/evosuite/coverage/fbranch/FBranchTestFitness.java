@@ -37,7 +37,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	private static Logger logger = LoggerFactory.getLogger(FBranchTestFitness.class);
 
 	private final BranchCoverageGoal branchGoal;
-	private double epsilon = 0.001;
+	private double epsilon = 0.00001;
 
 	public FBranchTestFitness(BranchCoverageGoal branchGoal) {
 		this.branchGoal = branchGoal;

@@ -19,13 +19,21 @@
  */
 package org.evosuite.coverage.fbranch;
 
+import java.lang.reflect.Method;
+
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
+import org.evosuite.coverage.branch.BranchCoverageSuiteFitness;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.strategy.TestGenerationStrategy;
+import org.evosuite.symbolic.TestCaseBuilder;
+import org.evosuite.testcase.DefaultTestCase;
+import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.SystemTestBase;
+import org.evosuite.TestGenerationContext;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -64,21 +72,39 @@ public class FBranchSystemTest extends SystemTestBase {
 	}
 
 	public void testBranchFitness() {
-		EvoSuite evosuite = new EvoSuite();
-		
-		String targetClass = IndirectlyCoverableBranches.class.getCanonicalName();
-		Properties.TARGET_CLASS = targetClass;
-		
-		String[] command = new String[] { "-generateSuite", "-class", targetClass };
-		Object result = evosuite.parseCommandLine(command);
-		GeneticAlgorithm<?> ga = getGAFromResult(result);
-		TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
-
-		System.out.println("EvolvedTestSuite:\n" + best);
-		int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
-		Assert.assertEquals(7, goals);
-		Assert.assertEquals(5, best.size());
-		Assert.assertEquals("Non-optimal coverage: ", 1d, best.getCoverage(), 0.001);
+//		Properties.CRITERION = new Properties.Criterion[] { Criterion.FBRANCH };
+//		Properties.TARGET_CLASS = com.examples.with.different.packagename.coverage.CopiedFastMath.class.getName();
+//		Properties.TARGET_METHOD = "pow(DD)D";
+//		Properties.TIMEOUT = 1000000;
+//		
+//		TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(Properties.TARGET_CLASS);
+//		
+//		TestSuiteChromosome suite = new TestSuiteChromosome();
+////		suite.addFitness(branchCoverageSuiteFitness);
+//		
+//		DefaultTestCase testCase0 = buildTestCase0();
+//		TestChromosome testChromosome0 = new TestChromosome();
+//		testChromosome0.setTestCase(testCase0);
+//		suite.addTest(testChromosome0);
+//		
+//		BranchCoverageSuiteFitness branchCoverageSuiteFitness = new BranchCoverageSuiteFitness();
+//		double fitness1 = branchCoverageSuiteFitness.getFitness(suite);
+//		
+//		FBranchSuiteFitness fBranchSuiteFitness = new FBranchSuiteFitness();
+//		double fitness2 = fBranchSuiteFitness.getFitness(suite);
+//		
+//		assert(fitness1 == fitness2);
 	}
 
+	private DefaultTestCase buildTestCase0() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+		TestCaseBuilder builder = new TestCaseBuilder();
+		VariableReference x = builder.appendDoublePrimitive(0);
+		VariableReference y = builder.appendDoublePrimitive(1);
+		Class<?> triangleClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+				.loadClass(Properties.TARGET_CLASS);
+
+		Method barMethod = triangleClass.getMethod("pow", double.class, double.class);
+		builder.appendMethod(null, barMethod, x, y);
+		return builder.getDefaultTestCase();
+	}
 }

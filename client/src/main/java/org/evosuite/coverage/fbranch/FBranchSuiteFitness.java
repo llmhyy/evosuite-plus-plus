@@ -86,7 +86,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				fitnessMatrix[i][j] = f;
 			}
 		}
-		System.currentTimeMillis();
+
 		int numCoveredGoals = 0;
 		double fitness = 0;
 		for(int j=0; j<branchGoals.size(); j++) {
@@ -103,7 +103,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				goalFitness = 1;
 			}
 			
-//			double goalFitness = 1;
+//			goalFitness = 1;
 //			for(double i=0; i<fitnessList.size(); i++) {
 //				double d = fitnessList.get((int)i);
 //				double transformedFitness = Math.pow(d, 1/(i+1));

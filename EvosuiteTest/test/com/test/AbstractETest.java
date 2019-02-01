@@ -1,13 +1,10 @@
 package com.test;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
-import org.evosuite.Properties.Criterion;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
 
@@ -87,7 +84,7 @@ public class AbstractETest {
 				"-Dmock_if_no_generator", "false",
 				"-Dfunctional_mocking_percent", "0",
 				"-Dprimitive_reuse_probability", "0",
-				"-Dmin_initial_tests", "1",
+				"-Dmin_initial_tests", "5",
 				"-Dmax_initial_tests", "30",
 				"-Ddse_probability", "0",
 //				"-Dinstrument_method_calls", "true",
