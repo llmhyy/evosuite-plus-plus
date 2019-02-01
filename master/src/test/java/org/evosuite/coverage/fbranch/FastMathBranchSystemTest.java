@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with EvoSuite. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.evosuite.coverage.branch;
+package org.evosuite.coverage.fbranch;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -27,6 +27,7 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.SystemTestBase;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.branch.BranchCoverageSuiteFitness;
 import org.evosuite.coverage.fbranch.FBranchSuiteFitness;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.strategy.TestGenerationStrategy;

@@ -73,16 +73,14 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			
 			for(int j=0; j<branchGoals.size(); j++) {
 				FBranchTestFitness fBranchFitness = branchGoals.get(j);
-				if(fBranchFitness.getBranch().getInstruction().getLineNumber()==1497) {
-					System.currentTimeMillis();
-				}
-				
-				
+//				if(fBranchFitness.getBranch().getInstruction().getLineNumber()==1497) {
+//					System.currentTimeMillis();
+//				}
 				double f = getTestFitness(fBranchFitness, tc, result);
-				if(f<1 && f>0) {
-					System.currentTimeMillis();
-					getTestFitness(fBranchFitness, tc, result);
-				}
+//				if(f<1 && f>0) {
+//					System.currentTimeMillis();
+//					getTestFitness(fBranchFitness, tc, result);
+//				}
 				fitnessMatrix[i][j] = f;
 			}
 		}
