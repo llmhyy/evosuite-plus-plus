@@ -97,7 +97,7 @@ public class AbstractETest {
 				"-Dmax_size", "1",
 				"-Dmax_attempts", "100",
 				"-Dassertions", "false",
-//				"-Dstopping_condition", "maxgenerations",
+				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
 				"-seed", "100"
