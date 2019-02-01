@@ -26,6 +26,7 @@ import org.evosuite.coverage.dataflow.Definition;
 import org.evosuite.coverage.dataflow.Use;
 import org.evosuite.instrumentation.testability.BooleanHelper;
 import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.utils.CollectionUtil;
 import org.objectweb.asm.Opcodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -449,34 +450,72 @@ public class ExecutionTracer {
 	
 	public static void passedComplexNumberComparison(double value1, double value2, int branchId) {
 		double cmpVariation = 0.0;
-		// value2 - value1
-		if (value1 < 0) {
+		/* cmpVariation = value1 - value2 */
+		if (value2 < 0) {
 			/* check overflow */
-			if (Double.MAX_VALUE + value1 < value2) {
+			/* value1 - value2 > Double.MAX_VALUE  => assign var = Double.MAX_VALUE */
+			if (value1 > Double.MAX_VALUE + value2) {
 				cmpVariation = Double.MAX_VALUE;
 			} else {
-				cmpVariation = value2 - value1;
+				cmpVariation = value1 - value2;
 			}
 		} else {
-			if (-Double.MAX_VALUE + value1 > value2) {
+			/* value1 - value2 < -Double.MAX_VALUE  => assign var = -Double.MAX_VALUE */
+			if (value1 < -Double.MAX_VALUE + value2) {
 				cmpVariation = -Double.MAX_VALUE;
 			} else {
-				cmpVariation = value2 - value1;
+				cmpVariation = value1 - value2;
 			}
 		}
 		comparisonValue = Pair.of(branchId, cmpVariation);
 	}
 	
-	public static void onDcmp(double value1, double value2, int branchId) {
-		passedComplexNumberComparison(value1, value2, branchId);
+	public static void onDcmpG(double value1, double value2, int branchId) {
+		if (value1 == value2) {
+			comparisonValue = Pair.of(branchId, 0.0);
+		} else if(Double.isNaN(value1) || Double.isNaN(value2)) {
+			// Bytecode spec: If either number is NaN, the integer 1 is pushed onto the stack
+			comparisonValue = Pair.of(branchId, 1.0);
+		} else {
+			passedComplexNumberComparison(value1, value2, branchId);
+		}
+	}
+	
+	public static void onDcmpL(double value1, double value2, int branchId) {
+		if (value1 == value2) {
+			comparisonValue = Pair.of(branchId, 0.0);
+		} else if(Double.isNaN(value1) || Double.isNaN(value2)) {
+			// Bytecode spec: If either number is NaN, the integer -1 is pushed onto the stack
+			comparisonValue = Pair.of(branchId, -1.0);
+		} else {
+			passedComplexNumberComparison(value1, value2, branchId);
+		}
 	}
 	
 	public static void onLcmp(long value1, long value2, int branchId) {
 		passedComplexNumberComparison(value1, value2, branchId);
 	}
 
-	public static void onFcmp(float value1, float value2, int branchId) {
-		passedComplexNumberComparison(value1, value2, branchId);
+	public static void onFcmpG(float value1, float value2, int branchId) {
+		if (value1 == value2) {
+			comparisonValue = Pair.of(branchId, 0.0);
+		} else if(Float.isNaN(value1) || Float.isNaN(value2)) {
+			// Bytecode spec: If either number is NaN, the integer 1 is pushed onto the stack
+			comparisonValue = Pair.of(branchId, 1.0);
+		} else {
+			passedComplexNumberComparison(value1, value2, branchId);
+		}
+	}
+	
+	public static void onFcmpL(float value1, float value2, int branchId) {
+		if (value1 == value2) {
+			comparisonValue = Pair.of(branchId, 0.0);
+		} else if(Float.isNaN(value1) || Float.isNaN(value2)) {
+			// Bytecode spec: If either number is NaN, the integer -1 is pushed onto the stack
+			comparisonValue = Pair.of(branchId, -1.0);
+		} else {
+			passedComplexNumberComparison(value1, value2, branchId);
+		}
 	}
 
 	/**

@@ -132,12 +132,17 @@ public class BranchInstrumentation implements MethodInstrumentation {
 		}
 		int branchId = BranchPool.getInstance(classLoader).getActualBranchIdForNormalBranchInstruction(ifBcInsn);
 		InsnList instrumentation = new InsnList();
-		
+		String methodName = null;
 		int opcode = insn.getOpcode();
 		switch (opcode) {
 		/* Double and Long are under type2 go with 2bytes */
 		case Opcodes.DCMPG:
 		case Opcodes.DCMPL:
+			if (opcode == Opcodes.DCMPG) {
+				methodName = "onDcmpG";
+			} else {
+				methodName = "onDcmpL";
+			}
 			/* duplicate values. On stack: v1(+) v2(+) */
 			instrumentation.add(new InsnNode(Opcodes.DUP2_X2)); /* v2 v1 v2 */
 			instrumentation.add(new InsnNode(Opcodes.POP2)); /* v2 v1 */
@@ -146,7 +151,7 @@ public class BranchInstrumentation implements MethodInstrumentation {
 			instrumentation.add(new InsnNode(Opcodes.POP2)); /* v1 v1 v2 */
 			instrumentation.add(new InsnNode(Opcodes.DUP2_X2)); /* v1 v2 v1 v2 */
 			instrumentation.add(new LdcInsnNode(branchId)); /* v1 v2 v1 v2 branchId */
-			instrumentation.add(new MethodInsnNode(Opcodes.INVOKESTATIC, EXECUTION_TRACER, "onDcmp", 
+			instrumentation.add(new MethodInsnNode(Opcodes.INVOKESTATIC, EXECUTION_TRACER, methodName, 
 					"(DDI)V", false)); /* v1 v2*/
 			break;
 		
@@ -166,10 +171,15 @@ public class BranchInstrumentation implements MethodInstrumentation {
 		/* Float is under type1, go with 1 byte */
 		case Opcodes.FCMPG:
 		case Opcodes.FCMPL:
+			if (opcode == Opcodes.FCMPG) {
+				methodName = "onFcmpG";
+			} else {
+				methodName = "onFcmpL";
+			}
 			/* duplicate values. On stack: v1 v2 */
 			instrumentation.add(new InsnNode(Opcodes.DUP2)); /* v1 v2 v1 v2*/
 			instrumentation.add(new LdcInsnNode(branchId)); /* v1 v2 v1 v2 branchId */
-			instrumentation.add(new MethodInsnNode(Opcodes.INVOKESTATIC, EXECUTION_TRACER, "onFcmp", 
+			instrumentation.add(new MethodInsnNode(Opcodes.INVOKESTATIC, EXECUTION_TRACER, methodName, 
 					"(FFI)V", false)); /* v1 v2*/
 			break;
 		}
