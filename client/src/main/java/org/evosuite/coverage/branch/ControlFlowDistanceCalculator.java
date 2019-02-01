@@ -284,8 +284,8 @@ public class ControlFlowDistanceCalculator {
 					r.setBranchDistance(Math.min(r.getBranchDistance(),
 					                             falseDistances.get(branchTracePosition)));
 
-			if (r.getBranchDistance() == Double.MAX_VALUE)
-				throw new IllegalStateException("should be impossible");
+//			if (r.getBranchDistance() == Double.MAX_VALUE)
+//				throw new IllegalStateException("should be impossible");
 
 			//			result.intermediateDistances.put(branch, r);
 			return r;
