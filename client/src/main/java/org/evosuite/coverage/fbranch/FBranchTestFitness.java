@@ -67,6 +67,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	public double getFitness(TestChromosome individual, ExecutionResult result) {
 		ContextBranch cBranch = new ContextBranch(this.branchGoal.getBranch(), -1, "null");
 		DistanceCondition dCondition = checkOverallDistance(result, this.branchGoal.getValue(), cBranch);
+//		System.currentTimeMillis();
 		double fitness = dCondition.fitness;
 		if (fitness == 0) {
 			return fitness;
@@ -322,14 +323,26 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 	private double checkContextBranchDistance(ExecutionResult result, boolean goalValue, ContextBranch cBranch) {
 		Double value;
-		if (goalValue) {
-			Map<CallContext, Double> trueContextMap = result.getTrace().getTrueDistancesContext().get(cBranch.branchID);
-			value = checkContextDistance(trueContextMap, cBranch);
-		} else {
-			Map<CallContext, Double> falseContextMap = result.getTrace().getFalseDistancesContext().get(cBranch.branchID);
-			value = checkContextDistance(falseContextMap, cBranch);
+		
+		if(cBranch.contextLine == -1 && cBranch.method.equals("null")) {
+			if(goalValue) {
+				value = result.getTrace().getTrueDistances().get(cBranch.branchID);
+			}
+			else {
+				value = result.getTrace().getFalseDistances().get(cBranch.branchID);
+			}
+			
 		}
-
+		else {
+			if (goalValue) {
+				Map<CallContext, Double> trueContextMap = result.getTrace().getTrueDistancesContext().get(cBranch.branchID);
+				value = checkContextDistance(trueContextMap, cBranch);
+			} else {
+				Map<CallContext, Double> falseContextMap = result.getTrace().getFalseDistancesContext().get(cBranch.branchID);
+				value = checkContextDistance(falseContextMap, cBranch);
+			}			
+		}
+		
 		if (value == null) {
 			value = 1000000d;
 		}
@@ -339,6 +352,19 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	}
 
 	private boolean checkCovered(ExecutionResult result, ContextBranch cBranch) {
+		if(cBranch.contextLine == -1 && cBranch.method.equals("null")) {
+			Double v = result.getTrace().getFalseDistances().get(cBranch.branchID);
+			if(v!=null && v==0) {
+				return true;
+			}
+			
+			v = result.getTrace().getTrueDistances().get(cBranch.branchID);
+			if(v!=null && v==0) {
+				return true;
+			}
+		}
+		
+		
 		Map<CallContext, Double> falseContextMap = result.getTrace().getFalseDistancesContext().get(cBranch.branchID);
 		Double value = checkContextDistance(falseContextMap, cBranch);
 		if(value != null && value == 0) {
