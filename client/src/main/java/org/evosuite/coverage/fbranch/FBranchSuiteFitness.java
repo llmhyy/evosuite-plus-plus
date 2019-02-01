@@ -51,7 +51,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		double f = fBranchFitness.getFitness(tc, result);
 		
 //		double d = normalize(f);
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		
 		return f;
 	}
