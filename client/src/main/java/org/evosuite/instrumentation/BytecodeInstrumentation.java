@@ -252,9 +252,9 @@ public class BytecodeInstrumentation {
 					cn = st.transform();
 			}
 
-			ComparisonTransformation cmp = new ComparisonTransformation(cn);
+//			ComparisonTransformation cmp = new ComparisonTransformation(cn);
 			if (isTargetClassName(classNameWithDots) || shouldTransform(classNameWithDots)) {
-				cn = cmp.transform();
+//				cn = cmp.transform();
 				ContainerTransformation ct = new ContainerTransformation(cn);
 				cn = ct.transform();
 			}

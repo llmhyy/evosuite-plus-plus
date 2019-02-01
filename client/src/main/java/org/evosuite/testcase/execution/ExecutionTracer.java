@@ -447,7 +447,7 @@ public class ExecutionTracer {
 		tracer.trace.branchPassed(branch, bytecode_id, 0.0, 0.0);
 	}
 	
-	public static void passedComplexNumberComparison(double value2, double value1, int branchId) {
+	public static void passedComplexNumberComparison(double value1, double value2, int branchId) {
 		double cmpVariation = 0.0;
 		// value2 - value1
 		if (value1 < 0) {
