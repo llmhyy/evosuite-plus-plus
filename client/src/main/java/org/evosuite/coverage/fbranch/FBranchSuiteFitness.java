@@ -63,6 +63,11 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 //		return bFitness.getFitness(suite);
 		
 		List<ExecutionResult> results = runTestSuite(suite);
+		
+		//indicate that it is an empty testsuite chronosome.
+		if(results.isEmpty()) {
+			return 1000000000d;
+		}
 
 		double[][] fitnessMatrix = new double[results.size()][branchGoals.size()];
 		
