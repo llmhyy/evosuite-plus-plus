@@ -257,7 +257,11 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		
 		long begintime = System.currentTimeMillis();
 		long endtime = System.currentTimeMillis();
-		T bestIndividual = null;
+		T bestIndividual = getBestIndividual();
+		if (bestIndividual != null) {
+			double coverage = bestIndividual.getCoverage();
+			progress.add(coverage);
+		}
 		
 		Map<Integer, Integer> distributionMap = new HashMap<>();
 		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
