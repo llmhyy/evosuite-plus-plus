@@ -1,0 +1,161 @@
+#---------------------------------------------------------------------------
+#Project=tullibee  -  1_tullibee
+#---------------------------------------------------------------------------
+com.ib.client.EClientSocket#reqNewsBulletins(Z)V
+#---------------------------------------------------------------------------
+#Project=a4j  -  2_a4j
+#---------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#Project=jigen  -  3_jigen
+#---------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#Project=rif  -  4_rif
+#---------------------------------------------------------------------------
+org.apache.axis2.transport.http.turnup.server.SimpleHttpServer#run()V
+org.apache.axis2.transport.http.turnup.HTTPWorker#processRequest(Lorg/apache/axis2/transport/http/turnup/server/SimpleHttpServerConnection;Lorg/apache/axis2/transport/http/server/SimpleRequest;)Z
+#---------------------------------------------------------------------------
+#Project=templateit  -  5_templateit
+#---------------------------------------------------------------------------
+#---------------------------------------------------------------------------
+#Project=jnfe  -  6_jnfe
+#---------------------------------------------------------------------------
+br.com.jnfe.pl005d.JNFeAdaptadorImpl#preencheTransp(Lbr/com/jnfe/core/JNFe;Ljavax/xml/stream/XMLStreamWriter;)V
+#---------------------------------------------------------------------------
+#Project=sfmis  -  7_sfmis
+#---------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#Project=gfarcegestionfa  -  8_gfarcegestionfa
+#---------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#Project=falselight  -  9_falselight
+#---------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#Project=water-simulator  -  10_water-simulator
+#---------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#Project=imsmart  -  11_imsmart
+#---------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#Project=dsachat  -  12_dsachat
+#---------------------------------------------------------------------------
+dsachat.gm.gui.MultiHeroTreeModel#isLeaf(Ljava/lang/Object;)Z
+dsachat.server.Handler#handleInput(Ldsachat/share/InputEvent;)V
+#---------------------------------------------------------------------------
+#Project=jdbacl  -  13_jdbacl
+#---------------------------------------------------------------------------
+org.databene.jdbacl.model.DefaultDatabase#getSchema(Ljava/lang/String;)Lorg/databene/jdbacl/model/DBSchema;
+#---------------------------------------------------------------------------
+#Project=jsecurity  -  18_jsecurity
+#---------------------------------------------------------------------------
+org.jsecurity.ri.session.AbstractSessionManager#init()V
+org.jsecurity.ri.util.ThreadContext#get(Ljava/lang/Object;)Ljava/lang/Object;
+org.jsecurity.ri.authz.SimpleAuthorizationContext#implies(Ljava/security/Permission;)Z
+#---------------------------------------------------------------------------
+#Project=jmca  -  19_jmca
+#---------------------------------------------------------------------------
+com.soops.CEN4010.JMCA.JParser.JavaParser#PrimaryPrefix()V
+com.soops.CEN4010.JMCA.JParser.JavaParser#PrimarySuffix()V
+com.soops.CEN4010.JMCA.JParser.JavaParser#ForStatement()V
+#---------------------------------------------------------------------------
+#Project=geo-google  -  21_geo-google
+#---------------------------------------------------------------------------
+geo.google.mapping.AddressToUsAddressFunctor#execute(Lgeo/google/datamodel/GeoAddress;)Lgeo/google/datamodel/GeoUsAddress;
+#---------------------------------------------------------------------------
+#Project=sbmlreader2  -  34_sbmlreader2
+#---------------------------------------------------------------------------
+jigcell.sbml2.UnitDefinition#isValidSubstanceUnit(Ljigcell/sbml2/UnitDefinition;)Z
+#---------------------------------------------------------------------------
+#Project=corina  -  35_corina
+#---------------------------------------------------------------------------
+corina.util.StringUtils#escapeForXML(Ljava/lang/String;)Ljava/lang/String;
+corina.UnitTests#testMetadataLoad()V
+#---------------------------------------------------------------------------
+#Project=javabullboard  -  38_javabullboard
+#---------------------------------------------------------------------------
+framework.util.PropertyUtils#getIndexedProperty(Ljava/lang/Object;Ljava/lang/String;I)Ljava/lang/Object;
+#---------------------------------------------------------------------------
+#Project=diffi  -  39_diffi
+#---------------------------------------------------------------------------
+#---------------------------------------------------------------------------
+#Project=glengineer  -  40_glengineer
+#---------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#Project=lilith  -  43_lilith
+#---------------------------------------------------------------------------
+de.huxhorn.lilith.data.logging.logback.LogbackLoggingAdapter#convert(Lch/qos/logback/classic/spi/ILoggingEvent;Z)Lde/huxhorn/lilith/data/logging/LoggingEvent;
+de.huxhorn.lilith.jul.xml.JulImportCallable#call()Ljava/lang/Long;
+#---------------------------------------------------------------------------
+#Project=summa  -  44_summa
+#---------------------------------------------------------------------------
+dk.statsbiblioteket.summa.search.api.tools.SearchTool#main([Ljava/lang/String;)V
+#---------------------------------------------------------------------------
+#Project=lagoon  -  52_lagoon
+#---------------------------------------------------------------------------
+nu.staldal.lagoon.producer.BatikFormatter#init()V
+#---------------------------------------------------------------------------
+#Project=db-everywhere  -  54_db-everywhere
+#---------------------------------------------------------------------------
+com.gbshape.dbe.utils.DBEHelper#createInsertQuery([Ljava/lang/String;Lcom/gbshape/dbe/struts/bean/DBDataBean;Ljava/lang/String;Lcom/gbshape/dbe/struts/bean/TableStructureBean;Ljava/lang/String;)Ljava/lang/String;
+com.gbshape.dbe.mysql.MysqlTableStructure#getStructure(Lcom/gbshape/dbe/struts/bean/DBDataBean;Ljava/lang/String;)Lcom/gbshape/dbe/struts/bean/TableStructureBean;
+#---------------------------------------------------------------------------
+#Project=jhandballmoves  -  56_jhandballmoves
+#---------------------------------------------------------------------------
+visu.handball.moves.model.PassEvent#equals(Ljava/lang/Object;)Z
+visu.handball.moves.model.MoveEvent#equals(Ljava/lang/Object;)Z
+visu.handball.moves.model.HandballModel#isSaved()Z
+#---------------------------------------------------------------------------
+#Project=dom4j  -  62_dom4j
+#---------------------------------------------------------------------------
+org.dom4j.tree.ConcurrentReaderHashMap#remove(Ljava/lang/Object;)Ljava/lang/Object;
+#---------------------------------------------------------------------------
+#Project=openjms  -  66_openjms
+#---------------------------------------------------------------------------
+org.exolab.jms.config.ConfigHelper#getJndiURL(Lorg/exolab/jms/config/types/SchemeType;Lorg/exolab/jms/config/Configuration;)Ljava/lang/String;
+#---------------------------------------------------------------------------
+#Project=lhamacaw  -  69_lhamacaw
+#---------------------------------------------------------------------------
+macaw.io.SystemWideValuesXMLHandler#beginTag(Ljava/lang/String;)V
+#---------------------------------------------------------------------------
+#Project=caloriecount  -  78_caloriecount
+#---------------------------------------------------------------------------
+com.lts.util.prop.PropertiesUtil#findRef(Ljava/util/Properties;)Lcom/lts/util/prop/PropertiesUtil$PropertyRef;
+#---------------------------------------------------------------------------
+#Project=wheelwebtool  -  80_wheelwebtool
+#---------------------------------------------------------------------------
+wheel.json.JSONObject#doubleToString(D)Ljava/lang/String;
+wheel.json.JSONObject#quote(Ljava/lang/String;)Ljava/lang/String;
+wheel.components.ElExpression#eval(Ljava/lang/Object;Lwheel/components/Component;)Ljava/lang/Object;
+#---------------------------------------------------------------------------
+#Project=xbus  -  83_xbus
+#---------------------------------------------------------------------------
+net.sf.xbus.technical.http.EasyX509TrustManager#checkServerTrusted([Ljava/security/cert/X509Certificate;Ljava/lang/String;)V
+#---------------------------------------------------------------------------
+#Project=shop  -  85_shop
+#---------------------------------------------------------------------------
+umd.cs.shop.JSPredicateForm#applySubstitutionPF(Lumd/cs/shop/JSSubstitution;)Lumd/cs/shop/JSPredicateForm;
+umd.cs.shop.JSState#satisfiesAll(Lumd/cs/shop/JSListLogicalAtoms;Lumd/cs/shop/JSSubstitution;Lumd/cs/shop/JSListAxioms;)Lumd/cs/shop/JSListSubstitution;
+#---------------------------------------------------------------------------
+#Project=classviewer  -  91_classviewer
+#---------------------------------------------------------------------------
+com.jstevh.viewer.ClassInfo#printMethods(I)[Ljava/lang/String;
+#---------------------------------------------------------------------------
+#Project=jcvi-javacommon  -  92_jcvi-javacommon
+#---------------------------------------------------------------------------
+org.jcvi.trace.frg.Frg2Parser#parse(Ljava/io/InputStream;Lorg/jcvi/trace/frg/Frg2Visitor;)V
+#---------------------------------------------------------------------------
+#Project=quickserver  -  93_quickserver
+#---------------------------------------------------------------------------
+org.quickserver.net.server.impl.BasicClientHandler#isOpen()Z
+#---------------------------------------------------------------------------
+#Project=heal  -  96_heal
+#---------------------------------------------------------------------------
+org.heal.module.search.AdvSearchDAO#buildMutiQuery(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+

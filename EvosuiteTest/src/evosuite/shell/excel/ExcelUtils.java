@@ -45,8 +45,15 @@ public class ExcelUtils {
 	}
 
 	public static String[] collectHeaders(List<ExcelReader> excelReaders, String sheet) {
-		List<String> headers = excelReaders.get(0).listHeader(sheet);
-		return headers.toArray(new String[headers.size()]);
+		for (ExcelReader excelReader : excelReaders) {
+			try {
+				List<String> headers = excelReader.listHeader(sheet);
+				return headers.toArray(new String[headers.size()]);
+			} catch(Exception e) {
+				// ignore
+			}
+		}
+		return null;
 	}
 	
 	public static String[] collectHeaders(ExcelReader excelReader, String sheet) {

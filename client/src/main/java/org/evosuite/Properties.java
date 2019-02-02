@@ -1562,7 +1562,7 @@ public class Properties {
 	 * Load and initialize a properties file from the default path
 	 */
 	public void loadProperties(boolean silent) {
-		loadPropertiesFile(System.getProperty(PROPERTIES_FILE,
+		loadPropertiesFile(System.getProperty("PROPERTIES_FILE",
 				"evosuite-files/evosuite.properties"), silent);
 		initializeProperties();
 	}
