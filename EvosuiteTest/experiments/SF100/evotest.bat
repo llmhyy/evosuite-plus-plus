@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 SET EVOTEST=java -jar %cd%\EvosuiteTest-1.0.6-SNAPSHOT.jar
 SET EVOTEST_DEBUG=java -agentlib:jdwp=transport=dt_socket,server=y,address=9595 -jar %cd%\EvosuiteTest-1.0.6-SNAPSHOT.jar
 
-SET EvosuiteTest="java -cp $PWD/EvosuiteTest-1.0.6-SNAPSHOT.jar"
+SET EvosuiteTest="java -cp %cd%\EvosuiteTest-1.0.6-SNAPSHOT.jar"
 
 SET ROOT=%cd%
 echo Evotest=%EVOTEST%
@@ -36,5 +36,5 @@ for /D %%I in (*_*) do (
 	popd
 )
 
-$EvosuiteTest evosuite.shell.excel.MergeExcels !ROOT!
-$EvosuiteTest evosuite.shell.experiment.ExcelMethodCollector !ROOT!
+%EvosuiteTest% evosuite.shell.excel.MergeExcels !ROOT!
+%EvosuiteTest% evosuite.shell.experiment.ExcelMethodCollector !ROOT!
