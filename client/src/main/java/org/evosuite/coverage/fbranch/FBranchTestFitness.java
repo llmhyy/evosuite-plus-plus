@@ -67,7 +67,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	public double getFitness(TestChromosome individual, ExecutionResult result) {
 		ContextBranch cBranch = new ContextBranch(this.branchGoal.getBranch(), -1, "null");
 		DistanceCondition dCondition = checkOverallDistance(result, this.branchGoal.getValue(), cBranch);
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		double fitness = dCondition.fitness;
 		if (fitness == 0) {
 			return fitness;
@@ -154,7 +154,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				cBranch.branch = newDepBranch;
 				cBranch.branchID = newDepBranch.getActualBranchId();
 				DistanceCondition dCondition = checkOverallDistance(result, goalValue, cBranch);
-				System.currentTimeMillis();
 				fitness = dCondition.fitness;
 				if (fitness == 0) {
 					goalValue = !goalValue;
@@ -167,8 +166,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 					continue;
 				}
 
-				BranchCoverageGoal newGoal = new BranchCoverageGoal(newDepBranch, goalValue, newDepBranch.getClassName(),
-						newDepBranch.getMethodName(), newDepBranch.getInstruction().getLineNumber());
+				BranchCoverageGoal newGoal = dCondition.goal;
 
 				InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
 				if (flagResult.isInterproceduralFlag) {
@@ -298,7 +296,13 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			visitedBranches.add(cBranch);
 
 			BytecodeInstruction originBranchIns = cBranch.getInstruction();
-			if (cBranch.getInstruction().getControlDependentBranch() == null) {
+			
+			/**
+			 * it means that an exception happens on the way to originBranchIns, we should
+			 * add a penalty to such test case.
+			 */
+			if (originBranchIns.getControlDependentBranch() == null) {
+				approachLevel = 100000;
 				break;
 			}
 
@@ -307,6 +311,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			
 			goalValue = originBranchIns.getControlDependency(newDepBranch).getBranchExpressionValue();
 			double branchDistance = checkContextBranchDistance(result, goalValue, cBranch);
+//			System.currentTimeMillis();
 			if(branchDistance == 0) {
 				goalValue = !goalValue;
 			}
@@ -315,8 +320,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 		double fitness = approachLevel + checkContextBranchDistance(result, goalValue, cBranch);
 		
-		System.currentTimeMillis();
-
 		BranchCoverageGoal goal = new BranchCoverageGoal(cBranch.branch, goalValue, cBranch.branch.getClassName(), cBranch.branch.getMethodName());
 		return new DistanceCondition(fitness, goal);
 	}
@@ -336,10 +339,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		else {
 			if (goalValue) {
 				Map<CallContext, Double> trueContextMap = result.getTrace().getTrueDistancesContext().get(cBranch.branchID);
-				value = checkContextDistance(trueContextMap, cBranch);
+				value = getContextDistance(trueContextMap, cBranch);
 			} else {
 				Map<CallContext, Double> falseContextMap = result.getTrace().getFalseDistancesContext().get(cBranch.branchID);
-				value = checkContextDistance(falseContextMap, cBranch);
+				value = getContextDistance(falseContextMap, cBranch);
 			}			
 		}
 		
@@ -347,7 +350,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			value = 1000000d;
 		}
 
-		System.currentTimeMillis();
 		return FitnessFunction.normalize(value);
 	}
 
@@ -366,13 +368,13 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		
 		
 		Map<CallContext, Double> falseContextMap = result.getTrace().getFalseDistancesContext().get(cBranch.branchID);
-		Double value = checkContextDistance(falseContextMap, cBranch);
+		Double value = getContextDistance(falseContextMap, cBranch);
 		if(value != null && value == 0) {
 			return true;
 		}
 		
 		Map<CallContext, Double> trueContextMap = result.getTrace().getTrueDistancesContext().get(cBranch.branchID);
-		value = checkContextDistance(trueContextMap, cBranch);
+		value = getContextDistance(trueContextMap, cBranch);
 		if(value != null && value == 0) {
 			return true;
 		}
@@ -380,7 +382,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		return false;
 	}
 
-	private Double checkContextDistance(Map<CallContext, Double> contextMap, ContextBranch cBranch) {
+	private Double getContextDistance(Map<CallContext, Double> contextMap, ContextBranch cBranch) {
 		if(contextMap == null) {
 			return null;
 		}
