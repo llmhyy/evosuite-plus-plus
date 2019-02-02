@@ -58,10 +58,6 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 
 	@Override
 	public double getFitness(AbstractTestSuiteChromosome<? extends ExecutableChromosome> suite) {
-		
-//		BranchCoverageSuiteFitness bFitness = new BranchCoverageSuiteFitness();
-//		return bFitness.getFitness(suite);
-		
 		List<ExecutionResult> results = runTestSuite(suite);
 		
 		//indicate that it is an empty testsuite chronosome.
@@ -106,12 +102,12 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				goalFitness = 1;
 			}
 			
-//			goalFitness = 1;
-//			for(double i=0; i<fitnessList.size(); i++) {
-//				double d = fitnessList.get((int)i);
-//				double transformedFitness = Math.pow(d, 1/(i+1));
-//				goalFitness *= transformedFitness;
-//			}
+			goalFitness = 1;
+			for(double i=0; i<fitnessList.size(); i++) {
+				double d = fitnessList.get((int)i);
+				double transformedFitness = Math.pow(d, 1/(i+1));
+				goalFitness *= transformedFitness;
+			}
 			
 			if(goalFitness==0) {
 				numCoveredGoals++;
