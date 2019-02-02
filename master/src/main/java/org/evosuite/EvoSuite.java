@@ -34,16 +34,17 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
+import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.executionmode.Continuous;
 import org.evosuite.executionmode.Help;
 import org.evosuite.executionmode.ListClasses;
-import org.evosuite.executionmode.WriteDependencies;
 import org.evosuite.executionmode.ListParameters;
 import org.evosuite.executionmode.MeasureCoverage;
 import org.evosuite.executionmode.PrintStats;
 import org.evosuite.executionmode.Setup;
 import org.evosuite.executionmode.TestGeneration;
+import org.evosuite.executionmode.WriteDependencies;
 import org.evosuite.junit.writer.TestSuiteWriterUtils;
 import org.evosuite.runtime.sandbox.MSecurityManager;
 import org.evosuite.runtime.util.JavaExecCmdUtil;
@@ -98,10 +99,17 @@ public class EvoSuite {
         if (base_dir_path.equals("")) {
             Properties.getInstanceSilent();
         } else {
-            Properties.getInstanceSilent().loadProperties(base_dir_path
-                            + separator
-                            + Properties.PROPERTIES_FILE,
-                    true);
+        	File propertiesFile = new File(Properties.PROPERTIES_FILE);
+			if (!propertiesFile.exists()) {
+				propertiesFile = new File(base_dir_path
+                        + separator
+                        + Properties.PROPERTIES_FILE);
+			}
+			 Properties.getInstanceSilent().loadProperties(propertiesFile.getAbsolutePath(), true);
+//            Properties.getInstanceSilent().loadProperties(base_dir_path
+//                            + separator
+//                            + Properties.PROPERTIES_FILE,
+//                    true);
         }
     }
 
