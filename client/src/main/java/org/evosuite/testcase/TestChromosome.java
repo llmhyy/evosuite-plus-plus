@@ -472,22 +472,6 @@ public class TestChromosome extends ExecutableChromosome {
         }
 	}
 	
-	private int getTargetMethodPosition(int lastMutatableStatement) {
-		for (int position = 0; position <= lastMutatableStatement; position++) {
-			Statement stat = this.test.getStatement(position);
-			if(stat instanceof MethodStatement) {
-				MethodStatement mStat = (MethodStatement)stat;
-				String mSig = mStat.getMethodName() + MethodUtil.getSignature(mStat.getMethod().getMethod());
-				if(mSig.equals(Properties.TARGET_METHOD)) {
-//					System.currentTimeMillis();
-					return position;
-				}
-			}
-		}
-		
-		return -1;
-	}
-
 	/**
 	 * Each statement is replaced with probability 1/length
 	 *
@@ -501,7 +485,7 @@ public class TestChromosome extends ExecutableChromosome {
 		
 		int targetMethodPosition = -1;
 		if(!Properties.TARGET_METHOD.isEmpty()) {
-			targetMethodPosition = getTargetMethodPosition(lastMutatableStatement);
+			targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
 		}
 
 		if (Randomness.nextDouble() < Properties.CONCOLIC_MUTATION) {
@@ -582,7 +566,18 @@ public class TestChromosome extends ExecutableChromosome {
 
 			count++;
 			// Insert at position as during initialization (i.e., using helper sequences)
-			int position = testFactory.insertRandomStatement(test, getLastMutatableStatement());
+			
+			int lastMutatableStatement = getLastMutatableStatement();
+			int targetMethodPosition = -1;
+			if(!Properties.TARGET_METHOD.isEmpty()) {
+				targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
+				if(targetMethodPosition != -1) {
+					lastMutatableStatement = targetMethodPosition - 1;
+					System.currentTimeMillis();
+				}
+			}
+			
+			int position = testFactory.insertRandomStatement(test, lastMutatableStatement);
 
 			if (position >= 0 && position < test.size()) {
 				changed = true;

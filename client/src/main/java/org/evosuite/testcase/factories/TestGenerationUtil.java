@@ -12,6 +12,23 @@ import org.evosuite.utils.generic.GenericAccessibleObject;
 import org.evosuite.utils.generic.GenericMethod;
 
 public class TestGenerationUtil {
+	
+	public static int getTargetMethodPosition(TestCase test, int lastMutatableStatement) {
+		for (int position = 0; position <= lastMutatableStatement; position++) {
+			Statement stat = test.getStatement(position);
+			if(stat instanceof MethodStatement) {
+				MethodStatement mStat = (MethodStatement)stat;
+				String mSig = mStat.getMethodName() + MethodUtil.getSignature(mStat.getMethod().getMethod());
+				if(mSig.equals(Properties.TARGET_METHOD)) {
+//					System.currentTimeMillis();
+					return position;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
 	public static boolean checkTwiceTargetMethodInvocation(TestCase test) {
 		int count = 0;
 		if(!Properties.TARGET_METHOD.isEmpty()) {
