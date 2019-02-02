@@ -10,56 +10,13 @@ import org.evosuite.result.TestGenerationResult;
 
 
 public class AbstractETest {
-	public class Tuple {
-		int time;
-		double coverage;
-		int age;
-
-		public Tuple(int time, double coverage, int age) {
-			super();
-			this.time = time;
-			this.coverage = coverage;
-			this.age = age;
-		}
-
-		public int getTime() {
-			return time;
-		}
-
-		public void setTime(int time) {
-			this.time = time;
-		}
-
-		public double getCoverage() {
-			return coverage;
-		}
-
-		public void setCoverage(double coverage) {
-			this.coverage = coverage;
-		}
-
-		public int getAge() {
-			return age;
-		}
-
-		public void setAge(int age) {
-			this.age = age;
-		}
-		
-	}
-
 	@SuppressWarnings("unchecked")
-	public Tuple evosuite(String targetClass, String targetMethod, String cp, int seconds, boolean instrumentContext, String fitnessAppraoch) {
+	public EvoTestResult evosuite(String targetClass, String targetMethod, String cp, int seconds, boolean instrumentContext, String fitnessAppraoch) {
 		EvoSuite evo = new EvoSuite();
 		Properties.TARGET_CLASS = targetClass;
-		// Properties.TARGET_METHOD = targetClass+".test(DDI)V";
-//		Properties.ALGORITHM = Algorithm.MONOTONICGA;
-//		Properties.ALGORITHM = Algorithm.RANDOM;
 		Properties.TRACK_COVERED_GRADIENT_BRANCHES = true;
 //		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 //		Properties.STRATEGY = Strategy.RANDOM;
-		
-
 		String[] command = new String[] { 
 //				"-generateRandom",
 				"-generateSuite",
@@ -97,18 +54,12 @@ public class AbstractETest {
 				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
-				"-seed", "100"
-				
+//				"-seed", "100"
 				};
-
-		// command = new String[] { "-generateSuite", "-class", targetClass,
-		// "-projectCP", cp, "-Dsearch_budget",
-		// String.valueOf(seconds), "-criterion", "branch"};
 
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evo.parseCommandLine(command);
 		for (List<TestGenerationResult> l : list) {
 			for (TestGenerationResult r : l) {
-				// System.out.println(r);
 				System.out.println(r.getProgressInformation());
 				if(r.getDistribution() != null){
 					for(int i=0; i<r.getDistribution().length; i++){
@@ -141,7 +92,7 @@ public class AbstractETest {
 				System.out.println("Method call availability: " + ratio);
 				
 				
-				return new Tuple(r.getElapseTime(), r.getCoverage(), age);
+				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, ratio);
 			}
 		}
 

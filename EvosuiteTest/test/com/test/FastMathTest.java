@@ -1,6 +1,10 @@
 package com.test;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Tuple;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
@@ -37,12 +41,19 @@ public class FastMathTest extends AbstractETest{
 		
 		int timeBudget = 300;
 		FastMathTest t = new FastMathTest();
-		Tuple tuple1 = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		System.out.println("coverage:" + tuple1.coverage);
-//		Tuple tuple2 = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
-//		
-//		System.out.println("fbranch: " + tuple1.coverage);
-//		System.out.println("fbranch: " + tuple2.coverage);
+//		EvoTestResult tuple1 = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+//		System.out.println("coverage:" + tuple1.getCoverage());
+
+		
+		List<EvoTestResult> l = new ArrayList<>();
+		for(int i=0; i<7; i++){
+			EvoTestResult tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			l.add(tu);
+		}
+		
+		for(EvoTestResult lu: l){
+			System.out.println(lu.getCoverage());
+		}
 	}
 
 	
