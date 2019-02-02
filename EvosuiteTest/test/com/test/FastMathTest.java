@@ -29,12 +29,12 @@ public class FastMathTest extends AbstractETest{
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
 //		Properties.PORT = 8000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		
 //		Properties.LOCAL_SEARCH_BUDGET = 1000;
 
-//		Properties.TIMEOUT = 300000000;
+		Properties.TIMEOUT = 30000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
 		String fitnessApproach = "fbranch";
@@ -46,13 +46,20 @@ public class FastMathTest extends AbstractETest{
 
 		
 		List<EvoTestResult> l = new ArrayList<>();
-		for(int i=0; i<7; i++){
-			EvoTestResult tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-			l.add(tu);
+		for(int i=0; i<5; i++){
+			try {
+				EvoTestResult tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+				l.add(tu);		
+//				Thread.sleep(60000);
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 		for(EvoTestResult lu: l){
 			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
 		}
 	}
 

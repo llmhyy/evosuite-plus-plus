@@ -54,7 +54,7 @@ public class AbstractETest {
 				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
-//				"-seed", "100"
+//				"-seed", "1549086726002"
 				};
 
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evo.parseCommandLine(command);
@@ -92,7 +92,7 @@ public class AbstractETest {
 				System.out.println("Method call availability: " + ratio);
 				
 				
-				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, ratio);
+				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, ratio, r.getProgressInformation());
 			}
 		}
 

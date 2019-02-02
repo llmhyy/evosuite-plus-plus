@@ -105,6 +105,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			goalFitness = 1;
 			for(double i=0; i<fitnessList.size(); i++) {
 				double d = fitnessList.get((int)i);
+				d = normalize(d);
 				double transformedFitness = Math.pow(d, 1/(i+1));
 				goalFitness *= transformedFitness;
 			}

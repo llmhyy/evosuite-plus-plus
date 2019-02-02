@@ -1,17 +1,21 @@
 package com.test;
 
+import java.util.List;
+
 public class EvoTestResult {
 	private int time;
 	private double coverage;
 	private int age;
 	private double ratio;
+	private List<Double> progress;
 
-	public EvoTestResult(int time, double coverage, int age, double ratio) {
+	public EvoTestResult(int time, double coverage, int age, double ratio, List<Double> progress) {
 		super();
 		this.time = time;
 		this.coverage = coverage;
 		this.age = age;
-		this.setRatio(ratio);
+		this.ratio = ratio;
+		this.progress = progress;
 	}
 
 	public int getTime() {
@@ -45,4 +49,13 @@ public class EvoTestResult {
 	public void setRatio(double ratio) {
 		this.ratio = ratio;
 	}
+
+	public List<Double> getProgress() {
+		return progress;
+	}
+
+	public void setProgress(List<Double> progress) {
+		this.progress = progress;
+	}
+
 }
