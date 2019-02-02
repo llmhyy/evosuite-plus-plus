@@ -571,9 +571,9 @@ public class TestChromosome extends ExecutableChromosome {
 			int targetMethodPosition = -1;
 			if(!Properties.TARGET_METHOD.isEmpty()) {
 				targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
-				if(targetMethodPosition != -1) {
+				if(targetMethodPosition != -1 && Randomness.nextDouble() <= 0.5) {
 					lastMutatableStatement = targetMethodPosition - 1;
-					System.currentTimeMillis();
+					
 				}
 			}
 			

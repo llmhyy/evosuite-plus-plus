@@ -71,12 +71,12 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			int targetMethodCallPosition = -1;
 			if(!Properties.TARGET_METHOD.isEmpty()) {
 				targetMethodCallPosition = TestGenerationUtil.getTargetMethodPosition(test, test.size() - 1);
-				if(targetMethodCallPosition != -1) {
-					position = targetMethodCallPosition;
+				if(targetMethodCallPosition != -1 && Randomness.nextDouble() <= 0.5) {
+					position = targetMethodCallPosition - 1;
 				}
 			}
 			
-			testFactory.insertRandomStatement(test, position-1);
+			testFactory.insertRandomStatement(test, position);
 			num++;
 		}
 		if (logger.isDebugEnabled())
