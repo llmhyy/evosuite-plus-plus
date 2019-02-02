@@ -59,7 +59,7 @@ public class SFBenchmarkUtils {
 		}
 		if (newPropertiesFile != null) {
 			Properties.PROPERTIES_FILE = "evosuite-files/evosuite-test.properties";
-			System.setProperty(Properties.PROPERTIES_FILE, "evosuite-files/evosuite-test.properties");
+			System.setProperty("PROPERTIES_FILE", "evosuite-files/evosuite-test.properties");
 		}
 		new EvoSuite().setupProperties();
 		return newPropertiesFile;
