@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.evosuite.CommandLineParameters;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
+import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.Type;
@@ -252,6 +253,24 @@ public class EvosuiteForMethod {
 			for (List<TestGenerationResult> l : list) {
 				for (TestGenerationResult r : l) {
 					recorder.record(className, methodName, r);
+					
+					System.out.println("Used time: " + r.getElapseTime());
+					System.out.println("Used generations: " + r.getGeneticAlgorithm().getAge());
+					int count = 0;
+					for(String key: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+						if(RuntimeRecord.methodCallAvailabilityMap.get(key)) {
+							count++;
+						}
+						else {
+							System.out.println("Missing analyzing call: " + key);
+						}
+					}
+					int size = RuntimeRecord.methodCallAvailabilityMap.size();
+					double ratio = -1;
+					if(size != 0) {
+						ratio = (double)count/size;
+					}
+					System.out.println("Method call availability: " + ratio);
 				}
 			}
 		} catch (Exception e) {
