@@ -75,6 +75,7 @@ public class TestGenerationResultBuilder {
 		result.setProgressInformation(testSuite.getProgressInfomation());
 		result.setGeneticAlgorithm(testSuite.getGeneticAlgorithm());
 		result.setDistribution(testSuite.getDistribution());
+		result.setAvailabilityRatio(testSuite.getAvailabilityRatio());
 		
 		return result;
 	}

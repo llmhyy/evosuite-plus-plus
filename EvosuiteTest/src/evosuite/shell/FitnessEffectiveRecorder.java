@@ -26,7 +26,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 	public FitnessEffectiveRecorder() {
 		super();
 		excelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_evotest.xlsx"));
-		excelWriter.getSheet("data", new String[]{"Class", "Method", "Execution Time", "Coverage", "Age"}, 0);
+		excelWriter.getSheet("data", new String[]{"Class", "Method", "Execution Time", "Coverage", "Age", "Method Availability"}, 0);
 	}
 
 	@Override
@@ -37,6 +37,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		rowData.add(r.getElapseTime());
 		rowData.add(r.getCoverage());
 		rowData.add(r.getGeneticAlgorithm().getAge());
+		rowData.add(r.getAvailabilityRatio());
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 			logSuccessfulMethods(className, methodName);

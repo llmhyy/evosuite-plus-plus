@@ -299,6 +299,7 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	}
 	
 	private int timeUsed;
+	private double availabilityRatio;
 
 	public void setTimeUsed(int timeUsed) {
 		this.timeUsed = timeUsed;
@@ -332,4 +333,11 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 		this.distribution = distribution;
 	}
 
+	public void setAvailabilityRatio(double availabilityRatio) {
+		this.availabilityRatio = availabilityRatio;
+	}
+
+	public double getAvailabilityRatio() {
+		return this.availabilityRatio;
+	}
 }

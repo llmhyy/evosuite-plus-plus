@@ -39,6 +39,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	
 	private int[] distribution;
 	
+	private double availabilityRatio;
+	
 	private static final long serialVersionUID = 1306033906557741929L;
 
 	private Status status = Status.ERROR;
@@ -326,6 +328,15 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	public void setDistribution(int[] distribution) {
 		this.distribution = distribution;
 	}
+
+	public double getAvailabilityRatio() {
+		return availabilityRatio;
+	}
+
+	public void setAvailabilityRatio(double availabilityRatio) {
+		this.availabilityRatio = availabilityRatio;
+	}
+
 
 
 }

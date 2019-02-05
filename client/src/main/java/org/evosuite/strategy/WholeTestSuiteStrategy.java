@@ -155,6 +155,7 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 		testSuite.setDistribution(algorithm.getDistribution());
 		testSuite.setProgressInfomation(algorithm.getProgressInformation());
 		testSuite.setGeneticAlgorithm(algorithm);
+		testSuite.setAvailabilityRatio(algorithm.getAvailabilityRatio());
 		return testSuite;
 	}
 	

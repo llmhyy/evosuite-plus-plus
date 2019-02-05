@@ -95,10 +95,14 @@ public interface TestGenerationResult extends Serializable {
 	public void setElapseTime(int elapseTime);
 	public double getCoverage();
 	public void setCoverage(double coverage);
+	public void setAvailabilityRatio(double availabilityRatio);
 	
 	public List<Double> getProgressInformation();
 	public void setProgressInformation(List<Double> progressInformtion);
 	public int[] getDistribution();
 	public void setDistribution(int[] distribution);
+	public double getAvailabilityRatio();
+
+	
 
 }

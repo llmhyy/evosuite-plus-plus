@@ -75,24 +75,7 @@ public class AbstractETest {
 				
 				System.out.println("Used time: " + r.getElapseTime());
 				
-				int count = 0;
-				for(String key: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
-					if(RuntimeRecord.methodCallAvailabilityMap.get(key)) {
-						count++;
-					}
-					else {
-						System.out.println("Missing analyzing call: " + key);
-					}
-				}
-				int size = RuntimeRecord.methodCallAvailabilityMap.size();
-				double ratio = -1;
-				if(size != 0) {
-					ratio = (double)count/size;
-				}
-				System.out.println("Method call availability: " + ratio);
-				
-				
-				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, ratio, r.getProgressInformation());
+				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, r.getAvailabilityRatio(), r.getProgressInformation());
 			}
 		}
 

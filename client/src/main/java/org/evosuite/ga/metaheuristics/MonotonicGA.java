@@ -402,12 +402,33 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			logger.error("branch ID: " + branchID + ": " + distributionMap.get(branchID));
 		}
 		
-		System.currentTimeMillis();
+		double availabilityRatio = getAvailabilityRatio();
+		this.setAvailabilityRatio(availabilityRatio);
 		
 		// archive
 		TimeController.execute(this::updateBestIndividualFromArchive, "update from archive", 5_000);
 
 		notifySearchFinished();
+	}
+
+	public double getAvailabilityRatio() {
+		int count = 0;
+		for(String key: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+			if(RuntimeRecord.methodCallAvailabilityMap.get(key)) {
+				count++;
+			}
+			else {
+				System.out.println("Missing analyzing call: " + key);
+			}
+		}
+		int size = RuntimeRecord.methodCallAvailabilityMap.size();
+		double ratio = -1;
+		if(size != 0) {
+			ratio = (double)count/size;
+		}
+		System.out.println("Method call availability: " + ratio);
+		
+		return ratio;
 	}
 
 	private void printUncoveredBranches(Map<Integer, Integer> distributionMap, 
