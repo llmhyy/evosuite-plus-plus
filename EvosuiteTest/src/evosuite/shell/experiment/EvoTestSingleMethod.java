@@ -47,9 +47,10 @@ public class EvoTestSingleMethod {
 		String projectName = "a4j";
 		String[] targetMethods = new String[]{
 					"net.kencochrane.a4j.file.FileUtil#renameFile(Ljava/lang/String;Ljava/lang/String;)V",
-					"net.kencochrane.a4j.file.FileUtil#getBrowseNodeFile(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;"
+//					"net.kencochrane.a4j.file.FileUtil#getBrowseNodeFile(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;"
 				};
 		
+		fitnessAppraoch = "fbranch";
 		evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
 	}
 	
@@ -63,6 +64,7 @@ public class EvoTestSingleMethod {
 				"com.jigen.XmlReader#parseJigenDocument(Ljava/io/File;)Lcom/jigen/xsd/JigenDocument;"
 		};
 		
+//		fitnessAppraoch = "fbranch";
 		evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
 	}
 	
