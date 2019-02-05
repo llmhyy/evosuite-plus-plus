@@ -300,7 +300,7 @@ public class AgentLoader {
 		for(URI uri : uris){
 			msg += "\n"+uri.toString();
 		}
-		logger.warn(msg);
+		//logger.warn(msg);
 
 		return null;
 	}
