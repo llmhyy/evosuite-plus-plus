@@ -67,13 +67,13 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
 	protected final Map<Integer, TestFitnessFunction> branchCoverageFalseMap = new HashMap<Integer, TestFitnessFunction>();
 	private final Map<String, TestFitnessFunction> branchlessMethodCoverageMap = new HashMap<String, TestFitnessFunction>();
 
-	private final Set<Integer> toRemoveBranchesT = new HashSet<>();
-	private final Set<Integer> toRemoveBranchesF = new HashSet<>();
-	private final Set<String> toRemoveRootBranches = new HashSet<>();	
+	protected final Set<Integer> toRemoveBranchesT = new HashSet<>();
+	protected final Set<Integer> toRemoveBranchesF = new HashSet<>();
+	protected final Set<String> toRemoveRootBranches = new HashSet<>();	
 	
-	private final Set<Integer> removedBranchesT = new HashSet<>();
-	private final Set<Integer> removedBranchesF = new HashSet<>();
-	private final Set<String> removedRootBranches = new HashSet<>();	
+	protected final Set<Integer> removedBranchesT = new HashSet<>();
+	protected final Set<Integer> removedBranchesF = new HashSet<>();
+	protected final Set<String> removedRootBranches = new HashSet<>();	
 	
 //	private Map<Integer, Branch> goalMap = new HashMap<>();
 	
@@ -420,6 +420,7 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
 			} else {
 				fitness += normalize(df) + normalize(dt);
 			}
+//			fitness += normalize(df) + normalize(dt);
 
 			if (falseDistance.containsKey(key)&&(Double.compare(df, 0.0) == 0))
 				numCoveredBranches++;
@@ -446,12 +447,12 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
 
 		// Calculate coverage
 		int coverage = numCoveredBranches;
-		for (String e : branchlessMethodCoverageMap.keySet()) {
-			if (callCount.keySet().contains(e)) {
-				coverage++;
-			}
-
-		}
+//		for (String e : branchlessMethodCoverageMap.keySet()) {
+//			if (callCount.keySet().contains(e)) {
+//				coverage++;
+//			}
+//
+//		}
 
 		coverage +=removedBranchesF.size();
 		coverage +=removedBranchesT.size();
