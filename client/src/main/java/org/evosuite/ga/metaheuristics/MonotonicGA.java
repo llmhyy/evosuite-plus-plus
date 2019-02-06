@@ -21,12 +21,15 @@ package org.evosuite.ga.metaheuristics;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.TimeController;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
@@ -48,7 +51,7 @@ import org.slf4j.LoggerFactory;
 public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 	private static final long serialVersionUID = 7846967347821123201L;
-	
+
 	protected ReplacementFunction replacementFunction;
 
 	private final Logger logger = LoggerFactory.getLogger(MonotonicGA.class);
@@ -141,19 +144,19 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			// The two offspring replace the parents if and only if one of
 			// the offspring is not worse than the best parent.
 			for (FitnessFunction<T> fitnessFunction : fitnessFunctions) {
-//				double d1_ = fitnessFunction.getFitness(parent1);
+				// double d1_ = fitnessFunction.getFitness(parent1);
 				double d1 = fitnessFunction.getFitness(offspring1);
-//				if(d1<d1_ && d1==0){
-//					System.currentTimeMillis();
-//				}
-				
+				// if(d1<d1_ && d1==0){
+				// System.currentTimeMillis();
+				// }
+
 				notifyEvaluation(offspring1);
-//				double d2_ = fitnessFunction.getFitness(parent2);
+				// double d2_ = fitnessFunction.getFitness(parent2);
 				double d2 = fitnessFunction.getFitness(offspring2);
-//				if(d2<d2_ && d2==0){
-//					System.currentTimeMillis();
-//				}
-				
+				// if(d2<d2_ && d2==0){
+				// System.currentTimeMillis();
+				// }
+
 				notifyEvaluation(offspring2);
 			}
 
@@ -231,7 +234,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	/** {@inheritDoc} */
 	@Override
 	public void generateSolution() {
-		
+
 		logger.warn("monotonic ga");
 		if (Properties.ENABLE_SECONDARY_OBJECTIVE_AFTER > 0 || Properties.ENABLE_SECONDARY_OBJECTIVE_STARVATION) {
 			disableFirstSecondaryCriterion();
@@ -252,31 +255,33 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		}
 		int interval = 5000;
 		ArrayList<Double> progress = new ArrayList<Double>();
-		
+		ArrayList<Double> fList = new ArrayList<Double>();
+
 		RuntimeRecord.methodCallAvailabilityMap.clear();
-		
+
 		long begintime = System.currentTimeMillis();
 		long endtime = System.currentTimeMillis();
 		T bestIndividual = getBestIndividual();
 		if (bestIndividual != null) {
 			double coverage = bestIndividual.getCoverage();
 			progress.add(coverage);
+			fList.add(bestIndividual.getFitness());
 		}
-		
+
 		Map<Integer, Integer> distributionMap = new HashMap<>();
 		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
 		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
-		for(BranchCoverageTestFitness goal: branchGoals) {
+		for (BranchCoverageTestFitness goal : branchGoals) {
 			Integer key = goal.getBranch().getActualBranchId();
-			if(!goal.getValue()) {
+			if (!goal.getValue()) {
 				key = -key;
 			}
 			distributionMap.put(key, 0);
 		}
-		
+
 		updateDistribution(distributionMap);
 		while (!isFinished()) {
-			
+
 			logger.info("Population size before: " + population.size());
 			// related to Properties.ENABLE_SECONDARY_OBJECTIVE_AFTER;
 			// check the budget progress and activate a secondary criterion
@@ -286,20 +291,19 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				double bestFitnessBeforeEvolution = getBestFitness();
 				evolve();
 				sortPopulation();
-				
+
 				double bestFitnessAfterEvolution = getBestFitness();
 				double coverage = getBestIndividual().getCoverage();
-//				for(int i=0; i<this.population.size(); i++) {
-//					T t = this.population.get(i);
-//					if(t instanceof TestSuiteChromosome) {
-//						TestSuiteChromosome suite = (TestSuiteChromosome)t;
-//						if(suite.getCoverage() > coverage) {
-//							double f = getFitnessFunction().getFitness(t);
-//							System.currentTimeMillis();
-//						}
-//					}
-//				}
-				
+				// for(int i=0; i<this.population.size(); i++) {
+				// T t = this.population.get(i);
+				// if(t instanceof TestSuiteChromosome) {
+				// TestSuiteChromosome suite = (TestSuiteChromosome)t;
+				// if(suite.getCoverage() > coverage) {
+				// double f = getFitnessFunction().getFitness(t);
+				// System.currentTimeMillis();
+				// }
+				// }
+				// }
 
 				if (getFitnessFunction().isMaximizationFunction())
 					assert (bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
@@ -327,13 +331,12 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			}
 
 			/*
-			 * TODO: before explanation: due to static state handling, LS can
-			 * worse individuals. so, need to re-sort.
+			 * TODO: before explanation: due to static state handling, LS can worse
+			 * individuals. so, need to re-sort.
 			 * 
-			 * now: the system tests that were failing have no static state...
-			 * so re-sorting does just hide the problem away, and reduce
-			 * performance (likely significantly). it is definitively a bug
-			 * somewhere...
+			 * now: the system tests that were failing have no static state... so re-sorting
+			 * does just hide the problem away, and reduce performance (likely
+			 * significantly). it is definitively a bug somewhere...
 			 */
 			// sortPopulation();
 
@@ -344,6 +347,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				if (bestIndividual != null) {
 					double coverage = bestIndividual.getCoverage();
 					progress.add(coverage);
+					fList.add(bestIndividual.getFitness());
 				}
 				begintime = endtime;
 			}
@@ -368,8 +372,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			updateSecondaryCriterion(starvationCounter);
 			updateDistribution(distributionMap);
 
-			printUncoveredBranches(distributionMap, branchGoals);
-			
+			// printUncoveredBranches(distributionMap, branchGoals);
+			printUncoveredBranches(getBestIndividual(), branchGoals);
+
 			logger.error("Best fitness: " + bestFitness + ", Coverage: " + getBestIndividual().getCoverage());
 			logger.info("Current iteration: " + currentIteration);
 			this.notifyIteration();
@@ -377,94 +382,132 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			logger.info("Population size: " + population.size());
 			logger.info("Best individual has fitness: " + population.get(0).getFitness());
 			logger.info("Worst individual has fitness: " + population.get(population.size() - 1).getFitness());
-			
+
 		}
 		bestIndividual = getBestIndividual();
 		if (bestIndividual != null) {
 			double coverage = bestIndividual.getCoverage();
-			if(coverage == 0.5) {
-				System.currentTimeMillis();
-			}
 			progress.add(coverage);
 		}
 		this.setProgressInformation(progress);
-		
+		logger.error(fList.toString());
+
 		int[] distribution = new int[distributionMap.keySet().size()];
 		int count = 0;
-		for(Integer key: distributionMap.keySet()) {
+		for (Integer key : distributionMap.keySet()) {
 			distribution[count++] = distributionMap.get(key);
 		}
 		this.setDistribution(distribution);
-		getFitnessFunction();
-//		this.setCallUninstrumentedMethod(true);
-		
-		for(Integer branchID: distributionMap.keySet()) {
+		// this.setCallUninstrumentedMethod(true);
+
+		for (Integer branchID : distributionMap.keySet()) {
 			logger.error("branch ID: " + branchID + ": " + distributionMap.get(branchID));
 		}
-		
+
 		double availabilityRatio = getAvailabilityRatio();
 		this.setAvailabilityRatio(availabilityRatio);
-		
+
 		// archive
 		TimeController.execute(this::updateBestIndividualFromArchive, "update from archive", 5_000);
 
 		notifySearchFinished();
 	}
 
+	private void printUncoveredBranches(T bestIndividual, List<BranchCoverageTestFitness> branchGoals) {
+		if(bestIndividual instanceof TestSuiteChromosome) {
+			
+			Set<BranchCoverageGoal> uncoveredGoals = new HashSet<>();
+			
+			TestSuiteChromosome testsuite = (TestSuiteChromosome)bestIndividual;
+			
+			for (ExecutionResult result : testsuite.getLastExecutionResults()) {
+				if (result != null) {
+					for(BranchCoverageTestFitness tf: branchGoals) {
+						int branchID = tf.getBranch().getActualBranchId();
+						boolean value = tf.getValue();
+						
+						if(value) {
+							Double distance = result.getTrace().getTrueDistances().get(branchID);
+							if(distance != null && distance == 0) {
+								uncoveredGoals.remove(tf.getBranchGoal());
+							}
+							else {
+								uncoveredGoals.add(tf.getBranchGoal());								
+							}
+						}
+						else {
+							Double distance = result.getTrace().getFalseDistances().get(branchID);
+							if(distance != null && distance == 0) {
+								uncoveredGoals.remove(tf.getBranchGoal());
+							}
+							else {
+								uncoveredGoals.add(tf.getBranchGoal());								
+							}
+						}
+					}
+				}
+			}
+			
+			for(BranchCoverageGoal goal: uncoveredGoals) {
+				logger.error(goal.toString());
+			}
+		}
+
+	}
+
 	public double getAvailabilityRatio() {
 		int count = 0;
-		for(String key: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
-			if(RuntimeRecord.methodCallAvailabilityMap.get(key)) {
+		for (String key : RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+			if (RuntimeRecord.methodCallAvailabilityMap.get(key)) {
 				count++;
-			}
-			else {
+			} else {
 				System.out.println("Missing analyzing call: " + key);
 			}
 		}
 		int size = RuntimeRecord.methodCallAvailabilityMap.size();
 		double ratio = -1;
-		if(size != 0) {
-			ratio = (double)count/size;
+		if (size != 0) {
+			ratio = (double) count / size;
 		}
 		System.out.println("Method call availability: " + ratio);
-		
+
 		return ratio;
 	}
 
-	private void printUncoveredBranches(Map<Integer, Integer> distributionMap, 
+	private void printUncoveredBranches(Map<Integer, Integer> distributionMap,
 			List<BranchCoverageTestFitness> branchGoals) {
-		for(BranchCoverageTestFitness goal: branchGoals) {
+		for (BranchCoverageTestFitness goal : branchGoals) {
 			int id = goal.getBranch().getActualBranchId();
-			if(!goal.getBranchExpressionValue()) {
+			if (!goal.getBranchExpressionValue()) {
 				id = -id;
 			}
 			int coverage = distributionMap.get(id);
-			if(coverage == 0) {
+			if (coverage == 0) {
 				logger.error("uncovered:" + goal.getBranch());
 			}
 		}
-															
+
 	}
 
 	private void updateDistribution(Map<Integer, Integer> distributionMap) {
-		if(distributionMap.keySet().size()==0){
+		if (distributionMap.keySet().size() == 0) {
 			return;
 		}
-		
-		for(T individual: this.population){
-			TestSuiteChromosome testSuite = (TestSuiteChromosome)individual;
-			for(ExecutionResult result: testSuite.getLastExecutionResults()){
-				if(result != null){
-					
-					for(Integer branchID: result.getTrace().getCoveredTrue().keySet()) {
-						if(distributionMap.get(branchID) != null) {
+
+		for (T individual : this.population) {
+			TestSuiteChromosome testSuite = (TestSuiteChromosome) individual;
+			for (ExecutionResult result : testSuite.getLastExecutionResults()) {
+				if (result != null) {
+
+					for (Integer branchID : result.getTrace().getCoveredTrue().keySet()) {
+						if (distributionMap.get(branchID) != null) {
 							int count = distributionMap.get(branchID) + 1;
 							distributionMap.put(branchID, count);
 						}
 					}
-					
-					for(Integer branchID: result.getTrace().getCoveredFalse().keySet()) {
-						if(distributionMap.get(-branchID) != null) {
+
+					for (Integer branchID : result.getTrace().getCoveredFalse().keySet()) {
+						if (distributionMap.get(-branchID) != null) {
 							int count = distributionMap.get(-branchID) + 1;
 							distributionMap.put(-branchID, count);
 						}
