@@ -41,7 +41,7 @@ public class AbstractETest {
 				"-Dmock_if_no_generator", "false",
 				"-Dfunctional_mocking_percent", "0",
 				"-Dprimitive_reuse_probability", "0",
-				"-Dmin_initial_tests", "5",
+				"-Dmin_initial_tests", "10",
 				"-Dmax_initial_tests", "30",
 				"-Ddse_probability", "0",
 //				"-Dinstrument_method_calls", "true",
@@ -54,7 +54,7 @@ public class AbstractETest {
 				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
-//				"-seed", "1549086726002"
+//				"-seed", "100"
 				};
 
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evo.parseCommandLine(command);
