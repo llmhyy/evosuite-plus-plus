@@ -76,10 +76,13 @@ public class FastMathBranchSystemTest extends SystemTestBase {
 		TestSuiteChromosome suite = new TestSuiteChromosome();
 //		suite.addFitness(branchCoverageSuiteFitness);
 		
-		DefaultTestCase testCase0 = buildTestCase0();
-		TestChromosome testChromosome0 = new TestChromosome();
-		testChromosome0.setTestCase(testCase0);
-		suite.addTest(testChromosome0);
+		suite.addTest(buildTestCase(0, 1));
+		suite.addTest(buildTestCase(-1, 0));
+		suite.addTest(buildTestCase(0, 0));
+		suite.addTest(buildTestCase(-1.23, 2.3456));
+		suite.addTest(buildTestCase(Double.POSITIVE_INFINITY, 2.3456));
+		suite.addTest(buildTestCase(Double.NEGATIVE_INFINITY, 0));
+		suite.addTest(buildTestCase(3, Double.NEGATIVE_INFINITY));
 		
 		BranchCoverageSuiteFitness branchCoverageSuiteFitness = new BranchCoverageSuiteFitness();
 		double fitness1 = branchCoverageSuiteFitness.getFitness(suite);
@@ -92,16 +95,22 @@ public class FastMathBranchSystemTest extends SystemTestBase {
 		System.currentTimeMillis();
 	}
 
-	private DefaultTestCase buildTestCase0() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+	private TestChromosome buildTestCase(double a, double b) throws ClassNotFoundException, NoSuchMethodException, SecurityException {
 		TestCaseBuilder builder = new TestCaseBuilder();
-		VariableReference x = builder.appendDoublePrimitive(0);
-		VariableReference y = builder.appendDoublePrimitive(1);
+		VariableReference x = builder.appendDoublePrimitive(a);
+		VariableReference y = builder.appendDoublePrimitive(b);
 		Class<?> triangleClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 				.loadClass(Properties.TARGET_CLASS);
 
 		Method barMethod = triangleClass.getMethod("pow", double.class, double.class);
 		builder.appendMethod(null, barMethod, x, y);
-		return builder.getDefaultTestCase();
+		DefaultTestCase tc = builder.getDefaultTestCase();
+		
+		TestChromosome testChromosome = new TestChromosome();
+		testChromosome.setTestCase(tc);
+		
+		return testChromosome;
 	}
+	
 
 }
