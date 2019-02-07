@@ -68,8 +68,8 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	// Total coverage value, used by Regression
 	public double totalCovered = 0.0;	
 	
-	private List<FBranchTestFitness> branchGoals;
-	
+//	private List<FBranchTestFitness> branchGoals;
+	private Map<String, FBranchTestFitness> branchGoals;
 	/**
 	 * <p>
 	 * Constructor for BranchCoverageSuiteFitness.
@@ -78,7 +78,21 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	public FBranchSuiteFitness() {
 		this(TestGenerationContext.getInstance().getClassLoaderForSUT());
 		FBranchFitnessFactory factory = new FBranchFitnessFactory();
-		branchGoals = factory.getCoverageGoals();
+		List<FBranchTestFitness> branchGoalList = factory.getCoverageGoals();
+		this.branchGoals = constructGoalMap(branchGoalList);
+	}
+	
+	private Map<String, FBranchTestFitness> constructGoalMap(List<FBranchTestFitness> branchGoals){
+		Map<String, FBranchTestFitness> map = new HashMap<>();
+		for(FBranchTestFitness tf: branchGoals) {
+			int branch = tf.getBranchGoal().getBranch().getActualBranchId();
+			boolean value = tf.getBranchGoal().getValue();
+			
+			String key = String.valueOf(branch) + value;
+			map.put(key, tf);
+		}
+		
+		return map;
 	}
 	
 	/**
@@ -89,7 +103,8 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	public FBranchSuiteFitness(ClassLoader classLoader) {
 		
 		FBranchFitnessFactory factory = new FBranchFitnessFactory();
-		branchGoals = factory.getCoverageGoals();
+		List<FBranchTestFitness> branchGoalList = factory.getCoverageGoals();
+		this.branchGoals = constructGoalMap(branchGoalList);
 		
 		String prefix = Properties.TARGET_CLASS_PREFIX;
 
@@ -115,15 +130,17 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	}
 
 	private FBranchTestFitness getGoal(Integer branchId, boolean b) {
-		for(FBranchTestFitness ff: branchGoals){
-			if(ff.getBranch().getActualBranchId()==branchId){
-				if(ff.getBranchGoal().getValue()==b){
-					return ff;
-				}
-			}
-		}
-		
-		return null;
+		String key = String.valueOf(branchId) + b;
+		return this.branchGoals.get(key);
+//		for(FBranchTestFitness ff: branchGoals){
+//			if(ff.getBranch().getActualBranchId()==branchId){
+//				if(ff.getBranchGoal().getValue()==b){
+//					return ff;
+//				}
+//			}
+//		}
+//		
+//		return null;
 	}
 
 	/**
