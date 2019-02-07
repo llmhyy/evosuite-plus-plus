@@ -65,28 +65,53 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	
 	@Override
 	public double getFitness(TestChromosome individual, ExecutionResult result) {
-		ContextBranch cBranch = new ContextBranch(this.branchGoal.getBranch(), -1, "null");
-		DistanceCondition dCondition = checkOverallDistance(result, this.branchGoal.getValue(), cBranch);
-		System.currentTimeMillis();
-		double fitness = dCondition.fitness;
-		if (fitness == 0) {
-			return fitness;
+		/**
+		 * if the result does not exercise this branch node, we do not further process the detailed
+		 * branch distance as we need to pass its parent branch node.
+		 */
+		Double value = null;
+		if(this.branchGoal.getValue()) {
+			value = result.getTrace().getTrueDistances().get(this.branchGoal.getBranch().getActualBranchId());
+		}
+		else {
+			value = result.getTrace().getFalseDistances().get(this.branchGoal.getBranch().getActualBranchId());
 		}
 		
-		BranchCoverageGoal goal = this.branchGoal;
-		int approachLevel = (int)fitness;
-		if(approachLevel != 0) {
-			goal = dCondition.goal;
+		if(value != null && value > 1) {
+			return value;
 		}
+		else if(value == null){
+			return 10000d;
+		}
+		else if(value == 0) {
+			return value;
+		}
+		
+//		ContextBranch cBranch = new ContextBranch(this.branchGoal.getBranch(), -1, "null");
+//		DistanceCondition dCondition = checkOverallDistance(result, this.branchGoal.getValue(), cBranch);
+//		double fitness = dCondition.fitness;
+//		if (fitness == 0) {
+//			return fitness;
+//		}
+//		
+//		BranchCoverageGoal goal = this.branchGoal;
+//		int approachLevel = (int)fitness;
+//		if(approachLevel != 0) {
+//			goal = dCondition.goal;
+//		}
 
+		double fitness = 0;
+		BranchCoverageGoal goal = this.branchGoal;
 		InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(goal);
 		if (flagResult.isInterproceduralFlag) {
 			double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall,
 					goal, result);
-			return approachLevel + interproceduralFitness;
+//			System.currentTimeMillis();
+			return interproceduralFitness;
+			
 		}
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 
 		return fitness;
 	}
@@ -290,6 +315,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		Set<ContextBranch> visitedBranches = new HashSet<>();
 
 		int approachLevel = 0;
+		double branchDistance = -1;
 		while (!checkCovered(result, cBranch) && !visitedBranches.contains(cBranch)) {
 			approachLevel++;
 			
@@ -310,15 +336,18 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			cBranch = new ContextBranch(newDepBranch, cBranch.contextLine, cBranch.method);
 			
 			goalValue = originBranchIns.getControlDependency(newDepBranch).getBranchExpressionValue();
-			double branchDistance = checkContextBranchDistance(result, goalValue, cBranch);
-//			System.currentTimeMillis();
+			branchDistance = checkContextBranchDistance(result, goalValue, cBranch);
 			if(branchDistance == 0) {
 				goalValue = !goalValue;
 			}
 			
 		}
 
-		double fitness = approachLevel + checkContextBranchDistance(result, goalValue, cBranch);
+		if(branchDistance == -1) {
+			branchDistance = checkContextBranchDistance(result, goalValue, cBranch);
+		}
+		
+		double fitness = approachLevel + branchDistance;
 		
 		BranchCoverageGoal goal = new BranchCoverageGoal(cBranch.branch, goalValue, cBranch.branch.getClassName(), cBranch.branch.getMethodName());
 		return new DistanceCondition(fitness, goal);
