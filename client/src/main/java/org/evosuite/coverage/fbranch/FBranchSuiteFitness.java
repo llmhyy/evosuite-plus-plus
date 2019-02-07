@@ -328,7 +328,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				continue;
 			}
 
-			handleBranchlessMethods(suite, result, callCount);
+//			handleBranchlessMethods(suite, result, callCount);
 			handlePredicateCount(suite, result, predicateCount);
 			handleTrueDistances(suite, result, trueDistance);
 			handleFalseDistances(suite, result, falseDistance);
@@ -542,8 +542,6 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				}
 			}
 		}
-		printStatusMessages(suite, numCoveredBranches, totalMethods - missingMethods,
-		                    fitness);
 
 		// Calculate coverage
 		int coverage = numCoveredBranches;
@@ -567,7 +565,6 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			logger.info("Test suite has timed out, setting fitness to max value "
 			        + (totalBranches * 2 + totalMethods));
 			fitness = totalBranches * 2 + totalMethods;
-			//suite.setCoverage(0.0);
 		}
 
 		updateIndividual(this, suite, fitness);
