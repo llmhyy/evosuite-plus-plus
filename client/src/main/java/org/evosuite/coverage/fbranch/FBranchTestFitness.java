@@ -78,13 +78,13 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		}
 		
 		if(value != null && value > 1) {
-			return value;
+			return 1;
 		}
 		else if(value == null){
 			return 10000d;
 		}
 		else if(value == 0) {
-			return value;
+			return 0;
 		}
 		
 //		ContextBranch cBranch = new ContextBranch(this.branchGoal.getBranch(), -1, "null");
@@ -99,8 +99,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 //		if(approachLevel != 0) {
 //			goal = dCondition.goal;
 //		}
-
-		double fitness = 0;
+		
+		double fitness = value;
 		BranchCoverageGoal goal = this.branchGoal;
 		InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(goal);
 		if (flagResult.isInterproceduralFlag) {
