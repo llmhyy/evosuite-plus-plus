@@ -12,16 +12,17 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
-import org.evosuite.Properties;
-import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.CollectionUtil;
 import org.junit.Before;
+import org.junit.Test;
 
-public class MergeTxt {
+import evosuite.shell.ListMethods;
+import evosuite.shell.excel.ExcelWriter;
+
+public class TargetMethodTool {
 
 	@Before
 	public void setup() {
-		SFConfiguration.sfBenchmarkFolder = "E:/lyly/Projects/evosuite/experiment/SF100-unittest";
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 	}
@@ -37,7 +38,7 @@ public class MergeTxt {
 
 	private static void merge(List<String> inclusiveFiles, List<String> exclusivesFiles, String resultTxt)
 			throws IOException {
-		MergeTxt mergeTxt = new MergeTxt();
+		TargetMethodTool mergeTxt = new TargetMethodTool();
 		Map<String, Set<String>> inclusives = new HashMap<>();
 		for (String file : inclusiveFiles) {
 			inclusives.putAll(mergeTxt.readData(file));
@@ -64,7 +65,7 @@ public class MergeTxt {
 		System.out.println("Done!");
 	}
 	
-	private Map<String, Set<String>> readData(String file) throws IOException {
+	public Map<String, Set<String>> readData(String file) throws IOException {
 		Map<String, Set<String>> content = new LinkedHashMap<>();
 		List<String> lines = FileUtils.readLines(new File(file), Charset.defaultCharset());
 		String curProject = null;
@@ -79,5 +80,27 @@ public class MergeTxt {
 		}
 		return content;
 	}
+
+	@Test
+	public void generateStatisticExcel() throws IOException {
+		generateMethodStatisticExcel(
+				"/Users/lylytran/Projects/Evosuite/modified-version/evosuite/EvosuiteTest/experiments/SF100/reports/flag-filtered-methods-with-GA-involved.txt",
+				"/Users/lylytran/Projects/Evosuite/modified-version/evosuite/EvosuiteTest/experiments/SF100/reports/flag-filtered-methods-with-GA-involved.xlsx");
+	}
 	
+	public void generateMethodStatisticExcel(String targetMethodTxt, String excelFile) throws IOException {
+		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
+		Map<String, Set<String>> targetMethodsMap = readData(targetMethodTxt);
+		ExcelWriter excelWriter = new ExcelWriter(new File(excelFile));
+		excelWriter.getSheet("data", new String[]{"ProjectId", "ProjectName", "Number of Flag-problem methods"}, 0);
+		List<List<Object>> data = new ArrayList<>();
+		for (String project : projectFolders.keySet()) {
+			List<Object> row = new ArrayList<>();
+			row.add(projectFolders.get(project).getName());
+			row.add(project);
+			row.add(CollectionUtil.getSize(targetMethodsMap.get(project)));
+			data.add(row);
+		}
+		excelWriter.writeSheet("data", data);
+	}
 }

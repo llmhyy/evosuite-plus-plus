@@ -1,6 +1,5 @@
 package evosuite.shell;
 
-import static evosuite.shell.EvosuiteForMethod.outputFolder;
 import static evosuite.shell.EvosuiteForMethod.projectId;
 
 import java.io.IOException;
@@ -12,6 +11,7 @@ import org.evosuite.result.TestGenerationResult;
 import org.slf4j.Logger;
 
 import evosuite.shell.excel.ExcelWriter;
+import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 
 /**
@@ -25,7 +25,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 	
 	public FitnessEffectiveRecorder() {
 		super();
-		excelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_evotest.xlsx"));
+		excelWriter = new ExcelWriter(FileUtils.newFile(SFConfiguration.getReportFolder(), projectId + "_evotest.xlsx"));
 		excelWriter.getSheet("data", new String[]{"Class", "Method", "Execution Time", "Coverage", "Age", "Method Availability"}, 0);
 	}
 

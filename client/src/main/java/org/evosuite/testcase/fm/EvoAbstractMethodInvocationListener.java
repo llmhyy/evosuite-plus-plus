@@ -5,7 +5,9 @@ import org.evosuite.utils.generic.GenericClass;
 import java.lang.reflect.Type;
 
 public class EvoAbstractMethodInvocationListener extends EvoInvocationListener {
-    public EvoAbstractMethodInvocationListener(Type retvalType) {
+	private static final long serialVersionUID = 1L;
+
+	public EvoAbstractMethodInvocationListener(Type retvalType) {
         super(retvalType);
     }
 

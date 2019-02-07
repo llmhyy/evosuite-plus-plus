@@ -10,12 +10,14 @@ import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.CommonUtility;
 import org.slf4j.Logger;
 
+import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 
 /**
  * 
  * @author lyly
  * cmd: java -jar [EvosuiteTest.jar] -target !PROJECT!.jar -listMethods
+ * return: a txt file which contain list of methods.[/evoTest-reports/targetMethods.txt]
  */
 public class ListMethods {
 	private static Logger log = LoggerUtils.getLogger(ListMethods.class);
@@ -23,7 +25,7 @@ public class ListMethods {
 	public static final String OPT_NAME = ParameterOptions.LIST_METHODS_OPT;
 
 	public static void execute(String[] targetClasses, ClassLoader classLoader) throws ClassNotFoundException, IOException {
-		String allTargetMethodsFile = FileUtils.getFilePath(EvosuiteForMethod.outputFolder, EvosuiteForMethod.LIST_METHODS_FILE_NAME);
+		String allTargetMethodsFile = getTargetFilePath();
 		StringBuilder sb = new StringBuilder();
 		sb.append("#------------------------------------------------------------------------\n")
 			.append("#Project=").append(EvosuiteForMethod.projectName).append("  -   ").append(EvosuiteForMethod.projectId).append("\n")
@@ -56,6 +58,10 @@ public class ListMethods {
 				log.error("Error", t);
 			}
 		}
+	}
+
+	public static String getTargetFilePath() {
+		return FileUtils.getFilePath(SFConfiguration.getReportFolder(), EvosuiteForMethod.LIST_METHODS_FILE_NAME);
 	}
 	
 }

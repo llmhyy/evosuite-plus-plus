@@ -1,16 +1,17 @@
 package evosuite.shell;
 
-import static evosuite.shell.EvosuiteForMethod.outputFolder;
 import static evosuite.shell.EvosuiteForMethod.projectId;
 
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.CommonUtility;
 
+import evosuite.shell.experiment.SFConfiguration;
+
 public class ExperimentRecorder {
 	private String successfulMethodsFile;
 	
 	public ExperimentRecorder() {
-		successfulMethodsFile = outputFolder + "/successfulMethods.txt";
+		successfulMethodsFile = SFConfiguration.getReportFolder() + "/successfulMethods.txt";
 		FileUtils.writeFile(successfulMethodsFile, "#Project " + projectId + "\n", false);
 	}
 	
