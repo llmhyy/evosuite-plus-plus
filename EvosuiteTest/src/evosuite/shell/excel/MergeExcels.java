@@ -43,7 +43,7 @@ public class MergeExcels {
 
 	@Before
 	public void setup() {
-		SFConfiguration.sfBenchmarkFolder = "E:/lyly/Projects/evosuite/experiment/SF100-unittest";
+//		SFConfiguration.sfBenchmarkFolder = "E:/lyly/Projects/evosuite/experiment/SF100-unittest";
 	}
 	
 	@Test
@@ -51,7 +51,7 @@ public class MergeExcels {
 		String reportFolder = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports";
 		String outputFile = reportFolder + "/allMethods-filter.xlsx";
 		List<String> inputFiles = FileUtils.toFilePath(listExcels(reportFolder));
-		mergeExcel(outputFile, inputFiles, 0, true);
+		mergeExcel(outputFile, inputFiles, 0, false);
 		
 		System.out.println("Done!");
 	}

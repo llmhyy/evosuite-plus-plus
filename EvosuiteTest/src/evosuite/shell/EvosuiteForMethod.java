@@ -28,6 +28,7 @@ import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
+import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 
 /**
@@ -66,7 +67,6 @@ public class EvosuiteForMethod {
 	private static Logger log;
 	public static final String LIST_METHODS_FILE_NAME = "targetMethods.txt";
 	public static String projectName;
-	public static String outputFolder;
 	public static String projectId; // ex: 1_tullibee (project folder name)
 	static FilterConfiguration filter;
 	
@@ -111,12 +111,12 @@ public class EvosuiteForMethod {
 		projectId = new File(workingDir).getName();
 		projectName = projectId.substring(projectId.indexOf("_") + 1);
 		String root = new File(workingDir).getParentFile().getAbsolutePath();
-		outputFolder = root + "/evoTest-reports";
-		File folder = new File(outputFolder);
+		SFConfiguration.sfBenchmarkFolder = root;
+		File folder = new File(SFConfiguration.getReportFolder());
 		if (!folder.exists()) {
 			folder.mkdir();
 		}
-		LoggerUtils.setupLogger(outputFolder, projectId);
+		LoggerUtils.setupLogger(SFConfiguration.getReportFolder(), projectId);
 		log = LoggerUtils.getLogger(EvosuiteForMethod.class);
 	}
 

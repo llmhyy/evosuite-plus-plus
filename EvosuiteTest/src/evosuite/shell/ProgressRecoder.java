@@ -1,6 +1,5 @@
 package evosuite.shell;
 
-import static evosuite.shell.EvosuiteForMethod.outputFolder;
 import static evosuite.shell.EvosuiteForMethod.projectId;
 
 import java.io.IOException;
@@ -12,6 +11,7 @@ import org.evosuite.result.TestGenerationResult;
 import org.slf4j.Logger;
 
 import evosuite.shell.excel.ExcelWriter;
+import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 
 public class ProgressRecoder extends ExperimentRecorder {
@@ -21,9 +21,9 @@ public class ProgressRecoder extends ExperimentRecorder {
 	
 	public ProgressRecoder() {
 		super();
-		distributionExcelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_distribution.xlsx"));
+		distributionExcelWriter = new ExcelWriter(FileUtils.newFile(SFConfiguration.getReportFolder(), projectId + "_distribution.xlsx"));
 		distributionExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
-		progressExcelWriter = new ExcelWriter(FileUtils.newFile(outputFolder, projectId + "_progress.xlsx"));
+		progressExcelWriter = new ExcelWriter(FileUtils.newFile(SFConfiguration.getReportFolder(), projectId + "_progress.xlsx"));
 		progressExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
 	}
 	

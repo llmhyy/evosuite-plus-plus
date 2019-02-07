@@ -297,7 +297,7 @@ public final class CollectionUtil
 		return true;
 	}
 
-	public static int getSize(List<?> list) {
+	public static int getSize(Collection<?> list) {
 		return list == null ? 0 : list.size();
 	}
 
