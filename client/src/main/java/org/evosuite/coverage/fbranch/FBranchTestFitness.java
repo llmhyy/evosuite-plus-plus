@@ -107,7 +107,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall,
 					goal, result);
 //			System.currentTimeMillis();
-			return interproceduralFitness;
+			
+			double normalizedFitness = normalize(interproceduralFitness);
+			
+			return normalizedFitness;
 			
 		}
 		
