@@ -514,7 +514,6 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			} else {
 				fitness += normalize(df) + normalize(dt);
 			}
-//			fitness += normalize(df) + normalize(dt);
 
 			if (falseDistance.containsKey(key)&&(Double.compare(df, 0.0) == 0))
 				numCoveredBranches++;
