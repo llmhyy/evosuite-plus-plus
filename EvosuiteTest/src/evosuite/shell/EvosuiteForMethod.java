@@ -69,6 +69,7 @@ public class EvosuiteForMethod {
 	public static String projectName;
 	public static String projectId; // ex: 1_tullibee (project folder name)
 	static FilterConfiguration filter;
+	private int methodIterator = 1;
 	
 	private URLClassLoader evoTestClassLoader;
 
@@ -93,8 +94,12 @@ public class EvosuiteForMethod {
 				if (!filter.isValidProject(projectName)) {
 					return;
 				}
-				args = extractArgs(args,
-						Arrays.asList(ParameterOptions.EXCLUSIVE_FILE_OPT, ParameterOptions.INCLUSIVE_FILE_OPT));
+				String optValue = CommonUtility.getOptValue(args, ParameterOptions.METHOD_TEST_ITERATION);
+				if (optValue != null) {
+					evoTest.methodIterator = Integer.valueOf(optValue);
+				}
+				args = extractArgs(args, Arrays.asList(ParameterOptions.EXCLUSIVE_FILE_OPT,
+						ParameterOptions.INCLUSIVE_FILE_OPT, ParameterOptions.METHOD_TEST_ITERATION));
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				String[] truncatedArgs = extractArgs(args);
 				evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
@@ -149,7 +154,6 @@ public class EvosuiteForMethod {
 		excludedOpts.add("-target");
 		excludedOpts.add("-prefix");
 		excludedOpts.add("-class");
-		
 		return extractArgs(args, excludedOpts);
 	}
 
@@ -205,7 +209,12 @@ public class EvosuiteForMethod {
 	}
 
 	public void runAllMethods(String[] targetClasses, String[] args, String projectName) {
-		FitnessEffectiveRecorder recorder = new FitnessEffectiveRecorder();
+		FitnessEffectiveRecorder recorder;
+		if (methodIterator > 1) {
+			recorder = new IterFitnessEffectiveRecorder(methodIterator);
+		} else {
+			recorder = new FitnessEffectiveRecorder();
+		}
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = evoTestClassLoader.loadClass(className);
@@ -219,7 +228,10 @@ public class EvosuiteForMethod {
 						continue;
 					}
 					try {
-						runMethod(methodName, className, args, recorder);
+						for (int i = 0; i < methodIterator; i++) {
+							runMethod(methodName, className, args, recorder);
+						}
+						recorder.recordEndMethod(methodName, className);
 					} catch (Throwable t) {
 						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
 								.append("#").append(methodName).append("\n")

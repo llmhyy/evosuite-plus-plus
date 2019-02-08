@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,10 +17,12 @@ import org.evosuite.utils.CollectionUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import evosuite.shell.ListMethods;
+import evosuite.shell.excel.ExcelReader;
 import evosuite.shell.excel.ExcelWriter;
+import evosuite.shell.utils.Randomness;
 
 public class TargetMethodTool {
+	private String baseDir = System.getProperty("user.dir");
 
 	@Before
 	public void setup() {
@@ -40,11 +43,11 @@ public class TargetMethodTool {
 			throws IOException {
 		TargetMethodTool mergeTxt = new TargetMethodTool();
 		Map<String, Set<String>> inclusives = new HashMap<>();
-		for (String file : inclusiveFiles) {
+		for (String file : CollectionUtil.nullToEmpty(inclusiveFiles)) {
 			inclusives.putAll(mergeTxt.readData(file));
 		}
 		Map<String, Set<String>> exclusives = new HashMap<>();
-		for (String file : exclusivesFiles) {
+		for (String file : CollectionUtil.nullToEmpty(exclusivesFiles)) {
 			exclusives.putAll(mergeTxt.readData(file));
 		}
 
@@ -84,8 +87,8 @@ public class TargetMethodTool {
 	@Test
 	public void generateStatisticExcel() throws IOException {
 		generateMethodStatisticExcel(
-				"/Users/lylytran/Projects/Evosuite/modified-version/evosuite/EvosuiteTest/experiments/SF100/reports/flag-filtered-methods-with-GA-involved.txt",
-				"/Users/lylytran/Projects/Evosuite/modified-version/evosuite/EvosuiteTest/experiments/SF100/reports/flag-filtered-methods-with-GA-involved.xlsx");
+				baseDir + "/experiments/SF100/reports/flag-filtered-methods-with-GA-involved.txt",
+				baseDir + "/experiments/SF100/reports/flag-filtered-methods-with-GA-involved.xlsx");
 	}
 	
 	public void generateMethodStatisticExcel(String targetMethodTxt, String excelFile) throws IOException {
@@ -102,5 +105,67 @@ public class TargetMethodTool {
 			data.add(row);
 		}
 		excelWriter.writeSheet("data", data);
+	}
+	
+	@Test
+	public void selectMethods() {
+		String excelFile = baseDir + "/experiments/SF100/reports/flag-filtered-wth-GA-involved-branch.xlsx";
+		String resultTxt = baseDir + "/experiments/SF100/reports/targetMethods-200methods.txt";
+		ExcelReader reader = new ExcelReader(new File(excelFile), 0);
+		List<List<Object>> data = reader.listData("data");
+		
+		for (Iterator<List<Object>> it = data.iterator(); it.hasNext();) {
+			List<Object> row = it.next();
+			double coverage = ((Number) row.get(ReportHeader.Coverage.ordinal())).doubleValue();
+			if (coverage == 0.0 || coverage == 1.0) {
+				it.remove();
+			}
+		}
+		
+		Map<String, List<List<Object>>> dataMap = toMap(data);
+		for (String key : dataMap.keySet()) {
+			List<List<Object>> rows = dataMap.get(key);
+			if (rows.size() > 10) {
+				dataMap.put(key, Randomness.randomSubList(rows, 10));
+			}
+		}
+		data = toList(dataMap);
+		
+		List<List<Object>> selectedRows = Randomness.randomSubList(data, 200);
+		Map<String, List<List<Object>>> selectedMethods = toMap(selectedRows);
+		
+		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
+		for (String projectName : projectFolders.keySet()) {
+			List<List<Object>> rows = selectedMethods.get(projectName);
+			StringBuilder sb = new StringBuilder()
+					.append("#------------------------------------------------------------------------\n")
+					.append("#Project=").append(projectName).append("  -  ").append(projectFolders.get(projectName).getName()).append("\n")
+					.append("#------------------------------------------------------------------------\n");
+			for (List<Object> row : CollectionUtil.nullToEmpty(rows)) {
+				sb.append(row.get(ReportHeader.Class.ordinal())).append("#").append(row.get(ReportHeader.Method.ordinal())).append("\n");
+			}
+			evosuite.shell.FileUtils.writeFile(resultTxt, sb.toString(), true);
+		}
+	}
+	
+	private List<List<Object>> toList(Map<String, List<List<Object>>> dataMap) {
+		List<List<Object>> data = new ArrayList<>();
+		for (List<List<Object>> rows : dataMap.values()) {
+			data.addAll(rows);
+		}
+		return data;
+	}
+
+	private Map<String, List<List<Object>>> toMap(List<List<Object>> rows) {
+		Map<String, List<List<Object>>> map = new HashMap<>();
+		for (List<Object> row : rows) {
+			String projectName = ((String)row.get(ReportHeader.ProjectId.ordinal())).split("_")[1];
+			CollectionUtil.getListInitIfEmpty(map, projectName).add(row);
+		}
+		return map;
+	}
+	
+	private enum ReportHeader {
+		ProjectId,	Class,	Method,	Execution, Time,	Coverage,	Age
 	}
 }

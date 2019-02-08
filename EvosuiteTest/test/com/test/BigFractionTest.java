@@ -1,5 +1,6 @@
 package com.test;
 
+import java.io.File;
 import java.lang.reflect.Method;
 
 import org.evosuite.Properties;
@@ -20,7 +21,7 @@ public class BigFractionTest extends AbstractETest{
 		Method method = getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;lib/commons-math-2.2.jar";
+		String cp = "target/classes" + File.pathSeparator +"lib/commons-math-2.2.jar";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
