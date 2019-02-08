@@ -31,11 +31,12 @@ import org.slf4j.Logger;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.OpcodeUtils;
 
-public class MethodFlagCondFilter {
+public class MethodFlagCondFilter implements IMethodFilter {
 	private static Logger log = LoggerUtils.getLogger(MethodFlagCondFilter.class);
 	
 	@SuppressWarnings("unchecked")
-	public static List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException {
+	@Override
+	public List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException {
 		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 				.getClassAsStream(targetClass.getName());
 		List<String> validMethods = new ArrayList<String>();
@@ -68,7 +69,7 @@ public class MethodFlagCondFilter {
 		return validMethods;
 	}
 	
-	private static boolean checkCond(ClassLoader classLoader, String className, String methodName, MethodNode node) throws AnalyzerException {
+	protected boolean checkCond(ClassLoader classLoader, String className, String methodName, MethodNode node) throws AnalyzerException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
 		GraphPool.clearAll();
 		BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();

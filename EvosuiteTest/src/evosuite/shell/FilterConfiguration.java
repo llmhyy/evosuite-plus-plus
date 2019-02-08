@@ -52,11 +52,25 @@ public class FilterConfiguration {
 		return true;
 	}
 	
-	private static interface Filter {
+	public static interface Filter {
 
 		boolean isValidProject(String projectName);
 
 		boolean isValidMethod(String projectName, String methodId);
+	}
+	
+	public static class EmptyFilter implements Filter {
+
+		@Override
+		public boolean isValidProject(String projectName) {
+			return true;
+		}
+
+		@Override
+		public boolean isValidMethod(String projectName, String methodId) {
+			return true;
+		}
+		
 	}
 	
 	private static class ExclusiveFilter implements Filter {
@@ -100,7 +114,7 @@ public class FilterConfiguration {
 	 * @author thilyly_tran
 	 *
 	 */
-	private static class InclusiveFilter implements Filter {
+	public static class InclusiveFilter implements Filter {
 		private Map<String, Set<String>> inclusives = new HashMap<>();
 		
 		public InclusiveFilter(String inclFile) throws IOException {
