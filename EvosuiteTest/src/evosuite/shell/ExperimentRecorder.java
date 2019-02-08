@@ -14,7 +14,6 @@ public class ExperimentRecorder {
 		successfulMethodsFile = SFConfiguration.getReportFolder() + "/successfulMethods.txt";
 		FileUtils.writeFile(successfulMethodsFile, "#Project " + projectId + "\n", false);
 	}
-	
 
 	public void logSuccessfulMethods(String className, String methodName) {
 		FileUtils.writeFile(successfulMethodsFile, CommonUtility.getMethodId(className, methodName) + "\n", true);
@@ -26,6 +25,10 @@ public class ExperimentRecorder {
 	}
 
 	public void recordError(String className, String methodName, Exception e) {
+		// override when needed.
+	}
+	
+	public void recordEndMethod(String methodName, String className) {
 		// override when needed.
 	}
 }

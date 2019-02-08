@@ -59,4 +59,5 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		}
 		
 	}
+	
 }

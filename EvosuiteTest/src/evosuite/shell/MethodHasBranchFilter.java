@@ -14,10 +14,11 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
-public class MethodHasBranchFilter {
+public class MethodHasBranchFilter implements IMethodFilter {
 	
 	@SuppressWarnings("unchecked")
-	public static List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException {
+	@Override
+	public List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException {
 		InputStream is = ResourceList.getInstance(classLoader).getClassAsStream(targetClass.getName());
 		List<String> validMethods = new ArrayList<String>();
 		try {

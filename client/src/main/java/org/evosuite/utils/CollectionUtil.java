@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Random;
 
 public final class CollectionUtil 
 {
@@ -368,5 +369,14 @@ public final class CollectionUtil
 			newMap.put(entry.getValue(), entry.getKey());
 		}
 		return newMap;
+	}
+	
+	public static <T> List<T> randomSequenceFixSize(List<T> allList, int seqSize) {
+		Random random = new Random();
+		List<T> seq = new ArrayList<T>(seqSize);
+		for (int i = 0; i < seqSize; i++) {
+			seq.add(allList.get(random.nextInt(allList.size())));
+		}
+		return seq;
 	}
 }
