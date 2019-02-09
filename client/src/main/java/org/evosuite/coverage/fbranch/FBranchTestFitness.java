@@ -154,12 +154,12 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		fileterSourceInsList(result, sourceInsList, cBranch);
 
 		for (BytecodeInstruction sourceIns : sourceInsList) {
-			if (!sourceIns.isConstant()) {
+			if (!sourceIns.isConstant() && !sourceIns.isMethodCall()) {
 				logger.error("the source of ireturn is not a constant.");
 				continue;
 			}
 
-			if (sourceIns.getControlDependencies().isEmpty()) {
+			if (sourceIns.getControlDependencies().isEmpty() || sourceIns.isMethodCall()) {
 				String calledMethod = sourceIns.getCalledMethod();
 				if (calledMethod != null) {
 					double f = calculateInterproceduralFitness(sourceIns, branchGoal, result);
@@ -482,15 +482,25 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	// return fitness;
 	// }
 
-	private BytecodeInstruction findLastConstantInstructionInBlock(BasicBlock block) {
+	private BytecodeInstruction findSourceForReturnInstructionInBlock(BasicBlock block) {
 		BytecodeInstruction lastIns = block.getLastInstruction();
 		BytecodeInstruction firstIns = block.getFirstInstruction();
 		BytecodeInstruction ins = lastIns;
+		
 		while (ins.getInstructionId() >= firstIns.getInstructionId()) {
 			if (ins.isConstant()) {
 				return ins;
 			} else if (ins.isFieldUse()) {
 				return ins;
+			} else if (ins.isMethodCall()) {
+				MethodInsnNode mNode = (MethodInsnNode) ins.getASMNode();
+				String desc = mNode.desc;
+				String returnType = getReturnType(desc);
+				boolean isInterprocedural = returnType.equals("Z");
+				
+				if(isInterprocedural) {
+					return ins;
+				}
 			}
 			ins = ins.getPreviousInstruction();
 		}
@@ -503,23 +513,26 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		List<BytecodeInstruction> sourceInsList = new ArrayList<>();
 
 		BasicBlock block = returnIns.getBasicBlock();
-		BytecodeInstruction constantIns = findLastConstantInstructionInBlock(block);
-		if (constantIns != null) {
-			if (constantIns.isConstant()) {
-				sourceInsList.add(constantIns);
-			} else if (constantIns.isFieldUse()) {
+		BytecodeInstruction sourceIns = findSourceForReturnInstructionInBlock(block);
+		if (sourceIns != null) {
+			if (sourceIns.isConstant()) {
+				sourceInsList.add(sourceIns);
+			} else if (sourceIns.isFieldUse()) {
 				// TODO need to handle dynamic definition
 				System.currentTimeMillis();
+			} else if (sourceIns.isMethodCall()) {
+				sourceInsList.add(sourceIns);
 			}
+			
 			return sourceInsList;
 		}
 
 		Set<BytecodeInstruction> insParents = calledGraph.getParents(block.getFirstInstruction());
 		for (BytecodeInstruction parentIns : insParents) {
 			BasicBlock parentBlock = parentIns.getBasicBlock();
-			constantIns = findLastConstantInstructionInBlock(parentBlock);
-			if (constantIns != null) {
-				sourceInsList.add(constantIns);
+			sourceIns = findSourceForReturnInstructionInBlock(parentBlock);
+			if (sourceIns != null) {
+				sourceInsList.add(sourceIns);
 			}
 		}
 
