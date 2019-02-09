@@ -35,7 +35,7 @@ public class ListMethods {
 		if (!ArrayUtil.contains(Properties.CRITERION, Criterion.DEFUSE)) {
 			Properties.CRITERION = ArrayUtils.addAll(Properties.CRITERION, Criterion.DEFUSE);
 		}
-		IMethodFilter methodFilter = new ListRelevantJdkClasses();
+		IMethodFilter methodFilter = new MethodFlagCondWithSimpleReturnFilter();
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = classLoader.loadClass(className);

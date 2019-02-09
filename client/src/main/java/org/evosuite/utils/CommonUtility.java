@@ -14,6 +14,10 @@ public class CommonUtility {
 		return methodName;
 	}
 	
+	public static String getMethodName(String methodName, String methodDesc) {
+		return methodName + methodDesc;
+	}
+	
 	public static boolean hasOpt(String[] args, String opt) throws Exception {
 		for (int i = 0; i < args.length; i++) {
 			if (opt.equals(args[i])) {
