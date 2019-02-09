@@ -1,5 +1,6 @@
 package evosuite.shell;
 
+import java.io.IOException;
 import java.util.ListIterator;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -14,7 +15,7 @@ public class ListRelevantJdkClasses extends MethodFlagCondFilter implements IMet
 	
 	@Override
 	protected boolean checkCond(ClassLoader classLoader, String className, String methodName, MethodNode node)
-			throws AnalyzerException {
+			throws AnalyzerException, IOException {
 		boolean valid = super.checkCond(classLoader, className, methodName, node);
 		if (valid) {
 			StringBuilder sb = new StringBuilder();

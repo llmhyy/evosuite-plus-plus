@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
@@ -22,6 +23,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.SourceValue;
@@ -33,6 +35,7 @@ import evosuite.shell.utils.OpcodeUtils;
 
 public class MethodFlagCondFilter implements IMethodFilter {
 	private static Logger log = LoggerUtils.getLogger(MethodFlagCondFilter.class);
+	private static final int METHOD_INVOKE_LEVEL = 2;
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -59,7 +62,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 							validMethods.add(methodName);
 						}
 					} catch (Exception e) {
-						log.info("error", e);
+						log.info("error!!", e);
 					}
 				} 
 			}
@@ -69,13 +72,17 @@ public class MethodFlagCondFilter implements IMethodFilter {
 		return validMethods;
 	}
 	
-	protected boolean checkCond(ClassLoader classLoader, String className, String methodName, MethodNode node) throws AnalyzerException {
+	protected boolean checkCond(ClassLoader classLoader, String className, String methodName, MethodNode node) throws AnalyzerException, IOException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
-		GraphPool.clearAll();
-		BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
-		bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
-		bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+//		GraphPool.clearAll();
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+		if (cfg == null) {
+			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+			bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
+			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+		}
+//		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		if (CollectionUtil.isNullOrEmpty(cfg.getBranches())) {
 			return false;
 		} 
@@ -94,8 +101,10 @@ public class MethodFlagCondFilter implements IMethodFilter {
 					SourceValue srcValue = (SourceValue) value;
 					AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
 					if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
-						log.info("!FOUND IT! in method " + methodName);
-						return true;
+						if (checkInvokedMethod(classLoader, condDefinition, METHOD_INVOKE_LEVEL)) {
+							log.info("!FOUND IT! in method " + methodName);
+							return true;
+						}
 					} else {
 						BytecodeInstruction condBcDef = cfg.getInstruction(node.instructions.indexOf(condDefinition));
 						if (condBcDef.isUse()) {
@@ -113,8 +122,10 @@ public class MethodFlagCondFilter implements IMethodFilter {
 								}
 							}
 							if (lastDef != null && CommonUtility.isInvokeMethodInsn(lastDef.getASMNode())) {
-								log.info("!FOUND IT! in method " + methodName);
-								return true;
+								if (checkInvokedMethod(classLoader, lastDef.getASMNode(), METHOD_INVOKE_LEVEL)) {
+									log.info("!FOUND IT! in method " + methodName);
+									return true;
+								}
 							}
 						}
 					}
@@ -123,6 +134,10 @@ public class MethodFlagCondFilter implements IMethodFilter {
 		}
 		return false;
 	}
-	
-	
+
+	protected boolean checkInvokedMethod(ClassLoader classLoader, AbstractInsnNode condDefinition, int level)
+			throws AnalyzerException, IOException {
+		return true;
+	}
+
 }
