@@ -77,14 +77,12 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			value = result.getTrace().getFalseDistances().get(this.branchGoal.getBranch().getActualBranchId());
 		}
 		
-		if(value != null && value > 1) {
-			return 1;
-		}
-		else if(value == null){
+		
+		if(value == null){
 			return 10000d;
 		}
-		else if(value == 0) {
-			return 0;
+		else if(value != 1){
+			return normalize(value);
 		}
 		
 //		ContextBranch cBranch = new ContextBranch(this.branchGoal.getBranch(), -1, "null");
