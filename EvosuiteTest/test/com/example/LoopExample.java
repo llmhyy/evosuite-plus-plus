@@ -1,8 +1,6 @@
-package com.test;
+package com.example;
 
-import com.example.Util2;
-
-public class LoopTest {
+public class LoopExample {
 	public boolean test(int[] a, int[] b) {
 		if(Util2.equal(a, b)) {
 			return true;
