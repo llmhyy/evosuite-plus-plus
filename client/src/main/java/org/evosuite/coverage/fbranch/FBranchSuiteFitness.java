@@ -426,8 +426,6 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 //					System.currentTimeMillis();
 //				}
 				
-				
-				getTestFitness(goal, results.get(11));
 				fitnessMap.put(goal, fitnessList);
 			}
 		}
