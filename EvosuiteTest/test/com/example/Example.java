@@ -1,10 +1,10 @@
 package com.example;
 
+
 public class Example {
 	public boolean test(int a, int b){
-		Util u = new Util();
-		if(u.isOk(a, b)){
-			if(u.isCornerCase(a, b)){
+		if(Util.isOk(a, b)){
+			if(Util.isCornerCase(a, b)){
 				return true;
 			}	
 		}
@@ -12,5 +12,15 @@ public class Example {
 		return false;
 	}
 	
-	
+	public boolean test2(Obj o, int a, int b) {
+		if(o.isbField()) {
+			if(Util.isOk(a, b)){
+				if(Util.isCornerCase(a, b)){
+					return true;
+				}	
+			}
+		}
+		
+		return false;
+	}
 }

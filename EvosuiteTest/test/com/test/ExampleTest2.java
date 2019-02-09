@@ -9,13 +9,13 @@ import org.junit.Test;
 
 import com.example.Example;
 
-public class ExampleTest extends AbstractETest{
+public class ExampleTest2 extends AbstractETest{
 	
 	@Test
 	public void test() {
 		Class<?> clazz = Example.class;
-		String methodName = "test";
-		int parameterNum = 2;
+		String methodName = "test2";
+		int parameterNum = 3;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = getTragetMethod(methodName, clazz, parameterNum);
@@ -35,7 +35,7 @@ public class ExampleTest extends AbstractETest{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 300;
-		ExampleTest t = new ExampleTest();
+		ExampleTest2 t = new ExampleTest2();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 //		List<Tuple> l = new ArrayList<>();
