@@ -407,17 +407,27 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	}
 	
 	
-	private double getNewFitness(List<ExecutionResult> results) {
+	private double getNewFitness(List<ExecutionResult> results, Map<BranchCoverageGoal, Double> interestedKeys) {
 		Map<BranchCoverageGoal, List<Double>> fitnessMap = new HashMap<>();
 		for(Integer key: branchCoverageTrueMap.keySet()) {
 			TestFitnessFunction tf = branchCoverageTrueMap.get(key);
+			
 			if(tf instanceof BranchCoverageTestFitness) {
 				BranchCoverageGoal goal = ((BranchCoverageTestFitness) tf).getBranchGoal();
+				
 				List<Double> fitnessList = new ArrayList<>();
 				for(ExecutionResult result: results) {
 					double f = getTestFitness(goal, result);
 					fitnessList.add(f);
 				}
+				
+//				if(interestedKeys.containsKey(goal)) {
+//					double d = Collections.min(fitnessList);
+//					System.currentTimeMillis();
+//				}
+				
+				
+				getTestFitness(goal, results.get(11));
 				fitnessMap.put(goal, fitnessList);
 			}
 		}
@@ -426,17 +436,27 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			TestFitnessFunction tf = branchCoverageFalseMap.get(key);
 			if(tf instanceof BranchCoverageTestFitness) {
 				BranchCoverageGoal goal = ((BranchCoverageTestFitness) tf).getBranchGoal();
+				
 				List<Double> fitnessList = new ArrayList<>();
 				for(ExecutionResult result: results) {
 					double f = getTestFitness(goal, result);
 					fitnessList.add(f);
 				}
+				
+//				if(interestedKeys.containsKey(goal)) {
+//					double d = Collections.min(fitnessList);
+//					System.currentTimeMillis();
+//				}
+				
 				fitnessMap.put(goal, fitnessList);
 			}
 			
 		}
 		
 		double totalFitness = 0;
+		int covered = 0;
+		int unexecutedBranch = 0;
+		int executedBranchNode = 0;
 		for(BranchCoverageGoal goal: fitnessMap.keySet()) {
 			List<Double> fList = fitnessMap.get(goal);
 			Collections.sort(fList);
@@ -444,7 +464,15 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			double minValue = fList.get(0);
 			if(minValue > 1) {
 				minValue = 1;
+				unexecutedBranch++;
 			}
+			else if(minValue == 0) {
+				covered++;
+			}
+			else {
+				executedBranchNode++;
+			}
+			
 			totalFitness += minValue;
 			
 //			double goalFitness = 1;
@@ -459,7 +487,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 //			}
 //			totalFitness += goalFitness;
 		}
-		
+//		System.currentTimeMillis();
 		
 		return totalFitness;
 	}
@@ -491,6 +519,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		// Collect branch distances of covered branches
 		int numCoveredBranches = 0;
 		
+		Map<BranchCoverageGoal, Double> interestedKeys = new HashMap<>();
 		for (Integer key : predicateCount.keySet()) {
 			
 			double df = 0.0;
@@ -513,6 +542,18 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				fitness += 1.0;
 			} else {
 				fitness += normalize(df) + normalize(dt);
+				int f = (int)fitness;
+				if(fitness != f && fitness-f != 0.5) {
+					BranchCoverageGoal trueGoal = getGoal(key, true).getBranchGoal();
+					if(normalize(dt) != 0 && normalize(dt) != 0.5) {
+						interestedKeys.put(trueGoal, normalize(dt));						
+					}
+					
+					BranchCoverageGoal falseGoal = getGoal(key, false).getBranchGoal();
+					if(normalize(df)!=0 && normalize(dt) != 0.5) {
+						interestedKeys.put(falseGoal, normalize(df));						
+					}
+				}
 			}
 
 			if (falseDistance.containsKey(key)&&(Double.compare(df, 0.0) == 0))
@@ -526,10 +567,14 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		fitness += 2 * (totalBranches - predicateCount.size());
 		
 		
-		double newFit = getNewFitness(results);
+		double newFit = getNewFitness(results, interestedKeys);
+		if(newFit != fitness) {
+			System.currentTimeMillis();
+		}
+		
+//		getNewFitness(results, interestedKeys);
 		fitness = newFit;
 
-//		getNewFitness(results);
 		
 		// Ensure all methods are called
 		int missingMethods = 0;
