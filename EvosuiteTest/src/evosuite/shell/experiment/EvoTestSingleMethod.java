@@ -42,6 +42,29 @@ public class EvoTestSingleMethod {
 	}
 	
 	@Test
+	public void runGetForeignKeyConstraint() {
+		String projectId = "13_jdbacl";
+		String projectName = "jdbacl";
+		
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		
+		String[] targetMethods = new String[]{
+//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
+				"org.databene.jdbacl.model.DefaultDBColumn#getForeignKeyConstraint()Lorg/databene/jdbacl/model/DBForeignKeyConstraint;"
+				
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		fitnessAppraoch = "branch";
+		for (int i = 0; i < 1; i++) {
+			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
+			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
+			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
+			System.out.println("i=" + i);
+		}
+	}
+	
+	@Test
 	public void runA4j() {
 		String projectId = "2_a4j";
 		String projectName = "a4j";
@@ -62,6 +85,20 @@ public class EvoTestSingleMethod {
 //				"com.jigen.ConfigFileGenerator#generate()Ljava/io/File;",
 //				"com.jigen.gui.JLink#paint(Ljava/awt/Graphics;)V"
 				"com.jigen.XmlReader#parseJigenDocument(Ljava/io/File;)Lcom/jigen/xsd/JigenDocument;"
+		};
+		
+//		fitnessAppraoch = "fbranch";
+		evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
+	}
+	
+	@Test
+	public void getparser() {
+		String projectId = "11_imsmart";
+		String projectName = "imsmart";
+		String[] targetMethods = new String[]{
+//				"com.jigen.ConfigFileGenerator#generate()Ljava/io/File;",
+//				"com.jigen.gui.JLink#paint(Ljava/awt/Graphics;)V"
+				"com.momed.parser.MParserFactory#getParser()Lcom/momed/parser/MParser;"
 		};
 		
 //		fitnessAppraoch = "fbranch";
@@ -191,7 +228,7 @@ public class EvoTestSingleMethod {
 		file.deleteOnExit();
 		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethods);
 
-		long seconds = 90;
+		long seconds = 300;
 		boolean instrumentContext = true;
 		String[] args = new String[] {
 				"-criterion", fitnessAppraoch,
