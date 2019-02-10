@@ -86,7 +86,6 @@ public class CallContext implements Serializable {
 		}
 		for (int i = startPos; i >= endPos; i--) {
 			StackTraceElement element = stackTrace[i];
-
 			context.add(new Call(element.getClassName(), element.getMethodName(), element.getLineNumber()));
 		}
 		this.context=context;

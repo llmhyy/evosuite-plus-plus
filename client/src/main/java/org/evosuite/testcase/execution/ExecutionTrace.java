@@ -625,4 +625,8 @@ public interface ExecutionTrace {
 	public Map<Integer, Integer> getCoveredTrue();
 	
 	public Map<Integer, Integer> getCoveredFalse();
+
+	public Map<CallContext, List<Map<Integer, Double>>> getContextIterationTrueMap();
+
+	public Map<CallContext, List<Map<Integer, Double>>> getContextIterationFalseMap();
 }

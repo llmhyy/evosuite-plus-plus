@@ -32,14 +32,15 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
 import org.evosuite.Properties.Criterion;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUse;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.dataflow.Definition;
 import org.evosuite.coverage.dataflow.Use;
+import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.utils.ArrayUtil;
@@ -223,6 +224,15 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	public Map<String, Map<CallContext, Integer>> coveredMethodContext = Collections
 			.synchronizedMap(new HashMap<String, Map<CallContext, Integer>>());
 
+	public Map<CallContext, List<Map<Integer, Double>>> contextIterationTrueMap = Collections
+			.synchronizedMap(new HashMap<CallContext, List<Map<Integer, Double>>>());
+
+	public Map<CallContext, List<Map<Integer, Double>>> contextIterationFalseMap = Collections
+			.synchronizedMap(new HashMap<CallContext, List<Map<Integer, Double>>>());
+	
+	public Map<CallContext, Boolean> contextUpdateMap = Collections
+			.synchronizedMap(new HashMap<>());
+	
 	// number of seen Definitions and uses for indexing purposes
 	private int duCounter = 0;
 	// The last explicitly thrown exception is kept here
@@ -521,14 +531,55 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 			coveredTrueContext.get(branch).put(context, true_distance);
 			coveredFalseContext.get(branch).put(context, false_distance);
 		} else {
+			coveredPredicateContext.get(branch).put(context, coveredPredicateContext.get(branch).get(context) + 1);
+			coveredTrueContext.get(branch).put(context,
+					Math.min(coveredTrueContext.get(branch).get(context), true_distance));
+			coveredFalseContext.get(branch).put(context,
+					Math.min(coveredFalseContext.get(branch).get(context), false_distance));
+			
 			if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
-				coveredPredicateContext.get(branch).put(context, coveredPredicateContext.get(branch).get(context) + 1);
-				coveredTrueContext.get(branch).put(context,
-						Math.min(coveredTrueContext.get(branch).get(context), true_distance));
-				coveredFalseContext.get(branch).put(context,
-						Math.min(coveredFalseContext.get(branch).get(context), false_distance));				
+				updateContextIterationMap(contextIterationTrueMap, branch, true_distance, context);
+				updateContextIterationMap(contextIterationFalseMap, branch, false_distance, context);
 			}
 		}
+	}
+
+	private void updateContextIterationMap(Map<CallContext, List<Map<Integer, Double>>> contextIterationMap, 
+			int branch, double distance, CallContext context) {
+		List<Map<Integer, Double>> list = contextIterationMap.get(context);
+		if(list == null) {
+			list = new ArrayList<>();
+		}
+		
+		if(updateFrame(context) || list.isEmpty()) {
+			contextUpdateMap.put(context, false);
+			Map<Integer, Double> map = new HashMap<>();
+			map.put(branch, distance);
+			list.add(map);
+			contextIterationMap.put(context, list);
+			if(list.size()>1) {
+				System.currentTimeMillis();
+			}
+		}
+		else {
+			Map<Integer, Double> map = list.get(list.size()-1);
+			Double existingDistance = map.get(branch);
+			if(existingDistance != null) {
+				map.put(branch, Math.min(existingDistance, distance));						
+			}
+			else {
+				map.put(branch, distance);
+			}
+		}
+	}
+	
+	private boolean updateFrame(CallContext context) {
+		Boolean update = contextUpdateMap.get(context);
+		if(update != null) {
+			return update;
+		}
+		
+		return true;
 	}
 
 	/**
@@ -723,6 +774,21 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 				updateMethodContextMaps(className, methodName, caller);
 			}
 		}
+		
+		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+			CallContext context = new CallContext(elements);
+			
+			List<Call> calls = context.getContext();
+			List<Call> prevCalls = new ArrayList<>();
+			for(int i=0; i<calls.size()-1; i++) {
+				prevCalls.add(calls.get(i));
+			}
+			CallContext previousContext = new CallContext(prevCalls);
+			
+			contextUpdateMap.put(previousContext, false);	
+			contextUpdateMap.put(context, true);
+		}
 	}
 
 	/**
@@ -813,6 +879,21 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 					finishedCalls.add(stack.pop());
 				}
 			}
+		}
+		
+		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+			CallContext context = new CallContext(elements);
+			
+			List<Call> calls = context.getContext();
+			List<Call> nextCalls = new ArrayList<>();
+			for(int i=0; i<calls.size()-1; i++) {
+				nextCalls.add(calls.get(i));
+			}
+			CallContext nextContext = new CallContext(nextCalls);
+			
+			contextUpdateMap.put(nextContext, false);	
+			contextUpdateMap.put(context, true);
 		}
 	}
 
@@ -1722,6 +1803,16 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	@Override
 	public Map<Integer, Map<CallContext, Double>> getTrueDistancesContext() {
 		return coveredTrueContext;
+	}
+	
+	@Override
+	public Map<CallContext, List<Map<Integer, Double>>> getContextIterationTrueMap(){
+		return contextIterationTrueMap;
+	}
+	
+	@Override
+	public Map<CallContext, List<Map<Integer, Double>>> getContextIterationFalseMap(){
+		return contextIterationFalseMap;
 	}
 
 	/*
