@@ -536,12 +536,12 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 					Math.min(coveredTrueContext.get(branch).get(context), true_distance));
 			coveredFalseContext.get(branch).put(context,
 					Math.min(coveredFalseContext.get(branch).get(context), false_distance));
-			
-			if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
-				updateContextIterationMap(contextIterationTrueMap, branch, true_distance, context);
-				updateContextIterationMap(contextIterationFalseMap, branch, false_distance, context);
-			}
 		}
+		
+//		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+//			updateContextIterationMap(contextIterationTrueMap, branch, true_distance, context);
+//			updateContextIterationMap(contextIterationFalseMap, branch, false_distance, context);
+//		}
 	}
 
 	private void updateContextIterationMap(Map<CallContext, List<Map<Integer, Double>>> contextIterationMap, 
@@ -775,20 +775,20 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 			}
 		}
 		
-		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
-			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-			CallContext context = new CallContext(elements);
-			
-			List<Call> calls = context.getContext();
-			List<Call> prevCalls = new ArrayList<>();
-			for(int i=0; i<calls.size()-1; i++) {
-				prevCalls.add(calls.get(i));
-			}
-			CallContext previousContext = new CallContext(prevCalls);
-			
-			contextUpdateMap.put(previousContext, false);	
-			contextUpdateMap.put(context, true);
-		}
+//		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+//			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+//			CallContext context = new CallContext(elements);
+//			
+//			List<Call> calls = context.getContext();
+//			List<Call> prevCalls = new ArrayList<>();
+//			for(int i=0; i<calls.size()-1; i++) {
+//				prevCalls.add(calls.get(i));
+//			}
+//			CallContext previousContext = new CallContext(prevCalls);
+//			
+//			contextUpdateMap.put(previousContext, false);	
+//			contextUpdateMap.put(context, true);
+//		}
 	}
 
 	/**
@@ -881,20 +881,20 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 			}
 		}
 		
-		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
-			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-			CallContext context = new CallContext(elements);
-			
-			List<Call> calls = context.getContext();
-			List<Call> nextCalls = new ArrayList<>();
-			for(int i=0; i<calls.size()-1; i++) {
-				nextCalls.add(calls.get(i));
-			}
-			CallContext nextContext = new CallContext(nextCalls);
-			
-			contextUpdateMap.put(nextContext, false);	
-			contextUpdateMap.put(context, true);
-		}
+//		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+//			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+//			CallContext context = new CallContext(elements);
+//			
+//			List<Call> calls = context.getContext();
+//			List<Call> nextCalls = new ArrayList<>();
+//			for(int i=0; i<calls.size()-1; i++) {
+//				nextCalls.add(calls.get(i));
+//			}
+//			CallContext nextContext = new CallContext(nextCalls);
+//			
+//			contextUpdateMap.put(nextContext, false);	
+//			contextUpdateMap.put(context, true);
+//		}
 	}
 
 	/** {@inheritDoc} */
