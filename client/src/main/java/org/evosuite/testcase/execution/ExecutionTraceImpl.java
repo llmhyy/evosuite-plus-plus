@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,7 +41,6 @@ import org.evosuite.coverage.dataflow.DefUse;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.dataflow.Definition;
 import org.evosuite.coverage.dataflow.Use;
-import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.utils.ArrayUtil;
@@ -230,7 +230,10 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	public Map<CallContext, List<Map<Integer, Double>>> contextIterationFalseMap = Collections
 			.synchronizedMap(new HashMap<CallContext, List<Map<Integer, Double>>>());
 	
-	public Map<CallContext, Boolean> contextUpdateMap = Collections
+	public Map<CallContext, List<Integer>> contextUpdateTrueMap = Collections
+			.synchronizedMap(new HashMap<>());
+	
+	public Map<CallContext, List<Integer>> contextUpdateFalseMap = Collections
 			.synchronizedMap(new HashMap<>());
 	
 	// number of seen Definitions and uses for indexing purposes
@@ -538,28 +541,26 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 					Math.min(coveredFalseContext.get(branch).get(context), false_distance));
 		}
 		
-//		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
-//			updateContextIterationMap(contextIterationTrueMap, branch, true_distance, context);
-//			updateContextIterationMap(contextIterationFalseMap, branch, false_distance, context);
-//		}
+		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+			updateContextIterationMap(true, branch, true_distance, context);
+			updateContextIterationMap(false, branch, false_distance, context);
+		}
 	}
 
-	private void updateContextIterationMap(Map<CallContext, List<Map<Integer, Double>>> contextIterationMap, 
+	private void updateContextIterationMap(boolean branchValue, 
 			int branch, double distance, CallContext context) {
+		
+		Map<CallContext, List<Map<Integer, Double>>> contextIterationMap = branchValue ? contextIterationTrueMap : contextIterationFalseMap;
 		List<Map<Integer, Double>> list = contextIterationMap.get(context);
 		if(list == null) {
 			list = new ArrayList<>();
 		}
 		
-		if(updateFrame(context) || list.isEmpty()) {
-			contextUpdateMap.put(context, false);
+		if(updateFrame(branchValue, context) || list.isEmpty()) {
 			Map<Integer, Double> map = new HashMap<>();
 			map.put(branch, distance);
 			list.add(map);
 			contextIterationMap.put(context, list);
-			if(list.size()>1) {
-				System.currentTimeMillis();
-			}
 		}
 		else {
 			Map<Integer, Double> map = list.get(list.size()-1);
@@ -573,13 +574,45 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 		}
 	}
 	
-	private boolean updateFrame(CallContext context) {
-		Boolean update = contextUpdateMap.get(context);
-		if(update != null) {
-			return update;
+	@SuppressWarnings("unchecked")
+	private boolean updateFrame(boolean branchValue, CallContext context) {
+		Map<CallContext, List<Integer>> contextUpdateMap = branchValue ? contextUpdateTrueMap : contextUpdateFalseMap;
+		
+		Iterator<MethodCall> iterator = stack.iterator();
+		
+		/**
+		 * get latest call
+		 */
+		MethodCall latestCall = null;
+		int count = 0;
+		while(iterator.hasNext()) {
+			MethodCall call = iterator.next();
+			if(count > 0) {
+				latestCall = call;
+				break;
+			}
+			
+			count++;
 		}
 		
-		return true;
+		if(latestCall == null) {
+			return false;
+		}
+		
+		List<Integer> branchTrace = (List<Integer>) ((ArrayList<Integer>)latestCall.branchTrace).clone();
+		List<Integer> prevBranchTrace = contextUpdateMap.get(context);
+		if(prevBranchTrace == null) {
+			prevBranchTrace = new ArrayList<>();
+			contextUpdateMap.put(context, prevBranchTrace);
+		}
+		
+		if(prevBranchTrace.equals(branchTrace)) {
+			return false;
+		}
+		else {
+			contextUpdateMap.put(context, branchTrace);
+			return true;
+		}
 	}
 
 	/**
@@ -778,6 +811,8 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 //		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
 //			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
 //			CallContext context = new CallContext(elements);
+//			
+//			//System.currentTimeMillis();
 //			
 //			List<Call> calls = context.getContext();
 //			List<Call> prevCalls = new ArrayList<>();
