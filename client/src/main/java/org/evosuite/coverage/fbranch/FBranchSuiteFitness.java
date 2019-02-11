@@ -264,8 +264,13 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	}
 
 	protected void handleTrueDistances(AbstractTestSuiteChromosome<? extends ExecutableChromosome> suite, ExecutionResult result, Map<Integer, Double> trueDistance) {
+		System.currentTimeMillis();
 		for (Entry<Integer, Double> entry : result.getTrace().getTrueDistances().entrySet()) {
 			if(!branchesId.contains(entry.getKey())||removedBranchesT.contains(entry.getKey())) continue;
+			if(entry.getValue()==0) {
+				System.currentTimeMillis();
+			}
+			
 			if (!trueDistance.containsKey(entry.getKey()))
 				trueDistance.put(entry.getKey(), entry.getValue());
 			else {
@@ -570,7 +575,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			System.currentTimeMillis();
 		}
 		
-//		getNewFitness(results, interestedKeys);
+		getNewFitness(results, interestedKeys);
 		fitness = newFit;
 
 		

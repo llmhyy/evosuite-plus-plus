@@ -58,7 +58,7 @@ public abstract class TestSuiteFitnessFunction extends
 	@Deprecated
 	public ExecutionResult runTest(TestCase test) {
 		ExecutionResult result = new ExecutionResult(test, null);
-
+		System.currentTimeMillis();
 		try {
 			result = TestCaseExecutor.getInstance().execute(test);
 			MaxStatementsStoppingCondition.statementsExecuted(result.getExecutedStatements());
