@@ -42,6 +42,32 @@ public class EvoTestSingleMethod {
 	}
 	
 	@Test
+	public void runGetSubEntityMethods() {
+		String projectId = "15_beanbin";
+		String projectName = "beanbin";
+		String[] targetMethods = new String[]{
+//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
+				"net.sourceforge.beanbin.data.EntityUtils#getSubEntityMethods(Ljava/lang/Class;)Ljava/util/List;"
+				
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		fitnessAppraoch = "fbranch";
+		
+		Properties.SEARCH_BUDGET = 60000;
+		Properties.GLOBAL_TIMEOUT = 60000;
+		Properties.TIMEOUT = 3000000;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		
+		for (int i = 0; i < 1; i++) {
+			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
+			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
+			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
+			System.out.println("i=" + i);
+		}
+	}
+	
+	@Test
 	public void runGetForeignKeyConstraint() {
 		String projectId = "13_jdbacl";
 		String projectName = "jdbacl";
