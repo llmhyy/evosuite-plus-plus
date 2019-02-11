@@ -746,12 +746,12 @@ public class ExecutionTraceProxy implements ExecutionTrace, Cloneable {
 	}
 
 	@Override
-	public Map<CallContext, List<Map<Integer, Double>>> getContextIterationTrueMap() {
+	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> getContextIterationTrueMap() {
 		return trace.getContextIterationTrueMap();
 	}
 
 	@Override
-	public Map<CallContext, List<Map<Integer, Double>>> getContextIterationFalseMap() {
+	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> getContextIterationFalseMap() {
 		return trace.getContextIterationFalseMap();
 	}
 

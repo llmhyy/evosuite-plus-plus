@@ -1,6 +1,7 @@
 package org.evosuite.coverage.fbranch;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -100,8 +101,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			
 		}
 		
-		System.currentTimeMillis();
-
 		return fitness;
 	}
 
@@ -114,25 +113,68 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			return 1;
 		}
 		RuntimeRecord.methodCallAvailabilityMap.put(signature, true);
-		
-//		List<Call> newContext = updateCallContext(flagCallInstruction, callContext);
+
 		Set<BytecodeInstruction> exits = calledGraph.determineExitPoints();
+
+		List<Double> iteratedFitness = new ArrayList<>();
+		List<List<Integer>> loopContext = identifyLoopContext(result, callContext);
+		for(List<Integer> branchTrace: loopContext) {
+			
+			List<Double> returnFitnessList = new ArrayList<>();
+			for (BytecodeInstruction returnIns : exits) {
+				List<Double> fList = calculateReturnInsFitness(returnIns, branchGoal, calledGraph, result, callContext, branchTrace);
+				returnFitnessList.addAll(fList);
+			}
+			
+			double sum = this.epsilon;
+			for (Double f : returnFitnessList) {
+				sum += 1 / (f + this.epsilon);
+			}
+			
+			double fit = 1 / sum;
+//			return fit;
+			iteratedFitness.add(fit);
+		}
+		
 		System.currentTimeMillis();
-
-		List<Double> returnFitnessList = new ArrayList<>();
-		for (BytecodeInstruction returnIns : exits) {
-			List<Double> fList = calculateReturnInsFitness(returnIns, branchGoal, calledGraph, result, callContext);
-			returnFitnessList.addAll(fList);
-		}
-
-		double sum = this.epsilon;
-		for (Double f : returnFitnessList) {
-			sum += 1 / (f + this.epsilon);
-		}
-
-		return 1 / sum;
+		
+		return Collections.min(iteratedFitness);
 	}
 	
+	private List<List<Integer>> identifyLoopContext(ExecutionResult result, List<Call> callContext) {
+		List<List<Integer>> loopContext = new ArrayList<>();
+		for(Map<CallContext, Map<List<Integer>, Double>> context: result.getTrace().getContextIterationTrueMap().values()) {
+			for(CallContext key: context.keySet()) {
+				boolean isCompatible = getCompatible(key, callContext);
+				if(isCompatible) {
+					Map<List<Integer>, Double> iterationTable = context.get(key);
+					for(List<Integer> brancTrace: iterationTable.keySet()){
+						if(!loopContext.contains(brancTrace)) {
+							loopContext.add(brancTrace);
+						}
+					}
+				}
+				
+			}
+		}
+		System.currentTimeMillis();
+		
+		return loopContext;
+	}
+
+	private boolean getCompatible(CallContext key, List<Call> callContext) {
+		if(key.getContext().size() == callContext.size()+1) {
+			for(int i=0; i<callContext.size(); i++) {
+				if(!key.getContext().get(i).equals(callContext.get(i))) {
+					return false;
+				}
+			}			
+			return true;
+		}
+		
+		return false;
+	}
+
 	/**
 	 * We do not further analyze recursive method calls.
 	 */
@@ -140,7 +182,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	private List<Call> updateCallContext(BytecodeInstruction sourceIns, List<Call> callContext){
 		List<Call> newContext = (List<Call>) ((ArrayList<Call>)callContext).clone();
 //		BytecodeInstruction ins = sourceIns.getCalledCFG().getInstruction(0);
-		Call call = new Call(sourceIns.getClassName(), sourceIns.getMethodName(), sourceIns.getLineNumber());
+		Call call = new Call(sourceIns.getClassName(), getSimpleMethod(sourceIns.getMethodName()), sourceIns.getLineNumber());
 		if(!newContext.contains(call)) {
 			newContext.add(call);
 		}
@@ -148,12 +190,18 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		return newContext;
 	}
 	
+	private String getSimpleMethod(String methodName) {
+		String sName = methodName.substring(0, methodName.indexOf("("));
+		
+		return sName;
+	}
+	
 	private List<Double> calculateReturnInsFitness(BytecodeInstruction returnIns, BranchCoverageGoal branchGoal,
-			RawControlFlowGraph calledGraph, ExecutionResult result, List<Call> callContext) {
+			RawControlFlowGraph calledGraph, ExecutionResult result, List<Call> callContext, List<Integer> branchTrace) {
 		List<BytecodeInstruction> sourceInsList = getReturnConstants(calledGraph, returnIns);
 		List<Double> fitnessList = new ArrayList<>();
 		
-		fileterSourceInsList(result, sourceInsList, callContext);
+		fileterSourceInsList(result, sourceInsList, callContext, branchTrace);
 		
 		System.currentTimeMillis();
 
@@ -189,13 +237,13 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				// TODO I am not that clear about getControlDependency() method, but I find
 				// reverse the direction make it correct.
 				goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
-				DistanceCondition dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext);
+				DistanceCondition dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
 				fitness = dCondition.fitness;
 				
 				// in case the returned direction is wrong.
 				if (fitness == 0) {
 					goalValue = !goalValue;
-					dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext);
+					dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
 					fitness = dCondition.fitness;
 				}	
 				
@@ -238,8 +286,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	 * @param cBranch
 	 */
 	private void fileterSourceInsList(ExecutionResult result,
-			List<BytecodeInstruction> sourceInsList, List<Call> context) {
-		
+			List<BytecodeInstruction> sourceInsList, List<Call> context, List<Integer> branchTrace) {
 		
 		List<BytecodeInstruction> coveredInsList = new ArrayList<>();
 		for(BytecodeInstruction ins: sourceInsList) {
@@ -247,8 +294,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				List<Call> newContext = updateCallContext(ins, context);
 				
 				boolean branchExpression = cd.getBranchExpressionValue();
-				double distance = checkContextBranchDistance(result, cd.getBranch(), branchExpression, newContext);
-				
+				double distance = checkContextBranchDistance(result, cd.getBranch(), branchExpression, newContext, branchTrace);
 				if(distance == 0) {
 					coveredInsList.add(ins);
 					break;
@@ -268,68 +314,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		}
 	}
 
-//	class ContextBranch {
-//		Branch branch;
-//		
-//		int branchID;
-//		int contextLine;
-//		String method;
-//
-//		public ContextBranch(Branch branch, int contextLine, String method) {
-//			super();
-//			if(branch != null) {
-//				this.branch = branch;
-//				this.branchID = branch.getActualBranchId();				
-//			}
-//			this.contextLine = contextLine;
-//			this.method = method;
-//		}
-//
-//		@Override
-//		public int hashCode() {
-//			final int prime = 31;
-//			int result = 1;
-//			result = prime * result + getOuterType().hashCode();
-//			result = prime * result + branchID;
-//			result = prime * result + contextLine;
-//			result = prime * result + ((method == null) ? 0 : method.hashCode());
-//			return result;
-//		}
-//
-//		@Override
-//		public boolean equals(Object obj) {
-//			if (this == obj)
-//				return true;
-//			if (obj == null)
-//				return false;
-//			if (getClass() != obj.getClass())
-//				return false;
-//			ContextBranch other = (ContextBranch) obj;
-//			if (!getOuterType().equals(other.getOuterType()))
-//				return false;
-//			if (branchID != other.branchID)
-//				return false;
-//			if (contextLine != other.contextLine)
-//				return false;
-//			if (method == null) {
-//				if (other.method != null)
-//					return false;
-//			} else if (!method.equals(other.method))
-//				return false;
-//			return true;
-//		}
-//
-//		private FBranchTestFitness getOuterType() {
-//			return FBranchTestFitness.this;
-//		}
-//
-//		public BytecodeInstruction getInstruction() {
-//			return this.branch.getInstruction();
-//		}
-//
-//	}
-
-	private DistanceCondition checkOverallDistance(ExecutionResult result, boolean goalValue, Branch branch, List<Call> originContext) {
+	private DistanceCondition checkOverallDistance(ExecutionResult result, boolean goalValue, Branch branch, 
+			List<Call> originContext, List<Integer> branchTrace) {
 		/**
 		 * look for the covered branch
 		 */
@@ -339,7 +325,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		
 		int approachLevel = 0;
 		double branchDistance = -1;
-		while (!checkCovered(result, branch, goalValue, callContext) && !visitedBranches.contains(branch)) {
+		
+		while (!checkCovered(result, branch, callContext, branchTrace) && !visitedBranches.contains(branch)) {
 			approachLevel++;
 			
 			visitedBranches.add(branch);
@@ -360,7 +347,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			goalValue = originBranchIns.getControlDependency(branch).getBranchExpressionValue();
 			
 			callContext = updateCallContext(branch.getInstruction(), originContext);
-			branchDistance = checkContextBranchDistance(result, branch, goalValue, callContext);
+			branchDistance = checkContextBranchDistance(result, branch, goalValue, callContext, branchTrace);
 			if(branchDistance == 0) {
 				goalValue = !goalValue;
 			}
@@ -368,8 +355,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		}
 
 		if(branchDistance == -1) {
-			branchDistance = checkContextBranchDistance(result, branch, goalValue, callContext);
+			branchDistance = checkContextBranchDistance(result, branch, goalValue, callContext, branchTrace);
 		}
+		
+		System.currentTimeMillis();
 		
 		double fitness = approachLevel + branchDistance;
 		
@@ -377,58 +366,82 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		return new DistanceCondition(fitness, goal);
 	}
 
-	private double checkContextBranchDistance(ExecutionResult result, Branch branch, boolean goalValue, List<Call> context) {
-		Double value = null;
+	private double checkContextBranchDistance(ExecutionResult result, Branch branch, boolean goalValue, 
+			List<Call> context, List<Integer> branchTrace) {
 		
+		Map<List<Integer>, Double> values = null;
 		if (goalValue) {
-			Map<CallContext, Double> trueContextMap = result.getTrace().getTrueDistancesContext().get(branch.getActualBranchId());
-			value = getContextDistance(trueContextMap, context);
-		} else {
-			Map<CallContext, Double> falseContextMap = result.getTrace().getFalseDistancesContext().get(branch.getActualBranchId());
-			value = getContextDistance(falseContextMap, context);
-		}	
-		
-		if(value == null) {
-			if(goalValue) {
-				value = result.getTrace().getTrueDistances().get(branch.getActualBranchId());
+//			Map<CallContext, Double> trueContextMap = result.getTrace().getTrueDistancesContext().get(branch.getActualBranchId());
+//			value = getContextDistance(trueContextMap, context);
+			
+			if(result.getTrace().getContextIterationTrueMap().get(branch.getActualBranchId()) != null) {
+				values = result.getTrace().getContextIterationTrueMap().get(branch.getActualBranchId()).
+						get(new CallContext(context));				
 			}
 			else {
-				value = result.getTrace().getFalseDistances().get(branch.getActualBranchId());
-			}
-		}
-		
-		if (value == null) {
-			value = 1000000d;
-		}
-
-		return FitnessFunction.normalize(value);
-	}
-
-	private boolean checkCovered(ExecutionResult result, Branch branch, boolean goalValue, List<Call> callContext) {
-		Map<CallContext, Double> falseContextMap = result.getTrace().getFalseDistancesContext().get(branch.getActualBranchId());
-		Double value = getContextDistance(falseContextMap, callContext);
-		if(value != null && value == 0) {
-			return true;
-		}
-		
-		Map<CallContext, Double> trueContextMap = result.getTrace().getTrueDistancesContext().get(branch.getActualBranchId());
-		value = getContextDistance(trueContextMap, callContext);
-		if(value != null && value == 0) {
-			return true;
-		}
-		
-		if(value == null) {
-			Double v = result.getTrace().getFalseDistances().get(branch.getActualBranchId());
-			if(v!=null && v==0) {
-				return true;
+				System.currentTimeMillis();
 			}
 			
-			v = result.getTrace().getTrueDistances().get(branch.getActualBranchId());
-			if(v!=null && v==0) {
-				return true;
+			
+		} else {
+//			Map<CallContext, Double> falseContextMap = result.getTrace().getFalseDistancesContext().get(branch.getActualBranchId());
+//			value = getContextDistance(falseContextMap, context);
+			if(result.getTrace().getContextIterationFalseMap().get(branch.getActualBranchId()) != null) {
+				values = result.getTrace().getContextIterationFalseMap().get(branch.getActualBranchId()).
+						get(new CallContext(context));				
+			}
+			else {
+				System.currentTimeMillis();
+			}
+		}	
+		
+		if(values == null) {
+			return 1;
+		}
+		else {
+			Double value = values.get(branchTrace);
+			if(value == null) {
+				return 1;
+			}
+			else {
+				return FitnessFunction.normalize(value);
 			}
 		}
+	}
 
+	private boolean checkCovered(ExecutionResult result, Branch branch, List<Call> callContext, List<Integer> branchTrace) {
+//		Map<CallContext, Double> falseContextMap = result.getTrace().getFalseDistancesContext().get(branch.getActualBranchId());
+//		Double value = getContextDistance(falseContextMap, callContext);
+//		if(value != null && value == 0) {
+//			return true;
+//		}
+//		
+//		Map<CallContext, Double> trueContextMap = result.getTrace().getTrueDistancesContext().get(branch.getActualBranchId());
+//		value = getContextDistance(trueContextMap, callContext);
+//		if(value != null && value == 0) {
+//			return true;
+//		}
+//		
+//		return false;
+		
+		Map<List<Integer>, Double> values = null;
+		
+		if(result.getTrace().getContextIterationTrueMap().get(branch.getActualBranchId()) != null) {
+			values = result.getTrace().getContextIterationTrueMap().get(branch.getActualBranchId()).
+					get(new CallContext(callContext));				
+		}
+		if(values != null && values.get(branchTrace)!=null && values.get(branchTrace) == 0) {
+			return true;
+		}
+		
+		if(result.getTrace().getContextIterationFalseMap().get(branch.getActualBranchId()) != null) {
+			values = result.getTrace().getContextIterationFalseMap().get(branch.getActualBranchId()).
+					get(new CallContext(callContext));				
+		}
+		if(values != null && values.get(branchTrace)!=null && values.get(branchTrace) == 0) {
+			return true;
+		}
+		
 		return false;
 	}
 
@@ -449,16 +462,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			if(calls.hashCode() == context.hashCode()) {
 				return contextMap.get(key);
 			}
-			
-			
-			
-//			if(calls.size() >= 2) {
-//				Call lastCall = calls.get(calls.size()-2);
-//				if(lastCall.getLineNumber() == cBranch.contextLine) {
-//					System.currentTimeMillis();
-//					return contextMap.get(key);
-//				}				
-//			}
 		}
 		
 		return null;
@@ -489,7 +492,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			String desc = mNode.desc;
 			String returnType = getReturnType(desc);
 			isInterproceduralFlag = returnType.equals("Z");
-			callInfo = new Call(instruction.getClassName(), instruction.getMethodName(), interproceduralFlagCall.getLineNumber());
+			callInfo = new Call(instruction.getClassName(), getSimpleMethod(instruction.getMethodName()), interproceduralFlagCall.getLineNumber());
 		}
 
 		InterproceduralFlagResult result = new InterproceduralFlagResult(interproceduralFlagCall,

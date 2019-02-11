@@ -224,17 +224,11 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	public Map<String, Map<CallContext, Integer>> coveredMethodContext = Collections
 			.synchronizedMap(new HashMap<String, Map<CallContext, Integer>>());
 
-	public Map<CallContext, List<Map<Integer, Double>>> contextIterationTrueMap = Collections
-			.synchronizedMap(new HashMap<CallContext, List<Map<Integer, Double>>>());
+	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> contextIterationTrueMap = Collections
+			.synchronizedMap(new HashMap<Integer, Map<CallContext, Map<List<Integer>, Double>>>());
 
-	public Map<CallContext, List<Map<Integer, Double>>> contextIterationFalseMap = Collections
-			.synchronizedMap(new HashMap<CallContext, List<Map<Integer, Double>>>());
-	
-	public Map<CallContext, List<Integer>> contextUpdateTrueMap = Collections
-			.synchronizedMap(new HashMap<>());
-	
-	public Map<CallContext, List<Integer>> contextUpdateFalseMap = Collections
-			.synchronizedMap(new HashMap<>());
+	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> contextIterationFalseMap = Collections
+			.synchronizedMap(new HashMap<Integer, Map<CallContext, Map<List<Integer>, Double>>>());
 	
 	// number of seen Definitions and uses for indexing purposes
 	private int duCounter = 0;
@@ -550,34 +544,32 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	private void updateContextIterationMap(boolean branchValue, 
 			int branch, double distance, CallContext context) {
 		
-		Map<CallContext, List<Map<Integer, Double>>> contextIterationMap = branchValue ? contextIterationTrueMap : contextIterationFalseMap;
-		List<Map<Integer, Double>> list = contextIterationMap.get(context);
-		if(list == null) {
-			list = new ArrayList<>();
+		Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> contextIterationMap = branchValue ? contextIterationTrueMap : contextIterationFalseMap;
+		Map<CallContext, Map<List<Integer>, Double>> contextMap = contextIterationMap.get(branch);
+		if(contextMap == null) {
+			contextMap = new HashMap<>();
+			contextIterationMap.put(branch, contextMap);
 		}
 		
-		if(updateFrame(branchValue, context) || list.isEmpty()) {
-			Map<Integer, Double> map = new HashMap<>();
-			map.put(branch, distance);
-			list.add(map);
-			contextIterationMap.put(context, list);
+		Map<List<Integer>, Double> iterationTable = contextMap.get(context);
+		if(iterationTable == null) {
+			iterationTable = new HashMap<>();
+			contextMap.put(context, iterationTable);
+		}
+		
+		List<Integer> existingBranchTrace = getLatestBranchTrace();
+		
+		if(!iterationTable.containsKey(existingBranchTrace)) {
+			iterationTable.put(existingBranchTrace, distance);
 		}
 		else {
-			Map<Integer, Double> map = list.get(list.size()-1);
-			Double existingDistance = map.get(branch);
-			if(existingDistance != null) {
-				map.put(branch, Math.min(existingDistance, distance));						
-			}
-			else {
-				map.put(branch, distance);
-			}
+			double existingDistance = iterationTable.get(existingBranchTrace);
+			iterationTable.put(existingBranchTrace, Math.min(existingDistance, distance));	
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
-	private boolean updateFrame(boolean branchValue, CallContext context) {
-		Map<CallContext, List<Integer>> contextUpdateMap = branchValue ? contextUpdateTrueMap : contextUpdateFalseMap;
-		
+	private List<Integer> getLatestBranchTrace() {
 		Iterator<MethodCall> iterator = stack.iterator();
 		
 		/**
@@ -596,23 +588,11 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 		}
 		
 		if(latestCall == null) {
-			return false;
+			return new ArrayList<>();
 		}
 		
 		List<Integer> branchTrace = (List<Integer>) ((ArrayList<Integer>)latestCall.branchTrace).clone();
-		List<Integer> prevBranchTrace = contextUpdateMap.get(context);
-		if(prevBranchTrace == null) {
-			prevBranchTrace = new ArrayList<>();
-			contextUpdateMap.put(context, prevBranchTrace);
-		}
-		
-		if(prevBranchTrace.equals(branchTrace)) {
-			return false;
-		}
-		else {
-			contextUpdateMap.put(context, branchTrace);
-			return true;
-		}
+		return branchTrace;
 	}
 
 	/**
@@ -1841,12 +1821,12 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	}
 	
 	@Override
-	public Map<CallContext, List<Map<Integer, Double>>> getContextIterationTrueMap(){
+	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> getContextIterationTrueMap(){
 		return contextIterationTrueMap;
 	}
 	
 	@Override
-	public Map<CallContext, List<Map<Integer, Double>>> getContextIterationFalseMap(){
+	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> getContextIterationFalseMap(){
 		return contextIterationFalseMap;
 	}
 
