@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import com.example.Example;
 
-public class ExampleTest extends AbstractETest{
+public class BasicTest extends AbstractETest{
 	
 	@Test
 	public void test() {
@@ -35,7 +35,7 @@ public class ExampleTest extends AbstractETest{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 300;
-		ExampleTest t = new ExampleTest();
+		BasicTest t = new BasicTest();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 //		List<Tuple> l = new ArrayList<>();
