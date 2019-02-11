@@ -1,19 +1,15 @@
 package com.example;
 
 public class LoopExample {
-	public boolean test(int[] a, int[] b) {
-		if(a==b) {
+	public boolean test(int[] a, int b) {
+		if(!LoopUtil.checkPrecondition(a, b)) {
 			return false;
 		}
 		
-		if(a.length < 3 || b.length < 3) {
-			return false;
-		}
-		
-		for(int i=0; i<2; i++) {
-			if(Util2.equal(a, b)) {
+		for(int i=0; i<a.length; i++) {
+			if(LoopUtil.contains(a, i, b)) {
 				return true;
-			}			
+			}
 		}
 		
 		return false;
