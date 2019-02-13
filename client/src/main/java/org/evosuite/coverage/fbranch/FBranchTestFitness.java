@@ -136,7 +136,11 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			iteratedFitness.add(fit);
 		}
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
+		
+		if(iteratedFitness.isEmpty()) {
+			return 10000000d;
+		}
 		
 		return Collections.min(iteratedFitness);
 	}
