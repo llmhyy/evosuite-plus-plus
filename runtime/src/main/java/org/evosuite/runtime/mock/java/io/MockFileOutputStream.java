@@ -179,6 +179,7 @@ public class MockFileOutputStream extends FileOutputStream implements LeakingRes
 			channel.close();
 		}
 
+		VirtualFileSystem.getInstance().notifyReleased(this);
 		VirtualFileSystem.getInstance().throwSimuledIOExceptionIfNeeded(path);
 	}
 
@@ -225,4 +226,5 @@ public class MockFileOutputStream extends FileOutputStream implements LeakingRes
 
 		super.close();
 	}
+
 }

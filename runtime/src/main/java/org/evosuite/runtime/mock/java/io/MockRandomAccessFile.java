@@ -295,7 +295,7 @@ public class MockRandomAccessFile extends RandomAccessFile implements LeakingRes
 		if (channel != null) {
 			channel.close();
 		}
-		
+		VirtualFileSystem.getInstance().notifyReleased(this);
 		VirtualFileSystem.getInstance().throwSimuledIOExceptionIfNeeded(path);
 	}
 
@@ -303,4 +303,5 @@ public class MockRandomAccessFile extends RandomAccessFile implements LeakingRes
 	public void release() throws Exception {		
 			super.close();
 	}
+
 }

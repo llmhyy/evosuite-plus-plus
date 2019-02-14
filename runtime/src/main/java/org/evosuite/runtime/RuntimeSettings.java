@@ -114,6 +114,8 @@ public class RuntimeSettings {
      * Used internally in EvoSuite when its regression suites are run
      */
     public static boolean isRunningASystemTest = false;
+    
+    public static int maxOpenFilesPerProcess = Integer.MAX_VALUE;
 
     public static boolean isUsingAnyMocking() {
         return mockJVMNonDeterminism || useVFS || useVNET || mockGUI;

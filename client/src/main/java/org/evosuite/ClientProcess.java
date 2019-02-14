@@ -143,6 +143,7 @@ public class ClientProcess {
 		RuntimeSettings.useJEE = Properties.JEE;
 		RuntimeSettings.applyUIDTransformation = true;
 		RuntimeSettings.isRunningASystemTest = Properties.IS_RUNNING_A_SYSTEM_TEST;
+		RuntimeSettings.maxOpenFilesPerProcess = Properties.MAX_OPEN_FILES_PER_PROCESS;
         MethodCallReplacementCache.resetSingleton();
     }
 

@@ -203,7 +203,7 @@ public class MockFileInputStream extends FileInputStream implements LeakingResou
 		if (channel != null) {
 			channel.close();
 		}
-
+		VirtualFileSystem.getInstance().notifyReleased(this);
 		VirtualFileSystem.getInstance().throwSimuledIOExceptionIfNeeded(path);
 	}
 
@@ -238,4 +238,5 @@ public class MockFileInputStream extends FileInputStream implements LeakingResou
 	public void release() throws Exception {		
 		super.close();
 	}
+
 }

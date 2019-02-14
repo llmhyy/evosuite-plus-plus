@@ -1486,7 +1486,7 @@ public class Properties {
 	@Parameter(key = "is_running_a_system_test", group = "Runtime", description = "Specify that a system test is running. To be used only for debugging purposes")
 	public static volatile boolean IS_RUNNING_A_SYSTEM_TEST = false;
 
-
+	public static int MAX_OPEN_FILES_PER_PROCESS = Integer.MAX_VALUE;
 
 	// ---------------------------------------------------------------
 	// Seeding test cases
@@ -1586,8 +1586,8 @@ public class Properties {
 	 */
 	public void loadPropertiesFile(String propertiesPath, boolean silent) {
 		properties = new java.util.Properties();
+		InputStream in = null;
 		try {
-			InputStream in = null;
 			File propertiesFile = new File(propertiesPath);
 			if (propertiesFile.exists()) {
 				in = new FileInputStream(propertiesPath);
@@ -1621,6 +1621,8 @@ public class Properties {
 		} catch (Exception e) {
 			logger.warn("- Error: Could not find configuration file "
 					+ propertiesPath);
+		} finally {
+			FileIOUtils.closeQuitely(in);
 		}
 	}
 

@@ -20,6 +20,7 @@
 package org.evosuite.runtime.vfs;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -28,9 +29,10 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.evosuite.runtime.testdata.EvoSuiteFile;
 import org.evosuite.runtime.LeakingResource;
+import org.evosuite.runtime.RuntimeSettings;
 import org.evosuite.runtime.sandbox.MSecurityManager;
+import org.evosuite.runtime.testdata.EvoSuiteFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,6 +134,10 @@ public final class VirtualFileSystem {
 		shouldAllThrowIOException = false;
 		classesThatShouldThrowIOException.clear();
 		
+		releaseResources();
+	}
+
+	private void releaseResources() {
 		synchronized(leakingResources){
 			for(LeakingResource resource : leakingResources){
 				try{
@@ -150,10 +156,18 @@ public final class VirtualFileSystem {
 	 * 
 	 * @param resource
 	 */
-	public void addLeakingResource(LeakingResource resource){
+	public void addLeakingResource(LeakingResource resource) throws FileNotFoundException {
 		synchronized(leakingResources){
+			if (leakingResources.size() >= RuntimeSettings.maxOpenFilesPerProcess) {
+				releaseResources();
+				throw new FileNotFoundException("Too many file open!");
+			}
 			leakingResources.add(resource);
 		}
+	}
+	
+	public void notifyReleased(LeakingResource resource) {
+		leakingResources.remove(resource);
 	}
 	
 	/**

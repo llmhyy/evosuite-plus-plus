@@ -123,8 +123,9 @@ public class EvosuiteForMethod {
 		}
 		LoggerUtils.setupLogger(SFConfiguration.getReportFolder(), projectId);
 		log = LoggerUtils.getLogger(EvosuiteForMethod.class);
+		Properties.MAX_OPEN_FILES_PER_PROCESS = 250;
 	}
-
+	
 	private CommandLine parseCommandLine(String[] args) {
 		try {
 			Options options = CommandLineParameters.getCommandLineOptions();
