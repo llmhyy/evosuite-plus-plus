@@ -16,7 +16,7 @@ import evosuite.shell.utils.LoggerUtils;
 
 public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 	private String currentMethod;
-	private List<TestGenerationResult> currentResult = new ArrayList<>();
+	private List<RuntimeData> currentResult = new ArrayList<>();
 	
 	private Logger log = LoggerUtils.getLogger(FitnessEffectiveRecorder.class);
 	private ExcelWriter excelWriter;
@@ -47,7 +47,7 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 	public void record(String className, String methodName, TestGenerationResult r) {
 		super.record(className, methodName, r);
 		currentMethod = className + "#" + methodName;
-		currentResult.add(r);
+		currentResult.add(new RuntimeData(r));
 	}
 	
 	@Override
@@ -63,11 +63,10 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 			currentResult.clear();
 			return;
 		}
-		int successR = currentResult.size();
+		double successR = currentResult.size();
 		List<Object> rowData = new ArrayList<Object>();
 		while (currentResult.size() < (iterator - 1)) {
-			TestGenerationResult e = new TestResult();
-			currentResult.add(e);
+			currentResult.add(new RuntimeData());
 		}
 		rowData.add(className);
 		rowData.add(methodName);
@@ -76,13 +75,13 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		double totalTime = 0.0;
 		double age = 0;;
 		for (int i = 0; i < iterator; i++) {
-			TestGenerationResult r = currentResult.get(i);
+			RuntimeData r = currentResult.get(i);
 			rowData.add(r.getElapseTime());
 			rowData.add(r.getCoverage());
-			rowData.add(r.getGeneticAlgorithm() == null ? -1 : r.getGeneticAlgorithm().getAge());
+			rowData.add(r.getAge());
 			if (bestCvg < r.getCoverage()) {
 				bestCvg = r.getCoverage();
-				age = r.getGeneticAlgorithm() == null ? -1 : r.getGeneticAlgorithm().getAge();
+				age = r.getAge();
 			}
 			totalCvg += r.getCoverage();
 			totalTime += r.getElapseTime();
@@ -100,5 +99,42 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		
 		currentMethod = null;
 		currentResult.clear();
+	}
+	
+	private static class RuntimeData {
+		
+		private double coverage = 0.0;
+		private int elapseTime = 0;
+		private int age = -1;
+		private double availabilityRatio = 0.0;
+		
+
+		public RuntimeData() {
+			
+		}
+
+		public RuntimeData(TestGenerationResult r) {
+			this.coverage = r.getCoverage();
+			this.elapseTime = r.getElapseTime();
+			this.age = r.getGeneticAlgorithm() == null ? -1 : r.getGeneticAlgorithm().getAge();
+			this.availabilityRatio = r.getAvailabilityRatio();
+		}
+
+		public double getCoverage() {
+			return coverage;
+		}
+
+		public int getElapseTime() {
+			return elapseTime;
+		}
+
+		public int getAge() {
+			return age;
+		}
+		
+		public double getAvailabilityRatio() {
+			return availabilityRatio;
+		}
+		
 	}
 }

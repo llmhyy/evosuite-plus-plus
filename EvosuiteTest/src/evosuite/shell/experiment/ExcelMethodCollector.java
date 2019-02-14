@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.junit.Test;
 
 import evosuite.shell.excel.ExcelReader;
 import evosuite.shell.utils.AlphanumComparator;
@@ -22,7 +23,10 @@ public class ExcelMethodCollector {
 //		String methodsFile = root + "/filtered_methods.txt";
 //		String failMethodsFile = root + "/fail_methods.txt";
 //		String folder = root + "/evoTest-reports";
-		String root = args[0] + "/evoTest-reports";
+		String root = args[0];
+		if (!new File(root).getName().contains("report")) {
+			root = args[0] + "/evoTest-reports";
+		}
 		String methodsFile = root + "/pass_methods.txt";
 		String failMethodsFile = root + "/fail_methods.txt";
 		String allMethodsFile = root + "/executed_methods.txt";
@@ -40,7 +44,7 @@ public class ExcelMethodCollector {
 					
 					@Override
 					public boolean accept(File file) {
-						if (file.getName().endsWith("_evotest.xlsx")
+						if (file.getName().endsWith("evotest_5times.xlsx")
 								&& !file.getName().startsWith("~")) {
 							return true;
 						}
@@ -48,6 +52,11 @@ public class ExcelMethodCollector {
 					}
 				}, TrueFileFilter.INSTANCE));
 		collectMethods(methodsFile, failMethodsFile, allMethodsFile, reports);
+	}
+	
+	@Test
+	public void execute() {
+		main(new String[]{"/Users/lylytran/Projects/Evosuite/experiments/SF100-testFilteredMethods/evoTest-reports"});
 	}
 
 	private static void collectMethods(String methodsFile, String failMethodsFile, String allMethodsFile,
@@ -107,6 +116,7 @@ public class ExcelMethodCollector {
 					}
 					evosuite.shell.FileUtils.writeFile(allMethodsFile, methodId + "\n", true);
 				}
+				reader.close();
 			} catch(Exception e) {
 				e.printStackTrace();
 			}

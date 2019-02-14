@@ -31,8 +31,10 @@ public class TargetMethodTool {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		String root = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports";
-		List<String> inclusiveFiles = Arrays.asList(root + "/flagFilteredMethods.txt");
+		String root = "/Users/lylytran/Projects/Evosuite/experiments/SF100-testFilteredMethods/evoTest-reports";
+		List<String> inclusiveFiles = Arrays.asList(
+				root + "/targetMethods-100methods.txt"
+				);
 		List<String> exclusivesFiles = Arrays.asList(root + "/executed_methods.txt");
 		
 		String resultTxt = root + "/merge.txt";
@@ -50,7 +52,8 @@ public class TargetMethodTool {
 		for (String file : CollectionUtil.nullToEmpty(exclusivesFiles)) {
 			exclusives.putAll(mergeTxt.readData(file));
 		}
-
+		
+		int total = 0;
 		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
 		for (String projectName : projectFolders.keySet()) {
 			String projectId = projectFolders.get(projectName).getName();
@@ -62,9 +65,11 @@ public class TargetMethodTool {
 						.append("#------------------------------------------------------------------------\n");
 			for (String method : remainMethods) {
 				sb.append(method).append("\n");
+				total ++;
 			}
 			evosuite.shell.FileUtils.writeFile(resultTxt, sb.toString(), true);
 		}
+		evosuite.shell.FileUtils.writeFile(resultTxt, new StringBuilder().append("# total: ").append(total).toString(), true);
 		System.out.println("Done!");
 	}
 	
@@ -108,10 +113,12 @@ public class TargetMethodTool {
 	}
 	
 	@Test
-	public void selectMethods() {
+	public void selectMethods() throws IOException {
 		String excelFile = baseDir + "/experiments/SF100/reports/flag-filtered-wth-GA-involved-branch.xlsx";
-		String resultTxt = baseDir + "/experiments/SF100/reports/targetMethods-200methods.txt";
+		String resultTxt = baseDir + "/experiments/SF100/reports/targetMethods-100methods1.txt";
+		String inclusiveTxt = baseDir + "/experiments/SF100/reports/targetMethods-invokedMethodFiltered.txt";
 		ExcelReader reader = new ExcelReader(new File(excelFile), 0);
+		Map<String, Set<String>> inclusive = readData(inclusiveTxt);
 		List<List<Object>> data = reader.listData("data");
 		
 		for (Iterator<List<Object>> it = data.iterator(); it.hasNext();) {
@@ -119,19 +126,24 @@ public class TargetMethodTool {
 			double coverage = ((Number) row.get(ReportHeader.Coverage.ordinal())).doubleValue();
 			if (coverage == 0.0 || coverage == 1.0) {
 				it.remove();
+			} else {
+				String project = ((String) row.get(ReportHeader.ProjectId.ordinal())).split("_")[1];
+				if (inclusive.get(project) == null || !inclusive.get(project).contains(row.get(ReportHeader.Class.ordinal()) + "#" + row.get(ReportHeader.Method.ordinal()))) {
+					it.remove();;
+				}
 			}
 		}
-		
+		int maxPerProject = 4;
 		Map<String, List<List<Object>>> dataMap = toMap(data);
 		for (String key : dataMap.keySet()) {
 			List<List<Object>> rows = dataMap.get(key);
-			if (rows.size() > 10) {
-				dataMap.put(key, Randomness.randomSubList(rows, 10));
+			if (rows.size() > maxPerProject) {
+				dataMap.put(key, Randomness.randomSubList(rows, maxPerProject));
 			}
 		}
 		data = toList(dataMap);
 		
-		List<List<Object>> selectedRows = Randomness.randomSubList(data, 200);
+		List<List<Object>> selectedRows = Randomness.randomSubList(data, 100);
 		Map<String, List<List<Object>>> selectedMethods = toMap(selectedRows);
 		
 		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
@@ -146,6 +158,7 @@ public class TargetMethodTool {
 			}
 			evosuite.shell.FileUtils.writeFile(resultTxt, sb.toString(), true);
 		}
+		reader.close();
 	}
 	
 	private List<List<Object>> toList(Map<String, List<List<Object>>> dataMap) {
