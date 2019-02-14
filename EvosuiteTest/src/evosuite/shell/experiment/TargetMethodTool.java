@@ -41,7 +41,7 @@ public class TargetMethodTool {
 		merge(inclusiveFiles, exclusivesFiles, resultTxt);
 	}
 
-	private static void merge(List<String> inclusiveFiles, List<String> exclusivesFiles, String resultTxt)
+	public static void merge(List<String> inclusiveFiles, List<String> exclusivesFiles, String resultTxt)
 			throws IOException {
 		TargetMethodTool mergeTxt = new TargetMethodTool();
 		Map<String, Set<String>> inclusives = new HashMap<>();
@@ -117,6 +117,10 @@ public class TargetMethodTool {
 		String excelFile = baseDir + "/experiments/SF100/reports/flag-filtered-wth-GA-involved-branch.xlsx";
 		String resultTxt = baseDir + "/experiments/SF100/reports/targetMethods-100methods1.txt";
 		String inclusiveTxt = baseDir + "/experiments/SF100/reports/targetMethods-invokedMethodFiltered.txt";
+		selectMethods(excelFile, resultTxt, inclusiveTxt);
+	}
+
+	public void selectMethods(String excelFile, String resultTxt, String inclusiveTxt) throws IOException {
 		ExcelReader reader = new ExcelReader(new File(excelFile), 0);
 		Map<String, Set<String>> inclusive = readData(inclusiveTxt);
 		List<List<Object>> data = reader.listData("data");

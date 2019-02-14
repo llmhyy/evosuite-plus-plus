@@ -14,7 +14,6 @@ net.kencochrane.a4j.file.FileUtil#getSimilarItems(Ljava/lang/String;Ljava/lang/S
 #------------------------------------------------------------------------
 #Project=jigen  -   3_jigen
 #------------------------------------------------------------------------
-com.jigen.msi.JavaRunnableResourceDescriptor#<init>(Lcom/jigen/msi/WixGen;Lcom/jigen/ant/RunnableResource;Ljava/lang/String;Ljava/lang/String;)V
 com.jigen.msi.WixGen#<init>(Lcom/jigen/ant/Jigen;)V
 #------------------------------------------------------------------------
 #Project=rif  -   4_rif
@@ -27,9 +26,7 @@ com.jigen.msi.WixGen#<init>(Lcom/jigen/ant/Jigen;)V
 #------------------------------------------------------------------------
 br.com.jnfe.core.AbstractRet#equals(Ljava/lang/Object;)Z
 br.com.jnfe.core.AddressData#equals(Ljava/lang/Object;)Z
-br.com.jnfe.core.Ambiente#equals(Ljava/lang/Object;)Z
 br.com.jnfe.core.GrupoServico#equals(Ljava/lang/Object;)Z
-br.com.jnfe.core.JNFeDetalhe#getNCMouGenero()Ljava/lang/String;
 br.com.jnfe.core.JNFeICMS#getModBC()C
 br.com.jnfe.core.JNFeICMS#getPICMS()Ljava/math/BigDecimal;
 br.com.jnfe.core.JNFeICMS#getVBc()Ljava/math/BigDecimal;
@@ -51,7 +48,6 @@ br.com.jnfe.core.JNFeICMS#getVCredICMSSN()Ljava/math/BigDecimal;
 br.com.jnfe.core.JNFeXml#equals(Ljava/lang/Object;)Z
 br.com.jnfe.core.Servico#equals(Ljava/lang/Object;)Z
 br.com.jnfe.core.ServicoWeb#equals(Ljava/lang/Object;)Z
-br.com.jnfe.core.Veiculo#equals(Ljava/lang/Object;)Z
 br.com.jnfe.pl005d.JNFeDetalheAdaptador#preencheImposto(Lbr/com/jnfe/core/JNFeDetalhe;Ljavax/xml/stream/XMLStreamWriter;)V
 br.com.jnfe.pl006.JNFeDetalheAdaptador#preencheImposto1(Lbr/com/jnfe/core/JNFeDetalhe;Ljavax/xml/stream/XMLStreamWriter;)V
 br.com.jnfe.util.CFOPUtils#validaAplicabilidade(Lbr/com/jnfe/core/CFOP;Lbr/com/jnfe/core/JNFe;)Ljava/lang/String;
@@ -110,7 +106,6 @@ org.databene.jdbacl.SQLUtil#mutatesStructure(Ljava/lang/String;)Ljava/lang/Boole
 #Project=beanbin  -   15_beanbin
 #------------------------------------------------------------------------
 net.sourceforge.beanbin.aop.MixinBlob#mix(Ljava/lang/Class;)V
-net.sourceforge.beanbin.data.EntityUtils#getBlobGetters(Ljava/lang/Class;)Ljava/util/List;
 net.sourceforge.beanbin.data.EntityUtils#getSubEntityMethods(Ljava/lang/Class;)Ljava/util/List;
 net.sourceforge.beanbin.reflect.ReflectionSearch#hasAnnotation(Ljava/lang/String;)Z
 #------------------------------------------------------------------------
@@ -122,8 +117,6 @@ net.sourceforge.beanbin.reflect.ReflectionSearch#hasAnnotation(Ljava/lang/String
 #------------------------------------------------------------------------
 #Project=jsecurity  -   18_jsecurity
 #------------------------------------------------------------------------
-org.jsecurity.ri.web.support.DefaultWebSessionFactory#validateSessionOrigin(Ljavax/servlet/http/HttpServletRequest;Lorg/jsecurity/session/Session;)V
-org.jsecurity.ri.session.AbstractSessionManager#isExpired(Lorg/jsecurity/session/Session;)Z
 org.jsecurity.ri.authz.SimpleAuthorizationContext#impliesAll(Ljava/util/Collection;)Z
 org.jsecurity.ri.authz.SimpleAuthorizationContext#checkPermission(Ljava/security/Permission;)V
 org.jsecurity.ri.authz.SimpleAuthorizationContext#checkPermissions(Ljava/util/Collection;)V
@@ -175,12 +168,10 @@ net.sourceforge.jwbf.core.contentRep.Article#getEditor()Ljava/lang/String;
 net.sourceforge.jwbf.core.contentRep.Article#getEditSummary()Ljava/lang/String;
 net.sourceforge.jwbf.core.contentRep.Article#isMinorEdit()Z
 net.sourceforge.jwbf.core.contentRep.Article#getEditTimestamp()Ljava/util/Date;
-net.sourceforge.jwbf.mediawiki.actions.queries.ImageInfo#<init>(Lnet/sourceforge/jwbf/mediawiki/bots/MediaWikiBot;Ljava/lang/String;)V
-net.sourceforge.jwbf.mediawiki.actions.util.MWAction#checkVersionNewerEquals(Lnet/sourceforge/jwbf/mediawiki/actions/MediaWiki$Version;)V
 net.sourceforge.jwbf.mediawiki.actions.editing.PostModifyContent#getNextMessage()Lnet/sourceforge/jwbf/core/actions/util/HttpAction;
 net.sourceforge.jwbf.mediawiki.contentRep.SimpleFile#equals(Ljava/lang/Object;)Z
 #------------------------------------------------------------------------
-#Project=saxpath  -   24_saxpath
+#Project=saxpath  -   82_saxpath
 #------------------------------------------------------------------------
 com.werken.saxpath.XPathReader#pathExpr()V
 #------------------------------------------------------------------------
@@ -233,7 +224,6 @@ jigcell.sbml2.ConservationRelationFinder#getConservationRelations()Ljava/util/Li
 jigcell.sbml2.jep.Parser#Variable()V
 jigcell.sbml2.math.InfixExpression#modifyMap(Ljava/lang/String;Ljava/lang/String;)V
 jigcell.sbml2.math.MathMLConvertorSAX#characters([CII)V
-jigcell.sbml2.SBaseId#isValid(Ljigcell/sbml2/Model;)Z
 jigcell.sbml2.Species#isValid(Ljigcell/sbml2/Model;)Z
 #------------------------------------------------------------------------
 #Project=corina  -   35_corina
@@ -249,7 +239,6 @@ corina.browser.Row#getField(Ljava/lang/String;)Ljava/lang/Object;
 corina.browser.Browser#doSearch()V
 corina.browser.Browser#doSearchRestrict()V
 corina.Sample#countSignificantIntervals()I
-corina.platform.Netware#workaroundSlow()V
 corina.map.tools.RulerTool#decorate(Ljava/awt/Graphics;)V
 corina.map.SiteRenderer#drawLabel(Ljava/awt/Graphics2D;Ljava/awt/Point;Lcorina/site/Site;ILcorina/map/View;Ljava/awt/Point;Z)V
 corina.map.PngEncoder#pngEncode(Z)[B
@@ -268,21 +257,9 @@ net.sourceforge.schemaspy.util.Dot#setHighQuality(Z)V
 net.sourceforge.schemaspy.util.Inflection#pluralize(Ljava/lang/String;)Ljava/lang/String;
 net.sourceforge.schemaspy.util.Inflection#singularize(Ljava/lang/String;)Ljava/lang/String;
 net.sourceforge.schemaspy.TableOrderer#getTablesOrderedByRI(Ljava/util/Collection;Ljava/util/Collection;)Ljava/util/List;
-net.sourceforge.schemaspy.model.ForeignKeyConstraint#toString()Ljava/lang/String;
-net.sourceforge.schemaspy.model.Table#getNumNonImpliedChildren()I
-net.sourceforge.schemaspy.model.Table#getNumNonImpliedParents()I
-net.sourceforge.schemaspy.model.Table#fetchNumRows()J
-net.sourceforge.schemaspy.model.Table#isOrphan(Z)Z
 net.sourceforge.schemaspy.DbAnalyzer#getOrphans(Ljava/util/Collection;)Ljava/util/List;
 net.sourceforge.schemaspy.DbAnalyzer#getMustBeUniqueNullableColumns(Ljava/util/Collection;)Ljava/util/List;
-net.sourceforge.schemaspy.DbAnalyzer#getTablesWithoutIndexes(Ljava/util/Collection;)Ljava/util/List;
-net.sourceforge.schemaspy.view.HtmlFormatter#getDescription(Lnet/sourceforge/schemaspy/model/Database;Lnet/sourceforge/schemaspy/model/Table;Ljava/lang/String;Z)Ljava/lang/String;
-net.sourceforge.schemaspy.view.TextFormatter#write(Ljava/util/Collection;ZLnet/sourceforge/schemaspy/util/LineWriter;)V
 net.sourceforge.schemaspy.view.HtmlOrphansPage#write(Lnet/sourceforge/schemaspy/model/Database;Ljava/util/List;Ljava/io/File;Lnet/sourceforge/schemaspy/util/LineWriter;)Z
-net.sourceforge.schemaspy.view.HtmlMainIndexPage#write(Lnet/sourceforge/schemaspy/model/Database;Ljava/util/Collection;Ljava/util/Collection;Lnet/sourceforge/schemaspy/util/LineWriter;)V
-net.sourceforge.schemaspy.view.DotNode#toString()Ljava/lang/String;
-net.sourceforge.schemaspy.view.WriteStats#wroteTable(Lnet/sourceforge/schemaspy/model/Table;)V
-net.sourceforge.schemaspy.view.DotConnector#toString()Ljava/lang/String;
 #------------------------------------------------------------------------
 #Project=petsoar  -   37_petsoar
 #------------------------------------------------------------------------
@@ -329,7 +306,6 @@ de.huxhorn.lilith.logback.classic.SimpleNDCAdapter#isEmpty()Z
 de.huxhorn.lilith.LilithBuffer#add(Lde/huxhorn/lilith/data/eventsource/EventWrapper;)V
 de.huxhorn.lilith.conditions.CallLocationCondition#equals(Ljava/lang/Object;)Z
 de.huxhorn.lilith.conditions.EventContainsCondition#isTrue(Ljava/lang/Object;)Z
-de.huxhorn.lilith.services.sender.SenderService#resolveInetAddresses()Ljava/util/Set;
 de.huxhorn.lilith.engine.impl.EventSourceImpl#equals(Ljava/lang/Object;)Z
 de.huxhorn.lilith.engine.impl.sourcemanager.SourceManagerImpl#removeSource(Lde/huxhorn/lilith/data/eventsource/SourceIdentifier;)V
 de.huxhorn.lilith.Lilith#main([Ljava/lang/String;)V
@@ -410,17 +386,12 @@ dk.statsbiblioteket.summa.support.lucene.DocumentShaperFilter#<init>(Ldk/statsbi
 dk.statsbiblioteket.summa.support.lucene.search.LuceneSearchNode#<init>(Ldk/statsbiblioteket/summa/common/configuration/Configuration;)V
 dk.statsbiblioteket.summa.support.lucene.search.LuceneSearchNode#isRequestUsable(Ldk/statsbiblioteket/summa/search/api/Request;)Z
 dk.statsbiblioteket.summa.support.lucene.TermProviderImpl#<init>(Ldk/statsbiblioteket/summa/common/configuration/Configuration;)V
-dk.statsbiblioteket.summa.support.lucene.TermProviderImpl#indexChanged(Ljava/io/File;)V
-dk.statsbiblioteket.summa.support.suggest.SuggestStorageH2#addSuggestion(Ljava/lang/String;II)V
 dk.statsbiblioteket.summa.support.TikaDocumentCreator#<init>(Ldk/statsbiblioteket/summa/common/configuration/Configuration;)V
 dk.statsbiblioteket.util.Projects#getProjectRoot(Ljava/lang/Class;)Ljava/io/File;
 dk.statsbiblioteket.util.reader.CircularCharBuffer#contains(Ljava/lang/Object;)Z
-dk.statsbiblioteket.util.xml.NamespaceRemover#ready()Z
 #------------------------------------------------------------------------
 #Project=lotus  -   45_lotus
 #------------------------------------------------------------------------
-lotus.core.Arbiter#getLegalPlayerDecisions(Llotus/core/Player;)Ljava/util/ArrayList;
-lotus.core.Mana#containsColor(Llotus/core/Mana$Color;)Z
 #------------------------------------------------------------------------
 #Project=nutzenportfolio  -   46_nutzenportfolio
 #------------------------------------------------------------------------
@@ -469,7 +440,6 @@ com.tivo.jipviewer.JipViewer#<init>(Ljava/lang/String;Lcom/tivo/jipviewer/JipRun
 com.mentorgen.tools.profile.instrument.PerfMethodAdapter#visitMethodInsn(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 org.objectweb.asm.jip.Label#visitSubroutine(Lorg/objectweb/asm/jip/Label;JI)V
 org.objectweb.asm.jip.commons.GeneratorAdapter#checkCast(Lorg/objectweb/asm/jip/Type;)V
-org.objectweb.asm.jip.MethodWriter#visitAttribute(Lorg/objectweb/asm/jip/Attribute;)V
 #------------------------------------------------------------------------
 #Project=lagoon  -   52_lagoon
 #------------------------------------------------------------------------
@@ -489,7 +459,6 @@ nu.staldal.lagoon.producer.XSLTransformer#hasBeenUpdated(J)Z
 #------------------------------------------------------------------------
 #Project=shp2kml  -   53_shp2kml
 #------------------------------------------------------------------------
-net.sourceforge.shp2kml.GeomConverter#convertPolygonWithAltitude([Lcom/vividsolutions/jts/geom/Coordinate;D)Ljava/lang/String;
 net.sourceforge.shp2kml.GeomConverter#getLinearRingKML([Lcom/vividsolutions/jts/geom/Coordinate;)Ljava/lang/String;
 #------------------------------------------------------------------------
 #Project=db-everywhere  -   54_db-everywhere
@@ -517,17 +486,14 @@ visu.handball.moves.model.HandballModel#setMoveName(Ljava/lang/String;)V
 visu.handball.moves.model.MoveEvent#equals(Ljava/lang/Object;)Z
 visu.handball.moves.model.PassEvent#equals(Ljava/lang/Object;)Z
 visu.handball.moves.model.animation.Animator#run()V
-visu.handball.moves.views.AnimatedImageLabel#run()V
 #------------------------------------------------------------------------
 #Project=hft-bomberman  -   57_hft-bomberman
 #------------------------------------------------------------------------
 client.gui.ServerSelectionDialog#actionPerformedOkay()V
-client.gui.StartFrame#setFullScreen()V
 common.Actor#updateWithCollisionCheck(Ljava/util/Collection;)V
 common.Actor#collide(Lcommon/GameObject;)Z
 common.Player#collide(Lcommon/GameObject;)Z
 common.Player#extendedCollisionCheck(Lcommon/GameObject;)Z
-server.ServerBomb#updateWithCollisionCheck(Ljava/util/Collection;)V
 server.ServerGameRound#createNewTile(Ljava/awt/Point;ILjava/lang/String;ZZZ)V
 server.ServerPowerUp#updateWithCollisionCheck(Ljava/util/Collection;)V
 server.ServerPowerUp#checkHit(Lserver/ServerPlayer;)Z
@@ -573,33 +539,20 @@ org.dom4j.tree.AbstractElement#additionalNamespaces()Ljava/util/List;
 org.dom4j.tree.DefaultElement#additionalNamespaces()Ljava/util/List;
 org.dom4j.tree.DefaultElement#element(Lorg/dom4j/QName;)Lorg/dom4j/Element;
 org.dom4j.tree.DefaultElement#attribute(Lorg/dom4j/QName;)Lorg/dom4j/Attribute;
-org.dom4j.tree.AbstractNode#clone()Lorg/dom4j/tree/AbstractNode;
-org.dom4j.tree.AbstractNode#asXPathResult(Lorg/dom4j/Element;)Lorg/dom4j/Node;
 org.dom4j.NodeHelper#appendElementQNamedLocal(Lorg/dom4j/Node;Lorg/dom4j/tree/BackedList;Lorg/dom4j/QName;)Lorg/dom4j/tree/BackedList;
 org.dom4j.dom.DOMNodeHelper#isNodeEquals(Lorg/w3c/dom/Node;Lorg/w3c/dom/Node;)Z
 org.dom4j.datatype.DatatypeDocumentFactory#createAttribute(Lorg/dom4j/Element;Lorg/dom4j/QName;Ljava/lang/String;)Lorg/dom4j/Attribute;
 #------------------------------------------------------------------------
 #Project=objectexplorer  -   63_objectexplorer
 #------------------------------------------------------------------------
-de.paragon.explorer.util.ObjectViewManager#shouldBeVisible(Lde/paragon/explorer/model/AttributeModel;)Z
-de.paragon.explorer.util.ObjectTitleManager#getCompleteTitle(Lde/paragon/explorer/model/ObjectModel;)Ljava/lang/String;
-de.paragon.explorer.util.ObjectTitleManager#getTitle(Lde/paragon/explorer/model/ObjectModel;)Ljava/lang/String;
-de.paragon.explorer.util.ExplorerColorManager#getBackground(Lde/paragon/explorer/figure/TextBoxFigure;)Ljava/awt/Color;
-de.paragon.explorer.util.ExplorerColorManager#getForeground(Lde/paragon/explorer/figure/TextBoxFigure;)Ljava/awt/Color;
-de.paragon.explorer.model.ObjectModel#getNumberOfAttributes()I
 de.paragon.explorer.figure.FigureStore#remove(Lde/paragon/explorer/figure/Figure;)V
 de.paragon.explorer.figure.FigureChangeManager#removeChangeListener(Lde/paragon/explorer/figure/FigureChangeListener;)V
-de.paragon.explorer.figure.ListBoxFigureBuilder#initializeListBoxFigure(Lde/paragon/explorer/figure/ListBoxFigure;)V
 de.paragon.explorer.figure.ListBoxFigureBuilder#setAllAttributesVisible(Lde/paragon/explorer/figure/ListBoxFigure;)V
 de.paragon.explorer.figure.ListBoxFigureBuilder#setAllUnexploredAttributesVisible(Lde/paragon/explorer/figure/ListBoxFigure;)V
-de.paragon.explorer.figure.ListBoxFigureBuilder#setNullAttributesUnvisible(Lde/paragon/explorer/figure/ListBoxFigure;)V
 de.paragon.explorer.figure.ListBoxFigureBuilder#setNullAttributesVisible(Lde/paragon/explorer/figure/ListBoxFigure;)V
 de.paragon.explorer.figure.ListBoxFigureBuilder#setStaticAttributesVisible(Lde/paragon/explorer/figure/ListBoxFigure;)V
 de.paragon.explorer.figure.TextBoxFigureBuilder#updateAttributes(Lde/paragon/explorer/model/ObjectModel;)V
-de.paragon.explorer.event.ExplorerFrameEventConverter#mouseClicked(Ljava/awt/event/MouseEvent;)V
 de.paragon.explorer.event.ExplorerFrameEventConverter#mouseDragged(Ljava/awt/event/MouseEvent;)V
-de.paragon.explorer.event.ExplorerFrameEventConverter#mousePressed(Ljava/awt/event/MouseEvent;)V
-de.paragon.explorer.event.ExplorerFrameEventConverter#moveCursorShouldBeDisplayed(Ljava/awt/event/MouseEvent;)V
 #------------------------------------------------------------------------
 #Project=jtailgui  -   64_jtailgui
 #------------------------------------------------------------------------
@@ -630,12 +583,7 @@ org.exolab.jms.net.vm.VMManagedConnectionFactory#matchManagedConnections(Ljava/u
 org.exolab.jms.net.vm.VMManagedConnectionFactory#matchManagedConnectionAcceptors(Ljava/util/List;Lorg/exolab/jms/net/connector/ConnectionRequestInfo;)Lorg/exolab/jms/net/connector/ManagedConnectionAcceptor;
 org.exolab.jms.net.rmi.RMIManagedConnectionFactory#matchManagedConnections(Ljava/util/List;Ljava/security/Principal;Lorg/exolab/jms/net/connector/ConnectionRequestInfo;)Lorg/exolab/jms/net/connector/ManagedConnection;
 org.exolab.jms.net.rmi.RMIManagedConnectionFactory#matchManagedConnectionAcceptors(Ljava/util/List;Lorg/exolab/jms/net/connector/ConnectionRequestInfo;)Lorg/exolab/jms/net/connector/ManagedConnectionAcceptor;
-org.exolab.jms.persistence.Messages#getMessages(Ljava/sql/Connection;Ljava/lang/String;IJ)Ljava/util/Vector;
 org.exolab.jms.persistence.MessageHandles#getMessageCount(Ljava/sql/Connection;Ljava/lang/String;Ljava/lang/String;)I
-org.exolab.jms.client.JmsTopicSession#createPublisher(Ljavax/jms/Topic;)Ljavax/jms/TopicPublisher;
-org.exolab.jms.messagemgr.ConsumerManagerImpl#doStart()V
-org.exolab.jms.messagemgr.AbstractTopicConsumerEndpoint#canConsume(Lorg/exolab/jms/client/JmsDestination;)Z
-org.exolab.jms.messagemgr.AbstractTopicConsumerEndpoint#init()V
 #------------------------------------------------------------------------
 #Project=gae-app-manager  -   67_gae-app-manager
 #------------------------------------------------------------------------
@@ -646,16 +594,12 @@ bible.servlet.Base#doGetPost(Ljavax/servlet/http/HttpServletRequest;Ljavax/servl
 #------------------------------------------------------------------------
 #Project=lhamacaw  -   69_lhamacaw
 #------------------------------------------------------------------------
-macaw.businessLayer.Basket#detectAddedBasketVariableReferences(Lmacaw/businessLayer/Basket;Lmacaw/businessLayer/Basket;)Ljava/util/ArrayList;
-macaw.businessLayer.Basket#detectDeletedBasketVariableReferences(Lmacaw/businessLayer/Basket;Lmacaw/businessLayer/Basket;)Ljava/util/ArrayList;
 macaw.businessLayer.OntologyTerm#detectFieldChanges(Lmacaw/businessLayer/User;Lmacaw/businessLayer/OntologyTerm;Lmacaw/businessLayer/OntologyTerm;)Ljava/util/ArrayList;
 macaw.businessLayer.SupportingDocument#detectFieldChanges(Lmacaw/businessLayer/User;Lmacaw/businessLayer/SupportingDocument;Lmacaw/businessLayer/SupportingDocument;)Ljava/util/ArrayList;
 macaw.persistenceLayer.ChangeEventGenerator#associateSupportingDocumentChanges(Lmacaw/businessLayer/User;Lmacaw/businessLayer/Variable;Ljava/util/ArrayList;)Ljava/util/ArrayList;
-macaw.persistenceLayer.demo.InMemoryBasketManager#updateBasket(Lmacaw/businessLayer/User;Lmacaw/businessLayer/Basket;)V
 macaw.persistenceLayer.demo.InMemoryChangeEventManager#getChangeHistoryForValueLabels(Lmacaw/businessLayer/User;Lmacaw/businessLayer/Variable;)Ljava/util/ArrayList;
 macaw.persistenceLayer.demo.InMemoryUserManager#getUserFromID(Lmacaw/businessLayer/User;Ljava/lang/String;)Lmacaw/businessLayer/User;
 macaw.persistenceLayer.demo.InMemoryVariableManager#associateSupportingDocuments(Lmacaw/businessLayer/User;Lmacaw/businessLayer/Variable;Ljava/util/ArrayList;)V
-macaw.persistenceLayer.production.SQLBasketManager#updateBasket(Ljava/sql/Connection;Lmacaw/businessLayer/User;Lmacaw/businessLayer/Basket;)V
 macaw.presentationLayer.VariableLabelTableModel#setValueAt(Ljava/lang/Object;II)V
 macaw.util.DisplayableListPanel#deleteSelectedListItems()V
 #------------------------------------------------------------------------
@@ -685,9 +629,7 @@ edu.uiuc.ndiipp.hubandspoke.profile.HaSMasterMETSProfileFactory#newInstance(Ljav
 edu.uiuc.ndiipp.hubandspoke.profile.HaSMETSWebProfile#getARCReader(Lgov/loc/mets/MetsFileType;)Lorg/archive/io/arc/ARCReader;
 edu.uiuc.ndiipp.hubandspoke.profile.HaSMETSProfileFactory#newInstance(Ljava/util/zip/ZipFile;ZLedu/uiuc/ndiipp/hubandspoke/profile/METSProfile$PackageType;)Ledu/uiuc/ndiipp/hubandspoke/profile/HaSMETSProfile;
 edu.uiuc.ndiipp.hubandspoke.profile.METSProfile#getNewID(Ljava/lang/String;Lorg/apache/xmlbeans/XmlObject;)Lorg/apache/xmlbeans/XmlID;
-edu.uiuc.ndiipp.hubandspoke.packager.GenericPackager#createFileSec(Ljava/io/File;Ledu/uiuc/ndiipp/hubandspoke/profile/HaSMETSProfile;)V
 edu.uiuc.ndiipp.hubandspoke.packager.DirectoryPackager#createHubPackage(Ljava/io/File;Ledu/uiuc/ndiipp/hubandspoke/profile/METSProfile$PackageType;)Ledu/uiuc/ndiipp/hubandspoke/profile/HaSMasterMETSProfile;
-edu.uiuc.ndiipp.hubandspoke.packager.DirectoryPackager#createFileSec(Ljava/io/File;Ledu/uiuc/ndiipp/hubandspoke/profile/HaSMETSProfile;)V
 edu.uiuc.ndiipp.hubandspoke.packager.OCAPackager#createFileSec(Ljava/io/File;Ledu/uiuc/ndiipp/hubandspoke/profile/HaSMETSProfile;)V
 #------------------------------------------------------------------------
 #Project=ext4j  -   71_ext4j
@@ -734,7 +676,6 @@ com.lts.application.swing.tree.EditTree#deleteAction()V
 com.lts.application.swing.tree.EditTree#deleteNodes([Ljavax/swing/tree/TreePath;)V
 com.lts.caloriecount.data.food.Food#equals(Ljava/lang/Object;)Z
 com.lts.caloriecount.ui.budget.BudgetWin#okButtonPressed()V
-com.lts.caloriecount.ui.foodwin.FoodSelectWindow#getInstance()Lcom/lts/caloriecount/ui/foodwin/FoodSelectWindow;
 com.lts.caloriecount.ui.foodwin.FoodWindow#okButtonPressed()V
 com.lts.compare.ObjectComparator#listsAreEquivalent(Ljava/lang/String;Ljava/util/Set;Ljava/util/List;Ljava/util/List;)Z
 com.lts.compare.ObjectComparator#allFieldsAreEquivalent(Ljava/lang/String;Ljava/util/Set;Ljava/lang/Object;Ljava/lang/Object;)Z
@@ -747,7 +688,6 @@ com.lts.io.DirectoryScanner#couldHoldIncluded(Ljava/lang/String;)Z
 com.lts.io.DirectoryScanner#isExcluded(Ljava/lang/String;)Z
 com.lts.lang.classloader.ClassRepositoryFactory#createRepository(Ljava/io/File;)Lcom/lts/lang/classloader/ClassRepository;
 com.lts.lang.classloader.RepositoryFactory#createRepository(Ljava/io/File;)Lcom/lts/lang/classloader/AbstractClassFileRepository;
-com.lts.swing.ListPanel#deleteElement()V
 com.lts.swing.rootpane.RootPaneJDialog#addWindowListener(Ljava/awt/event/WindowListener;)V
 com.lts.swing.rootpane.RootPaneJDialog#removeWindowListener(Ljava/awt/event/WindowListener;)V
 com.lts.swing.rootpane.RootPaneJFrame#addWindowListener(Ljava/awt/event/WindowListener;)V
@@ -758,18 +698,12 @@ com.lts.swing.table.dragndrop.LTSTransferable#canImport(Ljavax/swing/JComponent;
 com.lts.swing.table.dragndrop.LTSTransferable#canImport(Ljavax/swing/JComponent;[Ljava/awt/datatransfer/DataFlavor;)Z
 com.lts.swing.table.dragndrop.SimpleTransferData#getTransferData(Ljava/awt/datatransfer/DataFlavor;)Ljava/lang/Object;
 com.lts.swing.table.dragndrop.SimpleTransferData#isDataFlavorSupported(Ljava/awt/datatransfer/DataFlavor;)Z
-com.lts.swing.table.JTableUtils#scrollToCell(Ljavax/swing/JTable;II)V
-com.lts.swing.table.rowmodel.transfer.RowTableTransferHandler#getSourceActions(Ljavax/swing/JComponent;)I
-com.lts.swing.table.rowmodel.transfer.RowTableTransferHandler#importData(Ljavax/swing/JComponent;Ljava/awt/datatransfer/Transferable;)Z
 com.lts.swing.table.rowmodel.transfer.TableTransferHandler#canImport(Ljavax/swing/JComponent;[Ljava/awt/datatransfer/DataFlavor;)Z
 com.lts.swing.tree.EditTree#performDoubleClick(Ljava/awt/event/MouseEvent;)V
 com.lts.swing.tree.EditTree#deleteAction()V
 com.lts.swing.tree.EditTree#deleteNodes([Ljavax/swing/tree/TreePath;)V
 com.lts.trace.MethodCall#divergesFrom(Lcom/lts/trace/MethodCall;)I
 com.lts.util.IdentityHashSet#add(Ljava/lang/Object;)Z
-com.lts.util.notifyinglist.SimplifiedList#removeAll(Ljava/util/Collection;)Z
-com.lts.util.notifyinglist.SimplifiedList#removeAll([Ljava/lang/Object;)Z
-com.lts.util.scheduler.WorkPauseThread#performPause()V
 com.lts.util.StringUtils#different(Ljava/lang/String;Ljava/lang/String;)Z
 com.lts.util.system.SystemUtils#appendNativeLibrarySearchPath(Ljava/lang/String;)V
 #------------------------------------------------------------------------
@@ -780,7 +714,6 @@ de.outstare.fortbattleplayer.statistics.DataSet#countOfValuesWith(Ljava/lang/Int
 #Project=wheelwebtool  -   80_wheelwebtool
 #------------------------------------------------------------------------
 wheel.asm.Label#visitSubroutine(Lwheel/asm/Label;JI)V
-wheel.asm.MethodWriter#visitAttribute(Lwheel/asm/Attribute;)V
 wheel.components.ComponentCreator#checkbox(Ljava/lang/String;)Lwheel/components/Checkbox;
 wheel.components.ComponentCreator#hidden(Ljava/lang/String;)Lwheel/components/Hidden;
 wheel.components.ComponentCreator#multiSelect(Ljava/lang/String;Lwheel/components/ISelectModel;Ljava/lang/CharSequence;)Lwheel/components/Select;
@@ -805,7 +738,6 @@ wheel.components.FormElement#_setSubmitValue([Ljava/lang/String;)V
 wheel.components.StandaloneComponent#isValid(Ljava/lang/String;)Z
 wheel.components.StandaloneComponent#listErrors()Ljava/util/List;
 wheel.components.StandaloneComponent#getError(Ljava/lang/String;)Lwheel/components/ValidationError;
-wheel.components.StandaloneComponent#_injectExposedFields()V
 wheel.enhance.WheelAnnotatedField#getClassName()Ljava/lang/String;
 wheel.xhtmlConversion.Node#print(Ljava/lang/StringBuilder;)V
 #------------------------------------------------------------------------
@@ -816,7 +748,6 @@ org.javathena.login.UserManagement#toChangeAnEmail(Lorg/javathena/core/data/Sock
 org.javathena.login.UserManagement#connectionOfClient(Lorg/javathena/core/data/Socket_data;[BZ)V
 org.javathena.login.UserManagement#addUserTXT(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;C)Lorg/javathena/core/data/Auth_data;
 org.javathena.login.sql.data.Auth_data_SQL#setLevel(I)V
-org.javathena.core.data.Socket_data#run()V
 #------------------------------------------------------------------------
 #Project=xbus  -   83_xbus
 #------------------------------------------------------------------------
@@ -831,13 +762,10 @@ net.sf.xbus.technical.ftp.FTPSender#execute(Ljava/lang/String;Ljava/lang/String;
 net.sf.xbus.technical.ftp.FTPSender#commit()V
 net.sf.xbus.technical.ReceiverThreadManager#startReceiverThread(Ljava/lang/String;)V
 net.sf.xbus.technical.mq.MQConnection#rollback()V
-net.sf.xbus.admin.Administrator#stopReceiverService()Ljava/lang/String;
 net.sf.xbus.admin.Administrator#getReceiverServiceStatus()Ljava/lang/String;
-net.sf.xbus.base.core.trace.Trace#getTrace()Ljava/lang/String;
 net.sf.xbus.base.deletedMessageStore.DeletedMessageStore#writeMessage()Z
 net.sf.xbus.base.xbussystem.XBUSSystem#replaceAllMarkers(Ljava/lang/String;)[Ljava/lang/String;
 net.sf.xbus.base.xbussystem.XBUSSystem#getAdditionalAddressImplementation(Ljava/lang/String;)Lnet/sf/xbus/base/xbussystem/AdditionalAddress;
-net.sf.xbus.base.xbussystem.XBUSSystem#getBroadcastData(Ljava/lang/String;)V
 net.sf.xbus.protocol.csv.CSVParser#parse(Ljava/lang/String;Ljava/lang/String;)Lorg/w3c/dom/Document;
 net.sf.xbus.application.Adapter#callSender(Lnet/sf/xbus/protocol/Message;Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V
 #------------------------------------------------------------------------
@@ -1836,12 +1764,10 @@ umd.cs.shop.JSTaskAtom#isGround()Z
 #------------------------------------------------------------------------
 net.virtualinfinity.atrobots.measures.AbsoluteAngle#equals(Ljava/lang/Object;)Z
 net.virtualinfinity.atrobots.snapshots.RobotSnapshot#equals(Ljava/lang/Object;)Z
-net.virtualinfinity.atrobots.compiler.LineNumberReaderCompiler#resolve()V
 net.virtualinfinity.atrobots.Temperature#equals(Ljava/lang/Object;)Z
 #------------------------------------------------------------------------
 #Project=jaw-br  -   87_jaw-br
 #------------------------------------------------------------------------
-jaw.entrada.Salvar#<init>(Ljaw/gui/ProcessarEntidades;I)V
 #------------------------------------------------------------------------
 #Project=jopenchart  -   88_jopenchart
 #------------------------------------------------------------------------
@@ -1883,14 +1809,8 @@ org.jcvi.glyph.aa.Codon#isStopCodon()Z
 org.jcvi.glyph.DefaultEncodedGlyphs#equals(Ljava/lang/Object;)Z
 org.jcvi.glyph.DefaultEncodedGlyphs#decode(Lorg/jcvi/Range;)Ljava/util/List;
 org.jcvi.glyph.RunLength#equals(Ljava/lang/Object;)Z
-org.jcvi.Range#convertRange(Lorg/jcvi/RangeCoordinateSystem;)Lorg/jcvi/Range;
 org.jcvi.Range#equals(Ljava/lang/Object;)Z
 org.jcvi.Range#isSubRangeOf(Lorg/jcvi/Range;)Z
-org.jcvi.Range#intersects(Lorg/jcvi/Range;)Z
-org.jcvi.Range#intersection(Lorg/jcvi/Range;)Lorg/jcvi/Range;
-org.jcvi.Range#startsBefore(Lorg/jcvi/Range;)Z
-org.jcvi.Range#endsBefore(Lorg/jcvi/Range;)Z
-org.jcvi.Range#union(Lorg/jcvi/Range;)[Lorg/jcvi/Range;
 org.jcvi.sequence.DefaultConfidence#equals(Ljava/lang/Object;)Z
 org.jcvi.sequence.Peaks#equals(Ljava/lang/Object;)Z
 org.jcvi.trace.fourFiveFour.flowgram.sff.DefaultSFFCommonHeader#equals(Ljava/lang/Object;)Z
@@ -1917,11 +1837,8 @@ org.quickserver.net.qsadmin.Authenticator#validate(Ljava/lang/String;[B)Z
 org.quickserver.net.server.impl.NonBlockingClientHandler#closeConnection()V
 org.quickserver.net.server.impl.NonBlockingClientHandler#waitTillFullyWritten()V
 org.quickserver.net.server.impl.NonBlockingClientHandler#run()V
-org.quickserver.net.server.impl.NonBlockingClientHandler#registerForRead()V
-org.quickserver.net.server.impl.NonBlockingClientHandler#registerWrite()V
 org.quickserver.net.server.impl.BasicClientHandler#isConnected()Z
 org.quickserver.net.server.impl.BasicClientHandler#prepareForRun()V
-org.quickserver.net.server.impl.BasicClientHandler#sendClientBinary([BII)V
 org.quickserver.net.server.impl.BlockingClientHandler#closeConnection()V
 org.quickserver.net.server.impl.BlockingClientHandler#run()V
 org.quickserver.net.server.QuickServer#closeAllPools()V
@@ -1975,5 +1892,3 @@ Newzgrabber.Ini#readIni()Ljava/util/Hashtable;
 DocumentSet#characterFrequency()V
 DocumentSet#wordFrequency()V
 StripHTML#process(Ljava/util/Vector;)Ljava/util/Vector;
-XEDictionary#build(LEventSet;)V
-XEDictionary#find(LEventSet;)I

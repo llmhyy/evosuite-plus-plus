@@ -29,6 +29,7 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.slf4j.Logger;
 
+import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.OpcodeUtils;
 
@@ -69,6 +70,9 @@ public class MethodFlagCondWithSimpleReturnFilter extends MethodFlagCondFilter {
 //			ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			}
 			
+			if (CollectionUtil.getSize(cfg.getBranches()) <= 1) {
+				return false;
+			}
 			Set<BytecodeInstruction> exitPoints = cfg.getExitPoints();
 			for (BytecodeInstruction exit : exitPoints) {
 				if (OpcodeUtils.isReturnInsn(exit.getASMNode().getOpcode())) {
@@ -98,11 +102,10 @@ public class MethodFlagCondWithSimpleReturnFilter extends MethodFlagCondFilter {
 	}
 	
 	private MethodNode getMethod(ClassLoader classLoader, MethodInsnNode methodInsn, String className) throws IOException {
-//		System.err.println();
 		InputStream is = null;
 		try {
 			if (methodInsn.owner.startsWith("java")) {
-				is = ResourceList.getInstance(this.getClass().getClassLoader()).getClassAsStream(methodInsn.owner);
+				is = ResourceList.getInstance(this.getClass().getClassLoader()).getClassAsStream(className);
 			} else {
 				is = ResourceList.getInstance(classLoader).getClassAsStream(className);
 			}
@@ -115,6 +118,9 @@ public class MethodFlagCondWithSimpleReturnFilter extends MethodFlagCondFilter {
 			List<MethodNode> l = cn.methods;
 			for (MethodNode m : l) {
 				if (m.name.equals(methodInsn.name) && m.desc.equals(methodInsn.desc)) {
+					if ((m.access & Opcodes.ACC_ABSTRACT) == Opcodes.ACC_ABSTRACT) {
+						return null;
+					}
 					return m;
 				}
 			}
