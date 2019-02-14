@@ -29,5 +29,6 @@ public class RepairExcel {
 		ExcelWriter writer = new ExcelWriter(new File(repairFile));
 		writer.createSheet("data", headers.toArray(new String[headers.size()]), 0);
 		writer.writeSheet("data", data );
+		reader.close();
 	}
 }

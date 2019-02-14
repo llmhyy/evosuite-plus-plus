@@ -47,7 +47,7 @@ public class TestSuiteSerialization {
             parent.mkdirs();
         }
 
-        try(ObjectOutputStream out = new DebuggingObjectOutputStream(new FileOutputStream(target));){
+        try (ObjectOutputStream out = new DebuggingObjectOutputStream(new FileOutputStream(target));){
             for(TestSuiteChromosome ts : list) {
                 for (TestChromosome tc : ts.getTestChromosomes()) {
                     out.writeObject(tc);
@@ -56,7 +56,7 @@ public class TestSuiteSerialization {
 
             out.flush();
             out.close();
-        }catch (IOException e){
+        } catch (IOException e){
             logger.error("Failed to open/handle "+target.getAbsolutePath()+" for writing: "+e.getMessage());
             return false;
         }

@@ -22,6 +22,7 @@ import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.AlphanumComparator;
 
 public class MergeExcels {
+	public static String excelSubfix = "_evotest.xlsx";
 
 	public static void main(String[] args) throws Exception {
 		String root = args[0];
@@ -48,8 +49,10 @@ public class MergeExcels {
 	
 	@Test
 	public void mergeExcels() throws IOException {
-		String reportFolder = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports";
-		String outputFile = reportFolder + "/allMethods-filter.xlsx";
+		SFConfiguration.sfBenchmarkFolder = "/Users/lylytran/Projects/Evosuite/experiments/test-reports";
+		excelSubfix = "_evotest_5times.xlsx";
+		String reportFolder = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports-fbranch-100-12Feb-v1";
+		String outputFile = reportFolder + "/12Feb-fbranch.xlsx";
 		List<String> inputFiles = FileUtils.toFilePath(listExcels(reportFolder));
 		mergeExcel(outputFile, inputFiles, 0, false);
 		
@@ -106,6 +109,8 @@ public class MergeExcels {
 				}
 			}
 		}
+		
+		ExcelReader.close(excelReaders);
 	}
 	
 	public static List<File> listExcels(String folder) {
@@ -113,7 +118,7 @@ public class MergeExcels {
 			
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.endsWith("_evotest.xlsx") && !name.startsWith("~");
+				return name.endsWith(excelSubfix) && !name.startsWith("~");
 			}
 		});
 		List<File> excels = CollectionUtil.toArrayList(files);

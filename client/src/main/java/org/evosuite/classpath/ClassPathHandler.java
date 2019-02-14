@@ -25,8 +25,11 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.jar.*;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.evosuite.Properties;
 import org.evosuite.runtime.util.Inputs;
+import org.evosuite.utils.FileIOUtils;
 import org.evosuite.utils.LoggingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,21 +162,20 @@ public class ClassPathHandler {
 	}
 
 	public static String writeClasspathToFile(String classpath) {
-
+		BufferedWriter out = null;
 		try {
 			File file = File.createTempFile("EvoSuite_classpathFile",".txt");
 			file.deleteOnExit();
 
-			BufferedWriter out = new BufferedWriter(new FileWriter(file));
+			out = new BufferedWriter(new FileWriter(file));
 			String line = classpath;
 			out.write(line);
 			out.newLine();
-			out.close();
-
 			return file.getAbsolutePath();
-
 		} catch (Exception e) {
 			throw new IllegalStateException("Failed to create tmp file for classpath specification: "+e.getMessage());
+		} finally {
+			FileIOUtils.closeQuitely(out);
 		}
 	}
 

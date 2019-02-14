@@ -42,6 +42,7 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.DebuggingObjectOutputStream;
+import org.evosuite.utils.FileIOUtils;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.Randomness;
 import org.junit.runner.JUnitCore;
@@ -167,11 +168,10 @@ public class ObjectPool implements Serializable {
 	 * @param fileName
 	 */
 	public static ObjectPool getPoolFromFile(String fileName) {
-		try {
-			InputStream in = new FileInputStream(fileName);
-			ObjectInputStream objectIn = new ObjectInputStream(in);
+		try (InputStream in = new FileInputStream(fileName);
+				ObjectInputStream objectIn = new ObjectInputStream(in);
+				) {
 			ObjectPool pool = (ObjectPool) objectIn.readObject();
-			in.close();
 			// TODO: Do we also need to call that in the other factory methods?
 			pool.filterUnaccessibleTests();
 			return pool;
@@ -266,13 +266,15 @@ public class ObjectPool implements Serializable {
 	}
 
 	public void writePool(String fileName) {
+		ObjectOutputStream out = null;
 		try {
-			ObjectOutputStream out = new DebuggingObjectOutputStream(
+			out = new DebuggingObjectOutputStream(
 			        new FileOutputStream(fileName));
 			out.writeObject(this);
-			out.close();
 		} catch (IOException e) {
 			logger.warn("Error while writing pool to file "+fileName+": "+e);
+		} finally {
+			FileIOUtils.closeQuitely(out);
 		}
 	}
 

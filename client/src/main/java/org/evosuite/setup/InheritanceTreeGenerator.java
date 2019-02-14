@@ -36,6 +36,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.statistics.RuntimeVariable;
+import org.evosuite.utils.FileIOUtils;
 import org.evosuite.utils.LoggingUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -474,9 +475,9 @@ public class InheritanceTreeGenerator {
 
 	public static void writeInheritanceTree(InheritanceTree tree, File file) throws IOException {
 		XStream xstream = new XStream();
-		GZIPOutputStream output = new GZIPOutputStream(new FileOutputStream(file));
-		xstream.toXML(tree, output);
-		output.close();
+		try (GZIPOutputStream output = new GZIPOutputStream(new FileOutputStream(file));) {
+			xstream.toXML(tree, output);
+		}
 	}
 
 
@@ -520,10 +521,14 @@ public class InheritanceTreeGenerator {
 		if(shadedFile.exists()){
 			shadedFile.delete();
 		}
-		try (PrintWriter out = new PrintWriter(shadedFile)) {
+		PrintWriter out = null;
+		try {
+			out = new PrintWriter(shadedFile);
 			out.write(shadedContent);
 		} catch (Exception e){
 			logger.error("Error when making shaded copy");
+		} finally {
+			FileIOUtils.closeQuitely(out);
 		}
 	}
 

@@ -27,7 +27,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.apache.commons.io.IOUtils;
 import org.evosuite.Properties;
+import org.evosuite.utils.FileIOUtils;
 import org.objectweb.asm.Opcodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -256,11 +258,12 @@ public class TransformationStatistics {
 	 * @param className a {@link java.lang.String} object.
 	 */
 	public static void writeStatistics(String className) {
+		BufferedWriter out = null;
 		try {
 			String filename = Properties.REPORT_DIR + "/transformation.csv";
 			File logfile = new File(filename);
 			boolean needHeader = !logfile.exists();
-			BufferedWriter out = new BufferedWriter(new FileWriter(logfile, true));
+			out = new BufferedWriter(new FileWriter(logfile, true));
 
 			if (needHeader)
 				out.write("ClassName,BooleanComparison,Get,Push0,Push1,PushRef,PushNull,Comparison,ImplicitElse,InstanceOf,BooleanReturn,BooleanParameter,BooleanField,BackToBooleanParameter,BackToBooleanField,UntransformableMethod,StringComparison,ContainerComparison\n");
@@ -284,9 +287,10 @@ public class TransformationStatistics {
 			out.write(transformedStringComparison + ",");
 			out.write(transformedContainerComparison + ",");
 			out.write("\n");
-			out.close();
 		} catch (IOException e) {
 			logger.info("Exception while writing CSV data: " + e);
+		} finally {
+			FileIOUtils.closeQuitely(out);
 		}
 	}
 }

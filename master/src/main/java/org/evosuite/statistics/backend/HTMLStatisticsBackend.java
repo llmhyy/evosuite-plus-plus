@@ -19,6 +19,7 @@
  */
 package org.evosuite.statistics.backend;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
@@ -131,10 +133,11 @@ public class HTMLStatisticsBackend implements StatisticsBackend {
 	}
 	
 	public static void copyFile(URL src, File dest) {
+		OutputStream out = null;
+		InputStream in = null;
 		try {
-			InputStream in;
 			in = src.openStream();
-			OutputStream out = new FileOutputStream(dest);
+			out = new FileOutputStream(dest);
 			byte[] buf = new byte[1024];
 			int len;
 			while ((len = in.read(buf)) > 0) {
@@ -144,6 +147,9 @@ public class HTMLStatisticsBackend implements StatisticsBackend {
 			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			FileIOUtils.closeQuitely(out);
+			FileIOUtils.closeQuitely(in);
 		}
 	}
 	

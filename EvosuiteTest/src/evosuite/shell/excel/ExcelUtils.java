@@ -36,6 +36,7 @@ public class ExcelUtils {
 				excelWriter.writeSheet(sheet, listData);
 			}
 		}
+		ExcelReader.close(excelReaders);
 	}
 	
 	public static void createSheet(ExcelWriter excelWriter, String sheetName, ExcelReader excelReader,
@@ -90,6 +91,7 @@ public class ExcelUtils {
 			}
 			keys.add(sb.toString());
 		}
+		reader.close();
 		return keys;
 	}
 

@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.evosuite.utils.FileIOUtils;
 import org.evosuite.utils.ProcessLauncher;
 import org.evosuite.utils.ProcessTimeoutException;
 
@@ -61,6 +62,7 @@ public abstract class SubProcessSolver extends Solver {
 			long solver_end_time_millis = System.currentTimeMillis();
 			long solver_duration_secs = (solver_end_time_millis - solver_start_time_millis) / 1000;
 			logger.debug("Solver execution time was {}s", solver_duration_secs);
+			FileIOUtils.closeQuitely(input);
 		}
 
 	}

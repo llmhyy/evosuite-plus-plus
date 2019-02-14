@@ -244,4 +244,14 @@ public class FileIOUtils {
 		}
 
 	}
+	
+	public static void closeQuitely(Closeable closable) {
+		if (closable != null) {
+			try {
+				closable.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }

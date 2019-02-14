@@ -205,9 +205,19 @@ public class ExcelReader {
 		return getName();
 	}
 
-	public void close() throws IOException {
+	public void close() {
 		if (in != null) {
-			in.close();
+			try {
+				in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public static void close(List<ExcelReader> excelReaders) {
+		for (ExcelReader reader : excelReaders) {
+			reader.close();
 		}
 	}
 }

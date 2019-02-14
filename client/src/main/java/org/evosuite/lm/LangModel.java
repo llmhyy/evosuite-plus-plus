@@ -27,6 +27,9 @@ import java.util.TreeMap;
 import java.util.Comparator;
 
 import java.util.regex.Pattern;
+
+import org.evosuite.utils.FileIOUtils;
+
 import java.util.regex.Matcher;
 
 /**
@@ -98,66 +101,71 @@ public class LangModel {
         String strLine;
 
         double highest_unigram_prob = 0;
-
-        // Read file line by line
-        while ((strLine = br.readLine()) != null) {
-            Pattern ngram_len_p = Pattern.compile("(\\d+)-grams:");
-            Matcher match_ngram_len = ngram_len_p.matcher(strLine);
-            //does line match (\d+)-grams: ?
-            if (match_ngram_len.find()) {
-                ngram_len = Integer.parseInt(match_ngram_len.group(1));
-
-            } else if (ngram_len == 1) {
-                //We're looking at unigrams;
-                Pattern unigram_p = Pattern
-                        .compile("([-0-9\\.]+)\\s*(\\S+)\\s*([-0-9\\.]+)");
-                // Match with <floating point number> <one or more chars> <floating point number>
-                //                        |                   |                 +------ backoff probability
-                //                        |                   +------------------------ unigram
-                //                        +-------------------------------------------- unigram probability
-                Matcher match_unigram = unigram_p.matcher(strLine);
-                if (match_unigram.find()) {
-
-                    double unigram_prob = Double.parseDouble(match_unigram
-                            .group(1));
-                    String unigram = match_unigram.group(2);
-                    double unigram_backoff_prob = Double
-                            .parseDouble(match_unigram.group(3));
-
-                    unigram_probs.put(unigram, unigram_prob);
-                    unigram_backoff_probs.put(unigram, unigram_backoff_prob);
-
-                    if(unigram_prob < unknown_char_prob) {
-                        unknown_char_prob = unigram_prob;
-                    } // if
-                    if(unigram_prob > highest_unigram_prob) {
-                        highest_unigram_prob = unigram_prob;
-                    } //if
-
-                } // if
-
-            } else if (ngram_len == 2) {
-                Pattern bigram_p = Pattern.compile("([-0-9\\.]+)\\s*(\\S+) (\\S+)");
-                //Match line with <floating point number> <one or more chars> <one or more chars>
-                //                            |                   |                    +---- end char of bigram
-                //                            |                   +------------------------- start char of bigram
-                //                            +--------------------------------------------- bigram probability
-                Matcher match_bigram = bigram_p.matcher(strLine);
-                if (match_bigram.find()) {
-                    double bigram_prob = Double.parseDouble(match_bigram
-                            .group(1));
-                    String bigram_start = match_bigram.group(2);
-                    String bigram_end = match_bigram.group(3);
-                    String bigram = bigram_start + " " + bigram_end;
-
-                    bigram_probs.put(bigram, bigram_prob);
-
-                } // if
-
-            } // if/else
-        } // while
-        // Close the input stream
-        in.close();
+        try {
+        	
+        	// Read file line by line
+        	while ((strLine = br.readLine()) != null) {
+        		Pattern ngram_len_p = Pattern.compile("(\\d+)-grams:");
+        		Matcher match_ngram_len = ngram_len_p.matcher(strLine);
+        		//does line match (\d+)-grams: ?
+        		if (match_ngram_len.find()) {
+        			ngram_len = Integer.parseInt(match_ngram_len.group(1));
+        			
+        		} else if (ngram_len == 1) {
+        			//We're looking at unigrams;
+        			Pattern unigram_p = Pattern
+        					.compile("([-0-9\\.]+)\\s*(\\S+)\\s*([-0-9\\.]+)");
+        			// Match with <floating point number> <one or more chars> <floating point number>
+        			//                        |                   |                 +------ backoff probability
+        			//                        |                   +------------------------ unigram
+        			//                        +-------------------------------------------- unigram probability
+        			Matcher match_unigram = unigram_p.matcher(strLine);
+        			if (match_unigram.find()) {
+        				
+        				double unigram_prob = Double.parseDouble(match_unigram
+        						.group(1));
+        				String unigram = match_unigram.group(2);
+        				double unigram_backoff_prob = Double
+        						.parseDouble(match_unigram.group(3));
+        				
+        				unigram_probs.put(unigram, unigram_prob);
+        				unigram_backoff_probs.put(unigram, unigram_backoff_prob);
+        				
+        				if(unigram_prob < unknown_char_prob) {
+        					unknown_char_prob = unigram_prob;
+        				} // if
+        				if(unigram_prob > highest_unigram_prob) {
+        					highest_unigram_prob = unigram_prob;
+        				} //if
+        				
+        			} // if
+        			
+        		} else if (ngram_len == 2) {
+        			Pattern bigram_p = Pattern.compile("([-0-9\\.]+)\\s*(\\S+) (\\S+)");
+        			//Match line with <floating point number> <one or more chars> <one or more chars>
+        			//                            |                   |                    +---- end char of bigram
+        			//                            |                   +------------------------- start char of bigram
+        			//                            +--------------------------------------------- bigram probability
+        			Matcher match_bigram = bigram_p.matcher(strLine);
+        			if (match_bigram.find()) {
+        				double bigram_prob = Double.parseDouble(match_bigram
+        						.group(1));
+        				String bigram_start = match_bigram.group(2);
+        				String bigram_end = match_bigram.group(3);
+        				String bigram = bigram_start + " " + bigram_end;
+        				
+        				bigram_probs.put(bigram, bigram_prob);
+        				
+        			} // if
+        			
+        		} // if/else
+        	} // while
+        	// Close the input stream
+        } finally {
+        	FileIOUtils.closeQuitely(in);
+        	FileIOUtils.closeQuitely(fstream);
+        	FileIOUtils.closeQuitely(br);
+        }
 
         ValueComparator bvc = new ValueComparator(bigram_probs);
         TreeMap<String, Double> sorted_bigram_probs = new TreeMap<String, Double>(

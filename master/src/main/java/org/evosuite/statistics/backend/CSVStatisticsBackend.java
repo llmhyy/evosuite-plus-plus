@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.statistics.OutputVariable;
+import org.evosuite.utils.FileIOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,18 +104,19 @@ public class CSVStatisticsBackend implements StatisticsBackend {
 	@Override
 	public void writeData(Chromosome result, Map<String, OutputVariable<?>> data) {
 		// Write to evosuite-report/statistics.csv
+		BufferedWriter out = null;
 		try {
 			File outputDir = getReportDir();			
 			File f = new File(outputDir.getAbsolutePath() + File.separator + "statistics.csv");
-			BufferedWriter out = new BufferedWriter(new FileWriter(f, true));
+			out = new BufferedWriter(new FileWriter(f, true));
 			if (f.length() == 0L) {
 				out.write(getCSVHeader(data) + "\n");
 			}
 			out.write(getCSVData(data) + "\n");
-			out.close();
-
 		} catch (IOException e) {
 			logger.warn("Error while writing statistics: " + e.getMessage());
+		} finally {
+			FileIOUtils.closeQuitely(out);
 		}
 	}
 

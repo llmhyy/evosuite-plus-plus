@@ -51,6 +51,7 @@ import org.evosuite.testcase.execution.ExecutionTracer;
 import org.evosuite.testcase.factories.JUnitTestCarvedChromosomeFactory;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.ExternalProcessUtilities;
+import org.evosuite.utils.FileIOUtils;
 import org.evosuite.utils.LoggingUtils;
 import org.junit.Test;
 import org.junit.runners.model.FrameworkMethod;
@@ -312,7 +313,8 @@ public class CoverageAnalysis {
 						length = in.read(array);
 					}
 				} finally {
-					in.close();
+					FileIOUtils.closeQuitely(out);
+					FileIOUtils.closeQuitely(in);
 				}
 				ClassReader reader = new ClassReader(array);
 				String className = reader.getClassName();
