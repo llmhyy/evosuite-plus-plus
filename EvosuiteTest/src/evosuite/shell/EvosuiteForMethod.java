@@ -28,6 +28,8 @@ import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
+import com.test.EvoTestResult;
+
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 
@@ -77,8 +79,14 @@ public class EvosuiteForMethod {
 		execute(args);
 		System.exit(0);
 	}
+	
+	public static List<EvoTestResult> generateTests(String[] args) {
+		return execute(args);
+	}
 
-	public static void execute(String[] args) {
+	public static List<EvoTestResult> execute(String[] args) {
+		FitnessEffectiveRecorder recorder = null;
+		List<EvoTestResult> results = new ArrayList<>();
 		try {
 			setup();
 //			Properties.CLIENT_ON_THREAD = true;
@@ -92,7 +100,7 @@ public class EvosuiteForMethod {
 			} else {
 				filter = new FilterConfiguration(args);
 				if (!filter.isValidProject(projectName)) {
-					return;
+					return null;
 				}
 				String optValue = CommonUtility.getOptValue(args, ParameterOptions.METHOD_TEST_ITERATION);
 				if (optValue != null) {
@@ -102,13 +110,14 @@ public class EvosuiteForMethod {
 						ParameterOptions.INCLUSIVE_FILE_OPT, ParameterOptions.METHOD_TEST_ITERATION));
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				String[] truncatedArgs = extractArgs(args);
-				evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
+				results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
 			}
 		} catch (Throwable e) {
 			log.error("Error!", e);
 		}
 		
 		log.info("Finish!");
+		return results;
 	}
 
 	private static void setup() throws IOException {
@@ -209,7 +218,8 @@ public class EvosuiteForMethod {
 		evoTestClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 	}
 
-	public void runAllMethods(String[] targetClasses, String[] args, String projectName) {
+	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName) {
+		List<EvoTestResult> results = new ArrayList<>();
 		FitnessEffectiveRecorder recorder;
 		if (methodIterator > 1) {
 			recorder = new IterFitnessEffectiveRecorder(methodIterator);
@@ -230,7 +240,8 @@ public class EvosuiteForMethod {
 					}
 					try {
 						for (int i = 0; i < methodIterator; i++) {
-							runMethod(methodName, className, args, recorder);
+							EvoTestResult result = runMethod(methodName, className, args, recorder);
+							results.add(result);
 						}
 						recorder.recordEndMethod(methodName, className);
 					} catch (Throwable t) {
@@ -245,13 +256,17 @@ public class EvosuiteForMethod {
 				log.error("Error!", t);
 			}
 		}
+		
+		return results;
 	}
 
 	@SuppressWarnings("unchecked")
-	private void runMethod(String methodName, String className, String[] evosuiteArgs, ExperimentRecorder recorder) {
+	private EvoTestResult runMethod(String methodName, String className, String[] evosuiteArgs, ExperimentRecorder recorder) {
 		log.info("----------------------------------------------------------------------");
 		log.info("RUN METHOD: " + className + "#" + methodName);
 		log.info("----------------------------------------------------------------------");
+		
+		EvoTestResult result = null;
 		
 		try {
 			// $EVOSUITE -criterion branch -target tullibee.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore
@@ -287,11 +302,16 @@ public class EvosuiteForMethod {
 					
 					System.out.println("Available calls: " + r.getAvailableCalls());
 					System.out.println("Unavailable calls: " + r.getUnavailableCalls());
+					
+					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), 
+							r.getGeneticAlgorithm().getAge(), r.getAvailabilityRatio(), r.getProgressInformation());
 				}
 			}
 		} catch (Exception e) {
 			recorder.recordError(className, methodName, e);
 		}
+		
+		return result;
 	}
 	
 //	public String getAvailableCalls() {

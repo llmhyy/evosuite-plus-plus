@@ -1,11 +1,12 @@
 package sf100;
 
 import java.io.File;
+import java.util.List;
 
-import org.evosuite.Properties;
-import org.evosuite.Properties.StatisticsBackend;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.test.EvoTestResult;
 
 import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.FileUtils;
@@ -13,19 +14,19 @@ import evosuite.shell.experiment.BenchmarkAddress;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.SFConfiguration;
 
-public class EvoTestSingleMethod {
+public class TestSingleMethod {
 	
-	String fitnessAppraoch = "branch";
+	String fitnessApproach = "branch";
 
 	@Before
 	public void setup() {
 		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		
-		Properties.SEARCH_BUDGET = 60000;
-		Properties.GLOBAL_TIMEOUT = 60000;
-		Properties.TIMEOUT = 3000000;
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//		
+//		Properties.SEARCH_BUDGET = 60000;
+//		Properties.GLOBAL_TIMEOUT = 60000;
+//		Properties.TIMEOUT = 3000000;
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		FileUtils.deleteFolder(new File("/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest/evoTest-reports"));
@@ -41,17 +42,29 @@ public class EvoTestSingleMethod {
 				
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
-		fitnessAppraoch = "fbranch";
-		for (int i = 0; i < 1; i++) {
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
-			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
-			System.out.println("i=" + i);
+		fitnessApproach = "fbranch";
+		int repeatTime = 5;
+		int budget = 100;
+		List<EvoTestResult> results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget);
+		
+		fitnessApproach = "branch";
+		List<EvoTestResult> results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget);
+		
+		System.out.println("fbranch" + ":");
+		for(EvoTestResult lu: results0){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+		
+		System.out.println("branch" + ":");
+		for(EvoTestResult lu: results1){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
 		}
 	}
 	
-	public void evoTestSingleMethod(String projectId, String projectName,
-			String[] targetMethods, String fitnessAppraoch) {
+	public List<EvoTestResult> evoTestSingleMethod(String projectId, String projectName,
+			String[] targetMethods, String fitnessAppraoch, int iteration, long seconds) {
 		/* configure */
 	
 		/* run */
@@ -59,12 +72,12 @@ public class EvoTestSingleMethod {
 		file.deleteOnExit();
 		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethods);
 
-		long seconds = 300;
 		boolean instrumentContext = true;
 		String[] args = new String[] {
 				"-criterion", fitnessAppraoch,
 				"-target", FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, projectName + ".jar"),
 				"-inclusiveFile", file.getAbsolutePath(),
+				"-iteration", String.valueOf(iteration),
 //				"-Djunit_check", "false"
 ////				"-generateRandom",
 //				"-generateSuite",
@@ -79,8 +92,8 @@ public class EvoTestSingleMethod {
 				"-Dcriterion", fitnessAppraoch,
 				"-Dinstrument_context", String.valueOf(instrumentContext), 
 //				"-Dinsertion_uut", "0.1",
-				"-Dp_test_delete", "0",
-				"-Dp_test_change", "0.9",
+				"-Dp_test_delete", "0.1",
+				"-Dp_test_change", "0.8",
 				"-Dp_test_insert", "0.1",
 //				"-Dheadless_chicken_test", "true",
 				"-Dp_change_parameter", "0.1",
@@ -99,18 +112,14 @@ public class EvoTestSingleMethod {
 				"-Dmax_size", "1",
 				"-Dmax_attempts", "100",
 				"-Dassertions", "false",
-				"-Dstopping_condition", "maxgenerations",
+//				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
-				"-seed", "100"
+//				"-seed", "100"
 				
 		};
 		SFBenchmarkUtils.setupProjectProperties(projectId);
-		EvosuiteForMethod.main(args);
+		return EvosuiteForMethod.generateTests(args);
 	}
 	
-	public void evoSuiteSingleMethod() {
-		String projectId = "1_tullibee";
-		SFBenchmarkUtils.setupProjectProperties(projectId);
-	}
 }
