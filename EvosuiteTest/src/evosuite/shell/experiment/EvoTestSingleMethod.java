@@ -105,6 +105,25 @@ public class EvoTestSingleMethod {
 	}
 	
 	@Test
+	public void runchemaspy() {
+		String projectId = "36_schemaspy";
+		String projectName = "schemaspy";
+		String[] targetMethods = new String[]{
+//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
+				"com.soops.CEN4010.JMCA.JParser.JavaParser#Type()V"
+				
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		fitnessAppraoch = "fbranch";
+		for (int i = 0; i < 1; i++) {
+			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
+			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
+			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
+			System.out.println("i=" + i);
+		}
+	}
+	
+	@Test
 	public void runGetSubEntityMethods() {
 		String projectId = "15_beanbin";
 		String projectName = "beanbin";
