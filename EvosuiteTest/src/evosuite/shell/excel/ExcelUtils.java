@@ -32,8 +32,12 @@ public class ExcelUtils {
 			String[] headers = collectHeaders(excelReaders, sheet);
 			excelWriter.createSheet(sheet, headers, headerRowNum);
 			for (ExcelReader reader : excelReaders) {
-				List<List<Object>> listData = reader.listData(sheet);
-				excelWriter.writeSheet(sheet, listData);
+				try {
+					List<List<Object>> listData = reader.listData(sheet);
+					excelWriter.writeSheet(sheet, listData);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		ExcelReader.close(excelReaders);
