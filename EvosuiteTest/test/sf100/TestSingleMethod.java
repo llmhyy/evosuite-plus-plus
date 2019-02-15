@@ -1,8 +1,11 @@
 package sf100;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.evosuite.Properties;
+import org.evosuite.Properties.StatisticsBackend;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,7 +36,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runMyGrid() {
+	public void runPropertiesUtil() {
 		String projectId = "38_javabullboard";
 		String projectName = "javabullboard";
 		String[] targetMethods = new String[]{
@@ -49,6 +52,40 @@ public class TestSingleMethod {
 		
 		fitnessApproach = "branch";
 		List<EvoTestResult> results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget);
+		
+		System.out.println("fbranch" + ":");
+		for(EvoTestResult lu: results0){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+		
+		System.out.println("branch" + ":");
+		for(EvoTestResult lu: results1){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+	}
+	
+	@Test
+	public void runComponentCreator() {
+		String projectId = "80_wheelwebtool";
+		String projectName = "wheelwebtool";
+		String[] targetMethods = new String[]{
+//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
+				"wheel.components.ComponentCreator#radio(Ljava/lang/String;)Lwheel/components/Radio;"
+				
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		fitnessApproach = "fbranch";
+		int repeatTime = 5;
+		int budget = 100;
+		results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget);
+		
+		fitnessApproach = "branch";
+		results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -108,8 +145,9 @@ public class TestSingleMethod {
 //				"-Dinstrument_method_calls", "true",
 				"-Dinstrument_libraries", "true",
 				"-Dinstrument_parent", "true",
-				"-Dmax_length", "1",
-				"-Dmax_size", "1",
+				"-Delite", "10",
+//				"-Dmax_length", "1",
+//				"-Dmax_size", "1",
 				"-Dmax_attempts", "100",
 				"-Dassertions", "false",
 //				"-Dstopping_condition", "maxgenerations",
