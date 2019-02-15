@@ -103,6 +103,9 @@ public interface TestGenerationResult extends Serializable {
 	public void setDistribution(int[] distribution);
 	public double getAvailabilityRatio();
 
-	
+	public List<String> getAvailableCalls();
+	public void setAvailableCalls(List<String> availableCalls);
+	public List<String> getUnavailableCalls();
+	public void setUnavailableCalls(List<String> unavailableCalls);
 
 }

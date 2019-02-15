@@ -405,7 +405,11 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		}
 
 		double availabilityRatio = getAvailabilityRatio();
+		
+		
 		this.setAvailabilityRatio(availabilityRatio);
+		this.setAvailableCalls(getAvailableCalls());
+		this.setUnavailableCalls(getUnavailableCalls());
 
 		// archive
 		TimeController.execute(this::updateBestIndividualFromArchive, "update from archive", 5_000);
@@ -472,6 +476,26 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		System.out.println("Method call availability: " + ratio);
 
 		return ratio;
+	}
+	
+	public List<String> getAvailableCalls() {
+		List<String> calls = new ArrayList<>();
+		for(String method: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+			if(RuntimeRecord.methodCallAvailabilityMap.get(method)) {
+				calls.add(method);
+			}
+		}
+		return calls;
+	}
+	
+	public List<String> getUnavailableCalls() {
+		List<String> calls = new ArrayList<>();
+		for(String method: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+			if(!RuntimeRecord.methodCallAvailabilityMap.get(method)) {
+				calls.add(method);
+			}
+		}
+		return calls;
 	}
 
 	private void printUncoveredBranches(Map<Integer, Integer> distributionMap,

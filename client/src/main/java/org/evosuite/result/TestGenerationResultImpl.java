@@ -19,6 +19,7 @@
  */
 package org.evosuite.result;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -40,6 +41,10 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	private int[] distribution;
 	
 	private double availabilityRatio;
+	
+	private List<String> availableCalls = new ArrayList<>();
+	
+	private List<String> unavailableCalls = new ArrayList<>();
 	
 	private static final long serialVersionUID = 1306033906557741929L;
 
@@ -335,6 +340,22 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	public void setAvailabilityRatio(double availabilityRatio) {
 		this.availabilityRatio = availabilityRatio;
+	}
+
+	public List<String> getAvailableCalls() {
+		return availableCalls;
+	}
+
+	public void setAvailableCalls(List<String> availableCalls) {
+		this.availableCalls = availableCalls;
+	}
+
+	public List<String> getUnavailableCalls() {
+		return unavailableCalls;
+	}
+
+	public void setUnavailableCalls(List<String> unavailableCalls) {
+		this.unavailableCalls = unavailableCalls;
 	}
 
 

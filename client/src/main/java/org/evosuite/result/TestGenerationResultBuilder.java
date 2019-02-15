@@ -76,6 +76,8 @@ public class TestGenerationResultBuilder {
 		result.setGeneticAlgorithm(testSuite.getGeneticAlgorithm());
 		result.setDistribution(testSuite.getDistribution());
 		result.setAvailabilityRatio(testSuite.getAvailabilityRatio());
+		result.setAvailableCalls(testSuite.getAvailableCalls());
+		result.setUnavailableCalls(testSuite.getUnavailableCalls());
 		
 		return result;
 	}

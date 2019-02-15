@@ -300,6 +300,8 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	
 	private int timeUsed;
 	private double availabilityRatio;
+	private List<String> availableCalls = new ArrayList<>();
+	private List<String> unavailableCalls = new ArrayList<>();
 
 	public void setTimeUsed(int timeUsed) {
 		this.timeUsed = timeUsed;
@@ -339,5 +341,21 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 
 	public double getAvailabilityRatio() {
 		return this.availabilityRatio;
+	}
+
+	public List<String> getAvailableCalls() {
+		return availableCalls;
+	}
+
+	public void setAvailableCalls(List<String> availableCalls) {
+		this.availableCalls = availableCalls;
+	}
+
+	public List<String> getUnavailableCalls() {
+		return unavailableCalls;
+	}
+
+	public void setUnavailableCalls(List<String> unavailableCalls) {
+		this.unavailableCalls = unavailableCalls;
 	}
 }

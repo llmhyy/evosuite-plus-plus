@@ -157,6 +157,8 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 		testSuite.setProgressInfomation(algorithm.getProgressInformation());
 		testSuite.setGeneticAlgorithm(algorithm);
 		testSuite.setAvailabilityRatio(algorithm.getAvailabilityRatio());
+		testSuite.setAvailableCalls(algorithm.getAvailableCalls());
+		testSuite.setUnavailableCalls(algorithm.getUnavailableCalls());
 		return testSuite;
 	}
 	
