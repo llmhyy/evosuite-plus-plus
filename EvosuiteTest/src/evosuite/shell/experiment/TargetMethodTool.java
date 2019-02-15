@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -91,16 +92,67 @@ public class TargetMethodTool {
 
 	@Test
 	public void generateStatisticExcel() throws IOException {
-		generateMethodStatisticExcel(
+		generateStatisticExcel(
 				baseDir + "/experiments/SF100/reports/flag-filtered-methods-with-GA-involved.txt",
 				baseDir + "/experiments/SF100/reports/flag-filtered-methods-with-GA-involved.xlsx");
 	}
 	
-	public void generateMethodStatisticExcel(String targetMethodTxt, String excelFile) throws IOException {
+	public void generateMethodDistributionExcel(String interprocedureFlagMethodsTxt, String flagMethodsTxt, String allMethodsTxt, String excelFile) throws IOException {
+		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
+		Map<String, Set<String>> interprocedureFlagMethodsMap = readData(interprocedureFlagMethodsTxt);
+		Map<String, Set<String>> flagMethodsMap = readData(flagMethodsTxt);
+		Map<String, Set<String>> allMethodsMap = readData(allMethodsTxt);
+		ExcelWriter excelWriter = new ExcelWriter(new File(excelFile));
+		excelWriter.getSheet("data", new String[]{"ProjectId", "ProjectName", "Total methods", "Flag methods", "Flag methods/total", "Interprocedure flag methods", "Interprocedure flag methods/Total"}, 0);
+		List<List<Object>> data = new ArrayList<>();
+		for (String project : projectFolders.keySet()) {
+			List<Object> row = new ArrayList<>();
+			row.add(projectFolders.get(project).getName());
+			row.add(project);
+
+			int totalMethods = CollectionUtil.getSize(allMethodsMap.get(project));
+			row.add(totalMethods);
+
+			int totalFlagMethods = CollectionUtil.getSize(flagMethodsMap.get(project));
+			row.add(totalFlagMethods);
+			
+			row.add((float) totalFlagMethods / (float)totalMethods);
+
+			int totalInterprocedureFlagMethods = CollectionUtil.getSize(interprocedureFlagMethodsMap.get(project));
+			row.add(totalInterprocedureFlagMethods);
+			
+			row.add((float) totalInterprocedureFlagMethods / (float)totalMethods);
+			data.add(row);
+		}
+		excelWriter.writeSheet("data", data);
+	}
+	
+	public void generateMethodDistributionExcel(String targetMethodTxt, String allMethodsTxt, String excelFile) throws IOException {
+		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
+		Map<String, Set<String>> targetMethodsMap = readData(targetMethodTxt);
+		Map<String, Set<String>> allMethodsMap = readData(allMethodsTxt);
+		ExcelWriter excelWriter = new ExcelWriter(new File(excelFile));
+		excelWriter.getSheet("data", new String[]{"ProjectId", "ProjectName", "Total methods", "Total target methods", "Ratio"}, 0);
+		List<List<Object>> data = new ArrayList<>();
+		for (String project : projectFolders.keySet()) {
+			List<Object> row = new ArrayList<>();
+			row.add(projectFolders.get(project).getName());
+			row.add(project);
+			int totalMethods = CollectionUtil.getSize(allMethodsMap.get(project));
+			row.add(totalMethods);
+			int totalTargetMethods = CollectionUtil.getSize(targetMethodsMap.get(project));
+			row.add(totalTargetMethods);
+			row.add((float) totalTargetMethods / (float)totalMethods);
+			data.add(row);
+		}
+		excelWriter.writeSheet("data", data);
+	}
+	
+	public void generateStatisticExcel(String targetMethodTxt, String excelFile) throws IOException {
 		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
 		Map<String, Set<String>> targetMethodsMap = readData(targetMethodTxt);
 		ExcelWriter excelWriter = new ExcelWriter(new File(excelFile));
-		excelWriter.getSheet("data", new String[]{"ProjectId", "ProjectName", "Number of Flag-problem methods"}, 0);
+		excelWriter.getSheet("data", new String[]{"ProjectId", "ProjectName", "Total methods"}, 0);
 		List<List<Object>> data = new ArrayList<>();
 		for (String project : projectFolders.keySet()) {
 			List<Object> row = new ArrayList<>();

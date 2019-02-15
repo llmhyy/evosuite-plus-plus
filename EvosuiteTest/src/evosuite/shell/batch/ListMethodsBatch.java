@@ -45,9 +45,8 @@ public class ListMethodsBatch {
 			}
 		}
 		TargetMethodTool tool = new TargetMethodTool();
-		tool.generateMethodStatisticExcel(ListMethods.getTargetFilePath(),
+		tool.generateStatisticExcel(ListMethods.getTargetFilePath(),
 				evosuite.shell.FileUtils.getFilePath(SFConfiguration.getReportFolder(), "targetMethodsStatistic.xlsx"));
-		
 	}
 	
 	@Test
