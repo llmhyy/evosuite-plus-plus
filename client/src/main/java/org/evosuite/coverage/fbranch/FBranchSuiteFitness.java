@@ -418,6 +418,11 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	
 	
 	private double getNewFitness(List<ExecutionResult> results, Map<BranchCoverageGoal, Double> interestedKeys) {
+		
+		if(results.isEmpty()) {
+			return this.branchGoals.size();
+		}
+		
 		Map<BranchCoverageGoal, List<Double>> fitnessMap = new HashMap<>();
 		for(Integer key: branchCoverageTrueMap.keySet()) {
 			TestFitnessFunction tf = branchCoverageTrueMap.get(key);
