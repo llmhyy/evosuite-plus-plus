@@ -17,8 +17,8 @@ public class EvoTestSingleMethod {
 	@Before
 	public void setup() {
 		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		
 //		Properties.SEARCH_BUDGET = 60000;
 //		Properties.GLOBAL_TIMEOUT = 60000;
@@ -35,6 +35,44 @@ public class EvoTestSingleMethod {
 		String[] targetMethods = new String[]{
 //				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
 				"com.ib.client.EClientSocket#reqNewsBulletins(Z)V"
+				
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		fitnessAppraoch = "fbranch";
+		for (int i = 0; i < 3; i++) {
+			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
+			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
+			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
+			System.out.println("i=" + i);
+		}
+	}
+	
+	@Test
+	public void runEReader() {
+		String projectId = "1_tullibee";
+		String projectName = "tullibee";
+		String[] targetMethods = new String[]{
+//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
+				"com.ib.client.EReader#run()V"
+				
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		fitnessAppraoch = "fbranch";
+		for (int i = 0; i < 3; i++) {
+			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
+			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
+			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
+			System.out.println("i=" + i);
+		}
+	}
+	
+	@Test
+	public void getUniqueConstraint() {
+		String projectId = "13_jdbacl";
+		String projectName = "jdbacl";
+		String[] targetMethods = new String[]{
+//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
+				"org.databene.jdbacl.model.DefaultDBTable#getUniqueConstraint([Ljava/lang/String;)Lorg/databene/jdbacl/model/DBUniqueConstraint;"
 				
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};

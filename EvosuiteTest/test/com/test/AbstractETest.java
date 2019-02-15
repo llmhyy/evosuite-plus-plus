@@ -1,6 +1,7 @@
 package com.test;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.evosuite.EvoSuite;
@@ -76,11 +77,34 @@ public class AbstractETest {
 				
 				System.out.println("Used time: " + r.getElapseTime());
 				
+				System.out.println("Available calls: " + getAvailableCalls());
+				System.out.println("Unavailable calls: " + getUnavailableCalls());
+				
 				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, r.getAvailabilityRatio(), r.getProgressInformation());
 			}
 		}
 
 		return null;
+	}
+	
+	public static String getAvailableCalls() {
+		List<String> calls = new ArrayList<>();
+		for(String method: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+			if(RuntimeRecord.methodCallAvailabilityMap.get(method)) {
+				calls.add(method);
+			}
+		}
+		return calls.toString();
+	}
+	
+	public static String getUnavailableCalls() {
+		List<String> calls = new ArrayList<>();
+		for(String method: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+			if(!RuntimeRecord.methodCallAvailabilityMap.get(method)) {
+				calls.add(method);
+			}
+		}
+		return calls.toString();
 	}
 
 	public static Method getTragetMethod(String name, Class<?> clazz, int parameterNum){

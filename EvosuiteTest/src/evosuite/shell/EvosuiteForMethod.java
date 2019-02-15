@@ -284,10 +284,33 @@ public class EvosuiteForMethod {
 						ratio = (double)count/size;
 					}
 					System.out.println("Method call availability: " + ratio);
+					
+					System.out.println("Available calls: " + r.getAvailableCalls());
+					System.out.println("Unavailable calls: " + r.getUnavailableCalls());
 				}
 			}
 		} catch (Exception e) {
 			recorder.recordError(className, methodName, e);
 		}
 	}
+	
+//	public String getAvailableCalls() {
+//		List<String> calls = new ArrayList<>();
+//		for(String method: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+//			if(RuntimeRecord.methodCallAvailabilityMap.get(method)) {
+//				calls.add(method);
+//			}
+//		}
+//		return calls.toString();
+//	}
+//	
+//	public String getUnavailableCalls() {
+//		List<String> calls = new ArrayList<>();
+//		for(String method: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+//			if(!RuntimeRecord.methodCallAvailabilityMap.get(method)) {
+//				calls.add(method);
+//			}
+//		}
+//		return calls.toString();
+//	}
 }
