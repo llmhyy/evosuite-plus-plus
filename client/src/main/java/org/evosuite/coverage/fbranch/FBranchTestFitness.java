@@ -39,6 +39,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 	private final BranchCoverageGoal branchGoal;
 	private double epsilon = 0.00001;
+	
+	private boolean inconsistencyHappen = false;
 
 	public FBranchTestFitness(BranchCoverageGoal branchGoal) {
 		this.branchGoal = branchGoal;
@@ -66,6 +68,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	
 	@Override
 	public double getFitness(TestChromosome individual, ExecutionResult result) {
+		this.inconsistencyHappen = false;
+		
 		/**
 		 * if the result does not exercise this branch node, we do not further process the detailed
 		 * branch distance as we need to pass its parent branch node.
@@ -201,14 +205,12 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	}
 	
 	private List<Double> calculateReturnInsFitness(BytecodeInstruction returnIns, BranchCoverageGoal branchGoal,
-			RawControlFlowGraph calledGraph, ExecutionResult result, List<Call> callContext, List<Integer> branchTrace) {
+			RawControlFlowGraph calledGraph, ExecutionResult result, List<Call> callContext, List<Integer> branchTrace)  {
 		List<BytecodeInstruction> sourceInsList = getReturnConstants(calledGraph, returnIns);
 		List<Double> fitnessList = new ArrayList<>();
 		
 		fileterSourceInsList(result, sourceInsList, callContext, branchTrace);
 		
-		System.currentTimeMillis();
-
 		for (BytecodeInstruction sourceIns : sourceInsList) {
 			if (!sourceIns.isConstant() && !sourceIns.isMethodCall()) {
 				logger.error("the source of ireturn is not a constant.");
@@ -252,7 +254,9 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				}	
 				
 				if(fitness==0) {
-					System.err.print("wrong direction judgement");
+					logger.error(this.branchGoal + "is not exercised, but " +
+							"both branches of " + newDepBranch + " have 0 branch distance");
+					setInconsistencyHappen(true);
 					continue;
 				}
 
@@ -627,6 +631,14 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 	public BranchCoverageGoal getBranchGoal() {
 		return branchGoal;
+	}
+
+	public boolean isInconsistencyHappen() {
+		return inconsistencyHappen;
+	}
+
+	public void setInconsistencyHappen(boolean inconsistencyHappen) {
+		this.inconsistencyHappen = inconsistencyHappen;
 	}
 
 }
