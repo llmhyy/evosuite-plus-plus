@@ -111,6 +111,8 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	private List<Double> progressInformation = new ArrayList<>();
 	private int[] distribution;
 	private double availabilityRatio;
+	private List<String> availableCalls = new ArrayList<>();
+	private List<String> unavailableCalls = new ArrayList<>();
 
 	/**
 	 * Constructor
@@ -1165,6 +1167,22 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 
 	public void setAvailabilityRatio(double availabilityRatio) {
 		this.availabilityRatio = availabilityRatio;
+	}
+
+	public List<String> getAvailableCalls() {
+		return availableCalls;
+	}
+
+	public void setAvailableCalls(List<String> availableCalls) {
+		this.availableCalls = availableCalls;
+	}
+
+	public List<String> getUnavailableCalls() {
+		return unavailableCalls;
+	}
+
+	public void setUnavailableCalls(List<String> unavailableCalls) {
+		this.unavailableCalls = unavailableCalls;
 	}
 
 	/*

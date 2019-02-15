@@ -15,7 +15,7 @@ public class LoopUtil {
 
 	public static boolean checkPrecondition(int[] a, int b) {
 		if(checkArrayRange(a)
-				&& Math.pow(b, 2) < 100) {
+				&& checkValue(b)) {
 			return true;
 		}
 		
@@ -23,7 +23,11 @@ public class LoopUtil {
 	}
 	
 	public static boolean checkArrayRange(int[] a) {
-		return a.length < 10;
+		return a.length < 10000;
+	}
+	
+	public static boolean checkValue(int b) {
+		return Math.abs(b) > 1000000;
 	}
 
 }
