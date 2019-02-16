@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
@@ -23,7 +22,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.SourceValue;
@@ -35,7 +33,7 @@ import evosuite.shell.utils.OpcodeUtils;
 
 public class MethodFlagCondFilter implements IMethodFilter {
 	private static Logger log = LoggerUtils.getLogger(MethodFlagCondFilter.class);
-	private static final int METHOD_INVOKE_LEVEL = 2;
+	protected static final int METHOD_INVOKE_LEVEL = 10;
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -58,7 +56,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 						|| (m.access & Opcodes.ACC_PROTECTED) == Opcodes.ACC_PROTECTED
 						|| (m.access & Opcodes.ACC_PRIVATE) == 0 /* default */ ) {
 					try {
-						if (checkCond(classLoader, targetClass.getName(), methodName, m)) {
+						if (checkMethod(classLoader, targetClass.getName(), methodName, m)) {
 							validMethods.add(methodName);
 						}
 					} catch (Exception e) {
@@ -72,7 +70,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 		return validMethods;
 	}
 	
-	protected boolean checkCond(ClassLoader classLoader, String className, String methodName, MethodNode node) throws AnalyzerException, IOException {
+	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node) throws AnalyzerException, IOException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
 //		GraphPool.clearAll();
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
