@@ -3,7 +3,9 @@ package evosuite.shell;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
@@ -33,7 +35,6 @@ import evosuite.shell.utils.OpcodeUtils;
 
 public class MethodFlagCondFilter implements IMethodFilter {
 	private static Logger log = LoggerUtils.getLogger(MethodFlagCondFilter.class);
-	protected static final int METHOD_INVOKE_LEVEL = 10;
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -85,6 +86,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 			return false;
 		} 
 		boolean defuseAnalyzed = false;
+		Map<String, Boolean> methodValidityMap = new HashMap<String, Boolean>();
 		for (BytecodeInstruction insn : cfg.getBranches()) {
 			AbstractInsnNode insnNode = insn.getASMNode();
 			if (CollectionUtil.existIn(insnNode .getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
@@ -99,7 +101,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 					SourceValue srcValue = (SourceValue) value;
 					AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
 					if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
-						if (checkInvokedMethod(classLoader, condDefinition, METHOD_INVOKE_LEVEL)) {
+						if (checkInvokedMethod(classLoader, condDefinition, methodValidityMap)) {
 							log.info("!FOUND IT! in method " + methodName);
 							return true;
 						}
@@ -120,7 +122,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 								}
 							}
 							if (lastDef != null && CommonUtility.isInvokeMethodInsn(lastDef.getASMNode())) {
-								if (checkInvokedMethod(classLoader, lastDef.getASMNode(), METHOD_INVOKE_LEVEL)) {
+								if (checkInvokedMethod(classLoader, lastDef.getASMNode(), methodValidityMap)) {
 									log.info("!FOUND IT! in method " + methodName);
 									return true;
 								}
@@ -133,7 +135,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 		return false;
 	}
 
-	protected boolean checkInvokedMethod(ClassLoader classLoader, AbstractInsnNode condDefinition, int level)
+	protected boolean checkInvokedMethod(ClassLoader classLoader, AbstractInsnNode condDefinition, Map<String, Boolean> methodValidityMap)
 			throws AnalyzerException, IOException {
 		return true;
 	}

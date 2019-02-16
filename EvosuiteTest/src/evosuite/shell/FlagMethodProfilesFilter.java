@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -56,7 +57,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 				.append("_flagMethodProfiles.xlsx").toString();
 		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data", new String[]{
-				"ProjectId", "ProjectName", "Target Method", "Flag Method", "branch", "const0/1", "return under branch", "return under branch", "getfield", "invokemethod",
+				"ProjectId", "ProjectName", "Target Method", "Flag Method", "branch", "const0/1", "branch", "getfield", "branch", "invokemethod",
 				"other", "Remarks"}, 0);
 	}
 	
@@ -78,6 +79,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		boolean defuseAnalyzed = false;
 		MethodContent mc = new MethodContent();
 		boolean valid = false;
+		Map<String, Boolean> methodValidityMap = new HashMap<>();
 		for (BytecodeInstruction insn : cfg.getBranches()) {
 			AbstractInsnNode insnNode = insn.getASMNode();
 			if (CollectionUtil.existIn(insnNode .getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
@@ -92,7 +94,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 					SourceValue srcValue = (SourceValue) value;
 					AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
 					if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
-						if (checkInvokedMethod(classLoader, condDefinition, METHOD_INVOKE_LEVEL, mc)) {
+						if (checkInvokedMethod(classLoader, condDefinition, mc, methodValidityMap)) {
 							log.info("!FOUND IT! in method " + methodName);
 							valid = true;
 						}
@@ -113,7 +115,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 								}
 							}
 							if (lastDef != null && CommonUtility.isInvokeMethodInsn(lastDef.getASMNode())) {
-								if (checkInvokedMethod(classLoader, lastDef.getASMNode(), METHOD_INVOKE_LEVEL, mc)) {
+								if (checkInvokedMethod(classLoader, lastDef.getASMNode(), mc, methodValidityMap)) {
 									log.info("!FOUND IT! in method " + methodName);
 									valid = true;
 								}
@@ -126,7 +128,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		logToExcel(mc, className, methodName);
 		valid = false;
 		for (FlagMethod fm : mc.flagMethods) {
-			if (fm.returnUnderBranch > 0) {
+			if (fm.rConstBranch > 0) {
 				valid = true;
 				break;
 			}
@@ -145,9 +147,9 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			rowData.add(fm.methodName);
 			rowData.add(fm.branch);
 			rowData.add(fm.rConst);
-			rowData.add(fm.returnUnderBranch);
-			rowData.add(fm.returnUnderBranch > 0 ? 1 : 0);
+			rowData.add(fm.rConstBranch);
 			rowData.add(fm.getField);
+			rowData.add(fm.rGetFieldBranch);
 			rowData.add(fm.invokeMethods);
 			rowData.add(fm.other);
 			rowData.add(StringUtils.join(fm.notes, "\n"));
@@ -156,12 +158,10 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		writer.writeSheet("data", data);
 	}
 
-	protected boolean checkInvokedMethod(ClassLoader classLoader, AbstractInsnNode insn, int level, MethodContent mc) throws AnalyzerException, IOException {
-		if (level <= 0) {
-			return false;
-		}
+	protected boolean checkInvokedMethod(ClassLoader classLoader, AbstractInsnNode insn, MethodContent mc,
+			Map<String, Boolean> visitMethods) throws AnalyzerException, IOException {
 		FlagMethod fm = new FlagMethod();
-		mc.flagMethods.add(fm);
+		
 		MethodInsnNode methodInsn = null;
 		String className = null;
 		String methodName = null;
@@ -180,17 +180,22 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			fm.notes.add("InvokedMethod insn opcode: " + OpcodeUtils.getCode(insn.getOpcode()));
 			return false;
 		}
-
+		if (visitMethods.containsKey(fm.methodName)) {
+			return visitMethods.get(fm.methodName);
+		}
+		mc.flagMethods.add(fm);
 		if (CollectionUtil.existIn(className, String.class.getName(), File.class.getName(),
 				HashMap.class.getName(), ArrayList.class.getName(), HashSet.class.getName(),
 				Collection.class.getName(), List.class.getName())) {
 			fm.notes.add("Exclusive methods!");
+			visitMethods.put(fm.methodName, false);
 			return false;
 		}
 		
-		MethodNode node = getMethod(classLoader, methodInsn, className);
-		if (node == null) {
+		MethodNode methodNode = getMethod(classLoader, methodInsn, className);
+		if (methodNode == null) {
 			fm.notes.add("Could not analyze (Does not have explicit code)!");
+			visitMethods.put(fm.methodName, false);
 			return false;
 		}
 		
@@ -199,13 +204,14 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			if (cfg == null) {
 				BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
-				bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
+				bytecodeAnalyzer.analyze(classLoader, className, methodName, methodNode);
 				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 				cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			}
 			DominatorTree<BasicBlock> dt = new DominatorTree<BasicBlock>(cfg);
 			if (CollectionUtil.getSize(cfg.getBranches()) <= 1) {
 				fm.notes.add("No branch!");
+				visitMethods.put(fm.methodName, false);
 				return false;
 			}
 			fm.branch = cfg.getBranches().size();
@@ -224,17 +230,22 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 						}
 						// ignore
 					}
-					AbstractInsnNode prev = getPreviousInsnNode(exit.getASMNode());
+					AbstractInsnNode prev = getDefinitionInsn(exit);
 					if (prev instanceof MethodInsnNode) {
 						fm.invokeMethods ++;
-						valid |= checkInvokedMethod(classLoader, prev, level - 1, mc);
+						valid |= checkInvokedMethod(classLoader, prev, mc, visitMethods);
 					} else if (CollectionUtil.existIn(prev.getOpcode(), Opcodes.ICONST_0, Opcodes.ICONST_1)) {
 						fm.rConst ++;
 						valid = true;
-						if (dt.getImmediateDominator(exit.getBasicBlock()) != null) {
-							fm.returnUnderBranch ++;
+						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(prev));
+						if (dt.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
+							fm.rConstBranch = 1;
 						}
 					} else if (CollectionUtil.existIn(prev.getOpcode(), Opcodes.GETFIELD)) {
+						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(prev));
+						if (dt.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
+							fm.rGetFieldBranch = 1;
+						}
 						fm.getField ++;
 					} else {
 						fm.other ++;
@@ -246,20 +257,46 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 					}
 				}
 			}
+			visitMethods.put(fm.methodName, valid);
 			return valid;
 		} catch (Exception e) {
 			log.debug("error!!", e);
+			visitMethods.put(fm.methodName, false);
 			return false;
 		}
 	}
 	
-	private AbstractInsnNode getPreviousInsnNode(AbstractInsnNode insn) {
-		AbstractInsnNode prevNode = insn.getPrevious();
-//		while (prevNode != null && ((prevNode instanceof LabelNode) 
-//				|| (prevNode instanceof LineNumberNode))) {
-//			prevNode = prevNode.getPrevious();
-//		}
-		return prevNode;
+	private AbstractInsnNode getDefinitionInsn(BytecodeInstruction ireturnNode) {
+		AbstractInsnNode prevInsn = ireturnNode.getASMNode().getPrevious();
+		if (prevInsn.getOpcode()  < 0) {
+			BytecodeInstruction node = ireturnNode;
+			CFGFrame frame = node.getFrame();
+			while (frame == null) {
+				frame = node.getPreviousInstruction().getFrame();
+			}
+			Value value = frame.getStack(0);
+			if (value instanceof SourceValue) {
+				SourceValue srcValue = (SourceValue) value;
+				return (AbstractInsnNode) srcValue.insns.iterator().next();
+			} 
+//			while (frame != null) {
+//				Value value = frame.getStack(0);
+//				if (value instanceof SourceValue) {
+//					SourceValue srcValue = (SourceValue) value;
+//					try {
+//						return (AbstractInsnNode) srcValue.insns.iterator().next();
+//					} catch (Exception e) {
+//						log.debug("Error: ", e);
+//						System.out.println();
+//						frame = frame.getSuccessors().get(node.getInstructionId());
+//					}
+//				} else {
+//					frame = null;
+//				}
+//			} 
+		}
+		
+		return prevInsn;
 	}
 	
 	private MethodNode getMethod(ClassLoader classLoader, MethodInsnNode methodInsn, String className) throws IOException {
@@ -323,8 +360,9 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		private String methodName;
 		private int branch;
 		private int rConst;
-		private int returnUnderBranch;
+		private int rConstBranch;
 		private int getField;
+		private int rGetFieldBranch;
 		private int invokeMethods;
 		private int other;
 		private List<String> notes = new ArrayList<>();
