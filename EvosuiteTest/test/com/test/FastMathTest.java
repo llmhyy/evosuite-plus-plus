@@ -9,6 +9,8 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
+import evosuite.shell.EvoTestResult;
+
 public class FastMathTest extends AbstractETest{
 	
 	@Test

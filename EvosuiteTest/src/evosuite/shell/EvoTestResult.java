@@ -1,4 +1,4 @@
-package com.test;
+package evosuite.shell;
 
 import java.util.List;
 

@@ -7,13 +7,11 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.example.Example;
-
 public class BasicTest extends AbstractETest{
 	
 	@Test
 	public void test() {
-		Class<?> clazz = Example.class;
+		Class<?> clazz = com.example.Example.class;
 		String methodName = "test";
 		int parameterNum = 2;
 		

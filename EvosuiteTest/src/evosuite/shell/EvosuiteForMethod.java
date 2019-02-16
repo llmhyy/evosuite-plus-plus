@@ -28,8 +28,6 @@ import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
-import com.test.EvoTestResult;
-
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 

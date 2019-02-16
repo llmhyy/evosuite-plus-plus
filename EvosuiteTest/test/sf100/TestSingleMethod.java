@@ -9,8 +9,7 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.test.EvoTestResult;
-
+import evosuite.shell.EvoTestResult;
 import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.FileUtils;
 import evosuite.shell.experiment.BenchmarkAddress;
@@ -24,12 +23,12 @@ public class TestSingleMethod {
 	@Before
 	public void setup() {
 		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		
-//		Properties.SEARCH_BUDGET = 60000;
-//		Properties.GLOBAL_TIMEOUT = 60000;
-//		Properties.TIMEOUT = 3000000;
+		Properties.SEARCH_BUDGET = 60000;
+		Properties.GLOBAL_TIMEOUT = 60000;
+		Properties.TIMEOUT = 3000000;
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		FileUtils.deleteFolder(new File("/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest/evoTest-reports"));
@@ -100,6 +99,41 @@ public class TestSingleMethod {
 		}
 	}
 	
+	
+	@Test
+	public void runA4j() {
+		String projectId = "2_a4j";
+		String projectName = "a4j";
+		String[] targetMethods = new String[]{
+//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
+				"net.kencochrane.a4j.beans.RecentlyViewed#addProduct(Lnet/kencochrane/a4j/beans/MiniProduct;)V"
+				
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		fitnessApproach = "fbranch";
+		int repeatTime = 1;
+		int budget = 100;
+		results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget);
+		
+//		fitnessApproach = "branch";
+//		results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget);
+		
+		System.out.println("fbranch" + ":");
+		for(EvoTestResult lu: results0){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+		
+		System.out.println("branch" + ":");
+		for(EvoTestResult lu: results1){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+	}
+	
 	public List<EvoTestResult> evoTestSingleMethod(String projectId, String projectName,
 			String[] targetMethods, String fitnessAppraoch, int iteration, long seconds) {
 		/* configure */
@@ -150,7 +184,7 @@ public class TestSingleMethod {
 //				"-Dmax_size", "1",
 				"-Dmax_attempts", "100",
 				"-Dassertions", "false",
-//				"-Dstopping_condition", "maxgenerations",
+				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
 //				"-seed", "100"
