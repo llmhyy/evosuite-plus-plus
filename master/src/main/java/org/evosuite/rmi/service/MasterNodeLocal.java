@@ -40,4 +40,6 @@ public interface MasterNodeLocal extends Listenable<ClientStateInformation>{
 	public Set<ClientNodeRemote> getClientsOnceAllConnected(long timeoutInMs) throws InterruptedException;
 	
 	public void cancelAllClients();
+	
+	public void killAllClients();
 }

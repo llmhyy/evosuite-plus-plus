@@ -84,6 +84,11 @@ public class DummyClientNodeImpl extends ClientNodeImpl {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	@Override
+	public void terminate() throws RemoteException {
+		// TODO Auto-generated method stub
+	}
 
 	@Override
 	public boolean waitUntilFinished(long timeoutInMs) throws RemoteException,

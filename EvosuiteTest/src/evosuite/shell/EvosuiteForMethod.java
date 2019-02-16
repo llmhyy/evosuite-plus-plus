@@ -25,6 +25,7 @@ import org.evosuite.Properties;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.CommonUtility;
+import org.evosuite.utils.ExternalProcessHandler;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
@@ -131,6 +132,7 @@ public class EvosuiteForMethod {
 		LoggerUtils.setupLogger(SFConfiguration.getReportFolder(), projectId);
 		log = LoggerUtils.getLogger(EvosuiteForMethod.class);
 		Properties.MAX_OPEN_FILES_PER_PROCESS = 250;
+//		ExternalProcessHandler.terminateClientsIfCannotCancelGentlely = true;
 	}
 	
 	private CommandLine parseCommandLine(String[] args) {

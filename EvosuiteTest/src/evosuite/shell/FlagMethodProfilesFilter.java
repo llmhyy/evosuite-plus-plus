@@ -28,6 +28,7 @@ import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.CFGFrame;
 import org.evosuite.graphs.cfg.ControlDependency;
+import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.ClassReader;
@@ -57,8 +58,8 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 				.append("_flagMethodProfiles.xlsx").toString();
 		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data", new String[]{
-				"ProjectId", "ProjectName", "Target Method", "Flag Method", "branch", "const0/1", "branch", "getfield", "branch", "invokemethod",
-				"other", "Remarks"}, 0);
+				"ProjectId", "ProjectName", "Target Method", "Flag Method", "branch", "const0/1", "branch", "getfield", "branch",
+				"iLoad", "branch", "invokemethod", "other", "Remarks"}, 0);
 	}
 	
 	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node)
@@ -150,6 +151,8 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			rowData.add(fm.rConstBranch);
 			rowData.add(fm.getField);
 			rowData.add(fm.rGetFieldBranch);
+			rowData.add(fm.iload);
+			rowData.add(fm.rIloadBranch);
 			rowData.add(fm.invokeMethods);
 			rowData.add(fm.other);
 			rowData.add(StringUtils.join(fm.notes, "\n"));
@@ -184,10 +187,8 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			return visitMethods.get(fm.methodName);
 		}
 		mc.flagMethods.add(fm);
-		if (CollectionUtil.existIn(className, String.class.getName(), File.class.getName(),
-				HashMap.class.getName(), ArrayList.class.getName(), HashSet.class.getName(),
-				Collection.class.getName(), List.class.getName())) {
-			fm.notes.add("Exclusive methods!");
+		if (!RuntimeInstrumentation.checkIfCanInstrument(className)) {
+			fm.notes.add("Cannot instrument!");
 			visitMethods.put(fm.methodName, false);
 			return false;
 		}
@@ -247,6 +248,12 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 							fm.rGetFieldBranch = 1;
 						}
 						fm.getField ++;
+					} else if (CollectionUtil.existIn(prev.getOpcode(), Opcodes.ILOAD)) {
+						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(prev));
+						if (dt.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
+							fm.rIloadBranch = 1;
+						}
+						fm.iload ++;
 					} else {
 						fm.other ++;
 						if (prev.getOpcode() == -1) {
@@ -363,6 +370,8 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		private int rConstBranch;
 		private int getField;
 		private int rGetFieldBranch;
+		private int iload;
+		private int rIloadBranch;
 		private int invokeMethods;
 		private int other;
 		private List<String> notes = new ArrayList<>();

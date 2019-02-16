@@ -50,4 +50,6 @@ public interface ClientNodeRemote extends Remote {
 	public void doDependencyAnalysis(String fileName) throws RemoteException;
 
 	public void printClassStatistics() throws RemoteException;
+
+	public void terminate() throws RemoteException;
 }
