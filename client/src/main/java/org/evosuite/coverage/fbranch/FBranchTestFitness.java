@@ -264,7 +264,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 					}	
 					
 					if(fitness==0) {
-						logger.error(this.branchGoal + "is not exercised, but " +
+						logger.error(this.branchGoal + " is not exercised, but " +
 								"both branches of " + newDepBranch + " have 0 branch distance");
 						setInconsistencyHappen(true);
 						continue;
@@ -326,7 +326,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			}
 			
 			for(ControlDependency cd: ins.getControlDependencies()) {
-				List<Call> newContext = updateCallContext(ins, context);
+				List<Call> newContext = updateCallContext(cd.getBranch().getInstruction(), context);
 				
 				boolean branchExpression = cd.getBranchExpressionValue();
 				double distance = checkContextBranchDistance(result, cd.getBranch(), branchExpression, newContext, branchTrace);

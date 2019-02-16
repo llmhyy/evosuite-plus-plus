@@ -406,10 +406,10 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		
 		double f = fBranchFitness.getFitness(tc, result);
 		
-//		if(fBranchFitness.isInconsistencyHappen()) {
-//			System.currentTimeMillis();
+		if(fBranchFitness.isInconsistencyHappen()) {
+			System.currentTimeMillis();
 //			fBranchFitness.runTest(result.test);
-//		}
+		}
 		
 //		System.currentTimeMillis();
 		
