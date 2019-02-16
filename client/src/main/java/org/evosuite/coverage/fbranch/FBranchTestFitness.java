@@ -214,6 +214,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		List<Double> fitnessList = new ArrayList<>();
 		
 		fileterSourceInsList(result, sourceInsList, callContext, branchTrace);
+		System.currentTimeMillis();
 		
 		for (AnchorInstruction anchorIns : sourceInsList) {
 			/**
@@ -320,6 +321,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		List<BytecodeInstruction> coveredInsList = new ArrayList<>();
 		for(AnchorInstruction anchor: sourceInsList) {
 			BytecodeInstruction ins = anchor.ins;
+			if(ins.getControlDependencies().isEmpty()) {
+				coveredInsList.add(ins);
+			}
+			
 			for(ControlDependency cd: ins.getControlDependencies()) {
 				List<Call> newContext = updateCallContext(ins, context);
 				
@@ -390,7 +395,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			branchDistance = checkContextBranchDistance(result, branch, goalValue, callContext, branchTrace);
 		}
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 		double fitness = approachLevel + branchDistance;
 		
@@ -557,6 +562,11 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			this.ins = ins;
 			this.isDetermined = isDetermined;
 		}
+		
+		public String toString() {
+			String msg = this.ins.toString() + ": isDetermined: " + this.isDetermined;
+			return msg;
+		}
 	}
 	
 	private List<AnchorInstruction> findSourceForReturnInstructionInBlock(BasicBlock block) {
@@ -615,30 +625,51 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		}
 		
 		BasicBlock block = iLoad.getBasicBlock();
-		BytecodeInstruction istore = findIStoreInBlock(iLoad, block);
+		Set<BasicBlock> visitedBlocks = new HashSet<>();
 		
-		if(istore != null) {
-			defs.add(istore);
-			return defs;
+		findDefinitions(defs, block, iLoad, visitedBlocks);
+		
+		return defs;
+	}
+
+	private BytecodeInstruction findIStoreInBlock(BytecodeInstruction iLoad, BasicBlock block) {
+		BytecodeInstruction firstIns = block.getFirstInstruction();
+		BytecodeInstruction lastIns = block.getLastInstruction();
+		
+		int varID = iLoad.getLocalVariableSlot();
+		
+		BytecodeInstruction ins = lastIns;
+		while(ins.getInstructionId() >= firstIns.getInstructionId()) {
+			if(ins.isLocalVariableDefinition()) {
+				if(ins.getLocalVariableSlot() == varID) {
+					return ins;
+				}
+			}
+			ins = ins.getPreviousInstruction();
 		}
 		
-		CFGFrame frame = iLoad.getFrame();
-		Value value = frame.getStack(0);
-		if(value instanceof SourceValue) {
-			SourceValue sValue = (SourceValue)value;
-			for(Object obj: sValue.insns) {
-				if(obj instanceof AbstractInsnNode) {
-					AbstractInsnNode node = (AbstractInsnNode)obj;
-					BytecodeInstruction defIns = findInstruction(iLoad.getRawCFG(), node);
-					
-					if(defIns != null) {
-						defs.add(defIns);
-					}
+		return null;
+	}
+
+	private void findDefinitions(List<BytecodeInstruction> defs, BasicBlock block, BytecodeInstruction iLoad,
+			Set<BasicBlock> visitedBlocks) {
+		BytecodeInstruction istore = findIStoreInBlock(iLoad, block);
+		if(istore != null) {
+			if(!defs.contains(istore)) {
+				defs.add(istore);
+			}
+		}
+		else {
+			visitedBlocks.add(block);
+			
+			Set<BasicBlock> parents = iLoad.getActualCFG().getParents(block);
+			for(BasicBlock parent: parents) {
+				if(!visitedBlocks.contains(parent)) {
+					findDefinitions(defs, parent, iLoad, visitedBlocks);					
 				}
 			}
 		}
 		
-		return defs;
 	}
 
 	private BytecodeInstruction findInstruction(RawControlFlowGraph rawCFG, AbstractInsnNode node) {
