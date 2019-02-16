@@ -15,6 +15,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.CFGFrame;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.setup.Call;
@@ -22,7 +23,10 @@ import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.analysis.SourceValue;
+import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,81 +210,98 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	
 	private List<Double> calculateReturnInsFitness(BytecodeInstruction returnIns, BranchCoverageGoal branchGoal,
 			RawControlFlowGraph calledGraph, ExecutionResult result, List<Call> callContext, List<Integer> branchTrace)  {
-		List<BytecodeInstruction> sourceInsList = getReturnConstants(calledGraph, returnIns);
+		List<AnchorInstruction> sourceInsList = getReturnConstants(calledGraph, returnIns);
 		List<Double> fitnessList = new ArrayList<>();
 		
 		fileterSourceInsList(result, sourceInsList, callContext, branchTrace);
 		
-		for (BytecodeInstruction sourceIns : sourceInsList) {
-			if (!sourceIns.isConstant() && !sourceIns.isMethodCall()) {
+		for (AnchorInstruction anchorIns : sourceInsList) {
+			/**
+			 * no control dependency, we only care about method call
+			 */
+			BytecodeInstruction sourceIns = anchorIns.ins;
+			if(sourceIns.getControlDependencies().isEmpty()) {
+				if(sourceIns.isMethodCall()) {
+					String calledMethod = sourceIns.getCalledMethod();
+					if (calledMethod != null) {
+						List<Call> newContext = updateCallContext(sourceIns, callContext);
+						if(newContext.size()!=callContext.size()) {
+							double f = calculateInterproceduralFitness(sourceIns, newContext, branchGoal, result);
+							fitnessList.add(f);						
+						}
+						//stop for recursive call
+						else {
+							fitnessList.add(1.0);		
+						}
+					}
+				}
+				
+				continue;
+			}
+			
+			/**
+			 * has control dependency
+			 */
+			if(sourceIns.isConstant()) {
+				Branch newDepBranch = null;
+				boolean goalValue = false;
+				double fitness = 0;
+				for(ControlDependency cd: sourceIns.getControlDependencies()) {
+					newDepBranch = cd.getBranch();
+					
+					// TODO I am not that clear about getControlDependency() method, but I find
+					// reverse the direction make it correct.
+					goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
+					DistanceCondition dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
+					fitness = dCondition.fitness;
+					
+					// in case the returned direction is wrong.
+					if (fitness == 0) {
+						goalValue = !goalValue;
+						dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
+						fitness = dCondition.fitness;
+					}	
+					
+					if(fitness==0) {
+						logger.error(this.branchGoal + "is not exercised, but " +
+								"both branches of " + newDepBranch + " have 0 branch distance");
+						setInconsistencyHappen(true);
+						continue;
+					}
+
+					BranchCoverageGoal newGoal = dCondition.goal;
+
+					InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
+					if (flagResult.isInterproceduralFlag) {
+						List<Call> newContext = updateCallContext(flagResult.interproceduralFlagCall, callContext);
+						if(newContext.size() != callContext.size()) {
+							double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall, newContext,
+									newGoal, result);
+							fitnessList.add(interproceduralFitness);						
+						}
+						else {
+							fitnessList.add(1.0);		
+						}
+					} else {
+						fitnessList.add(fitness);
+					}
+					break;
+				}
+			}
+			else if(sourceIns.isFieldUse()) {
+				//TODO
 				logger.error("the source of ireturn is not a constant.");
 				continue;
 			}
-
-			if (sourceIns.getControlDependencies().isEmpty() || sourceIns.isMethodCall()) {
-				String calledMethod = sourceIns.getCalledMethod();
-				if (calledMethod != null) {
-					List<Call> newContext = updateCallContext(sourceIns, callContext);
-					
-					if(newContext.size()!=callContext.size()) {
-						double f = calculateInterproceduralFitness(sourceIns, newContext, branchGoal, result);
-						fitnessList.add(f);						
-					}
-					else {
-						fitnessList.add(1.0);		
-					}
-					
-					continue;
-				}
+			else if(sourceIns.isLocalVariableUse()) {
+				//TODO
+				logger.error("the source of ireturn is not a constant.");
+				continue;
+			}
+			else if(sourceIns.isMethodCall()) {
+				//TODO
 			}
 			
-			Branch newDepBranch = null;
-			boolean goalValue = false;
-			double fitness = 0;
-			for(ControlDependency cd: sourceIns.getControlDependencies()) {
-				newDepBranch = cd.getBranch();
-				
-				// TODO I am not that clear about getControlDependency() method, but I find
-				// reverse the direction make it correct.
-				goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
-				DistanceCondition dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
-				fitness = dCondition.fitness;
-				
-				// in case the returned direction is wrong.
-				if (fitness == 0) {
-					goalValue = !goalValue;
-					dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
-					fitness = dCondition.fitness;
-				}	
-				
-				if(fitness==0) {
-					logger.error(this.branchGoal + "is not exercised, but " +
-							"both branches of " + newDepBranch + " have 0 branch distance");
-					setInconsistencyHappen(true);
-					continue;
-				}
-
-				BranchCoverageGoal newGoal = dCondition.goal;
-
-				InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
-				if (flagResult.isInterproceduralFlag) {
-					List<Call> newContext = updateCallContext(flagResult.interproceduralFlagCall, callContext);
-					if(newContext.size() != callContext.size()) {
-						double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall, newContext,
-								newGoal, result);
-						fitnessList.add(interproceduralFitness);						
-					}
-					else {
-						fitnessList.add(1.0);		
-					}
-				} else {
-					fitnessList.add(fitness);
-				}
-				
-				break;
-			}
-
-
 		}
 
 		return fitnessList;
@@ -294,10 +315,11 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	 * @param cBranch
 	 */
 	private void fileterSourceInsList(ExecutionResult result,
-			List<BytecodeInstruction> sourceInsList, List<Call> context, List<Integer> branchTrace) {
+			List<AnchorInstruction> sourceInsList, List<Call> context, List<Integer> branchTrace) {
 		
 		List<BytecodeInstruction> coveredInsList = new ArrayList<>();
-		for(BytecodeInstruction ins: sourceInsList) {
+		for(AnchorInstruction anchor: sourceInsList) {
+			BytecodeInstruction ins = anchor.ins;
 			for(ControlDependency cd: ins.getControlDependencies()) {
 				List<Call> newContext = updateCallContext(ins, context);
 				
@@ -310,11 +332,13 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			}
 		}
 		
-		Iterator<BytecodeInstruction> iter = sourceInsList.iterator();
+		Iterator<AnchorInstruction> iter = sourceInsList.iterator();
 		while(iter.hasNext()) {
-			BytecodeInstruction ins = iter.next();
+			AnchorInstruction anchorIns = iter.next();
+			BytecodeInstruction ins = anchorIns.ins;
 			for(BytecodeInstruction coveredIns: coveredInsList) {
-				if(ins.explain().equals(coveredIns.explain())) {
+				if(ins.explain().equals(coveredIns.explain()) && ins.isConstant() 
+						|| ins.equals(coveredIns)) {
 					iter.remove();
 					break;
 				}
@@ -525,16 +549,30 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	// return fitness;
 	// }
 
-	private BytecodeInstruction findSourceForReturnInstructionInBlock(BasicBlock block) {
+	class AnchorInstruction{
+		BytecodeInstruction ins;
+		boolean isDetermined = true;
+		public AnchorInstruction(BytecodeInstruction ins, boolean isDetermined) {
+			super();
+			this.ins = ins;
+			this.isDetermined = isDetermined;
+		}
+	}
+	
+	private List<AnchorInstruction> findSourceForReturnInstructionInBlock(BasicBlock block) {
+		List<AnchorInstruction> anchorList = new ArrayList<>();
+		
 		BytecodeInstruction lastIns = block.getLastInstruction();
 		BytecodeInstruction firstIns = block.getFirstInstruction();
 		BytecodeInstruction ins = lastIns;
 		
 		while (ins.getInstructionId() >= firstIns.getInstructionId()) {
 			if (ins.isConstant()) {
-				return ins;
+				anchorList.add(new AnchorInstruction(ins, true));
+				break;
 			} else if (ins.isFieldUse()) {
-				return ins;
+				anchorList.add(new AnchorInstruction(ins, false));
+				break;
 			} else if (ins.isMethodCall()) {
 				MethodInsnNode mNode = (MethodInsnNode) ins.getASMNode();
 				String desc = mNode.desc;
@@ -542,44 +580,94 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				boolean isInterprocedural = returnType.equals("Z");
 				
 				if(isInterprocedural) {
-					return ins;
+					anchorList.add(new AnchorInstruction(ins, false));
+					break;
 				}
+			} else if (ins.isLocalVariableUse()) {
+				List<BytecodeInstruction> istores = findDefinitions(ins);
+				
+				if(istores.isEmpty()) {
+					anchorList.add(new AnchorInstruction(ins, true));
+					break;
+				}
+				
+				for(BytecodeInstruction istore: istores) {
+					BytecodeInstruction prevIns = istore.getPreviousInstruction();
+					if(prevIns.isConstant()) {
+						anchorList.add(new AnchorInstruction(prevIns, true));
+					}
+					else {
+						anchorList.add(new AnchorInstruction(ins, false));
+					}
+				}
+				
 			}
 			ins = ins.getPreviousInstruction();
 		}
 
+		return anchorList;
+	}
+
+	private List<BytecodeInstruction> findDefinitions(BytecodeInstruction iLoad) {
+		List<BytecodeInstruction> defs = new ArrayList<>();
+		if(!iLoad.explain().contains("ILOAD")) {
+			return new ArrayList<>();
+		}
+		
+		BasicBlock block = iLoad.getBasicBlock();
+		BytecodeInstruction istore = findIStoreInBlock(iLoad, block);
+		
+		if(istore != null) {
+			defs.add(istore);
+			return defs;
+		}
+		
+		CFGFrame frame = iLoad.getFrame();
+		Value value = frame.getStack(0);
+		if(value instanceof SourceValue) {
+			SourceValue sValue = (SourceValue)value;
+			for(Object obj: sValue.insns) {
+				if(obj instanceof AbstractInsnNode) {
+					AbstractInsnNode node = (AbstractInsnNode)obj;
+					BytecodeInstruction defIns = findInstruction(iLoad.getRawCFG(), node);
+					
+					if(defIns != null) {
+						defs.add(defIns);
+					}
+				}
+			}
+		}
+		
+		return defs;
+	}
+
+	private BytecodeInstruction findInstruction(RawControlFlowGraph rawCFG, AbstractInsnNode node) {
+		for(BytecodeInstruction ins: rawCFG.vertexSet()) {
+			if(ins.getASMNode().equals(node)) {
+				return ins;
+			}
+		}
 		return null;
 	}
 
-	private List<BytecodeInstruction> getReturnConstants(RawControlFlowGraph calledGraph,
+	private List<AnchorInstruction> getReturnConstants(RawControlFlowGraph calledGraph,
 			BytecodeInstruction returnIns) {
-		List<BytecodeInstruction> sourceInsList = new ArrayList<>();
+//		List<BytecodeInstruction> sourceInsList = new ArrayList<>();
 
 		BasicBlock block = returnIns.getBasicBlock();
-		BytecodeInstruction sourceIns = findSourceForReturnInstructionInBlock(block);
-		if (sourceIns != null) {
-			if (sourceIns.isConstant()) {
-				sourceInsList.add(sourceIns);
-			} else if (sourceIns.isFieldUse()) {
-				// TODO need to handle dynamic definition
-				System.currentTimeMillis();
-			} else if (sourceIns.isMethodCall()) {
-				sourceInsList.add(sourceIns);
+		List<AnchorInstruction> sourceInsList = findSourceForReturnInstructionInBlock(block);
+		if(sourceInsList.isEmpty()) {
+			Set<BytecodeInstruction> insParents = calledGraph.getParents(block.getFirstInstruction());
+			for (BytecodeInstruction parentIns : insParents) {
+				BasicBlock parentBlock = parentIns.getBasicBlock();
+				List<AnchorInstruction> sources = findSourceForReturnInstructionInBlock(parentBlock);
+				sourceInsList.addAll(sources);
 			}
-			
-			return sourceInsList;
-		}
 
-		Set<BytecodeInstruction> insParents = calledGraph.getParents(block.getFirstInstruction());
-		for (BytecodeInstruction parentIns : insParents) {
-			BasicBlock parentBlock = parentIns.getBasicBlock();
-			sourceIns = findSourceForReturnInstructionInBlock(parentBlock);
-			if (sourceIns != null) {
-				sourceInsList.add(sourceIns);
-			}
 		}
 
 		return sourceInsList;
+		
 	}
 
 	@Override
