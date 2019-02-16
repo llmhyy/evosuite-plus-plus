@@ -7,8 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.evosuite.result.TestGenerationResult;
 import org.slf4j.Logger;
+
+import com.test.EvoTestResult;
 
 import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.experiment.SFConfiguration;
@@ -16,7 +17,7 @@ import evosuite.shell.utils.LoggerUtils;
 
 public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 	private String currentMethod;
-	private List<RuntimeData> currentResult = new ArrayList<>();
+	private List<EvoTestResult> currentResult = new ArrayList<>();
 	
 	private Logger log = LoggerUtils.getLogger(FitnessEffectiveRecorder.class);
 	private ExcelWriter excelWriter;
@@ -44,10 +45,10 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 	}
 	
 	@Override
-	public void record(String className, String methodName, TestGenerationResult r) {
+	public void record(String className, String methodName, EvoTestResult r) {
 		super.record(className, methodName, r);
 		currentMethod = className + "#" + methodName;
-		currentResult.add(new RuntimeData(r));
+		currentResult.add(r);
 	}
 	
 	@Override
@@ -66,31 +67,33 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		double successR = currentResult.size();
 		List<Object> rowData = new ArrayList<Object>();
 		while (currentResult.size() < (iterator - 1)) {
-			currentResult.add(new RuntimeData());
+			currentResult.add(new EvoTestResult(0, 0, 0, -1, new ArrayList<>()));
 		}
 		rowData.add(className);
 		rowData.add(methodName);
 		double bestCvg = 0.0;
 		double totalCvg = 0.0;
 		double totalTime = 0.0;
-		double age = 0;;
+		double ageOfBestCvg = 0;;
 		for (int i = 0; i < iterator; i++) {
-			RuntimeData r = currentResult.get(i);
-			rowData.add(r.getElapseTime());
+			EvoTestResult r = currentResult.get(i);
+			rowData.add(r.getTime());
 			rowData.add(r.getCoverage());
 			rowData.add(r.getAge());
 			if (bestCvg < r.getCoverage()) {
 				bestCvg = r.getCoverage();
-				age = r.getAge();
+				ageOfBestCvg = r.getAge();
+			} else if (bestCvg == r.getCoverage()) {
+				ageOfBestCvg = Math.min(ageOfBestCvg, r.getAge());
 			}
 			totalCvg += r.getCoverage();
-			totalTime += r.getElapseTime();
+			totalTime += r.getTime();
 		}
-		rowData.add(currentResult.get(0).getAvailabilityRatio());
+		rowData.add(currentResult.get(0).getRatio());
 		rowData.add(totalTime / successR);
 		rowData.add(totalCvg / successR);
 		rowData.add(bestCvg);
-		rowData.add(age);
+		rowData.add(ageOfBestCvg);
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 		} catch (IOException e) {
@@ -101,40 +104,4 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		currentResult.clear();
 	}
 	
-	private static class RuntimeData {
-		
-		private double coverage = 0.0;
-		private int elapseTime = 0;
-		private int age = -1;
-		private double availabilityRatio = 0.0;
-		
-
-		public RuntimeData() {
-			
-		}
-
-		public RuntimeData(TestGenerationResult r) {
-			this.coverage = r.getCoverage();
-			this.elapseTime = r.getElapseTime();
-			this.age = r.getGeneticAlgorithm() == null ? -1 : r.getGeneticAlgorithm().getAge();
-			this.availabilityRatio = r.getAvailabilityRatio();
-		}
-
-		public double getCoverage() {
-			return coverage;
-		}
-
-		public int getElapseTime() {
-			return elapseTime;
-		}
-
-		public int getAge() {
-			return age;
-		}
-		
-		public double getAvailabilityRatio() {
-			return availabilityRatio;
-		}
-		
-	}
 }

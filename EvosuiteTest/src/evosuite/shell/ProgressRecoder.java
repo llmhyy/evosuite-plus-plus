@@ -10,6 +10,8 @@ import java.util.List;
 import org.evosuite.result.TestGenerationResult;
 import org.slf4j.Logger;
 
+import com.test.EvoTestResult;
+
 import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
@@ -26,6 +28,12 @@ public class ProgressRecoder extends ExperimentRecorder {
 		progressExcelWriter = new ExcelWriter(FileUtils.newFile(SFConfiguration.getReportFolder(), projectId + "_progress.xlsx"));
 		progressExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
 	}
+	
+	@Override
+	public void record(String className, String methodName, EvoTestResult result) {
+		super.record(className, methodName, result);
+	}
+	
 	
 	@Override
 	public void record(String className, String methodName, TestGenerationResult r) {

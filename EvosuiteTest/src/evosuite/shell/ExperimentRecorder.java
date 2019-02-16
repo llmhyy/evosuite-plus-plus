@@ -5,6 +5,8 @@ import static evosuite.shell.EvosuiteForMethod.projectId;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.CommonUtility;
 
+import com.test.EvoTestResult;
+
 import evosuite.shell.experiment.SFConfiguration;
 
 public class ExperimentRecorder {
@@ -20,7 +22,7 @@ public class ExperimentRecorder {
 	}
 
 
-	public void record(String className, String methodName, TestGenerationResult testResult) {
+	public void record(String className, String methodName, EvoTestResult result) {
 		// override when needed.
 	}
 
@@ -29,6 +31,10 @@ public class ExperimentRecorder {
 	}
 	
 	public void recordEndMethod(String methodName, String className) {
+		// override when needed.
+	}
+
+	public void record(String className, String methodName, TestGenerationResult r) {
 		// override when needed.
 	}
 }

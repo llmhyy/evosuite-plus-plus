@@ -1,5 +1,6 @@
 package com.test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class EvoTestResult {
@@ -8,7 +9,9 @@ public class EvoTestResult {
 	private int age;
 	private double ratio;
 	private List<Double> progress;
-
+	private List<String> availableCalls = new ArrayList<>();
+	private List<String> unavailableCalls = new ArrayList<>();
+	
 	public EvoTestResult(int time, double coverage, int age, double ratio, List<Double> progress) {
 		super();
 		this.time = time;
@@ -58,4 +61,20 @@ public class EvoTestResult {
 		this.progress = progress;
 	}
 
+	public List<String> getAvailableCalls() {
+		return availableCalls;
+	}
+
+	public void setAvailableCalls(List<String> availableCalls) {
+		this.availableCalls = availableCalls;
+	}
+
+	public List<String> getUnavailableCalls() {
+		return unavailableCalls;
+	}
+
+	public void setUnavailableCalls(List<String> unavailableCalls) {
+		this.unavailableCalls = unavailableCalls;
+	}
+	
 }
