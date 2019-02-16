@@ -214,7 +214,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		List<Double> fitnessList = new ArrayList<>();
 		
 		fileterSourceInsList(result, sourceInsList, callContext, branchTrace);
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 		for (AnchorInstruction anchorIns : sourceInsList) {
 			/**
@@ -391,9 +391,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			
 		}
 
-		if(branchDistance == -1) {
-			branchDistance = checkContextBranchDistance(result, branch, goalValue, callContext, branchTrace);
-		}
+		branchDistance = checkContextBranchDistance(result, branch, goalValue, callContext, branchTrace);
 		
 //		System.currentTimeMillis();
 		
