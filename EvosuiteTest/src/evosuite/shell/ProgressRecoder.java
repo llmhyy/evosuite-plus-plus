@@ -28,6 +28,12 @@ public class ProgressRecoder extends ExperimentRecorder {
 	}
 	
 	@Override
+	public void record(String className, String methodName, EvoTestResult result) {
+		super.record(className, methodName, result);
+	}
+	
+	
+	@Override
 	public void record(String className, String methodName, TestGenerationResult r) {
 		if (r.getDistribution() == null || r.getDistribution().length == 0) {
 			return;

@@ -14,9 +14,9 @@ public class ListRelevantJdkClasses extends MethodFlagCondFilter implements IMet
 	private String listFile = SFConfiguration.getReportFolder() + "/jdkClasses.txt";
 	
 	@Override
-	protected boolean checkCond(ClassLoader classLoader, String className, String methodName, MethodNode node)
+	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node)
 			throws AnalyzerException, IOException {
-		boolean valid = super.checkCond(classLoader, className, methodName, node);
+		boolean valid = super.checkMethod(classLoader, className, methodName, node);
 		if (valid) {
 			StringBuilder sb = new StringBuilder();
 			ListIterator<AbstractInsnNode> it = node.instructions.iterator();

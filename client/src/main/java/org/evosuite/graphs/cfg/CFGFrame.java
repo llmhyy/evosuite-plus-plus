@@ -45,4 +45,7 @@ public class CFGFrame extends Frame {
 		super(src);
 	}
 	
+	public Map<Integer, CFGFrame> getSuccessors() {
+		return successors;
+	}
 }

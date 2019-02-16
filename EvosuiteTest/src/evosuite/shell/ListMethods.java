@@ -7,6 +7,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.utils.ArrayUtil;
+import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
 import org.slf4j.Logger;
 
@@ -24,7 +25,7 @@ public class ListMethods {
 	
 	public static final String OPT_NAME = ParameterOptions.LIST_METHODS_OPT;
 
-	public static void execute(String[] targetClasses, ClassLoader classLoader) throws ClassNotFoundException, IOException {
+	public static int execute(String[] targetClasses, ClassLoader classLoader) throws ClassNotFoundException, IOException {
 		String allTargetMethodsFile = getTargetFilePath();
 		StringBuilder sb = new StringBuilder();
 		sb.append("#------------------------------------------------------------------------\n")
@@ -35,7 +36,8 @@ public class ListMethods {
 		if (!ArrayUtil.contains(Properties.CRITERION, Criterion.DEFUSE)) {
 			Properties.CRITERION = ArrayUtils.addAll(Properties.CRITERION, Criterion.DEFUSE);
 		}
-		IMethodFilter methodFilter = new MethodFlagCondWithSimpleReturnFilter();
+		IMethodFilter methodFilter = new FlagMethodProfilesFilter();
+		int total = 0;
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = classLoader.loadClass(className);
@@ -46,6 +48,7 @@ public class ListMethods {
 				}
 				System.out.println("Class " + targetClass.getName());
 				List<String> testableMethods = methodFilter.listTestableMethods(targetClass, classLoader);
+				total += CollectionUtil.getSize(testableMethods);
 				sb = new StringBuilder();
 				for (String methodName : testableMethods) {
 					sb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
@@ -58,6 +61,7 @@ public class ListMethods {
 				log.error("Error", t);
 			}
 		}
+		return total;
 	}
 
 	public static String getTargetFilePath() {

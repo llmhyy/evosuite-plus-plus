@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.evosuite.result.TestGenerationResult;
 import org.slf4j.Logger;
 
 import evosuite.shell.excel.ExcelWriter;
@@ -30,14 +29,14 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 	}
 
 	@Override
-	public void record(String className, String methodName, TestGenerationResult r) {
+	public void record(String className, String methodName, EvoTestResult r) {
 		List<Object> rowData = new ArrayList<Object>();
 		rowData.add(className);
 		rowData.add(methodName);
-		rowData.add(r.getElapseTime());
+		rowData.add(r.getTime());
 		rowData.add(r.getCoverage());
-		rowData.add(r.getGeneticAlgorithm().getAge());
-		rowData.add(r.getAvailabilityRatio());
+		rowData.add(r.getAge());
+		rowData.add(r.getRatio());
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 			logSuccessfulMethods(className, methodName);

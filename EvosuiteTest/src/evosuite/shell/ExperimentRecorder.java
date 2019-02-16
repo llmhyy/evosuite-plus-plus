@@ -20,7 +20,7 @@ public class ExperimentRecorder {
 	}
 
 
-	public void record(String className, String methodName, TestGenerationResult testResult) {
+	public void record(String className, String methodName, EvoTestResult result) {
 		// override when needed.
 	}
 
@@ -29,6 +29,10 @@ public class ExperimentRecorder {
 	}
 	
 	public void recordEndMethod(String methodName, String className) {
+		// override when needed.
+	}
+
+	public void record(String className, String methodName, TestGenerationResult r) {
 		// override when needed.
 	}
 }

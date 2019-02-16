@@ -278,7 +278,6 @@ public class EvosuiteForMethod {
 			List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
 			for (List<TestGenerationResult> l : list) {
 				for (TestGenerationResult r : l) {
-					recorder.record(className, methodName, r);
 					
 					System.out.println("Used time: " + r.getElapseTime());
 					System.out.println("Used generations: " + r.getGeneticAlgorithm().getAge());
@@ -303,6 +302,9 @@ public class EvosuiteForMethod {
 					
 					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), 
 							r.getGeneticAlgorithm().getAge(), r.getAvailabilityRatio(), r.getProgressInformation());
+					result.setAvailableCalls(r.getAvailableCalls());
+					result.setUnavailableCalls(r.getUnavailableCalls());
+					recorder.record(className, methodName, result);
 				}
 			}
 		} catch (Exception e) {

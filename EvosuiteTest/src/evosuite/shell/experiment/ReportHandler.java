@@ -32,9 +32,9 @@ public class ReportHandler {
 	
 	@Test
 	public void mergeExcels1() throws IOException {
-		MergeExcels.excelSubfix = "_flagMethodInsnStatistic.xlsx";
+		MergeExcels.excelSubfix = "_flagMethodProfiles.xlsx";
 		String reportFolder = "/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest/evoTest-reports";
-		String outputFile = reportFolder + "/flagMethodInsnStatistic.xlsx";
+		String outputFile = reportFolder + "/flagMethodProfiles.xlsx";
 		List<String> inputFiles = FileUtils.toFilePath(MergeExcels.listExcels(reportFolder));
 		ExcelUtils.mergeExcel(outputFile, inputFiles, 0);
 		
