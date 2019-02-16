@@ -407,9 +407,10 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		double f = fBranchFitness.getFitness(tc, result);
 		
 		if(fBranchFitness.isInconsistencyHappen()) {
-			System.currentTimeMillis();
+//			System.currentTimeMillis();
 //			fBranchFitness.runTest(result.test);
 		}
+//		fBranchFitness.runTest(result.test);
 		
 //		System.currentTimeMillis();
 		
