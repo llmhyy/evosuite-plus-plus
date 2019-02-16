@@ -475,6 +475,20 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		return null; // root branch
 	}
 
+	public Branch getControlDependentBranch(Set<Branch> visitedBranches) {
+
+		Set<ControlDependency> controlDependentBranches = getControlDependencies();
+
+		for (ControlDependency cd : controlDependentBranches) {
+			Branch branch = cd.getBranch();
+			if(!visitedBranches.contains(branch))
+				return cd.getBranch();
+		}
+
+		return null; // root branch
+	}
+	
+	
 	/**
 	 * Returns all branchIds of Branches this instruction is directly control
 	 * dependent on as determined by the ControlDependenceGraph for this

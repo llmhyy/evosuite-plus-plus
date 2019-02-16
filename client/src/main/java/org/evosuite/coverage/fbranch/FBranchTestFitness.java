@@ -144,13 +144,25 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			iteratedFitness.add(fit);
 		}
 		
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		
 		if(iteratedFitness.isEmpty()) {
 			return 10000000d;
 		}
 		
-		return Collections.min(iteratedFitness);
+//		return Collections.min(iteratedFitness);
+		return aggreateFitenss(iteratedFitness);
+	}
+	
+	private double aggreateFitenss(List<Double> fitnessList) {
+		double sum = this.epsilon;
+		for (Double f : fitnessList) {
+			sum += 1 / (f + this.epsilon);
+		}
+		
+		double fit = 1 / sum;
+		
+		return fit;
 	}
 	
 	private List<List<Integer>> identifyLoopContext(ExecutionResult result, List<Call> callContext) {
@@ -214,7 +226,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		List<Double> fitnessList = new ArrayList<>();
 		
 		fileterSourceInsList(result, sourceInsList, callContext, branchTrace);
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		
 		for (AnchorInstruction anchorIns : sourceInsList) {
 			/**
