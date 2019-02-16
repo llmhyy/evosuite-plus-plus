@@ -184,6 +184,7 @@ public class TestSingleMethod {
 //				"-Dmax_size", "1",
 				"-Dmax_attempts", "100",
 				"-Dassertions", "false",
+				"-Dlocal_search_ensure_double_execution", "false",
 				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",

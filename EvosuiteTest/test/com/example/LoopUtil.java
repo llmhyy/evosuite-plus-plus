@@ -10,10 +10,10 @@ public class LoopUtil {
 	public static boolean contains(int[] keys, int index, int value) {
 		int key = sha256(value);
 		
-		for(int i=0; i<keys.length; i++) {
-			if((keys[i] == 0 || value>=Math.pow(index, 2)+100000) && keys[i] == key) {
-				return true;
-			}
+		if((keys[index] == 0 || 
+				value>=11110) && 
+				keys[index] == key) {
+			return true;
 		}
 		return false;
 	}
