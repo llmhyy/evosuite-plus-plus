@@ -502,4 +502,9 @@ public class ClientNodeImpl implements ClientNodeLocal, ClientNodeRemote {
 		});
 	}
 
+	@Override
+	public void terminate() throws RemoteException {
+		System.exit(1);
+	}
+
 }

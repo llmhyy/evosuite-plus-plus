@@ -160,6 +160,19 @@ public class MasterNodeImpl implements MasterNodeRemote, MasterNodeLocal {
 			}
 		}
 	}
+	
+	@Override
+	public void killAllClients() {
+		for (ClientNodeRemote client : clients) {
+			try {
+				LoggingUtils.getEvoLogger().info("Kill client " + client);
+				client.terminate();
+			} catch (RemoteException e) {
+				logger.warn("Error while killing client: " + e);
+				e.printStackTrace();
+			}
+		}
+	}
 
 	@Override
 	public void evosuite_collectStatistics(String clientRmiIdentifier, Chromosome individual) {

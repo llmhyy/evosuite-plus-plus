@@ -35,6 +35,7 @@ import org.evosuite.rmi.MasterServices;
 import org.evosuite.rmi.service.ClientNodeRemote;
 import org.evosuite.rmi.service.ClientState;
 import org.evosuite.runtime.sandbox.Sandbox;
+import org.hamcrest.MatcherAssert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +73,7 @@ public class ExternalProcessHandler {
 	protected Thread clientRunningOnThread;
 
 	protected volatile CountDownLatch latch;
+	public static boolean terminateClientsIfCannotCancelGentlely = false;
 
 	protected String base_dir = System.getProperty("user.dir");
 
@@ -613,6 +615,9 @@ public class ExternalProcessHandler {
 					 * Or check in which state it is, and based on that decide if giving more time?
 					 */
 					logger.error("Class "+ Properties.TARGET_CLASS+". Clients have not finished yet, although a timeout occurred.\n"+MasterServices.getInstance().getMasterNode().getSummaryOfClientStatuses());
+					if (terminateClientsIfCannotCancelGentlely) {
+						MasterServices.getInstance().getMasterNode().killAllClients();
+					}
 				}				
 			}
 		} catch (InterruptedException e) {		
