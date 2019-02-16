@@ -14,4 +14,9 @@ public class LoopExample {
 		
 		return false;
 	}
+	
+	public static void main(String[] args) {
+		LoopExample example = new LoopExample();
+		example.test(new int[] {0, 1}, 0);
+	}
 }
