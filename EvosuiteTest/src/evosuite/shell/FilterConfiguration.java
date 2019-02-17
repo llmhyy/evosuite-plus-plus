@@ -13,7 +13,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.evosuite.utils.CollectionUtil;
-import org.evosuite.utils.CommonUtility;
+import org.evosuite.utils.ProgramArgumentUtils;
 /**
  * 
  * @author thilyly_tran
@@ -23,8 +23,8 @@ public class FilterConfiguration {
 	private List<Filter> filters;
 	
 	public FilterConfiguration(String[] args) throws Exception {
-		String exclFile = CommonUtility.getOptValue(args, ParameterOptions.EXCLUSIVE_FILE_OPT);
-		String inclFile = CommonUtility.getOptValue(args, ParameterOptions.INCLUSIVE_FILE_OPT);
+		String exclFile = ProgramArgumentUtils.getOptValue(args, ParameterOptions.EXCLUSIVE_FILE_OPT);
+		String inclFile = ProgramArgumentUtils.getOptValue(args, ParameterOptions.INCLUSIVE_FILE_OPT);
 		filters = new ArrayList<FilterConfiguration.Filter>();
 		if (StringUtils.isNotEmpty(exclFile)) {
 			filters.add(new ExclusiveFilter(exclFile));
