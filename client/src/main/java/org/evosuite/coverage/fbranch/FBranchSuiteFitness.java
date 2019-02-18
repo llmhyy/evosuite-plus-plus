@@ -453,7 +453,12 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				
 				List<Double> fitnessList = new ArrayList<>();
 				for(int i=0; i<results.size(); i++) {
+					if(i==21) {
+						System.currentTimeMillis();
+					}
+					
 					ExecutionResult result = results.get(i);
+					
 					double f = getTestFitness(goal, result);
 					fitnessList.add(f);
 				}

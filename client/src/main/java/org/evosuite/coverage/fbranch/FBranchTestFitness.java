@@ -397,6 +397,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		int approachLevel = 0;
 		double branchDistance = -1;
 		
+		Branch prevBranch = branch;
 		while (!checkCovered(result, branch, callContext, branchTrace) && !visitedBranches.contains(branch)) {
 			approachLevel++;
 			
@@ -413,23 +414,55 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				break;
 			}
 
+			prevBranch = branch;
 			branch = branch.getInstruction().getControlDependentBranch();
-			
 			goalValue = originBranchIns.getControlDependency(branch).getBranchExpressionValue();
 			
 			callContext = updateCallContext(branch.getInstruction(), originContext);
 			branchDistance = checkContextBranchDistance(result, branch, goalValue, callContext, branchTrace);
 			if(branchDistance == 0) {
 				goalValue = !goalValue;
-			}
-			
+			}	
 		}
 
-		branchDistance = checkContextBranchDistance(result, branch, goalValue, callContext, branchTrace);
+		
+		double finalBranchDistance = 0;
+		if(approachLevel > 0) {
+			List<Branch> visitedControlBranches = new ArrayList<>();
+			List<Boolean> expression = new ArrayList<>();
+			for(ControlDependency cd: prevBranch.getInstruction().getControlDependencies()) {
+				Branch b = cd.getBranch();
+				callContext = updateCallContext(b.getInstruction(), originContext);
+				if(checkCovered(result, b, callContext, branchTrace)) {
+					visitedControlBranches.add(b);
+					expression.add(cd.getBranchExpressionValue());
+				}
+			}
+			if(visitedControlBranches.isEmpty()) {
+				finalBranchDistance = 1;
+			}
+			else {
+				double average = 0;
+				for(int i=0; i<visitedControlBranches.size(); i++) {
+					Branch b = visitedControlBranches.get(i);
+					boolean g = expression.get(i);
+					
+					callContext = updateCallContext(b.getInstruction(), originContext);
+					double bd = checkContextBranchDistance(result, b, g, callContext, branchTrace);
+					average += bd;
+				}
+				average /= visitedControlBranches.size();
+				finalBranchDistance = average;
+			}			
+		}
+		else {
+			callContext = updateCallContext(branch.getInstruction(), originContext);
+			finalBranchDistance = checkContextBranchDistance(result, branch, goalValue, callContext, branchTrace);
+		}
 		
 //		System.currentTimeMillis();
 		
-		double fitness = approachLevel + branchDistance;
+		double fitness = approachLevel + finalBranchDistance;
 		
 		BranchCoverageGoal goal = new BranchCoverageGoal(branch, goalValue, branch.getClassName(), branch.getMethodName());
 		return new DistanceCondition(fitness, goal);
