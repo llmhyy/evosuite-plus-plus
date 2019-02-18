@@ -34,13 +34,19 @@ public class FitnessAggregator {
 			return 0;
 		}
 		
-		double fit = 0;
-//		int size = fitnessList.size() > aggreationSizeLimit ? aggreationSizeLimit : fitnessList.size();
 		int size = fitnessList.size();
-		for(int i=0; i<size; i++) {
-			fit += fitnessList.get(i);
+		
+		double fit = 0;
+		for(double f: fitnessList) {
+			fit += 1/f;
 		}
-		fit /= size;
+		fit = size/fit;
+		
+//		double fit = 0;
+//		for(int i=0; i<size; i++) {
+//			fit += fitnessList.get(i);
+//		}
+//		fit /= size;
 		
 		
 		return fit;
