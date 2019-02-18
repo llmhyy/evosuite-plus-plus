@@ -267,15 +267,15 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			}
 			else if(sourceIns.isFieldUse()) {
 				//TODO
-				handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
+				//handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			else if(sourceIns.isLocalVariableUse()) {
 				//TODO
-				handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
+				//handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			else if(sourceIns.isMethodCall()) {
 				//TODO
-				handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
+				//handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			
 		}
