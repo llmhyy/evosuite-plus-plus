@@ -30,7 +30,7 @@ public class LoopTest extends AbstractETest{
 		
 //		Properties.LOCAL_SEARCH_BUDGET = 1000000;
 
-//		Properties.SEARCH_BUDGET = 60000;
+		Properties.SEARCH_BUDGET = 60000;
 		Properties.GLOBAL_TIMEOUT = 60000;
 		Properties.TIMEOUT = 300000000;
 //		Properties.TIMELINE_INTERVAL = 3000;

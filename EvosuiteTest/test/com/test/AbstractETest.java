@@ -56,7 +56,7 @@ public class AbstractETest {
 				"-Dassertions", "false",
 				"-Delite", "10",
 				"-Dlocal_search_ensure_double_execution", "false",
-				"-Dstopping_condition", "maxgenerations",
+//				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
 //				"-seed", "100"

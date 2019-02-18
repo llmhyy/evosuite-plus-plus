@@ -8,7 +8,7 @@ import java.security.NoSuchAlgorithmException;
 public class LoopUtil {
 
 	public static boolean contains(int[] keys, int index, int value) {
-		int key = sha256(value);
+		int key = sha256(value)/10000;
 		
 		if((keys[index] == 0 || 
 				value>=11110) && 
