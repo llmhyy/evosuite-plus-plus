@@ -36,17 +36,17 @@ public class FitnessAggregator {
 		
 		int size = fitnessList.size();
 		
-		double fit = 0;
-		for(double f: fitnessList) {
-			fit += 1/f;
-		}
-		fit = size/fit;
-		
 //		double fit = 0;
-//		for(int i=0; i<size; i++) {
-//			fit += fitnessList.get(i);
+//		for(double f: fitnessList) {
+//			fit += 1/f;
 //		}
-//		fit /= size;
+//		fit = size/fit;
+		
+		double fit = 0;
+		for(int i=0; i<size; i++) {
+			fit += fitnessList.get(i);
+		}
+		fit /= size;
 		
 		
 		return fit;
