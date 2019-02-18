@@ -220,8 +220,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		List<AnchorInstruction> sourceInsList = getAnchorInstructions(calledGraph, returnIns);
 		List<Double> fitnessList = new ArrayList<>();
 		
-		fileterSourceInsList(result, sourceInsList, callContext, branchTrace);
-		System.currentTimeMillis();
+		List<BytecodeInstruction> exercisedMethodCalls = new ArrayList<>();
+		fileterSourceInsList(result, sourceInsList, exercisedMethodCalls, callContext, branchTrace);
 		
 		for (AnchorInstruction anchorIns : sourceInsList) {
 			/**
@@ -230,17 +230,14 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			BytecodeInstruction sourceIns = anchorIns.ins;
 			if(sourceIns.getControlDependencies().isEmpty()) {
 				if(sourceIns.isMethodCall()) {
-					String calledMethod = sourceIns.getCalledMethod();
-					if (calledMethod != null) {
-						List<Call> newContext = updateCallContext(sourceIns, callContext);
-						if(newContext.size()!=callContext.size()) {
-							double f = calculateInterproceduralFitness(sourceIns, newContext, branchGoal, result);
-							fitnessList.add(f);						
-						}
-						//stop for recursive call
-						else {
-							fitnessList.add(1.0);		
-						}
+					List<Call> newContext = updateCallContext(sourceIns, callContext);
+					if(newContext.size()!=callContext.size()) {
+						double f = calculateInterproceduralFitness(sourceIns, newContext, branchGoal, result);
+						fitnessList.add(f);						
+					}
+					//stop for recursive call
+					else {
+						fitnessList.add(1.0);		
 					}
 				}
 				
@@ -248,22 +245,37 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			}
 			
 			/**
+			 * for exercised methods
+			 */
+			for(BytecodeInstruction methodCall: exercisedMethodCalls) {
+				List<Call> newContext = updateCallContext(methodCall, callContext);
+				if(newContext.size()!=callContext.size()) {
+					double f = calculateInterproceduralFitness(methodCall, newContext, branchGoal, result);
+					fitnessList.add(f);						
+				}
+				//stop for recursive call
+				else {
+					fitnessList.add(1.0);		
+				}
+			}
+			
+			/**
 			 * has control dependency
 			 */
 			if(sourceIns.isConstant()) {
-				handleConstantAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
+				handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			else if(sourceIns.isFieldUse()) {
 				//TODO
-				handleUndeterminedAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
+				handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			else if(sourceIns.isLocalVariableUse()) {
 				//TODO
-				handleUndeterminedAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
+				handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			else if(sourceIns.isMethodCall()) {
 				//TODO
-				handleUndeterminedAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
+				handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			
 		}
@@ -277,7 +289,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		
 	}
 
-	private void handleConstantAnchor(ExecutionResult result, List<Call> callContext, List<Integer> branchTrace,
+	private void handleAnchor(ExecutionResult result, List<Call> callContext, List<Integer> branchTrace,
 			List<Double> fitnessList, BytecodeInstruction sourceIns) {
 		Branch newDepBranch = null;
 		boolean goalValue = false;
@@ -330,10 +342,11 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	 * 
 	 * @param result
 	 * @param sourceInsList
+	 * @param exercisedMethodCalls 
 	 * @param cBranch
 	 */
 	private void fileterSourceInsList(ExecutionResult result,
-			List<AnchorInstruction> sourceInsList, List<Call> context, List<Integer> branchTrace) {
+			List<AnchorInstruction> sourceInsList, List<BytecodeInstruction> exercisedMethodCalls, List<Call> context, List<Integer> branchTrace) {
 		
 		List<BytecodeInstruction> coveredInsList = new ArrayList<>();
 		for(AnchorInstruction anchor: sourceInsList) {
@@ -359,10 +372,14 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			AnchorInstruction anchorIns = iter.next();
 			BytecodeInstruction ins = anchorIns.ins;
 			for(BytecodeInstruction coveredIns: coveredInsList) {
-				if(ins.explain().equals(coveredIns.explain()) && ins.isConstant() 
+				if((ins.explain().equals(coveredIns.explain()) && ins.isConstant()) 
 						|| ins.equals(coveredIns)) {
+					if(!ins.isMethodCall()) {
+						exercisedMethodCalls.add(ins);
+					}
 					iter.remove();
-					break;
+					break;						
+					
 				}
 			}
 		}
