@@ -2,6 +2,7 @@ package org.evosuite.coverage.fbranch;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -15,7 +16,6 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.cfg.CFGFrame;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.setup.Call;
@@ -25,8 +25,6 @@ import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.analysis.SourceValue;
-import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +40,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	private static Logger logger = LoggerFactory.getLogger(FBranchTestFitness.class);
 
 	private final BranchCoverageGoal branchGoal;
-	private double epsilon = 0.00001;
-	
 	private boolean inconsistencyHappen = false;
 
 	public FBranchTestFitness(BranchCoverageGoal branchGoal) {
@@ -111,6 +107,20 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		
 		return fitness;
 	}
+	
+	/**
+	 * for debugging reason
+	 * @param loopContext
+	 */
+	private void sortLength(List<List<Integer>> loopContext) {
+		Collections.sort(loopContext, new Comparator<List<Integer>>() {
+
+			@Override
+			public int compare(List<Integer> o1, List<Integer> o2) {
+				return o1.size() - o2.size();
+			}
+		});
+	}
 
 	private double calculateInterproceduralFitness(BytecodeInstruction flagCallInstruction, List<Call> callContext,
 			BranchCoverageGoal branchGoal, ExecutionResult result) {
@@ -126,6 +136,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 		List<Double> iteratedFitness = new ArrayList<>();
 		List<List<Integer>> loopContext = identifyLoopContext(result, callContext);
+		sortLength(loopContext);
 		for(List<Integer> branchTrace: loopContext) {
 			
 			List<Double> returnFitnessList = new ArrayList<>();
@@ -134,35 +145,19 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				returnFitnessList.addAll(fList);
 			}
 			
-			double sum = this.epsilon;
-			for (Double f : returnFitnessList) {
-				sum += 1 / (f + this.epsilon);
-			}
-			
-			double fit = 1 / sum;
+			double fit = FitnessAggregator.aggreateFitenss(returnFitnessList);
 //			return fit;
 			iteratedFitness.add(fit);
 		}
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 		if(iteratedFitness.isEmpty()) {
 			return 10000000d;
 		}
 		
 //		return Collections.min(iteratedFitness);
-		return aggreateFitenss(iteratedFitness);
-	}
-	
-	private double aggreateFitenss(List<Double> fitnessList) {
-		double sum = this.epsilon;
-		for (Double f : fitnessList) {
-			sum += 1 / (f + this.epsilon);
-		}
-		
-		double fit = 1 / sum;
-		
-		return fit;
+		return FitnessAggregator.aggreateFitenss(iteratedFitness);
 	}
 	
 	private List<List<Integer>> identifyLoopContext(ExecutionResult result, List<Call> callContext) {
@@ -222,7 +217,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	
 	private List<Double> calculateReturnInsFitness(BytecodeInstruction returnIns, BranchCoverageGoal branchGoal,
 			RawControlFlowGraph calledGraph, ExecutionResult result, List<Call> callContext, List<Integer> branchTrace)  {
-		List<AnchorInstruction> sourceInsList = getReturnConstants(calledGraph, returnIns);
+		List<AnchorInstruction> sourceInsList = getAnchorInstructions(calledGraph, returnIns);
 		List<Double> fitnessList = new ArrayList<>();
 		
 		fileterSourceInsList(result, sourceInsList, callContext, branchTrace);
@@ -256,68 +251,78 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			 * has control dependency
 			 */
 			if(sourceIns.isConstant()) {
-				Branch newDepBranch = null;
-				boolean goalValue = false;
-				double fitness = 0;
-				for(ControlDependency cd: sourceIns.getControlDependencies()) {
-					newDepBranch = cd.getBranch();
-					
-					// TODO I am not that clear about getControlDependency() method, but I find
-					// reverse the direction make it correct.
-					goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
-					DistanceCondition dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
-					fitness = dCondition.fitness;
-					
-					// in case the returned direction is wrong.
-					if (fitness == 0) {
-						goalValue = !goalValue;
-						dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
-						fitness = dCondition.fitness;
-					}	
-					
-					if(fitness==0) {
-						logger.error(this.branchGoal + " is not exercised, but " +
-								"both branches of " + newDepBranch + " have 0 branch distance");
-						setInconsistencyHappen(true);
-						continue;
-					}
-
-					BranchCoverageGoal newGoal = dCondition.goal;
-
-					InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
-					if (flagResult.isInterproceduralFlag) {
-						List<Call> newContext = updateCallContext(flagResult.interproceduralFlagCall, callContext);
-						if(newContext.size() != callContext.size()) {
-							double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall, newContext,
-									newGoal, result);
-							fitnessList.add(interproceduralFitness);						
-						}
-						else {
-							fitnessList.add(1.0);		
-						}
-					} else {
-						fitnessList.add(fitness);
-					}
-					break;
-				}
+				handleConstantAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			else if(sourceIns.isFieldUse()) {
 				//TODO
-				logger.error("the source of ireturn is not a constant.");
-				continue;
+				handleUndeterminedAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			else if(sourceIns.isLocalVariableUse()) {
 				//TODO
-				logger.error("the source of ireturn is not a constant.");
-				continue;
+				handleUndeterminedAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			else if(sourceIns.isMethodCall()) {
 				//TODO
+				handleUndeterminedAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			
 		}
 
 		return fitnessList;
+	}
+
+	private void handleUndeterminedAnchor(ExecutionResult result, List<Call> callContext, List<Integer> branchTrace,
+			List<Double> fitnessList, BytecodeInstruction sourceIns) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void handleConstantAnchor(ExecutionResult result, List<Call> callContext, List<Integer> branchTrace,
+			List<Double> fitnessList, BytecodeInstruction sourceIns) {
+		Branch newDepBranch = null;
+		boolean goalValue = false;
+		double fitness = 0;
+		for(ControlDependency cd: sourceIns.getControlDependencies()) {
+			newDepBranch = cd.getBranch();
+			
+			// TODO I am not that clear about getControlDependency() method, but I find
+			// reverse the direction make it correct.
+			goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
+			DistanceCondition dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
+			fitness = dCondition.fitness;
+			
+			// in case the returned direction is wrong.
+			if (fitness == 0) {
+				goalValue = !goalValue;
+				dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
+				fitness = dCondition.fitness;
+			}	
+			
+			if(fitness==0) {
+				logger.error(this.branchGoal + " is not exercised, but " +
+						"both branches of " + newDepBranch + " have 0 branch distance");
+				setInconsistencyHappen(true);
+				continue;
+			}
+
+			BranchCoverageGoal newGoal = dCondition.goal;
+
+			InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
+			if (flagResult.isInterproceduralFlag) {
+				List<Call> newContext = updateCallContext(flagResult.interproceduralFlagCall, callContext);
+				if(newContext.size() != callContext.size()) {
+					double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall, newContext,
+							newGoal, result);
+					fitnessList.add(interproceduralFitness);						
+				}
+				else {
+					fitnessList.add(1.0);		
+				}
+			} else {
+				fitnessList.add(fitness);
+			}
+			break;
+		}
 	}
 
 	/**
@@ -599,8 +604,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				String returnType = getReturnType(desc);
 				boolean isInterprocedural = returnType.equals("Z");
 				
+				boolean determined = canMethodContainConstantReturn(ins.getCalledCFG());
+				
 				if(isInterprocedural) {
-					anchorList.add(new AnchorInstruction(ins, false));
+					anchorList.add(new AnchorInstruction(ins, determined));
 					break;
 				}
 			} else if (ins.isLocalVariableUse()) {
@@ -626,6 +633,18 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		}
 
 		return anchorList;
+	}
+
+	private boolean canMethodContainConstantReturn(RawControlFlowGraph calledCFG) {
+		for(BytecodeInstruction ins: calledCFG.determineExitPoints()) {
+			if(ins.isReturn()) {
+				BytecodeInstruction returnDef = ins.getSourceOfStackInstruction(0);
+				if(returnDef.isConstant()) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private List<BytecodeInstruction> findDefinitions(BytecodeInstruction iLoad) {
@@ -691,7 +710,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		return null;
 	}
 
-	private List<AnchorInstruction> getReturnConstants(RawControlFlowGraph calledGraph,
+	private List<AnchorInstruction> getAnchorInstructions(RawControlFlowGraph calledGraph,
 			BytecodeInstruction returnIns) {
 //		List<BytecodeInstruction> sourceInsList = new ArrayList<>();
 

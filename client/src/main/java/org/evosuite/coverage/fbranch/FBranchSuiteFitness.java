@@ -452,7 +452,8 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				BranchCoverageGoal goal = ((BranchCoverageTestFitness) tf).getBranchGoal();
 				
 				List<Double> fitnessList = new ArrayList<>();
-				for(ExecutionResult result: results) {
+				for(int i=0; i<results.size(); i++) {
+					ExecutionResult result = results.get(i);
 					double f = getTestFitness(goal, result);
 					fitnessList.add(f);
 				}
@@ -473,7 +474,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		int executedBranchNode = 0;
 		for(BranchCoverageGoal goal: fitnessMap.keySet()) {
 			List<Double> fList = fitnessMap.get(goal);
-			Collections.sort(fList);
+//			Collections.sort(fList);
 			
 			double minValue = fList.get(0);
 			if(minValue > 1) {
@@ -487,19 +488,10 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				executedBranchNode++;
 			}
 			
-			totalFitness += minValue;
+//			totalFitness += minValue;
 			
-//			double goalFitness = 1;
-//			for(double i=0; i<fList.size(); i++) {
-//				double d = fList.get((int)i);
-//				if(d > 1) {
-//					d = 1;
-//				}
-//				
-//				double transformedFitness = Math.pow(d, 1/(i+1));
-//				goalFitness *= transformedFitness;
-//			}
-//			totalFitness += goalFitness;
+			double fit = FitnessAggregator.aggreateFitenss(fList);
+			totalFitness += fit;
 		}
 //		System.currentTimeMillis();
 		
