@@ -80,12 +80,12 @@ public class MethodEntryAdapter extends AdviceAdapter {
 				PackageInfo.getNameWithSlash(ExecutionTracer.class),
 		                   "enteredMethod",
 		                   "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V", false);
-		if (checkConstructor) {
-			if (constructorEntryListener != null) {
-				constructorEntryListener.onEnterConstructor();
-			}
-			checkConstructor = false;
-		}
+//		if (checkConstructor) {
+//			if (constructorEntryListener != null) {
+//				constructorEntryListener.onEnterConstructor();
+//			}
+//			checkConstructor = false;
+//		}
 		super.onMethodEnter();
 	}
 
