@@ -17,13 +17,11 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with EvoSuite. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.evosuite.instrumentation;
+package instrumenter;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.classpath.ResourceList;
-import org.evosuite.runtime.classhandling.ClassResetter;
-import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.setup.TestClusterUtils;
 import org.evosuite.utils.ArrayUtil;
 import org.objectweb.asm.ClassVisitor;
@@ -37,7 +35,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Gordon Fraser
  */
-public class ExecutionPathClassAdapter extends ClassVisitor {
+public class Instrumenter extends ClassVisitor {
 
 	private final String className;
 
@@ -47,7 +45,7 @@ public class ExecutionPathClassAdapter extends ClassVisitor {
 	            || ArrayUtil.contains(Properties.CRITERION, Criterion.WEAKMUTATION);
 	}
 
-	private static Logger logger = LoggerFactory.getLogger(ExecutionPathClassAdapter.class);
+	private static Logger logger = LoggerFactory.getLogger(Instrumenter.class);
 
 	/** Skip methods on enums - at least some */
 	private boolean isEnum = false;
@@ -65,7 +63,7 @@ public class ExecutionPathClassAdapter extends ClassVisitor {
 	 * @param className
 	 *            a {@link java.lang.String} object.
 	 */
-	public ExecutionPathClassAdapter(ClassVisitor visitor, String className) {
+	public Instrumenter(ClassVisitor visitor, String className) {
 		super(Opcodes.ASM5, visitor);
 		this.className = ResourceList.getClassNameFromResourcePath(className);
 	}
@@ -96,50 +94,13 @@ public class ExecutionPathClassAdapter extends ClassVisitor {
 	        String signature, String[] exceptions) {
 		MethodVisitor mv = super.visitMethod(methodAccess, name, descriptor, signature,
 		                                     exceptions);
-
-		// Don't touch bridge and synthetic methods
-		if ((methodAccess & Opcodes.ACC_SYNTHETIC) > 0
-		        || (methodAccess & Opcodes.ACC_BRIDGE) > 0) {
-			return mv;
-		}
-		if (name.equals("<clinit>"))
-			return mv;
-
-		if (name.equals(ClassResetter.STATIC_RESET))
-			return mv;
-
-		if (!DependencyAnalysis.shouldInstrument(className, name + descriptor))
-			return mv;
-
-		if (isEnum && (name.equals("valueOf") || name.equals("values"))) {
-			return mv;
-		}
-
-		// Default constructors of anonymous classes are synthetic
-		// but the Java Compiler is inconsistent in whether it has
-		// line numbers, so we skip it for most aspects.
-		// https://bugs.openjdk.java.net/browse/JDK-8061778
-		if (isAnonymous && name.equals("<init>")) {
-			return new MethodEntryAdapter(mv, methodAccess, className, name, descriptor);
-		}
-		
-		if (isMutation()) {
-			mv = new ReturnValueAdapter(mv, className, name, descriptor);
-		}
-		mv = new MethodEntryAdapter(mv, methodAccess, className, name, descriptor);
-		mv = new LineNumberMethodAdapter(mv, className, name, descriptor);
-		
-		MethodEntryAdapter methodEntryAdapter = new MethodEntryAdapter(mv, methodAccess, className, name, descriptor);
+		CopyMethodEntryAdapter methodEntryAdapter = new CopyMethodEntryAdapter(mv, methodAccess, className, name, descriptor);
 		mv = methodEntryAdapter;
-		LineNumberMethodAdapter lineNumberMethodAdapter = new LineNumberMethodAdapter(mv, className, name, descriptor);
+		CopyLineNumberMethodAdapter lineNumberMethodAdapter = new CopyLineNumberMethodAdapter(mv, className, name, descriptor);
 		methodEntryAdapter.setConstructorEntryListener(lineNumberMethodAdapter);
-		
 		mv = lineNumberMethodAdapter;
-		
-		mv = new ArrayAllocationLimitMethodAdapter(mv, className, name, methodAccess,
-		        descriptor);
-		mv = new ExplicitExceptionHandler(mv, className, name, descriptor);
 		return mv;
 	}
 
+	
 }

@@ -13,7 +13,7 @@ import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.evosuite.utils.CollectionUtil;
-import org.evosuite.utils.CommonUtility;
+import org.evosuite.utils.ProgramArgumentUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +34,7 @@ public class MergeExcels {
 		}
 		List<String> inputFiles = FileUtils.toFilePath(listExcels(reportFolder));
 		boolean filteredNoGAInvolved = false;
-		if (CommonUtility.hasOpt(args, "-filteredNoGAInvolved")) {
+		if (ProgramArgumentUtils.hasOpt(args, "-filteredNoGAInvolved")) {
 			filteredNoGAInvolved = true;
 		}
 		mergeExcel(outputFile, inputFiles, 0, filteredNoGAInvolved);

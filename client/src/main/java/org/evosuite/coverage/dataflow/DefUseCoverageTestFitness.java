@@ -124,7 +124,7 @@ import org.evosuite.utils.ArrayUtil;
  * is all i'm trying to say i guess - srsly though, this SearchStatistcs class
  * is a mess :D and buggy as hell too it seems - found a bug: s.
  * ExceptionTestClass: sometimes passedLine is called before enteredMethod in
- * instrumented code - so DefUseCoverage goal computation scales pretty badly,
+ * instrumented code (FIXED AT THE VERSION OF THIS ADDED COMMENT!)- so DefUseCoverage goal computation scales pretty badly,
  * why not separate goal analysis part and test creation like with -setup you
  * could run -analyze_goals or something and it would serialize the goals on
  * disc so the computed goals can be reused in later test creations ... srsly

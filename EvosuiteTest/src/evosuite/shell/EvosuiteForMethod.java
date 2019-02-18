@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -70,7 +69,6 @@ public class EvosuiteForMethod {
 	public static String projectName;
 	public static String projectId; // ex: 1_tullibee (project folder name)
 	static FilterConfiguration filter;
-	private int methodIterator = 1;
 	
 	private URLClassLoader evoTestClassLoader;
 
@@ -92,7 +90,8 @@ public class EvosuiteForMethod {
 //			Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 			log.error("enter EvosuiteForMethod!");
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
-			if (CommonUtility.hasOpt(args, ListMethods.OPT_NAME)) {
+			Settings.setup(args);
+			if (Settings.isListMethods()) {
 				args = evoTest.extractListMethodsArgs(args);
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader);
@@ -101,12 +100,7 @@ public class EvosuiteForMethod {
 				if (!filter.isValidProject(projectName)) {
 					return null;
 				}
-				String optValue = CommonUtility.getOptValue(args, ParameterOptions.METHOD_TEST_ITERATION);
-				if (optValue != null) {
-					evoTest.methodIterator = Integer.valueOf(optValue);
-				}
-				args = extractArgs(args, Arrays.asList(ParameterOptions.EXCLUSIVE_FILE_OPT,
-						ParameterOptions.INCLUSIVE_FILE_OPT, ParameterOptions.METHOD_TEST_ITERATION));
+				args = extractArgs(args, ParameterOptions.allOptions);
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				String[] truncatedArgs = extractArgs(args);
 				results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
@@ -131,8 +125,8 @@ public class EvosuiteForMethod {
 		}
 		LoggerUtils.setupLogger(SFConfiguration.getReportFolder(), projectId);
 		log = LoggerUtils.getLogger(EvosuiteForMethod.class);
-		Properties.MAX_OPEN_FILES_PER_PROCESS = 250;
-//		ExternalProcessHandler.terminateClientsIfCannotCancelGentlely = true;
+//		Properties.MAX_OPEN_FILES_PER_PROCESS = 250;
+		ExternalProcessHandler.terminateClientsIfCannotCancelGentlely = true;
 	}
 	
 	private CommandLine parseCommandLine(String[] args) {
@@ -221,8 +215,8 @@ public class EvosuiteForMethod {
 	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName) {
 		List<EvoTestResult> results = new ArrayList<>();
 		FitnessEffectiveRecorder recorder;
-		if (methodIterator > 1) {
-			recorder = new IterFitnessEffectiveRecorder(methodIterator);
+		if (Settings.getIteration() > 1) {
+			recorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
 		} else {
 			recorder = new FitnessEffectiveRecorder();
 		}
@@ -239,7 +233,7 @@ public class EvosuiteForMethod {
 						continue;
 					}
 					try {
-						for (int i = 0; i < methodIterator; i++) {
+						for (int i = 0; i < Settings.getIteration(); i++) {
 							EvoTestResult result = runMethod(methodName, className, args, recorder);
 							results.add(result);
 						}

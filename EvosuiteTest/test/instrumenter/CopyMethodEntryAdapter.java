@@ -17,13 +17,12 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with EvoSuite. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.evosuite.instrumentation;
+package instrumenter;
 
 import org.evosuite.PackageInfo;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.commons.AdviceAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,18 +31,16 @@ import org.slf4j.LoggerFactory;
  *
  * @author Gordon Fraser
  */
-public class MethodEntryAdapter extends AdviceAdapter {
+public class CopyMethodEntryAdapter extends AdviceAdapter {
 
 	@SuppressWarnings("unused")
-	private static Logger logger = LoggerFactory.getLogger(MethodEntryAdapter.class);
+	private static Logger logger = LoggerFactory.getLogger(CopyMethodEntryAdapter.class);
 
 	String className;
 	String methodName;
 	String fullMethodName;
 	int access;
-	private ConstructorEntryListener constructorEntryListener;
-	boolean checkConstructor = false;
-	
+
 	/**
 	 * <p>Constructor for MethodEntryAdapter.</p>
 	 *
@@ -53,7 +50,8 @@ public class MethodEntryAdapter extends AdviceAdapter {
 	 * @param methodName a {@link java.lang.String} object.
 	 * @param desc a {@link java.lang.String} object.
 	 */
-	public MethodEntryAdapter(MethodVisitor mv, int access, String className,
+	boolean checkConstructor = false;
+	public CopyMethodEntryAdapter(MethodVisitor mv, int access, String className,
 	        String methodName, String desc) {
 		super(Opcodes.ASM5, mv, access, methodName, desc);
 		this.className = className;
@@ -62,13 +60,11 @@ public class MethodEntryAdapter extends AdviceAdapter {
 		this.access = access;
 		checkConstructor = "<init>".equals(methodName);
 	}
+	
 
 	/** {@inheritDoc} */
 	@Override
 	public void onMethodEnter() {
-		if (methodName.equals("<clinit>"))
-			return; // FIXXME: Should we call super.onMethodEnter() here?
-
 		mv.visitLdcInsn(className);
 		mv.visitLdcInsn(fullMethodName);
 		if ((access & Opcodes.ACC_STATIC) > 0) {
@@ -81,21 +77,16 @@ public class MethodEntryAdapter extends AdviceAdapter {
 		                   "enteredMethod",
 		                   "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V", false);
 		if (checkConstructor) {
-			if (constructorEntryListener != null) {
-				constructorEntryListener.onEnterConstructor();
-			}
+			listener.onEnterConstructor();
 			checkConstructor = false;
 		}
-		super.onMethodEnter();
+
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void onMethodExit(int opcode) {
-		// TODO: Check for <clinit>
-
 		if (opcode != Opcodes.ATHROW) {
-
 			mv.visitLdcInsn(className);
 			mv.visitLdcInsn(fullMethodName);
 			mv.visitMethodInsn(Opcodes.INVOKESTATIC,
@@ -105,18 +96,9 @@ public class MethodEntryAdapter extends AdviceAdapter {
 		super.onMethodExit(opcode);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.objectweb.asm.commons.LocalVariablesSorter#visitMaxs(int, int)
-	 */
-	/** {@inheritDoc} */
-	@Override
-	public void visitMaxs(int maxStack, int maxLocals) {
-		int maxNum = 3;
-		super.visitMaxs(Math.max(maxNum, maxStack), maxLocals);
-	}
-	
-	public void setConstructorEntryListener(ConstructorEntryListener consttructorEntryListener) {
-		this.constructorEntryListener = consttructorEntryListener;
+	private ConstructorEntryListener listener;
+	public void setConstructorEntryListener(ConstructorEntryListener listener) {
+		this.listener = listener;
 	}
 
 	public static interface ConstructorEntryListener {

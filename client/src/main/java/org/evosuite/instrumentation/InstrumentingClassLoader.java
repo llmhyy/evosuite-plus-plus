@@ -20,9 +20,10 @@
 package org.evosuite.instrumentation;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,16 +31,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.Entity;
+
+import org.apache.commons.io.FileUtils;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.runtime.javaee.db.DBManager;
+import org.evosuite.utils.FileIOUtils;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.persistence.Entity;
 
 /**
  * <em>Note:</em> Do not inadvertently use multiple instances of this class in
@@ -172,7 +175,38 @@ public class InstrumentingClassLoader extends ClassLoader {
 
 	//This is needed, as it is overridden in subclasses
 	protected byte[] getTransformedBytes(String className, InputStream is) throws IOException {
-		return instrumentation.transformBytes(this, className, new ClassReader(is));
+		byte[] data = instrumentation.transformBytes(this, className, new ClassReader(is));
+		log(data, className, false);
+		return data;
+	}
+	
+	public static void log(byte[] data, String classFName, boolean dump) {
+		if (data == null) {
+			return;
+		}
+		String targetFolder = System.getProperty("user.dir");
+		if (!dump) {
+			return;
+		}
+		String filePath = targetFolder + "/inst_src/test/" + classFName.substring(classFName.lastIndexOf(".") + 1)
+				+ ".class";
+		FileIOUtils.getFileCreateIfNotExist(filePath);
+		FileOutputStream out = null;
+		try {
+			out = new FileOutputStream(filePath);
+			out.write(data);
+			out.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (out != null) {
+					out.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private Class<?> instrumentClass(String fullyQualifiedTargetClass)throws ClassNotFoundException  {
