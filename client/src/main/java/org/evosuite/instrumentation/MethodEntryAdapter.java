@@ -20,7 +20,6 @@
 package org.evosuite.instrumentation;
 
 import org.evosuite.PackageInfo;
-import org.evosuite.testcase.execution.ExecutionTrace;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -42,7 +41,9 @@ public class MethodEntryAdapter extends AdviceAdapter {
 	String methodName;
 	String fullMethodName;
 	int access;
-
+	private ConstructorEntryListener constructorEntryListener;
+	boolean checkConstructor = false;
+	
 	/**
 	 * <p>Constructor for MethodEntryAdapter.</p>
 	 *
@@ -59,12 +60,12 @@ public class MethodEntryAdapter extends AdviceAdapter {
 		this.methodName = methodName;
 		this.fullMethodName = methodName + desc;
 		this.access = access;
+		checkConstructor = "<init>".equals(methodName);
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void onMethodEnter() {
-
 		if (methodName.equals("<clinit>"))
 			return; // FIXXME: Should we call super.onMethodEnter() here?
 
@@ -79,7 +80,12 @@ public class MethodEntryAdapter extends AdviceAdapter {
 				PackageInfo.getNameWithSlash(ExecutionTracer.class),
 		                   "enteredMethod",
 		                   "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V", false);
-
+		if (checkConstructor) {
+			if (constructorEntryListener != null) {
+				constructorEntryListener.onEnterConstructor();
+			}
+			checkConstructor = false;
+		}
 		super.onMethodEnter();
 	}
 
@@ -107,5 +113,13 @@ public class MethodEntryAdapter extends AdviceAdapter {
 	public void visitMaxs(int maxStack, int maxLocals) {
 		int maxNum = 3;
 		super.visitMaxs(Math.max(maxNum, maxStack), maxLocals);
+	}
+	
+	public void setConstructorEntryListener(ConstructorEntryListener consttructorEntryListener) {
+		this.constructorEntryListener = consttructorEntryListener;
+	}
+
+	public static interface ConstructorEntryListener {
+		public void onEnterConstructor();
 	}
 }

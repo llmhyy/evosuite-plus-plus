@@ -19,8 +19,11 @@
  */
 package org.evosuite.instrumentation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.evosuite.PackageInfo;
-import org.evosuite.testcase.execution.ExecutionTrace;
+import org.evosuite.instrumentation.MethodEntryAdapter.ConstructorEntryListener;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -28,16 +31,13 @@ import org.objectweb.asm.Opcodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Instruments classes to call the tracer each time a new line of the source
  * code is passed.
  *
  * @author Gordon Fraser
  */
-public class LineNumberMethodAdapter extends MethodVisitor {
+public class LineNumberMethodAdapter extends MethodVisitor implements ConstructorEntryListener {
 
 	@SuppressWarnings("unused")
 	private static Logger logger = LoggerFactory.getLogger(LineNumberMethodAdapter.class);
@@ -99,22 +99,13 @@ public class LineNumberMethodAdapter extends MethodVisitor {
 		addLineNumberInstrumentation(line);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.objectweb.asm.MethodAdapter#visitMethodInsn(int, java.lang.String, java.lang.String, java.lang.String)
-	 */
-	/** {@inheritDoc} */
 	@Override
-	public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-		super.visitMethodInsn(opcode, owner, name, desc, itf);
-		if (opcode == Opcodes.INVOKESPECIAL) {
-			if (methodName.equals("<init>")) {
-				hadInvokeSpecial = true;
-				for(int line : skippedLines) {
-					addLineNumberInstrumentation(line);
-				}
-				skippedLines.clear();
-			}
+	public void onEnterConstructor() {
+		hadInvokeSpecial = true;
+		for(int line : skippedLines) {
+			addLineNumberInstrumentation(line);
 		}
+		skippedLines.clear();		
 	}
 
 	/* (non-Javadoc)

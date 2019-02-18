@@ -254,4 +254,20 @@ public class FileIOUtils {
 			}
 		}
 	}
+	
+	public static File getFileCreateIfNotExist(String path) {
+		File file = new File(path);
+		if (!file.exists()) {
+			File folder = file.getParentFile();
+			if (!folder.exists()) {
+				folder.mkdirs();
+			}
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return file;
+	}
 }

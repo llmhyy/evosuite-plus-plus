@@ -128,6 +128,14 @@ public class ExecutionPathClassAdapter extends ClassVisitor {
 		}
 		mv = new MethodEntryAdapter(mv, methodAccess, className, name, descriptor);
 		mv = new LineNumberMethodAdapter(mv, className, name, descriptor);
+		
+		MethodEntryAdapter methodEntryAdapter = new MethodEntryAdapter(mv, methodAccess, className, name, descriptor);
+		mv = methodEntryAdapter;
+		LineNumberMethodAdapter lineNumberMethodAdapter = new LineNumberMethodAdapter(mv, className, name, descriptor);
+		methodEntryAdapter.setConstructorEntryListener(lineNumberMethodAdapter);
+		
+		mv = lineNumberMethodAdapter;
+		
 		mv = new ArrayAllocationLimitMethodAdapter(mv, className, name, methodAccess,
 		        descriptor);
 		mv = new ExplicitExceptionHandler(mv, className, name, descriptor);
