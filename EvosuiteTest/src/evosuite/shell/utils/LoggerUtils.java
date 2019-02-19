@@ -23,7 +23,7 @@ public class LoggerUtils {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 //		appendFileAppender(context, FileUtils.getFilePath(outputFolder + "/log/", projectId + ".log"), "prj-file");
 		appendFileAppender(context, FileUtils.getFilePath(outputFolder + "/log/evoTest" + ".log"), "evoTest-file");
-		context.getLogger("ROOT").setLevel(Level.INFO);
+//		context.getLogger("ROOT").setLevel(Level.INFO);
 	}
 	
 	public static Logger getLogger(Class<?> clazz) {
