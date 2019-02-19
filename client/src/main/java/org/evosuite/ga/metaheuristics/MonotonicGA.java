@@ -293,26 +293,15 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				sortPopulation();
 
 				double bestFitnessAfterEvolution = getBestFitness();
-				double coverage = getBestIndividual().getCoverage();
-				// for(int i=0; i<this.population.size(); i++) {
-				// T t = this.population.get(i);
-				// if(t instanceof TestSuiteChromosome) {
-				// TestSuiteChromosome suite = (TestSuiteChromosome)t;
-				// if(suite.getCoverage() > coverage) {
-				// double f = getFitnessFunction().getFitness(t);
-				// System.currentTimeMillis();
-				// }
-				// }
-				// }
 
-				if (getFitnessFunction().isMaximizationFunction())
-					assert (bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
-							- DELTA)) : "best fitness before evolve()/sortPopulation() was: "
-									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
-				else
-					assert (bestFitnessAfterEvolution <= (bestFitnessBeforeEvolution
-							+ DELTA)) : "best fitness before evolve()/sortPopulation() was: "
-									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
+//				if (getFitnessFunction().isMaximizationFunction())
+//					assert (bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
+//							- DELTA)) : "best fitness before evolve()/sortPopulation() was: "
+//									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
+//				else
+//					assert (bestFitnessAfterEvolution <= (bestFitnessBeforeEvolution
+//							+ DELTA)) : "best fitness before evolve()/sortPopulation() was: "
+//									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
 			}
 
 			{
