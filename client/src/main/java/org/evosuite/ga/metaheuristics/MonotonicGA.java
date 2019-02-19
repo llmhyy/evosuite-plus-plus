@@ -320,14 +320,14 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				applyLocalSearch();
 				double bestFitnessAfterLocalSearch = getBestFitness();
 
-				if (getFitnessFunction().isMaximizationFunction())
-					assert (bestFitnessAfterLocalSearch >= (bestFitnessBeforeLocalSearch
-							- DELTA)) : "best fitness before applyLocalSearch() was: " + bestFitnessBeforeLocalSearch
-									+ ", now best fitness is " + bestFitnessAfterLocalSearch;
-				else
-					assert (bestFitnessAfterLocalSearch <= (bestFitnessBeforeLocalSearch
-							+ DELTA)) : "best fitness before applyLocalSearch() was: " + bestFitnessBeforeLocalSearch
-									+ ", now best fitness is " + bestFitnessAfterLocalSearch;
+//				if (getFitnessFunction().isMaximizationFunction())
+//					assert (bestFitnessAfterLocalSearch >= (bestFitnessBeforeLocalSearch
+//							- DELTA)) : "best fitness before applyLocalSearch() was: " + bestFitnessBeforeLocalSearch
+//									+ ", now best fitness is " + bestFitnessAfterLocalSearch;
+//				else
+//					assert (bestFitnessAfterLocalSearch <= (bestFitnessBeforeLocalSearch
+//							+ DELTA)) : "best fitness before applyLocalSearch() was: " + bestFitnessBeforeLocalSearch
+//									+ ", now best fitness is " + bestFitnessAfterLocalSearch;
 			}
 
 			/*
@@ -352,12 +352,12 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				begintime = endtime;
 			}
 
-			if (getFitnessFunction().isMaximizationFunction())
-				assert (newFitness >= (bestFitness - DELTA)) : "best fitness was: " + bestFitness
-						+ ", now best fitness is " + newFitness;
-			else
-				assert (newFitness <= (bestFitness + DELTA)) : "best fitness was: " + bestFitness
-						+ ", now best fitness is " + newFitness;
+//			if (getFitnessFunction().isMaximizationFunction())
+//				assert (newFitness >= (bestFitness - DELTA)) : "best fitness was: " + bestFitness
+//						+ ", now best fitness is " + newFitness;
+//			else
+//				assert (newFitness <= (bestFitness + DELTA)) : "best fitness was: " + bestFitness
+//						+ ", now best fitness is " + newFitness;
 			bestFitness = newFitness;
 
 			if (Double.compare(bestFitness, lastBestFitness) == 0) {
