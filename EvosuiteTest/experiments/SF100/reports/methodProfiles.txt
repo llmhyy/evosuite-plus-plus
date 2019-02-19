@@ -1,0 +1,11 @@
+Statistic: 
+==================================================================
+uninstrumentable:	2729
+	nocode:	2541
+	uninstrumentable_others:	188
+instrumentable:	2662
+	interested:	1792
+		determined:	1727
+		undetermined:	65
+	uninterested:	870
+==================================================================

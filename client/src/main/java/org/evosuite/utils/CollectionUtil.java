@@ -379,4 +379,12 @@ public final class CollectionUtil
 		}
 		return seq;
 	}
+	
+	public static <T, V extends Collection<T>>List<T> toList(Map<String, V> dataMap) {
+		List<T> data = new ArrayList<>();
+		for (V rows : dataMap.values()) {
+			data.addAll(rows);
+		}
+		return data;
+	}
 }

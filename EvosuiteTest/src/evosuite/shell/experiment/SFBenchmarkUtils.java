@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHandler;
@@ -40,7 +41,9 @@ public class SFBenchmarkUtils {
 		});
 		Map<String, File> result = new LinkedHashMap<String, File>();
 		for (File folder : projectFolders) {
-			result.put(folder.getName().split("_")[1], folder);
+			if (NumberUtils.isNumber(folder.getName().split("_")[0])) {
+				result.put(folder.getName().split("_")[1], folder);
+			}
 		}
 		return result;
 	}

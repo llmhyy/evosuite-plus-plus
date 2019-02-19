@@ -1,0 +1,398 @@
+#------------------------------------------------------------------------
+#Project=tullibee  -  1_tullibee
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=a4j  -  2_a4j
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jigen  -  3_jigen
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=rif  -  4_rif
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=templateit  -  5_templateit
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jnfe  -  6_jnfe
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=sfmis  -  7_sfmis
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=gfarcegestionfa  -  8_gfarcegestionfa
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=falselight  -  9_falselight
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=water-simulator  -  10_water-simulator
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=imsmart  -  11_imsmart
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=dsachat  -  12_dsachat
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jdbacl  -  13_jdbacl
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=omjstate  -  14_omjstate
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=beanbin  -  15_beanbin
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=templatedetails  -  16_templatedetails
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=inspirento  -  17_inspirento
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jsecurity  -  18_jsecurity
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jmca  -  19_jmca
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=nekomud  -  20_nekomud
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=geo-google  -  21_geo-google
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=byuic  -  22_byuic
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jwbf  -  23_jwbf
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=saxpath  -  82_saxpath
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jni-inchi  -  25_jni-inchi
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jipa  -  26_jipa
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=gangup  -  27_gangup
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=greencow  -  28_greencow
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=apbsmem  -  29_apbsmem
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=bpmail  -  30_bpmail
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=xisemele  -  31_xisemele
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=httpanalyzer  -  32_httpanalyzer
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=javaviewcontrol  -  33_javaviewcontrol
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=sbmlreader2  -  34_sbmlreader2
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=corina  -  35_corina
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=schemaspy  -  36_schemaspy
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=petsoar  -  37_petsoar
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=javabullboard  -  38_javabullboard
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=diffi  -  39_diffi
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=glengineer  -  40_glengineer
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=follow  -  41_follow
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=asphodel  -  42_asphodel
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=lilith  -  43_lilith
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=summa  -  44_summa
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=lotus  -  45_lotus
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=nutzenportfolio  -  46_nutzenportfolio
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=dvd-homevideo  -  47_dvd-homevideo
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=resources4j  -  48_resources4j
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=diebierse  -  49_diebierse
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=biff  -  50_biff
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jiprof  -  51_jiprof
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=lagoon  -  52_lagoon
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=shp2kml  -  53_shp2kml
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=db-everywhere  -  54_db-everywhere
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=lavalamp  -  55_lavalamp
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jhandballmoves  -  56_jhandballmoves
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=hft-bomberman  -  57_hft-bomberman
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=fps370  -  58_fps370
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=mygrid  -  59_mygrid
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=sugar  -  60_sugar
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=noen  -  61_noen
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=dom4j  -  62_dom4j
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=objectexplorer  -  63_objectexplorer
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jtailgui  -  64_jtailgui
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=gsftp  -  65_gsftp
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=openjms  -  66_openjms
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=gae-app-manager  -  67_gae-app-manager
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=biblestudy  -  68_biblestudy
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=lhamacaw  -  69_lhamacaw
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=echodep  -  70_echodep
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=ext4j  -  71_ext4j
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=battlecry  -  72_battlecry
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=fim1  -  73_fim1
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=fixsuite  -  74_fixsuite
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=openhre  -  75_openhre
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=dash-framework  -  76_dash-framework
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=io-project  -  77_io-project
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=caloriecount  -  78_caloriecount
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=twfbplayer  -  79_twfbplayer
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=wheelwebtool  -  80_wheelwebtool
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=javathena  -  81_javathena
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=xbus  -  83_xbus
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=ifx-framework  -  84_ifx-framework
+#------------------------------------------------------------------------
+net.sourceforge.ifxfv3.beans.CustInfo_TypeSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtAuthSyncRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.RecXferAddRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustPayeeAddRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtModRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtModRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustPayeeTypeModRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.XferRec#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.RecPmtCanRsSequence2Choice#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.SignonOverride#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DepAcctStmtInqRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.XferProf#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.BaseSvcRs_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DebitInfo#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustSvcAddRsSequence2#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DepAppSyncRs_TypeSequence2#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.HighCurAmt#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DepAppInqRs_TypeSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CardAcctId_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.XferInqRsSequence2Choice#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.MediaSvcRs_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.SvcAcctIdModRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.BillerInfo#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtInqRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.LockboxDepId_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.XferMsgRecChoice#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.XferCanRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.XferStatusModRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtCanRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustSvcModRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.StmtSummAmt#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.AcctInqRsSequence2#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustPswdModRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustSvcDelRsSequence2Choice#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtAddRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CreditAddRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustSvcAddRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.RecXferCanRsSequence2Choice#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DebitAuthCanRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.BillStatusModRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.ChksumAudRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.StopChkAddRqChoice2#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DiscRec#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CreditAuthSyncRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.MediaAcctAdjAddRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.RecXferAudRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PersonInfoChoice#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.ClientApp#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustDiscRec#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CompRemitStmtSyncRs_TypeSequence2Sequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PaySvcRs_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.RecChkOrdAddRs_TypeSequence2Sequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.SvcAcctInqRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtAudRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtInqRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.XferSyncRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.XferInqRqChoice#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.ChkOrdDetail_TypeChoice2#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.AuthInfo#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DepAppModRq_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DepAppAudRs_TypeSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CCAcctTrnRec#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustModRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.AcctInqRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DebitAddRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DepAppInqRq_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.RemitAudRsSequence2#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtSyncRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtSyncRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.Income_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DepAppCanRs_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.ForExRateInqRsSequence2Choice#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustPayeeSyncRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.RemitDelRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.SvcAcctDelRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.ChkOrdModRs_TypeSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.SecretListChoice#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.ChksumAddRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.RemitRec#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CompRemitStmtInfo_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.InitialDeposit_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustPayeeAudRs#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.StopChkInqRqChoice2#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.SvcAcctSyncRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PmtRemitChksum_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustSvcMsgRecChoice#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CurrencyAmount#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CompRemitStmtInqRq_Type#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.XferModRsSequence2#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PostAddr#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.PresAcctRec#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CustAddRsSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.ForExRateInqRsSequence2#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DiscInqRq#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.BankAcctTrnImgInqRsSequence2Choice3#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.CurAmt#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.StopChkProf#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.ChkOrdCanRs_TypeSequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.DepAppAudRs_TypeSequence2Sequence#equals(Ljava/lang/Object;)Z
+net.sourceforge.ifxfv3.beans.SvcAcctId#equals(Ljava/lang/Object;)Z
+#------------------------------------------------------------------------
+#Project=shop  -  85_shop
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=at-robots2-j  -  86_at-robots2-j
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jaw-br  -  87_jaw-br
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jopenchart  -  88_jopenchart
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jiggler  -  89_jiggler
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=dcparseargs  -  90_dcparseargs
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=classviewer  -  91_classviewer
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jcvi-javacommon  -  92_jcvi-javacommon
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=quickserver  -  93_quickserver
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jclo  -  94_jclo
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=celwars2009  -  95_celwars2009
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=heal  -  96_heal
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=feudalismgame  -  97_feudalismgame
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=trans-locator  -  98_trans-locator
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=newzgrabber  -  99_newzgrabber
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jgaap  -  100_jgaap
+#------------------------------------------------------------------------
+#-------- Total: 100--------

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -197,7 +196,7 @@ public class TargetMethodTool {
 				dataMap.put(key, Randomness.randomSubList(rows, maxPerProject));
 			}
 		}
-		data = toList(dataMap);
+		data = CollectionUtil.toList(dataMap);
 		
 		List<List<Object>> selectedRows = Randomness.randomSubList(data, 100);
 		Map<String, List<List<Object>>> selectedMethods = toMap(selectedRows);
@@ -217,12 +216,75 @@ public class TargetMethodTool {
 		reader.close();
 	}
 	
-	private List<List<Object>> toList(Map<String, List<List<Object>>> dataMap) {
-		List<List<Object>> data = new ArrayList<>();
-		for (List<List<Object>> rows : dataMap.values()) {
-			data.addAll(rows);
+	public void selectMethods(String resultTxt, String inclusiveTxt, int limit) throws IOException {
+		new File(resultTxt).delete();
+		Map<String, Set<String>> inclusive = readData(inclusiveTxt);
+		List<String> selectedMethods = toList(inclusive);
+		if (limit < selectedMethods.size()) {
+			selectedMethods = Randomness.randomSubList(new ArrayList<String>(selectedMethods), 100);
 		}
-		return data;
+		Map<String, List<String>> map = new HashMap<>();
+		for (String method : selectedMethods) {
+			int idx = method.indexOf("#");
+			CollectionUtil.getListInitIfEmpty(map, method.substring(0, idx)).add(method.substring(idx + 1));
+		}
+		writeTargetMethodTxt(resultTxt, map);
+	}
+	
+	public void splitMethods(String resultTemplateTxt, String inclusiveTxt, int limit) throws IOException {
+		new File(resultTemplateTxt).delete();
+		Map<String, Set<String>> inclusive = readData(inclusiveTxt);
+		List<Map<String, List<String>>> maps = new ArrayList<>();
+		Map<String, List<String>> current = new HashMap<>();
+		maps.add(current);
+		int subTotal = 0;
+		for (String project : inclusive.keySet()) {
+			for (String method : CollectionUtil.nullToEmpty(inclusive.get(project))) {
+				if(subTotal >= limit) {
+					current = new HashMap<>();
+					maps.add(current);
+					subTotal = 0;
+				}
+				CollectionUtil.getListInitIfEmpty(current, project).add(method);
+				subTotal++;
+			}
+		}
+		int i = 0;
+		for (Map<String, List<String>> map : maps) {
+			writeTargetMethodTxt(String.format("%s_set%d.txt", resultTemplateTxt, ++i), map);
+		}
+	}
+
+	private void writeTargetMethodTxt(String resultTxt, Map<String, List<String>> map) {
+		new File(resultTxt).delete();
+		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
+		int total = 0;
+		for (String projectName : projectFolders.keySet()) {
+			List<String> methods = map.get(projectName);
+			StringBuilder sb = new StringBuilder()
+					.append("#------------------------------------------------------------------------\n")
+					.append("#Project=").append(projectName).append("  -  ").append(projectFolders.get(projectName).getName()).append("\n")
+					.append("#------------------------------------------------------------------------\n");
+			for (String method : CollectionUtil.nullToEmpty(methods)) {
+				sb.append(method).append("\n");
+				total++;
+			}
+			evosuite.shell.FileUtils.writeFile(resultTxt, sb.toString(), true);
+		}
+		StringBuilder sb = new StringBuilder()
+				.append("#-------- Total: ").append(total).append("--------");
+		evosuite.shell.FileUtils.writeFile(resultTxt, sb.toString(), true);
+	}
+	
+
+	private List<String> toList(Map<String, Set<String>> inclusive) {
+		List<String> methods = new ArrayList<>();
+		for (String projectName : inclusive.keySet()) {
+			for (String method : inclusive.get(projectName)) {
+				methods.add(projectName + "#" + method);
+			}
+		}
+		return methods;
 	}
 
 	private Map<String, List<List<Object>>> toMap(List<List<Object>> rows) {

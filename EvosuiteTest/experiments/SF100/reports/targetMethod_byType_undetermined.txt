@@ -1,0 +1,369 @@
+#------------------------------------------------------------------------
+#Project=tullibee  -  1_tullibee
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=a4j  -  2_a4j
+#------------------------------------------------------------------------
+net.kencochrane.a4j.beans.RecentlyViewed#addProduct(Lnet/kencochrane/a4j/beans/MiniProduct;)V
+#------------------------------------------------------------------------
+#Project=jigen  -  3_jigen
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=rif  -  4_rif
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=templateit  -  5_templateit
+#------------------------------------------------------------------------
+org.templateit.util.DelimitedFileReader#next()[Ljava/lang/String;
+#------------------------------------------------------------------------
+#Project=jnfe  -  6_jnfe
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=sfmis  -  7_sfmis
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=gfarcegestionfa  -  8_gfarcegestionfa
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=falselight  -  9_falselight
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=water-simulator  -  10_water-simulator
+#------------------------------------------------------------------------
+simulator.CA.ConsumerAgent#onGuiEvent(Ljade/gui/GuiEvent;)V
+#------------------------------------------------------------------------
+#Project=imsmart  -  11_imsmart
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=dsachat  -  12_dsachat
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jdbacl  -  13_jdbacl
+#------------------------------------------------------------------------
+org.databene.jdbacl.DBUtil#getConnectData(Ljava/lang/String;)Lorg/databene/commons/JDBCConnectData;
+#------------------------------------------------------------------------
+#Project=omjstate  -  14_omjstate
+#------------------------------------------------------------------------
+com.objectmentors.state.StateMachine#<init>(Ljava/util/Vector;)V
+#------------------------------------------------------------------------
+#Project=beanbin  -  15_beanbin
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=templatedetails  -  16_templatedetails
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=inspirento  -  17_inspirento
+#------------------------------------------------------------------------
+com.allenstudio.ir.util.XmlElement#equals(Ljava/lang/Object;)Z
+#------------------------------------------------------------------------
+#Project=jsecurity  -  18_jsecurity
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jmca  -  19_jmca
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=nekomud  -  20_nekomud
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=geo-google  -  21_geo-google
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=byuic  -  22_byuic
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jwbf  -  23_jwbf
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=saxpath  -  82_saxpath
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jni-inchi  -  25_jni-inchi
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jipa  -  26_jipa
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=gangup  -  27_gangup
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=greencow  -  28_greencow
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=apbsmem  -  29_apbsmem
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=bpmail  -  30_bpmail
+#------------------------------------------------------------------------
+ch.bluepenguin.tapestry.components.menu.model.impl.DefaultMenuModel#checkMenuModelHealth()V
+#------------------------------------------------------------------------
+#Project=xisemele  -  31_xisemele
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=httpanalyzer  -  32_httpanalyzer
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=javaviewcontrol  -  33_javaviewcontrol
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=sbmlreader2  -  34_sbmlreader2
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=corina  -  35_corina
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=schemaspy  -  36_schemaspy
+#------------------------------------------------------------------------
+net.sourceforge.schemaspy.view.DotConnector#equals(Ljava/lang/Object;)Z
+#------------------------------------------------------------------------
+#Project=petsoar  -  37_petsoar
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=javabullboard  -  38_javabullboard
+#------------------------------------------------------------------------
+framework.persistence.jdbc.ComponentManager#isValid(Lframework/persistence/jdbc/Component;Ljava/util/Map;)Z
+#------------------------------------------------------------------------
+#Project=diffi  -  39_diffi
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=glengineer  -  40_glengineer
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=follow  -  41_follow
+#------------------------------------------------------------------------
+ghm.follow.config.FollowAppAttributes#addFollowedFile(Ljava/io/File;)V
+#------------------------------------------------------------------------
+#Project=asphodel  -  42_asphodel
+#------------------------------------------------------------------------
+org.asphodel.DefaultRepositoryManager#deleteRepository(Ljava/lang/String;)V
+#------------------------------------------------------------------------
+#Project=lilith  -  43_lilith
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=summa  -  44_summa
+#------------------------------------------------------------------------
+dk.statsbiblioteket.summa.ingest.stream.FileReader#pump()Z
+dk.statsbiblioteket.summa.storage.api.filter.RecordReader#<init>(Ldk/statsbiblioteket/summa/common/configuration/Configuration;)V
+dk.statsbiblioteket.util.LineReader#readBoolean()Z
+#------------------------------------------------------------------------
+#Project=lotus  -  45_lotus
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=nutzenportfolio  -  46_nutzenportfolio
+#------------------------------------------------------------------------
+ch.bfh.egov.nutzenportfolio.action.BenutzerAction#login(Lorg/apache/struts/action/ActionMapping;Lorg/apache/struts/action/ActionForm;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)Lorg/apache/struts/action/ActionForward;
+#------------------------------------------------------------------------
+#Project=dvd-homevideo  -  47_dvd-homevideo
+#------------------------------------------------------------------------
+gdvdhomevideo#main([Ljava/lang/String;)V
+#------------------------------------------------------------------------
+#Project=resources4j  -  48_resources4j
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=diebierse  -  49_diebierse
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=biff  -  50_biff
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jiprof  -  51_jiprof
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=lagoon  -  52_lagoon
+#------------------------------------------------------------------------
+nu.staldal.lagoon.LagoonAntTask#execute()V
+nu.staldal.lagoon.LagoonCLI#main([Ljava/lang/String;)V
+#------------------------------------------------------------------------
+#Project=shp2kml  -  53_shp2kml
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=db-everywhere  -  54_db-everywhere
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=lavalamp  -  55_lavalamp
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jhandballmoves  -  56_jhandballmoves
+#------------------------------------------------------------------------
+visu.handball.moves.actions.NewMoveEventAction#modelChanged()V
+visu.handball.moves.actions.NewSequenceAction#modelChanged()V
+visu.handball.moves.actions.PlaceBallAction#modelChanged()V
+visu.handball.moves.model.HandballModel#removePlayer(Lvisu/handball/moves/model/player/Player;)V
+visu.handball.moves.model.HandballModel#hasPlayerBallInNextSequence(Lvisu/handball/moves/model/player/Player;)Z
+#------------------------------------------------------------------------
+#Project=hft-bomberman  -  57_hft-bomberman
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=fps370  -  58_fps370
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=mygrid  -  59_mygrid
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=sugar  -  60_sugar
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=noen  -  61_noen
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=dom4j  -  62_dom4j
+#------------------------------------------------------------------------
+org.dom4j.rule.Rule#equals(Ljava/lang/Object;)Z
+#------------------------------------------------------------------------
+#Project=objectexplorer  -  63_objectexplorer
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jtailgui  -  64_jtailgui
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=gsftp  -  65_gsftp
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=openjms  -  66_openjms
+#------------------------------------------------------------------------
+org.exolab.jms.tools.db.RDBMSTool#hasTables([Lorg/exolab/jms/tools/db/Table;)Z
+org.exolab.jms.tools.db.RDBMSTool#create(Lorg/exolab/jms/tools/db/Table;)V
+org.exolab.jms.tools.db.migration.V061toV072SchemaConverter#convert()V
+org.exolab.jms.net.util.SSLProperties#equals(Ljava/lang/Object;)Z
+org.exolab.jms.net.tcp.TCPSRequestInfo#equals(Ljava/lang/Object;)Z
+org.exolab.jms.net.http.HTTPRequestInfo#equals(Ljava/lang/Object;)Z
+org.exolab.jms.net.socket.SocketRequestInfo#equals(Ljava/lang/Object;)Z
+org.exolab.jms.client.JmsSession#createBrowser(Ljavax/jms/Queue;Ljava/lang/String;)Ljavax/jms/QueueBrowser;
+org.exolab.jms.client.JmsSession#allocateConsumer(Ljavax/jms/Destination;Ljava/lang/String;Z)J
+org.exolab.jms.client.JmsSession#checkForValidTemporaryDestination(Lorg/exolab/jms/client/JmsDestination;)Z
+org.exolab.jms.gc.GarbageCollectionService#handleEvent(ILjava/lang/Object;J)V
+org.exolab.jms.messagemgr.ResourceManager#garbageCollect()V
+org.exolab.jms.messagemgr.TopicDestinationCache#addConsumer(Lorg/exolab/jms/messagemgr/ConsumerEndpoint;)Z
+org.exolab.jms.messagemgr.AbstractTopicConsumerEndpoint#cacheAdded(Lorg/exolab/jms/client/JmsDestination;Lorg/exolab/jms/messagemgr/DestinationCache;)V
+org.exolab.jms.messagemgr.AbstractConsumerEndpoint#selects(Lorg/exolab/jms/message/MessageImpl;)Z
+org.exolab.jms.messagemgr.DestinationManagerImpl#getTopicDestinationCaches(Lorg/exolab/jms/client/JmsTopic;)Ljava/util/Map;
+org.exolab.jms.messagemgr.QueueDestinationCache#getMessage(Lorg/exolab/jms/selector/Selector;Lorg/exolab/jms/messagemgr/Condition;)Lorg/exolab/jms/messagemgr/MessageHandle;
+org.exolab.jms.messagemgr.QueueDestinationCache#canDestroy()Z
+org.exolab.jms.server.SessionConsumer#start()V
+org.exolab.jms.server.SessionConsumer#messageAvailable(Lorg/exolab/jms/messagemgr/ConsumerEndpoint;)V
+#------------------------------------------------------------------------
+#Project=gae-app-manager  -  67_gae-app-manager
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=biblestudy  -  68_biblestudy
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=lhamacaw  -  69_lhamacaw
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=echodep  -  70_echodep
+#------------------------------------------------------------------------
+edu.uiuc.ndiipp.hubandspoke.workflow.PackageDissemination#disseminatePackage(Ledu/uiuc/ndiipp/hubandspoke/lrcrud/client/LrcrudClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZ)Ljava/lang/String;
+edu.uiuc.ndiipp.hubandspoke.profile.HaSMETSProfile#addNewChecksum(Lgov/loc/mets/MetsFileType;Lgov/loc/mets/MetsFileType$CHECKSUMTYPE$Enum;Ljava/lang/String;)V
+edu.uiuc.ndiipp.hubandspoke.profile.HaSMETSProfile#addNewPREMISObjectTechMDToAllFile()V
+edu.uiuc.ndiipp.hubandspoke.profile.HaSMETSWebProfile#decomposeARCFiles(Ljava/lang/String;)V
+edu.uiuc.ndiipp.hubandspoke.packager.Hub2EprintsPackager#createRepositoryPackage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;
+edu.uiuc.ndiipp.hubandspoke.packager.Hub2DspacePackager#createRepositoryPackage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;
+#------------------------------------------------------------------------
+#Project=ext4j  -  71_ext4j
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=battlecry  -  72_battlecry
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=fim1  -  73_fim1
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=fixsuite  -  74_fixsuite
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=openhre  -  75_openhre
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=dash-framework  -  76_dash-framework
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=io-project  -  77_io-project
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=caloriecount  -  78_caloriecount
+#------------------------------------------------------------------------
+com.lts.application.Application#browseOpenRepository()V
+com.lts.io.archive.AbstractNestedArchive#buildArchiveTree(Lcom/lts/io/archive/AbstractTempDirectoryArchive;Ljava/lang/String;Lcom/lts/io/ImprovedFile;Ljava/util/Map;)Lcom/lts/io/archive/ArchiveTreeNode;
+com.lts.io.archive.AbstractNestedArchive#listEntriesAt(Ljava/lang/String;)Ljava/util/List;
+com.lts.io.archive.AbstractNestedArchive#buildRecursiveList(Lcom/lts/io/archive/Archive;Ljava/lang/String;Ljava/util/List;)V
+com.lts.io.ArchiveScanner#toFileType(Ljava/io/File;)I
+com.lts.xmlser.SerializationUtils#setField(Ljava/lang/Object;Lcom/lts/xmlser/FieldValue;Z)V
+#------------------------------------------------------------------------
+#Project=twfbplayer  -  79_twfbplayer
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=wheelwebtool  -  80_wheelwebtool
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=javathena  -  81_javathena
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=xbus  -  83_xbus
+#------------------------------------------------------------------------
+net.sf.xbus.protocol.records.RecordTypeDescriptionChecker#checkRecordTypeDeclaration(Lorg/w3c/dom/Node;IILjava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/util/LinkedList;Ljava/util/LinkedList;[Ljava/util/TreeMap;)[Ljava/lang/String;
+net.sf.xbus.application.Adapter#callApplication(Lnet/sf/xbus/base/xbussystem/XBUSSystem;Ljava/lang/Object;Ljava/lang/String;)V
+#------------------------------------------------------------------------
+#Project=ifx-framework  -  84_ifx-framework
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=shop  -  85_shop
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=at-robots2-j  -  86_at-robots2-j
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jaw-br  -  87_jaw-br
+#------------------------------------------------------------------------
+jaw.configuracoes.Mapeamento#adicionarChaves(Ljava/util/Collection;)Z
+#------------------------------------------------------------------------
+#Project=jopenchart  -  88_jopenchart
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jiggler  -  89_jiggler
+#------------------------------------------------------------------------
+jigl.image.io.ImageInputStream#read()Ljigl/image/Image;
+#------------------------------------------------------------------------
+#Project=dcparseargs  -  90_dcparseargs
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=classviewer  -  91_classviewer
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jcvi-javacommon  -  92_jcvi-javacommon
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=quickserver  -  93_quickserver
+#------------------------------------------------------------------------
+org.quickserver.util.io.ByteBufferInputStream#readLine()Ljava/lang/String;
+#------------------------------------------------------------------------
+#Project=jclo  -  94_jclo
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=celwars2009  -  95_celwars2009
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=heal  -  96_heal
+#------------------------------------------------------------------------
+com.ora.jsp.beans.locale.LocaleBean#setRequestLocales([Ljava/util/Locale;)V
+com.ora.jsp.beans.userinfo.UserInfoBean#setEmailAddr(Ljava/lang/String;)V
+com.ora.jsp.beans.userinfo.UserInfoBean#setSex(Ljava/lang/String;)V
+org.heal.module.oai.heal.HEALDataAccessor#getMetadataFormats(Ljava/lang/String;)[Lorg/heal/module/oai/provider/OAIMetadataFormat;
+#------------------------------------------------------------------------
+#Project=feudalismgame  -  97_feudalismgame
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=trans-locator  -  98_trans-locator
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=newzgrabber  -  99_newzgrabber
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jgaap  -  100_jgaap
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=branch  -  report_branch
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=fbranch  -  report_fbranch
+#------------------------------------------------------------------------
+#-------- Total: 65--------
