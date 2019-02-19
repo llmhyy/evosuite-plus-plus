@@ -94,6 +94,7 @@ public class TestSuiteGenerator {
 		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 		// Here is where the <clinit> code should be invoked for the first time
 		DefaultTestCase test = buildLoadTargetClassTestCase(Properties.TARGET_CLASS);
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
 		ExecutionResult execResult = TestCaseExecutor.getInstance().execute(test, Integer.MAX_VALUE);
 
 		if (hasThrownInitializerError(execResult)) {
@@ -107,7 +108,6 @@ public class TestSuiteGenerator {
 			throw t;
 		}
 
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
 		LoggingUtils.getEvoLogger().info("* Finished analyzing classpath");
 	}
 
