@@ -222,6 +222,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		
 		List<BytecodeInstruction> exercisedMethodCalls = new ArrayList<>();
 		fileterSourceInsList(result, sourceInsList, exercisedMethodCalls, callContext, branchTrace);
+//		System.currentTimeMillis();
 		
 		for (AnchorInstruction anchorIns : sourceInsList) {
 			/**
@@ -371,7 +372,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			for(BytecodeInstruction coveredIns: coveredInsList) {
 				if((ins.explain().equals(coveredIns.explain()) && ins.isConstant()) 
 						|| ins.equals(coveredIns)) {
-					if(!ins.isMethodCall()) {
+					if(ins.isMethodCall()) {
 						exercisedMethodCalls.add(ins);
 					}
 					iter.remove();
@@ -763,6 +764,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 		BasicBlock block = returnIns.getBasicBlock();
 		List<AnchorInstruction> sourceInsList = findSourceForReturnInstructionInBlock(block);
+		
+		System.currentTimeMillis();
 		if(sourceInsList.isEmpty()) {
 			Set<BytecodeInstruction> insParents = calledGraph.getParents(block.getFirstInstruction());
 			for (BytecodeInstruction parentIns : insParents) {
