@@ -55,6 +55,8 @@ public class AbstractETest {
 				"-Dmax_attempts", "100",
 				"-Dassertions", "false",
 				"-Delite", "10",
+//				"-Dprimitive_pool", "0.0",
+				"-Ddynamic_pool", "0.0",
 				"-Dlocal_search_ensure_double_execution", "false",
 //				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
