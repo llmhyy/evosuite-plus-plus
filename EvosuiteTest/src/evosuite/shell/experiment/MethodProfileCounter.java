@@ -19,9 +19,10 @@ public class MethodProfileCounter {
 	
 	@Test
 	public void run() throws IOException {
-		String baseDir = System.getProperty("user.dir");
-		String reportFile = baseDir + "/experiments/SF100/reports/methodProfiles.txt";
-		File file = new File(baseDir + "/experiments/SF100/reports/flagMethodProfiles.xlsx");
+//		String workingDir = System.getProperty("user.dir") + "/experiments/SF100/reports";
+		String workingDir = "/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest/evoTest-reports";
+		String reportFile = workingDir + "/methodProfiles.txt";
+		File file = new File(workingDir + "/flagMethodProfiles.xlsx");
 		ExcelReader reader = new ExcelReader(file, 0);
 		List<RowData> data = toRowData(reader.listData("data"));
 		
@@ -62,7 +63,7 @@ public class MethodProfileCounter {
 				}
 			}
 			sb.append("#-------- Total: ").append(total).append("--------");
-			FileUtils.writeFile(baseDir + "/experiments/SF100/reports/targetMethod_byType_" + type + ".txt", sb.toString(), false);
+			FileUtils.writeFile(workingDir + "/targetMethod_byType_" + type + ".txt", sb.toString(), false);
 		}
 	}
 	
@@ -74,6 +75,8 @@ public class MethodProfileCounter {
 			return mergeMap(getTargetMethodsByType(statistics, Type.determined), getTargetMethodsByType(statistics, Type.undetermined));
 		case uninstrumentable:
 			return mergeMap(getTargetMethodsByType(statistics, Type.nocode), getTargetMethodsByType(statistics, Type.uninstrumentable_others));
+		case determined:
+			return mergeMap(getTargetMethodsByType(statistics, Type.primitive), getTargetMethodsByType(statistics, Type.not_primitive));
 		default:
 			break;
 		}
@@ -104,11 +107,23 @@ public class MethodProfileCounter {
 			return Type.uninterested;
 		}
 		if (isDetermined(list)) {
-			return Type.determined;
+			if (isPrimitive(list)) {
+				return Type.primitive;
+			}
+			return Type.not_primitive;
 		}
 		return Type.undetermined;
 	}
 	
+	private boolean isPrimitive(List<RowData> list) {
+		for (RowData row : list) {
+			if (row.primitive > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private boolean isDetermined(List<RowData> list) {
 		for (RowData row : list) {
 			if (row.const01 > 0) {
@@ -153,6 +168,8 @@ public class MethodProfileCounter {
 		instrumentable,
 			interested,
 				determined,
+					primitive,
+					not_primitive,
 				undetermined,
 			uninterested,
 	}
@@ -189,6 +206,7 @@ public class MethodProfileCounter {
 			rData.invokeMethods = toInt(row.get(idx ++));
 			rData.others = toInt(row.get(idx ++));
 			rData.remarks = toString(row.get(idx ++));
+			rData.primitive = ((Boolean)row.get(idx++)) ? 1 : 0;
 			rowData.add(rData);
 		}
 		return rowData;
@@ -224,5 +242,6 @@ public class MethodProfileCounter {
 		int invokeMethods;
 		int others;
 		String remarks;
+		int primitive;
 	}
 }

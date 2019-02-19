@@ -32,6 +32,7 @@ import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
@@ -58,13 +59,15 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data", new String[]{
 				"ProjectId", "ProjectName", "Target Method", "Flag Method", "branch", "const0/1", "branch", "getfield", "branch",
-				"iLoad", "branch", "invokemethod", "other", "Remarks"}, 0);
+				"iLoad", "branch", "invokemethod", "other", "Remarks", "has Primitve type"}, 0);
 	}
 	
-	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node)
-			throws AnalyzerException, IOException {
+	@Override
+	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,
+			ClassNode cn) throws AnalyzerException, IOException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
-//		GraphPool.clearAll();
+		
+		//		GraphPool.clearAll();
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		if (cfg == null) {
 			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
@@ -78,6 +81,8 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		} 
 		boolean defuseAnalyzed = false;
 		MethodContent mc = new MethodContent();
+		mc.hasPrimitiveParam = hasPrimitiveParam(node, cn);
+		
 		boolean valid = false;
 		Map<String, Boolean> methodValidityMap = new HashMap<>();
 		for (BytecodeInstruction insn : cfg.getBranches()) {
@@ -136,6 +141,46 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		return valid;
 	}
 
+	private boolean hasPrimitiveParam(MethodNode mn, ClassNode cn) {
+		try {
+			Type[] argTypes = Type.getArgumentTypes(mn.desc);
+			for (Type type : argTypes) {
+				if (considerAsPrimitiveType(type)) {
+					return true;
+				}
+			}
+			return false;
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	private boolean considerAsPrimitiveType(Type type) {
+		switch (type.getSort()) {
+		case Type.BOOLEAN:
+		case Type.CHAR:
+		case Type.BYTE:
+		case Type.SHORT:
+		case Type.INT:
+		case Type.FLOAT:
+		case Type.LONG:
+		case Type.DOUBLE:
+			return true;
+		case Type.ARRAY:
+			return considerAsPrimitiveType(type.getElementType());
+		case Type.OBJECT:
+			String className = type.getClassName();
+			if (String.class.getName().equals(className)) {
+				return true;
+			}
+			break;
+		default:
+			break;
+		}
+		return false;
+	}
+
 	private void logToExcel(MethodContent mc, String className, String methodName) throws IOException {
 		List<List<Object>> data = new ArrayList<>();
 		String methodFullName = className + "#" + methodName;
@@ -155,6 +200,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			rowData.add(fm.invokeMethods);
 			rowData.add(fm.other);
 			rowData.add(StringUtils.join(fm.notes, "\n"));
+			rowData.add(mc.hasPrimitiveParam);
 			data.add(rowData);
 		}
 		writer.writeSheet("data", data);
@@ -368,6 +414,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 	}
 	
 	private static class MethodContent {
+		private boolean hasPrimitiveParam;
 		private List<FlagMethod> flagMethods = new ArrayList<>();
 	}
 	
@@ -388,7 +435,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 	public static enum Remarks {
 		UNINSTRUMENTABLE ("Cannot instrument!"),
 		NOBRANCH("No branch!"),
-		NO_SOURCE("Could not analyze (Does not have explicit code)!")
+		NO_SOURCE("Could not analyze (Does not have explicit code)!"),
 		;
 		
 		private String text;
