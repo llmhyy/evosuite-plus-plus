@@ -21,8 +21,9 @@ public class LoggerUtils {
 		@SuppressWarnings("unused")
 		String base_dir_path = EvoSuite.base_dir_path; 
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		appendFileAppender(context, FileUtils.getFilePath(outputFolder + "/log/", projectId + ".log"), "prj-file");
+//		appendFileAppender(context, FileUtils.getFilePath(outputFolder + "/log/", projectId + ".log"), "prj-file");
 		appendFileAppender(context, FileUtils.getFilePath(outputFolder + "/log/evoTest" + ".log"), "evoTest-file");
+		context.getLogger("ROOT").setLevel(Level.INFO);
 	}
 	
 	public static Logger getLogger(Class<?> clazz) {

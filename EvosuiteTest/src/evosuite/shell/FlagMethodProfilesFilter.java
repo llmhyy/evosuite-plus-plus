@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
@@ -186,14 +187,14 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		}
 		mc.flagMethods.add(fm);
 		if (!RuntimeInstrumentation.checkIfCanInstrument(className)) {
-			fm.notes.add("Cannot instrument!");
+			fm.notes.add(Remarks.UNINSTRUMENTABLE.text);
 			visitMethods.put(fm.methodName, false);
 			return false;
 		}
 		
 		MethodNode methodNode = getMethod(classLoader, methodInsn, className);
 		if (methodNode == null) {
-			fm.notes.add("Could not analyze (Does not have explicit code)!");
+			fm.notes.add(Remarks.NO_SOURCE.text);
 			visitMethods.put(fm.methodName, false);
 			return false;
 		}
@@ -209,7 +210,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			}
 			DominatorTree<BasicBlock> dt = new DominatorTree<BasicBlock>(cfg);
 			if (CollectionUtil.getSize(cfg.getBranches()) <= 1) {
-				fm.notes.add("No branch!");
+				fm.notes.add(Remarks.NOBRANCH.text);
 				visitMethods.put(fm.methodName, false);
 				return false;
 			}
@@ -324,6 +325,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 					if ((m.access & Opcodes.ACC_ABSTRACT) == Opcodes.ACC_ABSTRACT) {
 						return null;
 					}
+					dump(m);
 					return m;
 				}
 			}
@@ -335,6 +337,14 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		return null;
 	}
 	
+	private void dump(MethodNode m) {
+		ListIterator it = m.instructions.iterator();
+		while(it.hasNext()) {
+			Object node = it.next();
+			System.out.println(node);
+		}
+	}
+
 	private InputStream getClassAsStream(String name) throws IOException {
 		String path = name.replace('.', '/') + ".class";
 		String windowsPath = name.replace(".", "\\") + ".class";
@@ -373,5 +383,21 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		private int invokeMethods;
 		private int other;
 		private List<String> notes = new ArrayList<>();
+	}
+	
+	public static enum Remarks {
+		UNINSTRUMENTABLE ("Cannot instrument!"),
+		NOBRANCH("No branch!"),
+		NO_SOURCE("Could not analyze (Does not have explicit code)!")
+		;
+		
+		private String text;
+		private Remarks(String text) {
+			this.text = text;
+		}
+		
+		public String getText() {
+			return text;
+		}
 	}
 }
