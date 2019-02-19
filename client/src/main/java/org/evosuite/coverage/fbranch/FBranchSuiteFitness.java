@@ -479,19 +479,19 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		int executedBranchNode = 0;
 		for(BranchCoverageGoal goal: fitnessMap.keySet()) {
 			List<Double> fList = fitnessMap.get(goal);
-//			Collections.sort(fList);
+			Collections.sort(fList);
 			
-//			double minValue = fList.get(0);
-//			if(minValue > 1) {
-//				minValue = 1;
-//				unexecutedBranch++;
-//			}
-//			else if(minValue == 0) {
-//				covered++;
-//			}
-//			else {
-//				executedBranchNode++;
-//			}
+			double minValue = fList.get(0);
+			if(minValue > 1) {
+				minValue = 1;
+				unexecutedBranch++;
+			}
+			else if(minValue == 0) {
+				covered++;
+			}
+			else {
+				executedBranchNode++;
+			}
 			
 //			totalFitness += minValue;
 			
