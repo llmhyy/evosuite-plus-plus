@@ -686,6 +686,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	private boolean canMethodContainConstantReturn(RawControlFlowGraph calledCFG) {
 		for(BytecodeInstruction ins: calledCFG.determineExitPoints()) {
 			if(ins.isReturn()) {
+				if(ins.getFrame()==null) {
+					System.currentTimeMillis();
+				}
+				
 				BytecodeInstruction returnDef = ins.getSourceOfStackInstruction(0);
 				if(returnDef.isConstant()) {
 					return true;

@@ -76,6 +76,21 @@ public class BytecodeAnalyzer extends Analyzer {
 
 		Frame[] frames = getFrames();
 
+		for(int i=0; i<node.instructions.size(); i++) {
+			BytecodeInstruction instruction = BytecodeInstructionPool.getInstance(classLoader).getInstruction(owner,
+					method,
+					i,
+					node.instructions.get(i));
+			if(instruction.getFrame()==null) {
+				if(frames[i] instanceof CFGFrame) {
+					CFGFrame frame = (CFGFrame)frames[instruction.getInstructionId()];
+					instruction.setCFGFrame(frame);
+				}
+			}
+		}
+		
+
+		
 		if (frames.length == 0)
 			return null;
 
