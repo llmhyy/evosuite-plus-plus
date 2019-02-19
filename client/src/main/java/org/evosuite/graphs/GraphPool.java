@@ -21,6 +21,7 @@ package org.evosuite.graphs;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.graphs.ccfg.ClassControlFlowGraph;
@@ -122,7 +123,17 @@ public class GraphPool {
 			return null;
 		}
 
-		return rawCFGs.get(className).get(methodName);
+		RawControlFlowGraph callGraph = rawCFGs.get(className).get(methodName);
+		if (callGraph == null) {
+			Set<String> supperClasses = DependencyAnalysis.getInheritanceTree().getSuperclasses(className);
+			for (String supperClass : supperClasses) {
+				callGraph = rawCFGs.get(supperClass).get(methodName);
+				if (callGraph != null) {
+					return callGraph;
+				}
+			}
+		}
+		return callGraph;
 	}
 
 	/**

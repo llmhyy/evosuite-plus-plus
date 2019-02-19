@@ -57,7 +57,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 						|| (m.access & Opcodes.ACC_PROTECTED) == Opcodes.ACC_PROTECTED
 						|| (m.access & Opcodes.ACC_PRIVATE) == 0 /* default */ ) {
 					try {
-						if (checkMethod(classLoader, targetClass.getName(), methodName, m)) {
+						if (checkMethod(classLoader, targetClass.getName(), methodName, m, cn)) {
 							validMethods.add(methodName);
 						}
 					} catch (Exception e) {
@@ -71,7 +71,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 		return validMethods;
 	}
 	
-	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node) throws AnalyzerException, IOException {
+	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node, ClassNode cn) throws AnalyzerException, IOException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
 //		GraphPool.clearAll();
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
