@@ -12,6 +12,7 @@ EVOTEST="$JAVA_EXEC -jar $PWD/EvosuiteTest-1.0.6-SNAPSHOT.jar"
 EVOTEST_DEBUG="$JAVA_EXEC -agentlib:jdwp=transport=dt_socket,server=y,address=9595 -jar $PWD/EvosuiteTest-1.0.6-SNAPSHOT.jar"
 
 EvosuiteTest="$JAVA_EXEC -cp $PWD/EvosuiteTest-1.0.6-SNAPSHOT.jar"
+TARGET_METHOD_FILE=$ROOT/targetMethod_byType_determined.txt
 for I in *_*; do
   PROJECT=$(echo $I | awk 'BEGIN {FS="_"} ; { print $2}')
   echo $PROJECT
@@ -26,11 +27,13 @@ for I in *_*; do
    exit 1
   fi
   
-  #$EVOTEST -criterion fbranch -target $PROJECT.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore -Dsearch_budget 90 -inclusiveFile $ROOT/targetMethods.txt -Djunit_check false
-  
- #$EVOTEST -criterion fbranch -target $PROJECT.jar -iteration 5 -generateRandom -generateSuite -Dsearch_budget 90 -inclusiveFile $ROOT/targetMethods-200methods.txt -Djunit_check false -Dinstrument_context true -Dp_test_delete 0 -Dp_test_change 0.9 -Dp_test_insert 0.1 -Dp_change_parameter 0.1 -Dp_functional_mocking 0 -Dmock_if_no_generator false -Dfunctional_mocking_percent 0 -Dprimitive_reuse_probability 0 -Dmin_initial_tests 5 -Dmax_initial_tests 30 -Ddse_probability 0 -Dinstrument_libraries true -Dinstrument_parent true -Dmax_length 1 -Dmax_size 1 -Dmax_attempts 100 -Dassertions false -Dstopping_condition maxgenerations
+ OPTIONS="-inclusiveFile $TARGET_METHOD_FILE -target $PROJECT.jar -iteration 3 -Dsearch_budget 100 -Dinstrument_context true -Dp_test_delete 0 -Dp_test_change 0.9 -Dp_test_insert 0.1 -Dp_change_parameter 0.1 -Dlocal_search_rate 3 -Dp_functional_mocking 0 -Dmock_if_no_generator false -Dfunctional_mocking_percent 0 -Dprimitive_reuse_probability 0 -Dmin_initial_tests 10 -Dmax_initial_tests 20 -Ddse_probability 0 -Dinstrument_libraries true -Dinstrument_parent true -Dmax_attempts 100 -Dassertions false -Delite 10 -Ddynamic_pool 0.0 -Dlocal_search_ensure_double_execution false"
  
- $EVOTEST -criterion branch -target $PROJECT.jar -iteration 5 -generateSuite -Dsearch_budget 90 -inclusiveFile $ROOT/targetMethods.txt -Djunit_check false -Dinstrument_context true -Dp_test_delete 0 -Dp_test_change 0.9 -Dp_test_insert 0.1 -Dp_change_parameter 0.1 -Dlocal_search_rate 3 -Dp_functional_mocking 0 -Dmock_if_no_generator false -Dfunctional_mocking_percent 0 -Dprimitive_reuse_probability 0 -Dmin_initial_tests 10 -Dmax_initial_tests 30 -Ddse_probability 0 -Dinstrument_libraries true -Dinstrument_parent true -Dmax_length 1 -Dmax_size 1 -Dmax_attempts 100 -Dassertions false
+ CMD_BRANCH="$EVOTEST -criterion branch $OPTIONS"
+ CMD_FBRANCH="$EVOTEST -criterion fbranch $OPTIONS"
+ 
+ $CMD_BRANCH
+ $CMD_FBRANCH
  
  popd > /dev/null
 done

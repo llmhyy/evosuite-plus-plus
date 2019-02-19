@@ -1,0 +1,13 @@
+Statistic: 
+==================================================================
+uninstrumentable:	280
+nocode:	208
+uninstrumentable_others:	72
+instrumentable:	406
+interested:	189
+determined:	183
+primitive:	59
+not_primitive:	124
+undetermined:	6
+uninterested:	217
+==================================================================
