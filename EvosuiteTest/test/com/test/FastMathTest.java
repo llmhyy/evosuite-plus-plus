@@ -40,12 +40,15 @@ public class FastMathTest extends AbstractETest{
 		int timeBudget = 60;
 		
 		int repeat = 5;
+		List<EvoTestResult> l1 = new ArrayList<>();
+		List<EvoTestResult> l2 = new ArrayList<>();
+		
 		
 		String fitnessApproach = "fbranch";
-		List<EvoTestResult> l1 = runRepetativeTimes(targetClass, targetMethod, cp, timeBudget, fitnessApproach, repeat);
+		l1 = runRepetativeTimes(targetClass, targetMethod, cp, timeBudget, fitnessApproach, repeat);
 		
 		fitnessApproach = "branch";
-		List<EvoTestResult> l2 = runRepetativeTimes(targetClass, targetMethod, cp, timeBudget, fitnessApproach, repeat);
+		l2 = runRepetativeTimes(targetClass, targetMethod, cp, timeBudget, fitnessApproach, repeat);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: l1){
