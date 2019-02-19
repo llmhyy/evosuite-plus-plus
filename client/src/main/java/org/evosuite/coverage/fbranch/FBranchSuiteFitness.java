@@ -453,7 +453,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				
 				List<Double> fitnessList = new ArrayList<>();
 				for(int i=0; i<results.size(); i++) {
-					if(i==21) {
+					if(i==13) {
 						System.currentTimeMillis();
 					}
 					
@@ -481,17 +481,17 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			List<Double> fList = fitnessMap.get(goal);
 //			Collections.sort(fList);
 			
-			double minValue = fList.get(0);
-			if(minValue > 1) {
-				minValue = 1;
-				unexecutedBranch++;
-			}
-			else if(minValue == 0) {
-				covered++;
-			}
-			else {
-				executedBranchNode++;
-			}
+//			double minValue = fList.get(0);
+//			if(minValue > 1) {
+//				minValue = 1;
+//				unexecutedBranch++;
+//			}
+//			else if(minValue == 0) {
+//				covered++;
+//			}
+//			else {
+//				executedBranchNode++;
+//			}
 			
 //			totalFitness += minValue;
 			
@@ -583,7 +583,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			System.currentTimeMillis();
 		}
 		
-		getNewFitness(results, interestedKeys);
+//		getNewFitness(results, interestedKeys);
 		fitness = newFit;
 
 		
