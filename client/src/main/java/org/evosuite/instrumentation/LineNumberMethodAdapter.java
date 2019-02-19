@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Gordon Fraser
  */
-public class LineNumberMethodAdapter extends MethodVisitor /*implements ConstructorEntryListener*/ {
+public class LineNumberMethodAdapter extends MethodVisitor implements ConstructorEntryListener {
 
 	@SuppressWarnings("unused")
 	private static Logger logger = LoggerFactory.getLogger(LineNumberMethodAdapter.class);
@@ -99,29 +99,15 @@ public class LineNumberMethodAdapter extends MethodVisitor /*implements Construc
 		addLineNumberInstrumentation(line);
 	}
 
-//	@Override
-//	public void onEnterConstructor() {
-//		hadInvokeSpecial = true;
-//		for(int line : skippedLines) {
-//			addLineNumberInstrumentation(line);
-//		}
-//		skippedLines.clear();		
-//	}
-	
 	@Override
-	public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-		super.visitMethodInsn(opcode, owner, name, desc, itf);
-		if (opcode == Opcodes.INVOKESPECIAL) {
-			if (methodName.equals("<init>")) {
-				hadInvokeSpecial = true;
-				for(int line : skippedLines) {
-					addLineNumberInstrumentation(line);
-				}
-				skippedLines.clear();
-			}
+	public void onEnterConstructor() {
+		hadInvokeSpecial = true;
+		for(int line : skippedLines) {
+			addLineNumberInstrumentation(line);
 		}
+		skippedLines.clear();		
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see org.objectweb.asm.commons.LocalVariablesSorter#visitMaxs(int, int)
 	 */
