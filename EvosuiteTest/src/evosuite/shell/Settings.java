@@ -27,7 +27,7 @@ public class Settings {
 			}
 			if (optValue != null) {
 				StringBuilder sb = new StringBuilder().append("report")
-						.append("_").append(optValue)
+						.append("-").append(optValue)
 //						.append("_").append(Calendar.getInstance().get(Calendar.DAY_OF_MONTH))
 //						.append(Month.of(Calendar.getInstance().get(Calendar.MONTH)))
 //						.append("-").append(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)).append("h")
