@@ -34,6 +34,7 @@ public class FitnessAggregator {
 			return 0;
 		}
 		
+//		int size = aggreationSizeLimit > fitnessList.size() ? fitnessList.size() : aggreationSizeLimit;
 		int size = fitnessList.size();
 		
 		double fit = 0;

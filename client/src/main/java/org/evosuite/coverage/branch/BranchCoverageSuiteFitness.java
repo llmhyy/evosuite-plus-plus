@@ -110,8 +110,8 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
 		
 		branchesId = new HashSet<>();
 
-		totalGoals = 2 * totalBranches + numBranchlessMethods;
-
+		totalGoals = 2 * totalBranches + numBranchlessMethods;	
+		
 		logger.info("Total branch coverage goals: " + totalGoals);
 		logger.info("Total branches: " + totalBranches);
 		logger.info("Total branchless methods: " + numBranchlessMethods);
@@ -447,12 +447,12 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
 
 		// Calculate coverage
 		int coverage = numCoveredBranches;
-//		for (String e : branchlessMethodCoverageMap.keySet()) {
-//			if (callCount.keySet().contains(e)) {
-//				coverage++;
-//			}
-//
-//		}
+		for (String e : branchlessMethodCoverageMap.keySet()) {
+			if (callCount.keySet().contains(e)) {
+				coverage++;
+			}
+
+		}
 
 		coverage +=removedBranchesF.size();
 		coverage +=removedBranchesT.size();
