@@ -84,7 +84,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		
 		
 		if(value == null){
-			return 10000d;
+			return 1;
 		}
 		else if(value != 1){
 			return normalize(value);
@@ -141,8 +141,11 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			
 			List<Double> returnFitnessList = new ArrayList<>();
 			for (BytecodeInstruction returnIns : exits) {
-				List<Double> fList = calculateReturnInsFitness(returnIns, branchGoal, calledGraph, result, callContext, branchTrace);
-				returnFitnessList.addAll(fList);
+				if(returnIns.isReturn()) {
+					List<Double> fList = calculateReturnInsFitness(returnIns, branchGoal, calledGraph, result, callContext, branchTrace);
+					returnFitnessList.addAll(fList);					
+				}
+				
 			}
 			
 			double fit = FitnessAggregator.aggreateFitenss(returnFitnessList);
@@ -684,6 +687,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	}
 
 	private boolean canMethodContainConstantReturn(RawControlFlowGraph calledCFG) {
+		if(calledCFG==null) {
+			return false;
+		}
+		
 		for(BytecodeInstruction ins: calledCFG.determineExitPoints()) {
 			if(ins.isReturn()) {
 				if(ins.getFrame()==null) {
@@ -714,6 +721,11 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	}
 
 	private BytecodeInstruction findIStoreInBlock(BytecodeInstruction iLoad, BasicBlock block) {
+		
+		if(block.getFirstInstruction() == null) {
+			return null;
+		}
+		
 		BytecodeInstruction firstIns = block.getFirstInstruction();
 		BytecodeInstruction lastIns = block.getLastInstruction();
 		
@@ -727,6 +739,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				}
 			}
 			ins = ins.getPreviousInstruction();
+			//reach the first instruction
+			if(ins == null) {
+				return null;
+			}
 		}
 		
 		return null;
