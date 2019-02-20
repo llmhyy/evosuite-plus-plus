@@ -362,7 +362,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			updateDistribution(distributionMap);
 
 			// printUncoveredBranches(distributionMap, branchGoals);
-			printUncoveredBranches(getBestIndividual(), branchGoals);
+//			printUncoveredBranches(getBestIndividual(), branchGoals);
 
 			logger.error("Best fitness: " + bestFitness + ", Coverage: " + getBestIndividual().getCoverage());
 			logger.info("Current iteration: " + currentIteration);
@@ -389,9 +389,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		this.setDistribution(distribution);
 		// this.setCallUninstrumentedMethod(true);
 
-		for (Integer branchID : distributionMap.keySet()) {
-			logger.error("branch ID: " + branchID + ": " + distributionMap.get(branchID));
-		}
+//		for (Integer branchID : distributionMap.keySet()) {
+//			logger.error("branch ID: " + branchID + ": " + distributionMap.get(branchID));
+//		}
 
 		double availabilityRatio = getAvailabilityRatio();
 		
