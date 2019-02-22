@@ -507,9 +507,62 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				return 1;
 			}
 			else {
+				if(needDelegateBranch(branch, value)) {
+					BytecodeInstruction load = branch.getInstruction().getSourceOfStackInstruction(0);
+					List<BytecodeInstruction> defs = findDefinitions(load);
+					if(!defs.isEmpty() && defs.size()==1) {
+						BytecodeInstruction store = defs.get(0);
+						List<BytecodeInstruction> insList = store.getSourceOfStackInstructionList(0);
+						
+						if(insList != null && !insList.isEmpty()) {
+							for(BytecodeInstruction ins: insList) {
+								Branch delegateBranch = ins.getControlDependentBranch();
+								boolean delegateGoalValue = ins.getControlDependentBranchExpressionValue();
+								
+								List<Call> replacedContext = replaceContext(context, delegateBranch);
+								
+								value = checkContextBranchDistance(result, delegateBranch, delegateGoalValue, 
+										replacedContext, branchTrace);
+								if(value != 0) {
+									return value;
+								}
+							}
+						}
+					}
+					else {
+						return FitnessFunction.normalize(value);
+					}
+					
+				}
+				
 				return FitnessFunction.normalize(value);
 			}
 		}
+	}
+
+	private List<Call> replaceContext(List<Call> context, Branch delegateBranch) {
+		List<Call> replacedContext = new ArrayList<>();
+		for(int i=0; i<context.size()-1; i++) {
+			replacedContext.add(context.get(i));
+		}
+		
+		replacedContext = updateCallContext(delegateBranch.getInstruction(), replacedContext);
+		return replacedContext;
+	}
+
+	private boolean needDelegateBranch(Branch branch, Double value) {
+		BytecodeInstruction branchIns = branch.getInstruction();
+		if(value == 1 && (
+				branchIns.explain().contains("IFEQ") ||
+				branchIns.explain().contains("IFNE") ||
+				branchIns.explain().contains("IFGE") ||
+				branchIns.explain().contains("IFGT") ||
+				branchIns.explain().contains("IFLE") ||
+				branchIns.explain().contains("IFLT") 
+				)) {
+			return true;
+		}
+		return false;
 	}
 
 	private boolean checkCovered(ExecutionResult result, Branch branch, List<Call> callContext, List<Integer> branchTrace) {

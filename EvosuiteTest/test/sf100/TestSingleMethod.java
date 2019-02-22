@@ -35,37 +35,6 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runVectorEqualsUnordered() {
-		String projectId = "1_tullibee";
-		String projectName = "tullibee";
-		String[] targetMethods = new String[]{
-//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
-				"com.ib.client.Order#equals(Ljava/lang/Object;)Z"
-				
-				};
-//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
-		fitnessApproach = "fbranch";
-		int repeatTime = 3;
-		int budget = 100;
-		List<EvoTestResult> results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
-		
-		fitnessApproach = "branch";
-		List<EvoTestResult> results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, false);
-		
-		System.out.println("fbranch" + ":");
-		for(EvoTestResult lu: results0){
-			System.out.println(lu.getCoverage());
-			System.out.println(lu.getProgress());
-		}
-		
-		System.out.println("branch" + ":");
-		for(EvoTestResult lu: results1){
-			System.out.println(lu.getCoverage());
-			System.out.println(lu.getProgress());
-		}
-	}
-	
-	@Test
 	public void runPropertiesUtil() {
 		String projectId = "38_javabullboard";
 		String projectName = "javabullboard";
@@ -83,6 +52,66 @@ public class TestSingleMethod {
 		fitnessApproach = "branch";
 		List<EvoTestResult> results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
+		System.out.println("fbranch" + ":");
+		for(EvoTestResult lu: results0){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+		
+		System.out.println("branch" + ":");
+		for(EvoTestResult lu: results1){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+	}
+	
+	@Test
+	public void runMath() {
+		String projectId = "38_javabullboard";
+		String projectName = "javabullboard";
+		String[] targetMethods = new String[]{
+//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
+				"framework.util.PropertyUtils#copyProperties(Ljava/lang/Object;Ljava/lang/Object;)V"
+				
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		fitnessApproach = "fbranch";
+		int repeatTime = 5;
+		int budget = 100;
+		List<EvoTestResult> results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		
+		fitnessApproach = "branch";
+		List<EvoTestResult> results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		
+		System.out.println("fbranch" + ":");
+		for(EvoTestResult lu: results0){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+		
+		System.out.println("branch" + ":");
+		for(EvoTestResult lu: results1){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+	}
+	
+	@Test
+	public void runSetSites() {
+		String projectId = "35_corina";
+		String projectName = "corina";
+		String[] targetMethods = new String[]{
+//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
+				"corina.map.MapPanel#setSites(Ljava/util/List;)V"
+				
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		fitnessApproach = "fbranch";
+		int repeatTime = 1;
+		int budget = 100;
+		results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
 			System.out.println(lu.getCoverage());

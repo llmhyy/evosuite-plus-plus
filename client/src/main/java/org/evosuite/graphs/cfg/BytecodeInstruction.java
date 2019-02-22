@@ -19,17 +19,34 @@
  */
 package org.evosuite.graphs.cfg;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.FrameNode;
+import org.objectweb.asm.tree.IincInsnNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.IntInsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.LineNumberNode;
+import org.objectweb.asm.tree.LookupSwitchInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MultiANewArrayInsnNode;
+import org.objectweb.asm.tree.TableSwitchInsnNode;
+import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.SourceValue;
-
-import java.io.Serializable;
-import java.util.Set;
 
 /**
  * Internal representation of a BytecodeInstruction
@@ -1117,6 +1134,39 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 				methodName,
 				sourceInstruction);
 		return src;
+	}
+	
+	public List<BytecodeInstruction> getSourceOfStackInstructionList(int positionFromTop) {
+		if (frame == null)
+			throw new IllegalStateException(
+					"expect each BytecodeInstruction to have its CFGFrame set");
+
+		List<BytecodeInstruction> list = new ArrayList<>();
+		
+		int stackPos = frame.getStackSize() - (1 + positionFromTop);
+		if (stackPos < 0){
+			StackTraceElement[] se = new Throwable().getStackTrace();
+			int t=0;
+			System.out.println("Stack trace: ");
+			while(t<se.length){
+				System.out.println(se[t]);
+				t++;
+			}
+			return null;
+		}
+		SourceValue source = (SourceValue) frame.getStack(stackPos);
+		
+		
+		for(Object obj: source.insns) {
+			if(obj instanceof AbstractInsnNode) {
+				AbstractInsnNode sourceInstruction = (AbstractInsnNode) obj;
+				BytecodeInstruction src = BytecodeInstructionPool.getInstance(classLoader).getInstruction(className,
+						methodName,
+						sourceInstruction);
+				list.add(src);
+			}
+		}
+		return list;
 	}
 
 	public boolean isFieldMethodCallDefinition() {
