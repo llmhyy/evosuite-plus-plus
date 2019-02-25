@@ -125,15 +125,19 @@ public class GraphPool {
 
 		RawControlFlowGraph callGraph = rawCFGs.get(className).get(methodName);
 		if (callGraph == null) {
-			Set<String> supperClasses = DependencyAnalysis.getInheritanceTree().getSuperclasses(className);
-			for (String supperClass : supperClasses) {
-				Map<String, RawControlFlowGraph> map = rawCFGs.get(supperClass);
-				if (map != null) {
-					callGraph = map.get(methodName);
-					if (callGraph != null) {
-						return callGraph;
+			try {
+				Set<String> supperClasses = DependencyAnalysis.getInheritanceTree().getSuperclasses(className);
+				for (String supperClass : supperClasses) {
+					Map<String, RawControlFlowGraph> map = rawCFGs.get(supperClass);
+					if (map != null) {
+						callGraph = map.get(methodName);
+						if (callGraph != null) {
+							return callGraph;
+						}
 					}
 				}
+			} catch(Exception e) {
+				return null;
 			}
 		}
 		return callGraph;
