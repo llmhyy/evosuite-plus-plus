@@ -94,7 +94,8 @@ public class MOSuiteStrategy extends TestGenerationStrategy {
 				ArrayUtil.contains(Properties.CRITERION, Criterion.STATEMENT) || 
 				ArrayUtil.contains(Properties.CRITERION, Criterion.RHO) || 
 				ArrayUtil.contains(Properties.CRITERION, Criterion.BRANCH) ||
-				ArrayUtil.contains(Properties.CRITERION, Criterion.AMBIGUITY))
+				ArrayUtil.contains(Properties.CRITERION, Criterion.AMBIGUITY) ||
+				ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH))
 			ExecutionTracer.enableTraceCalls();
 
 		algorithm.resetStoppingConditions();
@@ -149,6 +150,10 @@ public class MOSuiteStrategy extends TestGenerationStrategy {
 		// when the criterion Properties.Criterion.EXCEPTION is used (exception coverage
 		// goal are dynamically added when the generated tests trigger some exceptions
 		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Total_Goals, algorithm.getFitnessFunctions().size());
+		
+		
+		int timeUsed = (int) (endTime - startTime);
+		testSuite.setTimeUsed(timeUsed);
 		
 		return testSuite;
 	}
