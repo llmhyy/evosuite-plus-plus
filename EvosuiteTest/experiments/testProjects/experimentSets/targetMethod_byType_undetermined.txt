@@ -1,0 +1,19 @@
+#------------------------------------------------------------------------
+#Project=math  -  101_math
+#------------------------------------------------------------------------
+org.apache.commons.math.fraction.BigFraction#add(Lorg/apache/commons/math/fraction/BigFraction;)Lorg/apache/commons/math/fraction/BigFraction;
+org.apache.commons.math.fraction.BigFraction#subtract(Lorg/apache/commons/math/fraction/BigFraction;)Lorg/apache/commons/math/fraction/BigFraction;
+org.apache.commons.math.fraction.BigFractionTest#testEqualsAndHashCode()V
+#------------------------------------------------------------------------
+#Project=colt  -  102_colt
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jblas  -  103_jblas
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#Project=jscience  -  104_jscience
+#------------------------------------------------------------------------
+org.jscience.mathematics.function.Polynomial#plus(Lorg/jscience/mathematics/function/Polynomial;)Lorg/jscience/mathematics/function/Polynomial;
+org.jscience.mathematics.function.Polynomial#times(Lorg/jscience/mathematics/function/Polynomial;)Lorg/jscience/mathematics/function/Polynomial;
+org.jscience.mathematics.number.LargeInteger#shiftRight(I)Lorg/jscience/mathematics/number/LargeInteger;
+#-------- Total: 6--------
