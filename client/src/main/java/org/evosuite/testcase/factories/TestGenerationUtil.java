@@ -1,12 +1,16 @@
 package org.evosuite.testcase.factories;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.evosuite.Properties;
+import org.evosuite.Properties.Criterion;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.generic.GenericAccessibleObject;
 import org.evosuite.utils.generic.GenericMethod;
@@ -71,32 +75,59 @@ public class TestGenerationUtil {
 		return stopInsertion;
 	}
 	
-	public static boolean isTargetMethod(GenericAccessibleObject<?> obj) {
+	public static boolean isTargetMethod(GenericAccessibleObject<?> obj, Set<GenericMethod> calledMethods) {
 		if(obj instanceof GenericMethod) {
 			GenericMethod method = (GenericMethod)obj;
-			String sig = method.getName() + MethodUtil.getSignature(method.getMethod());
+//			String sig = method.getName() + MethodUtil.getSignature(method.getMethod());
 			
-			if(sig.equals(Properties.TARGET_METHOD)) {
+			if(calledMethods.contains(method)) {
 				return true;
 			}
 		}
 		
 		return false;
 	}
-
-	public static void filterTargetMethod(TestCase test, List<GenericAccessibleObject<?>> candidateTestMethods) {
-		if(!Properties.TARGET_METHOD.isEmpty()) {
-			boolean targetCalled = checkTargetMethodInvocation(test);
-			if(targetCalled) {
-				Iterator<GenericAccessibleObject<?>> iter = candidateTestMethods.iterator();
-				while(iter.hasNext()) {
-					GenericAccessibleObject<?> obj = iter.next();
-					if(isTargetMethod(obj)) {
-						iter.remove();
-					}
+	
+	public static Set<GenericMethod> getCalledMethods(TestCase test){
+		Set<GenericMethod> calledMethods = new HashSet<>();
+		for(Statement stat: test) {
+			if(stat instanceof MethodStatement) {
+				MethodStatement mStat = (MethodStatement)stat;
+				GenericMethod m = mStat.getMethod();
+				if(!calledMethods.contains(m)) {
+					calledMethods.add(m);
 				}
 			}
 		}
+		
+		return calledMethods;
+	}
+
+	public static void filterTargetMethod(TestCase test, List<GenericAccessibleObject<?>> candidateTestMethods) {
+		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+			Set<GenericMethod> calledMethods = getCalledMethods(test);
+			
+			Iterator<GenericAccessibleObject<?>> iter = candidateTestMethods.iterator();
+			while(iter.hasNext()) {
+				GenericAccessibleObject<?> obj = iter.next();
+				if(isTargetMethod(obj, calledMethods)) {
+					iter.remove();
+				}
+			}
+		}
+		
+//		if(!Properties.TARGET_METHOD.isEmpty()) {
+//			boolean targetCalled = checkTargetMethodInvocation(test);
+//			if(targetCalled) {
+//				Iterator<GenericAccessibleObject<?>> iter = candidateTestMethods.iterator();
+//				while(iter.hasNext()) {
+//					GenericAccessibleObject<?> obj = iter.next();
+//					if(isTargetMethod(obj)) {
+//						iter.remove();
+//					}
+//				}
+//			}
+//		}
 		
 	}
 }

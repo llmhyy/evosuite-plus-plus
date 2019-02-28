@@ -660,7 +660,8 @@ public class TestCluster {
 
 	public GenericAccessibleObject<?> getRandomCallFor(GenericClass clazz, TestCase test, int position)
 	        throws ConstructionFailedException {
-
+		Set<GenericMethod> calledMethods = TestGenerationUtil.getCalledMethods(test);
+		
 		Set<GenericAccessibleObject<?>> calls = getCallsFor(clazz, true);
 		Iterator<GenericAccessibleObject<?>> iter = calls.iterator();
 		while(iter.hasNext()) {
@@ -668,7 +669,7 @@ public class TestCluster {
 			if (! ConstraintVerifier.isValidPositionForInsertion(gao,test,position)){
 				iter.remove();
 			}
-			else if (TestGenerationUtil.isTargetMethod(gao)) {
+			else if (TestGenerationUtil.isTargetMethod(gao, calledMethods)) {
 				iter.remove();
 			}
 		}
