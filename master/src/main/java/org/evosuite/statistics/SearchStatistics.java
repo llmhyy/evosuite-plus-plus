@@ -177,14 +177,14 @@ public class SearchStatistics implements Listener<ClientStateInformation>{
 		if(individual instanceof TestSuiteChromosome) {
 //			System.currentTimeMillis();
 			bestIndividual.put(rmiClientIdentifier, (TestSuiteChromosome) individual);
+			for(ChromosomeOutputVariableFactory<?> v : variableFactories.values()) {
+				setOutputVariable(v.getVariable((TestSuiteChromosome) individual));
+			}
+			for(SequenceOutputVariableFactory<?> v : sequenceOutputVariableFactories.values()) {
+				v.update((TestSuiteChromosome) individual);
+			}
 		}
 		
-        for(ChromosomeOutputVariableFactory<?> v : variableFactories.values()) {
-            setOutputVariable(v.getVariable((TestSuiteChromosome) individual));
-        }
-		for(SequenceOutputVariableFactory<?> v : sequenceOutputVariableFactories.values()) {
-			v.update((TestSuiteChromosome) individual);
-		}
 	}
 
 	/**
