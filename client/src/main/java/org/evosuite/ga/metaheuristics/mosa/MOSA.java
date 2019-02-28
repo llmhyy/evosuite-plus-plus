@@ -96,7 +96,7 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		// Obtain the next front
 		front = ranking.getSubfront(index);
-
+		
 		while ((remain > 0) && (remain >= front.size()) && !front.isEmpty()) {
 			// Assign crowding distance to individuals
 			distance.fastEpsilonDominanceAssignment(front, uncoveredGoals);
@@ -189,10 +189,48 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		while (!isFinished() && this.getNumberOfCoveredGoals()<this.fitnessFunctions.size()) {
 			evolve();
+			printBestIndividualForUncoveredGoals();
 			notifyIteration();
 		}
 
 		notifySearchFinished();
+	}
+
+	private void printBestIndividualForUncoveredGoals() {
+		List<T> firstFront = ranking.getSubfront(0);
+		for(FitnessFunction<T> ff: uncoveredGoals) {
+			if(ff instanceof TestFitnessFunction) {
+				TestFitnessFunction tff = (TestFitnessFunction)ff;
+				TestChromosome bestIndividual = getBestTest(firstFront, tff);
+				if(bestIndividual != null) {
+					double fit = tff.getFitness(bestIndividual);
+					logger.error(tff + ": " + fit);					
+				}
+			}
+		}
+		
+	}
+
+	private TestChromosome getBestTest(List<T> firstFront, TestFitnessFunction tff) {
+		TestChromosome best = null;
+		double fit = -1;
+		for(T t: firstFront) {
+			if(t instanceof TestChromosome) {
+				TestChromosome test = (TestChromosome)t;
+				if(best == null) {
+					fit = tff.getFitness(test);
+					best = test;
+				}
+				else {
+					double f = tff.getFitness(test);
+					if(f < fit) {
+						best = test;
+						fit = f;
+					}
+				}
+			}
+		}
+		return best;
 	}
 
 	/** This method is used to print the number of test goals covered by the test cases stored in the current archive **/
