@@ -30,17 +30,8 @@ import org.evosuite.ProgressMonitor;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.FitnessFunctions;
-import org.evosuite.coverage.archive.TestsArchive;
-import org.evosuite.coverage.branch.BranchCoverageSuiteFitness;
-import org.evosuite.coverage.exception.ExceptionCoverageFactory;
 import org.evosuite.coverage.exception.ExceptionCoverageHelper;
-import org.evosuite.coverage.exception.ExceptionCoverageSuiteFitness;
 import org.evosuite.coverage.exception.ExceptionCoverageTestFitness;
-import org.evosuite.coverage.line.LineCoverageSuiteFitness;
-import org.evosuite.coverage.method.MethodCoverageSuiteFitness;
-import org.evosuite.coverage.mutation.StrongMutationSuiteFitness;
-import org.evosuite.coverage.mutation.WeakMutationSuiteFitness;
-import org.evosuite.coverage.statement.StatementCoverageSuiteFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.ConstructionFailedException;
@@ -131,7 +122,16 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			// apply crossover 
 			try {
 				if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE) {
-					crossoverFunction.crossOver(offspring1, offspring2);
+					if(!ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+						crossoverFunction.crossOver(offspring1, offspring2);						
+					}
+					
+//					if(TestGenerationUtil.checkTwiceTargetMethodInvocation(((TestChromosome)offspring1).getTestCase())) {
+//						System.currentTimeMillis();
+//					}
+//					if(TestGenerationUtil.checkTwiceTargetMethodInvocation(((TestChromosome)offspring2).getTestCase())) {
+//						System.currentTimeMillis();
+//					}
 				} 
 			} catch (ConstructionFailedException e) {
 				logger.debug("CrossOver failed.");
