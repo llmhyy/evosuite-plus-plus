@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -17,11 +20,14 @@ import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.utils.CollectionUtil;
 
+import evosuite.shell.DefUseAnalyzer;
 import evosuite.shell.FileUtils;
 import evosuite.shell.utils.AlphanumComparator;
 
 public class SFBenchmarkUtils {
 	
+	/**
+	 * return map of project name and its folder */
 	public static Map<String, File> listProjectFolders() {
 		File[] files = new File(SFConfiguration.sfBenchmarkFolder).listFiles(new FilenameFilter() {
 			
@@ -48,8 +54,17 @@ public class SFBenchmarkUtils {
 		return result;
 	}
 	
+	public static String getProjectName(String projectId) {
+		int idx = projectId.indexOf("_");
+		if (idx > 0) {
+			return projectId.substring(idx + 1);
+		}
+		return projectId;
+	}
+	
 	public static File setupProjectProperties(File projectFolder) {
 		ClassPathHandler.resetSingleton();
+		DefUseAnalyzer.resetSingleton();
 		System.setProperty("user.dir", projectFolder.getAbsolutePath());
 		EvoSuite.base_dir_path = System.getProperty("user.dir");
 		
@@ -129,5 +144,24 @@ public class SFBenchmarkUtils {
 		}
 			
 		FileUtils.writeFile(file.getAbsolutePath(), content.toString(), append);
+	}
+	
+	public static <T extends Collection<String>>List<String> toList(Map<String, T> projectElementMap) {
+		List<String> list = new ArrayList<>();
+		for (String projectName : projectElementMap.keySet()) {
+			for (String classOrMethodElement : projectElementMap.get(projectName)) {
+				list.add(projectName + "#" + classOrMethodElement);
+			}
+		}
+		return list;
+	}
+	
+	public static Map<String, List<String>> toMap(List<String> prjElements) {
+		Map<String, List<String>> map = new HashMap<>();
+		for (String classOrMethodElement : prjElements) {
+			int idx = classOrMethodElement.indexOf("#");
+			CollectionUtil.getListInitIfEmpty(map, classOrMethodElement.substring(0, idx)).add(classOrMethodElement.substring(idx + 1));
+		}
+		return map;
 	}
 }

@@ -28,7 +28,7 @@ public class ExperimentRecorder {
 		// override when needed.
 	}
 	
-	public void recordEndMethod(String methodName, String className) {
+	public void recordEndIterations(String methodName, String className) {
 		// override when needed.
 	}
 

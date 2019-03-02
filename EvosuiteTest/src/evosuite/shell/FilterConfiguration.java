@@ -43,9 +43,9 @@ public class FilterConfiguration {
 		return true;
 	}
 	
-	public boolean isValidMethod(String projectName, String methodId) {
+	public boolean isValidElementId(String projectName, String elementId) {
 		for (Filter filter : filters) {
-			if (!filter.isValidMethod(projectName, methodId)) {
+			if (!filter.isValidElementId(projectName, elementId)) {
 				return false;
 			}
 		}
@@ -56,7 +56,7 @@ public class FilterConfiguration {
 
 		boolean isValidProject(String projectName);
 
-		boolean isValidMethod(String projectName, String methodId);
+		boolean isValidElementId(String projectName, String elementId);
 	}
 	
 	public static class EmptyFilter implements Filter {
@@ -67,7 +67,7 @@ public class FilterConfiguration {
 		}
 
 		@Override
-		public boolean isValidMethod(String projectName, String methodId) {
+		public boolean isValidElementId(String projectName, String elementId) {
 			return true;
 		}
 		
@@ -95,7 +95,7 @@ public class FilterConfiguration {
 		}
 
 		@Override
-		public boolean isValidMethod(String projectName, String methodId) {
+		public boolean isValidElementId(String projectName, String elementId) {
 			return false;
 		}
 
@@ -137,8 +137,8 @@ public class FilterConfiguration {
 		}
 
 		@Override
-		public boolean isValidMethod(String projectName, String methodId) {
-			return inclusives.get(projectName).contains(methodId);
+		public boolean isValidElementId(String projectName, String elementId) {
+			return inclusives.get(projectName).contains(elementId);
 		}
 		
 	}

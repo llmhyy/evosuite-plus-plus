@@ -55,7 +55,7 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 	}
 	
 	@Override
-	public void recordEndMethod(String methodName, String className) {
+	public void recordEndIterations(String methodName, String className) {
 		String methodId = className + "#" + methodName;
 		if (currentResult.isEmpty() || !methodId.equals(currentMethod)) {
 			currentMethod = null;

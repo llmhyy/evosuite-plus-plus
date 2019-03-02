@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,9 +24,11 @@ import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.CommonUtility;
 import org.evosuite.utils.ExternalProcessHandler;
+import org.evosuite.utils.ProgramArgumentUtils;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
+import evosuite.shell.ParameterOptions.TestLevel;
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 
@@ -82,7 +83,6 @@ public class EvosuiteForMethod {
 	}
 
 	public static List<EvoTestResult> execute(String[] args) {
-		FitnessEffectiveRecorder recorder = null;
 		List<EvoTestResult> results = new ArrayList<>();
 		try {
 			setup();
@@ -100,12 +100,18 @@ public class EvosuiteForMethod {
 				if (!filter.isValidProject(projectName)) {
 					return null;
 				}
-				args = extractArgs(args, ParameterOptions.allOptions);
+				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.ALL_OPTIONS);
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				String[] truncatedArgs = extractArgs(args);
-				results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
+				
+				if (Settings.getTestLevel() == TestLevel.lMethod) {
+					results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
+				} else {
+					results = evoTest.runAllClasses(targetClasses, truncatedArgs, projectName);
+				}
 			}
 		} catch (Throwable e) {
+			e.printStackTrace();
 			log.error("Error!", e);
 		}
 		
@@ -158,21 +164,9 @@ public class EvosuiteForMethod {
 		excludedOpts.add("-target");
 		excludedOpts.add("-prefix");
 		excludedOpts.add("-class");
-		return extractArgs(args, excludedOpts);
+		return ProgramArgumentUtils.extractArgs(args, excludedOpts);
 	}
 
-	private static String[] extractArgs(String[] args, Collection<String> excludedOpts) {
-		List<String> newArgs = new ArrayList<>();
-		for (int i = 0; i < args.length; i++) {
-			if (excludedOpts.contains(args[i])) {
-				i++;
-				continue;
-			}
-			newArgs.add(args[i]);
-		}
-		return newArgs.toArray(new String[newArgs.size()]);
-	}
-	
 	private String[] extractListMethodsArgs(String[] args) throws Exception {
 		List<String> newArgs = new ArrayList<>();
 		for (int i = 0; i < args.length; i++) {
@@ -229,7 +223,7 @@ public class EvosuiteForMethod {
 				}
 				for (Method method : targetClass.getMethods()) {
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
-					if (!filter.isValidMethod(projectName, CommonUtility.getMethodId(className, methodName))) {
+					if (!filter.isValidElementId(projectName, CommonUtility.getMethodId(className, methodName))) {
 						continue;
 					}
 					try {
@@ -237,7 +231,7 @@ public class EvosuiteForMethod {
 							EvoTestResult result = runMethod(methodName, className, args, recorder);
 							results.add(result);
 						}
-						recorder.recordEndMethod(methodName, className);
+						recorder.recordEndIterations(methodName, className);
 					} catch (Throwable t) {
 						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
 								.append("#").append(methodName).append("\n")
@@ -254,21 +248,70 @@ public class EvosuiteForMethod {
 		return results;
 	}
 
-	@SuppressWarnings("unchecked")
 	private EvoTestResult runMethod(String methodName, String className, String[] evosuiteArgs, ExperimentRecorder recorder) {
 		log.info("----------------------------------------------------------------------");
 		log.info("RUN METHOD: " + className + "#" + methodName);
 		log.info("----------------------------------------------------------------------");
 		
-		EvoTestResult result = null;
+		// $EVOSUITE -criterion branch -target tullibee.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore
+		String[] args = ArrayUtils.addAll(evosuiteArgs, 
+				"-class", className,
+				"-Dtarget_method", methodName
+				);
+		return invokeEvosuite(methodName, className, args, recorder);
+	}
+	
+	public List<EvoTestResult> runAllClasses(String[] targetClasses, String[] args, String projectName) {
+		List<EvoTestResult> results = new ArrayList<>();
+		FitnessEffectiveRecorder recorder;
+		if (Settings.getIteration() > 1) {
+			recorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
+		} else {
+			recorder = new FitnessEffectiveRecorder();
+		}
+		for (String className : targetClasses) {
+			try {
+				Class<?> targetClass = evoTestClassLoader.loadClass(className);
+				// ignore
+				if (targetClass.isInterface()) {
+					continue;
+				}
+				if (filter.isValidElementId(projectName, className)) {
+					try {
+						for (int i = 0; i < Settings.getIteration(); i++) {
+							EvoTestResult result = runClass(className, args, recorder);
+							results.add(result);
+						}
+						recorder.recordEndIterations("", className);
+					} catch (Throwable t) {
+						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className).append("\n")
+								.append("Error: \n")
+								.append(t.getMessage()).toString();
+						log.debug(msg, t);
+					}
+				}
+			} catch (Throwable t) {
+				log.error("Error!", t);
+			}
+		}
 		
+		return results;
+	}
+	
+	private EvoTestResult runClass(String className, String[] evosuiteArgs, ExperimentRecorder recorder) {
+		log.info("----------------------------------------------------------------------");
+		log.info("RUN CLASS: " + className);
+		log.info("----------------------------------------------------------------------");
+		String[] args = ArrayUtils.addAll(evosuiteArgs, 
+				"-class", className
+				);
+		return invokeEvosuite("", className, args, recorder);
+	}
+
+	@SuppressWarnings("unchecked")
+	private EvoTestResult invokeEvosuite(String methodName, String className, String[] args, ExperimentRecorder recorder) {
+		EvoTestResult result = null;
 		try {
-			// $EVOSUITE -criterion branch -target tullibee.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore
-			String[] args = ArrayUtils.addAll(evosuiteArgs, 
-					"-class", className,
-					"-Dtarget_method", methodName
-//					,"-Dstop_zero", "false"
-					);
 			log.info("evosuite args: " + StringUtils.join((Object[]) args, " "));
 			EvoSuite evosuite = new EvoSuite();
 			List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
@@ -309,24 +352,4 @@ public class EvosuiteForMethod {
 		
 		return result;
 	}
-	
-//	public String getAvailableCalls() {
-//		List<String> calls = new ArrayList<>();
-//		for(String method: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
-//			if(RuntimeRecord.methodCallAvailabilityMap.get(method)) {
-//				calls.add(method);
-//			}
-//		}
-//		return calls.toString();
-//	}
-//	
-//	public String getUnavailableCalls() {
-//		List<String> calls = new ArrayList<>();
-//		for(String method: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
-//			if(!RuntimeRecord.methodCallAvailabilityMap.get(method)) {
-//				calls.add(method);
-//			}
-//		}
-//		return calls.toString();
-//	}
 }

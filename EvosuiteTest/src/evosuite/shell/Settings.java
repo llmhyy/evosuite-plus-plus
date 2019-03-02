@@ -2,6 +2,8 @@ package evosuite.shell;
 
 import org.evosuite.utils.ProgramArgumentUtils;
 
+import evosuite.shell.ParameterOptions.TestLevel;
+
 public class Settings {
 	public static final int DEFAULT_ITERATION = 1;
 	public static final String DEFAULT_REPORT_FOLDER_NAME = "evoTest-reports";
@@ -10,6 +12,8 @@ public class Settings {
 	private static String inclusiveFilePath;
 	private static int iteration = DEFAULT_ITERATION;
 	private static String reportFolder = DEFAULT_REPORT_FOLDER_NAME;
+	private static String markerFile;
+	private static TestLevel testLevel = TestLevel.lMethod;
 
 	public static void setup(String[] args) throws Exception {
 		listMethods = ProgramArgumentUtils.hasOpt(args, ListMethods.OPT_NAME);
@@ -36,6 +40,16 @@ public class Settings {
 				reportFolder = sb.toString();
 			}
 		}
+		optValue = ProgramArgumentUtils.getOptValue(args, ParameterOptions.RUNNING_MARKER_FILE);
+		if (optValue != null) {
+			markerFile = optValue;
+		}
+		
+		/* test level */
+		optValue = ProgramArgumentUtils.getOptValue(args, ParameterOptions.TEST_LEVEL);
+		if (optValue != null) {
+			testLevel = TestLevel.valueOf(optValue);
+		}
 	}
 
 	public static boolean isListMethods() {
@@ -52,6 +66,14 @@ public class Settings {
 
 	public static String getReportFolder() {
 		return reportFolder;
+	}
+	
+	public static String getMarkerFile() {
+		return markerFile;
+	}
+	
+	public static TestLevel getTestLevel() {
+		return testLevel;
 	}
 
 }

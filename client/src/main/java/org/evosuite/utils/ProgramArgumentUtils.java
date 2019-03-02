@@ -1,5 +1,9 @@
 package org.evosuite.utils;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class ProgramArgumentUtils {
 	
 	public static boolean hasOpt(String[] args, String opt) throws Exception {
@@ -21,5 +25,17 @@ public class ProgramArgumentUtils {
 			}
 		}
 		return null;
+	}
+	
+	public static String[] extractArgs(String[] args, Collection<String> excludedOpts) {
+		List<String> newArgs = new ArrayList<>();
+		for (int i = 0; i < args.length; i++) {
+			if (excludedOpts.contains(args[i])) {
+				i++;
+				continue;
+			}
+			newArgs.add(args[i]);
+		}
+		return newArgs.toArray(new String[newArgs.size()]);
 	}
 }
