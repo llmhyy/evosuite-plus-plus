@@ -62,11 +62,11 @@ public class BranchCoverageFactory extends
 			if(!limitToCUT && (!Properties.INSTRUMENT_LIBRARIES && !DependencyAnalysis.isTargetProject(className))) continue;
 			final MethodNameMatcher matcher = new MethodNameMatcher();
 			// Branchless methods
-			for (String method : BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getBranchlessMethods(className)) {
-				if (matcher.fullyQualifiedMethodMatches(method)) {
-					goals.add(createRootBranchTestFitness(className, method));
-				}
-			}
+//			for (String method : BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getBranchlessMethods(className)) {
+//				if (matcher.fullyQualifiedMethodMatches(method)) {
+//					goals.add(createRootBranchTestFitness(className, method));
+//				}
+//			}
 
 			// Branches
 			for (String methodName : BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).knownMethods(className)) {
