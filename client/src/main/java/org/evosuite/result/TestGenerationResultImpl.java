@@ -358,6 +358,14 @@ class TestGenerationResultImpl implements TestGenerationResult {
 		this.unavailableCalls = unavailableCalls;
 	}
 
+	@Override
+	public int getAge() {
+		if (getGeneticAlgorithm() != null) {
+			return getGeneticAlgorithm().getAge();
+		}
+		return 0;
+	}
+
 
 
 }

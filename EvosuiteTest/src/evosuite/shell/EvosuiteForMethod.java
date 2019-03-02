@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 
 import evosuite.shell.ParameterOptions.TestLevel;
 import evosuite.shell.experiment.SFConfiguration;
+import evosuite.shell.listmethod.ListMethods;
 import evosuite.shell.utils.LoggerUtils;
 
 /**
@@ -66,7 +67,6 @@ import evosuite.shell.utils.LoggerUtils;
 @SuppressWarnings("deprecation")
 public class EvosuiteForMethod {
 	private static Logger log;
-	public static final String LIST_METHODS_FILE_NAME = "targetMethods.txt";
 	public static String projectName;
 	public static String projectId; // ex: 1_tullibee (project folder name)
 	static FilterConfiguration filter;
@@ -94,7 +94,8 @@ public class EvosuiteForMethod {
 			if (Settings.isListMethods()) {
 				args = evoTest.extractListMethodsArgs(args);
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
-				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader);
+				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
+						Settings.getTargetMethodFilePath());
 			} else {
 				filter = new FilterConfiguration(args);
 				if (!filter.isValidProject(projectName)) {
@@ -319,7 +320,7 @@ public class EvosuiteForMethod {
 				for (TestGenerationResult r : l) {
 					
 					System.out.println("Used time: " + r.getElapseTime());
-					System.out.println("Used generations: " + r.getGeneticAlgorithm().getAge());
+					System.out.println("Used generations: " + r.getAge());
 					int count = 0;
 					for(String key: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
 						if(RuntimeRecord.methodCallAvailabilityMap.get(key)) {
@@ -340,7 +341,7 @@ public class EvosuiteForMethod {
 					System.out.println("Unavailable calls: " + r.getUnavailableCalls());
 					
 					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), 
-							r.getGeneticAlgorithm().getAge(), r.getAvailabilityRatio(), r.getProgressInformation());
+							r.getAge(), r.getAvailabilityRatio(), r.getProgressInformation());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
 					recorder.record(className, methodName, result);
