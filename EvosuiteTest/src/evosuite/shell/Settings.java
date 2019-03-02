@@ -3,6 +3,9 @@ package evosuite.shell;
 import org.evosuite.utils.ProgramArgumentUtils;
 
 import evosuite.shell.ParameterOptions.TestLevel;
+import evosuite.shell.experiment.SFConfiguration;
+import evosuite.shell.listmethod.ListMethods;
+import evosuite.shell.listmethod.MethodFilterOption;
 
 public class Settings {
 	public static final int DEFAULT_ITERATION = 1;
@@ -14,6 +17,8 @@ public class Settings {
 	private static String reportFolder = DEFAULT_REPORT_FOLDER_NAME;
 	private static String markerFile;
 	private static TestLevel testLevel = TestLevel.lMethod;
+	private static MethodFilterOption mFilterOpt;
+	private static String targetMethodFilePath;
 
 	public static void setup(String[] args) throws Exception {
 		listMethods = ProgramArgumentUtils.hasOpt(args, ListMethods.OPT_NAME);
@@ -50,6 +55,15 @@ public class Settings {
 		if (optValue != null) {
 			testLevel = TestLevel.valueOf(optValue);
 		}
+		
+		/* method filter option */
+		optValue = ProgramArgumentUtils.getOptValue(args, ParameterOptions.METHOD_FILTER_OPTION);
+		mFilterOpt = MethodFilterOption.HAS_BRANCH;
+		if (optValue != null) {
+			mFilterOpt = MethodFilterOption.of(optValue);
+		}
+		
+		targetMethodFilePath = SFConfiguration.getTargetMethodFilePath(mFilterOpt);
 	}
 
 	public static boolean isListMethods() {
@@ -76,4 +90,11 @@ public class Settings {
 		return testLevel;
 	}
 
+	public static MethodFilterOption getmFilterOpt() {
+		return mFilterOpt;
+	}
+	
+	public static String getTargetMethodFilePath() {
+		return targetMethodFilePath;
+	}
 }

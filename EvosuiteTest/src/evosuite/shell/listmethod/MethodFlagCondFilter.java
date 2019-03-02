@@ -1,4 +1,4 @@
-package evosuite.shell;
+package evosuite.shell.listmethod;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +30,7 @@ import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 
+import evosuite.shell.DefUseAnalyzer;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.OpcodeUtils;
 
@@ -71,7 +72,11 @@ public class MethodFlagCondFilter implements IMethodFilter {
 		return validMethods;
 	}
 	
-	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node, ClassNode cn) throws AnalyzerException, IOException {
+	/**
+	 * 
+	 */
+	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,
+			ClassNode cn) throws AnalyzerException, IOException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
 //		GraphPool.clearAll();
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);

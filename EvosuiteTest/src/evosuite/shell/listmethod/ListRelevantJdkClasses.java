@@ -1,4 +1,4 @@
-package evosuite.shell;
+package evosuite.shell.listmethod;
 
 import java.io.IOException;
 import java.util.ListIterator;
@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 
+import evosuite.shell.FileUtils;
 import evosuite.shell.experiment.SFConfiguration;
 
 public class ListRelevantJdkClasses extends MethodFlagCondFilter implements IMethodFilter {

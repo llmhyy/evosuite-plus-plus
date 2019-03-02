@@ -12,8 +12,8 @@ import org.evosuite.utils.CollectionUtil;
 import org.junit.Test;
 
 import evosuite.shell.FileUtils;
-import evosuite.shell.FlagMethodProfilesFilter.Remarks;
 import evosuite.shell.excel.ExcelReader;
+import evosuite.shell.listmethod.FlagMethodProfilesFilter.Remarks;
 
 public class MethodProfileCounter {
 	

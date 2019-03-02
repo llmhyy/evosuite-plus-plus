@@ -1,4 +1,4 @@
-package evosuite.shell;
+package evosuite.shell.listmethod;
 
 import java.io.IOException;
 import java.io.InputStream;
