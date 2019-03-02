@@ -16,10 +16,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import evosuite.shell.EvosuiteForMethod;
-import evosuite.shell.ListMethods;
+import evosuite.shell.Settings;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.experiment.TargetMethodTool;
+import evosuite.shell.experiment.TestUtils;
+import evosuite.shell.listmethod.MethodFilterOption;
 
 public class ListMethodsBatch {
 
@@ -29,7 +31,21 @@ public class ListMethodsBatch {
 	}
 	
 	@Test
-	public void runAll() throws IOException {
+	public void listClassWithFlagProcedureFilter() throws IOException {
+//		runListMethod(MethodFilterOption.FLAG_PROCEDURE_METHOD);
+//		new TargetMethodTool().listTestableClasses(Settings.getTargetMethodFilePath(), 
+//				TestUtils.getAbsolutePath("/experiments/SF100-ForClass/targetClasses-flagProc.txt"));
+		new TargetMethodTool().listTestableClasses(
+				TestUtils.getAbsolutePath("/experiments/SF100/reports/flag-filtered-methods-all.txt"), 
+				TestUtils.getAbsolutePath("/experiments/SF100-ForClass/targetClasses-flagProc.txt"));
+	}
+	
+	@Test
+	public void justRun() throws IOException {
+		runListMethod(MethodFilterOption.FLAG_PROCEDURE_METHOD_WITH_SIMPLE_RETURN);
+	}
+	
+	public void runListMethod(MethodFilterOption opt) throws IOException {
 		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
 		for (String projectName : projectFolders.keySet()) {
 			File projectFolder = projectFolders.get(projectName);
@@ -39,13 +55,14 @@ public class ListMethodsBatch {
 				String[] args = new String[] {
 						"-target",
 						projectFolder.getAbsolutePath() + "/" + name[1] + ".jar",
-						"-listMethods"	
+						"-listMethods",
+						"-mFilterOpt", opt.getText()
 				};
 				EvosuiteForMethod.execute(args);
 			}
 		}
 		TargetMethodTool tool = new TargetMethodTool();
-		tool.generateStatisticExcel(ListMethods.getTargetFilePath(),
+		tool.generateStatisticExcel(Settings.getTargetMethodFilePath(),
 				evosuite.shell.FileUtils.getFilePath(SFConfiguration.getReportFolder(), "targetMethodsStatistic.xlsx"));
 	}
 	

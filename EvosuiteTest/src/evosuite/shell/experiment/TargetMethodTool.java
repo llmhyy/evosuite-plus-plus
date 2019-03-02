@@ -147,6 +147,23 @@ public class TargetMethodTool {
 		excelWriter.writeSheet("data", data);
 	}
 	
+	public void listTestableClasses(String targetMethodTxt, String targetClassesTxt) throws IOException {
+		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
+		Map<String, Set<String>> targetMethodsMap = readData(targetMethodTxt);
+		Map<String, List<String>> targetClassesMap = new LinkedHashMap<>();
+		for (String project : projectFolders.keySet()) {
+			Set<String> methods = targetMethodsMap.get(project);
+			for (String method : CollectionUtil.nullToEmpty(methods)) {
+				String className = method.split("#")[0];
+				List<String> classes = CollectionUtil.getListInitIfEmpty(targetClassesMap, project);
+				if (!classes.contains(className)) {
+					classes.add(className);
+				}
+			}
+		}
+		writeTargetMethodTxt(targetClassesTxt, targetClassesMap);
+	}
+	
 	public void generateStatisticExcel(String targetMethodTxt, String excelFile) throws IOException {
 		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
 		Map<String, Set<String>> targetMethodsMap = readData(targetMethodTxt);
