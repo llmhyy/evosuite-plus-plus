@@ -29,6 +29,7 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.exception.ExceptionCoverageFactory;
 import org.evosuite.coverage.exception.ExceptionCoverageTestFitness;
+import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
@@ -204,7 +205,12 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 				TestChromosome bestIndividual = getBestTest(firstFront, tff);
 				if(bestIndividual != null) {
 					double fit = tff.getFitness(bestIndividual);
-					logger.error(tff + ": " + fit);					
+					if(tff instanceof FBranchTestFitness) {
+						logger.error(((FBranchTestFitness)tff).getBranchGoal() + ": " + fit);	
+					}
+					else {
+						logger.error(tff + ": " + fit);											
+					}
 				}
 			}
 		}

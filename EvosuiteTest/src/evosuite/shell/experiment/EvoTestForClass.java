@@ -15,8 +15,8 @@ public class EvoTestForClass {
 	@Before
 	public void setup() {
 //		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		
 //		Properties.SEARCH_BUDGET = 60000;
 //		Properties.GLOBAL_TIMEOUT = 60000;
@@ -26,14 +26,14 @@ public class EvoTestForClass {
 	}
 	
 	@Test
-	public void testImart(){
+	public void testExample(){
 //		-testLevel lClass
 		
-		String projectId = "11_imsmart";
-		String projectName = "imsmart";
-		String targetClass = "com.momed.servlet.HTMLFilter";
+		String projectId = "1_tullibee";
+		String projectName = "tullibee";
+		String targetClass = "com.ib.client.Util";
 		
-		evoTestSingleClass(projectId, projectName, targetClass, "branch", 1);
+		evoTestSingleClass(projectId, projectName, targetClass, "fbranch", 1);
 	}
 	
 	
