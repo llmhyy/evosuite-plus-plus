@@ -15,7 +15,11 @@ public class ParameterOptions {
 	public static final List<String> ALL_OPTIONS = Arrays.asList(LIST_METHODS_OPT, INCLUSIVE_FILE_OPT,
 			EXCLUSIVE_FILE_OPT, METHOD_TEST_ITERATION, REPORT_FOLDER, RUNNING_MARKER_FILE, TEST_LEVEL,
 			METHOD_FILTER_OPTION);
-
+	
+	
+	public static List<String> getListMethodsOptions() {
+		return Arrays.asList(LIST_METHODS_OPT, METHOD_FILTER_OPTION);
+	}
 	
 	public static enum TestLevel {
 		lClass,

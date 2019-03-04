@@ -42,7 +42,7 @@ public class ListMethodsBatch {
 	
 	@Test
 	public void justRun() throws IOException {
-		runListMethod(MethodFilterOption.FLAG_PROCEDURE_METHOD_WITH_SIMPLE_RETURN);
+		runListMethod(MethodFilterOption.FLAG_METHOD_PROFILES);
 	}
 	
 	public void runListMethod(MethodFilterOption opt) throws IOException {

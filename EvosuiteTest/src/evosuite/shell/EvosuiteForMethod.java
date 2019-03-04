@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -92,7 +93,7 @@ public class EvosuiteForMethod {
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
 			Settings.setup(args);
 			if (Settings.isListMethods()) {
-				args = evoTest.extractListMethodsArgs(args);
+				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.getListMethodsOptions());
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
 						Settings.getTargetMethodFilePath());
@@ -168,17 +169,6 @@ public class EvosuiteForMethod {
 		return ProgramArgumentUtils.extractArgs(args, excludedOpts);
 	}
 
-	private String[] extractListMethodsArgs(String[] args) throws Exception {
-		List<String> newArgs = new ArrayList<>();
-		for (int i = 0; i < args.length; i++) {
-			if (ListMethods.OPT_NAME.equals(args[i])) {
-				continue;
-			}
-			newArgs.add(args[i]);
-		}
-		return newArgs.toArray(new String[newArgs.size()]);
-	}
-	
 	private String[] listAllTargetClasses(String[] args) {
 		CommandLine cmd = parseCommandLine(args);
 		ensureClasspath(cmd);

@@ -1,7 +1,9 @@
 package evosuite.shell;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.graphs.GraphPool;
@@ -13,9 +15,20 @@ import org.objectweb.asm.tree.MethodNode;
 
 
 public class DefUseAnalyzer {
-
+	
+	private static Set<String> analizedList = new HashSet<>();
+	
+	public static void resetSingleton() {
+		analizedList.clear();
+	}
+	
 	public void analyze(ClassLoader classLoader, MethodNode mn, String className,
 	        String methodName, int access) {
+		String methodId = String.format("%s#%s%s", className, methodName, mn.desc);
+		if (analizedList.contains(methodId)) {
+			return;
+		}
+		
 		RawControlFlowGraph completeCFG = GraphPool.getInstance(classLoader).getRawCFG(className,
 		                                                                               methodName);
 		Iterator<AbstractInsnNode> j = mn.instructions.iterator();
@@ -47,6 +60,7 @@ public class DefUseAnalyzer {
 				}
 			}
 		}
+		analizedList.add(methodId);
 	}
 	
 	@SuppressWarnings({ "unchecked", "unused" })
@@ -60,6 +74,6 @@ public class DefUseAnalyzer {
 		}
 		return var;
 	}
-	
+
 
 }

@@ -32,6 +32,10 @@ public class ProgramArgumentUtils {
 		for (int i = 0; i < args.length; i++) {
 			if (excludedOpts.contains(args[i])) {
 				i++;
+				while (i < args.length && !args[i].startsWith("-")) {
+					i++;
+				}
+				i--;
 				continue;
 			}
 			newArgs.add(args[i]);
