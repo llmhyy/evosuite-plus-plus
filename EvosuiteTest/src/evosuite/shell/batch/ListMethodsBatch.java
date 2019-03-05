@@ -27,7 +27,7 @@ public class ListMethodsBatch {
 
 	@Before
 	public void setup() {
-		SFConfiguration.sfBenchmarkFolder = "/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest";
+//		SFConfiguration.sfBenchmarkFolder = "/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest";
 	}
 	
 	@Test
