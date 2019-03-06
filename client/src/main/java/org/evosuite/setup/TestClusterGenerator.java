@@ -111,6 +111,9 @@ public class TestClusterGenerator {
 					if (callGraph.isCalledClass(callTreeClass)) {
 						if (!Properties.INSTRUMENT_LIBRARIES && !DependencyAnalysis.isTargetProject(callTreeClass))
 							continue;
+						if(!callTreeClass.contains("."))
+							continue;
+						
 						TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(callTreeClass);
 					}
 				} catch (ClassNotFoundException e) {
