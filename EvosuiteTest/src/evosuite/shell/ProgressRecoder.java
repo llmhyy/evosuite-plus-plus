@@ -21,9 +21,9 @@ public class ProgressRecoder extends ExperimentRecorder {
 	
 	public ProgressRecoder() {
 		super();
-		distributionExcelWriter = new ExcelWriter(FileUtils.newFile(SFConfiguration.getReportFolder(), projectId + "_distribution.xlsx"));
+		distributionExcelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), projectId + "_distribution.xlsx"));
 		distributionExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
-		progressExcelWriter = new ExcelWriter(FileUtils.newFile(SFConfiguration.getReportFolder(), projectId + "_progress.xlsx"));
+		progressExcelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), projectId + "_progress.xlsx"));
 		progressExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
 	}
 	

@@ -24,7 +24,7 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 	public IterFitnessEffectiveRecorder(int iterator) {
 		super();
 		this.iterator = iterator;
-		excelWriter = new ExcelWriter(FileUtils.newFile(SFConfiguration.getReportFolder(), 
+		excelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), 
 				new StringBuilder().append(projectId).append("_evotest_").append(iterator).append("times.xlsx").toString()));
 		List<String> header = new ArrayList<>();
 		header.add("Class");

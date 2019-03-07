@@ -10,10 +10,10 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 
 import evosuite.shell.FileUtils;
-import evosuite.shell.experiment.SFConfiguration;
+import evosuite.shell.Settings;
 
 public class ListRelevantJdkClasses extends MethodFlagCondFilter implements IMethodFilter {
-	private String listFile = SFConfiguration.getReportFolder() + "/jdkClasses.txt";
+	private String listFile = Settings.getReportFolder() + "/jdkClasses.txt";
 	
 	@Override
 	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,

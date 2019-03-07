@@ -16,15 +16,14 @@ public class EvoTestSingleMethod {
 
 	@Before
 	public void setup() {
-		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		
 //		Properties.SEARCH_BUDGET = 60000;
 //		Properties.GLOBAL_TIMEOUT = 60000;
 //		Properties.TIMEOUT = 3000000;
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		
 //		FileUtils.deleteFolder(new File("/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest/evoTest-reports"));
 	}
 	
@@ -39,50 +38,64 @@ public class EvoTestSingleMethod {
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		fitnessAppraoch = "fbranch";
-		for (int i = 0; i < 3; i++) {
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
-			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
-			System.out.println("i=" + i);
-		}
+		FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
+		FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
+		evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch, 3);
 	}
 	
 	@Test
-	public void runEReader() {
-		String projectId = "1_tullibee";
-		String projectName = "tullibee";
+	public void jipa() {
+		String projectId = "26_jipa";
+		String projectName = "jipa";
 		String[] targetMethods = new String[]{
-//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
-				"com.ib.client.EReader#run()V"
-				
+				"jipa.Main#readValue()I"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
-		fitnessAppraoch = "fbranch";
-		for (int i = 0; i < 3; i++) {
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
-			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
-			System.out.println("i=" + i);
-		}
+		fitnessAppraoch = "branch";
+//		Properties.GLOBAL_TIMEOUT = 60000;
+//		Properties.TIMEOUT = 3000000;
+		Properties.GLOBAL_TIMEOUT = 200;
+		Properties.TIMEOUT = 5000;
+
+		FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
+		FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
+		
+		evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
 	}
 	
 	@Test
-	public void getUniqueConstraint() {
-		String projectId = "13_jdbacl";
-		String projectName = "jdbacl";
+	public void jhandballmoves() {
+		String projectId = "56_jhandballmoves";
+		String projectName = "jhandballmoves";
 		String[] targetMethods = new String[]{
-//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
-				"org.databene.jdbacl.model.DefaultDBTable#getUniqueConstraint([Ljava/lang/String;)Lorg/databene/jdbacl/model/DBUniqueConstraint;"
+				"visu.handball.moves.actions.NewPassEventAction#modelChanged()V"
+				};
+		
+		fitnessAppraoch = "branch";
+//		Properties.GLOBAL_TIMEOUT = 60000;
+//		Properties.TIMEOUT = 3000000;
+//		Properties.GLOBAL_TIMEOUT = 200;
+//		Properties.TIMEOUT = 5000;
+
+		FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
+		FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
+		
+		evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
+	}
+	
+	@Test
+	public void corina() {
+		String projectId = "35_corina";
+		String projectName = "corina";
+		String[] targetMethods = new String[]{
+				"corina.map.tools.RulerTool#decorate(Ljava/awt/Graphics;)V"
 				
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
-		fitnessAppraoch = "fbranch";
-		for (int i = 0; i < 3; i++) {
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
-			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
-			System.out.println("i=" + i);
-		}
+		fitnessAppraoch = "branch";
+		FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
+		FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
+		evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
 	}
 	
 	@Test
@@ -105,48 +118,23 @@ public class EvoTestSingleMethod {
 	}
 	
 	@Test
-	public void runchemaspy() {
-		String projectId = "36_schemaspy";
-		String projectName = "schemaspy";
-		String[] targetMethods = new String[]{
-//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
-				"com.soops.CEN4010.JMCA.JParser.JavaParser#Type()V"
-				
-				};
-//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
-		fitnessAppraoch = "fbranch";
-		for (int i = 0; i < 1; i++) {
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
-			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
-			System.out.println("i=" + i);
-		}
-	}
-	
-	@Test
 	public void runGetSubEntityMethods() {
 		String projectId = "15_beanbin";
 		String projectName = "beanbin";
 		String[] targetMethods = new String[]{
-//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
 				"net.sourceforge.beanbin.data.EntityUtils#getSubEntityMethods(Ljava/lang/Class;)Ljava/util/List;"
-				
 				};
-//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		fitnessAppraoch = "fbranch";
 		
-		Properties.SEARCH_BUDGET = 60000;
-		Properties.GLOBAL_TIMEOUT = 60000;
-		Properties.TIMEOUT = 3000000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		
-		for (int i = 0; i < 1; i++) {
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
-			FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
-			evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
-			System.out.println("i=" + i);
-		}
+//		Properties.SEARCH_BUDGET = 60000;
+//		Properties.GLOBAL_TIMEOUT = 60000;
+//		Properties.TIMEOUT = 3000000;
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//		
+		FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-tests")));
+		FileUtils.deleteFolder(new File(FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, "evosuite-report")));
+		evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch);
 	}
 	
 	@Test
@@ -329,6 +317,11 @@ public class EvoTestSingleMethod {
 	
 	public void evoTestSingleMethod(String projectId, String projectName,
 			String[] targetMethods, String fitnessAppraoch) {
+		evoTestSingleMethod(projectId, projectName, targetMethods, fitnessAppraoch, 1);
+	}
+	
+	public void evoTestSingleMethod(String projectId, String projectName,
+			String[] targetMethods, String fitnessAppraoch, int iteration) {
 		/* configure */
 	
 		/* run */
@@ -336,7 +329,7 @@ public class EvoTestSingleMethod {
 		file.deleteOnExit();
 		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethods);
 
-		long seconds = 300;
+		long seconds = 90;
 		boolean instrumentContext = true;
 		String[] args = new String[] {
 				"-criterion", fitnessAppraoch,
@@ -361,12 +354,12 @@ public class EvoTestSingleMethod {
 				"-Dp_test_insert", "0.1",
 //				"-Dheadless_chicken_test", "true",
 				"-Dp_change_parameter", "0.1",
-//				"-Dlocal_search_rate", "3",
+				"-Dlocal_search_rate", "3",
 				"-Dp_functional_mocking", "0",
 				"-Dmock_if_no_generator", "false",
 				"-Dfunctional_mocking_percent", "0",
 				"-Dprimitive_reuse_probability", "0",
-				"-Dmin_initial_tests", "5",
+				"-Dmin_initial_tests", "10",
 				"-Dmax_initial_tests", "30",
 				"-Ddse_probability", "0",
 //				"-Dinstrument_method_calls", "true",
@@ -376,10 +369,11 @@ public class EvoTestSingleMethod {
 				"-Dmax_size", "1",
 				"-Dmax_attempts", "100",
 				"-Dassertions", "false",
-				"-Dstopping_condition", "maxgenerations",
+//				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
-				"-seed", "100"
+//				"-seed", "100",
+				"-iteration", String.valueOf(iteration)
 				
 		};
 		SFBenchmarkUtils.setupProjectProperties(projectId);

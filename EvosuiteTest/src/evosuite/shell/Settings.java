@@ -3,7 +3,6 @@ package evosuite.shell;
 import org.evosuite.utils.ProgramArgumentUtils;
 
 import evosuite.shell.ParameterOptions.TestLevel;
-import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.listmethod.ListMethods;
 import evosuite.shell.listmethod.MethodFilterOption;
 
@@ -11,6 +10,7 @@ public class Settings {
 	public static final int DEFAULT_ITERATION = 1;
 	public static final String DEFAULT_REPORT_FOLDER_NAME = "evoTest-reports";
 
+	private static String sfBenchmarkFolder;
 	private static boolean listMethods;
 	private static String inclusiveFilePath;
 	private static int iteration = DEFAULT_ITERATION;
@@ -20,7 +20,7 @@ public class Settings {
 	private static MethodFilterOption mFilterOpt;
 	private static String targetMethodFilePath;
 
-	public static void setup(String[] args) throws Exception {
+	public static void setup(String benchMarkFolder, String[] args) throws Exception {
 		listMethods = ProgramArgumentUtils.hasOpt(args, ListMethods.OPT_NAME);
 		String optValue = ProgramArgumentUtils.getOptValue(args, ParameterOptions.METHOD_TEST_ITERATION);
 		if (optValue != null) {
@@ -63,7 +63,21 @@ public class Settings {
 			mFilterOpt = MethodFilterOption.of(optValue);
 		}
 		
-		targetMethodFilePath = SFConfiguration.getTargetMethodFilePath(mFilterOpt);
+		targetMethodFilePath = getTargetMethodFilePath(mFilterOpt);
+	}
+	
+	public static String getReportFolder() {
+		return FileUtils.getFilePath(sfBenchmarkFolder, reportFolder);
+	}
+	
+	public static String getTargetMethodFilePath(MethodFilterOption mFilterOpt) {
+		return FileUtils.getFilePath(getReportFolder(),
+				String.format("targetMethods_%s.txt", mFilterOpt.getText()));
+	}
+	
+	public static String getTargetClassFilePath() {
+		return FileUtils.getFilePath(getReportFolder(),
+				String.format("targetClasses%s.txt", mFilterOpt.getText()));
 	}
 
 	public static boolean isListMethods() {
@@ -76,10 +90,6 @@ public class Settings {
 
 	public static int getIteration() {
 		return iteration;
-	}
-
-	public static String getReportFolder() {
-		return reportFolder;
 	}
 	
 	public static String getMarkerFile() {

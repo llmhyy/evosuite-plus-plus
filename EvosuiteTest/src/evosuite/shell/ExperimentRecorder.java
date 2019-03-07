@@ -11,7 +11,7 @@ public class ExperimentRecorder {
 	private String successfulMethodsFile;
 	
 	public ExperimentRecorder() {
-		successfulMethodsFile = SFConfiguration.getReportFolder() + "/successfulMethods.txt";
+		successfulMethodsFile = Settings.getReportFolder() + "/successfulMethods.txt";
 		FileUtils.writeFile(successfulMethodsFile, "#Project " + projectId + "\n", false);
 	}
 

@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +29,6 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
 import evosuite.shell.ParameterOptions.TestLevel;
-import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.listmethod.ListMethods;
 import evosuite.shell.utils.LoggerUtils;
 
@@ -86,17 +84,17 @@ public class EvosuiteForMethod {
 	public static List<EvoTestResult> execute(String[] args) {
 		List<EvoTestResult> results = new ArrayList<>();
 		try {
-			setup();
+			String root = setup();
 //			Properties.CLIENT_ON_THREAD = true;
 //			Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 			log.error("enter EvosuiteForMethod!");
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
-			Settings.setup(args);
+			Settings.setup(root, args);
 			if (Settings.isListMethods()) {
 				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.getListMethodsOptions());
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
-						Settings.getTargetMethodFilePath());
+						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
 			} else {
 				filter = new FilterConfiguration(args);
 				if (!filter.isValidProject(projectName)) {
@@ -121,20 +119,21 @@ public class EvosuiteForMethod {
 		return results;
 	}
 
-	private static void setup() throws IOException {
+	private static String setup() throws IOException {
 		String workingDir = System.getProperty("user.dir");
 		projectId = new File(workingDir).getName();
 		projectName = projectId.substring(projectId.indexOf("_") + 1);
 		String root = new File(workingDir).getParentFile().getAbsolutePath();
-		SFConfiguration.sfBenchmarkFolder = root;
-		File folder = new File(SFConfiguration.getReportFolder());
+		
+		File folder = new File(Settings.getReportFolder());
 		if (!folder.exists()) {
 			folder.mkdir();
 		}
-		LoggerUtils.setupLogger(SFConfiguration.getReportFolder(), projectId);
+		LoggerUtils.setupLogger(Settings.getReportFolder(), projectId);
 		log = LoggerUtils.getLogger(EvosuiteForMethod.class);
 //		Properties.MAX_OPEN_FILES_PER_PROCESS = 250;
 		ExternalProcessHandler.terminateClientsIfCannotCancelGentlely = true;
+		return root;
 	}
 	
 	private CommandLine parseCommandLine(String[] args) {

@@ -12,37 +12,27 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.junit.Before;
 import org.junit.Test;
 
 import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.Settings;
 import evosuite.shell.experiment.SFBenchmarkUtils;
-import evosuite.shell.experiment.SFConfiguration;
-import evosuite.shell.experiment.TargetMethodTool;
 import evosuite.shell.experiment.TestUtils;
 import evosuite.shell.listmethod.MethodFilterOption;
+import evosuite.shell.utils.TargetMethodIOUtils;
 
 public class ListMethodsBatch {
 
-	@Before
-	public void setup() {
-//		SFConfiguration.sfBenchmarkFolder = "/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest";
+	@Test
+	public void justRun() throws IOException {
+		runListMethod(MethodFilterOption.FLAG_METHOD_PROFILES);
 	}
 	
 	@Test
 	public void listClassWithFlagProcedureFilter() throws IOException {
-//		runListMethod(MethodFilterOption.FLAG_PROCEDURE_METHOD);
-//		new TargetMethodTool().listTestableClasses(Settings.getTargetMethodFilePath(), 
-//				TestUtils.getAbsolutePath("/experiments/SF100-ForClass/targetClasses-flagProc.txt"));
-		new TargetMethodTool().listTestableClasses(
+		TargetMethodIOUtils.listTestableClasses(
 				TestUtils.getAbsolutePath("/experiments/SF100/reports/flag-filtered-methods-all.txt"), 
 				TestUtils.getAbsolutePath("/experiments/SF100-ForClass/targetClasses-flagProc.txt"));
-	}
-	
-	@Test
-	public void justRun() throws IOException {
-		runListMethod(MethodFilterOption.FLAG_METHOD_PROFILES);
 	}
 	
 	public void runListMethod(MethodFilterOption opt) throws IOException {
@@ -61,19 +51,18 @@ public class ListMethodsBatch {
 				EvosuiteForMethod.execute(args);
 			}
 		}
-		TargetMethodTool tool = new TargetMethodTool();
-		tool.generateStatisticExcel(Settings.getTargetMethodFilePath(),
-				evosuite.shell.FileUtils.getFilePath(SFConfiguration.getReportFolder(), "targetMethodsStatistic.xlsx"));
+		TargetMethodIOUtils.generateStatisticExcel(Settings.getTargetMethodFilePath(),
+				evosuite.shell.FileUtils.getFilePath(Settings.getReportFolder(), "targetMethodsStatistic.xlsx"));
 	}
 	
 	@Test
 	public void cleanupJdkFile() throws IOException {
-		String listFile = SFConfiguration.getReportFolder() + "/jdkClasses.txt";
+		String listFile = Settings.getReportFolder() + "/jdkClasses.txt";
 		List<String> lines = FileUtils.readLines(new File(listFile));
 		Set<String> set = new HashSet<String>(lines);
 		lines = new ArrayList<>(set);
 		Collections.sort(lines);
-		evosuite.shell.FileUtils.writeFile(SFConfiguration.getReportFolder() + "/jdkClasses1.txt", 
+		evosuite.shell.FileUtils.writeFile(Settings.getReportFolder() + "/jdkClasses1.txt", 
 				StringUtils.join(lines, "\n"), false);
 	}
 	

@@ -48,8 +48,8 @@ import com.sun.tools.classfile.Opcode;
 
 import evosuite.shell.DefUseAnalyzer;
 import evosuite.shell.EvosuiteForMethod;
+import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelWriter;
-import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.OpcodeUtils;
 
@@ -58,7 +58,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 	private ExcelWriter writer;
 	
 	public FlagMethodProfilesFilter() {
-		String statisticFile = new StringBuilder(SFConfiguration.getReportFolder()) 
+		String statisticFile = new StringBuilder(Settings.getReportFolder()) 
 				.append(File.separator).append(EvosuiteForMethod.projectId)
 				.append("_flagMethodProfiles.xlsx").toString();
 		writer = new ExcelWriter(new File(statisticFile));
@@ -86,12 +86,15 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		} 
 		boolean defuseAnalyzed = false;
 		MethodContent mc = new MethodContent();
+		
+		/* check parameter types of target method */
 		mc.hasPrimitiveParam = hasPrimitiveParam(node, cn);
 		
 		boolean valid = false;
-		Map<String, Boolean> methodValidityMap = new HashMap<>();
+		Map<String, Boolean> invokedMethodValidityMap = new HashMap<>();
 		for (BytecodeInstruction insn : cfg.getBranches()) {
 			AbstractInsnNode insnNode = insn.getASMNode();
+			/* check whether it is a flag condition */
 			if (CollectionUtil.existIn(insnNode .getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
 				StringBuilder sb = new StringBuilder()
 							.append(OpcodeUtils.getCode(insnNode.getOpcode()))
@@ -104,7 +107,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 					SourceValue srcValue = (SourceValue) value;
 					AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
 					if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
-						if (checkInvokedMethod(classLoader, condDefinition, mc, methodValidityMap)) {
+						if (checkFlagMethod(classLoader, condDefinition, mc, invokedMethodValidityMap)) {
 							log.info("!FOUND IT! in method " + methodName);
 							valid = true;
 						}
@@ -125,7 +128,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 								}
 							}
 							if (lastDef != null && CommonUtility.isInvokeMethodInsn(lastDef.getASMNode())) {
-								if (checkInvokedMethod(classLoader, lastDef.getASMNode(), mc, methodValidityMap)) {
+								if (checkFlagMethod(classLoader, lastDef.getASMNode(), mc, invokedMethodValidityMap)) {
 									log.info("!FOUND IT! in method " + methodName);
 									valid = true;
 								}
@@ -212,7 +215,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		writer.writeSheet("data", data);
 	}
 
-	protected boolean checkInvokedMethod(ClassLoader classLoader, AbstractInsnNode insn, MethodContent mc,
+	protected boolean checkFlagMethod(ClassLoader classLoader, AbstractInsnNode insn, MethodContent mc,
 			Map<String, Boolean> visitMethods) throws AnalyzerException, IOException {
 		FlagMethod fm = new FlagMethod();
 		
@@ -285,7 +288,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 					AbstractInsnNode prev = getDefinitionInsn(exit);
 					if (prev instanceof MethodInsnNode) {
 						fm.invokeMethods ++;
-						valid |= checkInvokedMethod(classLoader, prev, mc, visitMethods);
+						valid |= checkFlagMethod(classLoader, prev, mc, visitMethods);
 					} else if (CollectionUtil.existIn(prev.getOpcode(), Opcodes.ICONST_0, Opcodes.ICONST_1)) {
 						fm.rConst ++;
 						valid = true;
@@ -331,8 +334,8 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private int hasPrimitiveCompareCondConstrainst(DominatorTree<BasicBlock> dt, BytecodeInstruction defBcInsn, ActualControlFlowGraph cfg, 
-				MethodNode node, ClassLoader classLoader, String className) {
+	private int hasPrimitiveCompareCondConstrainst(DominatorTree<BasicBlock> dt, BytecodeInstruction defBcInsn,
+			ActualControlFlowGraph cfg, MethodNode node, ClassLoader classLoader, String className) {
 		try {
 			BasicBlock immediateDominator = defBcInsn.getBasicBlock();
 			while (immediateDominator != null) {

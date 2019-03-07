@@ -34,6 +34,11 @@ import evosuite.shell.DefUseAnalyzer;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.OpcodeUtils;
 
+/**
+ * 
+ * @author thilyly_tran
+ * 
+ */
 public class MethodFlagCondFilter implements IMethodFilter {
 	private static Logger log = LoggerUtils.getLogger(MethodFlagCondFilter.class);
 	
