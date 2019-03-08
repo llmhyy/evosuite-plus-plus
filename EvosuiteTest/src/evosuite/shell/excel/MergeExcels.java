@@ -10,50 +10,59 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.evosuite.utils.CollectionUtil;
-import org.evosuite.utils.ProgramArgumentUtils;
-import org.junit.Before;
 import org.junit.Test;
 
 import evosuite.shell.FileUtils;
-import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.AlphanumComparator;
 
+/**
+ * 
+ * @author linyun
+ * 
+ * cmd:
+ * MergeExcels -o .. -workingDir .. -excelSuffix
+ */
 public class MergeExcels {
-	public static String excelSubfix = "_evotest.xlsx";
-
-	public static void main(String[] args) throws Exception {
-		String root = args[0];
-		String reportFolder = root + "/evoTest-reports";
-		String outputFile = reportFolder + "/allMethods.xlsx";
-		File file = new File(outputFile);
-		if (file.exists()) {
-			file.delete();
-		}
-		List<String> inputFiles = FileUtils.toFilePath(listExcels(reportFolder));
-		boolean filteredNoGAInvolved = false;
-		if (ProgramArgumentUtils.hasOpt(args, "-filteredNoGAInvolved")) {
-			filteredNoGAInvolved = true;
-		}
-		mergeExcel(outputFile, inputFiles, 0, filteredNoGAInvolved);
-		
-		System.out.println("Done!");
-	}
-
-	@Before
-	public void setup() {
-//		SFConfiguration.sfBenchmarkFolder = "E:/lyly/Projects/evosuite/experiment/SF100-unittest";
+	public static String excelSuffix = "_evotest.xlsx";
+	private static Options options;
+	private static final String OUTPUT = "o";
+	private static final String REPORT_FOLDER = "workingDir";
+	private static final String EXCEL_SUFFIX = "excelSuffix";
+	
+	static {
+		options = new Options()
+				.addOption(new Option(OUTPUT, true, "out put file path"))
+				.addOption(new Option(REPORT_FOLDER, true, "working dir"))
+				.addOption(new Option(EXCEL_SUFFIX, true, "excelSuffix"));
 	}
 	
 	@Test
-	public void mergeExcels() throws IOException {
-		SFConfiguration.sfBenchmarkFolder = "/Users/lylytran/Projects/Evosuite/experiments/SF100-test-classes";
-		excelSubfix = "_evotest.xlsx";
-		String reportFolder = SFConfiguration.sfBenchmarkFolder + "/report-branch";
-		String outputFile = reportFolder + "/02Mar_branch.xlsx";
+	public void test() throws Exception {
+		main(new String[] {
+				"-o", "E:\\linyun\\git_space\\SF100-clean\\report-branch\\all-methods-evotest.xlsx",
+				"-workingDir", "E:\\linyun\\git_space\\SF100-clean\\report-branch",
+				"-excelSuffix", "_evotest.xlsx"
+		});
+	}
+	
+	public static void main(String[] args) throws Exception {
+		CommandLine cmd = new DefaultParser().parse(options, args);
+		String outputFile = cmd.getOptionValue(OUTPUT);
+		String reportFolder = cmd.getOptionValue(REPORT_FOLDER);
+		String excelSuffix = cmd.getOptionValue(EXCEL_SUFFIX);
+		mergeExcel(outputFile, reportFolder, excelSuffix);
+	}
+	
+	public static void mergeExcel(String outputFile, String reportFolder, String excelSuffix) throws IOException {
 		List<String> inputFiles = FileUtils.toFilePath(listExcels(reportFolder));
+		MergeExcels.excelSuffix = excelSuffix;
 		mergeExcel(outputFile, inputFiles, 0, false);
 		
 		System.out.println("Done!");
@@ -118,7 +127,7 @@ public class MergeExcels {
 			
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.endsWith(excelSubfix) && !name.startsWith("~");
+				return name.endsWith(excelSuffix) && !name.startsWith("~");
 			}
 		});
 		List<File> excels = CollectionUtil.toArrayList(files);

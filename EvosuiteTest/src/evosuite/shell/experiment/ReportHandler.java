@@ -157,7 +157,7 @@ public class ReportHandler {
 	}
 	
 	public void mergeReports(String excelSubfix, String reportFolder, String outputFile) throws IOException {
-		MergeExcels.excelSubfix = excelSubfix;
+		MergeExcels.excelSuffix = excelSubfix;
 		List<String> inputFiles = FileUtils.toFilePath(MergeExcels.listExcels(reportFolder));
 		MergeExcels.mergeExcel(outputFile, inputFiles, 0, false);
 		
@@ -165,7 +165,7 @@ public class ReportHandler {
 	}
 	
 	public void mergeExcels(String excelSubfix, String reportFolder, String outputFile) throws IOException {
-		MergeExcels.excelSubfix = excelSubfix;
+		MergeExcels.excelSuffix = excelSubfix;
 		List<String> inputFiles = FileUtils.toFilePath(MergeExcels.listExcels(reportFolder));
 		ExcelUtils.mergeExcel(outputFile, inputFiles, 0);
 		
@@ -174,7 +174,7 @@ public class ReportHandler {
 	
 	@Test
 	public void mergeExcelsDeterminedFbranch() throws IOException {
-		MergeExcels.excelSubfix = "fbranch-determined_3times.xlsx";
+		MergeExcels.excelSuffix = "fbranch-determined_3times.xlsx";
 		String reportFolder = "/Users/lylytran/Projects/Evosuite/experiments/reports/SF100/determined";
 		String outputFile = reportFolder + "/fbranch-determined_3times_merge.xlsx";
 		List<String> inputFiles = FileUtils.toFilePath(MergeExcels.listExcels(reportFolder));
@@ -186,7 +186,7 @@ public class ReportHandler {
 	
 	@Test
 	public void mergeExcelsDetermined() throws IOException {
-		MergeExcels.excelSubfix = "branch-determined_3times.xlsx";
+		MergeExcels.excelSuffix = "branch-determined_3times.xlsx";
 		String reportFolder = "/Users/lylytran/Projects/Evosuite/experiments/reports/SF100/determined";
 		String outputFile = reportFolder + "/branch-determined_3times_merge.xlsx";
 		List<String> inputFiles = FileUtils.toFilePath(MergeExcels.listExcels(reportFolder));
@@ -203,7 +203,7 @@ public class ReportHandler {
 	
 	@Test
 	public void mergeExcels1() throws IOException {
-		MergeExcels.excelSubfix = "_flagMethodProfiles.xlsx";
+		MergeExcels.excelSuffix = "_flagMethodProfiles.xlsx";
 		String reportFolder = Settings.getReportFolder();
 		String outputFile = reportFolder + "/flagMethodProfiles.xlsx";
 		List<String> inputFiles = FileUtils.toFilePath(MergeExcels.listExcels(reportFolder));

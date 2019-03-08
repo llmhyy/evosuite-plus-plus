@@ -57,7 +57,7 @@ public class ListMethodsBatch {
 		TargetMethodIOUtils.generateStatisticExcel(Settings.getTargetMethodFilePath(),
 				evosuite.shell.FileUtils.getFilePath(Settings.getReportFolder(), "targetMethodsStatistic.xlsx"));
 		
-		MergeExcels.excelSubfix = FlagMethodProfilesFilter.excelProfileSubfix;
+		MergeExcels.excelSuffix = FlagMethodProfilesFilter.excelProfileSubfix;
 		List<String> inputFiles = evosuite.shell.FileUtils.toFilePath(MergeExcels.listExcels(Settings.getReportFolder()));
 		ExcelUtils.mergeExcel(Settings.getReportFolder() + "/flag-methods-profiles.xlsx", inputFiles, 0);
 		

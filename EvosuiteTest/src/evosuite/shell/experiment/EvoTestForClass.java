@@ -31,9 +31,9 @@ public class EvoTestForClass {
 		
 		String projectId = "1_tullibee";
 		String projectName = "tullibee";
-		String targetClass = "com.ib.client.Util";
+		String targetClass = "com.ib.client.EClientSocket";
 		
-		evoTestSingleClass(projectId, projectName, targetClass, "fbranch", 1);
+		evoTestSingleClass(projectId, projectName, targetClass, "branch", 1);
 	}
 	
 	

@@ -76,7 +76,7 @@ public class TestSingleMethod {
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		fitnessApproach = "fbranch";
-		int repeatTime = 5;
+		int repeatTime = 1;
 		int budget = 100;
 		List<EvoTestResult> results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
@@ -97,15 +97,12 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runSetSites() {
-		String projectId = "35_corina";
-		String projectName = "corina";
+	public void runTest() {
+		String projectId = "105_math";
+		String projectName = "math";
 		String[] targetMethods = new String[]{
-//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
-				"corina.map.MapPanel#setSites(Ljava/util/List;)V"
-				
+				"org.apache.commons.math.dfp.Dfp#trunc(Lorg/apache/commons/math/dfp/DfpField$RoundingMode;)Lorg/apache/commons/math/dfp/Dfp;"
 				};
-//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		fitnessApproach = "fbranch";
@@ -118,20 +115,22 @@ public class TestSingleMethod {
 			System.out.println(lu.getProgress());
 		}
 		
-		System.out.println("branch" + ":");
-		for(EvoTestResult lu: results1){
-			System.out.println(lu.getCoverage());
-			System.out.println(lu.getProgress());
-		}
+//		fitnessApproach = "branch";
+//		results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+//		System.out.println("branch" + ":");
+//		for(EvoTestResult lu: results1){
+//			System.out.println(lu.getCoverage());
+//			System.out.println(lu.getProgress());
+//		}
 	}
 	
 	@Test
-	public void runComponentCreator() {
-		String projectId = "80_wheelwebtool";
-		String projectName = "wheelwebtool";
+	public void runTest2() {
+		String projectId = "102_colt";
+		String projectName = "colt";
 		String[] targetMethods = new String[]{
 //				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
-				"wheel.components.ComponentCreator#radio(Ljava/lang/String;)Lwheel/components/Radio;"
+				"hep.aida.bin.MightyStaticBin1D#compareWith(Lhep/aida/bin/AbstractBin1D;)Ljava/lang/String;"
 				
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
@@ -139,7 +138,7 @@ public class TestSingleMethod {
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		fitnessApproach = "fbranch";
-		int repeatTime = 5;
+		int repeatTime = 3;
 		int budget = 100;
 		results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
@@ -159,14 +158,13 @@ public class TestSingleMethod {
 		}
 	}
 	
-	
 	@Test
-	public void runA4j() {
-		String projectId = "2_a4j";
-		String projectName = "a4j";
+	public void runTest3() {
+		String projectId = "102_colt";
+		String projectName = "colt";
 		String[] targetMethods = new String[]{
 //				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
-				"net.kencochrane.a4j.beans.RecentlyViewed#addProduct(Lnet/kencochrane/a4j/beans/MiniProduct;)V"
+				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
 				
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
@@ -175,7 +173,7 @@ public class TestSingleMethod {
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		fitnessApproach = "fbranch";
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 100000;
 		results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 //		fitnessApproach = "branch";
@@ -194,6 +192,8 @@ public class TestSingleMethod {
 		}
 	}
 	
+	
+	
 	public List<EvoTestResult> evoTestSingleMethod(String projectId, String projectName,
 			String[] targetMethods, String fitnessAppraoch, int iteration, long seconds, boolean context) {
 		/* configure */
@@ -205,6 +205,9 @@ public class TestSingleMethod {
 
 //		boolean instrumentContext = true;
 		String[] args = new String[] {
+				"-generateMOSuite",
+				"-Dstrategy", "MOSUITE",
+				"-Dalgorithm", "MOSA",
 				"-criterion", fitnessAppraoch,
 				"-target", FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, projectName + ".jar"),
 				"-inclusiveFile", file.getAbsolutePath(),
@@ -223,12 +226,12 @@ public class TestSingleMethod {
 				"-Dcriterion", fitnessAppraoch,
 				"-Dinstrument_context", String.valueOf(context), 
 //				"-Dinsertion_uut", "0.1",
-				"-Dp_test_delete", "0",
-				"-Dp_test_change", "0.9",
-				"-Dp_test_insert", "0.1",
+				"-Dp_test_delete", "0.0",
+				"-Dp_test_change", "0.7",
+				"-Dp_test_insert", "0.3",
 //				"-Dheadless_chicken_test", "true",
 				"-Dp_change_parameter", "0.1",
-				"-Dlocal_search_rate", "3",
+				"-Dlocal_search_rate", "30",
 				"-Dp_functional_mocking", "0",
 				"-Dmock_if_no_generator", "false",
 				"-Dfunctional_mocking_percent", "0",
@@ -244,7 +247,7 @@ public class TestSingleMethod {
 				"-Dmax_attempts", "100",
 				"-Dassertions", "false",
 				"-Delite", "10",
-				"-Dprimitive_pool", "0.0",
+//				"-Dprimitive_pool", "0.0",
 				"-Ddynamic_pool", "0.0",
 				"-Dlocal_search_ensure_double_execution", "false",
 //				"-Dstopping_condition", "maxgenerations",

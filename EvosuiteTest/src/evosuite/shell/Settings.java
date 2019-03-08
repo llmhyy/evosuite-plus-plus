@@ -3,6 +3,7 @@ package evosuite.shell;
 import org.evosuite.utils.ProgramArgumentUtils;
 
 import evosuite.shell.ParameterOptions.TestLevel;
+import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.listmethod.ListMethods;
 import evosuite.shell.listmethod.MethodFilterOption;
 
@@ -10,7 +11,7 @@ public class Settings {
 	public static final int DEFAULT_ITERATION = 1;
 	public static final String DEFAULT_REPORT_FOLDER_NAME = "evoTest-reports";
 
-	private static String sfBenchmarkFolder;
+	private static String sfBenchmarkFolder = SFConfiguration.sfBenchmarkFolder;
 	private static boolean listMethods;
 	private static String inclusiveFilePath;
 	private static int iteration = DEFAULT_ITERATION;
