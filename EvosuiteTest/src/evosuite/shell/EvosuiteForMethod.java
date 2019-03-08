@@ -212,7 +212,7 @@ public class EvosuiteForMethod {
 				if (targetClass.isInterface()) {
 					continue;
 				}
-				for (Method method : targetClass.getMethods()) {
+				for (Method method : targetClass.getDeclaredMethods()) {
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
 					if (!filter.isValidElementId(projectName, CommonUtility.getMethodId(className, methodName))) {
 						continue;
