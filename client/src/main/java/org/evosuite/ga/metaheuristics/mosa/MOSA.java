@@ -19,6 +19,7 @@ package org.evosuite.ga.metaheuristics.mosa;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,6 +28,8 @@ import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.exception.ExceptionCoverageFactory;
 import org.evosuite.coverage.exception.ExceptionCoverageTestFitness;
 import org.evosuite.coverage.fbranch.FBranchTestFitness;
@@ -35,6 +38,7 @@ import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.mosa.comparators.OnlyCrowdingComparator;
+import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testsuite.TestSuiteChromosome;
@@ -71,6 +75,62 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	public MOSA(ChromosomeFactory<T> factory) {
 		super(factory);
 	}
+	
+	class FitnessWrapper{
+		FitnessFunction<T> ff;
+		Branch branch;
+		FitnessWrapper parent;
+		public FitnessWrapper(FitnessFunction<T> ff, Branch branch, MOSA<T>.FitnessWrapper parent) {
+			super();
+			this.ff = ff;
+			this.branch = branch;
+			this.parent = parent;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Set<FitnessFunction<T>> findDominateUncoveredGoals(Set<FitnessFunction<T>> uncoveredGoals){
+		List<FitnessWrapper> list = new ArrayList<>();
+		for(FitnessFunction<T> ff: uncoveredGoals) {
+			Branch branch = null;
+			if(ff instanceof FBranchTestFitness) {
+				branch = ((FBranchTestFitness)ff).getBranch();
+			}
+			else if(ff instanceof BranchCoverageTestFitness) {
+				branch = ((BranchCoverageTestFitness)ff).getBranch();
+			}
+			
+			FitnessWrapper fWrapper = new FitnessWrapper(ff, branch, null);
+			list.add(fWrapper);
+		}
+		
+		for(int i=0; i<list.size(); i++) {
+			FitnessWrapper w1 = list.get(i);
+			for(int j=i; j<list.size(); j++) {
+				FitnessWrapper w2 = list.get(j);
+				if(i!=j) {
+					if(w1.branch.getInstruction().getControlDependentBranch()!=null && 
+							w1.branch.getInstruction().getControlDependentBranch().equals(w2.branch)) {
+						w1.parent = w2;
+					}
+					
+					if(w2.branch.getInstruction().getControlDependentBranch()!=null &&
+							w2.branch.getInstruction().getControlDependentBranch().equals(w1.branch)) {
+						w2.parent = w1;
+					}
+				}
+			}
+		}
+		
+		Set<FitnessFunction<T>> set = new HashSet<>();
+		for(FitnessWrapper w: list) {
+			if(w.parent == null) {
+				set.add(w.ff);
+			}
+		}
+		
+		return set;
+	}
 
 	/** {@inheritDoc} */
 	@Override
@@ -82,25 +142,32 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		union.addAll(population);
 		union.addAll(offspringPopulation);
 
+		Set<FitnessFunction<T>> dominateUncoveredGoals = findDominateUncoveredGoals(uncoveredGoals);
+		
 		// Ranking the union
 		logger.debug("Union Size =" + union.size());
 		// Ranking the union using the best rank algorithm (modified version of the non dominated sorting algorithm
-		ranking.computeRankingAssignment(union, uncoveredGoals);
+		ranking.computeRankingAssignment(union, dominateUncoveredGoals);
 
 		// add to the archive the new covered goals (and the corresponding test cases)
 		//this.archive.putAll(ranking.getNewCoveredGoals());
 
+		
+		List<T> reservedIndividuals = getReservedIndividual(union, dominateUncoveredGoals);
 		int remain = population.size();
+		remain = remain - reservedIndividuals.size();
+		
+		population.clear();
+		population.addAll(reservedIndividuals);
+
 		int index = 0;
 		List<T> front = null;
-		population.clear();
-
 		// Obtain the next front
 		front = ranking.getSubfront(index);
 		
 		while ((remain > 0) && (remain >= front.size()) && !front.isEmpty()) {
 			// Assign crowding distance to individuals
-			distance.fastEpsilonDominanceAssignment(front, uncoveredGoals);
+			distance.fastEpsilonDominanceAssignment(front, dominateUncoveredGoals);
 			// Add the individuals of this front
 			population.addAll(front);
 
@@ -116,7 +183,7 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		// Remain is less than front(index).size, insert only the best one
 		if (remain > 0 && !front.isEmpty()) { // front contains individuals to insert
-			distance.fastEpsilonDominanceAssignment(front, uncoveredGoals);
+			distance.fastEpsilonDominanceAssignment(front, dominateUncoveredGoals);
 			Collections.sort(front, new OnlyCrowdingComparator());
 			for (int k = 0; k < remain; k++) {
 				population.add(front.get(k));
@@ -134,7 +201,36 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		//logger.debug("Generation=" + currentIteration + " Population Size=" + population.size() + " Archive size=" + archive.size());
 	}
 
-
+	private List<T> getReservedIndividual(List<T> population, Set<FitnessFunction<T>> uncoveredGoals) {
+		List<T> reservedIndividuals = new ArrayList<>();
+		for(FitnessFunction<T> uncoveredGoal: uncoveredGoals) {
+			double value = -1;
+			T reservedIndividual = null;
+			for(int i=0; i<population.size(); i++) {
+				T individual = population.get(i);
+				if(reservedIndividuals.contains(individual)) {
+					continue;
+				}
+				
+				if(reservedIndividual == null) {
+					reservedIndividual = individual;
+					value = uncoveredGoal.getFitness(individual);
+				}
+				else {
+					double individualValue = uncoveredGoal.getFitness(individual);
+					if(individualValue < value) {
+						reservedIndividual = individual;
+						value = uncoveredGoal.getFitness(individual);
+					}
+				}
+			}
+			
+			reservedIndividuals.add(reservedIndividual);			
+			uncoveredGoal.getFitness(reservedIndividual);
+		}
+		
+		return reservedIndividuals;
+	}
 
 	/** {@inheritDoc} */
 	@Override
@@ -187,7 +283,6 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		}
 
 		// TODO add here dynamic stopping condition
-
 		while (!isFinished() && this.getNumberOfCoveredGoals()<this.fitnessFunctions.size()) {
 			evolve();
 			printBestIndividualForUncoveredGoals();
@@ -198,6 +293,7 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	}
 
 	private void printBestIndividualForUncoveredGoals() {
+		logger.error("============");
 		List<T> firstFront = ranking.getSubfront(0);
 		for(FitnessFunction<T> ff: uncoveredGoals) {
 			if(ff instanceof TestFitnessFunction) {
