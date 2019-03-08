@@ -84,12 +84,12 @@ public class EvosuiteForMethod {
 	public static List<EvoTestResult> execute(String[] args) {
 		List<EvoTestResult> results = new ArrayList<>();
 		try {
-			String root = setup();
+			setup();
 //			Properties.CLIENT_ON_THREAD = true;
 //			Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 			log.error("enter EvosuiteForMethod!");
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
-			Settings.setup(root, args);
+			Settings.setup(args);
 			if (Settings.isListMethods()) {
 				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.getListMethodsOptions());
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
@@ -124,7 +124,7 @@ public class EvosuiteForMethod {
 		projectId = new File(workingDir).getName();
 		projectName = projectId.substring(projectId.indexOf("_") + 1);
 		String root = new File(workingDir).getParentFile().getAbsolutePath();
-		
+		Settings.setSfBenchmarkFolder(root);
 		File folder = new File(Settings.getReportFolder());
 		if (!folder.exists()) {
 			folder.mkdir();

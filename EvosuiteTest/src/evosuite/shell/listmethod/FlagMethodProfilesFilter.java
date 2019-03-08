@@ -54,13 +54,14 @@ import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.OpcodeUtils;
 
 public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
+	public static final String excelProfileSubfix = "_flagMethodProfiles.xlsx";
 	private static Logger log = LoggerUtils.getLogger(FlagMethodProfilesFilter.class);
 	private ExcelWriter writer;
 	
 	public FlagMethodProfilesFilter() {
 		String statisticFile = new StringBuilder(Settings.getReportFolder()) 
 				.append(File.separator).append(EvosuiteForMethod.projectId)
-				.append("_flagMethodProfiles.xlsx").toString();
+				.append(excelProfileSubfix).toString();
 		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data", new String[]{
 				"ProjectId", "ProjectName", "Target Method", "Flag Method", "branch", "const0/1", "branch", "getfield", "branch",

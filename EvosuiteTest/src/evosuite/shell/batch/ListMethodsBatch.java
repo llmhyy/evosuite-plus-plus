@@ -16,8 +16,11 @@ import org.junit.Test;
 
 import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.Settings;
+import evosuite.shell.excel.ExcelUtils;
+import evosuite.shell.excel.MergeExcels;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.TestUtils;
+import evosuite.shell.listmethod.FlagMethodProfilesFilter;
 import evosuite.shell.listmethod.MethodFilterOption;
 import evosuite.shell.utils.TargetMethodIOUtils;
 
@@ -53,6 +56,12 @@ public class ListMethodsBatch {
 		}
 		TargetMethodIOUtils.generateStatisticExcel(Settings.getTargetMethodFilePath(),
 				evosuite.shell.FileUtils.getFilePath(Settings.getReportFolder(), "targetMethodsStatistic.xlsx"));
+		
+		MergeExcels.excelSubfix = FlagMethodProfilesFilter.excelProfileSubfix;
+		List<String> inputFiles = evosuite.shell.FileUtils.toFilePath(MergeExcels.listExcels(Settings.getReportFolder()));
+		ExcelUtils.mergeExcel(Settings.getReportFolder() + "/flag-methods-profiles.xlsx", inputFiles, 0);
+		
+		System.out.println("Done!");
 	}
 	
 	@Test
@@ -67,8 +76,8 @@ public class ListMethodsBatch {
 	}
 	
 	private boolean checkProject(String prjIdx) {
-//		return Integer.valueOf(prjIdx) == 28;
-		return true;
+		return Integer.valueOf(prjIdx) == 1 ||  Integer.valueOf(prjIdx) == 10;
+//		return true;
 	}
 	
 }

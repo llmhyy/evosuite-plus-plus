@@ -20,7 +20,7 @@ public class Settings {
 	private static MethodFilterOption mFilterOpt;
 	private static String targetMethodFilePath;
 
-	public static void setup(String benchMarkFolder, String[] args) throws Exception {
+	public static void setup(String[] args) throws Exception {
 		listMethods = ProgramArgumentUtils.hasOpt(args, ListMethods.OPT_NAME);
 		String optValue = ProgramArgumentUtils.getOptValue(args, ParameterOptions.METHOD_TEST_ITERATION);
 		if (optValue != null) {
@@ -106,5 +106,9 @@ public class Settings {
 	
 	public static String getTargetMethodFilePath() {
 		return targetMethodFilePath;
+	}
+	
+	public static void setSfBenchmarkFolder(String sfBenchmarkFolder) {
+		Settings.sfBenchmarkFolder = sfBenchmarkFolder;
 	}
 }
