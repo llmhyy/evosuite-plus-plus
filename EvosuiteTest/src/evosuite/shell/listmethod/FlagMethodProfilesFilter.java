@@ -65,7 +65,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data", new String[]{
 				"ProjectId", "ProjectName", "Target Method", "Flag Method", "branch", "const0/1", "branch", "getfield", "branch",
-				"iLoad", "branch", "invokemethod", "other", "Remarks", "has Primitve type", "hasPrimitiveComparison"}, 0);
+				"iLoad", "branch", "invokemethod", "other", "Remarks", "has Primitve type", "hasPrimitiveComparison", "isValid"}, 0);
 	}
 	
 	@Override
@@ -143,13 +143,6 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			}
 		}
 		logToExcel(mc, className, methodName);
-		valid = false;
-		for (FlagMethod fm : mc.flagMethods) {
-			if (fm.rConstBranch > 0) {
-				valid = true;
-				break;
-			}
-		}
 		return valid;
 	}
 
@@ -214,6 +207,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			rowData.add(StringUtils.join(fm.notes, "\n"));
 			rowData.add(mc.hasPrimitiveParam);
 			rowData.add(fm.hasInterestedPrimitiveCompareCond);
+			rowData.add(fm.valid);
 			data.add(rowData);
 		}
 		writer.writeSheet("data", data);
@@ -242,7 +236,8 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			return false;
 		}
 		if (visitMethods.containsKey(fm.methodName)) {
-			return visitMethods.get(fm.methodName);
+			fm.valid = visitMethods.get(fm.methodName);
+			return fm.valid;
 		}
 		mc.flagMethods.add(fm);
 		if (!RuntimeInstrumentation.checkIfCanInstrument(className)) {
@@ -333,6 +328,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 				}
 			}
 			visitMethods.put(fm.methodName, valid);
+			fm.valid = valid;
 			return valid;
 		} catch (Exception e) {
 			log.debug("error!!", e);
@@ -539,6 +535,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		private int other;
 		private int hasInterestedPrimitiveCompareCond;
 		private List<String> notes = new ArrayList<>();
+		private boolean valid = false;
 	}
 	
 	public static enum Remarks {
