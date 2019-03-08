@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -102,9 +103,12 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 				Value value = frame.getStack(0);
 				if (value instanceof SourceValue) {
 					SourceValue srcValue = (SourceValue) value;
+					
+					//TODO the value could be defined multiple times
 					AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
+					
 					if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
-						if (checkInvokedMethod(classLoader, condDefinition, mc, methodValidityMap)) {
+						if (checkInvokedMethod(classLoader, condDefinition, insn.getLineNumber(), mc, methodValidityMap)) {
 							log.info("!FOUND IT! in method " + methodName);
 							valid = true;
 						}
@@ -125,7 +129,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 								}
 							}
 							if (lastDef != null && CommonUtility.isInvokeMethodInsn(lastDef.getASMNode())) {
-								if (checkInvokedMethod(classLoader, lastDef.getASMNode(), mc, methodValidityMap)) {
+								if (checkInvokedMethod(classLoader, lastDef.getASMNode(), insn.getLineNumber(), mc, methodValidityMap)) {
 									log.info("!FOUND IT! in method " + methodName);
 									valid = true;
 								}
@@ -212,7 +216,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		writer.writeSheet("data", data);
 	}
 
-	protected boolean checkInvokedMethod(ClassLoader classLoader, AbstractInsnNode insn, MethodContent mc,
+	protected boolean checkInvokedMethod(ClassLoader classLoader, AbstractInsnNode insn, int calledLineInTargetMethod, MethodContent mc,
 			Map<String, Boolean> visitMethods) throws AnalyzerException, IOException {
 		FlagMethod fm = new FlagMethod();
 		
@@ -283,9 +287,11 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 						// ignore
 					}
 					AbstractInsnNode prev = getDefinitionInsn(exit);
+					fm.notes.add("Invoked Line Number: " + calledLineInTargetMethod);
+					
 					if (prev instanceof MethodInsnNode) {
 						fm.invokeMethods ++;
-						valid |= checkInvokedMethod(classLoader, prev, mc, visitMethods);
+						valid |= checkInvokedMethod(classLoader, prev, calledLineInTargetMethod, mc, visitMethods);
 					} else if (CollectionUtil.existIn(prev.getOpcode(), Opcodes.ICONST_0, Opcodes.ICONST_1)) {
 						fm.rConst ++;
 						valid = true;
@@ -296,6 +302,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 									classLoader, className);
 						}
 					} else if (CollectionUtil.existIn(prev.getOpcode(), Opcodes.GETFIELD)) {
+						valid = true;
 						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(prev));
 						if (dt.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
 							fm.rGetFieldBranch = 1;
@@ -304,6 +311,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 						}
 						fm.getField ++;
 					} else if (CollectionUtil.existIn(prev.getOpcode(), Opcodes.ILOAD)) {
+						valid = true;
 						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(prev));
 						if (dt.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
 							fm.rIloadBranch = 1;
