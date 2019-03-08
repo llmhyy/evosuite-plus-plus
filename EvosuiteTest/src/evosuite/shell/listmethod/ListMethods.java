@@ -1,6 +1,7 @@
 package evosuite.shell.listmethod;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -15,6 +16,7 @@ import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.FileUtils;
 import evosuite.shell.ParameterOptions;
 import evosuite.shell.utils.LoggerUtils;
+import evosuite.shell.utils.TargetMethodIOUtils;
 
 /**
  * 
@@ -28,19 +30,21 @@ public class ListMethods {
 	public static final String OPT_NAME = ParameterOptions.LIST_METHODS_OPT;
 
 	public static int execute(String[] targetClasses, ClassLoader classLoader, MethodFilterOption mFilterOpt,
-			String targetMethodFilePath)
+			String targetMethodFilePath, String targetClassFilePath)
 			throws ClassNotFoundException, IOException {
-		StringBuilder sb = new StringBuilder();
-		sb.append("#------------------------------------------------------------------------\n")
+		StringBuilder headerSb = new StringBuilder();
+		headerSb.append("#------------------------------------------------------------------------\n")
 			.append("#Project=").append(EvosuiteForMethod.projectName).append("  -   ").append(EvosuiteForMethod.projectId).append("\n")
 			.append("#------------------------------------------------------------------------\n");
-		log.info(sb.toString());
-		FileUtils.writeFile(targetMethodFilePath, sb.toString(), true);
+		log.info(headerSb.toString());
+		FileUtils.writeFile(targetMethodFilePath, headerSb.toString(), true);
 		if (!ArrayUtil.contains(Properties.CRITERION, Criterion.DEFUSE)) {
 			Properties.CRITERION = ArrayUtils.addAll(Properties.CRITERION, Criterion.DEFUSE);
 		}
 		IMethodFilter methodFilter = mFilterOpt.getCorrespondingFilter();
 		int total = 0;
+		StringBuilder tMethodSb = new StringBuilder(headerSb.toString());
+		List<String> testableClasses = new ArrayList<String>();
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = classLoader.loadClass(className);
@@ -51,19 +55,26 @@ public class ListMethods {
 				}
 				System.out.println("Class " + targetClass.getName());
 				List<String> testableMethods = methodFilter.listTestableMethods(targetClass, classLoader);
-				total += CollectionUtil.getSize(testableMethods);
-				sb = new StringBuilder();
-				for (String methodName : testableMethods) {
-					sb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
+				if (!CollectionUtil.isEmpty(testableMethods)) {
+					testableClasses.add(className);
 				}
-				FileUtils.writeFile(targetMethodFilePath, sb.toString(), true);
+				total += CollectionUtil.getSize(testableMethods);
+				tMethodSb = new StringBuilder();
+				for (String methodName : testableMethods) {
+					tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
+				}
+				/* log to targetMethod.txt file */
+				FileUtils.writeFile(targetMethodFilePath, tMethodSb.toString(), true);
 			} catch (Throwable t) {
-				sb = new StringBuilder();
-				sb.append("Error when executing class ").append(className);
-				sb.append(t.getMessage());
+				tMethodSb = new StringBuilder();
+				tMethodSb.append("Error when executing class ").append(className);
+				tMethodSb.append(t.getMessage());
 				log.error("Error", t);
 			}
 		}
+		/* log target classes */
+		TargetMethodIOUtils.writeTargetClassOrMethodTxt(EvosuiteForMethod.projectName, EvosuiteForMethod.projectId, 
+				testableClasses, targetClassFilePath);
 		return total;
 	}
 	

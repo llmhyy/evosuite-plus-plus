@@ -14,9 +14,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import evosuite.shell.FileUtils;
+import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelReader;
 import evosuite.shell.excel.ExcelUtils;
 import evosuite.shell.excel.MergeExcels;
+import evosuite.shell.utils.TargetMethodIOUtils;
 
 public class ReportHandler {
 	private String baseDir;
@@ -202,7 +204,7 @@ public class ReportHandler {
 	@Test
 	public void mergeExcels1() throws IOException {
 		MergeExcels.excelSubfix = "_flagMethodProfiles.xlsx";
-		String reportFolder = SFConfiguration.getReportFolder();
+		String reportFolder = Settings.getReportFolder();
 		String outputFile = reportFolder + "/flagMethodProfiles.xlsx";
 		List<String> inputFiles = FileUtils.toFilePath(MergeExcels.listExcels(reportFolder));
 		ExcelUtils.mergeExcel(outputFile, inputFiles, 0);
@@ -219,7 +221,7 @@ public class ReportHandler {
 		List<String> exclusivesFiles = Arrays.asList(root + "/executed_methods.txt");
 		
 		String resultTxt = root + "/merge.txt";
-		TargetMethodTool.merge(inclusiveFiles, exclusivesFiles, resultTxt);
+		TargetMethodIOUtils.merge(inclusiveFiles, exclusivesFiles, resultTxt);
 	}
 	
 	@Test
@@ -229,7 +231,7 @@ public class ReportHandler {
 
 	@Test
 	public void generateMethodDistributionExcel1() throws IOException {
-		new TargetMethodTool().generateMethodDistributionExcel(
+		TargetMethodIOUtils.generateMethodDistributionExcel(
 				baseDir + "/experiments/SF100/reports/interprocedure-flag-methods.txt",
 				baseDir + "/experiments/SF100/reports/flag-filtered-methods-all.txt",
 				baseDir + "/experiments/SF100/reports/has-branch-methods.txt",
@@ -238,7 +240,7 @@ public class ReportHandler {
 	
 	@Test
 	public void generateMethodDistributionExcel() throws IOException {
-		new TargetMethodTool().generateMethodDistributionExcel(
+		TargetMethodIOUtils.generateMethodDistributionExcel(
 				baseDir + "/experiments/SF100/reports/flag-filtered-methods-all.txt",
 				baseDir + "/experiments/SF100/reports/has-branch-methods.txt",
 				baseDir + "/experiments/SF100/reports/methods-distribution.xlsx");
@@ -246,7 +248,7 @@ public class ReportHandler {
 	
 	@Test
 	public void generateStatistic() throws IOException {
-		new TargetMethodTool().generateStatisticExcel(
+		TargetMethodIOUtils.generateStatisticExcel(
 				baseDir + "/experiments/SF100/targetMethods.txt",
 				baseDir + "/experiments/SF100/targetMethods.xlsx");
 	}

@@ -24,7 +24,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 	
 	public FitnessEffectiveRecorder() {
 		super();
-		excelWriter = new ExcelWriter(FileUtils.newFile(SFConfiguration.getReportFolder(), projectId + "_evotest.xlsx"));
+		excelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), projectId + "_evotest.xlsx"));
 		excelWriter.getSheet("data", new String[]{"Class", "Method", "Execution Time", "Coverage", "Age", "Method Availability"}, 0);
 	}
 

@@ -49,10 +49,10 @@ public class MergeExcels {
 	
 	@Test
 	public void mergeExcels() throws IOException {
-		SFConfiguration.sfBenchmarkFolder = "/Users/lylytran/Projects/Evosuite/experiments/test-reports";
-		excelSubfix = "_evotest_5times.xlsx";
-		String reportFolder = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports-fbranch-100-12Feb-v1";
-		String outputFile = reportFolder + "/12Feb-fbranch.xlsx";
+		SFConfiguration.sfBenchmarkFolder = "/Users/lylytran/Projects/Evosuite/experiments/SF100-test-classes";
+		excelSubfix = "_evotest.xlsx";
+		String reportFolder = SFConfiguration.sfBenchmarkFolder + "/report-branch";
+		String outputFile = reportFolder + "/02Mar_branch.xlsx";
 		List<String> inputFiles = FileUtils.toFilePath(listExcels(reportFolder));
 		mergeExcel(outputFile, inputFiles, 0, false);
 		

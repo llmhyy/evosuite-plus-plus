@@ -14,6 +14,11 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+/**
+ * 
+ * @author thilyly_tran
+ *
+ */
 public class MethodHasBranchFilter implements IMethodFilter {
 	
 	@SuppressWarnings("unchecked")
