@@ -192,6 +192,9 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			remain = 0;
 		} // if
 		currentIteration++;
+		
+		printBestIndividualForUncoveredGoals(dominateUncoveredGoals);
+		
 		//logger.error("");
 		//logger.error("N. fronts = "+ranking.getNumberOfSubfronts());
 		//logger.debug("1* front size = "+ranking.getSubfront(0).size());
@@ -285,17 +288,16 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		// TODO add here dynamic stopping condition
 		while (!isFinished() && this.getNumberOfCoveredGoals()<this.fitnessFunctions.size()) {
 			evolve();
-			printBestIndividualForUncoveredGoals();
 			notifyIteration();
 		}
 
 		notifySearchFinished();
 	}
 
-	private void printBestIndividualForUncoveredGoals() {
+	private void printBestIndividualForUncoveredGoals(Set<FitnessFunction<T>> dominateUncoveredGoals) {
 		logger.error("============");
 		List<T> firstFront = ranking.getSubfront(0);
-		for(FitnessFunction<T> ff: uncoveredGoals) {
+		for(FitnessFunction<T> ff: dominateUncoveredGoals) {
 			if(ff instanceof TestFitnessFunction) {
 				TestFitnessFunction tff = (TestFitnessFunction)ff;
 				TestChromosome bestIndividual = getBestTest(firstFront, tff);
@@ -310,7 +312,7 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 				}
 			}
 		}
-		
+		logger.error("uncovered goals: " + uncoveredGoals.size());		
 	}
 
 	private TestChromosome getBestTest(List<T> firstFront, TestFitnessFunction tff) {
