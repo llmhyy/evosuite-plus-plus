@@ -126,7 +126,7 @@ public class ProgressMonitor implements SearchListener, Serializable {
 	@Override
 	public void fitnessEvaluation(Chromosome individual) {
 		int current = (int) ((int)(100 * stoppingCondition.getCurrentValue())/max);
-		currentCoverage = (int) Math.floor(((TestSuiteChromosome) individual).getCoverage() * 100);
+		currentCoverage = (int) Math.floor((individual).getCoverage() * 100);
 		if(currentCoverage > lastCoverage || current > lastProgress)
 			updateStatus(current);
 	}
