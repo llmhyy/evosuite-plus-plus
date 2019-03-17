@@ -159,8 +159,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			return 10000000d;
 		}
 		
-//		return Collections.min(iteratedFitness);
-		return FitnessAggregator.aggreateFitenss(iteratedFitness);
+		return Collections.min(iteratedFitness);
+//		return FitnessAggregator.aggreateFitenss(iteratedFitness);
 	}
 	
 	private List<List<Integer>> identifyLoopContext(ExecutionResult result, List<Call> callContext) {
@@ -249,21 +249,6 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			}
 			
 			/**
-			 * for exercised methods
-			 */
-			for(BytecodeInstruction methodCall: exercisedMethodCalls) {
-				List<Call> newContext = updateCallContext(methodCall, callContext);
-				if(newContext.size()!=callContext.size()) {
-					double f = calculateInterproceduralFitness(methodCall, newContext, branchGoal, result);
-					fitnessList.add(f);						
-				}
-				//stop for recursive call
-				else {
-					fitnessList.add(1.0);		
-				}
-			}
-			
-			/**
 			 * has control dependency
 			 */
 			if(sourceIns.isConstant()) {
@@ -279,6 +264,21 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				handleAnchor(result, callContext, branchTrace, fitnessList, sourceIns);
 			}
 			
+		}
+		
+		/**
+		 * for exercised methods
+		 */
+		for(BytecodeInstruction methodCall: exercisedMethodCalls) {
+			List<Call> newContext = updateCallContext(methodCall, callContext);
+			if(newContext.size()!=callContext.size()) {
+				double f = calculateInterproceduralFitness(methodCall, newContext, branchGoal, result);
+				fitnessList.add(f);						
+			}
+			//stop for recursive call
+			else {
+				fitnessList.add(1.0);		
+			}
 		}
 
 		return fitnessList;
@@ -334,7 +334,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			} else {
 				fitnessList.add(fitness);
 			}
-			break;
+//			break;
 		}
 	}
 
@@ -507,6 +507,9 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				return 1;
 			}
 			else {
+				/**
+				 *  handle internal flag problem 
+				 */
 				if(needDelegateBranch(branch, value)) {
 					BytecodeInstruction load = branch.getInstruction().getSourceOfStackInstruction(0);
 					List<BytecodeInstruction> defs = findDefinitions(load);
