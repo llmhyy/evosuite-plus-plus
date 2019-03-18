@@ -159,8 +159,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			return 10000000d;
 		}
 		
-		return Collections.min(iteratedFitness);
-//		return FitnessAggregator.aggreateFitenss(iteratedFitness);
+//		return Collections.min(iteratedFitness);
+		return FitnessAggregator.aggreateFitenss(iteratedFitness);
 	}
 	
 	private List<List<Integer>> identifyLoopContext(ExecutionResult result, List<Call> callContext) {
