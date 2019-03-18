@@ -18,8 +18,6 @@ import evosuite.shell.experiment.SFConfiguration;
 
 public class TestSingleMethod {
 	
-	String fitnessApproach = "branch";
-
 	@Before
 	public void setup() {
 		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
@@ -44,13 +42,13 @@ public class TestSingleMethod {
 				
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
-		fitnessApproach = "fbranch";
+		String fitnessApproach = "fbranch";
 		int repeatTime = 5;
 		int budget = 100;
-		List<EvoTestResult> results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		List<EvoTestResult> results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		fitnessApproach = "branch";
-		List<EvoTestResult> results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		List<EvoTestResult> results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -75,13 +73,13 @@ public class TestSingleMethod {
 				
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
-		fitnessApproach = "fbranch";
+		String fitnessApproach = "fbranch";
 		int repeatTime = 1;
 		int budget = 100;
-		List<EvoTestResult> results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		List<EvoTestResult> results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		fitnessApproach = "branch";
-		List<EvoTestResult> results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		List<EvoTestResult> results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -105,10 +103,10 @@ public class TestSingleMethod {
 				};
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
-		fitnessApproach = "fbranch";
+		String fitnessApproach = "fbranch";
 		int repeatTime = 1;
 		int budget = 100;
-		results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
 			System.out.println(lu.getCoverage());
@@ -116,7 +114,7 @@ public class TestSingleMethod {
 		}
 		
 //		fitnessApproach = "branch";
-//		results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 //		System.out.println("branch" + ":");
 //		for(EvoTestResult lu: results1){
 //			System.out.println(lu.getCoverage());
@@ -137,13 +135,13 @@ public class TestSingleMethod {
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
-		fitnessApproach = "fbranch";
+		String fitnessApproach = "fbranch";
 		int repeatTime = 3;
 		int budget = 100;
-		results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		fitnessApproach = "branch";
-		results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -170,13 +168,13 @@ public class TestSingleMethod {
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
-		fitnessApproach = "fbranch";
+		String fitnessApproach = "fbranch";
 		int repeatTime = 1;
 		int budget = 100000;
-		results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 //		fitnessApproach = "branch";
-//		results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -203,13 +201,13 @@ public class TestSingleMethod {
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
-		fitnessApproach = "fbranch";
+		String fitnessApproach = "fbranch";
 		int repeatTime = 3;
 		int budget = 100;
-		results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		fitnessApproach = "branch";
-		results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -222,74 +220,6 @@ public class TestSingleMethod {
 			System.out.println(lu.getCoverage());
 			System.out.println(lu.getProgress());
 		}
-	}
-	
-	
-	public List<EvoTestResult> evoTestSingleMethod(String projectId, String projectName,
-			String[] targetMethods, String fitnessAppraoch, int iteration, long seconds, boolean context) {
-		/* configure */
-	
-		/* run */
-		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
-		file.deleteOnExit();
-		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethods);
-
-//		boolean instrumentContext = true;
-		String[] args = new String[] {
-				"-generateMOSuite",
-				"-Dstrategy", "MOSUITE",
-				"-Dalgorithm", "MOSA",
-				"-criterion", fitnessAppraoch,
-				"-target", FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, projectName + ".jar"),
-				"-inclusiveFile", file.getAbsolutePath(),
-				"-iteration", String.valueOf(iteration),
-//				"-Djunit_check", "false"
-////				"-generateRandom",
-//				"-generateSuite",
-//				// "-generateMOSuite",
-////				"-generateSuiteUsingDSE",
-////				"-Dstrategy", "random",
-////				"-class", targetClass, 
-////				"-projectCP", cp, //;lib/commons-math-2.2.jar
-////				"-setup", "bin", "lib/commons-math-2.2.jar",
-////				"-Dtarget_method", targetMethod, 
-				"-Dsearch_budget", String.valueOf(seconds),
-				"-Dcriterion", fitnessAppraoch,
-				"-Dinstrument_context", String.valueOf(context), 
-//				"-Dinsertion_uut", "0.1",
-				"-Dp_test_delete", "0.0",
-				"-Dp_test_change", "0.7",
-				"-Dp_test_insert", "0.3",
-//				"-Dheadless_chicken_test", "true",
-				"-Dp_change_parameter", "0.6",
-				"-Dlocal_search_rate", "30",
-				"-Dp_functional_mocking", "0",
-				"-Dmock_if_no_generator", "false",
-				"-Dfunctional_mocking_percent", "0",
-				"-Dprimitive_reuse_probability", "0",
-				"-Dmin_initial_tests", "10",
-				"-Dmax_initial_tests", "20",
-				"-Ddse_probability", "0",
-//				"-Dinstrument_method_calls", "true",
-				"-Dinstrument_libraries", "true",
-				"-Dinstrument_parent", "true",
-//				"-Dmax_length", "1",
-//				"-Dmax_size", "1",
-				"-Dmax_attempts", "100",
-				"-Dassertions", "false",
-				"-Delite", "10",
-//				"-Dprimitive_pool", "0.0",
-				"-Ddynamic_pool", "0.0",
-				"-Dlocal_search_ensure_double_execution", "false",
-//				"-Dchromosome_length", "100",
-//				"-Dstopping_condition", "maxgenerations",
-//				"-DTT", "true",
-//				"-Dtt_scope", "target",
-//				"-seed", "1552903660892"
-				
-		};
-		SFBenchmarkUtils.setupProjectProperties(projectId);
-		return EvosuiteForMethod.generateTests(args);
 	}
 	
 }
