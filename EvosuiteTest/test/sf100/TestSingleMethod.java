@@ -163,9 +163,8 @@ public class TestSingleMethod {
 		String projectId = "102_colt";
 		String projectName = "colt";
 		String[] targetMethods = new String[]{
-//				"com.ib.client.EClientSocket#placeOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;)V",
-				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
-				
+//				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
+				"hep.aida.bin.MightyStaticBin1D#compareWith(Lhep/aida/bin/AbstractBin1D;)Ljava/lang/String;"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -192,6 +191,38 @@ public class TestSingleMethod {
 		}
 	}
 	
+	@Test
+	public void runTest4() {
+		String projectId = "105_math";
+		String projectName = "math";
+		String[] targetMethods = new String[]{
+//				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
+				"org.apache.commons.math.linear.OpenMapRealMatrix#multiply(Lorg/apache/commons/math/linear/OpenMapRealMatrix;)Lorg/apache/commons/math/linear/OpenMapRealMatrix;"
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		fitnessApproach = "fbranch";
+		int repeatTime = 3;
+		int budget = 100;
+		results0 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		
+		fitnessApproach = "branch";
+		results1 = evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		
+		System.out.println("fbranch" + ":");
+		for(EvoTestResult lu: results0){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+		
+		System.out.println("branch" + ":");
+		for(EvoTestResult lu: results1){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+		}
+	}
 	
 	
 	public List<EvoTestResult> evoTestSingleMethod(String projectId, String projectName,
@@ -230,7 +261,7 @@ public class TestSingleMethod {
 				"-Dp_test_change", "0.7",
 				"-Dp_test_insert", "0.3",
 //				"-Dheadless_chicken_test", "true",
-				"-Dp_change_parameter", "0.1",
+				"-Dp_change_parameter", "0.6",
 				"-Dlocal_search_rate", "30",
 				"-Dp_functional_mocking", "0",
 				"-Dmock_if_no_generator", "false",
@@ -250,10 +281,11 @@ public class TestSingleMethod {
 //				"-Dprimitive_pool", "0.0",
 				"-Ddynamic_pool", "0.0",
 				"-Dlocal_search_ensure_double_execution", "false",
+//				"-Dchromosome_length", "100",
 //				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
-//				"-seed", "100"
+//				"-seed", "1552903660892"
 				
 		};
 		SFBenchmarkUtils.setupProjectProperties(projectId);

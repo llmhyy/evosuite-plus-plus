@@ -542,8 +542,8 @@ public class MethodStatement extends EntityWithParametersStatement {
 	 */
 	@Override
 	public boolean mutate(TestCase test, TestFactory factory) {
-
-		if (Randomness.nextDouble() >= Properties.P_CHANGE_PARAMETER)
+		double ram = Randomness.nextDouble();
+		if (ram >= Properties.P_CHANGE_PARAMETER)
 			return false;
 
 		Constraints constraint = method.getMethod().getAnnotation(Constraints.class);

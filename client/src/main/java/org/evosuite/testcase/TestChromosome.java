@@ -479,11 +479,20 @@ public class TestChromosome extends ExecutableChromosome {
 		boolean changed = false;
 		int lastMutatableStatement = getLastMutatableStatement();
 		double pl = 1d / (lastMutatableStatement + 1);
+		
+		if(lastMutatableStatement < test.size()-1) {
+			pl = 2*pl;
+			if(pl > 1) {
+				pl = 1;
+			}
+		}
+		
 		TestFactory testFactory = TestFactory.getInstance();
 		
 		int targetMethodPosition = -1;
 		if(!Properties.TARGET_METHOD.isEmpty()) {
 			targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
+//			System.currentTimeMillis();
 		}
 
 		if (Randomness.nextDouble() < Properties.CONCOLIC_MUTATION) {
@@ -501,7 +510,13 @@ public class TestChromosome extends ExecutableChromosome {
 					pl = 1d / (targetMethodPosition + 1);
 				}
 				
-				if (Randomness.nextDouble() <= pl) {
+				if(targetMethodPosition == position) {
+					System.currentTimeMillis();
+					pl = 0.9;
+				}
+				
+				double ram = Randomness.nextDouble();
+				if (ram <= pl) {
 					assert (test.isValid());
 
 					Statement statement = test.getStatement(position);
@@ -520,7 +535,8 @@ public class TestChromosome extends ExecutableChromosome {
 						assert ConstraintVerifier.verifyTest(test);
 
 					} else if (!statement.isAssignmentStatement() &&
-							ConstraintVerifier.canDelete(test,position)) {
+							ConstraintVerifier.canDelete(test,position) &&
+							targetMethodPosition != position) {
 						//if a statement should not be deleted, then it cannot be either replaced by another one
 
 						int pos = statement.getPosition();
