@@ -28,7 +28,7 @@ public class RegressionTests {
 	}
 	
 	@Test
-	public void runTest4() {
+	public void runMultiplyTest() {
 		String projectId = "105_math";
 		String projectName = "math";
 		String[] targetMethods = new String[]{
