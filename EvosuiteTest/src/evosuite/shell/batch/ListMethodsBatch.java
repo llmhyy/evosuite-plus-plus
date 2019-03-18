@@ -76,8 +76,8 @@ public class ListMethodsBatch {
 	}
 	
 	private boolean checkProject(String prjIdx) {
-		return Integer.valueOf(prjIdx) == 1 ||  Integer.valueOf(prjIdx) == 10;
-//		return true;
+//		return Integer.valueOf(prjIdx) == 1 ||  Integer.valueOf(prjIdx) == 10;
+		return true;
 	}
 	
 }
