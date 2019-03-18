@@ -108,7 +108,7 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			FitnessWrapper w1 = list.get(i);
 			for(int j=i; j<list.size(); j++) {
 				FitnessWrapper w2 = list.get(j);
-				if(i!=j) {
+				if(i!=j && !w1.branch.equals(w2.branch)) {
 					if(w1.branch.getInstruction().getControlDependentBranch()!=null && 
 							w1.branch.getInstruction().getControlDependentBranch().equals(w2.branch)) {
 						w1.parent = w2;
