@@ -136,6 +136,9 @@ public class FBranchTestFitness extends TestFitnessFunction {
 
 		List<Double> iteratedFitness = new ArrayList<>();
 		List<List<Integer>> loopContext = identifyLoopContext(result, callContext);
+		
+		removeConflictsLoopContext(branchGoal, loopContext);
+		
 		sortLength(loopContext);
 		for(List<Integer> branchTrace: loopContext) {
 			
@@ -153,7 +156,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			iteratedFitness.add(fit);
 		}
 		
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		
 		if(iteratedFitness.isEmpty()) {
 			return 10000000d;
@@ -163,6 +166,35 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		return FitnessAggregator.aggreateFitenss(iteratedFitness);
 	}
 	
+	private void removeConflictsLoopContext(BranchCoverageGoal branchGoal2, List<List<Integer>> loopContext) {
+		Set<ControlDependency> parentDependencies = branchGoal.getBranch().getInstruction().getControlDependencies();
+		Iterator<List<Integer>> iter = loopContext.iterator();
+		while(iter.hasNext()) {
+			List<Integer> branchTrace = iter.next();
+			if(branchTrace.isEmpty()) {
+				continue;
+			}
+			
+			int branchID = branchTrace.get(branchTrace.size()-1); 
+			
+			/**
+			 * at least one parent dependency must be the same with the last exercised branch 
+			 */
+			boolean isValidBranchID = false;
+			for(ControlDependency cd: parentDependencies) {
+				if(cd.getBranch().getActualBranchId()==branchID) {
+					isValidBranchID = true;
+					break;
+				}
+			}
+			
+			if(!isValidBranchID) {
+				iter.remove();
+			}
+		}
+		
+	}
+
 	private List<List<Integer>> identifyLoopContext(ExecutionResult result, List<Call> callContext) {
 		List<List<Integer>> loopContext = new ArrayList<>();
 		for(Map<CallContext, Map<List<Integer>, Double>> context: result.getTrace().getContextIterationTrueMap().values()) {

@@ -127,6 +127,9 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			if(w.parent == null) {
 				set.add(w.ff);
 			}
+			else if(!uncoveredGoals.contains(w.parent.ff)) {
+				set.add(w.ff);
+			}
 		}
 		
 		return set;
