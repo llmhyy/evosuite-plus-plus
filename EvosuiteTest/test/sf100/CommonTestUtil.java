@@ -43,7 +43,7 @@ public class CommonTestUtil {
 				"-Dinstrument_context", String.valueOf(context), 
 //				"-Dinsertion_uut", "0.1",
 				"-Dp_test_delete", "0.0",
-				"-Dp_test_change", "0.7",
+				"-Dp_test_change", "0.9",
 				"-Dp_test_insert", "0.3",
 //				"-Dheadless_chicken_test", "true",
 				"-Dp_change_parameter", "0.6",
