@@ -138,14 +138,14 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	/** {@inheritDoc} */
 	@Override
 	protected void evolve() {
-		List<T> offspringPopulation = breedNextGeneration();
+		Set<FitnessFunction<T>> dominateUncoveredGoals = findDominateUncoveredGoals(uncoveredGoals);
+		List<T> offspringPopulation = breedNextGeneration(dominateUncoveredGoals);
 
 		// Create the union of parents and offSpring
 		List<T> union = new ArrayList<T>();
 		union.addAll(population);
 		union.addAll(offspringPopulation);
 
-		Set<FitnessFunction<T>> dominateUncoveredGoals = findDominateUncoveredGoals(uncoveredGoals);
 		
 		// Ranking the union
 		logger.debug("Union Size =" + union.size());

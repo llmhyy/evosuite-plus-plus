@@ -109,7 +109,8 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	 * @return offspring population
 	 */
 	@SuppressWarnings("unchecked")
-	protected List<T> breedNextGeneration() {
+	protected List<T> breedNextGeneration(Set<FitnessFunction<T>> dominateUncoveredGoals) {
+		selectionFunction = new MOSADominateGoalSelection<T>(dominateUncoveredGoals);
 		List<T> offspringPopulation = new ArrayList<T>(Properties.POPULATION);
 		// we apply only Properties.POPULATION/2 iterations since in each generation
 		// we generate two offsprings
@@ -125,13 +126,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 					if(!ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
 						crossoverFunction.crossOver(offspring1, offspring2);						
 					}
-					
-//					if(TestGenerationUtil.checkTwiceTargetMethodInvocation(((TestChromosome)offspring1).getTestCase())) {
-//						System.currentTimeMillis();
-//					}
-//					if(TestGenerationUtil.checkTwiceTargetMethodInvocation(((TestChromosome)offspring2).getTestCase())) {
-//						System.currentTimeMillis();
-//					}
 				} 
 			} catch (ConstructionFailedException e) {
 				logger.debug("CrossOver failed.");
