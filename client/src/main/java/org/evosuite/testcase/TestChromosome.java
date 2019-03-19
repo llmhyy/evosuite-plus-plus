@@ -508,6 +508,7 @@ public class TestChromosome extends ExecutableChromosome {
 			for (int position = 0; position <= lastMutatableStatement; position++) {
 				if(position < targetMethodPosition && targetMethodPosition != -1) {
 					pl = 1d / (targetMethodPosition + 1);
+					if(pl < 0.3) pl = 0.3;
 				}
 				
 				if(targetMethodPosition == position) {
