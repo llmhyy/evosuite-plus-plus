@@ -38,7 +38,7 @@ for /D %%I in (*_*) do (
 	echo !exeCmd_BRANCH!
 	
 	!exeCmd_BRANCH!
-	rem !exeCmd_FBRANCH!
+	!exeCmd_FBRANCH!
 	
 	popd
 )
