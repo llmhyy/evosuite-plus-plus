@@ -84,7 +84,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		
 		
 		if(value == null){
-			return 1;
+//			return 1;
+//			System.currentTimeMillis();
+			value = findParentDistance(this.branchGoal, result);
+			return value;
 		}
 		else if(value != 1){
 			return normalize(value);
@@ -108,6 +111,66 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		return fitness;
 	}
 	
+	private double findParentDistance(BranchCoverageGoal branchGoal, ExecutionResult result) {
+		Branch newDepBranch = null;
+		boolean goalValue = false;
+		double fitness = 0;
+		BytecodeInstruction sourceIns = branchGoal.getBranch().getInstruction();
+		List<Call> callContext = new ArrayList<>();
+		List<Integer> branchTrace = new ArrayList<>();
+		List<Double> fitnessList = new ArrayList<>();
+		
+		System.currentTimeMillis();
+		
+		for(ControlDependency cd: sourceIns.getControlDependencies()) {
+			if(cd.getBranch().equals(branchGoal.getBranch()))continue;
+			
+			newDepBranch = cd.getBranch();
+			
+			// TODO I am not that clear about getControlDependency() method, but I find
+			// reverse the direction make it correct.
+			goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
+			DistanceCondition dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
+			fitness = dCondition.fitness + 1;
+			
+			// in case the returned direction is wrong.
+			if (fitness == 0) {
+				goalValue = !goalValue;
+				dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
+				fitness = dCondition.fitness + 1;
+			}	
+			
+//			System.currentTimeMillis();
+			
+			if(fitness==0) {
+				logger.error(this.branchGoal + " is not exercised, but " +
+						"both branches of " + newDepBranch + " have 0 branch distance");
+				setInconsistencyHappen(true);
+				continue;
+			}
+
+			BranchCoverageGoal newGoal = dCondition.goal;
+
+			InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
+			if (flagResult.isInterproceduralFlag) {
+				List<Call> newContext = updateCallContext(flagResult.interproceduralFlagCall, callContext);
+				if(newContext.size() != callContext.size()) {
+					double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall, newContext,
+							newGoal, result);
+					fitnessList.add(interproceduralFitness + 1);						
+				}
+				else {
+					fitnessList.add(1.0);		
+				}
+			} else {
+				fitnessList.add(fitness + 1);
+			}
+//			break;
+		}
+		
+		return FitnessAggregator.aggreateFitenss(fitnessList);
+	}
+
 	/**
 	 * for debugging reason
 	 * @param loopContext
@@ -448,7 +511,25 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			}
 
 			prevBranch = branch;
-			branch = branch.getInstruction().getControlDependentBranch();
+			
+			Branch tmpBranch = null;
+			for(ControlDependency cd: branch.getInstruction().getControlDependencies()) {
+				if(visitedBranches.contains(cd.getBranch())) {
+					continue;
+				}
+				else {
+					tmpBranch = cd.getBranch();
+					break;
+				}
+			}
+//			branch = findUnvisitedControlDependencyBranch(branch.getInstruction(), visitedBranches);
+			if(tmpBranch == null) {
+				branch = branch.getInstruction().getControlDependentBranch();
+			}
+			else {
+				branch = tmpBranch;
+			}
+			
 			goalValue = originBranchIns.getControlDependency(branch).getBranchExpressionValue();
 			
 			callContext = updateCallContext(branch.getInstruction(), originContext);
@@ -458,7 +539,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			}	
 		}
 
-		
+		System.currentTimeMillis();
 		double finalBranchDistance = 0;
 		if(approachLevel > 0) {
 			List<Branch> visitedControlBranches = new ArrayList<>();
@@ -556,10 +637,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 								
 								List<Call> replacedContext = replaceContext(context, delegateBranch);
 								
-								value = checkContextBranchDistance(result, delegateBranch, delegateGoalValue, 
+								double distance = checkContextBranchDistance(result, delegateBranch, delegateGoalValue, 
 										replacedContext, branchTrace);
-								if(value != 0) {
-									return value;
+								if(distance != 0) {
+									return distance;
 								}
 							}
 						}
