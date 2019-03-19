@@ -90,6 +90,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
     private LinkedHashMap<FitnessFunction<?>, Double> targetCoverages = new LinkedHashMap<FitnessFunction<?>, Double>();
 	
 	private GeneticAlgorithm<?> ga = null;
+
+	private int age;
 	
 	/** Did test generation succeed? */
 	public Status getTestGenerationStatus() {
@@ -360,10 +362,11 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	@Override
 	public int getAge() {
-		if (getGeneticAlgorithm() != null) {
-			return getGeneticAlgorithm().getAge();
-		}
-		return 0;
+		return this.age;
+	}
+
+	public void setAge(int age) {
+		this.age = age;
 	}
 
 

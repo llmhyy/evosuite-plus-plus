@@ -53,6 +53,7 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private List<Double> progressInfomation = new ArrayList<>();
 	private int[] distribution; 
 	private GeneticAlgorithm<? extends Chromosome> geneticAlgorithm;
+//	private int age;
 
 	/**
 	 * Add an additional secondary objective to the end of the list of
@@ -357,5 +358,13 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 
 	public void setUnavailableCalls(List<String> unavailableCalls) {
 		this.unavailableCalls = unavailableCalls;
+	}
+
+	public int getAge() {
+		return age;
+	}
+
+	public void setAge(int age) {
+		this.age = age;
 	}
 }

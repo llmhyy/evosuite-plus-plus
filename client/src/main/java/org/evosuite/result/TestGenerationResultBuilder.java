@@ -78,6 +78,7 @@ public class TestGenerationResultBuilder {
 		result.setAvailabilityRatio(testSuite.getAvailabilityRatio());
 		result.setAvailableCalls(testSuite.getAvailableCalls());
 		result.setUnavailableCalls(testSuite.getUnavailableCalls());
+		result.setAge(testSuite.getAge());
 		
 		return result;
 	}

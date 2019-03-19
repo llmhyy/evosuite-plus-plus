@@ -67,7 +67,7 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	protected Set<FitnessFunction<T>> uncoveredGoals = new LinkedHashSet<FitnessFunction<T>>();
 
 	protected CrowdingDistance<T> distance = new CrowdingDistance<T>();
-
+	
 	/**
 	 * Constructor based on the abstract class {@link AbstractMOSA}
 	 * @param factory
@@ -268,6 +268,12 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		notifyEvaluation(c);
 	}
 
+	public double getCurrentCoverage() {
+		double coveredBranches = numberOfCoveredTargets();
+		double coverage = coveredBranches / (coveredBranches + uncoveredGoals.size());
+		return coverage;
+	}
+	
 	/** {@inheritDoc} */
 	@Override
 	public void generateSolution() {
@@ -288,13 +294,42 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			distance.fastEpsilonDominanceAssignment(ranking.getSubfront(i), this.uncoveredGoals);
 		}
 
+		double currentCoverage = getCurrentCoverage();
+		this.getProgressInformation().add(currentCoverage);
+		
+		Runnable timer = new Runnable() {
+			
+			@Override
+			public void run() {
+				while(!isFinished() && getNumberOfCoveredGoals() <fitnessFunctions.size()) {
+					try {
+						Thread.sleep(5000);
+						double currentCoverage = getCurrentCoverage();
+						getProgressInformation().add(currentCoverage);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				
+			}
+		};
+		Thread timerThread = new Thread(timer);
+		timerThread.start();
+		
 		// TODO add here dynamic stopping condition
 		while (!isFinished() && this.getNumberOfCoveredGoals()<this.fitnessFunctions.size()) {
+			this.currentIteration++;
 			evolve();
 			notifyIteration();
 		}
 
 		notifySearchFinished();
+		
+		try {
+			timerThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void printBestIndividualForUncoveredGoals(Set<FitnessFunction<T>> dominateUncoveredGoals) {

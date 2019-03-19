@@ -108,4 +108,5 @@ public interface TestGenerationResult extends Serializable {
 	public List<String> getUnavailableCalls();
 	public void setUnavailableCalls(List<String> unavailableCalls);
 	public int getAge();
+	public void setAge(int age);
 }
