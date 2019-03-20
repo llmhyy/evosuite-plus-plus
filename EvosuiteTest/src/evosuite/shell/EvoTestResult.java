@@ -11,14 +11,21 @@ public class EvoTestResult {
 	private List<Double> progress;
 	private List<String> availableCalls = new ArrayList<>();
 	private List<String> unavailableCalls = new ArrayList<>();
+	
+	private double IPFlagCoverage;
+	private String uncoveredFlags;
 
-	public EvoTestResult(int time, double coverage, int age, double ratio, List<Double> progress) {
+	public EvoTestResult(int time, double coverage, int age, 
+			double ratio, List<Double> progress, 
+			double IPFlagCoverage, String uncoveredFlag) {
 		super();
 		this.time = time;
 		this.coverage = coverage;
 		this.age = age;
 		this.ratio = ratio;
 		this.progress = progress;
+		this.IPFlagCoverage = IPFlagCoverage;
+		this.uncoveredFlags = uncoveredFlag;
 	}
 
 	public int getTime() {
@@ -75,6 +82,22 @@ public class EvoTestResult {
 
 	public void setUnavailableCalls(List<String> unavailableCalls) {
 		this.unavailableCalls = unavailableCalls;
+	}
+
+	public double getIPFlagCoverage() {
+		return this.IPFlagCoverage;
+	}
+
+	public void setIPFlagCoverage(double iPFlagCoverage) {
+		this.IPFlagCoverage = iPFlagCoverage;
+	}
+
+	public String getUncoveredFlags() {
+		return uncoveredFlags;
+	}
+
+	public void setUncoveredFlags(String uncoveredFlags) {
+		this.uncoveredFlags = uncoveredFlags;
 	}
 
 }

@@ -55,6 +55,9 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private GeneticAlgorithm<? extends Chromosome> geneticAlgorithm;
 //	private int age;
 
+	private double IPFlagCoverage;
+	private String uncoveredIPFlags;
+	
 	/**
 	 * Add an additional secondary objective to the end of the list of
 	 * objectives
@@ -366,5 +369,21 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 
 	public void setAge(int age) {
 		this.age = age;
+	}
+	
+	public void setIPFlagCoverage(double IPFlagCoverage) {
+		this.IPFlagCoverage = IPFlagCoverage;
+	}
+
+	public double getIPFlagCoverage() {
+		return this.IPFlagCoverage;
+	}
+
+	public void setUncoveredIPFlags(String uncoveredIPFlags) {
+		this.uncoveredIPFlags = uncoveredIPFlags;
+	}
+
+	public String getUncoveredIPFlags() {
+		return this.uncoveredIPFlags;
 	}
 }

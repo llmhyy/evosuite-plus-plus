@@ -109,4 +109,10 @@ public interface TestGenerationResult extends Serializable {
 	public void setUnavailableCalls(List<String> unavailableCalls);
 	public int getAge();
 	public void setAge(int age);
+
+	public void setIPFlagCoverage(double IPFlagCoverage);
+	public double getIPFlagCoverage();
+	
+	public void setUncoveredIPFlags(String uncoveredIPFlags);
+	public String getUncoveredIPFlags();
 }

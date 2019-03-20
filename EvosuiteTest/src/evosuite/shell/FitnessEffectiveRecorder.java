@@ -10,7 +10,6 @@ import java.util.List;
 import org.slf4j.Logger;
 
 import evosuite.shell.excel.ExcelWriter;
-import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 
 /**
@@ -25,7 +24,16 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 	public FitnessEffectiveRecorder() {
 		super();
 		excelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), projectId + "_evotest.xlsx"));
-		excelWriter.getSheet("data", new String[]{"Class", "Method", "Execution Time", "Coverage", "Age", "Method Availability"}, 0);
+		excelWriter.getSheet("data", new String[]{
+				"Class", 
+				"Method", 
+				"Execution Time", 
+				"Coverage", "Age", 
+				"Cal Availability", 
+				"IP Flag Coverage",
+				"Uncovered IF Flag"
+				}, 
+				0);
 	}
 
 	@Override
@@ -37,6 +45,8 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		rowData.add(r.getCoverage());
 		rowData.add(r.getAge());
 		rowData.add(r.getRatio());
+		rowData.add(r.getIPFlagCoverage());
+		rowData.add(r.getUncoveredFlags());
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 			logSuccessfulMethods(className, methodName);

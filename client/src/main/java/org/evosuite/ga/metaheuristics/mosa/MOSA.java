@@ -29,6 +29,7 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.exception.ExceptionCoverageFactory;
 import org.evosuite.coverage.exception.ExceptionCoverageTestFitness;
@@ -38,12 +39,14 @@ import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.mosa.comparators.OnlyCrowdingComparator;
-import org.evosuite.graphs.cfg.ControlDependency;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.setup.Call;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.evosuite.utils.ArrayUtil;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -205,6 +208,106 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		//logger.error("Covered goals = "+this.archive.size());
 		//logger.error("Uncovered goals = "+uncoveredGoals.size());
 		//logger.debug("Generation=" + currentIteration + " Population Size=" + population.size() + " Archive size=" + archive.size());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<T> getBestIndividuals() {
+		//get final test suite (i.e., non dominated solutions in Archive)
+		TestSuiteChromosome bestTestCases = new TestSuiteChromosome();
+		for (T test : getFinalTestSuite()) {
+			bestTestCases.addTest((TestChromosome) test);
+		}
+		for (FitnessFunction<T> f : this.getCoveredGoals()){
+			bestTestCases.getCoveredGoals().add((TestFitnessFunction) f);
+		}
+		// compute overall fitness and coverage
+		double fitness = this.fitnessFunctions.size() - numberOfCoveredTargets();
+		double coverage = ((double) numberOfCoveredTargets()) / ((double) this.fitnessFunctions.size());
+		for (TestSuiteFitnessFunction suiteFitness : suiteFitnesses){
+			bestTestCases.setFitness(suiteFitness, fitness);
+			bestTestCases.setCoverage(suiteFitness, coverage);
+			bestTestCases.setNumOfCoveredGoals(suiteFitness, (int) numberOfCoveredTargets());
+			bestTestCases.setNumOfNotCoveredGoals(suiteFitness, (int) (this.fitnessFunctions.size()-numberOfCoveredTargets()));
+		}
+		
+		bestTestCases.setAge(this.currentIteration);
+		bestTestCases.setProgressInfomation(getProgressInformation());
+
+		
+		Set<FitnessFunction<T>> IPFlags = findIPFlagBranches();
+		Set<FitnessFunction<T>> uncoveredIPFlags = findUncoveredIPFlags(IPFlags);
+		
+		bestTestCases.setUncoveredIPFlags(toIPFlagString(uncoveredIPFlags));
+		
+		double IPFlagCoverage = (double)uncoveredIPFlags.size()/IPFlags.size();
+		bestTestCases.setIPFlagCoverage(1-IPFlagCoverage);
+		
+		List<T> bests = new ArrayList<T>(1);
+		bests.add((T) bestTestCases);
+		return bests;
+	}
+	
+	private String toIPFlagString(Set<FitnessFunction<T>> uncoveredIPFlags) {
+		StringBuffer buffer = new StringBuffer();
+		for(FitnessFunction<T> ff: uncoveredIPFlags) {
+			buffer.append(ff + "\n");
+		}
+		return buffer.toString();
+	}
+	
+	private Set<FitnessFunction<T>> findUncoveredIPFlags(Set<FitnessFunction<T>> iPFlags) {
+		Set<FitnessFunction<T>> uncoveredIPFlags = new HashSet<>();
+		for(FitnessFunction<T> goal: iPFlags) {
+			if(uncoveredGoals.contains(goal)) {
+				uncoveredIPFlags.add(goal);
+			}
+		}
+		return uncoveredIPFlags;
+	}
+
+	private String getReturnType(String signature) {
+		String r = signature.substring(signature.indexOf(")") + 1);
+		return r;
+	}
+	
+	private boolean isInterproceduralFlagProblem(BranchCoverageGoal goal) {
+		BytecodeInstruction instruction = goal.getBranch().getInstruction();
+		
+		BytecodeInstruction interproceduralFlagCall = instruction.getSourceOfStackInstruction(0);
+		boolean isInterproceduralFlag = false;
+		Call callInfo = null;
+		if (interproceduralFlagCall != null && interproceduralFlagCall.getASMNode() instanceof MethodInsnNode) {
+			MethodInsnNode mNode = (MethodInsnNode) interproceduralFlagCall.getASMNode();
+			String desc = mNode.desc;
+			String returnType = getReturnType(desc);
+			isInterproceduralFlag = returnType.equals("Z");
+		}
+
+		
+		return isInterproceduralFlag;
+	}
+	
+	
+	private Set<FitnessFunction<T>> findIPFlagBranches(){
+		Set<FitnessFunction<T>> IPFlagBranches = new HashSet<>();
+		for(FitnessFunction<T> fitnessFunction: fitnessFunctions) {
+			BranchCoverageGoal goal = null;
+			if(fitnessFunction instanceof FBranchTestFitness) {
+				goal = ((FBranchTestFitness)fitnessFunction).getBranchGoal();
+			}
+			else if(fitnessFunction instanceof BranchCoverageTestFitness) {
+				goal = ((BranchCoverageTestFitness)fitnessFunction).getBranchGoal();
+			}
+			
+			
+			if(goal != null && isInterproceduralFlagProblem(goal)) {
+				IPFlagBranches.add(fitnessFunction);
+			}
+			
+		}
+		
+		return IPFlagBranches;
 	}
 
 	private List<T> getReservedIndividual(List<T> population, Set<FitnessFunction<T>> uncoveredGoals) {

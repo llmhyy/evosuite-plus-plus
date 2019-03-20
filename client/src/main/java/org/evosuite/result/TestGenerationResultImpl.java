@@ -93,6 +93,10 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	private int age;
 	
+	private double IPFlagCoverage;
+	
+	private String uncoveredIPFlags;
+	
 	/** Did test generation succeed? */
 	public Status getTestGenerationStatus() {
 		return status;
@@ -369,6 +373,24 @@ class TestGenerationResultImpl implements TestGenerationResult {
 		this.age = age;
 	}
 
+	@Override
+	public void setIPFlagCoverage(double IPFlagCoverage) {
+		this.IPFlagCoverage = IPFlagCoverage;
+	}
 
+	@Override
+	public double getIPFlagCoverage() {
+		return this.IPFlagCoverage;
+	}
+
+	@Override
+	public void setUncoveredIPFlags(String uncoveredIPFlags) {
+		this.uncoveredIPFlags = uncoveredIPFlags;
+	}
+
+	@Override
+	public String getUncoveredIPFlags() {
+		return this.uncoveredIPFlags;
+	}
 
 }

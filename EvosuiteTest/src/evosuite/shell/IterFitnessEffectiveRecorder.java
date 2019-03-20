@@ -65,7 +65,7 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		double successR = currentResult.size();
 		List<Object> rowData = new ArrayList<Object>();
 		while (currentResult.size() < (iterator - 1)) {
-			currentResult.add(new EvoTestResult(0, 0, 0, -1, new ArrayList<>()));
+			currentResult.add(new EvoTestResult(0, 0, 0, -1, new ArrayList<>(), 0, null));
 		}
 		rowData.add(className);
 		rowData.add(methodName);

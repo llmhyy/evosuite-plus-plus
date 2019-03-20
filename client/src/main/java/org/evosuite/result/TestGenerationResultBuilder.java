@@ -79,6 +79,8 @@ public class TestGenerationResultBuilder {
 		result.setAvailableCalls(testSuite.getAvailableCalls());
 		result.setUnavailableCalls(testSuite.getUnavailableCalls());
 		result.setAge(testSuite.getAge());
+		result.setIPFlagCoverage(testSuite.getIPFlagCoverage());
+		result.setUncoveredIPFlags(testSuite.getUncoveredIPFlags());
 		
 		return result;
 	}

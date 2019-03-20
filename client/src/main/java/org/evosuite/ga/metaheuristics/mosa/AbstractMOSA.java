@@ -81,8 +81,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	/** Selected ranking strategy **/
 	protected Ranking<T> ranking;
 
-	/** progress information */
-//	protected List<Double> progress = new ArrayList<>();
 	
 	/**
 	 * Constructor
@@ -329,9 +327,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			bestTestCases.setNumOfCoveredGoals(suiteFitness, (int) numberOfCoveredTargets());
 			bestTestCases.setNumOfNotCoveredGoals(suiteFitness, (int) (this.fitnessFunctions.size()-numberOfCoveredTargets()));
 		}
-		
-		bestTestCases.setAge(this.currentIteration);
-		bestTestCases.setProgressInfomation(getProgressInformation());
 		
 		List<T> bests = new ArrayList<T>(1);
 		bests.add((T) bestTestCases);

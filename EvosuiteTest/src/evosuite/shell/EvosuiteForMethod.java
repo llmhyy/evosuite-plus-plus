@@ -330,7 +330,8 @@ public class EvosuiteForMethod {
 					System.out.println("Unavailable calls: " + r.getUnavailableCalls());
 					
 					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), 
-							r.getAge(), r.getAvailabilityRatio(), r.getProgressInformation());
+							r.getAge(), r.getAvailabilityRatio(), r.getProgressInformation(),
+							r.getIPFlagCoverage(), r.getUncoveredIPFlags());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
 					recorder.record(className, methodName, result);
