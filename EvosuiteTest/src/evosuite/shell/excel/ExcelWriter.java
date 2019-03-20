@@ -90,7 +90,11 @@ public class ExcelWriter {
 		try {
 			out = new FileOutputStream(file);
 			workbook.write(out); 
-		} finally {
+		} 
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		finally {
 			try {
 				if (out != null) {
 					out.close();
