@@ -88,7 +88,9 @@ public class AbstractETest {
 				System.out.println("Available calls: " + getAvailableCalls());
 				System.out.println("Unavailable calls: " + getUnavailableCalls());
 				
-				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, r.getAvailabilityRatio(), r.getProgressInformation());
+				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, 
+						r.getAvailabilityRatio(), r.getProgressInformation(),
+						r.getIPFlagCoverage(), r.getUncoveredIPFlags());
 			}
 		}
 
