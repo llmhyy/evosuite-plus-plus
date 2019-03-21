@@ -8,6 +8,7 @@ public class ParameterOptions {
 	public static final String INCLUSIVE_FILE_OPT = "-inclusiveFile";
 	public static final String EXCLUSIVE_FILE_OPT = "-exclusiveFile";
 	public static final String METHOD_TEST_ITERATION = "-iteration";
+	/* report folder name (relative path upon the SF root folder) */
 	public static final String REPORT_FOLDER = "-reportFolder";
 	public static final String RUNNING_MARKER_FILE = "-markerFile";
 	public static final String TEST_LEVEL = "-testLevel";
