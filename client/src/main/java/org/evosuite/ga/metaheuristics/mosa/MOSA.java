@@ -251,7 +251,8 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	private String toIPFlagString(Set<FitnessFunction<T>> uncoveredIPFlags) {
 		StringBuffer buffer = new StringBuffer();
 		for(FitnessFunction<T> ff: uncoveredIPFlags) {
-			buffer.append(ff + "\n");
+			BranchCoverageGoal goal = transformBranchCoverage(ff);
+			buffer.append(goal + "\n");
 		}
 		return buffer.toString();
 	}
@@ -276,7 +277,6 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		
 		BytecodeInstruction interproceduralFlagCall = instruction.getSourceOfStackInstruction(0);
 		boolean isInterproceduralFlag = false;
-		Call callInfo = null;
 		if (interproceduralFlagCall != null && interproceduralFlagCall.getASMNode() instanceof MethodInsnNode) {
 			MethodInsnNode mNode = (MethodInsnNode) interproceduralFlagCall.getASMNode();
 			String desc = mNode.desc;
@@ -288,19 +288,22 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		return isInterproceduralFlag;
 	}
 	
+	private BranchCoverageGoal transformBranchCoverage(FitnessFunction<T> fitnessFunction) {
+		BranchCoverageGoal goal = null;
+		if(fitnessFunction instanceof FBranchTestFitness) {
+			goal = ((FBranchTestFitness)fitnessFunction).getBranchGoal();
+		}
+		else if(fitnessFunction instanceof BranchCoverageTestFitness) {
+			goal = ((BranchCoverageTestFitness)fitnessFunction).getBranchGoal();
+		}
+		
+		return goal;
+	}
 	
 	private Set<FitnessFunction<T>> findIPFlagBranches(){
 		Set<FitnessFunction<T>> IPFlagBranches = new HashSet<>();
 		for(FitnessFunction<T> fitnessFunction: fitnessFunctions) {
-			BranchCoverageGoal goal = null;
-			if(fitnessFunction instanceof FBranchTestFitness) {
-				goal = ((FBranchTestFitness)fitnessFunction).getBranchGoal();
-			}
-			else if(fitnessFunction instanceof BranchCoverageTestFitness) {
-				goal = ((BranchCoverageTestFitness)fitnessFunction).getBranchGoal();
-			}
-			
-			
+			BranchCoverageGoal goal = transformBranchCoverage(fitnessFunction);
 			if(goal != null && isInterproceduralFlagProblem(goal)) {
 				IPFlagBranches.add(fitnessFunction);
 			}
