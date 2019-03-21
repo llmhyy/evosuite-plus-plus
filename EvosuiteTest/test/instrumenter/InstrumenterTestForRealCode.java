@@ -21,19 +21,16 @@ import org.objectweb.asm.tree.ClassNode;
  * @author LLT
  *
  */
-public class InstrumenterTest {
-	private static final String CLASS_FOLDER;
+public class InstrumenterTestForRealCode {
 	private static final String INSTRUMENT_TARGET_FOLDER;
 	
 	static {
-		CLASS_FOLDER = System.getProperty("user.dir") + "/target/classes";
 		INSTRUMENT_TARGET_FOLDER = System.getProperty("user.dir") + "/instr_result";
 	}
 
 	@Test
 	public void writeFile() throws Exception {
-		String className = ExceptionMockExample.class.getName();
-		String classFolder = CLASS_FOLDER;
+		String className = Sample.class.getName();
 		String classPath = className.replace(".", "/") + ".class";
 		String clazzFile = new StringBuilder("/").append(classPath).toString();
 
@@ -41,17 +38,21 @@ public class InstrumenterTest {
 		FileOutputStream out = new FileOutputStream(outFile);
 		System.out.println(outFile.getAbsolutePath());
 		
-		File inFile = new File(classFolder + clazzFile);
+		File inFile = new File("D:/_1_Projects/evosuite/experiment/colt/cern/jet/random/Gamma.class");
 		FileInputStream in = new FileInputStream(inFile);
-
+		className = "cern/jet/random/Gamma";
 		byte[] data = new byte[100000];
 		in.read(data);
-//		data = instrument(data, className);
-		data = instrument1(data, className, null);
-		
+		data = instrument1(data, className, "D:/_1_Projects/evosuite/experiment/4Projects-clean/102_colt/colt.jar;D:/_1_Projects/evosuite/experiment/4Projects-clean/102_colt/lib/concurrent.jar;D:/_1_Projects/evosuite/experiment/4Projects-clean/102_colt/lib/junit.jar;D:/_1_Projects/evosuite/experiment/4Projects-clean/102_colt/lib/org.hamcrest.core_1.3.0.v201303031735.jar");
 		out.write(data);
 		out.close();
 		in.close();
+	}
+
+	private File getFile(String folder, String fileName) throws Exception {
+		File file = new File(folder + fileName);
+		evosuite.shell.FileUtils.getFileCreateIfNotExist(file.getPath());
+		return file;
 	}
 	
 	private byte[] instrument1(byte[] data, String className, String cp) throws Exception {
@@ -62,9 +63,6 @@ public class InstrumenterTest {
 	}
 	
 	private URLClassLoader getClassLoader(String classpath) {
-		if (classpath == null) {
-			return null;
-		}
 		List<URL> urls = new ArrayList<>();
 		for (String classPathElement : classpath.split(File.pathSeparator)) {
 			try {
@@ -74,12 +72,6 @@ public class InstrumenterTest {
 			}
 		}
 		return new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
-	}
-
-	private File getFile(String folder, String fileName) throws Exception {
-		File file = new File(folder + fileName);
-		evosuite.shell.FileUtils.getFileCreateIfNotExist(file.getPath());
-		return file;
 	}
 
 	private byte[] instrument(byte[] data, String className) throws Exception {

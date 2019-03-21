@@ -163,7 +163,7 @@ public class MethodCallReplacement {
 	}
 
 	public void insertConstructorCall(MethodCallReplacementMethodAdapter mv,
-			MethodCallReplacement replacement, boolean isSelf) {
+			MethodCallReplacement replacement, boolean isSelf, MethodReplacementSupporter methodReplacementSupporter) {
 		Label origCallLabel = new Label();
 		Label afterOrigCallLabel = new Label();
 		
@@ -185,9 +185,17 @@ public class MethodCallReplacement {
 				to.put(i, loc);
 			}
 
-			mv.pop2();//uninitialized reference (which is duplicated)
+			boolean hasDupAfterNew = methodReplacementSupporter.onReplaceConstructor(replacement.className);
+			if (hasDupAfterNew) {
+				mv.pop2();//uninitialized reference (which is duplicated)
+			} else{
+				mv.pop();
+			}
 			mv.newInstance(Type.getType(replacement.replacementClassName));
-			mv.dup();
+
+			if (hasDupAfterNew) {
+				mv.dup();
+			}
 
 			for (int i = 0; i < args.length; i++) {
 				mv.loadLocal(to.get(i));

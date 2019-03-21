@@ -23,6 +23,8 @@
 package org.evosuite.runtime.instrumentation;
 
 
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.GeneratorAdapter;
@@ -36,14 +38,19 @@ import org.objectweb.asm.commons.GeneratorAdapter;
  */
 public class MethodCallReplacementMethodAdapter extends GeneratorAdapter {
 
+	// for debug purpose
 	private final String className;
+	private final String methodName;
+	private final String methodDesc;
 
 	private final String superClassName;
 
 	private boolean needToWaitForSuperConstructor = false;
 	
 	private boolean hasBeenInstrumented = false;
-
+	
+	private MethodReplacementSupporter methodReplacementSupporter = new MethodReplacementSupporter();
+	
 	/**
 	 * <p>
 	 * Constructor for MethodCallReplacementMethodAdapter.
@@ -68,9 +75,9 @@ public class MethodCallReplacementMethodAdapter extends GeneratorAdapter {
 		if (methodName.equals("<init>")) {
 			needToWaitForSuperConstructor = true;
 		}
+		this.methodName = methodName;
+		this.methodDesc = desc;
 	}
-
-
 
 	public MethodVisitor getNextVisitor() {
 		return mv;
@@ -82,7 +89,7 @@ public class MethodCallReplacementMethodAdapter extends GeneratorAdapter {
 	/** {@inheritDoc} */
 	@Override
 	public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-
+		methodReplacementSupporter.visitMethodInsn(opcode, owner, name, desc, itf);
 		boolean isReplaced = false;
 		// Static replacement methods
 		// For invokespecial this can only be used if a constructor is called,
@@ -112,9 +119,9 @@ public class MethodCallReplacementMethodAdapter extends GeneratorAdapter {
 							isSelf = true;
 						}
 					}
-					if (replacement.getMethodName().equals("<init>"))
-						replacement.insertConstructorCall(this, replacement, isSelf);
-					else {
+					if (replacement.getMethodName().equals("<init>")) {
+						replacement.insertConstructorCall(this, replacement, isSelf, methodReplacementSupporter);
+					} else {
 						replacement.insertMethodCall(this, Opcodes.INVOKESPECIAL);
 					}
 				}
@@ -157,5 +164,84 @@ public class MethodCallReplacementMethodAdapter extends GeneratorAdapter {
 			super.visitMaxs(maxStack + 1, maxLocals);
 		else
 			super.visitMaxs(maxStack, maxLocals);
+	}
+	
+	@Override
+	public void visitInsn(final int opcode) {
+		methodReplacementSupporter.visitInsn(opcode);
+		super.visitInsn(opcode);
+	}
+
+	@Override
+	public void visitIntInsn(final int opcode, final int operand) {
+		methodReplacementSupporter.visitIntInsn(opcode, operand);
+		super.visitIntInsn(opcode, operand);
+	}
+
+	@Override
+	public void visitVarInsn(final int opcode, final int var) {
+		methodReplacementSupporter.visitVarInsn(opcode, var);
+		super.visitVarInsn(opcode, var);
+	}
+
+	@Override
+	public void visitTypeInsn(final int opcode, final String type) {
+		methodReplacementSupporter.visitTypeInsn(opcode, type);
+		super.visitTypeInsn(opcode, type);
+	}
+
+	@Override
+	public void visitFieldInsn(final int opcode, final String owner, final String name, final String desc) {
+		methodReplacementSupporter.visitFieldInsn(opcode, owner, name, desc);
+		super.visitFieldInsn(opcode, owner, name, desc);
+	}
+
+	@Deprecated
+	@Override
+	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
+		methodReplacementSupporter.visitMethodInsn(opcode, owner, name, desc);
+		super.visitMethodInsn(opcode, owner, name, desc);
+	}
+
+	@Override
+	public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
+		methodReplacementSupporter.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+		super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+	}
+
+	@Override
+	public void visitJumpInsn(final int opcode, final Label label) {
+		methodReplacementSupporter.visitJumpInsn(opcode, label);
+		super.visitJumpInsn(opcode, label);
+	}
+
+	@Override
+	public void visitLdcInsn(final Object cst) {
+		methodReplacementSupporter.visitLdcInsn(cst);
+		super.visitLdcInsn(cst);
+	}
+
+	@Override
+	public void visitIincInsn(final int var, final int increment) {
+		methodReplacementSupporter.visitIincInsn(var, increment);
+		super.visitIincInsn(var, increment);
+	}
+
+	@Override
+	public void visitTableSwitchInsn(final int min, final int max, final Label dflt, final Label... labels) {
+		methodReplacementSupporter.visitTableSwitchInsn(min, max, dflt, labels);
+		super.visitTableSwitchInsn(min, max, dflt, labels);
+	}
+
+	@Override
+	public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
+		methodReplacementSupporter.visitLookupSwitchInsn(dflt, keys, labels);
+		super.visitLookupSwitchInsn(dflt, keys, labels);
+	}
+
+	@Override
+	public void visitMultiANewArrayInsn(final String desc, final int dims) {
+		methodReplacementSupporter.visitMultiANewArrayInsn(desc, dims);
+		super.visitMultiANewArrayInsn(desc, dims);
 	}
 }
