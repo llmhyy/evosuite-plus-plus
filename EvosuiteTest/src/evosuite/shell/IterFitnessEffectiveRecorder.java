@@ -10,7 +10,6 @@ import java.util.List;
 import org.slf4j.Logger;
 
 import evosuite.shell.excel.ExcelWriter;
-import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 
 public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
@@ -105,4 +104,8 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		currentResult.clear();
 	}
 	
-}
+	@Override
+	public String getFinalReportFilePath() {
+		return excelWriter.getFile().getAbsolutePath();
+	}
+}	

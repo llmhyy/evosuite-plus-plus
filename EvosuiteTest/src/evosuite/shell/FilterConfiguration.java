@@ -13,7 +13,6 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.evosuite.utils.CollectionUtil;
-import org.evosuite.utils.ProgramArgumentUtils;
 /**
  * 
  * @author thilyly_tran
@@ -22,15 +21,14 @@ import org.evosuite.utils.ProgramArgumentUtils;
 public class FilterConfiguration {
 	private List<Filter> filters;
 	
-	public FilterConfiguration(String[] args) throws Exception {
-		String exclFile = ProgramArgumentUtils.getOptValue(args, ParameterOptions.EXCLUSIVE_FILE_OPT);
-		String inclFile = ProgramArgumentUtils.getOptValue(args, ParameterOptions.INCLUSIVE_FILE_OPT);
+	public FilterConfiguration(String inclusiveFile, Set<String> succeedMethods) throws Exception {
 		filters = new ArrayList<FilterConfiguration.Filter>();
-		if (StringUtils.isNotEmpty(exclFile)) {
-			filters.add(new ExclusiveFilter(exclFile));
+		if (CollectionUtil.isNotEmpty(succeedMethods)) {
+			filters.add(new ExclusiveFilter(succeedMethods));
 		}
-		if (StringUtils.isNotEmpty(inclFile)) {
-			filters.add(new InclusiveFilter(inclFile));
+		
+		if (StringUtils.isNotEmpty(inclusiveFile)) {
+			filters.add(new InclusiveFilter(inclusiveFile));
 		}
 	}
 
@@ -76,27 +74,18 @@ public class FilterConfiguration {
 	private static class ExclusiveFilter implements Filter {
 		private Set<String> exclusives = new HashSet<>();
 		
-		public ExclusiveFilter(String exclusivesFile) throws IOException {
-			File file = new File(exclusivesFile);
-			if (!file.exists()) {
-				return;
-			}
-			List<String> lines = FileUtils.readLines(file , Charset.defaultCharset());
-			for (String line : lines) {
-				if (!line.trim().isEmpty() && !line.startsWith("#")) {
-					exclusives.add(line);
-				}
-			}
+		public ExclusiveFilter(Set<String> exclusiveSet) {
+			this.exclusives = exclusiveSet;
 		}
 		
 		@Override
 		public boolean isValidProject(String projectName) {
-			return !exclusives.contains(projectName);
+			return true;
 		}
 
 		@Override
 		public boolean isValidElementId(String projectName, String elementId) {
-			return false;
+			return !exclusives.contains(elementId);
 		}
 
 	}

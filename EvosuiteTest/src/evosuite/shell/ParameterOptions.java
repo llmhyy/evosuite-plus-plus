@@ -13,9 +13,10 @@ public class ParameterOptions {
 	public static final String RUNNING_MARKER_FILE = "-markerFile";
 	public static final String TEST_LEVEL = "-testLevel";
 	public static final String METHOD_FILTER_OPTION = "-mFilterOpt";
+	public static final String REPORT_BASED_FILTER = "-exclFinishedMethods";
 	public static final List<String> ALL_OPTIONS = Arrays.asList(LIST_METHODS_OPT, INCLUSIVE_FILE_OPT,
 			EXCLUSIVE_FILE_OPT, METHOD_TEST_ITERATION, REPORT_FOLDER, RUNNING_MARKER_FILE, TEST_LEVEL,
-			METHOD_FILTER_OPTION);
+			METHOD_FILTER_OPTION, REPORT_BASED_FILTER);
 	
 	
 	public static List<String> getListMethodsOptions() {

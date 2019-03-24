@@ -20,9 +20,11 @@ public class Settings {
 	private static TestLevel testLevel = TestLevel.lMethod;
 	private static MethodFilterOption mFilterOpt;
 	private static String targetMethodFilePath;
+	private static boolean reportBasedFilter;
 
 	public static void setup(String[] args) throws Exception {
 		listMethods = ProgramArgumentUtils.hasOpt(args, ListMethods.OPT_NAME);
+		inclusiveFilePath = ProgramArgumentUtils.getOptValue(args, ParameterOptions.INCLUSIVE_FILE_OPT);
 		String optValue = ProgramArgumentUtils.getOptValue(args, ParameterOptions.METHOD_TEST_ITERATION);
 		if (optValue != null) {
 			iteration = Integer.valueOf(optValue);
@@ -38,10 +40,6 @@ public class Settings {
 			if (optValue != null) {
 				StringBuilder sb = new StringBuilder().append("report")
 						.append("-").append(optValue)
-//						.append("_").append(Calendar.getInstance().get(Calendar.DAY_OF_MONTH))
-//						.append(Month.of(Calendar.getInstance().get(Calendar.MONTH)))
-//						.append("-").append(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)).append("h")
-//						.append(Calendar.getInstance().get(Calendar.MINUTE))
 						;		
 				reportFolder = sb.toString();
 			}
@@ -65,6 +63,10 @@ public class Settings {
 		}
 		
 		targetMethodFilePath = getTargetMethodFilePath(mFilterOpt);
+		
+		if (ProgramArgumentUtils.hasOpt(args, ParameterOptions.REPORT_BASED_FILTER)) {
+			reportBasedFilter = true;
+		}
 	}
 	
 	public static String getReportFolder() {
@@ -111,5 +113,9 @@ public class Settings {
 	
 	public static void setSfBenchmarkFolder(String sfBenchmarkFolder) {
 		Settings.sfBenchmarkFolder = sfBenchmarkFolder;
+	}
+	
+	public static boolean isReportBasedFilterEnable() {
+		return reportBasedFilter;
 	}
 }

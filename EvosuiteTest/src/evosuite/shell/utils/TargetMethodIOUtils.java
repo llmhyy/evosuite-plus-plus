@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -287,6 +288,29 @@ public class TargetMethodIOUtils {
 			CollectionUtil.getListInitIfEmpty(map, projectName).add(row);
 		}
 		return map;
+	}
+	
+	public static Set<String> collectMethods(String reportFile) {
+		Set<String> methods = new HashSet<>();
+		File file = new File(reportFile);
+		if (!file.exists()) {
+			return methods;
+		}
+		try {
+			ExcelReader reader = new ExcelReader(file, 0);
+			List<List<Object>> rows = reader.listData("data");
+			for (List<Object> row : rows) {
+				if (row.size() <= 2) {
+					continue;
+				}
+				String methodId = row.get(0) + "#" + row.get(1);
+				methods.add(methodId);
+			}
+			reader.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return methods;
 	}
 	
 	private enum ReportHeader {

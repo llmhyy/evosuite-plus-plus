@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import evosuite.shell.ParameterOptions.TestLevel;
 import evosuite.shell.listmethod.ListMethods;
 import evosuite.shell.utils.LoggerUtils;
+import evosuite.shell.utils.TargetMethodIOUtils;
 
 /**
  * 
@@ -85,8 +86,6 @@ public class EvosuiteForMethod {
 		List<EvoTestResult> results = new ArrayList<>();
 		try {
 			setup();
-//			Properties.CLIENT_ON_THREAD = true;
-//			Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 			log.error("enter EvosuiteForMethod!");
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
 			Settings.setup(args);
@@ -96,7 +95,18 @@ public class EvosuiteForMethod {
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
 						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
 			} else {
-				filter = new FilterConfiguration(args);
+				FitnessEffectiveRecorder recorder;
+				if (Settings.getIteration() > 1) {
+					recorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
+				} else {
+					recorder = new FitnessEffectiveRecorder();
+				}
+				String existingReport = recorder.getFinalReportFilePath();
+				Set<String> succeedMethods = null;
+				if (Settings.isReportBasedFilterEnable()) {
+					succeedMethods = TargetMethodIOUtils.collectMethods(existingReport);
+				}
+				filter = new FilterConfiguration(Settings.getInclusiveFilePath(), succeedMethods);
 				if (!filter.isValidProject(projectName)) {
 					return null;
 				}
@@ -105,9 +115,9 @@ public class EvosuiteForMethod {
 				String[] truncatedArgs = extractArgs(args);
 				
 				if (Settings.getTestLevel() == TestLevel.lMethod) {
-					results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName);
+					results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName, recorder);
 				} else {
-					results = evoTest.runAllClasses(targetClasses, truncatedArgs, projectName);
+					results = evoTest.runAllClasses(targetClasses, truncatedArgs, projectName, recorder);
 				}
 			}
 		} catch (Throwable e) {
@@ -196,14 +206,8 @@ public class EvosuiteForMethod {
 		evoTestClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 	}
 
-	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName) {
+	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName, FitnessEffectiveRecorder recorder) {
 		List<EvoTestResult> results = new ArrayList<>();
-		FitnessEffectiveRecorder recorder;
-		if (Settings.getIteration() > 1) {
-			recorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
-		} else {
-			recorder = new FitnessEffectiveRecorder();
-		}
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = evoTestClassLoader.loadClass(className);
@@ -251,14 +255,9 @@ public class EvosuiteForMethod {
 		return invokeEvosuite(methodName, className, args, recorder);
 	}
 	
-	public List<EvoTestResult> runAllClasses(String[] targetClasses, String[] args, String projectName) {
+	public List<EvoTestResult> runAllClasses(String[] targetClasses, String[] args, String projectName,
+			FitnessEffectiveRecorder recorder) {
 		List<EvoTestResult> results = new ArrayList<>();
-		FitnessEffectiveRecorder recorder;
-		if (Settings.getIteration() > 1) {
-			recorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
-		} else {
-			recorder = new FitnessEffectiveRecorder();
-		}
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = evoTestClassLoader.loadClass(className);

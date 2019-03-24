@@ -195,4 +195,7 @@ public class ExcelWriter {
 		return sheet;
 	}
 	
+	public File getFile() {
+		return file;
+	}
 }
