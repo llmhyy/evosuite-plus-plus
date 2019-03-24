@@ -104,7 +104,7 @@ public class TestGenerationUtil {
 	}
 
 	public static void filterTargetMethod(TestCase test, List<GenericAccessibleObject<?>> candidateTestMethods) {
-		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+		if(!Properties.TARGET_METHOD.isEmpty()) {
 			Set<GenericMethod> calledMethods = getCalledMethods(test);
 			
 			Iterator<GenericAccessibleObject<?>> iter = candidateTestMethods.iterator();
