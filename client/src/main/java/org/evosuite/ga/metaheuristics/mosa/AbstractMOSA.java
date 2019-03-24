@@ -122,16 +122,16 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			T offspring1 = (T) parent1.clone();
 			T offspring2 = (T) parent2.clone();
 			// apply crossover 
-			try {
-				if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE) {
-					if(!ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
-						crossoverFunction.crossOver(offspring1, offspring2);						
-					}
-				} 
-			} catch (ConstructionFailedException e) {
-				logger.debug("CrossOver failed.");
-				continue;
-			} 
+//			try {
+//				if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE) {
+//					if(!ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+//						crossoverFunction.crossOver(offspring1, offspring2);						
+//					}
+//				} 
+//			} catch (ConstructionFailedException e) {
+//				logger.debug("CrossOver failed.");
+//				continue;
+//			} 
 
 			removeUnusedVariables(offspring1);
 			removeUnusedVariables(offspring2);
