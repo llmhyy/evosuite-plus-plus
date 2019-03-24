@@ -131,13 +131,13 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			// reverse the direction make it correct.
 			goalValue = sourceIns.getControlDependency(newDepBranch).getBranchExpressionValue();
 			DistanceCondition dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
-			fitness = dCondition.fitness + 1;
+			fitness = dCondition.fitness;
 			
 			// in case the returned direction is wrong.
 			if (fitness == 0) {
 				goalValue = !goalValue;
 				dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
-				fitness = dCondition.fitness + 1;
+				fitness = dCondition.fitness;
 			}	
 			
 //			System.currentTimeMillis();
