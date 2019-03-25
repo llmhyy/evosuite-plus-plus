@@ -30,22 +30,21 @@ import org.evosuite.StatisticChecker;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.archive.ArchiveTestChromosomeFactory;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
-import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
-import org.evosuite.rmi.ClientServices;
-import org.evosuite.rmi.service.ClientState;
-import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.ChromosomeFactory;
+import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.stoppingconditions.MaxTestsStoppingCondition;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
+import org.evosuite.rmi.ClientServices;
+import org.evosuite.rmi.service.ClientState;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.statistics.StatisticsSender;
-import org.evosuite.testcase.factories.AllMethodsTestChromosomeFactory;
-import org.evosuite.testcase.factories.JUnitTestCarvedChromosomeFactory;
-import org.evosuite.testcase.factories.RandomLengthTestFactory;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.factories.AllMethodsTestChromosomeFactory;
+import org.evosuite.testcase.factories.JUnitTestCarvedChromosomeFactory;
+import org.evosuite.testcase.factories.RandomLengthTestFactory;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.evosuite.utils.DistributionUtil;
@@ -190,8 +189,7 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 			return;
 		}
 
-		List<TestSuiteFitnessFunction> fitnessFunctions = getFitnessFunctions();
-		ExecutionResult result = test.executeForFitnessFunction(fitnessFunctions.get(0));
+		ExecutionResult result = test.getLastExecutionResult();
 		if (result != null) {
 			for (Integer branchID : result.getTrace().getCoveredTrue().keySet()) {
 				if (distributionMap.get(branchID) != null) {

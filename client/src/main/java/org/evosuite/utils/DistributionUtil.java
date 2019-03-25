@@ -34,7 +34,7 @@ public class DistributionUtil {
 			Map<Integer, Double> siblingsDistribution = findSiblingDistribution(uncoveredGoal, distributionMap);
 			double numerator = 0;
 			for(Integer key: siblingsDistribution.keySet()) {
-				numerator += key * siblingsDistribution.get(key);
+				numerator += 1/(double)key * siblingsDistribution.get(key);
 			}
 			double branchDistributionValue = numerator / sum;
 			int branchID = uncoveredGoal.getBranch().getActualBranchId();

@@ -104,6 +104,8 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			ranking = new RankBasedPreferenceSorting<T>(); // default ranking strategy
 	}
 
+	protected List<T> newGeneratedIndividuals = new ArrayList<>();
+	
 	/**
 	 * This method is used to generate new individuals (offsprings) from
 	 * the current population
@@ -151,6 +153,9 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				calculateFitness(offspring2);
 				offspringPopulation.add(offspring2);
 			}	
+			
+			this.newGeneratedIndividuals.add(offspring1);
+			this.newGeneratedIndividuals.add(offspring2);
 		}
 		// Add new randomly generate tests
 		for (int i = 0; i<Properties.POPULATION * Properties.P_TEST_INSERTION; i++){

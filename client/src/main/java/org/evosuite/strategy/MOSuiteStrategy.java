@@ -154,7 +154,6 @@ public class MOSuiteStrategy extends TestGenerationStrategy {
 		
 		int timeUsed = (int) (endTime - startTime);
 		testSuite.setTimeUsed(timeUsed);
-		
 		return testSuite;
 	}
 	
