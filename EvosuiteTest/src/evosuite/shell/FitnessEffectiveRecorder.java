@@ -69,4 +69,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		
 	}
 	
+	public String getFinalReportFilePath() {
+		return excelWriter.getFile().getAbsolutePath();
+	}
 }
