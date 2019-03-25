@@ -29,12 +29,12 @@ public class ExampleTest2 extends AbstractETest{
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
+		Properties.TIMEOUT = 10000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 300;
+		int timeBudget = 10;
 		ExampleTest2 t = new ExampleTest2();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		

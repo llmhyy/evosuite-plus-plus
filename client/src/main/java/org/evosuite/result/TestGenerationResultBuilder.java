@@ -81,6 +81,7 @@ public class TestGenerationResultBuilder {
 		result.setAge(testSuite.getAge());
 		result.setIPFlagCoverage(testSuite.getIPFlagCoverage());
 		result.setUncoveredIPFlags(testSuite.getUncoveredIPFlags());
+		result.setUncoveredBranchDistribution(testSuite.getUncoveredBranchDistribution());
 		
 		return result;
 	}
