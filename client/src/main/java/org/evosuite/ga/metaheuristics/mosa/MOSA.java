@@ -31,6 +31,7 @@ import org.evosuite.Properties;
 import org.evosuite.StatisticChecker;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.exception.ExceptionCoverageFactory;
@@ -45,9 +46,11 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.setup.Call;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
+import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.evosuite.utils.ArrayUtil;
+import org.evosuite.utils.DistributionUtil;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,6 +146,8 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	/** {@inheritDoc} */
 	@Override
 	protected void evolve() {
+		this.newGeneratedIndividuals.clear();
+		
 		Set<FitnessFunction<T>> dominateUncoveredGoals = findDominateUncoveredGoals(uncoveredGoals);
 		List<T> offspringPopulation = breedNextGeneration(dominateUncoveredGoals);
 
@@ -399,6 +404,37 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		return coverage;
 	}
 	
+	private List<T> newGeneratedIndividuals = new ArrayList<>();
+	
+	private void updateDistribution(Map<Integer, Integer> distributionMap, boolean firstTime) {
+		if (distributionMap.keySet().size() == 0) {
+			return;
+		}
+
+		List<T> individuals = firstTime ? this.population : this.newGeneratedIndividuals;
+		for (T individual : individuals) {
+			TestSuiteChromosome testSuite = (TestSuiteChromosome) individual;
+			for (ExecutionResult result : testSuite.getLastExecutionResults()) {
+				if (result != null) {
+
+					for (Integer branchID : result.getTrace().getCoveredTrue().keySet()) {
+						if (distributionMap.get(branchID) != null) {
+							int count = distributionMap.get(branchID) + 1;
+							distributionMap.put(branchID, count);
+						}
+					}
+
+					for (Integer branchID : result.getTrace().getCoveredFalse().keySet()) {
+						if (distributionMap.get(-branchID) != null) {
+							int count = distributionMap.get(-branchID) + 1;
+							distributionMap.put(-branchID, count);
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	/** {@inheritDoc} */
 	@Override
 	public void generateSolution() {
@@ -419,6 +455,11 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			distance.fastEpsilonDominanceAssignment(ranking.getSubfront(i), this.uncoveredGoals);
 		}
 
+		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
+		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
+		Map<Integer, Integer> distributionMap = DistributionUtil.constructDistributionMap(branchGoals);
+		updateDistribution(distributionMap, true);
+		
 		double currentCoverage = getCurrentCoverage();
 		this.getProgressInformation().add(currentCoverage);
 		
@@ -436,16 +477,14 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		while (!isFinished() && this.getNumberOfCoveredGoals()<this.fitnessFunctions.size()) {
 			this.currentIteration++;
 			evolve();
+			updateDistribution(distributionMap, false);
 			notifyIteration();
 		}
 
 		notifySearchFinished();
 		
-		try {
-			timerThread.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap, branchGoals);
+		this.setUncoveredBranchDistribution(uncoveredBranchDistribution);
 	}
 
 	private void printBestIndividualForUncoveredGoals(Set<FitnessFunction<T>> dominateUncoveredGoals) {

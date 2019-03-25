@@ -5,12 +5,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
 
 public class DistributionUtil {
+	public static Map<Integer, Integer> constructDistributionMap(List<BranchCoverageTestFitness> branchGoals ) {
+		Map<Integer, Integer> distributionMap = new HashMap<>();
+		for (BranchCoverageTestFitness goal : branchGoals) {
+			Integer key = goal.getBranch().getActualBranchId();
+			if (!goal.getValue()) {
+				key = -key;
+			}
+			distributionMap.put(key, 0);
+		}
+		
+		return distributionMap;
+	}
+	
 	public static Map<Integer, Double> computeBranchDistribution(Map<Integer, Integer> distributionMap, List<BranchCoverageTestFitness> branchGoals) {
 		Map<Integer, Double> uncoveredBranchDistributionValue = new HashMap<>();
 		

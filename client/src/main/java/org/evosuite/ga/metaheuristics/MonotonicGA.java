@@ -274,19 +274,12 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		});
 		Thread timerThread = new Thread(timer);
 		timerThread.start();
-
-		Map<Integer, Integer> distributionMap = new HashMap<>();
+		
 		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
 		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
-		for (BranchCoverageTestFitness goal : branchGoals) {
-			Integer key = goal.getBranch().getActualBranchId();
-			if (!goal.getValue()) {
-				key = -key;
-			}
-			distributionMap.put(key, 0);
-		}
-		
+		Map<Integer, Integer> distributionMap = DistributionUtil.constructDistributionMap(branchGoals);
 		updateDistribution(distributionMap, true);
+		
 		while (!isFinished()) {
 
 			logger.info("Population size before: " + population.size());
