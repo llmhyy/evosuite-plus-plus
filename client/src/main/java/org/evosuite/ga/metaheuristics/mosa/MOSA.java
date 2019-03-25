@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.CoverageProgressGetter;
 import org.evosuite.Properties;
+import org.evosuite.StatisticChecker;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
@@ -420,22 +422,13 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		double currentCoverage = getCurrentCoverage();
 		this.getProgressInformation().add(currentCoverage);
 		
-		Runnable timer = new Runnable() {
-			
-			@Override
-			public void run() {
-				while(!isFinished() && getNumberOfCoveredGoals() <fitnessFunctions.size()) {
-					try {
-						Thread.sleep(5000);
-						double currentCoverage = getCurrentCoverage();
-						getProgressInformation().add(currentCoverage);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+		StatisticChecker timer = new StatisticChecker(getProgressInformation(),
+			new CoverageProgressGetter() {
+				@Override
+				public double getCoverage() {
+					return getCurrentCoverage();
 				}
-				
-			}
-		};
+		});
 		Thread timerThread = new Thread(timer);
 		timerThread.start();
 		

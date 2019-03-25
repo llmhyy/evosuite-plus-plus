@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.CoverageProgressGetter;
 import org.evosuite.Properties;
+import org.evosuite.StatisticChecker;
 import org.evosuite.TimeController;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
@@ -254,19 +256,20 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			lastBestFitness = 0.0;
 		}
 		int interval = 5000;
-		ArrayList<Double> progress = new ArrayList<Double>();
-		ArrayList<Double> fList = new ArrayList<Double>();
+		// ArrayList<Double> progress = new ArrayList<Double>();
+		// ArrayList<Double> fList = new ArrayList<Double>();
 
 		RuntimeRecord.methodCallAvailabilityMap.clear();
 
-		long begintime = System.currentTimeMillis();
-		long endtime = System.currentTimeMillis();
-		T bestIndividual = getBestIndividual();
-		if (bestIndividual != null) {
-			double coverage = bestIndividual.getCoverage();
-			progress.add(coverage);
-			fList.add(bestIndividual.getFitness());
-		}
+		StatisticChecker timer = new StatisticChecker(getProgressInformation(), new CoverageProgressGetter() {
+			@Override
+			public double getCoverage() {
+				T bestIndividual = getBestIndividual();
+				return bestIndividual.getCoverage();
+			}
+		});
+		Thread timerThread = new Thread(timer);
+		timerThread.start();
 
 		Map<Integer, Integer> distributionMap = new HashMap<>();
 		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
@@ -294,14 +297,16 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 				double bestFitnessAfterEvolution = getBestFitness();
 
-//				if (getFitnessFunction().isMaximizationFunction())
-//					assert (bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
-//							- DELTA)) : "best fitness before evolve()/sortPopulation() was: "
-//									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
-//				else
-//					assert (bestFitnessAfterEvolution <= (bestFitnessBeforeEvolution
-//							+ DELTA)) : "best fitness before evolve()/sortPopulation() was: "
-//									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
+				// if (getFitnessFunction().isMaximizationFunction())
+				// assert (bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
+				// - DELTA)) : "best fitness before evolve()/sortPopulation() was: "
+				// + bestFitnessBeforeEvolution + ", now best fitness is " +
+				// bestFitnessAfterEvolution;
+				// else
+				// assert (bestFitnessAfterEvolution <= (bestFitnessBeforeEvolution
+				// + DELTA)) : "best fitness before evolve()/sortPopulation() was: "
+				// + bestFitnessBeforeEvolution + ", now best fitness is " +
+				// bestFitnessAfterEvolution;
 			}
 
 			{
@@ -309,14 +314,16 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 				applyLocalSearch();
 				double bestFitnessAfterLocalSearch = getBestFitness();
 
-//				if (getFitnessFunction().isMaximizationFunction())
-//					assert (bestFitnessAfterLocalSearch >= (bestFitnessBeforeLocalSearch
-//							- DELTA)) : "best fitness before applyLocalSearch() was: " + bestFitnessBeforeLocalSearch
-//									+ ", now best fitness is " + bestFitnessAfterLocalSearch;
-//				else
-//					assert (bestFitnessAfterLocalSearch <= (bestFitnessBeforeLocalSearch
-//							+ DELTA)) : "best fitness before applyLocalSearch() was: " + bestFitnessBeforeLocalSearch
-//									+ ", now best fitness is " + bestFitnessAfterLocalSearch;
+				// if (getFitnessFunction().isMaximizationFunction())
+				// assert (bestFitnessAfterLocalSearch >= (bestFitnessBeforeLocalSearch
+				// - DELTA)) : "best fitness before applyLocalSearch() was: " +
+				// bestFitnessBeforeLocalSearch
+				// + ", now best fitness is " + bestFitnessAfterLocalSearch;
+				// else
+				// assert (bestFitnessAfterLocalSearch <= (bestFitnessBeforeLocalSearch
+				// + DELTA)) : "best fitness before applyLocalSearch() was: " +
+				// bestFitnessBeforeLocalSearch
+				// + ", now best fitness is " + bestFitnessAfterLocalSearch;
 			}
 
 			/*
@@ -329,25 +336,27 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			 */
 			// sortPopulation();
 
-			double newFitness = getBestFitness();
-			endtime = System.currentTimeMillis();
-			if (endtime - begintime >= interval) {
-				bestIndividual = getBestIndividual();
-				if (bestIndividual != null) {
-					double coverage = bestIndividual.getCoverage();
-					progress.add(coverage);
-					fList.add(bestIndividual.getFitness());
-				}
-				begintime = endtime;
-			}
+			// double newFitness = getBestFitness();
+			// endtime = System.currentTimeMillis();
+			// if (endtime - begintime >= interval) {
+			// bestIndividual = getBestIndividual();
+			// if (bestIndividual != null) {
+			// double coverage = bestIndividual.getCoverage();
+			// progress.add(coverage);
+			// fList.add(bestIndividual.getFitness());
+			// }
+			// begintime = endtime;
+			// }
 
-//			if (getFitnessFunction().isMaximizationFunction())
-//				assert (newFitness >= (bestFitness - DELTA)) : "best fitness was: " + bestFitness
-//						+ ", now best fitness is " + newFitness;
-//			else
-//				assert (newFitness <= (bestFitness + DELTA)) : "best fitness was: " + bestFitness
-//						+ ", now best fitness is " + newFitness;
-			bestFitness = newFitness;
+			// if (getFitnessFunction().isMaximizationFunction())
+			// assert (newFitness >= (bestFitness - DELTA)) : "best fitness was: " +
+			// bestFitness
+			// + ", now best fitness is " + newFitness;
+			// else
+			// assert (newFitness <= (bestFitness + DELTA)) : "best fitness was: " +
+			// bestFitness
+			// + ", now best fitness is " + newFitness;
+			// bestFitness = newFitness;
 
 			if (Double.compare(bestFitness, lastBestFitness) == 0) {
 				starvationCounter++;
@@ -362,7 +371,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			updateDistribution(distributionMap);
 
 			// printUncoveredBranches(distributionMap, branchGoals);
-//			printUncoveredBranches(getBestIndividual(), branchGoals);
+			// printUncoveredBranches(getBestIndividual(), branchGoals);
 
 			logger.error("Best fitness: " + bestFitness + ", Coverage: " + getBestIndividual().getCoverage());
 			logger.info("Current iteration: " + currentIteration);
@@ -373,13 +382,13 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			logger.info("Worst individual has fitness: " + population.get(population.size() - 1).getFitness());
 
 		}
-		bestIndividual = getBestIndividual();
-		if (bestIndividual != null) {
-			double coverage = bestIndividual.getCoverage();
-			progress.add(coverage);
-		}
-		this.setProgressInformation(progress);
-		logger.error(fList.toString());
+		// bestIndividual = getBestIndividual();
+		// if (bestIndividual != null) {
+		// double coverage = bestIndividual.getCoverage();
+		// progress.add(coverage);
+		// }
+		// this.setProgressInformation(progress);
+		// logger.error(fList.toString());
 
 		int[] distribution = new int[distributionMap.keySet().size()];
 		int count = 0;
@@ -389,13 +398,13 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		this.setDistribution(distribution);
 		// this.setCallUninstrumentedMethod(true);
 
-//		for (Integer branchID : distributionMap.keySet()) {
-//			logger.error("branch ID: " + branchID + ": " + distributionMap.get(branchID));
-//		}
+		// for (Integer branchID : distributionMap.keySet()) {
+		// logger.error("branch ID: " + branchID + ": " +
+		// distributionMap.get(branchID));
+		// }
 
 		double availabilityRatio = getAvailabilityRatio();
-		
-		
+
 		this.setAvailabilityRatio(availabilityRatio);
 		this.setAvailableCalls(getAvailableCalls());
 		this.setUnavailableCalls(getUnavailableCalls());
@@ -407,41 +416,38 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	}
 
 	private void printUncoveredBranches(T bestIndividual, List<BranchCoverageTestFitness> branchGoals) {
-		if(bestIndividual instanceof TestSuiteChromosome) {
-			
+		if (bestIndividual instanceof TestSuiteChromosome) {
+
 			Set<BranchCoverageGoal> uncoveredGoals = new HashSet<>();
-			
-			TestSuiteChromosome testsuite = (TestSuiteChromosome)bestIndividual;
-			
+
+			TestSuiteChromosome testsuite = (TestSuiteChromosome) bestIndividual;
+
 			for (ExecutionResult result : testsuite.getLastExecutionResults()) {
 				if (result != null) {
-					for(BranchCoverageTestFitness tf: branchGoals) {
+					for (BranchCoverageTestFitness tf : branchGoals) {
 						int branchID = tf.getBranch().getActualBranchId();
 						boolean value = tf.getValue();
-						
-						if(value) {
+
+						if (value) {
 							Double distance = result.getTrace().getTrueDistances().get(branchID);
-							if(distance != null && distance == 0) {
+							if (distance != null && distance == 0) {
 								uncoveredGoals.remove(tf.getBranchGoal());
+							} else {
+								uncoveredGoals.add(tf.getBranchGoal());
 							}
-							else {
-								uncoveredGoals.add(tf.getBranchGoal());								
-							}
-						}
-						else {
+						} else {
 							Double distance = result.getTrace().getFalseDistances().get(branchID);
-							if(distance != null && distance == 0) {
+							if (distance != null && distance == 0) {
 								uncoveredGoals.remove(tf.getBranchGoal());
-							}
-							else {
-								uncoveredGoals.add(tf.getBranchGoal());								
+							} else {
+								uncoveredGoals.add(tf.getBranchGoal());
 							}
 						}
 					}
 				}
 			}
-			
-			for(BranchCoverageGoal goal: uncoveredGoals) {
+
+			for (BranchCoverageGoal goal : uncoveredGoals) {
 				logger.error(goal.toString());
 			}
 		}
@@ -466,21 +472,21 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 		return ratio;
 	}
-	
+
 	public List<String> getAvailableCalls() {
 		List<String> calls = new ArrayList<>();
-		for(String method: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
-			if(RuntimeRecord.methodCallAvailabilityMap.get(method)) {
+		for (String method : RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+			if (RuntimeRecord.methodCallAvailabilityMap.get(method)) {
 				calls.add(method);
 			}
 		}
 		return calls;
 	}
-	
+
 	public List<String> getUnavailableCalls() {
 		List<String> calls = new ArrayList<>();
-		for(String method: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
-			if(!RuntimeRecord.methodCallAvailabilityMap.get(method)) {
+		for (String method : RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+			if (!RuntimeRecord.methodCallAvailabilityMap.get(method)) {
 				calls.add(method);
 			}
 		}

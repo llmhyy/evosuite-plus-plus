@@ -21,19 +21,18 @@ public class CommonTestUtil {
 
 //		boolean instrumentContext = true;
 		String[] args = new String[] {
-				"-generateMOSuite",
-				"-Dstrategy", "MOSUITE",
-				"-Dalgorithm", "MOSA",
+//				"-generateMOSuite",
+//				"-Dstrategy", "MOSUITE",
+//				"-Dalgorithm", "MOSA",
+//				"-generateRandom",
+//				"-Dstrategy", "random",
+				"-generateSuite",
 				"-criterion", fitnessAppraoch,
 				"-target", FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, projectName + ".jar"),
 				"-inclusiveFile", file.getAbsolutePath(),
 				"-iteration", String.valueOf(iteration),
 //				"-Djunit_check", "false"
-////				"-generateRandom",
-//				"-generateSuite",
-//				// "-generateMOSuite",
 ////				"-generateSuiteUsingDSE",
-////				"-Dstrategy", "random",
 ////				"-class", targetClass, 
 ////				"-projectCP", cp, //;lib/commons-math-2.2.jar
 ////				"-setup", "bin", "lib/commons-math-2.2.jar",

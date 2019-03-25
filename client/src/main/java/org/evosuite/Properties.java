@@ -1044,6 +1044,9 @@ public class Properties {
 
     @Parameter(key = "timeline_interpolation", group = "Output", description = "Interpolate timeline values")
     public static boolean TIMELINE_INTERPOLATION = true;
+    
+    @Parameter(key = "record_interval", group = "Output", description = "Time interval in seconds for recording statistics")
+	public static long RECORD_INTERVAL = 3;
 
     public enum OutputGranularity {
 		MERGED, TESTCASE

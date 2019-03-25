@@ -24,7 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.CoverageProgressGetter;
 import org.evosuite.Properties;
+import org.evosuite.StatisticChecker;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.archive.ArchiveTestChromosomeFactory;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
@@ -60,6 +62,29 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 
 	private static final Logger logger = LoggerFactory.getLogger(RandomTestStrategy.class);
 	
+	class RandomCoverageProgressGetter implements CoverageProgressGetter{
+
+		private TestSuiteChromosome suite;
+		
+		public RandomCoverageProgressGetter(TestSuiteChromosome suite) {
+			super();
+			this.setSuite(suite);
+		}
+
+		@Override
+		public double getCoverage() {
+			return getSuite().getCoverage();
+		}
+
+		public TestSuiteChromosome getSuite() {
+			return suite;
+		}
+
+		public void setSuite(TestSuiteChromosome suite) {
+			this.suite = suite;
+		}
+	}
+	
 	@Override
 	public TestSuiteChromosome generateTests() {
 		LoggingUtils.getEvoLogger().info("* Using random test generation");
@@ -94,11 +119,11 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		ClientServices.getInstance().getClientNode().changeState(ClientState.SEARCH);
 		
 		//setting information gathering
-		int interval = 5000;
-		ArrayList<Double> progress = new ArrayList<Double>();
-		progress.add(suite.getCoverage());
-		long begintime = System.currentTimeMillis();
-		long endtime = System.currentTimeMillis();
+//		ArrayList<Double> progress = new ArrayList<Double>();
+		RandomCoverageProgressGetter rcpGeter = new RandomCoverageProgressGetter(suite);
+		StatisticChecker timer = new StatisticChecker(suite.getProgressInfomation(), rcpGeter);
+		Thread timerThread = new Thread(timer);
+		timerThread.start();
 
 		Map<Integer, Integer> distributionMap = new HashMap<>();
 		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
@@ -124,19 +149,13 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 			}
 			if (clone.compareTo(suite) < 0) {
 				suite = clone;
+				rcpGeter.setSuite(suite);
 				StatisticsSender.executedAndThenSendIndividualToMaster(clone);				
 			}
 			StatisticsSender.executedAndThenSendIndividualToMaster(clone);
-			endtime = System.currentTimeMillis();
-			if(endtime - begintime >= interval) {
-				progress.add(suite.getCoverage());
-				begintime = endtime;
-			}
-			
 			updateDistribution(distributionMap, clone);
 			
 		}
-		progress.add(suite.getCoverage());
 		//statistics.searchFinished(suiteGA);
 		LoggingUtils.getEvoLogger().info("* Search Budget:");
 		LoggingUtils.getEvoLogger().info("\t- " + stoppingCondition.toString());
@@ -155,7 +174,6 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 			distribution[count++] = distributionMap.get(key);
 		}
 		suite.setDistribution(distribution);
-		suite.setProgressInfomation(progress);
 		return suite;	
 	}
 	

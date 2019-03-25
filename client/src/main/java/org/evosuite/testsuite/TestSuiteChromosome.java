@@ -176,7 +176,9 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	 */
 	@Override
 	public TestSuiteChromosome clone() {
-		return new TestSuiteChromosome(this);
+		TestSuiteChromosome t = new TestSuiteChromosome(this);
+		t.setProgressInfomation(this.progressInfomation);
+		return t;
 	}
 
 	/* (non-Javadoc)
