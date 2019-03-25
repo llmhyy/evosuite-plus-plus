@@ -124,9 +124,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			// apply crossover 
 //			try {
 //				if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE) {
-//					if(!ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
-//						crossoverFunction.crossOver(offspring1, offspring2);						
-//					}
+//					crossoverFunction.crossOver(offspring1, offspring2);	
 //				} 
 //			} catch (ConstructionFailedException e) {
 //				logger.debug("CrossOver failed.");

@@ -39,17 +39,33 @@ public class MOSADominateGoalSelection<T extends Chromosome> extends SelectionFu
 
 		FitnessFunction<T> randomFitness = selectRandomFitness(this.dominateUncoveredGoals);
 		
-		while (round < Properties.TOURNAMENT_SIZE - 1) {
-			new_num = Randomness.nextInt(population.size());
-			if (new_num == winner)
-				new_num = (new_num+1) % population.size();
-			T selected = population.get(new_num);
-			int flag = compare(selected, population.get(winner), randomFitness);
-			if (flag==-1) {
-				winner = new_num;
-			} 
-			round++;
+		int random = Randomness.nextInt(3);
+		if(random == 0) {//return an individual randomly
+			return new_num;
 		}
+		else{
+			while (round < Properties.TOURNAMENT_SIZE - 1) {
+				new_num = Randomness.nextInt(population.size());
+				if (new_num == winner)
+					new_num = (new_num+1) % population.size();
+				T selected = population.get(new_num);
+				
+				int flag = 0;
+				if(random == 1) {
+					flag = compareWorse(selected, population.get(winner), randomFitness);
+				}
+				else {
+					flag = compareBetter(selected, population.get(winner), randomFitness);					
+				}
+				
+				if (flag==-1) {
+					winner = new_num;
+				} 
+				round++;
+			}
+			
+		}
+		
 
 		return winner;
 	}
@@ -67,7 +83,7 @@ public class MOSADominateGoalSelection<T extends Chromosome> extends SelectionFu
 		return null;
 	}
 
-	private int compare(T selected, T t, FitnessFunction<T> randomFitness) {
+	private int compareBetter(T selected, T t, FitnessFunction<T> randomFitness) {
 		double d1 = randomFitness.getFitness(selected);
 		double d2 = randomFitness.getFitness(t);
 		
@@ -76,6 +92,19 @@ public class MOSADominateGoalSelection<T extends Chromosome> extends SelectionFu
 		}
 		else if(d1 > d2) {
 			return 1;
+		}
+		return 0;
+	}
+	
+	private int compareWorse(T selected, T t, FitnessFunction<T> randomFitness) {
+		double d1 = randomFitness.getFitness(selected);
+		double d2 = randomFitness.getFitness(t);
+		
+		if(d1 < d2) {
+			return 1;
+		}
+		else if(d1 > d2) {
+			return -1;
 		}
 		return 0;
 	}

@@ -316,29 +316,46 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	private List<T> getReservedIndividual(List<T> population, Set<FitnessFunction<T>> uncoveredGoals) {
 		List<T> reservedIndividuals = new ArrayList<>();
 		for(FitnessFunction<T> uncoveredGoal: uncoveredGoals) {
-			double value = -1;
-			T reservedIndividual = null;
+			double[] values = new double[] {-1, -1};
+			List<T> tmpReservedIndividuals = new ArrayList<>();
 			for(int i=0; i<population.size(); i++) {
 				T individual = population.get(i);
 				if(reservedIndividuals.contains(individual)) {
 					continue;
 				}
 				
-				if(reservedIndividual == null) {
-					reservedIndividual = individual;
-					value = uncoveredGoal.getFitness(individual);
+				double value = uncoveredGoal.getFitness(individual);
+				if(tmpReservedIndividuals.isEmpty()) {
+					tmpReservedIndividuals.add(individual);
+					values[0] = value;
+				}
+				else if(tmpReservedIndividuals.size() == 1) {
+					if(value > values[0]) {
+						values[1] = value;
+						tmpReservedIndividuals.add(1, individual);
+					}
+					else if(value < values[0]) {
+						values[1] = values[0];
+						tmpReservedIndividuals.add(1, tmpReservedIndividuals.get(0));
+						values[0] = value;
+						tmpReservedIndividuals.set(0, individual);
+					}
 				}
 				else {
-					double individualValue = uncoveredGoal.getFitness(individual);
-					if(individualValue < value) {
-						reservedIndividual = individual;
-						value = uncoveredGoal.getFitness(individual);
+					if(value < values[0]) {
+						values[1] = values[0];
+						tmpReservedIndividuals.set(1, tmpReservedIndividuals.get(0));
+						values[0] = value;
+						tmpReservedIndividuals.set(0, individual);
+					}
+					else if(value > values[0] && value < values[1]) {
+						values[1] = value;
+						tmpReservedIndividuals.set(1, individual);
 					}
 				}
 			}
 			
-			reservedIndividuals.add(reservedIndividual);			
-			uncoveredGoal.getFitness(reservedIndividual);
+			reservedIndividuals.addAll(tmpReservedIndividuals);			
 		}
 		
 		return reservedIndividuals;

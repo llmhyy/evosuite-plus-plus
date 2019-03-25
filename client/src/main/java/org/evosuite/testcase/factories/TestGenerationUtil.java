@@ -104,6 +104,8 @@ public class TestGenerationUtil {
 	}
 
 	public static void filterTargetMethod(TestCase test, List<GenericAccessibleObject<?>> candidateTestMethods) {
+//		return;
+		
 		if(!Properties.TARGET_METHOD.isEmpty()) {
 			Set<GenericMethod> calledMethods = getCalledMethods(test);
 			
