@@ -21,6 +21,7 @@ package org.evosuite.result;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.ga.FitnessFunction;
@@ -115,4 +116,7 @@ public interface TestGenerationResult extends Serializable {
 	
 	public void setUncoveredIPFlags(String uncoveredIPFlags);
 	public String getUncoveredIPFlags();
+	
+	public Map<Integer, Double> getUncoveredBranchDistribution();
+	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution);
 }

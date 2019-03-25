@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
@@ -113,6 +114,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	private double availabilityRatio;
 	private List<String> availableCalls = new ArrayList<>();
 	private List<String> unavailableCalls = new ArrayList<>();
+	private Map<Integer, Double> uncoveredBranchDistribution;
 
 	/**
 	 * Constructor
@@ -1183,6 +1185,14 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 
 	public void setUnavailableCalls(List<String> unavailableCalls) {
 		this.unavailableCalls = unavailableCalls;
+	}
+
+	public Map<Integer, Double> getUncoveredBranchDistribution() {
+		return uncoveredBranchDistribution;
+	}
+
+	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution) {
+		this.uncoveredBranchDistribution = uncoveredBranchDistribution;
 	}
 
 	/*

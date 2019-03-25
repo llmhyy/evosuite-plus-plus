@@ -41,6 +41,7 @@ import org.evosuite.ga.FitnessReplacementFunction;
 import org.evosuite.ga.ReplacementFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
+import org.evosuite.utils.DistributionUtil;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	protected ReplacementFunction replacementFunction;
 
 	private final Logger logger = LoggerFactory.getLogger(MonotonicGA.class);
-
+	
 	/**
 	 * Constructor
 	 * 
@@ -399,6 +400,10 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			distribution[count++] = distributionMap.get(key);
 		}
 		this.setDistribution(distribution);
+		
+		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap, branchGoals);
+		this.setUncoveredBranchDistribution(uncoveredBranchDistribution);
+		
 		// this.setCallUninstrumentedMethod(true);
 
 		// for (Integer branchID : distributionMap.keySet()) {

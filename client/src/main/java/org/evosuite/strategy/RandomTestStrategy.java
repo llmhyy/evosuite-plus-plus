@@ -30,6 +30,7 @@ import org.evosuite.StatisticChecker;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.archive.ArchiveTestChromosomeFactory;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.rmi.service.ClientState;
@@ -47,6 +48,7 @@ import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
+import org.evosuite.utils.DistributionUtil;
 import org.evosuite.utils.LoggingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,6 +178,10 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 			distribution[count++] = distributionMap.get(key);
 		}
 		suite.setDistribution(distribution);
+		
+		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap, branchGoals);
+		suite.setUncoveredBranchDistribution(uncoveredBranchDistribution);
+		
 		return suite;
 	}
 

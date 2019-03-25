@@ -97,6 +97,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	
 	private String uncoveredIPFlags;
 	
+	private Map<Integer, Double> uncoveredBranchDistribution;
+	
 	/** Did test generation succeed? */
 	public Status getTestGenerationStatus() {
 		return status;
@@ -391,6 +393,14 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	@Override
 	public String getUncoveredIPFlags() {
 		return this.uncoveredIPFlags;
+	}
+
+	public Map<Integer, Double> getUncoveredBranchDistribution() {
+		return uncoveredBranchDistribution;
+	}
+
+	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution) {
+		this.uncoveredBranchDistribution = uncoveredBranchDistribution;
 	}
 
 }

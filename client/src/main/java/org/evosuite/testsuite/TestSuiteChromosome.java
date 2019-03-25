@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
@@ -57,6 +58,8 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 
 	private double IPFlagCoverage;
 	private String uncoveredIPFlags;
+	
+	private Map<Integer, Double> uncoveredBranchDistribution;
 	
 	/**
 	 * Add an additional secondary objective to the end of the list of
@@ -387,5 +390,13 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 
 	public String getUncoveredIPFlags() {
 		return this.uncoveredIPFlags;
+	}
+
+	public Map<Integer, Double> getUncoveredBranchDistribution() {
+		return uncoveredBranchDistribution;
+	}
+
+	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution) {
+		this.uncoveredBranchDistribution = uncoveredBranchDistribution;
 	}
 }
