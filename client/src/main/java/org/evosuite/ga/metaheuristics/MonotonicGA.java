@@ -90,10 +90,13 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		return replacementFunction.keepOffspring(parent1, parent2, offspring1, offspring2);
 	}
 
+	private List<T> newGeneratedIndividuals = new ArrayList<>();
+	
 	/** {@inheritDoc} */
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void evolve() {
+		newGeneratedIndividuals.clear();
 		List<T> newGeneration = new ArrayList<T>();
 
 		// Elitism
@@ -142,6 +145,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			if (offspring2.isChanged()) {
 				offspring2.updateAge(currentIteration);
 			}
+			
+			newGeneratedIndividuals.add(offspring1);
+			newGeneratedIndividuals.add(offspring2);
 
 			// The two offspring replace the parents if and only if one of
 			// the offspring is not worse than the best parent.
@@ -255,9 +261,6 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			bestFitness = 0.0;
 			lastBestFitness = 0.0;
 		}
-		int interval = 5000;
-		// ArrayList<Double> progress = new ArrayList<Double>();
-		// ArrayList<Double> fList = new ArrayList<Double>();
 
 		RuntimeRecord.methodCallAvailabilityMap.clear();
 
@@ -282,7 +285,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			distributionMap.put(key, 0);
 		}
 
-		updateDistribution(distributionMap);
+		updateDistribution(distributionMap, true);
 		while (!isFinished()) {
 
 			logger.info("Population size before: " + population.size());
@@ -368,7 +371,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			}
 
 			updateSecondaryCriterion(starvationCounter);
-			updateDistribution(distributionMap);
+			updateDistribution(distributionMap, false);
 
 			// printUncoveredBranches(distributionMap, branchGoals);
 			// printUncoveredBranches(getBestIndividual(), branchGoals);
@@ -508,12 +511,13 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 	}
 
-	private void updateDistribution(Map<Integer, Integer> distributionMap) {
+	private void updateDistribution(Map<Integer, Integer> distributionMap, boolean firstTime) {
 		if (distributionMap.keySet().size() == 0) {
 			return;
 		}
 
-		for (T individual : this.population) {
+		List<T> individuals = firstTime ? this.population : this.newGeneratedIndividuals;
+		for (T individual : individuals) {
 			TestSuiteChromosome testSuite = (TestSuiteChromosome) individual;
 			for (ExecutionResult result : testSuite.getLastExecutionResults()) {
 				if (result != null) {

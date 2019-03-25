@@ -48,7 +48,7 @@ public class TestSingleMethod {
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		String fitnessApproach = "fbranch";
 		int repeatTime = 1;
-		int budget = 1000000;
+		int budget = 30;
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 //		fitnessApproach = "branch";
