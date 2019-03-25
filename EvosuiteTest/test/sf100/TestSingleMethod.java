@@ -59,6 +59,7 @@ public class TestSingleMethod {
 			System.out.println(lu.getCoverage());
 			System.out.println(lu.getProgress());
 			System.out.println(lu.getAge());
+			System.out.println(lu.getDistribution());
 		}
 		
 		System.out.println("branch" + ":");
@@ -66,6 +67,7 @@ public class TestSingleMethod {
 			System.out.println(lu.getCoverage());
 			System.out.println(lu.getProgress());
 			System.out.println(lu.getAge());
+			System.out.println(lu.getDistribution());
 		}
 	}
 	

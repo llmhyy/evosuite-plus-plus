@@ -330,7 +330,7 @@ public class EvosuiteForMethod {
 					
 					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), 
 							r.getAge(), r.getAvailabilityRatio(), r.getProgressInformation(),
-							r.getIPFlagCoverage(), r.getUncoveredIPFlags());
+							r.getIPFlagCoverage(), r.getUncoveredIPFlags(), r.getDistribution());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
 					recorder.record(className, methodName, result);

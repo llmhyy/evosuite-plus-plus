@@ -284,7 +284,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			}
 			distributionMap.put(key, 0);
 		}
-
+		
 		updateDistribution(distributionMap, true);
 		while (!isFinished()) {
 

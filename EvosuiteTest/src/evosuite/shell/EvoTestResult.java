@@ -11,13 +11,14 @@ public class EvoTestResult {
 	private List<Double> progress;
 	private List<String> availableCalls = new ArrayList<>();
 	private List<String> unavailableCalls = new ArrayList<>();
+	private int[] distribution;
 	
 	private double IPFlagCoverage;
 	private String uncoveredFlags;
 
 	public EvoTestResult(int time, double coverage, int age, 
 			double ratio, List<Double> progress, 
-			double IPFlagCoverage, String uncoveredFlag) {
+			double IPFlagCoverage, String uncoveredFlag, int[] distribution) {
 		super();
 		this.time = time;
 		this.coverage = coverage;
@@ -26,6 +27,7 @@ public class EvoTestResult {
 		this.progress = progress;
 		this.IPFlagCoverage = IPFlagCoverage;
 		this.uncoveredFlags = uncoveredFlag;
+		this.setDistribution(distribution);
 	}
 
 	public int getTime() {
@@ -98,6 +100,14 @@ public class EvoTestResult {
 
 	public void setUncoveredFlags(String uncoveredFlags) {
 		this.uncoveredFlags = uncoveredFlags;
+	}
+
+	public int[] getDistribution() {
+		return distribution;
+	}
+
+	public void setDistribution(int[] distribution) {
+		this.distribution = distribution;
 	}
 
 }
