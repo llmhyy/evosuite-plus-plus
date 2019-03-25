@@ -32,7 +32,7 @@ public class AbstractETest {
 				"-class", targetClass, 
 				"-projectCP", cp, //;lib/commons-math-2.2.jar
 //				"-setup", "bin", "lib/commons-math-2.2.jar",
-//				"-Dtarget_method", targetMethod, 
+				"-Dtarget_method", targetMethod, 
 				"-Dsearch_budget", String.valueOf(seconds),
 				"-Dcriterion", fitnessAppraoch,
 				"-Dinstrument_context", String.valueOf(instrumentContext), 

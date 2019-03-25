@@ -26,6 +26,10 @@ public class StatisticChecker implements Runnable{
 				Thread.sleep(Properties.RECORD_INTERVAL*1000);
 				double currentCoverage = coverageGetter.getCoverage();
 				progressInformation.add(currentCoverage);
+				
+				if(currentCoverage == 1) {
+					break;
+				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

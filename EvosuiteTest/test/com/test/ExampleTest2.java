@@ -14,8 +14,8 @@ public class ExampleTest2 extends AbstractETest{
 	@Test
 	public void test() {
 		Class<?> clazz = Example.class;
-		String methodName = "test2";
-		int parameterNum = 3;
+		String methodName = "test";
+		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = getTragetMethod(methodName, clazz, parameterNum);
@@ -34,7 +34,7 @@ public class ExampleTest2 extends AbstractETest{
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 10;
+		int timeBudget = 100;
 		ExampleTest2 t = new ExampleTest2();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
