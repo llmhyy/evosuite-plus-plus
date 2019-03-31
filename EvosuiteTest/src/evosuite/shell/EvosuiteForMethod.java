@@ -95,11 +95,12 @@ public class EvosuiteForMethod {
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
 						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
 			} else {
-				FitnessEffectiveRecorder recorder;
+				DistributionRecorder recorder;
 				if (Settings.getIteration() > 1) {
-					recorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
+					recorder = new DistributionRecorder();
+			//	AggregationRecorder recorder = new AggregationRecorder();
 				} else {
-					recorder = new FitnessEffectiveRecorder();
+					recorder = new DistributionRecorder();
 				}
 				String existingReport = recorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;
@@ -206,7 +207,7 @@ public class EvosuiteForMethod {
 		evoTestClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 	}
 
-	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName, FitnessEffectiveRecorder recorder) {
+	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName, DistributionRecorder recorder) {
 		List<EvoTestResult> results = new ArrayList<>();
 		for (String className : targetClasses) {
 			try {
@@ -256,7 +257,7 @@ public class EvosuiteForMethod {
 	}
 	
 	public List<EvoTestResult> runAllClasses(String[] targetClasses, String[] args, String projectName,
-			FitnessEffectiveRecorder recorder) {
+			DistributionRecorder recorder) {
 		List<EvoTestResult> results = new ArrayList<>();
 		for (String className : targetClasses) {
 			try {
@@ -333,7 +334,7 @@ public class EvosuiteForMethod {
 							r.getIPFlagCoverage(), r.getUncoveredIPFlags(), r.getDistribution());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
-					recorder.record(className, methodName, result);
+					recorder.record(className, methodName, r);
 				}
 			}
 		} catch (Exception e) {
