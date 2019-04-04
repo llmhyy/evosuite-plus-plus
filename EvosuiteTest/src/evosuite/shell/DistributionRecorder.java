@@ -19,22 +19,24 @@ import evosuite.shell.utils.LoggerUtils;
 public class DistributionRecorder extends ExperimentRecorder {
 	private Logger log = LoggerUtils.getLogger(DistributionRecorder.class);
 	private ExcelWriter distributionExcelWriter;
-	private ExcelWriter progressExcelWriter;
-	private ExcelWriter unCovereddistribuitonExcelWriter;
-	private ExcelWriter coverageExcelWriter;
-	private ExcelWriter timeExcelWriter;
-	private boolean firstit;
+	public ArrayList<Double> distances = new ArrayList<Double>();
+	public List<TestGenerationResult> allresults = new ArrayList<TestGenerationResult>();
+
 	
 	public DistributionRecorder() {
 		super();
 		distributionExcelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), projectId + "_distribution.xlsx"));
-		distributionExcelWriter.getSheet("distribution", new String[] {"Class", "Method", "distribution"}, 0);
-		distributionExcelWriter.getSheet("unCovereddistribution", new String[] {"Class", "Method", "average", "map"}, 0);
-		distributionExcelWriter.getSheet("time", new String[] {"Class", "Method", "time"}, 0);
-		distributionExcelWriter.getSheet("coverage", new String[] {"Class", "Method", "coverage"}, 0);
-		progressExcelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), projectId + "_progress.xlsx"));
-		progressExcelWriter.getSheet("data", new String[] {"Class", "Method", ""}, 0);
+		distributionExcelWriter.getSheet("distribution", new String[] {"Class", "Method", "distribution","averagedistance","map","time","coverage"}, 0);
+		distributionExcelWriter.getSheet("progress", new String[] {"Class", "Method", ""}, 0);
 
+
+
+	}
+	public DistributionRecorder(String strategy) {
+		super();
+		distributionExcelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), projectId + "_" + strategy + "_distribution.xlsx" ));
+		distributionExcelWriter.getSheet("distribution", new String[] {"Class", "Method", "distribution","averagedistance","map","time","coverage"}, 0);
+		distributionExcelWriter.getSheet("progress", new String[] {"Class", "Method", ""}, 0);
 
 	}
 	
@@ -64,9 +66,6 @@ public class DistributionRecorder extends ExperimentRecorder {
 		String distrstr = Arrays.toString(r.getDistribution());
 		distributionRowData.add(distrstr);
 		
-		List<Object> unCovereddistributionRowData = new ArrayList<>();
-		unCovereddistributionRowData.add(className);
-		unCovereddistributionRowData.add(methodName);
 		double avedistribution = 0;
 		String undistribution = "";
 		Map <Integer, Double> map = r.getUncoveredBranchDistribution();
@@ -85,39 +84,28 @@ public class DistributionRecorder extends ExperimentRecorder {
 		else{
 			avedistribution = avedistribution / num;
 		}
-		unCovereddistributionRowData.add(avedistribution);
-		unCovereddistributionRowData.add(undistribution);
+		distances.add(avedistribution);
+		distributionRowData.add(avedistribution);
+		distributionRowData.add(undistribution);
+		distributionRowData.add(r.getElapseTime());
+		distributionRowData.add(r.getCoverage());
 		
-		List<Object> timeRowData = new ArrayList<>();
-		timeRowData.add(className);
-		timeRowData.add(methodName);
-		timeRowData.add(r.getElapseTime());
-		
-		List<Object> coverageRowData = new ArrayList<>();
-		coverageRowData.add(className);
-		coverageRowData.add(methodName);
-		coverageRowData.add(r.getCoverage());
-		
-		record(progressRowData, distributionRowData,unCovereddistributionRowData,timeRowData,coverageRowData);
+		record(progressRowData, distributionRowData);
 		logSuccessfulMethods(className, methodName);
 	}
 	
-	public void record(List<Object> progressRowData, List<Object> distributionRowData, List<Object> unCovereddistributionRowData, List<Object> timeRowData, List<Object> coverageRowData) {
+	public void record(List<Object> progressRowData, List<Object> distributionRowData) {
 		try {
-			System.out.println(timeRowData);
-			progressExcelWriter.writeSheet("data", Arrays.asList(progressRowData));
-			distributionExcelWriter.writeSheet("distribution", Arrays.asList(distributionRowData));
-			distributionExcelWriter.writeSheet("unCovereddistribution", Arrays.asList(unCovereddistributionRowData));
-			distributionExcelWriter.writeSheet("time", Arrays.asList(timeRowData));
-			distributionExcelWriter.writeSheet("coverage", Arrays.asList(coverageRowData));
-			
+			//System.out.println(timeRowData);
+			distributionExcelWriter.writeSheet("progress", Arrays.asList(progressRowData));
+			distributionExcelWriter.writeSheet("distribution", Arrays.asList(distributionRowData));			
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	public String getFinalReportFilePath() {
-		return progressExcelWriter.getFile().getAbsolutePath();
+		return distributionExcelWriter.getFile().getAbsolutePath();
 	}
 	
 

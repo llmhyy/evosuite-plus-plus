@@ -84,6 +84,7 @@ public class EvosuiteForMethod {
 
 	public static List<EvoTestResult> execute(String[] args) {
 		List<EvoTestResult> results = new ArrayList<>();
+		String strategy;
 		try {
 			setup();
 			log.error("enter EvosuiteForMethod!");
@@ -95,12 +96,23 @@ public class EvosuiteForMethod {
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
 						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
 			} else {
+				strategy = args.toString();
+				if(strategy.indexOf("MOS")>=0) {
+					strategy = "MOSA";
+				}
+				else {
+					if(strategy.indexOf("Random")>=0) {
+						strategy = "Random";
+					}
+					else {
+						strategy = "Evosuite";
+					}
+				}
 				DistributionRecorder recorder;
 				if (Settings.getIteration() > 1) {
-					recorder = new DistributionRecorder();
-			//	AggregationRecorder recorder = new AggregationRecorder();
+					recorder = new IterDistributionRecorder(strategy);
 				} else {
-					recorder = new DistributionRecorder();
+					recorder = new DistributionRecorder(strategy);
 				}
 				String existingReport = recorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;
@@ -217,6 +229,8 @@ public class EvosuiteForMethod {
 					continue;
 				}
 				for (Method method : targetClass.getDeclaredMethods()) {
+					recorder.distances = new ArrayList<Double>();
+					recorder.allresults = new ArrayList<TestGenerationResult>();
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
 					if (!filter.isValidElementId(projectName, CommonUtility.getMethodId(className, methodName))) {
 						continue;
@@ -340,6 +354,7 @@ public class EvosuiteForMethod {
 		} catch (Exception e) {
 			recorder.recordError(className, methodName, e);
 		}
+		
 		
 		return result;
 	}
