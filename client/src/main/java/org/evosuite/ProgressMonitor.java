@@ -101,7 +101,7 @@ public class ProgressMonitor implements SearchListener, Serializable {
 	@Override
 	public void iteration(GeneticAlgorithm<?> algorithm) {
 		long current = stoppingCondition.getCurrentValue();
-		currentCoverage = (int) Math.floor(((TestSuiteChromosome) algorithm.getBestIndividual()).getCoverage() * 100);
+		currentCoverage = (int) Math.floor((algorithm.getBestIndividual()).getCoverage() * 100);
 		updateStatus((int) (100 * current / max));
 		iteration++;
 	}
