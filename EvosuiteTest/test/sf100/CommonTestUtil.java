@@ -21,12 +21,15 @@ public class CommonTestUtil {
 
 //		boolean instrumentContext = true;
 		String[] args = new String[] {
+				"-generateTests",
+				"-Dstrategy", "ONEBRANCH",
+//				"-generateSuiteUsingDSE",
 //				"-generateMOSuite",
 //				"-Dstrategy", "MOSUITE",
 //				"-Dalgorithm", "MOSA",
 //				"-generateRandom",
 //				"-Dstrategy", "random",
-				"-generateSuite",
+//				"-generateSuite",
 				"-criterion", fitnessAppraoch,
 				"-target", FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, projectName + ".jar"),
 				"-inclusiveFile", file.getAbsolutePath(),
