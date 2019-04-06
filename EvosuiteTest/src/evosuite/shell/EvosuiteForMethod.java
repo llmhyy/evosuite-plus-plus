@@ -84,7 +84,7 @@ public class EvosuiteForMethod {
 
 	public static List<EvoTestResult> execute(String[] args) {
 		List<EvoTestResult> results = new ArrayList<>();
-		String strategy;
+		StringBuffer strategy = new StringBuffer();
 		try {
 			setup();
 			log.error("enter EvosuiteForMethod!");
@@ -96,23 +96,26 @@ public class EvosuiteForMethod {
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
 						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
 			} else {
-				strategy = args.toString();
-				if(strategy.indexOf("MOS")>=0) {
-					strategy = "MOSA";
+				for(int i = 0;i<args.length;i++) {
+					strategy.append(args[i]);
+				}
+				String strastr = strategy.toString();
+				if(strastr.indexOf("MOS")>=0) {
+					strastr = "MOSA";
 				}
 				else {
-					if(strategy.indexOf("Random")>=0) {
-						strategy = "Random";
+					if(strastr.indexOf("Random")>=0) {
+						strastr = "Random";
 					}
 					else {
-						strategy = "Evosuite";
+						strastr = "Evosuite";
 					}
 				}
 				DistributionRecorder recorder;
 				if (Settings.getIteration() > 1) {
-					recorder = new IterDistributionRecorder(strategy);
+					recorder = new IterDistributionRecorder(strastr);
 				} else {
-					recorder = new DistributionRecorder(strategy);
+					recorder = new DistributionRecorder(strastr);
 				}
 				String existingReport = recorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;
