@@ -34,13 +34,13 @@ public class TestSingleMethod {
 		String projectId = "102_colt";
 		String projectName = "colt";
 		String[] targetMethods = new String[]{
-//				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
+				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
 //				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
 //				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
 //				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
 //				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
 //				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
-				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
+//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -48,7 +48,7 @@ public class TestSingleMethod {
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		String fitnessApproach = "fbranch";
 		int repeatTime = 1;
-		int budget = 30;
+		int budget = 100;
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 //		fitnessApproach = "branch";
@@ -84,8 +84,8 @@ public class TestSingleMethod {
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		String fitnessApproach = "fbranch";
-		int repeatTime = 3;
-		int budget = 100000;
+		int repeatTime = 1;
+		int budget = 2000000;
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		fitnessApproach = "branch";

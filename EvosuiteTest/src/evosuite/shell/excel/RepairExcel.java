@@ -16,8 +16,8 @@ public class RepairExcel {
 	
 	@Test
 	public void repair() throws IOException {
-		String file = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports/35_corina_evotest.xlsx";
-		String newFile = SFConfiguration.sfBenchmarkFolder + "/evoTest-reports/35_corina_evotest_repair.xlsx";
+		String file = SFConfiguration.sfBenchmarkFolder + "/report-branch/1_tullibee_evotest.xlsx";
+		String newFile = SFConfiguration.sfBenchmarkFolder + "/report-branch/1_tullibee_evotest_repair.xlsx";
 		repair(file, newFile);
 	}
 
