@@ -87,8 +87,8 @@ public class EvosuiteForMethod {
 		List<EvoTestResult> results = new ArrayList<>();
 		StringBuffer strategy = new StringBuffer();
 		try {
-			String workingDir = SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee";
-			System.setProperty("user.dir", workingDir);
+			//String workingDir = SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee";
+			//System.setProperty("user.dir", workingDir);
 			setup();
 			log.error("enter EvosuiteForMethod!");
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
@@ -366,7 +366,7 @@ public class EvosuiteForMethod {
 					
 					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), 
 							r.getAge(), r.getAvailabilityRatio(), r.getProgressInformation(),
-							r.getIPFlagCoverage(), r.getUncoveredIPFlags(), r.getDistribution());
+							r.getIPFlagCoverage(), r.getUncoveredIPFlags(), r.getDistribution(),r.getUncoveredBranchDistribution());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
 					

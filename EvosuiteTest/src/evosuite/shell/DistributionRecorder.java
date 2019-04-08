@@ -20,7 +20,7 @@ public class DistributionRecorder extends ExperimentRecorder {
 	private Logger log = LoggerUtils.getLogger(DistributionRecorder.class);
 	private ExcelWriter distributionExcelWriter;
 	public ArrayList<Double> distances = new ArrayList<Double>();
-	public List<TestGenerationResult> allresults = new ArrayList<TestGenerationResult>();
+	public List<EvoTestResult> allresults = new ArrayList<EvoTestResult>();
 
 	
 	public DistributionRecorder() {
@@ -40,35 +40,34 @@ public class DistributionRecorder extends ExperimentRecorder {
 
 	}
 	
+
+	
 	@Override
 	public void record(String className, String methodName, EvoTestResult result) {
-		super.record(className, methodName, result);
-	}
-	
-	
-	@Override
-	public void record(String className, String methodName, TestGenerationResult r) {
-		if (r.getDistribution() == null || r.getDistribution().length == 0) {
+		if (result == null) {
 			return;
 		}
-		log.info("" +r.getProgressInformation());
-		for(int i=0; i<r.getDistribution().length; i++){
-			log.info("" +r.getDistribution()[i]);					
+		log.info("" +result.getProgress());
+		for(int i=0; i<result.getDistribution().length; i++){
+			log.info("" +result.getDistribution()[i]);					
 		}	
 		List<Object> progressRowData = new ArrayList<>();
 		progressRowData.add(className);
 		progressRowData.add(methodName);
-		progressRowData.addAll(r.getProgressInformation());
+		progressRowData.addAll(result.getProgress());
 		
 		List<Object> distributionRowData = new ArrayList<>();
 		distributionRowData.add(className);
 		distributionRowData.add(methodName);
-		String distrstr = Arrays.toString(r.getDistribution());
+		String distrstr = Arrays.toString(result.getDistribution());
+		if (distrstr == null){
+			distrstr = "";
+			}
 		distributionRowData.add(distrstr);
 		
 		double avedistribution = 0;
 		String undistribution = "";
-		Map <Integer, Double> map = r.getUncoveredBranchDistribution();
+		Map <Integer, Double> map = result.getUncoveredBranchDistribution();
 		int num = map.entrySet().size();
 		if(!map.isEmpty()) {
 					for (Integer branch : map.keySet()) {
@@ -87,8 +86,8 @@ public class DistributionRecorder extends ExperimentRecorder {
 		distances.add(avedistribution);
 		distributionRowData.add(avedistribution);
 		distributionRowData.add(undistribution);
-		distributionRowData.add(r.getElapseTime());
-		distributionRowData.add(r.getCoverage());
+		distributionRowData.add(result.getTime());
+		distributionRowData.add(result.getCoverage());
 		
 		record(progressRowData, distributionRowData);
 		logSuccessfulMethods(className, methodName);

@@ -90,7 +90,7 @@ public class AbstractETest {
 				
 				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, 
 						r.getAvailabilityRatio(), r.getProgressInformation(),
-						r.getIPFlagCoverage(), r.getUncoveredIPFlags(), r.getDistribution());
+						r.getIPFlagCoverage(), r.getUncoveredIPFlags(), r.getDistribution(),r.getUncoveredBranchDistribution());
 			}
 		}
 

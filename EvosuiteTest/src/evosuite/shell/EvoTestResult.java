@@ -2,6 +2,7 @@ package evosuite.shell;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EvoTestResult {
 	private int time;
@@ -12,13 +13,14 @@ public class EvoTestResult {
 	private List<String> availableCalls = new ArrayList<>();
 	private List<String> unavailableCalls = new ArrayList<>();
 	private int[] distribution;
+	private Map<Integer, Double> unCoveredBranchDistribution;
 	
 	private double IPFlagCoverage;
 	private String uncoveredFlags;
 
 	public EvoTestResult(int time, double coverage, int age, 
 			double ratio, List<Double> progress, 
-			double IPFlagCoverage, String uncoveredFlag, int[] distribution) {
+			double IPFlagCoverage, String uncoveredFlag, int[] distribution,  Map<Integer, Double> unCoveredBranchDistribution) {
 		super();
 		this.time = time;
 		this.coverage = coverage;
@@ -28,6 +30,7 @@ public class EvoTestResult {
 		this.IPFlagCoverage = IPFlagCoverage;
 		this.uncoveredFlags = uncoveredFlag;
 		this.setDistribution(distribution);
+		this.setUncoveredBranchDistribution(unCoveredBranchDistribution);
 	}
 
 	public int getTime() {
@@ -108,6 +111,14 @@ public class EvoTestResult {
 
 	public void setDistribution(int[] distribution) {
 		this.distribution = distribution;
+	}
+	
+	public Map<Integer, Double> getUncoveredBranchDistribution(){
+		return unCoveredBranchDistribution;
+	}
+	
+	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution) {
+		this.unCoveredBranchDistribution = uncoveredBranchDistribution;
 	}
 
 }

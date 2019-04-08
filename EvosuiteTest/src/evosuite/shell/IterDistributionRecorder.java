@@ -27,7 +27,7 @@ public class IterDistributionRecorder extends DistributionRecorder {
 				FileUtils.newFile(Settings.getReportFolder(), projectId + "_distribution_stat.xlsx"));
 		iterdistributionExcelWriter.getSheet("data",
 				new String[] { "Class", "Method", "averagedistance", "time", "coverage" }, 0);
-		allresults = new ArrayList<TestGenerationResult>();
+		allresults = new ArrayList<EvoTestResult>();
 
 	}
 
@@ -37,14 +37,14 @@ public class IterDistributionRecorder extends DistributionRecorder {
 				FileUtils.newFile(Settings.getReportFolder(), projectId + "_" + strategy + "_distribution_stat.xlsx"));
 		iterdistributionExcelWriter.getSheet("data",
 				new String[] { "Class", "Method", "averagedistance", "time", "coverage" }, 0);
-		allresults = new ArrayList<TestGenerationResult>();
+		allresults = new ArrayList<EvoTestResult>();
 
 	}
 
 	@Override
-	public void record(String className, String methodName, TestGenerationResult r) {
-		super.record(className, methodName, r);
-		allresults.add(r);
+	public void record(String className, String methodName, EvoTestResult result) {
+		super.record(className, methodName, result);
+		allresults.add(result);
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class IterDistributionRecorder extends DistributionRecorder {
 			}
 			if (allresults.size() >= 1) {
 				for (int i = 1; i <= allresults.size(); i++) {
-					avetime = avetime + allresults.get(i - 1).getElapseTime();
+					avetime = avetime + allresults.get(i - 1).getTime();
 					avecoverage = avecoverage + allresults.get(i - 1).getCoverage();
 				}
 				avetime = avetime / (allresults.size());
@@ -85,7 +85,7 @@ public class IterDistributionRecorder extends DistributionRecorder {
 		}
 		
 		this.distances = new ArrayList<Double>();
-		this.allresults = new ArrayList<TestGenerationResult>();
+		this.allresults = new ArrayList<EvoTestResult>();
 
 	}
 
