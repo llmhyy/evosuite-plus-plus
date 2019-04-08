@@ -49,9 +49,6 @@ public class IterDistributionRecorder extends DistributionRecorder {
 
 	@Override
 	public void recordEndIterations(String methodName, String className) {
-		this.distances = new ArrayList<Double>();
-		this.allresults = new ArrayList<TestGenerationResult>();
-		
 		try {
 			List<Object> iterationRowData = new ArrayList<>();
 			iterationRowData.add(className);
@@ -86,6 +83,9 @@ public class IterDistributionRecorder extends DistributionRecorder {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		this.distances = new ArrayList<Double>();
+		this.allresults = new ArrayList<TestGenerationResult>();
 
 	}
 

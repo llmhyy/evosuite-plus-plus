@@ -369,8 +369,9 @@ public class EvosuiteForMethod {
 							r.getIPFlagCoverage(), r.getUncoveredIPFlags(), r.getDistribution());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
+					
 					for(ExperimentRecorder recorder: recorders) {
-						recorder.record(className, methodName, r);						
+						recorder.record(className, methodName, result);						
 					}
 				}
 			}
