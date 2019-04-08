@@ -1,0 +1,113 @@
+package evosuite.shell;
+
+import static evosuite.shell.EvosuiteForMethod.projectId;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.evosuite.result.TestGenerationResult;
+import org.mockito.internal.util.StringUtil;
+import org.slf4j.Logger;
+
+import evosuite.shell.excel.ExcelWriter;
+import evosuite.shell.experiment.SFConfiguration;
+import evosuite.shell.utils.LoggerUtils;
+
+public class DistributionRecorder extends ExperimentRecorder {
+	private Logger log = LoggerUtils.getLogger(DistributionRecorder.class);
+	private ExcelWriter distributionExcelWriter;
+	public ArrayList<Double> distances = new ArrayList<Double>();
+	public List<TestGenerationResult> allresults = new ArrayList<TestGenerationResult>();
+
+	
+	public DistributionRecorder() {
+		super();
+		distributionExcelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), projectId + "_distribution.xlsx"));
+		distributionExcelWriter.getSheet("distribution", new String[] {"Class", "Method", "distribution","averagedistance","map","time","coverage"}, 0);
+		distributionExcelWriter.getSheet("progress", new String[] {"Class", "Method", ""}, 0);
+
+
+
+	}
+	public DistributionRecorder(String strategy) {
+		super();
+		distributionExcelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), projectId + "_" + strategy + "_distribution.xlsx" ));
+		distributionExcelWriter.getSheet("distribution", new String[] {"Class", "Method", "distribution","averagedistance","map","time","coverage"}, 0);
+		distributionExcelWriter.getSheet("progress", new String[] {"Class", "Method", ""}, 0);
+
+	}
+	
+	@Override
+	public void record(String className, String methodName, EvoTestResult result) {
+		super.record(className, methodName, result);
+	}
+	
+	
+	@Override
+	public void record(String className, String methodName, TestGenerationResult r) {
+		if (r.getDistribution() == null || r.getDistribution().length == 0) {
+			return;
+		}
+		log.info("" +r.getProgressInformation());
+		for(int i=0; i<r.getDistribution().length; i++){
+			log.info("" +r.getDistribution()[i]);					
+		}	
+		List<Object> progressRowData = new ArrayList<>();
+		progressRowData.add(className);
+		progressRowData.add(methodName);
+		progressRowData.addAll(r.getProgressInformation());
+		
+		List<Object> distributionRowData = new ArrayList<>();
+		distributionRowData.add(className);
+		distributionRowData.add(methodName);
+		String distrstr = Arrays.toString(r.getDistribution());
+		distributionRowData.add(distrstr);
+		
+		double avedistribution = 0;
+		String undistribution = "";
+		Map <Integer, Double> map = r.getUncoveredBranchDistribution();
+		int num = map.entrySet().size();
+		if(!map.isEmpty()) {
+					for (Integer branch : map.keySet()) {
+			avedistribution = avedistribution + map.get(branch);
+			undistribution = undistribution.concat(branch.toString() + ":" + map.get(branch).toString() + ",");
+		}
+					undistribution = undistribution.substring(0, undistribution.length()-1);
+		}
+
+		if(num == 0) {
+			avedistribution = 0;
+		}
+		else{
+			avedistribution = avedistribution / num;
+		}
+		distances.add(avedistribution);
+		distributionRowData.add(avedistribution);
+		distributionRowData.add(undistribution);
+		distributionRowData.add(r.getElapseTime());
+		distributionRowData.add(r.getCoverage());
+		
+		record(progressRowData, distributionRowData);
+		logSuccessfulMethods(className, methodName);
+	}
+	
+	public void record(List<Object> progressRowData, List<Object> distributionRowData) {
+		try {
+			//System.out.println(timeRowData);
+			distributionExcelWriter.writeSheet("progress", Arrays.asList(progressRowData));
+			distributionExcelWriter.writeSheet("distribution", Arrays.asList(distributionRowData));			
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	public String getFinalReportFilePath() {
+		return distributionExcelWriter.getFile().getAbsolutePath();
+	}
+	
+
+}
+

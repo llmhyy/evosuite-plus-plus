@@ -84,6 +84,7 @@ public class EvosuiteForMethod {
 
 	public static List<EvoTestResult> execute(String[] args) {
 		List<EvoTestResult> results = new ArrayList<>();
+		StringBuffer strategy = new StringBuffer();
 		try {
 			setup();
 			log.error("enter EvosuiteForMethod!");
@@ -95,11 +96,26 @@ public class EvosuiteForMethod {
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
 						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
 			} else {
-				FitnessEffectiveRecorder recorder;
+				for(int i = 0;i<args.length;i++) {
+					strategy.append(args[i]);
+				}
+				String strastr = strategy.toString();
+				if(strastr.indexOf("MOS")>=0) {
+					strastr = "MOSA";
+				}
+				else {
+					if(strastr.indexOf("Random")>=0) {
+						strastr = "Random";
+					}
+					else {
+						strastr = "Evosuite";
+					}
+				}
+				DistributionRecorder recorder;
 				if (Settings.getIteration() > 1) {
-					recorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
+					recorder = new IterDistributionRecorder(strastr);
 				} else {
-					recorder = new FitnessEffectiveRecorder();
+					recorder = new DistributionRecorder(strastr);
 				}
 				String existingReport = recorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;
@@ -206,7 +222,7 @@ public class EvosuiteForMethod {
 		evoTestClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 	}
 
-	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName, FitnessEffectiveRecorder recorder) {
+	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName, DistributionRecorder recorder) {
 		List<EvoTestResult> results = new ArrayList<>();
 		for (String className : targetClasses) {
 			try {
@@ -216,6 +232,8 @@ public class EvosuiteForMethod {
 					continue;
 				}
 				for (Method method : targetClass.getDeclaredMethods()) {
+					recorder.distances = new ArrayList<Double>();
+					recorder.allresults = new ArrayList<TestGenerationResult>();
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
 					if (!filter.isValidElementId(projectName, CommonUtility.getMethodId(className, methodName))) {
 						continue;
@@ -256,7 +274,7 @@ public class EvosuiteForMethod {
 	}
 	
 	public List<EvoTestResult> runAllClasses(String[] targetClasses, String[] args, String projectName,
-			FitnessEffectiveRecorder recorder) {
+			DistributionRecorder recorder) {
 		List<EvoTestResult> results = new ArrayList<>();
 		for (String className : targetClasses) {
 			try {
@@ -333,12 +351,13 @@ public class EvosuiteForMethod {
 							r.getIPFlagCoverage(), r.getUncoveredIPFlags(), r.getDistribution());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
-					recorder.record(className, methodName, result);
+					recorder.record(className, methodName, r);
 				}
 			}
 		} catch (Exception e) {
 			recorder.recordError(className, methodName, e);
 		}
+		
 		
 		return result;
 	}

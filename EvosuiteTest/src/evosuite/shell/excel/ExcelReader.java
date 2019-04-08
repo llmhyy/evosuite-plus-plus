@@ -91,6 +91,11 @@ public class ExcelReader {
 	public List<List<Object>> listData(String sheetName) {
 		List<List<Object>> data = new ArrayList<List<Object>>();
 		Sheet sheet = workbook.getSheet(sheetName);
+		
+		if(sheet == null) {
+			return null;
+		}
+		
 		for (int i = headerRowNum + 1; i <= sheet.getLastRowNum(); i++) {
 			List<Object> rowData = new ArrayList<Object>();
 			Row row = sheet.getRow(i);

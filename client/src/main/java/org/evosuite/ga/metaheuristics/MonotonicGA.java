@@ -39,6 +39,7 @@ import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.FitnessReplacementFunction;
 import org.evosuite.ga.ReplacementFunction;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.DistributionUtil;
@@ -516,17 +517,40 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 		List<T> individuals = firstTime ? this.population : this.newGeneratedIndividuals;
 		for (T individual : individuals) {
-			TestSuiteChromosome testSuite = (TestSuiteChromosome) individual;
-			for (ExecutionResult result : testSuite.getLastExecutionResults()) {
+			if(individual instanceof TestSuiteChromosome) {
+				TestSuiteChromosome testSuite = (TestSuiteChromosome) individual;
+				for (ExecutionResult result : testSuite.getLastExecutionResults()) {
+					if (result != null) {
+						
+						for (Integer branchID : result.getTrace().getCoveredTrue().keySet()) {
+							if (distributionMap.get(branchID) != null) {
+								int count = distributionMap.get(branchID) + 1;
+								distributionMap.put(branchID, count);
+							}
+						}
+						
+						for (Integer branchID : result.getTrace().getCoveredFalse().keySet()) {
+							if (distributionMap.get(-branchID) != null) {
+								int count = distributionMap.get(-branchID) + 1;
+								distributionMap.put(-branchID, count);
+							}
+						}
+					}
+				}
+			}
+			else if(individual instanceof TestChromosome) {
+				TestChromosome test = (TestChromosome)individual;
+				ExecutionResult result = test.getLastExecutionResult();
+				
 				if (result != null) {
-
+					
 					for (Integer branchID : result.getTrace().getCoveredTrue().keySet()) {
 						if (distributionMap.get(branchID) != null) {
 							int count = distributionMap.get(branchID) + 1;
 							distributionMap.put(branchID, count);
 						}
 					}
-
+					
 					for (Integer branchID : result.getTrace().getCoveredFalse().keySet()) {
 						if (distributionMap.get(-branchID) != null) {
 							int count = distributionMap.get(-branchID) + 1;
@@ -535,6 +559,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 					}
 				}
 			}
+			
+			
+			
 		}
 	}
 
