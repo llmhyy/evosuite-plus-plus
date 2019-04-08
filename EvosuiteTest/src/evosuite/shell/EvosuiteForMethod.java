@@ -29,6 +29,7 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
 import evosuite.shell.ParameterOptions.TestLevel;
+import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.listmethod.ListMethods;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.TargetMethodIOUtils;
@@ -86,6 +87,8 @@ public class EvosuiteForMethod {
 		List<EvoTestResult> results = new ArrayList<>();
 		StringBuffer strategy = new StringBuffer();
 		try {
+			String workingDir = SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee";
+			System.setProperty("user.dir", workingDir);
 			setup();
 			log.error("enter EvosuiteForMethod!");
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
@@ -111,13 +114,23 @@ public class EvosuiteForMethod {
 						strastr = "Evosuite";
 					}
 				}
-				DistributionRecorder recorder;
+				FitnessEffectiveRecorder fitnessRecorder;
+				DistributionRecorder distributionRecorder;
+				
+				List<ExperimentRecorder> recorderList = new ArrayList<>();
+				
 				if (Settings.getIteration() > 1) {
-					recorder = new IterDistributionRecorder(strastr);
+					fitnessRecorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
+					distributionRecorder = new IterDistributionRecorder(strastr);
+					recorderList.add(fitnessRecorder);
+					recorderList.add(distributionRecorder);
 				} else {
-					recorder = new DistributionRecorder(strastr);
+					fitnessRecorder = new FitnessEffectiveRecorder();
+					distributionRecorder = new DistributionRecorder(strastr);
+					recorderList.add(fitnessRecorder);
+					recorderList.add(distributionRecorder);
 				}
-				String existingReport = recorder.getFinalReportFilePath();
+				String existingReport = distributionRecorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;
 				if (Settings.isReportBasedFilterEnable()) {
 					succeedMethods = TargetMethodIOUtils.collectMethods(existingReport);
@@ -131,9 +144,9 @@ public class EvosuiteForMethod {
 				String[] truncatedArgs = extractArgs(args);
 				
 				if (Settings.getTestLevel() == TestLevel.lMethod) {
-					results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName, recorder);
+					results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName, recorderList);
 				} else {
-					results = evoTest.runAllClasses(targetClasses, truncatedArgs, projectName, recorder);
+					results = evoTest.runAllClasses(targetClasses, truncatedArgs, projectName, recorderList);
 				}
 			}
 		} catch (Throwable e) {
@@ -222,7 +235,8 @@ public class EvosuiteForMethod {
 		evoTestClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 	}
 
-	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName, DistributionRecorder recorder) {
+	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, 
+			String projectName, List<ExperimentRecorder> recorders) {
 		List<EvoTestResult> results = new ArrayList<>();
 		for (String className : targetClasses) {
 			try {
@@ -232,18 +246,19 @@ public class EvosuiteForMethod {
 					continue;
 				}
 				for (Method method : targetClass.getDeclaredMethods()) {
-					recorder.distances = new ArrayList<Double>();
-					recorder.allresults = new ArrayList<TestGenerationResult>();
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
 					if (!filter.isValidElementId(projectName, CommonUtility.getMethodId(className, methodName))) {
 						continue;
 					}
 					try {
 						for (int i = 0; i < Settings.getIteration(); i++) {
-							EvoTestResult result = runMethod(methodName, className, args, recorder);
+							EvoTestResult result = runMethod(methodName, className, args, recorders);
 							results.add(result);
 						}
-						recorder.recordEndIterations(methodName, className);
+						
+						for(ExperimentRecorder recorder: recorders) {
+							recorder.recordEndIterations(methodName, className);							
+						}
 					} catch (Throwable t) {
 						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
 								.append("#").append(methodName).append("\n")
@@ -260,7 +275,7 @@ public class EvosuiteForMethod {
 		return results;
 	}
 
-	private EvoTestResult runMethod(String methodName, String className, String[] evosuiteArgs, ExperimentRecorder recorder) {
+	private EvoTestResult runMethod(String methodName, String className, String[] evosuiteArgs, List<ExperimentRecorder> recorders) {
 		log.info("----------------------------------------------------------------------");
 		log.info("RUN METHOD: " + className + "#" + methodName);
 		log.info("----------------------------------------------------------------------");
@@ -270,11 +285,11 @@ public class EvosuiteForMethod {
 				"-class", className,
 				"-Dtarget_method", methodName
 				);
-		return invokeEvosuite(methodName, className, args, recorder);
+		return invokeEvosuite(methodName, className, args, recorders);
 	}
 	
 	public List<EvoTestResult> runAllClasses(String[] targetClasses, String[] args, String projectName,
-			DistributionRecorder recorder) {
+			List<ExperimentRecorder> recorders) {
 		List<EvoTestResult> results = new ArrayList<>();
 		for (String className : targetClasses) {
 			try {
@@ -286,10 +301,13 @@ public class EvosuiteForMethod {
 				if (filter.isValidElementId(projectName, className)) {
 					try {
 						for (int i = 0; i < Settings.getIteration(); i++) {
-							EvoTestResult result = runClass(className, args, recorder);
+							EvoTestResult result = runClass(className, args, recorders);
 							results.add(result);
 						}
-						recorder.recordEndIterations("", className);
+						
+						for(ExperimentRecorder recorder: recorders) {
+							recorder.recordEndIterations("", className);							
+						}
 					} catch (Throwable t) {
 						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className).append("\n")
 								.append("Error: \n")
@@ -305,18 +323,18 @@ public class EvosuiteForMethod {
 		return results;
 	}
 	
-	private EvoTestResult runClass(String className, String[] evosuiteArgs, ExperimentRecorder recorder) {
+	private EvoTestResult runClass(String className, String[] evosuiteArgs, List<ExperimentRecorder> recorders) {
 		log.info("----------------------------------------------------------------------");
 		log.info("RUN CLASS: " + className);
 		log.info("----------------------------------------------------------------------");
 		String[] args = ArrayUtils.addAll(evosuiteArgs, 
 				"-class", className
 				);
-		return invokeEvosuite("", className, args, recorder);
+		return invokeEvosuite("", className, args, recorders);
 	}
 
 	@SuppressWarnings("unchecked")
-	private EvoTestResult invokeEvosuite(String methodName, String className, String[] args, ExperimentRecorder recorder) {
+	private EvoTestResult invokeEvosuite(String methodName, String className, String[] args, List<ExperimentRecorder> recorders) {
 		EvoTestResult result = null;
 		try {
 			log.info("evosuite args: " + StringUtils.join((Object[]) args, " "));
@@ -351,11 +369,15 @@ public class EvosuiteForMethod {
 							r.getIPFlagCoverage(), r.getUncoveredIPFlags(), r.getDistribution());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
-					recorder.record(className, methodName, r);
+					for(ExperimentRecorder recorder: recorders) {
+						recorder.record(className, methodName, r);						
+					}
 				}
 			}
 		} catch (Exception e) {
-			recorder.recordError(className, methodName, e);
+			for(ExperimentRecorder recorder: recorders) {
+				recorder.recordError(className, methodName, e);				
+			}
 		}
 		
 		
