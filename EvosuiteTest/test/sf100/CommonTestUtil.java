@@ -21,12 +21,12 @@ public class CommonTestUtil {
 
 //		boolean instrumentContext = true;
 		String[] args = new String[] {
-				"-generateTests",
-				"-Dstrategy", "ONEBRANCH",
+//				"-generateTests",
+//				"-Dstrategy", "ONEBRANCH",
 //				"-generateSuiteUsingDSE",
-//				"-generateMOSuite",
-//				"-Dstrategy", "MOSUITE",
-//				"-Dalgorithm", "MOSA",
+				"-generateMOSuite",
+				"-Dstrategy", "MOSUITE",
+				"-Dalgorithm", "MOSA",
 //				"-generateRandom",
 //				"-Dstrategy", "random",
 //				"-generateSuite",
