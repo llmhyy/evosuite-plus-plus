@@ -177,6 +177,7 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 			distribution[count++] = distributionMap.get(key);
 		}
 		suite.setDistribution(distribution);
+		suite.setDistributionMap(distributionMap);
 		
 		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap, branchGoals);
 		suite.setUncoveredBranchDistribution(uncoveredBranchDistribution);

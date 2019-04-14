@@ -53,6 +53,7 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	
 	private List<Double> progressInfomation = new ArrayList<>();
 	private int[] distribution; 
+
 	private GeneticAlgorithm<? extends Chromosome> geneticAlgorithm;
 //	private int age;
 
@@ -60,6 +61,8 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private String uncoveredIPFlags;
 	
 	private Map<Integer, Double> uncoveredBranchDistribution;
+	
+	private Map<Integer, Integer> distributionMap;
 	
 	/**
 	 * Add an additional secondary objective to the end of the list of
@@ -398,5 +401,13 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 
 	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution) {
 		this.uncoveredBranchDistribution = uncoveredBranchDistribution;
+	}
+	
+	public void setDistributionMap(Map<Integer, Integer> distributionMap) {
+		this.distributionMap = distributionMap;
+	}
+	
+	public Map<Integer, Integer> getDistributionMap(){
+		return distributionMap;
 	}
 }

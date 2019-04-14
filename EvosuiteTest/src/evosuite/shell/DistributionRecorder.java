@@ -48,9 +48,9 @@ public class DistributionRecorder extends ExperimentRecorder {
 			return;
 		}
 		log.info("" +result.getProgress());
-		for(int i=0; i<result.getDistribution().length; i++){
-			log.info("" +result.getDistribution()[i]);					
-		}	
+//		for(int i=0; i<result.getDistribution().length; i++){
+//			log.info("" +result.getDistribution()[i]);					
+//		}	
 		List<Object> progressRowData = new ArrayList<>();
 		progressRowData.add(className);
 		progressRowData.add(methodName);
@@ -59,10 +59,16 @@ public class DistributionRecorder extends ExperimentRecorder {
 		List<Object> distributionRowData = new ArrayList<>();
 		distributionRowData.add(className);
 		distributionRowData.add(methodName);
-		String distrstr = Arrays.toString(result.getDistribution());
-		if (distrstr == null){
-			distrstr = "";
+		String distrstr = "";
+
+		
+		Map<Integer, Integer> distributionMap = result.getDistributionMap();
+		if(!distributionMap.isEmpty()){
+			for(Integer branch0 : distributionMap.keySet()) {
+				distrstr = distrstr.concat(branch0.toString() + ":" + distributionMap.get(branch0).toString() + ",");
 			}
+			distrstr = distrstr.substring(0, distrstr.length()-1);
+		}
 		distributionRowData.add(distrstr);
 		
 		double avedistribution = 0;

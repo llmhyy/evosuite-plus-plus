@@ -99,6 +99,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	
 	private Map<Integer, Double> uncoveredBranchDistribution;
 	
+	private Map<Integer, Integer> distributionMap;
+	
 	/** Did test generation succeed? */
 	public Status getTestGenerationStatus() {
 		return status;
@@ -401,6 +403,14 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution) {
 		this.uncoveredBranchDistribution = uncoveredBranchDistribution;
+	}
+	
+	public Map<Integer, Integer> getDistributionMap(){
+		return distributionMap;
+	}
+	
+	public void setDistributionMap(Map<Integer, Integer> distributionMap) {
+		this.distributionMap = distributionMap;
 	}
 
 }

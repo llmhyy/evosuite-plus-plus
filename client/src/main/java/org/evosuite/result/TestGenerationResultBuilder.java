@@ -82,6 +82,7 @@ public class TestGenerationResultBuilder {
 		result.setIPFlagCoverage(testSuite.getIPFlagCoverage());
 		result.setUncoveredIPFlags(testSuite.getUncoveredIPFlags());
 		result.setUncoveredBranchDistribution(testSuite.getUncoveredBranchDistribution());
+		result.setDistributionMap(testSuite.getDistributionMap());
 		
 		return result;
 	}

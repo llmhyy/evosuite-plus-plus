@@ -115,6 +115,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	private List<String> availableCalls = new ArrayList<>();
 	private List<String> unavailableCalls = new ArrayList<>();
 	private Map<Integer, Double> uncoveredBranchDistribution;
+	private Map<Integer, Integer> distributionMap;
 
 	/**
 	 * Constructor
@@ -1193,6 +1194,14 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 
 	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution) {
 		this.uncoveredBranchDistribution = uncoveredBranchDistribution;
+	}
+	
+	public void setDistributionMap(Map<Integer, Integer> distributionMap) {
+		this.distributionMap =  distributionMap;
+	}
+	
+	public Map<Integer, Integer>getDistributionMap(){
+		return distributionMap;
 	}
 
 	/*

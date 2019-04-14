@@ -14,13 +14,14 @@ public class EvoTestResult {
 	private List<String> unavailableCalls = new ArrayList<>();
 	private int[] distribution;
 	private Map<Integer, Double> unCoveredBranchDistribution;
+	private Map<Integer, Integer> distributionMap;
 	
 	private double IPFlagCoverage;
 	private String uncoveredFlags;
 
 	public EvoTestResult(int time, double coverage, int age, 
 			double ratio, List<Double> progress, 
-			double IPFlagCoverage, String uncoveredFlag, int[] distribution,  Map<Integer, Double> unCoveredBranchDistribution) {
+			double IPFlagCoverage, String uncoveredFlag, Map<Integer, Integer> distributionMap,  Map<Integer, Double> unCoveredBranchDistribution) {
 		super();
 		this.time = time;
 		this.coverage = coverage;
@@ -29,7 +30,7 @@ public class EvoTestResult {
 		this.progress = progress;
 		this.IPFlagCoverage = IPFlagCoverage;
 		this.uncoveredFlags = uncoveredFlag;
-		this.setDistribution(distribution);
+		this.setDistributionMap(distributionMap);
 		this.setUncoveredBranchDistribution(unCoveredBranchDistribution);
 	}
 
@@ -111,6 +112,14 @@ public class EvoTestResult {
 
 	public void setDistribution(int[] distribution) {
 		this.distribution = distribution;
+	}
+	
+	public Map<Integer, Integer> getDistributionMap(){
+		return distributionMap;
+	}
+	
+	public void setDistributionMap(Map<Integer, Integer> dsitributionMap) {
+		this.distributionMap = dsitributionMap;
 	}
 	
 	public Map<Integer, Double> getUncoveredBranchDistribution(){
