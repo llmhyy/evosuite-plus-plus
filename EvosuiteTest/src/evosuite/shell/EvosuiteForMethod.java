@@ -111,7 +111,7 @@ public class EvosuiteForMethod {
 						strastr = "Random";
 					}
 					else {
-						strastr = "Evosuite";
+						strastr = "MonotonicGA";
 					}
 				}
 				FitnessEffectiveRecorder fitnessRecorder;
