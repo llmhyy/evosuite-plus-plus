@@ -93,17 +93,29 @@ public class EvosuiteForMethod {
 			log.error("enter EvosuiteForMethod!");
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
 			Settings.setup(args);
+			
+			if(!Settings.insterestedProjects.contains(projectId)) {
+				return new ArrayList<>();
+			}
+			
+			/**
+			 * show the statistics of the methods under class
+			 */
 			if (Settings.isListMethods()) {
 				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.getListMethodsOptions());
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
 						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
-			} else {
+			} 
+			/**
+			 * execute the test
+			 */
+			else {
 				for(int i = 0;i<args.length;i++) {
 					strategy.append(args[i]);
 				}
 				String strastr = strategy.toString();
-				if(strastr.indexOf("MOS")>=0) {
+				if(strastr.indexOf("MOSA")>=0) {
 					strastr = "MOSA";
 				}
 				else {

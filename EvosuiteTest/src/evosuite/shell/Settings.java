@@ -1,5 +1,13 @@
 package evosuite.shell;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.evosuite.utils.ProgramArgumentUtils;
 
 import evosuite.shell.ParameterOptions.TestLevel;
@@ -21,6 +29,8 @@ public class Settings {
 	private static MethodFilterOption mFilterOpt;
 	private static String targetMethodFilePath;
 	private static boolean reportBasedFilter;
+	
+	public static List<String> insterestedProjects;
 
 	public static void setup(String[] args) throws Exception {
 		listMethods = ProgramArgumentUtils.hasOpt(args, ListMethods.OPT_NAME);
@@ -63,12 +73,28 @@ public class Settings {
 		}
 		
 		targetMethodFilePath = getTargetMethodFilePath(mFilterOpt);
+		insterestedProjects = parseInterestedProjects(inclusiveFilePath);
 		
 		if (ProgramArgumentUtils.hasOpt(args, ParameterOptions.REPORT_BASED_FILTER)) {
 			reportBasedFilter = true;
 		}
 	}
 	
+	private static List<String> parseInterestedProjects(String targetMethodFilePath2) throws IOException {
+		List<String> interestedProjects = new ArrayList<>(); 
+		String prefix = "#Project=";
+		FileReader fileReader = new FileReader(new File(targetMethodFilePath2));
+		BufferedReader br = new BufferedReader(fileReader);
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			if(line.startsWith(prefix)) {
+				String project = line.substring(line.lastIndexOf(" "), line.length());
+				interestedProjects.add(project.trim());
+			}
+		}
+		return interestedProjects;
+	}
+
 	public static String getReportFolder() {
 		return FileUtils.getFilePath(sfBenchmarkFolder, reportFolder);
 	}
