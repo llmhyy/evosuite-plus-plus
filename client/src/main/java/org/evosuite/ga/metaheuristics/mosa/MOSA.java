@@ -240,6 +240,8 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		bestTestCases.setAge(this.currentIteration);
 		bestTestCases.setProgressInfomation(getProgressInformation());
 		bestTestCases.setUncoveredBranchDistribution(this.getUncoveredBranchDistribution());
+		bestTestCases.setDistribution(this.getDistribution());
+		bestTestCases.setDistributionMap(this.getDistributionMap());
 		
 		Set<FitnessFunction<T>> IPFlags = findIPFlagBranches();
 		Set<FitnessFunction<T>> uncoveredIPFlags = findUncoveredIPFlags(IPFlags);
@@ -481,6 +483,15 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		
 		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap, branchGoals);
 		this.setUncoveredBranchDistribution(uncoveredBranchDistribution);
+		
+		int[] distribution = new int[distributionMap.keySet().size()];
+		int count = 0;
+		for (Integer key : distributionMap.keySet()) {
+			distribution[count++] = distributionMap.get(key);
+		}
+		this.setDistribution(distribution);
+		this.setDistributionMap(distributionMap);
+
 	}
 
 	private void printBestIndividualForUncoveredGoals(Set<FitnessFunction<T>> dominateUncoveredGoals) {

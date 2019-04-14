@@ -119,4 +119,7 @@ public interface TestGenerationResult extends Serializable {
 	
 	public Map<Integer, Double> getUncoveredBranchDistribution();
 	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution);
+	
+	public Map<Integer, Integer> getDistributionMap();
+	public void setDistributionMap(Map<Integer, Integer> distributionMap); 
 }

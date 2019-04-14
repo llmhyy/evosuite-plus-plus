@@ -393,7 +393,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		for (Integer key : distributionMap.keySet()) {
 			distribution[count++] = distributionMap.get(key);
 		}
-		this.setDistribution(distribution);
+		this.setDistributionMap(distributionMap);
+		
 		
 		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap, branchGoals);
 		this.setUncoveredBranchDistribution(uncoveredBranchDistribution);
