@@ -513,7 +513,7 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			}
 		}
 		int total = (int) (numberOfCoveredTargets() + uncoveredGoals.size());
-		logger.error("uncovered goals: " + uncoveredGoals.size() + "/" + total);		
+		logger.error(Properties.CRITERION[0].toString() + " uncovered goals: " + uncoveredGoals.size() + "/" + total);		
 	}
 
 	private TestChromosome getBestTest(List<T> firstFront, TestFitnessFunction tff) {
