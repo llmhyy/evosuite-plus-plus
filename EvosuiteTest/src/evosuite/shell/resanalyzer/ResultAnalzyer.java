@@ -39,6 +39,10 @@ public class ResultAnalzyer {
 							easyMethods.add(data);
 						}
 						else {
+							if(data.get(6)==null) {
+								continue;
+							}
+							
 							Double IPFCoverage = (double) data.get(6);
 							if(coverage == 0) {
 								longRunningTimeMethods.add(data);

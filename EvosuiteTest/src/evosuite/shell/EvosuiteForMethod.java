@@ -94,7 +94,7 @@ public class EvosuiteForMethod {
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
 			Settings.setup(args);
 			
-			if(!Settings.insterestedProjects.contains(projectId)) {
+			if(!Settings.insterestedProjects.contains(projectName)) {
 				return new ArrayList<>();
 			}
 			
@@ -259,9 +259,19 @@ public class EvosuiteForMethod {
 				}
 				for (Method method : targetClass.getDeclaredMethods()) {
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
-					if (!filter.isValidElementId(projectName, CommonUtility.getMethodId(className, methodName))) {
+					String methodID = CommonUtility.getMethodId(className, methodName);
+					if (!filter.isValidElementId(projectName, methodID)) {
 						continue;
 					}
+					
+					if(Settings.investigatedMethods != null && Settings.investigatedMethods.contains(methodID)) {
+						continue;
+					}
+					
+					if(Settings.easyMethods != null && !Settings.easyMethods.contains(methodID)) {
+						continue;
+					}
+					
 					try {
 						for (int i = 0; i < Settings.getIteration(); i++) {
 							EvoTestResult result = runMethod(methodName, className, args, recorders);

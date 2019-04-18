@@ -2,15 +2,17 @@ package evosuite.shell;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.evosuite.utils.ProgramArgumentUtils;
 
 import evosuite.shell.ParameterOptions.TestLevel;
+import evosuite.shell.excel.ExcelReader;
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.listmethod.ListMethods;
 import evosuite.shell.listmethod.MethodFilterOption;
@@ -29,10 +31,12 @@ public class Settings {
 	private static MethodFilterOption mFilterOpt;
 	private static String targetMethodFilePath;
 	private static boolean reportBasedFilter;
+	private static String branchExperimentFile;
 	
 	public static List<String> insterestedProjects;
 
 	public static void setup(String[] args) throws Exception {
+		branchExperimentFile = ProgramArgumentUtils.getOptValue(args, ParameterOptions.BRANCH_EXPERIMENT_FILE);
 		listMethods = ProgramArgumentUtils.hasOpt(args, ListMethods.OPT_NAME);
 		inclusiveFilePath = ProgramArgumentUtils.getOptValue(args, ParameterOptions.INCLUSIVE_FILE_OPT);
 		String optValue = ProgramArgumentUtils.getOptValue(args, ParameterOptions.METHOD_TEST_ITERATION);
@@ -74,12 +78,48 @@ public class Settings {
 		
 		targetMethodFilePath = getTargetMethodFilePath(mFilterOpt);
 		insterestedProjects = parseInterestedProjects(inclusiveFilePath);
+		parseInterestedMethods(branchExperimentFile);
 		
 		if (ProgramArgumentUtils.hasOpt(args, ParameterOptions.REPORT_BASED_FILTER)) {
 			reportBasedFilter = true;
 		}
 	}
 	
+	public static Set<String> investigatedMethods; 
+	public static Set<String> easyMethods;
+	
+	private static void parseInterestedMethods(String branchExperimentFile2) {
+		if(branchExperimentFile2 == null) return;
+		
+		File f = new File(branchExperimentFile2);
+		if(!f.exists()) {
+			System.err.print(branchExperimentFile2 + " does not exist");
+			return;
+		}
+		
+		investigatedMethods = new HashSet<>();
+		easyMethods = new HashSet<>();
+		
+		ExcelReader reader = new ExcelReader(f, 0);
+		List<List<Object>> datas = reader.listData("investigated");
+		for(List<Object> data: datas) {
+			String className = (String) data.get(0);
+			String methodName = (String) data.get(1);
+			
+			String sig = className + "#" + methodName;
+			investigatedMethods.add(sig);
+		}
+		
+		List<List<Object>> easyDatas = reader.listData("easy");
+		for(List<Object> data: easyDatas) {
+			String className = (String) data.get(0);
+			String methodName = (String) data.get(1);
+			
+			String sig = className + "#" + methodName;
+			easyMethods.add(sig);
+		}
+	}
+
 	private static List<String> parseInterestedProjects(String targetMethodFilePath2) throws IOException {
 		List<String> interestedProjects = new ArrayList<>(); 
 		String prefix = "#Project=";
@@ -88,7 +128,12 @@ public class Settings {
 		String line = null;
 		while ((line = br.readLine()) != null) {
 			if(line.startsWith(prefix)) {
-				String project = line.substring(line.lastIndexOf(" "), line.length());
+				int lastIndex = line.length();
+				if(line.contains(" ")) {
+					lastIndex = line.indexOf(" ");
+				}
+				
+				String project = line.substring(prefix.length(), lastIndex);
 				interestedProjects.add(project.trim());
 			}
 		}
