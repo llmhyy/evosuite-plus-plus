@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.evosuite.Properties;
+import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 
 import evosuite.shell.excel.ExcelWriter;
@@ -31,7 +33,8 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 				"Coverage", "Age", 
 				"Cal Availability", 
 				"IP Flag Coverage",
-				"Uncovered IF Flag"
+				"Uncovered IF Flag",
+				"Random Seed"
 				}, 
 				0);
 	}
@@ -47,6 +50,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		rowData.add(r.getRatio());
 		rowData.add(r.getIPFlagCoverage());
 		rowData.add(r.getUncoveredFlags());
+		rowData.add(Randomness.getSeed());
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 			logSuccessfulMethods(className, methodName);
