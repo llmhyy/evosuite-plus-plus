@@ -281,18 +281,20 @@ public class EvosuiteForMethod {
 					
 					try {
 						for (int i = 0; i < Settings.getIteration(); i++) {
+							String[] evoArgs = null;
 							try {
 								if(!ProgramArgumentUtils.hasOpt(args, "-seed")) {
 									long seed = System.currentTimeMillis();
-									args = ArrayUtils.addAll(args, 
+									evoArgs = ArrayUtils.addAll(args, 
 											"-seed", String.valueOf(seed)
 											);
+									Randomness.setSeed(seed);
 								}
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
 							
-							EvoTestResult result = runMethod(methodName, className, args, recorders);
+							EvoTestResult result = runMethod(methodName, className, evoArgs, recorders);
 							results.add(result);
 						}
 						

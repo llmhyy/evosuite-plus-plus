@@ -436,7 +436,7 @@ public class TestSuiteGenerator {
 				TestSuiteMinimizer minimizer = new TestSuiteMinimizer(getFitnessFactories());
 
 				LoggingUtils.getEvoLogger().info("* Minimizing test suite");
-				minimizer.minimize(testSuite, true);
+//				minimizer.minimize(testSuite, true);
 
 				double after = testSuite.getFitness();
 				if (after > before + 0.01d) { // assume minimization
