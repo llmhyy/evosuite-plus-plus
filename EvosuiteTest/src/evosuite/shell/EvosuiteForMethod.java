@@ -20,11 +20,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.evosuite.CommandLineParameters;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
+import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
+import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
 import org.evosuite.utils.ExternalProcessHandler;
 import org.evosuite.utils.ProgramArgumentUtils;
+import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
@@ -153,7 +156,11 @@ public class EvosuiteForMethod {
 				}
 				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.ALL_OPTIONS);
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
+				
 				String[] truncatedArgs = extractArgs(args);
+				
+				Properties.CLIENT_ON_THREAD = true;
+				Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 				
 				if (Settings.getTestLevel() == TestLevel.lMethod) {
 					results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName, recorderList);
@@ -274,6 +281,17 @@ public class EvosuiteForMethod {
 					
 					try {
 						for (int i = 0; i < Settings.getIteration(); i++) {
+							try {
+								if(!ProgramArgumentUtils.hasOpt(args, "-seed")) {
+									long seed = System.currentTimeMillis();
+									args = ArrayUtils.addAll(args, 
+											"-seed", String.valueOf(seed)
+											);
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							
 							EvoTestResult result = runMethod(methodName, className, args, recorders);
 							results.add(result);
 						}
@@ -303,6 +321,7 @@ public class EvosuiteForMethod {
 		log.info("----------------------------------------------------------------------");
 		
 		// $EVOSUITE -criterion branch -target tullibee.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore
+		
 		String[] args = ArrayUtils.addAll(evosuiteArgs, 
 				"-class", className,
 				"-Dtarget_method", methodName
