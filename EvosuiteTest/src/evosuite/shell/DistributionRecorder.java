@@ -74,8 +74,9 @@ public class DistributionRecorder extends ExperimentRecorder {
 		double avedistribution = 0;
 		String undistribution = "";
 		Map <Integer, Double> map = result.getUncoveredBranchDistribution();
-		int num = map.entrySet().size();
-		if(!map.isEmpty()) {
+		int num = 0;
+		if(map!=null && !map.isEmpty()) {
+			num = map.entrySet().size();
 					for (Integer branch : map.keySet()) {
 			avedistribution = avedistribution + map.get(branch);
 			undistribution = undistribution.concat(branch.toString() + ":" + map.get(branch).toString() + ",");
