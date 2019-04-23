@@ -63,7 +63,7 @@ public class DistributionRecorder extends ExperimentRecorder {
 
 		
 		Map<Integer, Integer> distributionMap = result.getDistributionMap();
-		if(!distributionMap.isEmpty()){
+		if(distributionMap!=null && !distributionMap.isEmpty()){
 			for(Integer branch0 : distributionMap.keySet()) {
 				distrstr = distrstr.concat(branch0.toString() + ":" + distributionMap.get(branch0).toString() + ",");
 			}
