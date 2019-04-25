@@ -298,17 +298,18 @@ public class EvosuiteForMethod {
 					try {
 						for (int i = 0; i < Settings.getIteration(); i++) {
 							String[] evoArgs = args;
-							// try {
-							// if(!ProgramArgumentUtils.hasOpt(args, "-seed")) {
-							// long seed = System.currentTimeMillis();
-							// evoArgs = ArrayUtils.addAll(args,
-							// "-seed", String.valueOf(seed)
-							// );
-							// Randomness.setSeed(seed);
-							// }
-							// } catch (Exception e) {
-							// e.printStackTrace();
-							// }
+							try {
+								if (!ProgramArgumentUtils.hasOpt(args, "-seed")) {
+									List<Long> seeds = Settings.easyMethods.get(methodID);
+									if(seeds!=null && !seeds.isEmpty()) {
+										Long seed = seeds.get(0);
+										seeds.remove(seed);
+										evoArgs = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
+									}
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 
 							EvoTestResult result = runMethod(methodName, className, evoArgs, recorders);
 							results.add(result);
@@ -390,9 +391,15 @@ public class EvosuiteForMethod {
 	@SuppressWarnings("unchecked")
 	private EvoTestResult invokeEvosuite(String methodName, String className, String[] args,
 			List<ExperimentRecorder> recorders) {
-		long seed = System.currentTimeMillis();
-		args = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
-		log.error(methodName + " has seed " + seed);
+		try {
+			if (!ProgramArgumentUtils.hasOpt(args, "-seed")) {
+				long seed = System.currentTimeMillis();
+				args = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
+				log.error(methodName + " has seed " + seed);
+			}
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
 
 		EvoTestResult result = null;
 		try {

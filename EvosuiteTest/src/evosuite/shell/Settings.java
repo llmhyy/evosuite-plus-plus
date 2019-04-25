@@ -5,9 +5,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import org.evosuite.utils.ProgramArgumentUtils;
 
@@ -85,8 +86,8 @@ public class Settings {
 		}
 	}
 	
-	public static Set<String> investigatedMethods; 
-	public static Set<String> easyMethods;
+	public static Map<String, List<Long>> investigatedMethods; 
+	public static Map<String, List<Long>> easyMethods;
 	
 	private static void parseInterestedMethods(String branchExperimentFile2) {
 		if(branchExperimentFile2 == null) return;
@@ -97,26 +98,48 @@ public class Settings {
 			return;
 		}
 		
-		investigatedMethods = new HashSet<>();
-		easyMethods = new HashSet<>();
+		investigatedMethods = new HashMap<>();
+		easyMethods = new HashMap<>();
 		
 		ExcelReader reader = new ExcelReader(f, 0);
 		List<List<Object>> datas = reader.listData("investigated");
 		for(List<Object> data: datas) {
 			String className = (String) data.get(0);
 			String methodName = (String) data.get(1);
+			double seedDouble = (Double) data.get(8);
+			Long seed = (long)seedDouble;
 			
 			String sig = className + "#" + methodName;
-			investigatedMethods.add(sig);
+			List<Long> seeds = investigatedMethods.get(sig);
+			if(seeds == null) {
+				seeds = new ArrayList<>();
+			}
+			
+			if(!seeds.contains(seed)) {
+				seeds.add(seed);
+			}
+			
+			investigatedMethods.put(sig, seeds);
 		}
 		
 		List<List<Object>> easyDatas = reader.listData("easy");
 		for(List<Object> data: easyDatas) {
 			String className = (String) data.get(0);
 			String methodName = (String) data.get(1);
+			double seedDouble = (Double) data.get(8);
+			Long seed = (long)seedDouble;
 			
 			String sig = className + "#" + methodName;
-			easyMethods.add(sig);
+			List<Long> seeds = easyMethods.get(sig);
+			if(seeds == null) {
+				seeds = new ArrayList<>();
+			}
+			
+			if(!seeds.contains(seed)) {
+				seeds.add(seed);
+			}
+			
+			easyMethods.put(sig, seeds);
 		}
 	}
 
