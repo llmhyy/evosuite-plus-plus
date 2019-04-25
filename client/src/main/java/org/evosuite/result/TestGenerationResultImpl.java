@@ -101,6 +101,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	
 	private Map<Integer, Integer> distributionMap;
 	
+	private long randomSeed;
+	
 	/** Did test generation succeed? */
 	public Status getTestGenerationStatus() {
 		return status;
@@ -411,6 +413,16 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	
 	public void setDistributionMap(Map<Integer, Integer> distributionMap) {
 		this.distributionMap = distributionMap;
+	}
+
+	@Override
+	public long getRandomSeed() {
+		return this.randomSeed;
+	}
+
+	@Override
+	public void setRandomSeed(long randomSeed) {
+		this.randomSeed = randomSeed;
 	}
 
 }

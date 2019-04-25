@@ -121,5 +121,8 @@ public interface TestGenerationResult extends Serializable {
 	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution);
 	
 	public Map<Integer, Integer> getDistributionMap();
-	public void setDistributionMap(Map<Integer, Integer> distributionMap); 
+	public void setDistributionMap(Map<Integer, Integer> distributionMap);
+
+	public long getRandomSeed(); 
+	public void setRandomSeed(long randomSeed); 
 }

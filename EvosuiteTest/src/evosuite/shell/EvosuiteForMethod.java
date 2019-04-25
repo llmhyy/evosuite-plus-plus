@@ -41,32 +41,49 @@ import evosuite.shell.utils.TargetMethodIOUtils;
  * 
  * @author thilyly_tran
  * 
- * [Check these scripts: /experiments/SF100/evotest.bat & listMethods.bat for an example]
- * To Run EvosuiteForMethod
- * <p>
- * + ListMethods (with filter)<p>
- * EvosuiteForMethod -listMethods<p>
- * (All other options are just the same as which that are used to run evosuite -listClasses)<p>
- * 		REQUIRE ARGUMENTS: [-jar|-class|-prefix]<p>
- * <p>
- * + Run evosuite separately by Methods<p>
- * (All options from evosuite are reused, except those two options are added for exceptional inclusive/exclusive filtered methods:<p>
- * 	-inclusiveFile [file path] (check {@link FilterConfiguration.InclusiveFilter}<p>
- *  -exclusiveFile [file path]<p>
- *  options to determine target methods:
- *  	[-jar|-class|-prefix|-]
- *  <p>
- *  
- *  
- *  Possible outputs: evoTest-reports folder which includes logs, xlsx and other reports (listMethods.txt)
- *  [base_dir]<p>
- *  |__ evoTest-reports<p>
- *  	|__logs<p>
- *  	|	|__*.log<p>
- *  	|__*.xlsx	<p>
- *  	|__targetMethods.txt <p>
- *  	|__successfulMethods.txt <p>
- *  
+ *         [Check these scripts: /experiments/SF100/evotest.bat &
+ *         listMethods.bat for an example] To Run EvosuiteForMethod
+ *         <p>
+ *         + ListMethods (with filter)
+ *         <p>
+ *         EvosuiteForMethod -listMethods
+ *         <p>
+ *         (All other options are just the same as which that are used to run
+ *         evosuite -listClasses)
+ *         <p>
+ *         REQUIRE ARGUMENTS: [-jar|-class|-prefix]
+ *         <p>
+ *         <p>
+ *         + Run evosuite separately by Methods
+ *         <p>
+ *         (All options from evosuite are reused, except those two options are
+ *         added for exceptional inclusive/exclusive filtered methods:
+ *         <p>
+ *         -inclusiveFile [file path] (check
+ *         {@link FilterConfiguration.InclusiveFilter}
+ *         <p>
+ *         -exclusiveFile [file path]
+ *         <p>
+ *         options to determine target methods: [-jar|-class|-prefix|-]
+ *         <p>
+ * 
+ * 
+ *         Possible outputs: evoTest-reports folder which includes logs, xlsx
+ *         and other reports (listMethods.txt) [base_dir]
+ *         <p>
+ *         |__ evoTest-reports
+ *         <p>
+ *         |__logs
+ *         <p>
+ *         | |__*.log
+ *         <p>
+ *         |__*.xlsx
+ *         <p>
+ *         |__targetMethods.txt
+ *         <p>
+ *         |__successfulMethods.txt
+ *         <p>
+ * 
  */
 @SuppressWarnings("deprecation")
 public class EvosuiteForMethod {
@@ -74,14 +91,14 @@ public class EvosuiteForMethod {
 	public static String projectName;
 	public static String projectId; // ex: 1_tullibee (project folder name)
 	static FilterConfiguration filter;
-	
+
 	private URLClassLoader evoTestClassLoader;
 
 	public static void main(String[] args) {
 		execute(args);
 		System.exit(0);
 	}
-	
+
 	public static List<EvoTestResult> generateTests(String[] args) {
 		return execute(args);
 	}
@@ -90,17 +107,18 @@ public class EvosuiteForMethod {
 		List<EvoTestResult> results = new ArrayList<>();
 		StringBuffer strategy = new StringBuffer();
 		try {
-			//String workingDir = SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee";
-			//System.setProperty("user.dir", workingDir);
+			// String workingDir = SFConfiguration.sfBenchmarkFolder + File.separator +
+			// "1_tullibee";
+			// System.setProperty("user.dir", workingDir);
 			setup();
 			log.error("enter EvosuiteForMethod!");
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
 			Settings.setup(args);
-			
-			if(!Settings.insterestedProjects.contains(projectName)) {
+
+			if (!Settings.insterestedProjects.contains(projectName)) {
 				return new ArrayList<>();
 			}
-			
+
 			/**
 			 * show the statistics of the methods under class
 			 */
@@ -109,31 +127,29 @@ public class EvosuiteForMethod {
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
 						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
-			} 
+			}
 			/**
 			 * execute the test
 			 */
 			else {
-				for(int i = 0;i<args.length;i++) {
+				for (int i = 0; i < args.length; i++) {
 					strategy.append(args[i]);
 				}
 				String strastr = strategy.toString();
-				if(strastr.indexOf("MOSA")>=0) {
+				if (strastr.indexOf("MOSA") >= 0) {
 					strastr = "MOSA";
-				}
-				else {
-					if(strastr.indexOf("Random")>=0) {
+				} else {
+					if (strastr.indexOf("Random") >= 0) {
 						strastr = "Random";
-					}
-					else {
+					} else {
 						strastr = "MonotonicGA";
 					}
 				}
 				FitnessEffectiveRecorder fitnessRecorder;
 				DistributionRecorder distributionRecorder;
-				
+
 				List<ExperimentRecorder> recorderList = new ArrayList<>();
-				
+
 				if (Settings.getIteration() > 1) {
 					fitnessRecorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
 					distributionRecorder = new IterDistributionRecorder(strastr);
@@ -156,12 +172,12 @@ public class EvosuiteForMethod {
 				}
 				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.ALL_OPTIONS);
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
-				
+
 				String[] truncatedArgs = extractArgs(args);
-				
-				Properties.CLIENT_ON_THREAD = true;
-				Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-				
+
+				// Properties.CLIENT_ON_THREAD = true;
+				// Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
 				if (Settings.getTestLevel() == TestLevel.lMethod) {
 					results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName, recorderList);
 				} else {
@@ -172,7 +188,7 @@ public class EvosuiteForMethod {
 			e.printStackTrace();
 			log.error("Error!", e);
 		}
-		
+
 		log.info("Finish!");
 		return results;
 	}
@@ -189,20 +205,20 @@ public class EvosuiteForMethod {
 		}
 		LoggerUtils.setupLogger(Settings.getReportFolder(), projectId);
 		log = LoggerUtils.getLogger(EvosuiteForMethod.class);
-//		Properties.MAX_OPEN_FILES_PER_PROCESS = 250;
+		// Properties.MAX_OPEN_FILES_PER_PROCESS = 250;
 		ExternalProcessHandler.terminateClientsIfCannotCancelGentlely = true;
 		return root;
 	}
-	
+
 	private CommandLine parseCommandLine(String[] args) {
 		try {
 			Options options = CommandLineParameters.getCommandLineOptions();
-			
+
 			String version = EvoSuite.class.getPackage().getImplementationVersion();
 			if (version == null) {
 				version = "";
 			}
-			
+
 			// create the parser
 			CommandLineParser parser = new GnuParser();
 			// parse the command line arguments
@@ -214,7 +230,7 @@ public class EvosuiteForMethod {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * 
 	 * */
@@ -230,7 +246,7 @@ public class EvosuiteForMethod {
 		CommandLine cmd = parseCommandLine(args);
 		ensureClasspath(cmd);
 		if (cmd.hasOption("class")) {
-			return new String[] {cmd.getOptionValue("class")};
+			return new String[] { cmd.getOptionValue("class") };
 		}
 		String[] listClassesArgs = ArrayUtils.addAll(args, "-listClasses");
 		EvoSuite evosuite = new EvoSuite();
@@ -254,8 +270,8 @@ public class EvosuiteForMethod {
 		evoTestClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 	}
 
-	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, 
-			String projectName, List<ExperimentRecorder> recorders) {
+	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName,
+			List<ExperimentRecorder> recorders) {
 		List<EvoTestResult> results = new ArrayList<>();
 		for (String className : targetClasses) {
 			try {
@@ -270,42 +286,41 @@ public class EvosuiteForMethod {
 					if (!filter.isValidElementId(projectName, methodID)) {
 						continue;
 					}
-					
-					if(Settings.investigatedMethods != null && Settings.investigatedMethods.contains(methodID)) {
+
+					if (Settings.investigatedMethods != null && Settings.investigatedMethods.containsKey(methodID)) {
 						continue;
 					}
-					
-					if(Settings.easyMethods != null && !Settings.easyMethods.contains(methodID)) {
+
+					if (Settings.easyMethods != null && !Settings.easyMethods.containsKey(methodID)) {
 						continue;
 					}
-					
+
 					try {
 						for (int i = 0; i < Settings.getIteration(); i++) {
-							String[] evoArgs = null;
-							try {
-								if(!ProgramArgumentUtils.hasOpt(args, "-seed")) {
-									long seed = System.currentTimeMillis();
-									evoArgs = ArrayUtils.addAll(args, 
-											"-seed", String.valueOf(seed)
-											);
-									Randomness.setSeed(seed);
-								}
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-							
+							String[] evoArgs = args;
+							// try {
+							// if(!ProgramArgumentUtils.hasOpt(args, "-seed")) {
+							// long seed = System.currentTimeMillis();
+							// evoArgs = ArrayUtils.addAll(args,
+							// "-seed", String.valueOf(seed)
+							// );
+							// Randomness.setSeed(seed);
+							// }
+							// } catch (Exception e) {
+							// e.printStackTrace();
+							// }
+
 							EvoTestResult result = runMethod(methodName, className, evoArgs, recorders);
 							results.add(result);
 						}
-						
-						for(ExperimentRecorder recorder: recorders) {
-							recorder.recordEndIterations(methodName, className);							
+
+						for (ExperimentRecorder recorder : recorders) {
+							recorder.recordEndIterations(methodName, className);
 						}
 					} catch (Throwable t) {
 						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
-								.append("#").append(methodName).append("\n")
-								.append("Error: \n")
-								.append(t.getMessage()).toString();
+								.append("#").append(methodName).append("\n").append("Error: \n").append(t.getMessage())
+								.toString();
 						log.debug(msg, t);
 					}
 				}
@@ -313,24 +328,23 @@ public class EvosuiteForMethod {
 				log.error("Error!", t);
 			}
 		}
-		
+
 		return results;
 	}
 
-	private EvoTestResult runMethod(String methodName, String className, String[] evosuiteArgs, List<ExperimentRecorder> recorders) {
+	private EvoTestResult runMethod(String methodName, String className, String[] evosuiteArgs,
+			List<ExperimentRecorder> recorders) {
 		log.info("----------------------------------------------------------------------");
 		log.info("RUN METHOD: " + className + "#" + methodName);
 		log.info("----------------------------------------------------------------------");
-		
-		// $EVOSUITE -criterion branch -target tullibee.jar -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore
-		
-		String[] args = ArrayUtils.addAll(evosuiteArgs, 
-				"-class", className,
-				"-Dtarget_method", methodName
-				);
+
+		// $EVOSUITE -criterion branch -target tullibee.jar
+		// -Doutput_variables=TARGET_CLASS,criterion,Size,Length,MutationScore
+
+		String[] args = ArrayUtils.addAll(evosuiteArgs, "-class", className, "-Dtarget_method", methodName);
 		return invokeEvosuite(methodName, className, args, recorders);
 	}
-	
+
 	public List<EvoTestResult> runAllClasses(String[] targetClasses, String[] args, String projectName,
 			List<ExperimentRecorder> recorders) {
 		List<EvoTestResult> results = new ArrayList<>();
@@ -347,14 +361,13 @@ public class EvosuiteForMethod {
 							EvoTestResult result = runClass(className, args, recorders);
 							results.add(result);
 						}
-						
-						for(ExperimentRecorder recorder: recorders) {
-							recorder.recordEndIterations("", className);							
+
+						for (ExperimentRecorder recorder : recorders) {
+							recorder.recordEndIterations("", className);
 						}
 					} catch (Throwable t) {
-						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className).append("\n")
-								.append("Error: \n")
-								.append(t.getMessage()).toString();
+						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
+								.append("\n").append("Error: \n").append(t.getMessage()).toString();
 						log.debug(msg, t);
 					}
 				}
@@ -362,22 +375,25 @@ public class EvosuiteForMethod {
 				log.error("Error!", t);
 			}
 		}
-		
+
 		return results;
 	}
-	
+
 	private EvoTestResult runClass(String className, String[] evosuiteArgs, List<ExperimentRecorder> recorders) {
 		log.info("----------------------------------------------------------------------");
 		log.info("RUN CLASS: " + className);
 		log.info("----------------------------------------------------------------------");
-		String[] args = ArrayUtils.addAll(evosuiteArgs, 
-				"-class", className
-				);
+		String[] args = ArrayUtils.addAll(evosuiteArgs, "-class", className);
 		return invokeEvosuite("", className, args, recorders);
 	}
 
 	@SuppressWarnings("unchecked")
-	private EvoTestResult invokeEvosuite(String methodName, String className, String[] args, List<ExperimentRecorder> recorders) {
+	private EvoTestResult invokeEvosuite(String methodName, String className, String[] args,
+			List<ExperimentRecorder> recorders) {
+		long seed = System.currentTimeMillis();
+		args = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
+		log.error(methodName + " has seed " + seed);
+
 		EvoTestResult result = null;
 		try {
 			log.info("evosuite args: " + StringUtils.join((Object[]) args, " "));
@@ -385,46 +401,44 @@ public class EvosuiteForMethod {
 			List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
 			for (List<TestGenerationResult> l : list) {
 				for (TestGenerationResult r : l) {
-					
+
 					System.out.println("Used time: " + r.getElapseTime());
 					System.out.println("Used generations: " + r.getAge());
 					int count = 0;
-					for(String key: RuntimeRecord.methodCallAvailabilityMap.keySet()) {
-						if(RuntimeRecord.methodCallAvailabilityMap.get(key)) {
+					for (String key : RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+						if (RuntimeRecord.methodCallAvailabilityMap.get(key)) {
 							count++;
-						}
-						else {
+						} else {
 							System.out.println("Missing analyzing call: " + key);
 						}
 					}
 					int size = RuntimeRecord.methodCallAvailabilityMap.size();
 					double ratio = -1;
-					if(size != 0) {
-						ratio = (double)count/size;
+					if (size != 0) {
+						ratio = (double) count / size;
 					}
 					System.out.println("Method call availability: " + ratio);
-					
+
 					System.out.println("Available calls: " + r.getAvailableCalls());
 					System.out.println("Unavailable calls: " + r.getUnavailableCalls());
-					
-					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), 
-							r.getAge(), r.getAvailabilityRatio(), r.getProgressInformation(),
-							r.getIPFlagCoverage(), r.getUncoveredIPFlags(), r.getDistributionMap(),r.getUncoveredBranchDistribution());
+
+					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), r.getAge(), r.getAvailabilityRatio(),
+							r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
+							r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
-					
-					for(ExperimentRecorder recorder: recorders) {
-						recorder.record(className, methodName, result);						
+
+					for (ExperimentRecorder recorder : recorders) {
+						recorder.record(className, methodName, result);
 					}
 				}
 			}
 		} catch (Exception e) {
-			for(ExperimentRecorder recorder: recorders) {
-				recorder.recordError(className, methodName, e);				
+			for (ExperimentRecorder recorder : recorders) {
+				recorder.recordError(className, methodName, e);
 			}
 		}
-		
-		
+
 		return result;
 	}
 }

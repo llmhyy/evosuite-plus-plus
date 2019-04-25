@@ -24,15 +24,15 @@ public class BasicTest extends AbstractETest{
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
 //		Properties.PORT = 8000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		Properties.BRANCH_COMPARISON_TYPES = true;
 		Properties.TIMEOUT = 10000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 300;
+		int timeBudget = 30000;
 		BasicTest t = new BasicTest();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		

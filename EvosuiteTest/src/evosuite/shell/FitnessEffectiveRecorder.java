@@ -50,7 +50,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		rowData.add(r.getRatio());
 		rowData.add(r.getIPFlagCoverage());
 		rowData.add(r.getUncoveredFlags());
-		rowData.add(Randomness.getSeed());
+		rowData.add(r.getRandomSeed());
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 			logSuccessfulMethods(className, methodName);

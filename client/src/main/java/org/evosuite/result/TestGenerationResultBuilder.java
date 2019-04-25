@@ -41,6 +41,7 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.LoggingUtils;
+import org.evosuite.utils.Randomness;
 
 public class TestGenerationResultBuilder {
 
@@ -83,6 +84,7 @@ public class TestGenerationResultBuilder {
 		result.setUncoveredIPFlags(testSuite.getUncoveredIPFlags());
 		result.setUncoveredBranchDistribution(testSuite.getUncoveredBranchDistribution());
 		result.setDistributionMap(testSuite.getDistributionMap());
+		result.setRandomSeed(Randomness.getSeed());
 		
 		return result;
 	}

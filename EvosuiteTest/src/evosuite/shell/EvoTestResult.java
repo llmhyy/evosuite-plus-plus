@@ -15,13 +15,14 @@ public class EvoTestResult {
 	private int[] distribution;
 	private Map<Integer, Double> unCoveredBranchDistribution;
 	private Map<Integer, Integer> distributionMap;
-	
+	private long randomSeed;
+
 	private double IPFlagCoverage;
 	private String uncoveredFlags;
 
-	public EvoTestResult(int time, double coverage, int age, 
-			double ratio, List<Double> progress, 
-			double IPFlagCoverage, String uncoveredFlag, Map<Integer, Integer> distributionMap,  Map<Integer, Double> unCoveredBranchDistribution) {
+	public EvoTestResult(int time, double coverage, int age, double ratio, List<Double> progress, double IPFlagCoverage,
+			String uncoveredFlag, Map<Integer, Integer> distributionMap,
+			Map<Integer, Double> unCoveredBranchDistribution, long randomSeed) {
 		super();
 		this.time = time;
 		this.coverage = coverage;
@@ -32,6 +33,7 @@ public class EvoTestResult {
 		this.uncoveredFlags = uncoveredFlag;
 		this.setDistributionMap(distributionMap);
 		this.setUncoveredBranchDistribution(unCoveredBranchDistribution);
+		this.randomSeed = randomSeed;
 	}
 
 	public int getTime() {
@@ -113,21 +115,25 @@ public class EvoTestResult {
 	public void setDistribution(int[] distribution) {
 		this.distribution = distribution;
 	}
-	
-	public Map<Integer, Integer> getDistributionMap(){
+
+	public Map<Integer, Integer> getDistributionMap() {
 		return distributionMap;
 	}
-	
+
 	public void setDistributionMap(Map<Integer, Integer> dsitributionMap) {
 		this.distributionMap = dsitributionMap;
 	}
-	
-	public Map<Integer, Double> getUncoveredBranchDistribution(){
+
+	public Map<Integer, Double> getUncoveredBranchDistribution() {
 		return unCoveredBranchDistribution;
 	}
-	
+
 	public void setUncoveredBranchDistribution(Map<Integer, Double> uncoveredBranchDistribution) {
 		this.unCoveredBranchDistribution = uncoveredBranchDistribution;
+	}
+
+	public long getRandomSeed() {
+		return this.randomSeed;
 	}
 
 }
