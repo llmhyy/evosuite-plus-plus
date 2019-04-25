@@ -35,6 +35,7 @@ public class ResultAnalzyer {
 //						String methodName = (String) data.get(1);
 						
 						Double coverage = (double) data.get(3);
+						Double age = (double) data.get(4);
 						if(coverage == 1) {
 							easyMethods.add(data);
 						}
@@ -44,7 +45,7 @@ public class ResultAnalzyer {
 							}
 							
 							Double IPFCoverage = (double) data.get(6);
-							if(coverage == 0) {
+							if(coverage == 0 || age < 10) {
 								longRunningTimeMethods.add(data);
 							}
 							else if(IPFCoverage == 1) {
