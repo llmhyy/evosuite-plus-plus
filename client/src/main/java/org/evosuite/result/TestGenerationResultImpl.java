@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.BranchDistributionInformation;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.testcase.TestCase;
@@ -102,6 +103,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	private Map<Integer, Integer> distributionMap;
 	
 	private long randomSeed;
+	
+	private List<BranchDistributionInformation> branchInformation;
 	
 	/** Did test generation succeed? */
 	public Status getTestGenerationStatus() {
@@ -423,6 +426,14 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	@Override
 	public void setRandomSeed(long randomSeed) {
 		this.randomSeed = randomSeed;
+	}
+	
+	public List<BranchDistributionInformation> getBranchInformation() {
+		return branchInformation;
+	}
+
+	public void setBranchInformation(List<BranchDistributionInformation> branchInformation) {
+		this.branchInformation = branchInformation;
 	}
 
 }

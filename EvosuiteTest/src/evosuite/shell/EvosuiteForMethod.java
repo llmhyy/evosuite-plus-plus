@@ -142,11 +142,17 @@ public class EvosuiteForMethod {
 					if (strastr.indexOf("Random") >= 0) {
 						strastr = "Random";
 					} else {
+						if(strastr.indexOf("ONEBRANCH")>=0) {
+							strastr = "ONEBRANCH";
+						}
+						else {
 						strastr = "MonotonicGA";
+						}
 					}
 				}
 				FitnessEffectiveRecorder fitnessRecorder;
 				DistributionRecorder distributionRecorder;
+				OneBranchRecorder oneBranchRecorder;
 
 				List<ExperimentRecorder> recorderList = new ArrayList<>();
 
@@ -158,8 +164,11 @@ public class EvosuiteForMethod {
 				} else {
 					fitnessRecorder = new FitnessEffectiveRecorder();
 					distributionRecorder = new DistributionRecorder(strastr);
+					oneBranchRecorder = new OneBranchRecorder(strastr);
+					
 					recorderList.add(fitnessRecorder);
 					recorderList.add(distributionRecorder);
+					recorderList.add(oneBranchRecorder);
 				}
 				String existingReport = distributionRecorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;

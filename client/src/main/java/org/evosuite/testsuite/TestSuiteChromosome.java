@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.BranchDistributionInformation;
 import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
@@ -63,7 +64,10 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private Map<Integer, Double> uncoveredBranchDistribution;
 	
 	private Map<Integer, Integer> distributionMap;
+	private List<BranchDistributionInformation> branchInformation;
 	
+
+
 	/**
 	 * Add an additional secondary objective to the end of the list of
 	 * objectives
@@ -409,5 +413,13 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	
 	public Map<Integer, Integer> getDistributionMap(){
 		return distributionMap;
+	}
+	
+	public List<BranchDistributionInformation> getBranchInformation() {
+		return branchInformation;
+	}
+
+	public void setBranchInformation(List<BranchDistributionInformation> branchInformation) {
+		this.branchInformation = branchInformation;
 	}
 }
