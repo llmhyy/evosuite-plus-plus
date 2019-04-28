@@ -308,7 +308,7 @@ public class EvosuiteForMethod {
 						for (int i = 0; i < Settings.getIteration(); i++) {
 							String[] evoArgs = args;
 							try {
-								if (!ProgramArgumentUtils.hasOpt(args, "-seed")) {
+								if (!ProgramArgumentUtils.hasOpt(args, "-seed") && Settings.easyMethods != null) {
 									List<Long> seeds = Settings.easyMethods.get(methodID);
 									if(seeds!=null && !seeds.isEmpty()) {
 										Long seed = seeds.get(0);

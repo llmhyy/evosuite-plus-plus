@@ -85,8 +85,8 @@ public class Settings {
 		}
 	}
 	
-	public static Map<String, List<Long>> investigatedMethods = new HashMap<>(); 
-	public static Map<String, List<Long>> easyMethods  = new HashMap<>();
+	public static Map<String, List<Long>> investigatedMethods; 
+	public static Map<String, List<Long>> easyMethods;
 	
 	private static void parseInterestedMethods(String branchExperimentFile2) {
 		if(branchExperimentFile2 == null) return;
