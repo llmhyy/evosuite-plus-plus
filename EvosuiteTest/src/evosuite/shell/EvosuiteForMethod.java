@@ -443,6 +443,7 @@ public class EvosuiteForMethod {
 							r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
+					result.setBranchInformation(r.getBranchInformation());
 
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
