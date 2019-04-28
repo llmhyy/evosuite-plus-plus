@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -86,8 +85,8 @@ public class Settings {
 		}
 	}
 	
-	public static Map<String, List<Long>> investigatedMethods; 
-	public static Map<String, List<Long>> easyMethods;
+	public static Map<String, List<Long>> investigatedMethods = new HashMap<>(); 
+	public static Map<String, List<Long>> easyMethods  = new HashMap<>();
 	
 	private static void parseInterestedMethods(String branchExperimentFile2) {
 		if(branchExperimentFile2 == null) return;
