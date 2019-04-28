@@ -85,6 +85,7 @@ public class TestGenerationResultBuilder {
 		result.setUncoveredBranchDistribution(testSuite.getUncoveredBranchDistribution());
 		result.setDistributionMap(testSuite.getDistributionMap());
 		result.setRandomSeed(Randomness.getSeed());
+		result.setBranchInformation(testSuite.getBranchInformation());
 		
 		return result;
 	}

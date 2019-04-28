@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.BranchDistributionInformation;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.testcase.TestCase;
@@ -125,4 +126,8 @@ public interface TestGenerationResult extends Serializable {
 
 	public long getRandomSeed(); 
 	public void setRandomSeed(long randomSeed); 
+	
+	public List<BranchDistributionInformation> getBranchInformation();
+	public void setBranchInformation(List<BranchDistributionInformation> branchInformation); 
+
 }

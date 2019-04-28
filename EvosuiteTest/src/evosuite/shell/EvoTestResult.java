@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.BranchDistributionInformation;
+
 public class EvoTestResult {
 	private int time;
 	private double coverage;
@@ -15,6 +17,7 @@ public class EvoTestResult {
 	private int[] distribution;
 	private Map<Integer, Double> unCoveredBranchDistribution;
 	private Map<Integer, Integer> distributionMap;
+	private List<BranchDistributionInformation> branchInformation;
 	private long randomSeed;
 
 	private double IPFlagCoverage;
@@ -134,6 +137,14 @@ public class EvoTestResult {
 
 	public long getRandomSeed() {
 		return this.randomSeed;
+	}
+
+	public List<BranchDistributionInformation> getBranchInformation() {
+		return branchInformation;
+	}
+
+	public void setBranchInformation(List<BranchDistributionInformation> branchInformation) {
+		this.branchInformation = branchInformation;
 	}
 
 }
