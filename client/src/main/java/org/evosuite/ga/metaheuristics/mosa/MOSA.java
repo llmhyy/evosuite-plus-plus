@@ -491,7 +491,8 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		}
 		this.setDistribution(distribution);
 		this.setDistributionMap(distributionMap);
-
+		double availabilityRatio = getAvailabilityRatio();
+		this.setAvailabilityRatio(availabilityRatio);
 	}
 
 	private void printBestIndividualForUncoveredGoals(Set<FitnessFunction<T>> dominateUncoveredGoals) {
