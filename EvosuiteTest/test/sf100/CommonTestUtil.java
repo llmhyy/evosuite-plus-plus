@@ -3,6 +3,8 @@ package sf100;
 import java.io.File;
 import java.util.List;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import evosuite.shell.EvoTestResult;
 import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.FileUtils;
@@ -11,7 +13,8 @@ import evosuite.shell.experiment.SFConfiguration;
 
 public class CommonTestUtil {
 	public static List<EvoTestResult> evoTestSingleMethod(String projectId, String projectName,
-			String[] targetMethods, String fitnessAppraoch, int iteration, long seconds, boolean context) {
+			String[] targetMethods, String fitnessAppraoch, int iteration, 
+			long seconds, boolean context, Long seed) {
 		/* configure */
 	
 		/* run */
@@ -21,12 +24,13 @@ public class CommonTestUtil {
 
 //		boolean instrumentContext = true;
 		String[] args = new String[] {
-//				"-generateTests",
-//				"-Dstrategy", "ONEBRANCH",
+				"-generateTests",
+				"-Dstrategy", "ONEBRANCH",
+				"-Dalgorithm", "random",
 //				"-generateSuiteUsingDSE",
-				"-generateMOSuite",
-				"-Dstrategy", "MOSUITE",
-				"-Dalgorithm", "MOSA",
+//				"-generateMOSuite",
+//				"-Dstrategy", "MOSUITE",
+//				"-Dalgorithm", "MOSA",
 //				"-generateRandom",
 //				"-Dstrategy", "random",
 //				"-generateSuite",
@@ -49,7 +53,7 @@ public class CommonTestUtil {
 				"-Dp_test_insert", "0.3",
 //				"-Dheadless_chicken_test", "true",
 				"-Dp_change_parameter", "0.6",
-				"-Dlocal_search_rate", "30",
+//				"-Dlocal_search_rate", "30",
 				"-Dp_functional_mocking", "0",
 				"-Dmock_if_no_generator", "false",
 				"-Dfunctional_mocking_percent", "0",
@@ -72,9 +76,15 @@ public class CommonTestUtil {
 //				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
-//				"-seed", "1552903660892"
+//				"-seed", "1556035769590"
 				
 		};
+		
+		if(seed != null) {
+			args = ArrayUtils.add(args, "-seed");
+			args = ArrayUtils.add(args,  seed.toString());
+		}
+		
 		SFBenchmarkUtils.setupProjectProperties(projectId);
 		return EvosuiteForMethod.generateTests(args);
 	}

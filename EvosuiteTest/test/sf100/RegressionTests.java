@@ -42,10 +42,10 @@ public class RegressionTests {
 		String fitnessApproach = "fbranch";
 		int repeatTime = 3;
 		int budget = 100;
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true, null);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true, null);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -75,10 +75,10 @@ public class RegressionTests {
 		String fitnessApproach = "fbranch";
 		int repeatTime = 3;
 		int budget = 100;
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true, null);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true, null);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){

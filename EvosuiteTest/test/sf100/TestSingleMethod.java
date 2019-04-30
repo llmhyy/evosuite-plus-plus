@@ -20,9 +20,9 @@ public class TestSingleMethod {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		
-//		Properties.SEARCH_BUDGET = 60000;
-//		Properties.GLOBAL_TIMEOUT = 60000;
-//		Properties.TIMEOUT = 3000000;
+		Properties.SEARCH_BUDGET = 60000;
+		Properties.GLOBAL_TIMEOUT = 60000;
+		Properties.TIMEOUT = 3000000;
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		FileUtils.deleteFolder(new File("/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest/evoTest-reports"));
@@ -46,9 +46,10 @@ public class TestSingleMethod {
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		String fitnessApproach = "branch";
-		int repeatTime = 1;
+		int repeatTime = 3;
 		int budget = 10;
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+				targetMethods, fitnessApproach, repeatTime, budget, true, null);
 		
 //		fitnessApproach = "branch";
 //		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
@@ -76,6 +77,7 @@ public class TestSingleMethod {
 		String projectId = "102_colt";
 		String projectName = "colt";
 		String[] targetMethods = new String[]{
+//				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
 				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
 //				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
 //				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
@@ -90,11 +92,57 @@ public class TestSingleMethod {
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		String fitnessApproach = "fbranch";
 		int repeatTime = 1;
-		int budget = 100;
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		int budget = 1000;
+//		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
-//		fitnessApproach = "branch";
-//		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		fitnessApproach = "branch";
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+				targetMethods, fitnessApproach, repeatTime, budget, true, null);
+		
+		System.out.println("fbranch" + ":");
+		for(EvoTestResult lu: results0){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+			System.out.println(lu.getAge());
+			System.out.println(lu.getDistribution());
+		}
+		
+		System.out.println("branch" + ":");
+		for(EvoTestResult lu: results1){
+			System.out.println(lu.getCoverage());
+			System.out.println(lu.getProgress());
+			System.out.println(lu.getAge());
+			System.out.println(lu.getDistribution());
+		}
+	}
+	
+	@Test
+	public void runTest5() {
+		String projectId = "103_jblas";
+		String projectName = "jblas";
+		String[] targetMethods = new String[]{
+//				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
+				"org.jblas.DoubleMatrix#min()"
+//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
+//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
+//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
+//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
+//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
+//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		String fitnessApproach = "fbranch";
+		int repeatTime = 1;
+		int budget = 100;
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+				targetMethods, fitnessApproach, repeatTime, budget, true, 1556171038486L);
+		
+		fitnessApproach = "branch";
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+				targetMethods, fitnessApproach, repeatTime, budget, true, 1556171038486L);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -119,7 +167,9 @@ public class TestSingleMethod {
 		String projectName = "math";
 		String[] targetMethods = new String[]{
 //				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
-				"org.apache.commons.math.stat.descriptive.SummaryStatistics#equals(Ljava/lang/Object;)Z"
+//				"org.apache.commons.math.stat.descriptive.SummaryStatistics#equals(Ljava/lang/Object;)Z"
+//				"org.apache.commons.math.linear.OpenMapRealVector#subtract(Lorg/apache/commons/math/linear/OpenMapRealVector;)Lorg/apache/commons/math/linear/OpenMapRealVector;"
+				"org.apache.commons.math.linear.OpenMapRealVector#add(Lorg/apache/commons/math/linear/OpenMapRealVector;)Lorg/apache/commons/math/linear/OpenMapRealVector;"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -127,11 +177,12 @@ public class TestSingleMethod {
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		String fitnessApproach = "fbranch";
 		int repeatTime = 1;
-		int budget = 2000000;
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		int budget = 100000;
+//		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+				targetMethods, fitnessApproach, repeatTime, budget, true, null);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
