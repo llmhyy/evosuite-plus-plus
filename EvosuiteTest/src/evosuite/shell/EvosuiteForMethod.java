@@ -433,11 +433,12 @@ public class EvosuiteForMethod {
 					if (size != 0) {
 						ratio = (double) count / size;
 					}
+					r.setAvailabilityRatio(ratio);
 					System.out.println("Method call availability: " + ratio);
 
 					System.out.println("Available calls: " + r.getAvailableCalls());
 					System.out.println("Unavailable calls: " + r.getUnavailableCalls());
-
+					
 					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), r.getAge(), r.getAvailabilityRatio(),
 							r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
 							r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed());
