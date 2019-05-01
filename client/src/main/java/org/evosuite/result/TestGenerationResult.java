@@ -129,5 +129,8 @@ public interface TestGenerationResult extends Serializable {
 	
 	public List<BranchDistributionInformation> getBranchInformation();
 	public void setBranchInformation(List<BranchDistributionInformation> branchInformation); 
+	
+	public Map<String, Boolean> getMethodCallAvailabilityMap();
+	public void setMethodCallAvailabilityMap(Map<String, Boolean> methodCallAvailabilityMap);
 
 }

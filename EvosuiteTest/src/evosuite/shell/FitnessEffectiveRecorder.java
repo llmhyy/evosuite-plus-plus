@@ -6,9 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-import org.evosuite.Properties;
-import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 
 import evosuite.shell.excel.ExcelWriter;
@@ -30,15 +29,29 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 				"Class", 
 				"Method", 
 				"Execution Time", 
-				"Coverage", "Age", 
-				"Cal Availability", 
+				"Coverage", 
+				"Age", 
+				"Call Availability", 
 				"IP Flag Coverage",
 				"Uncovered IF Flag",
-				"Random Seed"
+				"Random Seed",
+				"Unavailable Call"
 				}, 
 				0);
 	}
 
+	
+	public String getUnaviableCall(Map<String, Boolean> map) {
+		StringBuffer buffer = new StringBuffer();
+		for(String call: map.keySet()) {
+			if(!map.get(call)) {
+				buffer.append(call + "\n");				
+			}
+		}
+		
+		return buffer.toString();
+	}
+	
 	@Override
 	public void record(String className, String methodName, EvoTestResult r) {
 		List<Object> rowData = new ArrayList<Object>();
@@ -51,6 +64,8 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		rowData.add(r.getIPFlagCoverage());
 		rowData.add(r.getUncoveredFlags());
 		rowData.add(r.getRandomSeed());
+		String unavailableString = getUnaviableCall(r.getMethodCallAvailability());
+		rowData.add(unavailableString);
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 			logSuccessfulMethods(className, methodName);

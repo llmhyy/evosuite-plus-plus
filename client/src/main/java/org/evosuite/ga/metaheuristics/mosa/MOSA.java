@@ -19,6 +19,7 @@ package org.evosuite.ga.metaheuristics.mosa;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -41,6 +42,7 @@ import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.ga.metaheuristics.mosa.comparators.OnlyCrowdingComparator;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.testcase.TestChromosome;
@@ -243,10 +245,11 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		bestTestCases.setDistribution(this.getDistribution());
 		bestTestCases.setDistributionMap(this.getDistributionMap());
 		
-		Set<FitnessFunction<T>> IPFlags = findIPFlagBranches();
-		Set<FitnessFunction<T>> uncoveredIPFlags = findUncoveredIPFlags(IPFlags);
+		Map<FitnessFunction<T>, String> IPFlags = findIPFlagBranches();
+		Map<FitnessFunction<T>, String> uncoveredIPFlags = findUncoveredIPFlags(IPFlags);
 		
 		bestTestCases.setUncoveredIPFlags(toIPFlagString(uncoveredIPFlags));
+		bestTestCases.setMethodCallAvailabilityMap(RuntimeRecord.methodCallAvailabilityMap);
 		
 		double IPFlagCoverage = (double)uncoveredIPFlags.size()/IPFlags.size();
 		bestTestCases.setIPFlagCoverage(1-IPFlagCoverage);
@@ -256,20 +259,20 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		return bests;
 	}
 	
-	private String toIPFlagString(Set<FitnessFunction<T>> uncoveredIPFlags) {
+	private String toIPFlagString(Map<FitnessFunction<T>, String> uncoveredIPFlags) {
 		StringBuffer buffer = new StringBuffer();
-		for(FitnessFunction<T> ff: uncoveredIPFlags) {
+		for(FitnessFunction<T> ff: uncoveredIPFlags.keySet()) {
 			BranchCoverageGoal goal = transformBranchCoverage(ff);
-			buffer.append(goal + "\n");
+			buffer.append(goal + "~" + uncoveredIPFlags.get(ff) + "\n");
 		}
 		return buffer.toString();
 	}
 	
-	private Set<FitnessFunction<T>> findUncoveredIPFlags(Set<FitnessFunction<T>> iPFlags) {
-		Set<FitnessFunction<T>> uncoveredIPFlags = new HashSet<>();
-		for(FitnessFunction<T> goal: iPFlags) {
+	private Map<FitnessFunction<T>, String> findUncoveredIPFlags(Map<FitnessFunction<T>, String> iPFlags) {
+		Map<FitnessFunction<T>, String> uncoveredIPFlags = new HashMap<>();
+		for(FitnessFunction<T> goal: iPFlags.keySet()) {
 			if(uncoveredGoals.contains(goal)) {
-				uncoveredIPFlags.add(goal);
+				uncoveredIPFlags.put(goal, iPFlags.get(goal));
 			}
 		}
 		return uncoveredIPFlags;
@@ -280,20 +283,27 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		return r;
 	}
 	
-	private boolean isInterproceduralFlagProblem(BranchCoverageGoal goal) {
+	private String getCalledInterproceduralFlagMethod(BranchCoverageGoal goal) {
+		String methodSig = null;
+		
 		BytecodeInstruction instruction = goal.getBranch().getInstruction();
 		
 		BytecodeInstruction interproceduralFlagCall = instruction.getSourceOfStackInstruction(0);
-		boolean isInterproceduralFlag = false;
+//		boolean isInterproceduralFlag = false;
 		if (interproceduralFlagCall != null && interproceduralFlagCall.getASMNode() instanceof MethodInsnNode) {
 			MethodInsnNode mNode = (MethodInsnNode) interproceduralFlagCall.getASMNode();
 			String desc = mNode.desc;
 			String returnType = getReturnType(desc);
-			isInterproceduralFlag = returnType.equals("Z");
+			boolean isInterproceduralFlag = returnType.equals("Z");
+			
+			if(isInterproceduralFlag) {
+				methodSig = interproceduralFlagCall.getClassName() + "." + interproceduralFlagCall.getCalledMethod();	
+				System.currentTimeMillis();
+			}
 		}
 
 		
-		return isInterproceduralFlag;
+		return methodSig;
 	}
 	
 	private BranchCoverageGoal transformBranchCoverage(FitnessFunction<T> fitnessFunction) {
@@ -308,12 +318,13 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		return goal;
 	}
 	
-	private Set<FitnessFunction<T>> findIPFlagBranches(){
-		Set<FitnessFunction<T>> IPFlagBranches = new HashSet<>();
+	private Map<FitnessFunction<T>, String> findIPFlagBranches(){
+		Map<FitnessFunction<T>, String> IPFlagBranches = new HashMap<>();
 		for(FitnessFunction<T> fitnessFunction: fitnessFunctions) {
 			BranchCoverageGoal goal = transformBranchCoverage(fitnessFunction);
-			if(goal != null && isInterproceduralFlagProblem(goal)) {
-				IPFlagBranches.add(fitnessFunction);
+			String methodString = getCalledInterproceduralFlagMethod(goal);
+			if(goal != null && methodString != null) {
+				IPFlagBranches.put(fitnessFunction, methodString);
 			}
 			
 		}

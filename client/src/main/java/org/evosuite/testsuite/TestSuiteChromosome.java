@@ -21,6 +21,7 @@ package org.evosuite.testsuite;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private Map<Integer, Integer> distributionMap;
 	private List<BranchDistributionInformation> branchInformation;
 	
-
+	private Map<String, Boolean> methodCallAvailabilityMap = new HashMap<>();
 
 	/**
 	 * Add an additional secondary objective to the end of the list of
@@ -421,5 +422,13 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 
 	public void setBranchInformation(List<BranchDistributionInformation> branchInformation) {
 		this.branchInformation = branchInformation;
+	}
+
+	public Map<String, Boolean> getMethodCallAvailabilityMap() {
+		return methodCallAvailabilityMap;
+	}
+
+	public void setMethodCallAvailabilityMap(Map<String, Boolean> methodCallAvailabilityMap) {
+		this.methodCallAvailabilityMap = methodCallAvailabilityMap;
 	}
 }

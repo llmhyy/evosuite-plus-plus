@@ -20,6 +20,7 @@
 package org.evosuite.result;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -105,6 +106,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	private long randomSeed;
 	
 	private List<BranchDistributionInformation> branchInformation;
+	
+	private Map<String, Boolean> methodCallAvailabilityMap = new HashMap<>();
 	
 	/** Did test generation succeed? */
 	public Status getTestGenerationStatus() {
@@ -434,6 +437,14 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	public void setBranchInformation(List<BranchDistributionInformation> branchInformation) {
 		this.branchInformation = branchInformation;
+	}
+
+	public Map<String, Boolean> getMethodCallAvailabilityMap() {
+		return methodCallAvailabilityMap;
+	}
+
+	public void setMethodCallAvailabilityMap(Map<String, Boolean> methodCallAvailabilityMap) {
+		this.methodCallAvailabilityMap = methodCallAvailabilityMap;
 	}
 
 }

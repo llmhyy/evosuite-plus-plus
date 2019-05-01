@@ -441,7 +441,7 @@ public class EvosuiteForMethod {
 					
 					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), r.getAge(), r.getAvailabilityRatio(),
 							r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
-							r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed());
+							r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed(), r.getMethodCallAvailabilityMap());
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
 					result.setBranchInformation(r.getBranchInformation());

@@ -73,7 +73,7 @@ public class AbstractETest {
 
 				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, r.getAvailabilityRatio(),
 						r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
-						r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed());
+						r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed(), r.getMethodCallAvailabilityMap());
 			}
 		}
 

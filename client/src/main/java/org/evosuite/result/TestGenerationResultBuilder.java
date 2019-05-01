@@ -86,6 +86,7 @@ public class TestGenerationResultBuilder {
 		result.setDistributionMap(testSuite.getDistributionMap());
 		result.setRandomSeed(Randomness.getSeed());
 		result.setBranchInformation(testSuite.getBranchInformation());
+		result.setMethodCallAvailabilityMap(testSuite.getMethodCallAvailabilityMap());
 		
 		return result;
 	}

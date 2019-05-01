@@ -22,10 +22,12 @@ public class EvoTestResult {
 
 	private double IPFlagCoverage;
 	private String uncoveredFlags;
+	
+	private Map<String, Boolean> methodCallAvailability;
 
 	public EvoTestResult(int time, double coverage, int age, double ratio, List<Double> progress, double IPFlagCoverage,
 			String uncoveredFlag, Map<Integer, Integer> distributionMap,
-			Map<Integer, Double> unCoveredBranchDistribution, long randomSeed) {
+			Map<Integer, Double> unCoveredBranchDistribution, long randomSeed, Map<String, Boolean> map) {
 		super();
 		this.time = time;
 		this.coverage = coverage;
@@ -37,6 +39,7 @@ public class EvoTestResult {
 		this.setDistributionMap(distributionMap);
 		this.setUncoveredBranchDistribution(unCoveredBranchDistribution);
 		this.randomSeed = randomSeed;
+		this.setMethodCallAvailability(map);
 	}
 
 	public int getTime() {
@@ -145,6 +148,14 @@ public class EvoTestResult {
 
 	public void setBranchInformation(List<BranchDistributionInformation> branchInformation) {
 		this.branchInformation = branchInformation;
+	}
+
+	public Map<String, Boolean> getMethodCallAvailability() {
+		return methodCallAvailability;
+	}
+
+	public void setMethodCallAvailability(Map<String, Boolean> methodCallAvailability) {
+		this.methodCallAvailability = methodCallAvailability;
 	}
 
 }
