@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.evosuite.BranchDistributionInformation;
+import org.evosuite.ga.metaheuristics.RuntimeRecord;
 
 public class EvoTestResult {
 	private int time;
@@ -32,7 +33,6 @@ public class EvoTestResult {
 		this.time = time;
 		this.coverage = coverage;
 		this.age = age;
-		this.ratio = ratio;
 		this.progress = progress;
 		this.IPFlagCoverage = IPFlagCoverage;
 		this.uncoveredFlags = uncoveredFlag;
@@ -40,6 +40,20 @@ public class EvoTestResult {
 		this.setUncoveredBranchDistribution(unCoveredBranchDistribution);
 		this.randomSeed = randomSeed;
 		this.setMethodCallAvailability(map);
+		
+		int count = 0;
+		for (String key : map.keySet()) {
+			if (map.get(key)) {
+				count++;
+			} else {
+				System.out.println("Missing analyzing call: " + key);
+			}
+		}
+		int size = map.size();
+		this.ratio = -1;
+		if (size != 0) {
+			this.ratio = (double) count / size;
+		}
 	}
 
 	public int getTime() {

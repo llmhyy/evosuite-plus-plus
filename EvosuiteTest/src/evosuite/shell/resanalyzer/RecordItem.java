@@ -10,9 +10,10 @@ public class RecordItem {
 	double IPFlag;
 	String uncoveredFlags;
 	long randomSeed;
+	String unavaiableCalls;
 
 	public RecordItem(String className, String methodName, int time, double coverage, int age, double callAvailability,
-			double iPFlag, String uncoveredFlags, long randomSeed) {
+			double iPFlag, String uncoveredFlags, long randomSeed, String unavaiableCalls) {
 		super();
 		this.className = className;
 		this.methodName = methodName;
@@ -23,6 +24,7 @@ public class RecordItem {
 		IPFlag = iPFlag;
 		this.uncoveredFlags = uncoveredFlags;
 		this.randomSeed = randomSeed;
+		this.unavaiableCalls = unavaiableCalls;
 	}
 
 	@Override

@@ -1165,7 +1165,20 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	}
 
 	public double getAvailabilityRatio() {
-		return availabilityRatio;
+		int count = 0;
+		for (String key : RuntimeRecord.methodCallAvailabilityMap.keySet()) {
+			if (RuntimeRecord.methodCallAvailabilityMap.get(key)) {
+				count++;
+			} else {
+				System.out.println("Missing analyzing call: " + key);
+			}
+		}
+		int size = RuntimeRecord.methodCallAvailabilityMap.size();
+		double ratio = -1;
+		if (size != 0) {
+			ratio = (double) count / size;
+		}
+		return ratio;
 	}
 
 	public void setAvailabilityRatio(double availabilityRatio) {

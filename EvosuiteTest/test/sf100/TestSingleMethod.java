@@ -29,7 +29,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runTest2() {
+	public void runOther() {
 		String projectId = "1_tullibee";
 		String projectName = "tullibee";
 		String[] targetMethods = new String[]{
@@ -73,12 +73,12 @@ public class TestSingleMethod {
 	
 	
 	@Test
-	public void runTest3() {
+	public void runColt() {
 		String projectId = "102_colt";
 		String projectName = "colt";
 		String[] targetMethods = new String[]{
-//				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
-				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
+				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
+//				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
 //				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
 //				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
 //				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
@@ -90,14 +90,17 @@ public class TestSingleMethod {
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 5;
+		int budget = 100;
+		Long seed = 1556162915815L;
+		
 		String fitnessApproach = "fbranch";
-		int repeatTime = 1;
-		int budget = 1000;
-//		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		fitnessApproach = "branch";
 		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
-				targetMethods, fitnessApproach, repeatTime, budget, true, null);
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -117,7 +120,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runTest5() {
+	public void runJBlas() {
 		String projectId = "103_jblas";
 		String projectName = "jblas";
 		String[] targetMethods = new String[]{
@@ -136,13 +139,13 @@ public class TestSingleMethod {
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		String fitnessApproach = "fbranch";
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10;
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
 				targetMethods, fitnessApproach, repeatTime, budget, true, 1556171038486L);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
-				targetMethods, fitnessApproach, repeatTime, budget, true, 1556171038486L);
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+//				targetMethods, fitnessApproach, repeatTime, budget, true, 1556171038486L);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -162,7 +165,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runTest4() {
+	public void runMath() {
 		String projectId = "105_math";
 		String projectName = "math";
 		String[] targetMethods = new String[]{

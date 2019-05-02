@@ -420,21 +420,7 @@ public class EvosuiteForMethod {
 
 					System.out.println("Used time: " + r.getElapseTime());
 					System.out.println("Used generations: " + r.getAge());
-					int count = 0;
-					for (String key : RuntimeRecord.methodCallAvailabilityMap.keySet()) {
-						if (RuntimeRecord.methodCallAvailabilityMap.get(key)) {
-							count++;
-						} else {
-							System.out.println("Missing analyzing call: " + key);
-						}
-					}
-					int size = RuntimeRecord.methodCallAvailabilityMap.size();
-					double ratio = -1;
-					if (size != 0) {
-						ratio = (double) count / size;
-					}
-					r.setAvailabilityRatio(ratio);
-					System.out.println("Method call availability: " + ratio);
+					System.out.println("Method call availability: " + r.getAvailabilityRatio());
 
 					System.out.println("Available calls: " + r.getAvailableCalls());
 					System.out.println("Unavailable calls: " + r.getUnavailableCalls());

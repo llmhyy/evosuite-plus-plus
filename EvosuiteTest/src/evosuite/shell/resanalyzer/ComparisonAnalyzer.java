@@ -73,16 +73,40 @@ public class ComparisonAnalyzer {
 		ExcelWriter writer = new ExcelWriter(writeFile);
 		
 		try {
+			writer.getSheet("worseCoverage", header, 0);
 			writer.writeSheet("worseCoverage", worseCoverage);
+			
+			writer.getSheet("worseTime", header, 0);
 			writer.writeSheet("worseTime", worseTime);
+			
+			writer.getSheet("goodOnes", header, 0);
 			writer.writeSheet("goodOnes", goodOnes);
+			
+			writer.getSheet("missingOnes", header, 0);
 			writer.writeSheet("missingOnes", missingOnes);
+			
+			writer.getSheet("equalTime", header, 0);
 			writer.writeSheet("equalTime", equalTime);
+			
+			writer.getSheet("smallAge", header, 0);
 			writer.writeSheet("smallAge", smallAge);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+	
+	String[] header = new String[]{
+			"Class", 
+			"Method", 
+			"Execution Time", 
+			"Coverage", 
+			"Age", 
+			"Call Availability", 
+			"IP Flag Coverage",
+			"Uncovered IF Flag",
+			"Random Seed",
+			"Unavailable Call"
+			};
 
 	private List<Object> toList(RecordItem fBranchItem) {
 		List<Object> oList = new ArrayList<>();
@@ -95,6 +119,7 @@ public class ComparisonAnalyzer {
 		oList.add(fBranchItem.IPFlag);
 		oList.add(fBranchItem.uncoveredFlags);
 		oList.add(fBranchItem.randomSeed);
+		oList.add(fBranchItem.unavaiableCalls);
 		return oList;
 	}
 
@@ -119,6 +144,11 @@ public class ComparisonAnalyzer {
 	}
 
 	private RecordItem convertToItem(List<Object> data) {
+		String unavailableCalls = null;
+		if(data.size() > 9) {
+			unavailableCalls = (String)data.get(9);
+		}
+		
 		return new RecordItem(
 				(String)data.get(0), 
 				(String)data.get(1), 
@@ -128,7 +158,8 @@ public class ComparisonAnalyzer {
 				(Double)data.get(5), 
 				((Double)data.get(6)).intValue(), 
 				(String)data.get(7), 
-				((Double)data.get(8)).longValue());
+				((Double)data.get(8)).longValue(),
+				unavailableCalls);
 	}
 
 	private Map<RecordItem, RecordItem> getBranchData(String branchSummaryAddress) {
