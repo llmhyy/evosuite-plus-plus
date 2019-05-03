@@ -32,7 +32,7 @@ public class BasicTest extends AbstractETest{
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 30000;
+		int timeBudget = 100;
 		BasicTest t = new BasicTest();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
