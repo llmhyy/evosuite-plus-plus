@@ -15,6 +15,15 @@ public class ProgramArgumentUtils {
 		return false;
 	}
 	
+	public static int indexOfOpt(String[] args, String opt) throws Exception {
+		for (int i = 0; i < args.length; i++) {
+			if (opt.equals(args[i])) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
 	public static String getOptValue(String[] args, String opt) throws Exception {
 		for (int i = 0; i < args.length; i++) {
 			if (opt.equals(args[i])) {

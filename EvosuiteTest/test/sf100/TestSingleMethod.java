@@ -158,7 +158,8 @@ public class TestSingleMethod {
 		String projectId = "105_math";
 		String projectName = "math";
 		String[] targetMethods = new String[]{
-				"org.apache.commons.math.util.MathUtils#equalsIncludingNaN([F[F)Z"
+				"org.apache.commons.math.util.MathUtils#equals([D[D)Z"
+//				"org.apache.commons.math.util.MathUtils#equalsIncludingNaN([F[F)Z"
 //				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
 //				"org.apache.commons.math.stat.descriptive.SummaryStatistics#equals(Ljava/lang/Object;)Z"
 //				"org.apache.commons.math.linear.OpenMapRealVector#subtract(Lorg/apache/commons/math/linear/OpenMapRealVector;)Lorg/apache/commons/math/linear/OpenMapRealVector;"
@@ -169,9 +170,9 @@ public class TestSingleMethod {
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 10000;
+		int budget = 100;
 		Long seed = null;
-		seed = 1556192853402L;
+		seed = 1556193063515L;
 		
 		String fitnessApproach = "fbranch";
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 

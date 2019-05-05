@@ -6,8 +6,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.evosuite.utils.ProgramArgumentUtils;
 
@@ -32,10 +34,12 @@ public class Settings {
 	private static String targetMethodFilePath;
 	private static boolean reportBasedFilter;
 	private static String branchExperimentFile;
+	private static String runBothMethods = "false";
 	
 	public static List<String> insterestedProjects;
 
 	public static void setup(String[] args) throws Exception {
+		runBothMethods = ProgramArgumentUtils.getOptValue(args, ParameterOptions.RUN_BOTH_METHODS);
 		branchExperimentFile = ProgramArgumentUtils.getOptValue(args, ParameterOptions.BRANCH_EXPERIMENT_FILE);
 		listMethods = ProgramArgumentUtils.hasOpt(args, ListMethods.OPT_NAME);
 		inclusiveFilePath = ProgramArgumentUtils.getOptValue(args, ParameterOptions.INCLUSIVE_FILE_OPT);
@@ -87,6 +91,7 @@ public class Settings {
 	
 	public static Map<String, List<Long>> investigatedMethods; 
 	public static Map<String, List<Long>> easyMethods;
+	public static Set<String> longRunningMethods;
 	
 	private static void parseInterestedMethods(String branchExperimentFile2) {
 		if(branchExperimentFile2 == null) return;
@@ -99,6 +104,7 @@ public class Settings {
 		
 		investigatedMethods = new HashMap<>();
 		easyMethods = new HashMap<>();
+		longRunningMethods = new HashSet<>();
 		
 		ExcelReader reader = new ExcelReader(f, 0);
 		List<List<Object>> datas = reader.listData("investigated");
@@ -139,6 +145,15 @@ public class Settings {
 			}
 			
 			easyMethods.put(sig, seeds);
+		}
+		
+		List<List<Object>> longRunningDatas = reader.listData("longRunning");
+		for(List<Object> data: longRunningDatas) {
+			String className = (String) data.get(0);
+			String methodName = (String) data.get(1);
+			
+			String sig = className + "#" + methodName;
+			longRunningMethods.add(sig);
 		}
 	}
 
@@ -210,5 +225,13 @@ public class Settings {
 	
 	public static boolean isReportBasedFilterEnable() {
 		return reportBasedFilter;
+	}
+
+	public static String getRunBothMethods() {
+		return runBothMethods;
+	}
+
+	public static void setRunBothMethods(String runBothMethods) {
+		Settings.runBothMethods = runBothMethods;
 	}
 }

@@ -15,7 +15,7 @@ public class ComparisonAnalyzer {
 	public static void main(String[] args) {
 		ComparisonAnalyzer cAna = new ComparisonAnalyzer();
 		String branchSummaryAddress = SFConfiguration.sfBenchmarkFolder + File.separator + "summary.xlsx";
-		String fbranchMaterialsAddress = SFConfiguration.sfBenchmarkFolder + File.separator + "report-fbranch";
+		String fbranchMaterialsAddress = SFConfiguration.sfBenchmarkFolder + File.separator + "analysis";
 		cAna.runAnalyzer(branchSummaryAddress, fbranchMaterialsAddress);
 	}
 
