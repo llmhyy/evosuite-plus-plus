@@ -179,7 +179,8 @@ public class EvosuiteForMethod {
 
 				String[] truncatedArgs = extractArgs(args);
 
-				if(Settings.getRunBothMethods().equals("true")) {
+				if(Settings.getRunBothMethods() != null &&
+						Settings.getRunBothMethods().equals("true")) {
 					if (Settings.getTestLevel() == TestLevel.lMethod) {
 						results = evoTest.runAllMethodsWithBothStrategy(targetClasses, 
 								truncatedArgs, projectName);
