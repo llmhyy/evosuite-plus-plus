@@ -181,6 +181,7 @@ public class EvosuiteForMethod {
 
 				if(Settings.getRunBothMethods() != null &&
 						Settings.getRunBothMethods().equals("true")) {
+					
 					if (Settings.getTestLevel() == TestLevel.lMethod) {
 						results = evoTest.runAllMethodsWithBothStrategy(targetClasses, 
 								truncatedArgs, projectName);
@@ -227,6 +228,10 @@ public class EvosuiteForMethod {
 					}
 
 					if (Settings.longRunningMethods != null && Settings.longRunningMethods.contains(methodID)) {
+						continue;
+					}
+					
+					if(Settings.analyzedMethods.contains(methodID)) {
 						continue;
 					}
 
