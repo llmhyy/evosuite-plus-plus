@@ -87,6 +87,30 @@ public class Settings {
 		if (ProgramArgumentUtils.hasOpt(args, ParameterOptions.REPORT_BASED_FILTER)) {
 			reportBasedFilter = true;
 		}
+		
+		checkAnaylyzedMethod();
+	}
+	
+	public static Set<String> analyzedMethods = new HashSet<>();
+	private static void checkAnaylyzedMethod() {
+		String reportFolder = Settings.getReportFolder();
+		String overallFile = reportFolder + File.separator + EvosuiteForMethod.projectId + "_evotest_overall.xlsx";
+		
+		File f = new File(overallFile);
+		if(!f.exists()) {
+			return;
+		}
+		
+		ExcelReader reader = new ExcelReader(f, 0);
+		List<List<Object>> datas = reader.listData("data");
+		for(List<Object> data: datas) {
+			String className = (String) data.get(0);
+			String methodName = (String) data.get(1);
+			
+			String methodID = className + "#" + methodName;
+			analyzedMethods.add(methodID);
+		}
+		
 	}
 	
 	public static Map<String, List<Long>> investigatedMethods; 
