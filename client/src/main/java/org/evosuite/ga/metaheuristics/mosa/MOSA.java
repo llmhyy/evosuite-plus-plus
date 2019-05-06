@@ -136,9 +136,24 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			if(w.parent == null) {
 				set.add(w.ff);
 			}
-			else if(!uncoveredGoals.contains(w.parent.ff)) {
-				set.add(w.ff);
+			else {
+				for(FitnessFunction<T> ff: this.archive.keySet()) {
+					Branch branch = null;
+					if(ff instanceof FBranchTestFitness) {
+						branch = ((FBranchTestFitness)ff).getBranch();
+					}
+					else if(ff instanceof BranchCoverageTestFitness) {
+						branch = ((BranchCoverageTestFitness)ff).getBranch();
+					}
+					
+					if(branch != null && w.parent.branch.equals(branch)) {
+						set.add(w.ff);
+						break;
+					}
+				}
 			}
+			
+			
 		}
 		
 		return set;
