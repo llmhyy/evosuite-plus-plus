@@ -31,6 +31,11 @@ public class ResultAnalzyer {
 				List<List<Object>> datas = reader.listData("data");
 				if(datas != null) {
 					for(List<Object> data: datas) {
+						if(data.size() < 5) {
+							continue;
+						}
+						
+						
 //						String className = (String) data.get(0);
 //						String methodName = (String) data.get(1);
 						
