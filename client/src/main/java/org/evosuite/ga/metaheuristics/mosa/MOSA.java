@@ -45,6 +45,7 @@ import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.ga.metaheuristics.mosa.comparators.OnlyCrowdingComparator;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.runtime.Random;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
@@ -183,7 +184,7 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		
 		List<T> reservedIndividuals = getReservedIndividual(union, dominateUncoveredGoals);
-		int remain = population.size();
+		int remain = Properties.POPULATION;
 		remain = remain - reservedIndividuals.size();
 		
 		population.clear();
@@ -193,8 +194,9 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		List<T> front = null;
 		// Obtain the next front
 		front = ranking.getSubfront(index);
+		front.removeAll(reservedIndividuals);
 		
-		while ((remain > 0) && (remain >= front.size()) && !front.isEmpty()) {
+		while ((remain > 0) && (remain > front.size()) && !front.isEmpty()) {
 			// Assign crowding distance to individuals
 			distance.fastEpsilonDominanceAssignment(front, dominateUncoveredGoals);
 			// Add the individuals of this front
@@ -210,16 +212,34 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			} // if
 		} // while
 
-		// Remain is less than front(index).size, insert only the best one
-		if (remain > 0 && !front.isEmpty()) { // front contains individuals to insert
-			distance.fastEpsilonDominanceAssignment(front, dominateUncoveredGoals);
-			Collections.sort(front, new OnlyCrowdingComparator());
-			for (int k = 0; k < remain; k++) {
-				population.add(front.get(k));
-			} // for
-
+		
+		List<T> leftFronts = new ArrayList<>();
+		for(int i=index; i<ranking.getNumberOfSubfronts(); i++) {
+			leftFronts.addAll(ranking.getSubfront(i));
+		}
+		
+		if(remain > 0 && !leftFronts.isEmpty()) {
+			for(int k=0; k<remain; k++) {
+				int j = Random.nextInt(leftFronts.size());
+				T test = leftFronts.get(j);
+				population.add(test);
+				leftFronts.remove(test);
+			}
+			
 			remain = 0;
-		} // if
+		}
+		
+		
+		// Remain is less than front(index).size, insert only the best one
+//		if (remain > 0 && !front.isEmpty()) { // front contains individuals to insert
+//			distance.fastEpsilonDominanceAssignment(front, dominateUncoveredGoals);
+//			Collections.sort(front, new OnlyCrowdingComparator());
+//			for (int k = 0; k < remain; k++) {
+//				population.add(front.get(k));
+//			} 
+//
+//			remain = 0;
+//		} 
 		currentIteration++;
 		
 		printBestIndividualForUncoveredGoals(dominateUncoveredGoals);

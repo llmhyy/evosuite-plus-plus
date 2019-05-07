@@ -57,7 +57,7 @@ public class RankBasedPreferenceSorting<T extends Chromosome> implements Ranking
 		// then compute the ranks according to the non-dominate sorting algorithm
 		List<T> zero_front = getZeroFront(solutions, uncovered_goals);
 		fronts.put(0, zero_front);
-
+		
 		if (zero_front.size() < Properties.POPULATION){
 			int rankedSolutions = zero_front.size();
 			MOSADominanceComparator<T> comparator =  new MOSADominanceComparator<T>(uncovered_goals);
@@ -66,7 +66,7 @@ public class RankBasedPreferenceSorting<T extends Chromosome> implements Ranking
 			remaining.addAll(solutions);
 			remaining.removeAll(zero_front);
 			int front_index = 1;
-			while(rankedSolutions < Properties.POPULATION && remaining.size()>0){
+			while(rankedSolutions < solutions.size() && remaining.size()>0){
 				List<T> new_front = getNonDominatedSolutions(remaining, comparator);
 				fronts.put(front_index, new_front);
 				remaining.removeAll(new_front);
@@ -80,11 +80,19 @@ public class RankBasedPreferenceSorting<T extends Chromosome> implements Ranking
 			fronts.put(1, remaining);
 		}
 
+		int sum = 0;
 		for (Integer index : fronts.keySet()){
 			//logger.error("Front {} size {}", index, ranking_[index].size());
+			List<T> list = fronts.get(index);
+			sum += list.size();
+			
 			for (T p : fronts.get(index))
 				p.setRank(index);
 		}	
+		
+		if(sum != solutions.size()) {
+			System.currentTimeMillis();
+		}
 	}
 
 	private List<T> getZeroFront(List<T> solutionSet, Set<FitnessFunction<T>> uncovered_goals){
