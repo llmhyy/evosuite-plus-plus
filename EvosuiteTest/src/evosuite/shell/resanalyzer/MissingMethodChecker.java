@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,13 +32,21 @@ public class MissingMethodChecker {
 
 	private void runAnalyzer(String resultFile, String targetMethodFile, String summaryFile) {
 		Map<String, Integer> resultedMethods = retriveResultedMethods(resultFile);
-		Set<String> totalMethods = retrieveTotalMethods(targetMethodFile);
+		Map<String, String> totalMethods = retrieveTotalMethods(targetMethodFile);
 		Set<String> removedMethods = retrieveRemovedMethods(summaryFile);
 		
+		Map<String, List<String>> missingMethods = new HashMap<>();
 		if(resultedMethods.size() + removedMethods.size() < totalMethods.size()) {
-			for(String method: totalMethods) {
+			for(String method: totalMethods.keySet()) {
 				if(!resultedMethods.containsKey(method) && !removedMethods.contains(method)) {
-					System.out.println(method);
+					String projectID = totalMethods.get(method);
+					
+					List<String> methods = missingMethods.get(projectID);
+					if(methods == null) {
+						methods = new ArrayList<>();
+					}
+					methods.add(method);
+					missingMethods.put(projectID, methods);
 				}
 			}
 		}
@@ -45,6 +54,25 @@ public class MissingMethodChecker {
 		System.out.println("resulted methods: " + resultedMethods.size());
 		System.out.println("removed methods: " + removedMethods.size());
 		System.out.println("total methods: " + totalMethods.size());
+		
+		writeToComplementaryFile(missingMethods);
+	}
+
+	private void writeToComplementaryFile(Map<String, List<String>> missingMethods) {
+		String resultTxt = SFConfiguration.sfBenchmarkFolder 
+				+ File.separator + "complementaryMethods.txt";
+		for(String projectID: missingMethods.keySet()) {
+			String projectName = projectID.substring(projectID.indexOf("_")+1, projectID.length());
+        	StringBuilder sb = new StringBuilder()
+					.append("#------------------------------------------------------------------------\n")
+					.append("#Project=").append(projectName).append("  -  ").append(projectID).append("\n")
+					.append("#------------------------------------------------------------------------\n");
+			for (String method : missingMethods.get(projectID)) {
+				sb.append(method).append("\n");
+			}
+			evosuite.shell.FileUtils.writeFile(resultTxt, sb.toString(), true);
+		}
+		
 	}
 
 	private Set<String> retrieveRemovedMethods(String summaryFile) {
@@ -64,18 +92,27 @@ public class MissingMethodChecker {
 		return removedMethods;
 	}
 
-	private Set<String> retrieveTotalMethods(String targetMethodFile) {
-		Set<String> totalMethods = new HashSet<>();
+	private Map<String, String> retrieveTotalMethods(String targetMethodFile) {
+		Map<String, String> totalMethods = new HashMap<>();
 		BufferedReader reader;
 		try {
 			reader = new BufferedReader(new FileReader(
 					targetMethodFile));
 			String line = reader.readLine();
+			String projName = null;
 			while (line != null) {
 				// read next line
 				line = reader.readLine();
-				if(line!=null && !line.startsWith("#")) {
-					totalMethods.add(line);
+				if(line!=null) {
+					if(line.startsWith("#")) {
+						if(!line.startsWith("#-")) {
+							projName = line.substring(line.lastIndexOf(" ")+1, line.length());
+							System.currentTimeMillis();
+						}
+					}
+					else {
+						totalMethods.put(line, projName);						
+					}
 				}
 			}
 			reader.close();

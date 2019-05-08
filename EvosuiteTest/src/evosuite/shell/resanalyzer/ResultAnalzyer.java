@@ -70,11 +70,15 @@ public class ResultAnalzyer {
 		ExcelWriter writer = new ExcelWriter(writeFile);
 		
 		try {
-			writer.writeSheet("investigated", investigatedMethods);
-			writer.writeSheet("easy", easyMethods);
-			writer.writeSheet("longRunning", longRunningTimeMethods);
+			writer.writeSheet(INVESTIGATED, investigatedMethods);
+			writer.writeSheet(EASY, easyMethods);
+			writer.writeSheet(LONG_RUNNING, longRunningTimeMethods);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+	
+	public static final String INVESTIGATED = "investigated";
+	public static final String EASY = "easy";
+	public static final String LONG_RUNNING = "longRunning";
 }
