@@ -63,6 +63,8 @@ public class ListMethods {
 				for (String methodName : testableMethods) {
 					tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
 				}
+				
+				System.currentTimeMillis();
 				/* log to targetMethod.txt file */
 				FileUtils.writeFile(targetMethodFilePath, tMethodSb.toString(), true);
 			} catch (Throwable t) {

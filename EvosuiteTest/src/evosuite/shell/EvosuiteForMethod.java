@@ -110,7 +110,7 @@ public class EvosuiteForMethod {
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
 			Settings.setup(args);
 
-			if (!Settings.insterestedProjects.contains(projectName)) {
+			if (Settings.insterestedProjects!=null && !Settings.insterestedProjects.contains(projectName)) {
 				return new ArrayList<>();
 			}
 
@@ -194,7 +194,7 @@ public class EvosuiteForMethod {
 						results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName, recorderList);
 					} else {
 						results = evoTest.runAllClasses(targetClasses, truncatedArgs, projectName, recorderList);
-					}					
+					}
 				}
 			}
 		} catch (Throwable e) {

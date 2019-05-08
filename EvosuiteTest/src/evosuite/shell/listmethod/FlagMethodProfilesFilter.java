@@ -146,7 +146,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		return valid;
 	}
 
-	private boolean hasPrimitiveParam(MethodNode mn, ClassNode cn) {
+	protected boolean hasPrimitiveParam(MethodNode mn, ClassNode cn) {
 		try {
 			Type[] argTypes = Type.getArgumentTypes(mn.desc);
 			for (Type type : argTypes) {
@@ -186,7 +186,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		return false;
 	}
 
-	private void logToExcel(MethodContent mc, String className, String methodName) throws IOException {
+	protected void logToExcel(MethodContent mc, String className, String methodName) throws IOException {
 		List<List<Object>> data = new ArrayList<>();
 		String methodFullName = className + "#" + methodName;
 		for (FlagMethod fm : mc.flagMethods) {
@@ -517,9 +517,9 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		return null;
 	}
 	
-	private static class MethodContent {
-		private boolean hasPrimitiveParam;
-		private List<FlagMethod> flagMethods = new ArrayList<>();
+	static class MethodContent {
+		boolean hasPrimitiveParam;
+		List<FlagMethod> flagMethods = new ArrayList<>();
 	}
 	
 	private static class FlagMethod {

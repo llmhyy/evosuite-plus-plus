@@ -6,7 +6,8 @@ public enum MethodFilterOption {
 	FLAG_PROCEDURE_METHOD_WITH_SIMPLE_RETURN ("flagProcSimplRet"),
 	HAS_BRANCH ("hasBranch"),
 	RELEVANT_JDK_CLASSES ("relJdkClasses"),
-	FLAG_METHOD_PROFILES("flagMethodProf");
+	FLAG_METHOD_PROFILES("flagMethodProf"),
+	NO_FLAG_METHOD("noFlag");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -25,6 +26,8 @@ public enum MethodFilterOption {
 			return new ListRelevantJdkClasses();
 		case FLAG_METHOD_PROFILES:
 			return new FlagMethodProfilesFilter();
+		case NO_FLAG_METHOD:
+			return new NoFlagMethodFilter();
 		}
 		return null;
 	}

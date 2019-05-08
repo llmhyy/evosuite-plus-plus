@@ -182,6 +182,10 @@ public class Settings {
 	}
 
 	private static List<String> parseInterestedProjects(String targetMethodFilePath2) throws IOException {
+		if(targetMethodFilePath2==null) {
+			return null;
+		}
+		
 		List<String> interestedProjects = new ArrayList<>(); 
 		String prefix = "#Project=";
 		FileReader fileReader = new FileReader(new File(targetMethodFilePath2));
