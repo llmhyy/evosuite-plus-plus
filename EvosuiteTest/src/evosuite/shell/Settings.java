@@ -103,6 +103,10 @@ public class Settings {
 		
 		ExcelReader reader = new ExcelReader(f, 0);
 		List<List<Object>> datas = reader.listData("data");
+		if(datas == null) {
+			return;
+		}
+		
 		for(List<Object> data: datas) {
 			String className = (String) data.get(0);
 			String methodName = (String) data.get(1);
