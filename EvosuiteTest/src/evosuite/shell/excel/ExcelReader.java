@@ -93,7 +93,7 @@ public class ExcelReader {
 		Sheet sheet = workbook.getSheet(sheetName);
 		
 		if(sheet == null) {
-			return null;
+			return data;
 		}
 		
 		for (int i = headerRowNum + 1; i <= sheet.getLastRowNum(); i++) {

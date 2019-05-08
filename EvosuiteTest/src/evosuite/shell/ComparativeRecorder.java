@@ -23,7 +23,7 @@ public class ComparativeRecorder extends ExperimentRecorder {
 	public static String WORSE_COVERAGE = "worse coverage";
 	public static String WOSE_TIME = "worse time";
 	
-	private static String[] header = new String[]{
+	public static String[] header = new String[]{
 			"Class", 
 			"Method", 
 			"Random Seed",
