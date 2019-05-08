@@ -85,6 +85,11 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		if (CollectionUtil.isNullOrEmpty(cfg.getBranches())) {
 			return false;
 		} 
+		
+		if(!hasParam(node, cn)) {
+			return false;
+		}
+		
 		boolean defuseAnalyzed = false;
 		MethodContent mc = new MethodContent();
 		
@@ -146,6 +151,16 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		return valid;
 	}
 
+	protected boolean hasParam(MethodNode mn, ClassNode cn) {
+		try {
+			Type[] argTypes = Type.getArgumentTypes(mn.desc);
+			return argTypes.length != 0;
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
 	protected boolean hasPrimitiveParam(MethodNode mn, ClassNode cn) {
 		try {
 			Type[] argTypes = Type.getArgumentTypes(mn.desc);
