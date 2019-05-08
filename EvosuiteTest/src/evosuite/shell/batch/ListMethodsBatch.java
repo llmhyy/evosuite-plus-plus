@@ -28,8 +28,8 @@ public class ListMethodsBatch {
 
 	@Test
 	public void justRun() throws IOException {
-//		runListMethod(MethodFilterOption.FLAG_METHOD_PROFILES);
-		runListMethod(MethodFilterOption.NO_FLAG_METHOD);
+		runListMethod(MethodFilterOption.FLAG_METHOD_PROFILES);
+//		runListMethod(MethodFilterOption.NO_FLAG_METHOD);
 	}
 	
 	@Test

@@ -1,16 +1,11 @@
 package evosuite.shell.resanalyzer;
 
-import static evosuite.shell.EvosuiteForMethod.projectId;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import evosuite.shell.ComparativeRecorder;
-import evosuite.shell.FileUtils;
-import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelReader;
 import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.experiment.SFConfiguration;
