@@ -299,13 +299,17 @@ public class TargetMethodIOUtils {
 		try {
 			ExcelReader reader = new ExcelReader(file, 0);
 			List<List<Object>> rows = reader.listData("data");
-			for (List<Object> row : rows) {
-				if (row.size() <= 2) {
-					continue;
+			
+			if(rows != null) {
+				for (List<Object> row : rows) {
+					if (row.size() <= 2) {
+						continue;
+					}
+					String methodId = row.get(0) + "#" + row.get(1);
+					methods.add(methodId);
 				}
-				String methodId = row.get(0) + "#" + row.get(1);
-				methods.add(methodId);
 			}
+			
 			reader.close();
 		} catch(Exception e) {
 			e.printStackTrace();
