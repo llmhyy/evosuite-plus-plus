@@ -23,14 +23,23 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<configuration>
-					<artifactSet>
-						<excludes>
-							<!-- the eclipse plugin needs this -->
-							<exclude>*:xml-apis</exclude>
-						</excludes>
-					</artifactSet>
-				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<minimizeJar>true</minimizeJar>
+							<artifactSet>
+								<excludes>
+									<!-- the eclipse plugin needs this -->
+									<exclude>*:xml-apis</exclude>
+								</excludes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -86,15 +95,9 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-jar-plugin</artifactId>
-						<executions>
-							<execution>
-								<goals>
-									<goal>test-jar</goal>
-								</goals>
-							</execution>
-						</executions>
 						<inherited>true</inherited>
 						<configuration>
+							<outputDirectory>${jars-destination}</outputDirectory>
 							<archive>
 								<manifest>
 									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
@@ -113,6 +116,5 @@
 				</plugins>
 			</build>
 		</profile>
-
 	</profiles>
 </project>
