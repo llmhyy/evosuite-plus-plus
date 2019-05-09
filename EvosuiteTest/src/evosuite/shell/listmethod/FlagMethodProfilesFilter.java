@@ -86,6 +86,10 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			return false;
 		} 
 		
+		if(methodName.contains("<init>")) {
+			return false;
+		}
+		
 		if(!hasParam(node, cn)) {
 			return false;
 		}

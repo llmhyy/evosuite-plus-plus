@@ -220,6 +220,7 @@ public class EvosuiteForMethod {
 				if (targetClass.isInterface()) {
 					continue;
 				}
+				
 				for (Method method : targetClass.getDeclaredMethods()) {
 					String methodName = method.getName() + Type.getMethodDescriptor(method);
 					String methodID = CommonUtility.getMethodId(className, methodName);
@@ -344,6 +345,7 @@ public class EvosuiteForMethod {
 						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
 								.append("#").append(methodName).append("\n").append("Error: \n").append(t.getMessage())
 								.toString();
+						System.err.println(msg);
 						log.debug(msg, t);
 					}
 				}
