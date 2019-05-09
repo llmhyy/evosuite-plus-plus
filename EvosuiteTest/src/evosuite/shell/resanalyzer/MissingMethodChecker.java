@@ -23,7 +23,7 @@ public class MissingMethodChecker {
 		String resultFile = SFConfiguration.sfBenchmarkFolder 
 				+ File.separator + "report-fbranch" + File.separator + "overall_compare.xlsx";
 		String targetMethodFile = SFConfiguration.sfBenchmarkFolder 
-				+ File.separator + "target-method-104-all.txt";
+				+ File.separator + "target-method-106-all.txt";
 		String summaryFile = SFConfiguration.sfBenchmarkFolder 
 				+ File.separator + "summary.xlsx";
 		checker.runAnalyzer(resultFile, targetMethodFile, summaryFile);

@@ -106,7 +106,7 @@ public class EvosuiteForMethod {
 			// "1_tullibee";
 			// System.setProperty("user.dir", workingDir);
 			setup();
-			log.error("enter EvosuiteForMethod!");
+			System.out.println("enter EvosuiteForMethod!");
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
 			Settings.setup(args);
 
@@ -174,6 +174,7 @@ public class EvosuiteForMethod {
 				if (!filter.isValidProject(projectName)) {
 					return null;
 				}
+				System.out.println(projectName + "is valid!");
 				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.ALL_OPTIONS);
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 
@@ -213,9 +214,12 @@ public class EvosuiteForMethod {
 		ActualStatisticsRecorder actRecorder = new ActualStatisticsRecorder();
 		
 		List<EvoTestResult> results = new ArrayList<>();
+		System.out.println("start comparing on " + targetClasses.length + " classes!");
 		for (String className : targetClasses) {
 			try {
+				System.out.println("Analyzing " + className + " ...");
 				Class<?> targetClass = evoTestClassLoader.loadClass(className);
+				System.out.println("Loading " + className + ", the object is " + targetClass);
 				// ignore
 				if (targetClass.isInterface()) {
 					continue;
@@ -369,6 +373,8 @@ public class EvosuiteForMethod {
 				}
 			} catch (Throwable t) {
 				log.error("Error!", t);
+//				System.out.println(t);
+				t.printStackTrace();
 			}
 		}
 
