@@ -247,13 +247,31 @@ public class EvosuiteForMethod {
 							int index = ProgramArgumentUtils.indexOfOpt(args, "-criterion");
 							if(index != -1) {
 								args[index+1] = "branch";
-								EvoTestResult branchResult = runMethod(methodName, className, args, new ArrayList<>());
+								EvoTestResult branchResult = null;
+								try {
+									branchResult = runMethod(methodName, className, args, new ArrayList<>());									
+								}
+								catch(Exception e) {
+									e.printStackTrace();
+								}
+								
+								if(branchResult == null)continue;
+								
 								Long randomSeed = branchResult.getRandomSeed();
 								
 								args[index+1] = "fbranch";
 								String[] newArgs = args;
 								newArgs = ArrayUtils.addAll(newArgs, "-seed", String.valueOf(randomSeed));
-								EvoTestResult fBranchResult = runMethod(methodName, className, newArgs, new ArrayList<>());
+								EvoTestResult fBranchResult = null;
+								try {
+									fBranchResult = runMethod(methodName, className, newArgs, new ArrayList<>());									
+								}
+								catch(Exception e) {
+									e.printStackTrace();
+								}
+								
+								if(fBranchResult == null)continue;
+								
 								
 								ResultPair pair = new ResultPair(branchResult, fBranchResult);
 								if(pair.getCoverageAdvantage()>0) {
