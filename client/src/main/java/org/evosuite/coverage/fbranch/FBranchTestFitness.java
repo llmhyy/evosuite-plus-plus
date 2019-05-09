@@ -625,6 +625,10 @@ public class FBranchTestFitness extends TestFitnessFunction {
 				 */
 				if(needDelegateBranch(branch, value)) {
 					BytecodeInstruction load = branch.getInstruction().getSourceOfStackInstruction(0);
+					if(load == null) {
+						return FitnessFunction.normalize(value);
+					}
+					
 					List<BytecodeInstruction> defs = findDefinitions(load);
 					if(!defs.isEmpty() && defs.size()==1) {
 						BytecodeInstruction store = defs.get(0);
