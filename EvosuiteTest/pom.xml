@@ -30,7 +30,6 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<minimizeJar>true</minimizeJar>
 							<artifactSet>
 								<excludes>
 									<!-- the eclipse plugin needs this -->
