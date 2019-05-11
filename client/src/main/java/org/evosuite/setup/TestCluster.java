@@ -660,16 +660,19 @@ public class TestCluster {
 
 	public GenericAccessibleObject<?> getRandomCallFor(GenericClass clazz, TestCase test, int position)
 	        throws ConstructionFailedException {
-		Set<GenericMethod> calledMethods = TestGenerationUtil.getCalledMethods(test);
+//		Set<GenericMethod> calledMethods = TestGenerationUtil.getCalledMethods(test);
 		
 		Set<GenericAccessibleObject<?>> calls = getCallsFor(clazz, true);
+		
+//		TestGenerationUtil.filterTargetMethod(test, calls);
+		
 		Iterator<GenericAccessibleObject<?>> iter = calls.iterator();
 		while(iter.hasNext()) {
 			GenericAccessibleObject<?> gao = iter.next();
 			if (! ConstraintVerifier.isValidPositionForInsertion(gao,test,position)){
 				iter.remove();
 			}
-			else if (TestGenerationUtil.isTargetMethod(gao, calledMethods)) {
+			else if (TestGenerationUtil.isTargetMethod(gao)) {
 				iter.remove();
 			}
 		}
@@ -1286,7 +1289,9 @@ public class TestCluster {
 	        throws ConstructionFailedException {
 		List<GenericAccessibleObject<?>> candidateTestMethods = new ArrayList<>(testMethods);
 		
-		TestGenerationUtil.filterTargetMethod(test, candidateTestMethods);
+		if(!test.isEmpty()) {
+			TestGenerationUtil.filterTargetMethod(test, candidateTestMethods);			
+		}
 
 		if(candidateTestMethods.isEmpty()) {
 			logger.debug("No more calls");
@@ -1300,7 +1305,9 @@ public class TestCluster {
 			// It may happen that all remaining test calls are constructors. In this case it's ok.
 			if(candidateTestMethods.isEmpty()) {
 				candidateTestMethods = new ArrayList<>(testMethods);
-				TestGenerationUtil.filterTargetMethod(test, candidateTestMethods);
+				if(!test.isEmpty()) {
+					TestGenerationUtil.filterTargetMethod(test, candidateTestMethods);			
+				}
 //				candidateTestMethods = new ArrayList<>(testMethods);
 			}
 				

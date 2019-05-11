@@ -506,6 +506,11 @@ public class TestChromosome extends ExecutableChromosome {
 
 		if (!changed) {
 			for (int position = 0; position <= lastMutatableStatement; position++) {
+				lastMutatableStatement = getLastMutatableStatement();
+				if(!Properties.TARGET_METHOD.isEmpty()) {
+					targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
+				}
+				
 				if(position < targetMethodPosition && targetMethodPosition != -1) {
 					pl = 1d / (targetMethodPosition + 1);
 					if(pl < 0.3) pl = 0.3;
@@ -586,13 +591,14 @@ public class TestChromosome extends ExecutableChromosome {
 			int targetMethodPosition = -1;
 			if(!Properties.TARGET_METHOD.isEmpty()) {
 				targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
-				if(targetMethodPosition != -1 && Randomness.nextDouble() <= 0.5) {
+				if(targetMethodPosition != -1 /*&& Randomness.nextDouble() <= 0.5*/) {
 					lastMutatableStatement = targetMethodPosition - 1;
 					
 				}
 			}
 			
 			int position = testFactory.insertRandomStatement(test, lastMutatableStatement);
+			System.currentTimeMillis();
 
 			if (position >= 0 && position < test.size()) {
 				changed = true;

@@ -75,13 +75,18 @@ public class TestGenerationUtil {
 		return stopInsertion;
 	}
 	
-	public static boolean isTargetMethod(GenericAccessibleObject<?> obj, Set<GenericMethod> calledMethods) {
+	public static boolean isTargetMethod(GenericAccessibleObject<?> obj) {
 		if(obj instanceof GenericMethod) {
 			GenericMethod method = (GenericMethod)obj;
 //			String sig = method.getName() + MethodUtil.getSignature(method.getMethod());
 			
-			if(calledMethods.contains(method)) {
-				return true;
+			
+			if(!Properties.TARGET_METHOD.isEmpty()) {
+				String methodString = method.getDeclaringClass().getName() + "#" + method.getNameWithDescriptor();
+				String targetMethodString = Properties.TARGET_CLASS + "#" + Properties.TARGET_METHOD;
+				if(methodString.equals(targetMethodString)) {
+					return true;
+				}
 			}
 		}
 		
@@ -107,12 +112,12 @@ public class TestGenerationUtil {
 //		return;
 		
 		if(!Properties.TARGET_METHOD.isEmpty()) {
-			Set<GenericMethod> calledMethods = getCalledMethods(test);
+//			Set<GenericMethod> calledMethods = getCalledMethods(test);
 			
 			Iterator<GenericAccessibleObject<?>> iter = candidateTestMethods.iterator();
 			while(iter.hasNext()) {
 				GenericAccessibleObject<?> obj = iter.next();
-				if(isTargetMethod(obj, calledMethods)) {
+				if(isTargetMethod(obj)) {
 					iter.remove();
 				}
 			}

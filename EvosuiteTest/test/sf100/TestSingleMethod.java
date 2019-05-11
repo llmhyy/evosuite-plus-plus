@@ -61,8 +61,8 @@ public class TestSingleMethod {
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
-//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
 		printResult(results0);

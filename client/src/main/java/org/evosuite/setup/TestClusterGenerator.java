@@ -513,7 +513,7 @@ public class TestClusterGenerator {
 
 			}
 
-			List<String> invokedList = MethodUtil.getInvokedMethods(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+//			List<String> invokedList = MethodUtil.getInvokedMethods(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
 			// Add all methods
 			for (Method method : TestClusterUtils.getMethods(clazz)) {
 				logger.info("Checking target method " + method);
@@ -530,7 +530,7 @@ public class TestClusterGenerator {
 				if (TestUsageChecker.canUse(method, clazz)) {
 					String methodSig = Properties.TARGET_CLASS.replace(".", "/") + "#" + method.getName()
 							+ MethodUtil.getSignature(method);
-					if (invokedList.isEmpty() || !invokedList.contains(methodSig) || methodSig.contains(Properties.TARGET_METHOD)) {
+					if (true) {
 						logger.debug("Adding method " + clazz.getName() + "." + method.getName()
 								+ org.objectweb.asm.Type.getMethodDescriptor(method));
 
