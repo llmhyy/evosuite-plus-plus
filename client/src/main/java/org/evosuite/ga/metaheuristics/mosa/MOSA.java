@@ -194,7 +194,7 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		List<T> front = null;
 		// Obtain the next front
 		front = ranking.getSubfront(index);
-		front.removeAll(reservedIndividuals);
+//		front.removeAll(reservedIndividuals);
 		
 		while ((remain > 0) && (remain > front.size()) && !front.isEmpty()) {
 			// Assign crowding distance to individuals

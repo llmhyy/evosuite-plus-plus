@@ -14,4 +14,31 @@ public class Util {
 	public static boolean isCornerCase(int a, int b){
 		return a+b >= 199;
 	}
+
+	public static boolean checkPrecondition(int[] keys, int value) {
+		return checkArrayRange(keys) &&
+				checkValueRange(value);
+	}
+
+	private static boolean checkValueRange(int value) {
+		return Math.abs(value) < 100000;
+	}
+
+	private static boolean checkArrayRange(int[] keys) {
+		return keys.length < 100000;
+	}
+
+	public static boolean checkValue(int[] hasValues, int index, int value) {
+		int hashValue = hash(value);
+		if((false/*value == Integer.MAX_VALUE*/
+	        || hashValue >= Math.pow(2, index)+123)
+	            && hasValues[index] == hashValue)
+			return true;
+		return false;
+	}
+	
+	public static int hash(int key) {
+	  final int h = key ^ ((key >>> 20) ^ (key >>> 12));
+	  return h ^ (h >>> 7) ^ (h >>> 4);
+	}
 }
