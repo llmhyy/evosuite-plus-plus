@@ -55,6 +55,7 @@ public class ListMethods {
 				}
 				System.out.println("Class " + targetClass.getName());
 				List<String> testableMethods = methodFilter.listTestableMethods(targetClass, classLoader);
+				
 				if (!CollectionUtil.isEmpty(testableMethods)) {
 					testableClasses.add(className);
 				}

@@ -20,12 +20,14 @@ import evosuite.shell.experiment.SFConfiguration;
 
 public class ComparativeResultMerger {
 
+	public static String folderName = "report-branch";
+	
 	public static void main(String[] args) {
 		ComparativeResultMerger merger = new ComparativeResultMerger();
 
 		// String branchSummaryAddress = SFConfiguration.sfBenchmarkFolder +
 		// File.separator + "summary.xlsx";
-		String fbranchMaterialsAddress = SFConfiguration.sfBenchmarkFolder + File.separator + "report-fbranch";
+		String fbranchMaterialsAddress = SFConfiguration.sfBenchmarkFolder + File.separator + folderName;
 		merger.runAnalyzer(fbranchMaterialsAddress);
 
 	}
@@ -40,7 +42,7 @@ public class ComparativeResultMerger {
 	private ExcelWriter excelWriter;
 
 	public ComparativeResultMerger() {
-		excelWriter = new ExcelWriter(new File(SFConfiguration.sfBenchmarkFolder + File.separator + "report-fbranch"
+		excelWriter = new ExcelWriter(new File(SFConfiguration.sfBenchmarkFolder + File.separator + folderName
 				+ File.separator + "overall_compare.xlsx"));
 		excelWriter.getSheet(BETTER_COVERAGE, ComparativeRecorder.header, 0);
 		excelWriter.getSheet(BETTER_TIME, ComparativeRecorder.header, 0);
@@ -86,9 +88,9 @@ public class ComparativeResultMerger {
 		List<List<Object>> all = new ArrayList<>();
 		all.addAll(results.betterCoverage);
 		all.addAll(results.betterTime);
-		all.addAll(results.equal);
 		all.addAll(results.worseTime);
 		all.addAll(results.worseCoverage);
+		all.addAll(results.equal);
 		
 		try {
 			excelWriter.writeSheet(BETTER_COVERAGE, results.betterCoverage);
