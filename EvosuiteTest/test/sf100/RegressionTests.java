@@ -30,7 +30,6 @@ public class RegressionTests {
 	@Test
 	public void runMultiplyTest() {
 		String projectId = "105_math";
-		String projectName = "math";
 		String[] targetMethods = new String[]{
 //				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
 				"org.apache.commons.math.linear.OpenMapRealMatrix#multiply(Lorg/apache/commons/math/linear/OpenMapRealMatrix;)Lorg/apache/commons/math/linear/OpenMapRealMatrix;"
@@ -42,10 +41,10 @@ public class RegressionTests {
 		String fitnessApproach = "fbranch";
 		int repeatTime = 3;
 		int budget = 100;
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true, null);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  targetMethods, fitnessApproach, repeatTime, budget, true, null);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true, null);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  targetMethods, fitnessApproach, repeatTime, budget, true, null);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){
@@ -63,7 +62,6 @@ public class RegressionTests {
 	@Test
 	public void runSummaryStatisticsEquals() {
 		String projectId = "105_math";
-		String projectName = "math";
 		String[] targetMethods = new String[]{
 //				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
 				"org.apache.commons.math.stat.descriptive.SummaryStatistics#equals(Ljava/lang/Object;)Z"
@@ -75,10 +73,10 @@ public class RegressionTests {
 		String fitnessApproach = "fbranch";
 		int repeatTime = 3;
 		int budget = 100;
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true, null);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  targetMethods, fitnessApproach, repeatTime, budget, true, null);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, targetMethods, fitnessApproach, repeatTime, budget, true, null);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  targetMethods, fitnessApproach, repeatTime, budget, true, null);
 		
 		System.out.println("fbranch" + ":");
 		for(EvoTestResult lu: results0){

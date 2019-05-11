@@ -12,12 +12,15 @@ import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.SFConfiguration;
 
 public class CommonTestUtil {
-	public static List<EvoTestResult> evoTestSingleMethod(String projectId, String projectName,
+	public static List<EvoTestResult> evoTestSingleMethod(String projectId,
 			String[] targetMethods, String fitnessAppraoch, int iteration, 
 			long seconds, boolean context, Long seed) {
 		/* configure */
 	
 		/* run */
+		
+		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
+		
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
 		file.deleteOnExit();
 		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethods);

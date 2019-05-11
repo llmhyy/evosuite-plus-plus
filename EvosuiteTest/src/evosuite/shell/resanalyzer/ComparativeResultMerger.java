@@ -20,7 +20,7 @@ import evosuite.shell.experiment.SFConfiguration;
 
 public class ComparativeResultMerger {
 
-	public static String folderName = "report-branch";
+	public static String folderName = "report-fbranch";
 	
 	public static void main(String[] args) {
 		ComparativeResultMerger merger = new ComparativeResultMerger();
@@ -350,6 +350,11 @@ public class ComparativeResultMerger {
 		Set<Record> worseCoverageSet = new HashSet<>();
 		for(String key: recordIteration.keySet()) {
 			List<Record> recordList = recordIteration.get(key);
+			
+			if(recordList.size()>3) {
+				System.currentTimeMillis();
+			}
+			
 			for(Record record: recordList) {
 				if(record.getCoverageAdvantage() > 0) {
 					betterCoverageSet.add(record);
