@@ -33,10 +33,46 @@ public class TestSingleMethod {
 //		FileUtils.deleteFolder(new File("/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest/evoTest-reports"));
 	}
 	
+	
+	@Test
+	public void run75() {
+		String projectId = "75_openhre";
+		String[] targetMethods = new String[]{
+				"com.browsersoft.openhre.hl7.impl.regular.ExpressionNodeList#addExpressionList(Lcom/browsersoft/openhre/hl7/impl/regular/ExpressionNodeList;)V"
+//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
+//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
+//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
+//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
+//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
+//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100000;
+		Long seed = 1556814527153L;
+//		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
 	@Test
 	public void run84() {
 		String projectId = "84_ifx-framework";
-		String projectName = "ifx-framework";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.ifxfv3.beans.AcctBal#equals(Ljava/lang/Object;)Z"
 //				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
@@ -56,12 +92,12 @@ public class TestSingleMethod {
 //		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-//		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
@@ -73,7 +109,6 @@ public class TestSingleMethod {
 	@Test
 	public void run85() {
 		String projectId = "85_shop";
-		String projectName = "shop";
 		String[] targetMethods = new String[]{
 				"umd.cs.shop.JSListConjuncts#<init>(Ljava/io/StreamTokenizer;)V"
 //				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
@@ -93,12 +128,12 @@ public class TestSingleMethod {
 //		seed = null;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
@@ -111,7 +146,6 @@ public class TestSingleMethod {
 	@Test
 	public void runColt() {
 		String projectId = "102_colt";
-		String projectName = "colt";
 		String[] targetMethods = new String[]{
 				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
 //				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
@@ -132,12 +166,12 @@ public class TestSingleMethod {
 //		seed = null;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
@@ -150,7 +184,6 @@ public class TestSingleMethod {
 	@Test
 	public void runWeka() {
 		String projectId = "101_weka";
-		String projectName = "weka";
 		String[] targetMethods = new String[]{
 //				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
 				"weka.associations.Apriori#buildAssociations(Lweka/core/Instances;)V"
@@ -171,12 +204,12 @@ public class TestSingleMethod {
 		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
@@ -188,7 +221,6 @@ public class TestSingleMethod {
 	@Test
 	public void runJBlas() {
 		String projectId = "103_jblas";
-		String projectName = "jblas";
 		String[] targetMethods = new String[]{
 //				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
 				"org.jblas.DoubleMatrix#min()D"
@@ -209,12 +241,12 @@ public class TestSingleMethod {
 		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
@@ -226,7 +258,6 @@ public class TestSingleMethod {
 	@Test
 	public void runMath() {
 		String projectId = "105_math";
-		String projectName = "math";
 		String[] targetMethods = new String[]{
 				"org.apache.commons.math.util.OpenIntToDoubleHashMap#get(I)D"
 //				"org.apache.commons.math.util.MathUtils#equals([D[D)Z"
@@ -246,12 +277,12 @@ public class TestSingleMethod {
 		seed = 1557106055943L;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-//		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
@@ -263,7 +294,6 @@ public class TestSingleMethod {
 	@Test
 	public void runJFreechart() {
 		String projectId = "106_jfreechart";
-		String projectName = "jfreechart";
 		String[] targetMethods = new String[]{
 //				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
 				"org.jfree.chart.ChartPanel#createPopupMenu(ZZZZZ)Ljavax/swing/JPopupMenu;"
@@ -284,12 +314,12 @@ public class TestSingleMethod {
 		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId, projectName, 
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
