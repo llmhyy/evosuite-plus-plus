@@ -14,4 +14,17 @@ public class PExample {
 		
 		return null;
 	}
+	
+//	public static void main(String[] args) {
+////		for(int i=0; i<100; i++) {
+////			System.out.print(i + " ");
+////		}
+//		
+//		for(int i=0; i<100; i++) {
+//			if(i==Util.hash(i)) {
+//				System.out.print(i + " " + Util.hash(i) + " ");
+//				System.out.println();				
+//			}
+//		}
+//	}
 }

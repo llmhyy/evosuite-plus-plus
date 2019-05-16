@@ -42,8 +42,8 @@ public class AbstractETest {
 				// "-Dmax_length", "1",
 				// "-Dmax_size", "1",
 				"-Dmax_attempts", "100", "-Dassertions", "false", "-Delite", "10",
-				// "-Dprimitive_pool", "0.0",
-				// "-Ddynamic_pool", "0.0",
+				"-Dprimitive_pool", "0.0",
+				"-Ddynamic_pool", "0.0",
 				"-Dlocal_search_ensure_double_execution", "false",
 				// "-Dstopping_condition", "maxgenerations",
 				// "-DTT", "true",
@@ -67,6 +67,7 @@ public class AbstractETest {
 				}
 
 				System.out.println("Used time: " + r.getElapseTime());
+				System.out.println("Age: " + r.getAge());
 
 				System.out.println("Available calls: " + getAvailableCalls());
 				System.out.println("Unavailable calls: " + getUnavailableCalls());

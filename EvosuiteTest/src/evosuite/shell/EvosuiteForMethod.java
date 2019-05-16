@@ -28,6 +28,7 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
 import evosuite.shell.ParameterOptions.TestLevel;
+import evosuite.shell.listmethod.ListFeatures;
 import evosuite.shell.listmethod.ListMethods;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.TargetMethodIOUtils;
@@ -124,6 +125,15 @@ public class EvosuiteForMethod {
 						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
 			}
 			/**
+			 * generate feature for a given branch
+			 */
+			else if(Settings.isRetrieveBranchFeature()) {
+				String[] targetClasses = evoTest.listAllTargetClasses(args);
+				
+				String branchFile = Settings.getBranchLabelFile();
+				new ListFeatures().execute(branchFile, evoTest.evoTestClassLoader);
+			}
+			/**
 			 * execute the test
 			 */
 			else {
@@ -180,9 +190,7 @@ public class EvosuiteForMethod {
 
 				String[] truncatedArgs = extractArgs(args);
 
-				if(Settings.getRunBothMethods() != null &&
-						Settings.getRunBothMethods().equals("true")) {
-					
+				if(Settings.isRunBothMethods()) {
 					if (Settings.getTestLevel() == TestLevel.lMethod) {
 						results = evoTest.runAllMethodsWithBothStrategy(targetClasses, 
 								truncatedArgs, projectName);
@@ -248,9 +256,11 @@ public class EvosuiteForMethod {
 						List<ResultPair> worseCoveragePairs = new ArrayList<>();
 						
 						for (int i = 0; i < Settings.getIteration(); i++) {
-							int index = ProgramArgumentUtils.indexOfOpt(args, "-criterion");
-							if(index != -1) {
-								args[index+1] = "branch";
+							int critierionIndex = ProgramArgumentUtils.indexOfOpt(args, "-criterion");
+							int contextIndex = ProgramArgumentUtils.indexOfOpt(args, "-Dinstrument_context");
+							if(critierionIndex != -1) {
+								args[critierionIndex+1] = "branch";
+								args[contextIndex+1] = "false";
 								EvoTestResult branchResult = null;
 								try {
 									branchResult = runMethod(methodName, className, args, new ArrayList<>());									
@@ -263,7 +273,8 @@ public class EvosuiteForMethod {
 								
 								Long randomSeed = branchResult.getRandomSeed();
 								
-								args[index+1] = "fbranch";
+								args[critierionIndex+1] = "branch";
+								args[contextIndex+1] = "true";
 								String[] newArgs = args;
 								newArgs = ArrayUtils.addAll(newArgs, "-seed", String.valueOf(randomSeed));
 								EvoTestResult fBranchResult = null;

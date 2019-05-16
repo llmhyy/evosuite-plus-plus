@@ -34,12 +34,18 @@ public class Settings {
 	private static String targetMethodFilePath;
 	private static boolean reportBasedFilter;
 	private static String branchExperimentFile;
-	private static String runBothMethods = "false";
+	private static boolean runBothMethods = false;
+	private static boolean retrieveBranchFeature = false;
+	private static String branchLabelFile;
 	
 	public static List<String> insterestedProjects;
 
 	public static void setup(String[] args) throws Exception {
-		runBothMethods = ProgramArgumentUtils.getOptValue(args, ParameterOptions.RUN_BOTH_METHODS);
+		runBothMethods = ProgramArgumentUtils.hasOpt(args, ParameterOptions.RUN_BOTH_METHODS);
+		
+		retrieveBranchFeature = ProgramArgumentUtils.hasOpt(args, ParameterOptions.RETRIEVE_BRANCH_FEATURE);
+		branchLabelFile = ProgramArgumentUtils.getOptValue(args, ParameterOptions.BRANCH_LABEL_FILE);
+		
 		branchExperimentFile = ProgramArgumentUtils.getOptValue(args, ParameterOptions.BRANCH_EXPERIMENT_FILE);
 		listMethods = ProgramArgumentUtils.hasOpt(args, ListMethods.OPT_NAME);
 		inclusiveFilePath = ProgramArgumentUtils.getOptValue(args, ParameterOptions.INCLUSIVE_FILE_OPT);
@@ -259,11 +265,20 @@ public class Settings {
 		return reportBasedFilter;
 	}
 
-	public static String getRunBothMethods() {
+	public static boolean isRunBothMethods() {
 		return runBothMethods;
 	}
 
-	public static void setRunBothMethods(String runBothMethods) {
-		Settings.runBothMethods = runBothMethods;
+	public static boolean isRetrieveBranchFeature() {
+		return retrieveBranchFeature;
 	}
+
+	public static String getBranchLabelFile() {
+		return branchLabelFile;
+	}
+
+	public static void setBranchLabelFile(String branchLabelFile) {
+		Settings.branchLabelFile = branchLabelFile;
+	}
+
 }

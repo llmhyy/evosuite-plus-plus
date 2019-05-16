@@ -18,7 +18,7 @@ public class PExampleTest extends AbstractETest{
 		Method method = getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;lib/commons-math-2.2.jar";
+		String cp = "target/classes";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
@@ -26,12 +26,12 @@ public class PExampleTest extends AbstractETest{
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
+		Properties.TIMEOUT = 1000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "branch";
+		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 100;
+		int timeBudget = 200;
 		PExampleTest t = new PExampleTest();
 		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		

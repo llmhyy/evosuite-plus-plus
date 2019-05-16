@@ -30,8 +30,8 @@ public class Util {
 
 	public static boolean checkValue(int[] hasValues, int index, int value) {
 		int hashValue = hash(value);
-		if((false/*value == Integer.MAX_VALUE*/
-	        || hashValue >= Math.pow(2, index)+123)
+		if((hasValues[index] == 0
+	        || hashValue >= Math.pow(2, index)+100)
 	            && hasValues[index] == hashValue)
 			return true;
 		return false;
@@ -39,6 +39,6 @@ public class Util {
 	
 	public static int hash(int key) {
 	  final int h = key ^ ((key >>> 20) ^ (key >>> 12));
-	  return h ^ (h >>> 7) ^ (h >>> 4);
+	  return h ^ (h >>> 7) ^ (h >>> 4) + 100;
 	}
 }

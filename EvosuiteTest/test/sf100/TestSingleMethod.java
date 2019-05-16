@@ -283,7 +283,7 @@ public class TestSingleMethod {
 		
 		fitnessApproach = "branch";
 		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+				targetMethods, fitnessApproach, repeatTime, budget, false, seed);
 		
 		System.out.println("fbranch" + ":");
 		printResult(results0);

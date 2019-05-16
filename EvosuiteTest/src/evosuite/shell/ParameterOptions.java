@@ -16,9 +16,12 @@ public class ParameterOptions {
 	public static final String METHOD_FILTER_OPTION = "-mFilterOpt";
 	public static final String REPORT_BASED_FILTER = "-exclFinishedMethods";
 	public static final String RUN_BOTH_METHODS = "-runBothMethods";
+	public static final String RETRIEVE_BRANCH_FEATURE = "-retrieveBranchFeature";
+	public static final String BRANCH_LABEL_FILE = "-branchLabelFile";
 	public static final List<String> ALL_OPTIONS = Arrays.asList(LIST_METHODS_OPT, INCLUSIVE_FILE_OPT,
 			EXCLUSIVE_FILE_OPT, METHOD_TEST_ITERATION, REPORT_FOLDER, RUNNING_MARKER_FILE, TEST_LEVEL,
-			METHOD_FILTER_OPTION, REPORT_BASED_FILTER, BRANCH_EXPERIMENT_FILE, RUN_BOTH_METHODS);
+			METHOD_FILTER_OPTION, REPORT_BASED_FILTER, BRANCH_EXPERIMENT_FILE, RUN_BOTH_METHODS,
+			RETRIEVE_BRANCH_FEATURE, BRANCH_LABEL_FILE);
 	
 	
 	public static List<String> getListMethodsOptions() {
@@ -29,4 +32,5 @@ public class ParameterOptions {
 		lClass,
 		lMethod
 	}
+
 }
