@@ -552,6 +552,11 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 					double fit = tff.getFitness(bestIndividual);
 					if(tff instanceof FBranchTestFitness) {
 						logger.error(((FBranchTestFitness)tff).getBranchGoal() + ": " + fit);	
+						logger.error(bestIndividual.toString());
+					}
+					else if(tff instanceof BranchCoverageTestFitness) {
+						logger.error(((BranchCoverageTestFitness)tff).getBranchGoal() + ": " + fit);	
+						logger.error(bestIndividual.toString());
 					}
 					else {
 						logger.error(tff + ": " + fit);											
