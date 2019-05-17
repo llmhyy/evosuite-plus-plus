@@ -111,6 +111,17 @@ public class EvosuiteForMethod {
 			EvosuiteForMethod evoTest = new EvosuiteForMethod();
 			Settings.setup(args);
 
+			/**
+			 * generate feature for a given branch
+			 */
+			if(Settings.isRetrieveBranchFeature()) {
+				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.getListMethodsOptions());
+				evoTest.listAllTargetClasses(args);
+				
+				String branchFile = Settings.getBranchLabelFile();
+				new ListFeatures().execute(branchFile, evoTest.evoTestClassLoader);
+			}
+			
 			if (Settings.insterestedProjects!=null && !Settings.insterestedProjects.contains(projectName)) {
 				return new ArrayList<>();
 			}
@@ -123,15 +134,6 @@ public class EvosuiteForMethod {
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
 						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
-			}
-			/**
-			 * generate feature for a given branch
-			 */
-			else if(Settings.isRetrieveBranchFeature()) {
-				String[] targetClasses = evoTest.listAllTargetClasses(args);
-				
-				String branchFile = Settings.getBranchLabelFile();
-				new ListFeatures().execute(branchFile, evoTest.evoTestClassLoader);
 			}
 			/**
 			 * execute the test
