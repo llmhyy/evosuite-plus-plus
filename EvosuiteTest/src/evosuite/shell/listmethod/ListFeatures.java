@@ -110,6 +110,8 @@ public class ListFeatures {
 		try {
 			DependencyAnalysis.analyzeClass(className, Arrays.asList(cp.split(File.pathSeparator)));			
 		}
+		// I am not that sure, using DepndencyAnalysis to analyze call graph will have a lot of exception,
+		// In this regard, I just need to get the branch id from the cfg. 
 		catch(Exception e) {
 			e.printStackTrace();
 		}
