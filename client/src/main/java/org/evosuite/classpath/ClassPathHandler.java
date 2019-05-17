@@ -209,7 +209,7 @@ public class ClassPathHandler {
 		}
 		
 		File file = new File(element);
-		if(!file.exists()){
+		if(!file.getAbsoluteFile().exists()){
 			throw new IllegalArgumentException("Classpath element does not exist on disk at: "+element);
 		}
 		if(!element.endsWith(".jar") && !file.isDirectory()){
