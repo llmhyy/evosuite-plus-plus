@@ -1,6 +1,7 @@
 package evosuite.shell;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -20,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.evosuite.CommandLineParameters;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
+import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.CommonUtility;
 import org.evosuite.utils.ExternalProcessHandler;
@@ -98,6 +100,10 @@ public class EvosuiteForMethod {
 	public static List<EvoTestResult> generateTests(String[] args) {
 		return execute(args);
 	}
+	
+	public static boolean isNumeric(String strNum) {
+	    return strNum.matches("-?\\d+(\\.\\d+)?");
+	}
 
 	public static List<EvoTestResult> execute(String[] args) {
 		List<EvoTestResult> results = new ArrayList<>();
@@ -115,11 +121,45 @@ public class EvosuiteForMethod {
 			 * generate feature for a given branch
 			 */
 			if(Settings.isRetrieveBranchFeature()) {
-				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.getListMethodsOptions());
-				evoTest.listAllTargetClasses(args);
+				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.ALL_OPTIONS);
+				File file = new File(".").getAbsoluteFile();
+				file.getAbsolutePath();
+				if(file.isDirectory()) {
+					String[] filenames = file.list(new FilenameFilter() {
+						@Override
+						public boolean accept(File dir, String name) {
+							File f = new File(name);
+							if(f.isDirectory() && name.contains("_")) {
+								String index = name.substring(0, name.indexOf("_"));
+								return isNumeric(index);
+								
+							}
+							return false;
+						}
+					});
+					
+					String originalWorkingDir = System.getProperty("user.dir");
+					for(String projectFile: filenames) {
+						ClassPathHandler.resetSingleton();
+						
+						String workingDir = originalWorkingDir + File.separator + projectFile;
+						System.setProperty("user.dir", workingDir);
+						EvoSuite.base_dir_path = workingDir;
+						
+						String targetJar = projectFile.substring(projectFile.indexOf("_")+1, projectFile.length());
+						
+						int targetIndex = ProgramArgumentUtils.indexOfOpt(args, "-target");
+						args[targetIndex+1] = targetJar + ".jar";
+						
+						evoTest.listAllTargetClasses(args);
+						String branchFile = Settings.getBranchLabelFile();
+						String projectId = projectFile;
+						new ListFeatures().execute(projectId, branchFile, evoTest.evoTestClassLoader);		
+						
+						System.setProperty("user.dir", originalWorkingDir);
+					}
+				}
 				
-				String branchFile = Settings.getBranchLabelFile();
-				new ListFeatures().execute(branchFile, evoTest.evoTestClassLoader);
 			}
 			
 			if (Settings.insterestedProjects!=null && !Settings.insterestedProjects.contains(projectName)) {
