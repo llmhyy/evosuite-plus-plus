@@ -119,10 +119,10 @@ public class ListFeatures {
 			// }
 
 			
-			List<String> classPaths = Arrays.asList(cp.split(File.pathSeparator));
-			for(String classPath: classPaths) {
-				addSoftwareLibrary(TestGenerationContext.getInstance().getClassLoaderForSUT(), new File(classPath));
-			}
+//			List<String> classPaths = Arrays.asList(cp.split(File.pathSeparator));
+//			for(String classPath: classPaths) {
+//				addSoftwareLibrary(TestGenerationContext.getInstance().getClassLoaderForSUT(), new File(classPath));
+//			}
 
 			DependencyAnalysis.analyzeClass(className, Arrays.asList(cp.split(File.pathSeparator)));
 		}
@@ -156,7 +156,8 @@ public class ListFeatures {
 
 				for (BranchCoverageTestFitness tt : branchGoals) {
 					if (tt.getBranch().getActualBranchId() == branchId) {
-						System.out.println("find corresponding branch");
+						System.out.println("find corresponding branch for branch" + 
+								branchId + " in " + className + "#" + methodName);
 					}
 				}
 
