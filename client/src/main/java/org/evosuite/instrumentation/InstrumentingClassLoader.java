@@ -159,7 +159,7 @@ public class InstrumentingClassLoader extends ClassLoader {
 			if (result != null) {
 				return result;
 			}
-			result = classLoader.loadClass(name);
+			result = getClassLoader().loadClass(name);
 			return result;
 		}
 
@@ -268,6 +268,10 @@ public class InstrumentingClassLoader extends ClassLoader {
 	public Set<String> getLoadedClasses() {
 		HashSet<String> loadedClasses = new HashSet<String>(this.classes.keySet());
 		return loadedClasses;
+	}
+
+	public ClassLoader getClassLoader() {
+		return classLoader;
 	}
 
 }

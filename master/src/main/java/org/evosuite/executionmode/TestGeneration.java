@@ -197,7 +197,7 @@ public class TestGeneration {
 	}
 	
 	private static boolean findTargetClass(String target) {
-
+		
 		if (ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).hasClass(target)) {
 			return true;
 		}

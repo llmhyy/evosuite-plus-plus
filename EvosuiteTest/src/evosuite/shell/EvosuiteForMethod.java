@@ -30,6 +30,8 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
 import evosuite.shell.ParameterOptions.TestLevel;
+import evosuite.shell.experiment.SFBenchmarkUtils;
+import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.listmethod.ListFeatures;
 import evosuite.shell.listmethod.ListMethods;
 import evosuite.shell.utils.LoggerUtils;
@@ -142,21 +144,24 @@ public class EvosuiteForMethod {
 					for(String projectFile: filenames) {
 						ClassPathHandler.resetSingleton();
 						
-						String workingDir = originalWorkingDir + File.separator + projectFile;
-						System.setProperty("user.dir", workingDir);
-						EvoSuite.base_dir_path = workingDir;
+						SFConfiguration.sfBenchmarkFolder = originalWorkingDir;
+						SFBenchmarkUtils.setupProjectProperties(projectFile);
+						
+//						String workingDir = originalWorkingDir + File.separator + projectFile;
+//						System.setProperty("user.dir", workingDir);
+//						EvoSuite.base_dir_path = workingDir;
 						
 						String targetJar = projectFile.substring(projectFile.indexOf("_")+1, projectFile.length());
 						
 						int targetIndex = ProgramArgumentUtils.indexOfOpt(args, "-target");
-						args[targetIndex+1] = targetJar + ".jar";
+						args[targetIndex+1] = originalWorkingDir + File.separator + projectFile + File.separator + targetJar + ".jar";
 						
 						evoTest.listAllTargetClasses(args);
 						String branchFile = Settings.getBranchLabelFile();
 						String projectId = projectFile;
 						new ListFeatures().execute(projectId, branchFile, evoTest.evoTestClassLoader);		
 						
-						System.setProperty("user.dir", originalWorkingDir);
+//						System.setProperty("user.dir", originalWorkingDir);
 					}
 				}
 				
