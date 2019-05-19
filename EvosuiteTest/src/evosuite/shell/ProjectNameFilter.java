@@ -7,7 +7,7 @@ class ProjectNameFileter implements FilenameFilter {
 
 	@Override
 	public boolean accept(File dir, String name) {
-		File f = new File(name);
+		File f = new File(dir.getAbsolutePath() + File.separator + name);
 		if (f.isDirectory() && name.contains("_")) {
 			String index = name.substring(0, name.indexOf("_"));
 			return isNumeric(index);

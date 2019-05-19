@@ -96,12 +96,6 @@ public class ListFeatures {
 		}
 	}
 	
-	private static void addSoftwareLibrary(ClassLoader loader, File file) throws Exception {
-	    Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{URL.class});
-	    method.setAccessible(true);
-	    method.invoke(loader, new Object[]{file.toURI().toURL()});
-	}
-
 	private BranchFeature parseBranchFeature(ClassLoader classLoader, String className,
 			List<MethodNode> relevantMethods, String methodName, int branchId)
 			throws AnalyzerException, ClassNotFoundException, RuntimeException {
@@ -110,21 +104,39 @@ public class ListFeatures {
 		// Here is where the <clinit> code should be invoked for the first time
 		org.evosuite.Properties.TARGET_CLASS = className;
 		try {
-			// String workingDir = System.getProperty("user.dir");
-			// List<String> classPaths = Arrays.asList(cp.split(File.pathSeparator));
-			// for(int i=0; i<classPaths.size(); i++) {
-			// String classPath = classPaths.get(i);
-			// String fullClassPath = workingDir + File.separator + classPath;
-			// classPaths.set(i, fullClassPath);
-			// }
-
-			
-//			List<String> classPaths = Arrays.asList(cp.split(File.pathSeparator));
-//			for(String classPath: classPaths) {
-//				addSoftwareLibrary(TestGenerationContext.getInstance().getClassLoaderForSUT(), new File(classPath));
-//			}
-
 			DependencyAnalysis.analyzeClass(className, Arrays.asList(cp.split(File.pathSeparator)));
+			
+			for (MethodNode node : relevantMethods) {
+				String mName = CommonUtility.getMethodName(node);
+				if (mName.equals(methodName)) {
+					log.debug(String.format("#Method %s#%s", className, methodName));
+					// GraphPool.clearAll();
+					ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+					if (cfg == null) {
+						BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+						bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
+						bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+						cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+					}
+
+					boolean value = branchId > 0 ? true : false;
+					branchId = Math.abs(branchId);
+
+					BranchCoverageFactory branchFactory = new BranchCoverageFactory();
+					List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
+
+					for (BranchCoverageTestFitness tt : branchGoals) {
+						if (tt.getBranch().getActualBranchId() == branchId) {
+							System.out.println("find corresponding branch for branch" + 
+									branchId + " in " + className + "#" + methodName);
+						}
+					}
+
+					// TODO get branch features in CFG
+					// System.currentTimeMillis();
+
+				}
+			}
 		}
 		// I am not that sure, using DepndencyAnalysis to analyze call graph will have a
 		// lot of exception,
@@ -135,37 +147,7 @@ public class ListFeatures {
 			t.printStackTrace();
 		}
 
-		for (MethodNode node : relevantMethods) {
-			String mName = CommonUtility.getMethodName(node);
-			if (mName.equals(methodName)) {
-				log.debug(String.format("#Method %s#%s", className, methodName));
-				// GraphPool.clearAll();
-				ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-				if (cfg == null) {
-					BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
-					bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
-					bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
-					cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-				}
-
-				boolean value = branchId > 0 ? true : false;
-				branchId = Math.abs(branchId);
-
-				BranchCoverageFactory branchFactory = new BranchCoverageFactory();
-				List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
-
-				for (BranchCoverageTestFitness tt : branchGoals) {
-					if (tt.getBranch().getActualBranchId() == branchId) {
-						System.out.println("find corresponding branch for branch" + 
-								branchId + " in " + className + "#" + methodName);
-					}
-				}
-
-				// TODO get branch features in CFG
-				// System.currentTimeMillis();
-
-			}
-		}
+		
 
 		return null;
 	}
