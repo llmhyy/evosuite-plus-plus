@@ -116,7 +116,7 @@ public class CommonTestUtil {
 //				"-generateSuite",
 				"-criterion", "branch",
 				"-target", FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, projectName + ".jar"),
-				"-inclusiveFile", file.getAbsolutePath(),
+//				"-inclusiveFile", file.getAbsolutePath(),
 //				"-Djunit_check", "false"
 ////				"-generateSuiteUsingDSE",
 ////				"-class", targetClass, 
