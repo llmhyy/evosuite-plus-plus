@@ -28,21 +28,21 @@ import java.util.Set;
 
 import org.evosuite.ProgressMonitor;
 import org.evosuite.Properties;
-import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.exception.ExceptionCoverageHelper;
 import org.evosuite.coverage.exception.ExceptionCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
-import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.SearchListener;
 import org.evosuite.ga.metaheuristics.mosa.comparators.MOSADominanceComparator;
+import org.evosuite.ga.operators.mutation.MutationHistory;
 import org.evosuite.ga.operators.selection.SelectionFunction;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
+import org.evosuite.testcase.TestMutationHistoryEntry;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
@@ -53,7 +53,6 @@ import org.evosuite.testcase.statements.StringPrimitiveStatement;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
-import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,18 +138,26 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			// apply mutation on offspring1
 			mutate(offspring1, parent1);
 			if (offspring1.isChanged()) {
-				clearCachedResults(offspring1);
+//				clearCachedResults(offspring1);
 				offspring1.updateAge(currentIteration);
 				calculateFitness(offspring1); 
+				
+				//TODO
+				identifyRelevantMutations(offspring1);
+				
 				offspringPopulation.add(offspring1);
 			}
 
 			// apply mutation on offspring2
 			mutate(offspring2, parent2);
 			if (offspring2.isChanged()) {
-				clearCachedResults(offspring2);
+//				clearCachedResults(offspring2);
 				offspring2.updateAge(currentIteration);
 				calculateFitness(offspring2);
+				
+				//TODO
+				identifyRelevantMutations(offspring1);
+				
 				offspringPopulation.add(offspring2);
 			}	
 			
@@ -175,6 +182,17 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		}
 		logger.info("Number of offsprings = {}", offspringPopulation.size());
 		return offspringPopulation;
+	}
+
+	private void identifyRelevantMutations(T offspring) {
+		if(offspring instanceof TestChromosome) {
+			TestChromosome test = (TestChromosome)offspring;
+			MutationHistory<TestMutationHistoryEntry> history = test.getMutationHistory();
+			for(TestMutationHistoryEntry entry: history) {
+				
+			}
+		}
+		
 	}
 
 	/**

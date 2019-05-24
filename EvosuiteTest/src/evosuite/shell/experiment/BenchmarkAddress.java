@@ -1,5 +1,5 @@
 package evosuite.shell.experiment;
 
 public class BenchmarkAddress {
-	public static String address =  "E:\\linyun\\git_space\\SF100-clean" ;
+	public static String address =  "C:\\Users\\linyun\\Documents\\git_space\\SF100-clean" ;
 }
