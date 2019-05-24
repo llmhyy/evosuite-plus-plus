@@ -30,8 +30,9 @@ public class ListMethodsBatch {
 	public void justRun() throws IOException {
 //		runListMethod(MethodFilterOption.FLAG_METHOD_PROFILES);
 //		runListMethod(MethodFilterOption.HAS_BRANCH);
-		runListMethod(MethodFilterOption.FLAG_PROCEDURE_METHOD);
+//		runListMethod(MethodFilterOption.FLAG_PROCEDURE_METHOD);
 //		runListMethod(MethodFilterOption.NO_FLAG_METHOD);
+		runListMethod(MethodFilterOption.PRIMITIVE_PARAMETER);
 	}
 	
 	@Test
