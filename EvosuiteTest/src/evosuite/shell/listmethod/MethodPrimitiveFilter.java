@@ -1,7 +1,5 @@
 package evosuite.shell.listmethod;
 
-
-import org.apache.poi.ss.formula.functions.T;
 import org.evosuite.classpath.ResourceList;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -11,7 +9,6 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.ParameterNode;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,16 +39,18 @@ public class MethodPrimitiveFilter extends MethodHasBranchFilter implements IMet
 						|| (m.access & Opcodes.ACC_PRIVATE) == 0) {
 
 					// The parameters of the method are all primitives
-                    Type[] typeArgs = Type.getArgumentTypes(m.desc);
-                    for (Type type : typeArgs) {
-						System.out.println(type);
-                        if (!(type.equals(Type.BYTE_TYPE) || type.equals(Type.CHAR_TYPE) || type.equals(Type.SHORT_TYPE) ||
-								type.equals(Type.INT_TYPE) || type.equals(Type.LONG_TYPE) || type.equals(Type.FLOAT_TYPE) ||
-								type.equals(Type.DOUBLE_TYPE) || type.equals(Type.BOOLEAN_TYPE)) || type.toString().equals("Ljava/lang/String")) {
-                            break;
-                        }
-                        isPrimParam = true;
-                    }
+					Type[] typeArgs = Type.getArgumentTypes(m.desc);
+					int argLength = typeArgs.length;
+					int counter = 0;
+					for (Type type : typeArgs) {
+						if (!isPrimitiveType(type)) {
+							break;
+						}
+						counter++;
+					}
+					if (counter == argLength) {
+						isPrimParam = true;
+					}
 
 					// The method has branches
 					for (ListIterator<AbstractInsnNode> it = m.instructions.iterator(); it.hasNext(); ) {
@@ -61,11 +60,7 @@ public class MethodPrimitiveFilter extends MethodHasBranchFilter implements IMet
 						}
 						if (instruction.getOpcode() == Opcodes.GETFIELD) {
 							Type type = Type.getType(((FieldInsnNode) instruction).desc);
-							System.out.println(type);
-							if (type.equals(Type.BYTE_TYPE) || type.equals(Type.CHAR_TYPE) || type.equals(Type.SHORT_TYPE) ||
-									type.equals(Type.INT_TYPE) || type.equals(Type.LONG_TYPE) || type.equals(Type.FLOAT_TYPE) ||
-									type.equals(Type.DOUBLE_TYPE) || type.equals(Type.BOOLEAN_TYPE) || type.toString().equals("Ljava/lang/String")) {
-//								System.out.println(((FieldInsnNode) instruction).desc);
+							if (isPrimitiveType(type)) {
 								isPrimField = true;
 							}
 						}
@@ -74,12 +69,17 @@ public class MethodPrimitiveFilter extends MethodHasBranchFilter implements IMet
 					}
 				}
 				if (isPrimParam && isPrimField && hasBranch) {
-						validMethods.add(methodName);
-					}
+					validMethods.add(methodName);
 				}
-			} finally {
-				is.close();
 			}
-			return validMethods;
+		} finally {
+			is.close();
 		}
+		return validMethods;
 	}
+	private boolean isPrimitiveType(Type type) {
+		return type.equals(Type.BYTE_TYPE) || type.equals(Type.CHAR_TYPE) || type.equals(Type.SHORT_TYPE) ||
+				type.equals(Type.INT_TYPE) || type.equals(Type.LONG_TYPE) || type.equals(Type.FLOAT_TYPE) ||
+				type.equals(Type.DOUBLE_TYPE) || type.equals(Type.BOOLEAN_TYPE) || type.toString().equals("Ljava/lang/String;");
+	}
+}
