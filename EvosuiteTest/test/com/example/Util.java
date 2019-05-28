@@ -41,4 +41,8 @@ public class Util {
 	  final int h = key ^ ((key >>> 20) ^ (key >>> 12));
 	  return h ^ (h >>> 7) ^ (h >>> 4) + 100;
 	}
+
+	public static boolean checkB(int b) {
+		return b==1000000;
+	}
 }

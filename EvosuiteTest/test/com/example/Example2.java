@@ -1,9 +1,9 @@
 package com.example;
 
-public class Example4 {
+public class Example2 {
 	public void test(int a){
 		int b = 2*a;
-		if(b==1234588888){
+		if(Util.checkB(b)){
 			return;
 		}
 		

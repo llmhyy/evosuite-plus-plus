@@ -19,27 +19,50 @@
  */
 package org.evosuite.testcase.statements;
 
-import com.googlecode.gentyref.GenericTypeReflector;
-
-import org.evosuite.Properties;
-import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.variable.VariableReference;
-import org.evosuite.testcase.variable.VariableReferenceImpl;
-import org.evosuite.testcase.statements.environment.EnvironmentStatements;
-import org.evosuite.testcase.execution.CodeUnderTestException;
-import org.evosuite.testcase.execution.Scope;
-import org.evosuite.testcase.statements.numeric.*;
-import org.evosuite.utils.generic.GenericAccessibleObject;
-import org.evosuite.utils.generic.GenericClass;
-import org.evosuite.utils.Randomness;
-
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.evosuite.Properties;
+import org.evosuite.Properties.Criterion;
+import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.coverage.fbranch.FBranchFitnessFactory;
+import org.evosuite.coverage.fbranch.FBranchTestFitness;
+import org.evosuite.ga.Chromosome;
+import org.evosuite.ga.FitnessFunction;
+import org.evosuite.testcase.MutationPurpose;
+import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.TestFactory;
+import org.evosuite.testcase.TestFitnessFunction;
+import org.evosuite.testcase.execution.CodeUnderTestException;
+import org.evosuite.testcase.execution.Scope;
+import org.evosuite.testcase.statements.environment.EnvironmentStatements;
+import org.evosuite.testcase.statements.numeric.BooleanPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.BytePrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.CharPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.DoublePrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.FloatPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.LongPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.ShortPrimitiveStatement;
+import org.evosuite.testcase.variable.VariableReference;
+import org.evosuite.testcase.variable.VariableReferenceImpl;
+import org.evosuite.utils.ArrayUtil;
+import org.evosuite.utils.Randomness;
+import org.evosuite.utils.generic.GenericAccessibleObject;
+import org.evosuite.utils.generic.GenericClass;
+
+import com.googlecode.gentyref.GenericTypeReflector;
 
 /**
  * Statement assigning a primitive numeric value
@@ -68,6 +91,7 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
     public PrimitiveStatement(TestCase tc, VariableReference varRef, T value) {
         super(tc, varRef);
         this.value = value;
+        initializeMutationRelevance();
     }
 
     /**
@@ -80,11 +104,41 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
     public PrimitiveStatement(TestCase tc, Type type, T value) {
         super(tc, new VariableReferenceImpl(tc, type));
         this.value = value;
+        initializeMutationRelevance();
     }
 
     public PrimitiveStatement(TestCase tc, GenericClass clazz, T value) {
         super(tc, new VariableReferenceImpl(tc, clazz));
         this.value = value;
+        initializeMutationRelevance();
+    }
+    
+    public List<TestFitnessFunction> getGoals(){
+    	List<TestFitnessFunction> goals = new ArrayList<>();
+    	
+    	if(ArrayUtil.contains(Properties.CRITERION, Criterion.BRANCH)) {
+    		FBranchFitnessFactory fBranchFactory = new FBranchFitnessFactory();
+    		List<FBranchTestFitness> ftfs = fBranchFactory.getCoverageGoals();
+    		for(FBranchTestFitness ftf: ftfs) {
+    			goals.add(ftf);
+    		}
+    	}
+    	else if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+    		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
+    		List<BranchCoverageTestFitness> btfs = branchFactory.getCoverageGoals();
+    		for(BranchCoverageTestFitness btf: btfs) {
+    			goals.add(btf);
+    		}
+    	}
+    	
+    	return goals;
+    }
+    
+    public void initializeMutationRelevance() {
+    	List<TestFitnessFunction> goals = getGoals();
+    	for(TestFitnessFunction ff: goals) {
+    		this.changeRelevanceMap.put(ff, (double) 1);
+    	}
     }
 
     /**
@@ -378,11 +432,22 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
         }
     }
 
+    
     /**
      * {@inheritDoc}
      */
-    @Override
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
     public boolean mutate(TestCase test, TestFactory factory) {
+    	
+    	Set<FitnessFunction<? extends Chromosome>> tffList = MutationPurpose.purpose;
+    	TestChromosome tc = new TestChromosome();
+    	tc.setTestCase(test);
+    	Map<FitnessFunction, Double> map = new HashMap<>();
+    	for(FitnessFunction tff: tffList) {
+    		map.put(tff, tff.getFitness(tc));
+    	}
+    	
         if (!hasMoreThanOneValue())
             return false;
 
@@ -405,10 +470,34 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
             } else
                 delta();
         }
+        
+        
+        for(FitnessFunction tff: tffList) {
+        	tc.clearCachedResults();
+    		Double fit = tff.getFitness(tc);
+    		Double relevance = this.changeRelevanceMap.get(tff);
+    		if(relevance == null) {
+    			relevance = 0.5;
+    		}
+    		
+    		if(map.get(tff) - fit != 0.0) {
+    			relevance = Math.sqrt(relevance);
+    		}
+    		else {
+    			relevance = relevance * relevance;
+    			if(relevance < 0.1) {
+    				relevance = 0.1;
+    			}
+    		}
+    		this.changeRelevanceMap.put(tff, relevance);
+    	}
+        
         return true;
     }
 
-    /**
+    
+
+	/**
      * Set to a random value
      */
     public abstract void randomize();

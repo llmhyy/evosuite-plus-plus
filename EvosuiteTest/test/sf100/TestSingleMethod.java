@@ -306,7 +306,7 @@ public class TestSingleMethod {
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
-		int repeatTime = 5;
+		int repeatTime = 1;
 		int budget = 1000000;
 		Long seed = null;
 //		seed = 1557106055943L;
@@ -318,7 +318,7 @@ public class TestSingleMethod {
 		
 		fitnessApproach = "branch";
 		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, false, seed);
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
 		printResult(results0);

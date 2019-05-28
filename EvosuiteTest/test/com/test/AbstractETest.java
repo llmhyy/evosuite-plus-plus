@@ -23,9 +23,13 @@ public class AbstractETest {
 		String[] command = new String[] {
 				// "-generateRandom",
 				// "-generateSuite",
-				"-generateMOSuite", "-Dstrategy", "MOSUITE", "-Dalgorithm", "MOSA",
+//				"-generateMOSuite", 
+				"-Dstrategy", 
+				"MOSUITE", 
+				"-Dalgorithm", 
+				"MOSA",
 				// "-generateMOSuite",
-				// "-generateSuiteUsingDSE",
+//				 "-generateSuiteUsingDSE",
 				// "-Dstrategy", "random",
 				"-class", targetClass, "-projectCP", cp, // ;lib/commons-math-2.2.jar
 				// "-setup", "bin", "lib/commons-math-2.2.jar",

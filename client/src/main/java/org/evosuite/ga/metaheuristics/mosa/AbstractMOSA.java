@@ -39,6 +39,7 @@ import org.evosuite.ga.metaheuristics.SearchListener;
 import org.evosuite.ga.metaheuristics.mosa.comparators.MOSADominanceComparator;
 import org.evosuite.ga.operators.mutation.MutationHistory;
 import org.evosuite.ga.operators.selection.SelectionFunction;
+import org.evosuite.testcase.MutationPurpose;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -112,6 +113,8 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	 */
 	@SuppressWarnings("unchecked")
 	protected List<T> breedNextGeneration(Set<FitnessFunction<T>> dominateUncoveredGoals) {
+		new MutationPurpose<T>().setPurpose(dominateUncoveredGoals);
+		
 		selectionFunction = new MOSADominateGoalSelection<T>(dominateUncoveredGoals);
 		List<T> offspringPopulation = new ArrayList<T>(Properties.POPULATION);
 		// we apply only Properties.POPULATION/2 iterations since in each generation

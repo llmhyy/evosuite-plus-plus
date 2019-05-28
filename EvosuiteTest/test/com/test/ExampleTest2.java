@@ -7,21 +7,21 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.example.Example;
+import com.example.Example2;
 
 public class ExampleTest2 extends AbstractETest{
 	
 	@Test
 	public void test() {
-		Class<?> clazz = Example.class;
+		Class<?> clazz = Example2.class;
 		String methodName = "test";
-		int parameterNum = 2;
+		int parameterNum = 1;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;lib/commons-math-2.2.jar";
+		String cp = "target/classes";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
@@ -29,7 +29,7 @@ public class ExampleTest2 extends AbstractETest{
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000;
+		Properties.TIMEOUT = 100;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
 		String fitnessApproach = "fbranch";

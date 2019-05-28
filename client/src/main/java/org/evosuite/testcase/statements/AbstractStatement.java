@@ -23,11 +23,14 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.assertion.Assertion;
+import org.evosuite.ga.FitnessFunction;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestCodeVisitor;
@@ -47,6 +50,9 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractStatement implements Statement, Serializable {
 
+	@SuppressWarnings("rawtypes")
+	protected Map<FitnessFunction, Double> changeRelevanceMap = new HashMap<>();
+	
 	/**
 	 * An interface to enable the concrete statements to use the executer/1
 	 * method.
@@ -539,4 +545,12 @@ public abstract class AbstractStatement implements Statement, Serializable {
 	public boolean isReflectionStatement() {
 		return false;
 	}
+
+	@Override
+	@SuppressWarnings("rawtypes")
+	public Map<FitnessFunction, Double> getChangeRelevanceMap() {
+		return changeRelevanceMap;
+	}
+
+	
 }

@@ -23,12 +23,15 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationExecutionResult;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ConstructionFailedException;
+import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.SecondaryObjective;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 import org.evosuite.ga.operators.mutation.MutationHistory;
@@ -470,12 +473,38 @@ public class TestChromosome extends ExecutableChromosome {
         }
 	}
 	
+	@SuppressWarnings("rawtypes")
+	private double checkRelevance(Set<FitnessFunction<? extends Chromosome>> interestedGoals, 
+			Map<FitnessFunction, Double> changeRelevance) {
+		
+		
+		double relevance = 1;
+		if(interestedGoals == null) {
+			return relevance;
+		}
+		
+		for(FitnessFunction<? extends Chromosome> ff: interestedGoals) {
+			Double relevantScore = changeRelevance.get(ff);
+			if(relevantScore != null) {
+				if(relevance > relevantScore) {
+					relevance = relevantScore;
+				}
+			}
+		}
+		
+		return relevance;
+	}
+	
+	
 	/**
 	 * Each statement is replaced with probability 1/length
 	 *
 	 * @return
 	 */
+	@SuppressWarnings("rawtypes")
 	private boolean mutationChange() {
+		Set<FitnessFunction<? extends Chromosome>> goals = MutationPurpose.purpose;
+		
 		boolean changed = false;
 		int lastMutatableStatement = getLastMutatableStatement();
 		double pl = 1d / (lastMutatableStatement + 1);
@@ -517,15 +546,27 @@ public class TestChromosome extends ExecutableChromosome {
 				}
 				
 				if(targetMethodPosition == position) {
-					System.currentTimeMillis();
 					pl = 0.9;
 				}
 				
+				Statement statement = test.getStatement(position);
+				Map<FitnessFunction, Double> changeRelevance = statement.getChangeRelevanceMap();
+				if(changeRelevance!=null && !changeRelevance.isEmpty()) {
+		    		double relevanceScore = checkRelevance(goals, changeRelevance);
+		    		if(Randomness.nextDouble() > relevanceScore) {
+		    			continue;
+		    		}
+		    	}
+				
 				double ram = Randomness.nextDouble();
+				if(this.getAge() > 10 && changeRelevance!=null && !changeRelevance.isEmpty()) {
+					ram = 0;
+				}
+				
+//				double ram = 0; 
 				if (ram <= pl) {
 					assert (test.isValid());
 
-					Statement statement = test.getStatement(position);
 
 					if(statement.isReflectionStatement())
 						continue;

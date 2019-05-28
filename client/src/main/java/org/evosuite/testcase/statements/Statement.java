@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.assertion.Assertion;
+import org.evosuite.ga.FitnessFunction;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.Scope;
@@ -399,5 +400,8 @@ public interface Statement {
 	 *            a {@link org.evosuite.testcase.variable.VariableReference} object.
 	 */
 	public void setRetval(VariableReference newRetVal);
+
+	@SuppressWarnings("rawtypes")
+	public Map<FitnessFunction, Double> getChangeRelevanceMap();
 
 }
