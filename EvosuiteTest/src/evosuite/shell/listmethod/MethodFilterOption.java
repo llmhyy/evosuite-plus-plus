@@ -7,7 +7,8 @@ public enum MethodFilterOption {
 	HAS_BRANCH ("hasBranch"),
 	RELEVANT_JDK_CLASSES ("relJdkClasses"),
 	FLAG_METHOD_PROFILES("flagMethodProf"),
-	NO_FLAG_METHOD("noFlag");
+	NO_FLAG_METHOD("noFlag"),
+	PRIMITIVE_PARAMETER("primParam");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -28,6 +29,8 @@ public enum MethodFilterOption {
 			return new FlagMethodProfilesFilter();
 		case NO_FLAG_METHOD:
 			return new NoFlagMethodFilter();
+		case PRIMITIVE_PARAMETER:
+			return new MethodPrimitiveFilter();
 		}
 		return null;
 	}
