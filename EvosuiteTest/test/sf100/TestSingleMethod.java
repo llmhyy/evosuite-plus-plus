@@ -50,7 +50,7 @@ public class TestSingleMethod {
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 30;
+		int budget = 10;
 		Long seed = 1556814527153L;
 //		Long seed = null;
 		
