@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -31,14 +31,14 @@ import java.util.Set;
 
 import org.evosuite.assertion.Assertion;
 import org.evosuite.ga.FitnessFunction;
-import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestCodeVisitor;
 import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.variable.VariableReference;
-import org.evosuite.testcase.variable.VariableReferenceImpl;
 import org.evosuite.testcase.execution.CodeUnderTestException;
 import org.evosuite.testcase.execution.EvosuiteError;
+import org.evosuite.testcase.variable.ArrayReference;
+import org.evosuite.testcase.variable.VariableReference;
+import org.evosuite.testcase.variable.VariableReferenceImpl;
 import org.evosuite.utils.generic.GenericClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +50,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractStatement implements Statement, Serializable {
 
-	@SuppressWarnings("rawtypes")
-	protected Map<FitnessFunction, Double> changeRelevanceMap = new HashMap<>();
+	Map<FitnessFunction, Double> changeRelevanceMap = new HashMap<>();
 	
 	/**
 	 * An interface to enable the concrete statements to use the executer/1
@@ -545,12 +544,8 @@ public abstract class AbstractStatement implements Statement, Serializable {
 	public boolean isReflectionStatement() {
 		return false;
 	}
-
-	@Override
-	@SuppressWarnings("rawtypes")
-	public Map<FitnessFunction, Double> getChangeRelevanceMap() {
-		return changeRelevanceMap;
-	}
-
 	
+	public Map<FitnessFunction, Double> getChangeRelevanceMap(){
+		return this.changeRelevanceMap;
+	}
 }

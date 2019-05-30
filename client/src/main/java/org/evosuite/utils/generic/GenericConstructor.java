@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -330,6 +330,18 @@ public class GenericConstructor extends GenericAccessibleObject<GenericConstruct
 		oos.writeObject(constructor.getDeclaringClass().getName());
 		oos.writeObject(org.objectweb.asm.Type.getConstructorDescriptor(constructor));
 	}
+
+	@Override
+	public boolean isPublic() { return Modifier.isPublic(constructor.getModifiers()); }
+
+	@Override
+	public boolean isPrivate() { return Modifier.isPrivate(constructor.getModifiers()); }
+
+	@Override
+	public boolean isProtected() { return Modifier.isProtected(constructor.getModifiers()); }
+
+	@Override
+	public boolean isDefault() { return !isPublic() && !isPrivate() && !isProtected(); }
 
 	@Override
 	public int hashCode() {

@@ -7,7 +7,7 @@
     <artifactId>evosuite</artifactId>
     <name>EvoSuite</name>
     <description>n/a</description>
-    <version>1.0.6-SNAPSHOT</version>
+    <version>1.0.7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>http://www.evosuite.org/</url>
     <inceptionYear>2010</inceptionYear>
@@ -129,13 +129,11 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
                 <file>
-                    <exists>C:\Users\linyun\Documents\git_space\evosuite\libs\tools.jar</exists>
-<!--                	 <exists>/Users/lylytran/Projects/Evosuite/modified-version/evosuite/libs/tools.jar</exists> -->
+                    <exists>${java.home}/../lib/tools.jar</exists>
                 </file>
             </activation>
             <properties>
-                <toolsjar>C:\Users\linyun\Documents\git_space\evosuite\libs\tools.jar</toolsjar>
-<!--            <toolsjar>/Users/lylytran/Projects/Evosuite/modified-version/evosuite/libs/tools.jar</toolsjar> -->
+                <toolsjar>${java.home}/../lib/tools.jar</toolsjar>
             </properties>
         </profile>
         <profile>
@@ -182,7 +180,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-pmd-plugin</artifactId>
-                        <version>3.8</version>
+                        <version>3.9.0</version>
                         <configuration>
                             <targetJdk>1.8</targetJdk>
                         </configuration>
@@ -287,7 +285,7 @@
                 <!-- GPL, but classpath exception -->
                 <groupId>javax.xml.bind</groupId>
                 <artifactId>jaxb-api</artifactId>
-                <version>2.2.12</version>
+                <version>2.3.0</version>
             </dependency>
             <dependency>
                 <!-- Apache 2 -->
@@ -317,12 +315,13 @@
                     JobExecutorIntTest and all the Maven ones) work fine
                     on Windows -->
                 <version>1.1.3</version>
+                <optional>true</optional>
             </dependency>
             <dependency>
                 <!-- MIT -->
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>2.13.0</version>
+                <version>2.16.0</version>
             </dependency>
             <dependency>
                 <!-- Common Public License Version 1.0 -->
@@ -333,9 +332,32 @@
             <dependency>
                 <!-- Adhoc license, copyright holder is INRIA -->
                 <groupId>org.ow2.asm</groupId>
-                <artifactId>asm-all</artifactId>
-                <version>5.1</version>
-                <!--				<version>4.2</version> -->
+                <artifactId>asm</artifactId>
+                <version>6.0</version>
+            </dependency>
+            <dependency>
+                <!-- Adhoc license, copyright holder is INRIA -->
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-commons</artifactId>
+                <version>6.0</version>
+            </dependency>
+            <dependency>
+                <!-- Adhoc license, copyright holder is INRIA -->
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-tree</artifactId>
+                <version>6.0</version>
+            </dependency>
+            <dependency>
+                <!-- Adhoc license, copyright holder is INRIA -->
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-analysis</artifactId>
+                <version>6.0</version>
+            </dependency>
+            <dependency>
+                <!-- Adhoc license, copyright holder is INRIA -->
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-util</artifactId>
+                <version>6.0</version>
             </dependency>
             <dependency>
                 <!-- Apache 2 -->
@@ -377,7 +399,7 @@
                 <!-- Apache 2 -->
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.7</version>
+                <version>3.8</version>
                 <!-- Version 3.2.1 leads to a NPE in org.jcvi.jillion.fasta.qual.QualityFastaRecordWriterBuilder
                     in 92_jcvi-javacommon -->
             </dependency>
@@ -412,7 +434,7 @@
                 <!-- GPL, but classpath exception -->
                 <groupId>org.jboss.spec.javax.servlet</groupId>
                 <artifactId>jboss-servlet-api_3.1_spec</artifactId>
-                <version>1.0.0.Final</version>
+                <version>1.0.2.Final</version>
             </dependency>
 
             <!-- LGPL 2.1 -->
@@ -428,7 +450,7 @@
                 <!-- LGPL 2.1 -->
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-core</artifactId>
-                <version>5.2.11.Final</version>
+                <version>5.2.13.Final</version>
             </dependency>
             <dependency>
                 <!-- Apache 2 -->
@@ -470,13 +492,13 @@
                 <!-- Apache 2 -->
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-orm</artifactId>
-                <version>4.3.8.RELEASE</version>
+                <version>4.3.14.RELEASE</version>
             </dependency>
             <dependency>
                 <!-- Apache 2 -->
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
-                <version>4.3.8.RELEASE</version>
+                <version>4.3.14.RELEASE</version>
             </dependency>
             <dependency>
                 <!-- Apache 2 -->
@@ -488,13 +510,13 @@
                 <!-- Apache 2 -->
                 <groupId>org.apache.ant</groupId>
                 <artifactId>ant-junit</artifactId>
-                <version>1.10.1</version>
+                <version>1.10.2</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.github.stefanbirkner</groupId>
                 <artifactId>system-rules</artifactId>
-                <version>1.16.0</version>
+                <version>1.17.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -615,7 +637,7 @@
                 <configuration>
                     <header>src/etc/header.txt</header>
                     <properties>
-                        <year>2010-2017</year>
+                        <year>2010-2018</year>
                     </properties>
                     <excludes>
                         <exclude>DSC_LICENSE.txt</exclude>
@@ -663,7 +685,7 @@
                 <version>3.0.0</version>
                 <configuration>
                     <source>1.8</source>
-                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <additionalOptions>-Xdoclint:none</additionalOptions>
                 </configuration>
             </plugin>
             <plugin>
@@ -771,7 +793,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.6</version>
+                    <version>3.7</version>
                 </plugin>
                 <!-- Removed Eclipse m2e lifecycle mapping plugin. For a better solution
                     see: http://stackoverflow.com/questions/7409823/m2e-lifecycle-mapping-not-found -->
@@ -849,6 +871,10 @@
                                         <shadedPattern>org.evosuite.shaded.org.mockito</shadedPattern>
                                     </relocation>
                                     <relocation>
+                                        <pattern>net.bytebuddy</pattern>
+                                        <shadedPattern>org.evosuite.shaded.net.bytebuddy</shadedPattern>
+                                    </relocation>
+                                    <relocation>
                                         <!-- This is special. Originally we wanted to handle it directly, but
                                          did not turn out to be a good idea. However, too early to remove
                                          that code, so we just shade this package to avoid backward
@@ -888,6 +914,8 @@
                         </execution>
                     </executions>
                 </plugin>
+
+
             </plugins>
         </pluginManagement>
     </build>
@@ -902,7 +930,7 @@
         <systemTests>**/*SystemTest.java</systemTests>
         <integrationTests>**/*IntTest.java</integrationTests>
         <rerunFailingTestsCount>0</rerunFailingTestsCount>
-		<jars-destination>${project.basedir}/../generated-jars</jars-destination>
+
     </properties>
 
 </project>

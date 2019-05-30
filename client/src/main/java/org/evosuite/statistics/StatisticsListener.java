@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -142,7 +142,10 @@ public class StatisticsListener implements SearchListener {
 	@Override
 	public void fitnessEvaluation(Chromosome individual) {
 		numFitnessEvaluations++;
-		
+		if(!(individual instanceof TestSuiteChromosome)) {
+			// Statistics expects TestSuiteChromosome individuals
+			return;
+		}
 		double fitness = individual.getFitness();
 		if(minimizing) {
 			if(fitness < bestFitness) {

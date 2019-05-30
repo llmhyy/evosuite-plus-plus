@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -247,6 +247,20 @@ public class GenericField extends GenericAccessibleObject<GenericField> {
 			                                         + field.getDeclaringClass());
 		}
 	}
+
+	@Override
+	public boolean isPublic() { return Modifier.isPublic(field.getModifiers()); }
+
+	@Override
+	public boolean isPrivate() { return Modifier.isPrivate(field.getModifiers()); }
+
+	@Override
+	public boolean isProtected() { return Modifier.isProtected(field.getModifiers()); }
+
+	@Override
+	public boolean isDefault() { return !isPublic() && !isPrivate() && !isProtected(); }
+
+
 
 	@Override
 	public int hashCode() {

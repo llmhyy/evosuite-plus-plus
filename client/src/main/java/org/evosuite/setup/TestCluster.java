@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -25,15 +25,25 @@ package org.evosuite.setup;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
-import org.evosuite.coverage.archive.TestsArchive;
 import org.evosuite.ga.ConstructionFailedException;
+import org.evosuite.ga.archive.Archive;
 import org.evosuite.junit.CoverageAnalysis;
 import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.runtime.util.Inputs;
@@ -46,11 +56,11 @@ import org.evosuite.testcase.jee.InstanceOnlyOnce;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.ListUtil;
 import org.evosuite.utils.MethodUtil;
+import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericAccessibleObject;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericMethod;
-import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,7 +212,7 @@ public class TestCluster {
 				// TODO: This is not working correctly. Until we have figured out
 				// the problem here, we either need to deactivate this entirely,
 				// or at least make sure that we don't delete constructors.
-				if(gao.isConstructor()) {
+				if(gao.isConstructor() || gao.isStatic()) {
 					continue;
 				}
 				GenericClass owner = gao.getOwnerClass(); // eg X
@@ -435,6 +445,14 @@ public class TestCluster {
 					for (GenericAccessibleObject<?> generator : generators.get(generatorClazz)) {
 						logger.debug("5. current instantiated generator: {}", generator);
 						try {
+
+							if((generator.isMethod() || generator.isField()) && clazz.isParameterizedType() && GenericClass.isMissingTypeParameters(generator.getGenericGeneratedType())) {
+								logger.debug("No type parameters present in generator for {}: {}", clazz, generator);
+								continue;
+							}
+
+
+
 							// Set owner type parameters from new return type
 							GenericAccessibleObject<?> newGenerator = generator.copyWithOwnerFromReturnType(instantiatedGeneratorClazz);
 
@@ -473,6 +491,7 @@ public class TestCluster {
 							        || clazz.isAssignableFrom(newGenerator.getGeneratedType())) {
 								logger.debug("Got new generator: {} which generated: {}",
 								         newGenerator, newGenerator.getGeneratedClass());
+								logger.debug("{} vs {}", (!hadTypeParameters && generatorClazz.equals(clazz)), clazz.isAssignableFrom(newGenerator.getGeneratedType()));
 								targetGenerators.add(newGenerator);
 
 							} else if (logger.isDebugEnabled()) {
@@ -492,11 +511,15 @@ public class TestCluster {
 							logger.debug("5. ERROR", e);
 						}
 					}
-				} else {
-					logger.debug("4. generator {} CANNOT be instantiated to {}", generatorClazz, clazz);
-					for(GenericClass boundClass : generatorClazz.getGenericBounds()) {
-						CastClassManager.getInstance().addCastClass(boundClass, 0);
-					}
+					// FIXME:
+					// There are cases where this might lead to relevant cast classes not being included
+					// but in manycases it will pull in large numbers of useless dependencies.
+					// Commented out for now, until we find a case where the problem can be properly studied.
+//				} else {
+//					logger.debug("4. generator {} CANNOT be instantiated to {}", generatorClazz, clazz);
+//					for(GenericClass boundClass : generatorClazz.getGenericBounds()) {
+//						CastClassManager.getInstance().addCastClass(boundClass, 0);
+//					}
 				}
 			}
 			logger.debug("Found generators for {}: {}",clazz, targetGenerators.size());
@@ -660,12 +683,8 @@ public class TestCluster {
 
 	public GenericAccessibleObject<?> getRandomCallFor(GenericClass clazz, TestCase test, int position)
 	        throws ConstructionFailedException {
-//		Set<GenericMethod> calledMethods = TestGenerationUtil.getCalledMethods(test);
-		
+
 		Set<GenericAccessibleObject<?>> calls = getCallsFor(clazz, true);
-		
-//		TestGenerationUtil.filterTargetMethod(test, calls);
-		
 		Iterator<GenericAccessibleObject<?>> iter = calls.iterator();
 		while(iter.hasNext()) {
 			GenericAccessibleObject<?> gao = iter.next();
@@ -1274,7 +1293,7 @@ public class TestCluster {
 		Map<String, Integer> mapMethodToGoals = new LinkedHashMap<>();
 		for(String methodName : mapCallToName.values()) {
 			// MethodKey is class+method+desc
-			mapMethodToGoals.put(methodName, TestsArchive.instance.getNumRemainingGoals(methodName));
+			mapMethodToGoals.put(methodName, Archive.getArchiveInstance().getNumOfRemainingTargets(methodName));
 		}
 		return testMethods.stream().sorted(Comparator.comparingInt(item -> mapMethodToGoals.get(mapCallToName.get(item))).reversed()).collect(Collectors.toList());
 	}
@@ -1308,18 +1327,19 @@ public class TestCluster {
 				if(!test.isEmpty()) {
 					TestGenerationUtil.filterTargetMethod(test, candidateTestMethods);			
 				}
-//				candidateTestMethods = new ArrayList<>(testMethods);
 			}
-				
 		}
 
 
 		if(Properties.SORT_CALLS) {
 			candidateTestMethods = sortCalls(candidateTestMethods);
 		}
-		
 
 		GenericAccessibleObject<?> choice = Properties.SORT_CALLS ? ListUtil.selectRankBiased(candidateTestMethods) : Randomness.choice(candidateTestMethods);
+		
+		/**
+		 * Lin Yun: if the test is empty, we need to insert the target method first.
+		 */
 		if(!Properties.TARGET_METHOD.isEmpty()) {
 			for(GenericAccessibleObject<?> candidate: candidateTestMethods) {
 				if(candidate instanceof GenericMethod) {
@@ -1333,6 +1353,7 @@ public class TestCluster {
 				
 			}
 		}
+		
 		
 		logger.debug("Chosen call: " + choice);
 		if (choice.getOwnerClass().hasWildcardOrTypeVariables()) {

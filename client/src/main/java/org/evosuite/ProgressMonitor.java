@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -101,7 +101,7 @@ public class ProgressMonitor implements SearchListener, Serializable {
 	@Override
 	public void iteration(GeneticAlgorithm<?> algorithm) {
 		long current = stoppingCondition.getCurrentValue();
-		currentCoverage = (int) Math.floor((algorithm.getBestIndividual()).getCoverage() * 100);
+		currentCoverage = (int) Math.floor(((TestSuiteChromosome) algorithm.getBestIndividual()).getCoverage() * 100);
 		updateStatus((int) (100 * current / max));
 		iteration++;
 	}
@@ -126,7 +126,7 @@ public class ProgressMonitor implements SearchListener, Serializable {
 	@Override
 	public void fitnessEvaluation(Chromosome individual) {
 		int current = (int) ((int)(100 * stoppingCondition.getCurrentValue())/max);
-		currentCoverage = (int) Math.floor((individual).getCoverage() * 100);
+		currentCoverage = (int) Math.floor(((TestSuiteChromosome) individual).getCoverage() * 100);
 		if(currentCoverage > lastCoverage || current > lastProgress)
 			updateStatus(current);
 	}

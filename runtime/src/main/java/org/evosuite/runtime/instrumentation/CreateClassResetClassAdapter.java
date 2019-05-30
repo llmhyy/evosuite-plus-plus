@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -359,6 +359,7 @@ public class CreateClassResetClassAdapter extends ClassVisitor {
 			if (!finalFields.contains(staticField.name) && !staticField.name.startsWith("__cobertura")
 					&& !staticField.name.startsWith("$jacoco") && !staticField.name.startsWith("$VRc") // Old
 																										// Emma
+					&& !staticField.name.startsWith("$gzoltar")
 			) {
 
 				logger.info("Adding bytecode for initializing field " + staticField.name);

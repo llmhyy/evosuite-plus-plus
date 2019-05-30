@@ -50,7 +50,7 @@ public class TestSingleMethod {
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100000;
+		int budget = 30;
 		Long seed = 1556814527153L;
 //		Long seed = null;
 		
@@ -60,8 +60,8 @@ public class TestSingleMethod {
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
 		printResult(results0);

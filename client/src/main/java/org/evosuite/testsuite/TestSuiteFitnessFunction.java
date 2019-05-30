@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -58,7 +58,7 @@ public abstract class TestSuiteFitnessFunction extends
 	@Deprecated
 	public ExecutionResult runTest(TestCase test) {
 		ExecutionResult result = new ExecutionResult(test, null);
-		System.currentTimeMillis();
+
 		try {
 			result = TestCaseExecutor.getInstance().execute(test);
 			MaxStatementsStoppingCondition.statementsExecuted(result.getExecutedStatements());
@@ -120,9 +120,5 @@ public abstract class TestSuiteFitnessFunction extends
 	@Override
 	public boolean isMaximizationFunction() {
 		return false;
-	}
-
-	public int getTotalGoalNum() {
-		return 0;
 	}
 }

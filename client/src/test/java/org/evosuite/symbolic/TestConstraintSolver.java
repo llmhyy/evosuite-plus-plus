@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -54,8 +54,8 @@ public class TestConstraintSolver {
 		System.out.println("TestCase=");
 		System.out.println(tc.toCode());
 
-		// ConcolicExecution concolicExecutor = new ConcolicExecution();
-		List<BranchCondition> branch_conditions = ConcolicExecution.executeConcolic(tc);
+		PathCondition pc = ConcolicExecution.executeConcolic(tc);
+		List<BranchCondition> branch_conditions = pc.getBranchConditions();
 
 		return branch_conditions;
 	}

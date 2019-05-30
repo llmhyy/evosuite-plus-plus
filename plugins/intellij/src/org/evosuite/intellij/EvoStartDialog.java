@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -45,6 +45,7 @@ public class EvoStartDialog extends JDialog {
     private JFormattedTextField timeField;
     private JTextField folderField;
     private JTextField mavenField;
+    private JLabel javaVersionWarningLabel;
     private JTextField javaHomeField;
     private JButton selectMavenButton;
     private JButton selectJavaHomeButton;
@@ -53,9 +54,12 @@ public class EvoStartDialog extends JDialog {
     private JRadioButton mavenRadioButton;
     private JRadioButton evosuiteRadioButton;
 
+
     private volatile boolean wasOK = false;
     private volatile EvoParameters params;
     private volatile Project project;
+
+    private final String JAVA_VERSION_WARN_MSG = "(JDK needs to be <= Java 8)";
 
     public void initFields(Project project, EvoParameters params) {
         this.project = project;
@@ -69,6 +73,7 @@ public class EvoStartDialog extends JDialog {
         mavenField.setText(params.getMvnLocation());
         evosuiteLocationTesxField.setText(params.getEvosuiteJarLocation());
         javaHomeField.setText(params.getJavaHome());
+        javaVersionWarningLabel.setText(JAVA_VERSION_WARN_MSG);
 
         if (!Utils.isMavenProject(project)) {
             //disable Maven options

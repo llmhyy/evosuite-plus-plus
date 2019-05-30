@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -117,9 +117,9 @@ public final class EvoSuiteSolver extends Solver {
 			return satResult;
 		} else {
 			setConcreteValues(variables, initialValues);
-			log.debug("Returning null, search was not successful");
-			SolverResult unsatResult = SolverResult.newUNSAT();
-			return unsatResult;
+			log.debug("Returning unknown, search was not successful");
+			SolverResult unknownResult = SolverResult.newUnknown();
+			return unknownResult;
 		}
 
 	}

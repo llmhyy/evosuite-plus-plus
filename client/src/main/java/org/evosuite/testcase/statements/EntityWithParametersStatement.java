@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -273,7 +273,7 @@ public abstract class EntityWithParametersStatement extends AbstractStatement{
 
         // If there are fewer objects than parameters of that type,
         // we consider adding an instance
-        if(getNumParametersOfType(parameter.getVariableClass()) + 1 > objects.size()) {
+        if(getNumParametersOfType(parameter.getVariableClass()) + 1 < objects.size()) {
             Statement originalStatement = test.getStatement(parameter.getStPosition());
             copy = originalStatement.clone(test);
             if (originalStatement instanceof PrimitiveStatement<?>) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -492,20 +492,6 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		return null; // root branch
 	}
 
-	public Branch getControlDependentBranch(Set<Branch> visitedBranches) {
-
-		Set<ControlDependency> controlDependentBranches = getControlDependencies();
-
-		for (ControlDependency cd : controlDependentBranches) {
-			Branch branch = cd.getBranch();
-			if(!visitedBranches.contains(branch))
-				return cd.getBranch();
-		}
-
-		return null; // root branch
-	}
-	
-	
 	/**
 	 * Returns all branchIds of Branches this instruction is directly control
 	 * dependent on as determined by the ControlDependenceGraph for this
@@ -521,6 +507,76 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		BasicBlock myBlock = getBasicBlock();
 
 		return myBlock.getControlDependentBranchIds();
+	}
+	
+	public Branch getControlDependentBranch(Set<Branch> visitedBranches) {
+
+		Set<ControlDependency> controlDependentBranches = getControlDependencies();
+
+		for (ControlDependency cd : controlDependentBranches) {
+			Branch branch = cd.getBranch();
+			if(!visitedBranches.contains(branch))
+				return cd.getBranch();
+		}
+
+		return null; // root branch
+	}
+	
+	public List<BytecodeInstruction> getSourceOfStackInstructionList(int positionFromTop) {
+		if (frame == null)
+			throw new IllegalStateException(
+					"expect each BytecodeInstruction to have its CFGFrame set");
+
+		List<BytecodeInstruction> list = new ArrayList<>();
+		
+		int stackPos = frame.getStackSize() - (1 + positionFromTop);
+		if (stackPos < 0){
+			StackTraceElement[] se = new Throwable().getStackTrace();
+			int t=0;
+			System.out.println("Stack trace: ");
+			while(t<se.length){
+				System.out.println(se[t]);
+				t++;
+			}
+			return null;
+		}
+		SourceValue source = (SourceValue) frame.getStack(stackPos);
+		
+		
+		for(Object obj: source.insns) {
+			if(obj instanceof AbstractInsnNode) {
+				AbstractInsnNode sourceInstruction = (AbstractInsnNode) obj;
+				BytecodeInstruction src = BytecodeInstructionPool.getInstance(classLoader).getInstruction(className,
+						methodName,
+						sourceInstruction);
+				list.add(src);
+			}
+		}
+		return list;
+	}
+	
+	public BytecodeInstruction getPreviousInstruction() {
+		ActualControlFlowGraph graph = this.getActualCFG();
+		if(this.instructionId == 0){
+			return null;
+		}
+		else{
+			return graph.getInstruction(this.instructionId-1);
+		}
+	}
+	
+	public BytecodeInstruction getNextInstruction(){
+		ActualControlFlowGraph graph = this.getActualCFG();
+		if(this.instructionId == graph.size()-1){
+			return null;
+		}
+		else{
+			return graph.getInstruction(this.instructionId+1);
+		}
+	}
+
+	public CFGFrame getFrame() {
+		return frame;
 	}
 
 	/**
@@ -717,7 +773,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		 * current.getInstruction().getControlDependentBranch(); } return r;
 		 */
 	}
-	
+
 	// String methods
 
 	/**
@@ -1135,39 +1191,6 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 				sourceInstruction);
 		return src;
 	}
-	
-	public List<BytecodeInstruction> getSourceOfStackInstructionList(int positionFromTop) {
-		if (frame == null)
-			throw new IllegalStateException(
-					"expect each BytecodeInstruction to have its CFGFrame set");
-
-		List<BytecodeInstruction> list = new ArrayList<>();
-		
-		int stackPos = frame.getStackSize() - (1 + positionFromTop);
-		if (stackPos < 0){
-			StackTraceElement[] se = new Throwable().getStackTrace();
-			int t=0;
-			System.out.println("Stack trace: ");
-			while(t<se.length){
-				System.out.println(se[t]);
-				t++;
-			}
-			return null;
-		}
-		SourceValue source = (SourceValue) frame.getStack(stackPos);
-		
-		
-		for(Object obj: source.insns) {
-			if(obj instanceof AbstractInsnNode) {
-				AbstractInsnNode sourceInstruction = (AbstractInsnNode) obj;
-				BytecodeInstruction src = BytecodeInstructionPool.getInstance(classLoader).getInstruction(className,
-						methodName,
-						sourceInstruction);
-				list.add(src);
-			}
-		}
-		return list;
-	}
 
 	public boolean isFieldMethodCallDefinition() {
 		if (!isMethodCallOfField())
@@ -1307,27 +1330,4 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		return getLineNumber() - o.getLineNumber();
 	}
 
-	public BytecodeInstruction getPreviousInstruction() {
-		ActualControlFlowGraph graph = this.getActualCFG();
-		if(this.instructionId == 0){
-			return null;
-		}
-		else{
-			return graph.getInstruction(this.instructionId-1);
-		}
-	}
-	
-	public BytecodeInstruction getNextInstruction(){
-		ActualControlFlowGraph graph = this.getActualCFG();
-		if(this.instructionId == graph.size()-1){
-			return null;
-		}
-		else{
-			return graph.getInstruction(this.instructionId+1);
-		}
-	}
-
-	public CFGFrame getFrame() {
-		return frame;
-	}
 }

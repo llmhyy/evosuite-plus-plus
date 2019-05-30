@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -31,8 +31,8 @@ public class DummyClientNodeImpl extends ClientNodeImpl {
 		
 	}
 	
-	public DummyClientNodeImpl(Registry registry) {
-		super(registry);
+	public DummyClientNodeImpl(Registry registry, String identifier) {
+		super(registry, identifier);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -85,10 +85,10 @@ public class DummyClientNodeImpl extends ClientNodeImpl {
 		
 	}
 	
-	@Override
-	public void terminate() throws RemoteException {
-		// TODO Auto-generated method stub
-	}
+//	@Override
+//	public void terminate() throws RemoteException {
+//		// TODO Auto-generated method stub
+//	}
 
 	@Override
 	public boolean waitUntilFinished(long timeoutInMs) throws RemoteException,

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -65,14 +65,14 @@ public abstract class TestGenerationStrategy {
 	
 	/** There should only be one */
 	protected final ProgressMonitor progressMonitor = new ProgressMonitor();
-	
-	protected FitnessLogger fitnessLogger = new FitnessLogger();
 
 	/** There should only be one */
 	protected ZeroFitnessStoppingCondition zeroFitness = new ZeroFitnessStoppingCondition();
 	
 	/** There should only be one */
 	protected StoppingCondition globalTime = new GlobalTimeStoppingCondition();
+	
+	protected FitnessLogger fitnessLogger = new FitnessLogger();
 
     protected void sendExecutionStatistics() {
         ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Statements_Executed, MaxStatementsStoppingCondition.getNumExecutedStatements());

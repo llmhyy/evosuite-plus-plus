@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -296,11 +296,28 @@ public class Properties {
 	@DoubleValue(min = 1)
 	public static int FUNCTIONAL_MOCKING_INPUT_LIMIT = 5;
 
+	@Parameter(key = "num_parallel_clients", group = "Test Creation", description = "Number of EvoSuite clients to run in parallel")
+	public static int NUM_PARALLEL_CLIENTS = 1;
+
+	@Parameter(key = "migrants_iteration_frequency", group = "Test Creation", description = "Determines amount of iterations between sending migrants to other client (-1 to disable any iterations between clients)")
+	public static int MIGRANTS_ITERATION_FREQUENCY = 2;
+
+	@Parameter(key = "migrants_communication_rate", group = "Test Creation", description = "Determines amount of migrants per communication step")
+	public static int MIGRANTS_COMMUNICATION_RATE = 3;
 
 	// ---------------------------------------------------------------
 	// Search algorithm
 	public enum Algorithm {
-		STANDARDGA, MONOTONICGA, ONEPLUSONEEA, MUPLUSLAMBDAEA, STEADYSTATEGA, RANDOM, NSGAII, MOSA, SPEA2, ONEPLUSLAMBDALAMBDAGA, BREEDERGA, CELLULARGA
+		// random
+		RANDOM_SEARCH,
+		// GAs
+		STANDARD_GA, MONOTONIC_GA, STEADY_STATE_GA, BREEDER_GA, CELLULAR_GA, STANDARD_CHEMICAL_REACTION,
+		// mu-lambda
+		ONE_PLUS_LAMBDA_LAMBDA_GA, ONE_PLUS_ONE_EA, MU_PLUS_LAMBDA_EA, MU_LAMBDA_EA,
+		// many-objective algorithms
+		MOSA, DYNAMOSA, LIPS, MIO,
+		// multiple-objective optimisation algorithms
+		NSGAII, SPEA2
 	}
 
 	// MOSA PROPERTIES
@@ -314,7 +331,7 @@ public class Properties {
 	public static RankingType RANKING_TYPE = RankingType.PREFERENCE_SORTING;
 
 	@Parameter(key = "algorithm", group = "Search Algorithm", description = "Search algorithm")
-	public static Algorithm ALGORITHM = Algorithm.MONOTONICGA;
+	public static Algorithm ALGORITHM = Algorithm.MONOTONIC_GA;
 
 	/** Different models of neighbourhoods in the Cellular GA **/
 	public enum CGA_Models{
@@ -390,7 +407,7 @@ public class Properties {
 	public static boolean DSE_KEEP_ALL_TESTS = false;
 
 	public enum SolverType {
-		EVOSUITE_SOLVER, Z3_SOLVER, Z3_STR2_SOLVER, CVC4_SOLVER;
+		EVOSUITE_SOLVER, Z3_SOLVER, CVC4_SOLVER;
 	}
 
 	@Parameter(key = "dse_solver", group = "DSE", description = "Specify which constraint solver to use. Note: external solver will need to be installed and cofigured separately")
@@ -398,9 +415,6 @@ public class Properties {
 
 	@Parameter(key = "z3_path", group = "DSE", description = "Indicates the path to the Z3 solver")
 	public static String Z3_PATH = null;
-
-	@Parameter(key = "z3_str2_path", group = "DSE", description = "Indicates the path to the Z3-Str2 solver")
-	public static String Z3_STR2_PATH = null;
 
 	@Parameter(key = "cvc4_path", group = "DSE", description = "Indicates the path to the CVC4 solver")
 	public static String CVC4_PATH = null;
@@ -529,6 +543,23 @@ public class Properties {
 	@IntValue(min = 1, max = 100000)
 	public static int CHROMOSOME_LENGTH = 40;
 
+	@Parameter(key = "number_of_tests_per_target", group = "Search Algorithm", description = "Number of test cases for each target goal to keep in an archive")
+	public static int NUMBER_OF_TESTS_PER_TARGET = 10;
+
+	@Parameter(key = "p_random_test_or_from_archive", group = "Search Algorithm", description = "Probability [0,1] of sampling a new test at random or choose an existing one in an archive")
+	@DoubleValue(min = 0.0, max = 1.0)
+	public static double P_RANDOM_TEST_OR_FROM_ARCHIVE = 0.5;
+
+	@Parameter(key = "exploitation_starts_at_percent", group = "Search Algorithm", description = "Percentage [0,1] of search budget after which exploitation is activated")
+	@DoubleValue(min = 0.0, max = 1.0)
+	public static double EXPLOITATION_STARTS_AT_PERCENT = 0.5;
+
+	@Parameter(key = "max_num_mutations_before_giving_up", group = "Search Algorithm", description = "Maximum number of mutations allowed to be done on the same individual before sampling a new one")
+	public static int MAX_NUM_MUTATIONS_BEFORE_GIVING_UP = 10;
+
+	@Parameter(key = "max_num_fitness_evaluations_before_giving_up", group = "Search Algorithm", description = "Maximum number of fitness evaluations allowed to be done on the same individual before sampling a new one")
+	public static int MAX_NUM_FITNESS_EVALUATIONS_BEFORE_GIVING_UP = 10;
+
 	@Parameter(key = "population", group = "Search Algorithm", description = "Population size of genetic algorithm")
 	@IntValue(min = 1)
 	public static int POPULATION = 50;
@@ -596,11 +627,14 @@ public class Properties {
 	public static TheReplacementFunction REPLACEMENT_FUNCTION = TheReplacementFunction.DEFAULT;
 
 	public enum SelectionFunction {
-		RANK, ROULETTEWHEEL, TOURNAMENT, BINARY_TOURNAMENT
+		RANK, ROULETTEWHEEL, TOURNAMENT, BINARY_TOURNAMENT, RANK_CROWD_DISTANCE_TOURNAMENT, BESTK, RANDOMK
 	}
 
 	@Parameter(key = "selection_function", group = "Search Algorithm", description = "Selection function during search")
 	public static SelectionFunction SELECTION_FUNCTION = SelectionFunction.RANK;
+
+	@Parameter(key = "emigrant_selection_function", group = "Search Algorithm", description = "Selection function for emigrant selection during search")
+	public static SelectionFunction EMIGRANT_SELECTION_FUNCTION = SelectionFunction.RANDOMK;
 
 	public enum MutationProbabilityDistribution {
 		UNIFORM, BINOMIAL
@@ -610,10 +644,12 @@ public class Properties {
 	@Parameter(key = "mutation_probability_distribution", group = "Search Algorithm", description = "Mutation probability distribution")
 	public static MutationProbabilityDistribution MUTATION_PROBABILITY_DISTRIBUTION = MutationProbabilityDistribution.UNIFORM;
 
-	// TODO: Fix values
+	public enum SecondaryObjective {
+		AVG_LENGTH, MAX_LENGTH, TOTAL_LENGTH, SIZE, EXCEPTIONS, IBRANCH, RHO
+	}
+
 	@Parameter(key = "secondary_objectives", group = "Search Algorithm", description = "Secondary objective during search")
-	// @SetValue(values = { "maxlength", "maxsize", "avglength", "none" })
-	public static String SECONDARY_OBJECTIVE = "totallength";
+	public static SecondaryObjective[] SECONDARY_OBJECTIVE = new SecondaryObjective[] { SecondaryObjective.TOTAL_LENGTH };
 
 	@Parameter(key = "enable_secondary_objective_after", group = "Search Algorithm", description = "Activate the second secondary objective after a certain amount of search budget")
 	public static int ENABLE_SECONDARY_OBJECTIVE_AFTER = 0;
@@ -695,6 +731,26 @@ public class Properties {
 	@Parameter(key = "epson", group = "Experimental", description = "Epson")
 	@DoubleValue(min = 0.0, max = 1.0)
 	public static double EPSON = 0.01;
+
+	// ---------------------------------------------------------------
+	// Chemical Reaction Optimization Parameters
+
+	@Parameter(key = "kinetic_energy_loss_rate", group = "Chemical Reaction Optimization", description = "Rate at which molecules lose kinetic energy")
+	@DoubleValue(min = 0.0, max = 1.0)
+	public static double KINETIC_ENERGY_LOSS_RATE = 0.2;
+
+	@Parameter(key = "molecular_collision_rate", group = "Chemical Reaction Optimization", description = "Rate of inter molecular collisions")
+	@DoubleValue(min = 0.0, max = 1.0)
+	public static double MOLECULAR_COLLISION_RATE = 0.2;
+
+	@Parameter(key = "initial_kinetic_energy", group = "Chemical Reaction Optimization", description = "Initial kinetic energy of each molecule")
+	public static double INITIAL_KINETIC_ENERGY = 1000.0;
+
+	@Parameter(key = "decomposition_threshold", group = "Chemical Reaction Optimization", description = "Threshold to be checked to decide when to trigger decomposition")
+	public static int DECOMPOSITION_THRESHOLD = 500;
+
+	@Parameter(key = "synthesis_threshold", group = "Chemical Reaction Optimization", description = "Threshold to be checked to decide when to trigger synthesis")
+	public static int SYNTHESIS_THRESHOLD = 10;
 
 	//----------------------------------------------------------------
 	// Continuous Test Generation
@@ -1044,9 +1100,6 @@ public class Properties {
 
     @Parameter(key = "timeline_interpolation", group = "Output", description = "Interpolate timeline values")
     public static boolean TIMELINE_INTERPOLATION = true;
-    
-    @Parameter(key = "record_interval", group = "Output", description = "Time interval in seconds for recording statistics")
-	public static long RECORD_INTERVAL = 3;
 
     public enum OutputGranularity {
 		MERGED, TESTCASE
@@ -1169,6 +1222,14 @@ public class Properties {
 	@Parameter(key = "test_factory", description = "Which factory creates tests")
 	public static TestFactory TEST_FACTORY = TestFactory.ARCHIVE;
 
+	public enum ArchiveType {
+		COVERAGE, MIO
+	}
+
+	/** Constant <code>ARCHIVE_TYPE=COVERAGE</code> */
+	@Parameter(key = "archive_type", description = "Which type of archive to keep track of covered goals during search")
+	public static ArchiveType ARCHIVE_TYPE = ArchiveType.COVERAGE;
+
 	@Parameter(key = "seed_file", description = "File storing TestGenerationResult or GeneticAlgorithm")
 	public static String SEED_FILE = "";
 
@@ -1238,6 +1299,13 @@ public class Properties {
 
 	@Parameter(key = "error_branches", description = "Instrument code with error checking branches")
 	public static boolean ERROR_BRANCHES = false;
+
+	public enum ErrorInstrumentation {
+		ARRAY, CAST, DEQUE, DIVISIONBYZERO, LINKEDHASHSET, NPE, OVERFLOW, QUEUE, STACK, VECTOR, LIST
+	}
+
+	@Parameter(key = "error_instrumentation", description = "Which instrumentation to use for error checks")
+	public static ErrorInstrumentation[] ERROR_INSTRUMENTATION = new ErrorInstrumentation[] {ErrorInstrumentation.ARRAY, ErrorInstrumentation.CAST, ErrorInstrumentation.DEQUE, ErrorInstrumentation.DIVISIONBYZERO, ErrorInstrumentation.LINKEDHASHSET, ErrorInstrumentation.NPE, ErrorInstrumentation.OVERFLOW, ErrorInstrumentation.QUEUE, ErrorInstrumentation.STACK, ErrorInstrumentation.VECTOR};
 
 	@Parameter(key = "enable_asserts_for_evosuite", description = "When running EvoSuite clients, for debugging purposes check its assserts")
 	public static boolean ENABLE_ASSERTS_FOR_EVOSUITE = false;
@@ -1489,7 +1557,7 @@ public class Properties {
 	@Parameter(key = "is_running_a_system_test", group = "Runtime", description = "Specify that a system test is running. To be used only for debugging purposes")
 	public static volatile boolean IS_RUNNING_A_SYSTEM_TEST = false;
 
-	public static int MAX_OPEN_FILES_PER_PROCESS = Integer.MAX_VALUE;
+
 
 	// ---------------------------------------------------------------
 	// Seeding test cases
@@ -1565,7 +1633,7 @@ public class Properties {
 	 * Load and initialize a properties file from the default path
 	 */
 	public void loadProperties(boolean silent) {
-		loadPropertiesFile(System.getProperty("PROPERTIES_FILE",
+		loadPropertiesFile(System.getProperty(PROPERTIES_FILE,
 				"evosuite-files/evosuite.properties"), silent);
 		initializeProperties();
 	}
@@ -1589,8 +1657,8 @@ public class Properties {
 	 */
 	public void loadPropertiesFile(String propertiesPath, boolean silent) {
 		properties = new java.util.Properties();
-		InputStream in = null;
 		try {
+			InputStream in = null;
 			File propertiesFile = new File(propertiesPath);
 			if (propertiesFile.exists()) {
 				in = new FileInputStream(propertiesPath);
@@ -1624,8 +1692,6 @@ public class Properties {
 		} catch (Exception e) {
 			logger.warn("- Error: Could not find configuration file "
 					+ propertiesPath);
-		} finally {
-			FileIOUtils.closeQuitely(in);
 		}
 	}
 
@@ -2423,7 +2489,10 @@ public class Properties {
 			}
 		}
 	}
-	
+
+	public static final String JAVA_VERSION_WARN_MSG = "EvoSuite does not support Java versions > 8 yet";
+
+	public static final int RECORD_INTERVAL = 5;
 	
 	/*
 	 * whether or not the regression mode is running

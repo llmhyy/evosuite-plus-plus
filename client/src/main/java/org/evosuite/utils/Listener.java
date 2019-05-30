@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -35,7 +35,6 @@ public interface Listener<T> extends Serializable {
 	 * <p>receiveEvent</p>
 	 *
 	 * @param event a T object.
-	 * @param <T> a T object.
 	 */
 	void receiveEvent(T event);
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -27,10 +27,12 @@ import java.sql.SQLException;
  */
 public class MethodsWithExceptions {
 
-
     public static boolean oneException(int x) throws FileNotFoundException {
         if(x == 5) {
             throw new FileNotFoundException();
+        }
+        if(x == 6){
+            throw new NullPointerException("somefile");
         }
 
         return true;

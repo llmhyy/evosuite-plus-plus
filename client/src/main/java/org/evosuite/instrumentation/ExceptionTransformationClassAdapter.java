@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -49,7 +49,8 @@ public class ExceptionTransformationClassAdapter extends ClassVisitor {
     public ExceptionTransformationClassAdapter(ClassVisitor cv, String className) {
         super(Opcodes.ASM5, cv);
         this.className = className;
-        methodExceptionMap.put(className, new LinkedHashMap<>());
+        if(!methodExceptionMap.containsKey(className))
+            methodExceptionMap.put(className, new LinkedHashMap<>());
     }
 
     /* (non-Javadoc)

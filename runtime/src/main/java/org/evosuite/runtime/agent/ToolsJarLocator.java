@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -79,7 +79,6 @@ public class ToolsJarLocator {
 		}
 
 		String javaHome = System.getProperty("java.home");
-		System.out.println("javaHome: " + javaHome);
 		List<String> locations = new ArrayList<>(Arrays.asList(
 				javaHome + "/../lib/tools.jar", 
 				javaHome + "/lib/tools.jar", 

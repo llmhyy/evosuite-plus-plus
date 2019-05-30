@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -20,6 +20,8 @@
 package org.evosuite.runtime.classhandling;
 
 import java.lang.instrument.UnmodifiableClassException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +46,8 @@ public class ClassStateSupport {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClassStateSupport.class);
 
+	private static final String[] externalInitMethods = new String[] {"$jacocoInit", "$gzoltarInit"};
+
     /**
      * Load all the classes with given name with the provided input classloader.
      * Those classes are all supposed to be instrumented.
@@ -63,6 +67,8 @@ public class ClassStateSupport {
 		if(classes.size() != classNames.length) {
 			problem = true;
 		}
+
+		initialiseExternalTools(classLoader, classes);
 
 		if(RuntimeSettings.isUsingAnyMocking()) {
 
@@ -91,6 +97,32 @@ public class ClassStateSupport {
 		return problem;
 
 		//retransformIfNeeded(classes); // cannot do it, as retransformation does not really work :(
+	}
+
+	/*
+	 * If a class is instrumented by Jacoco, GZoltar, or any other similar coverage-based
+	 * tool, we need to make sure it is initialised so that the shutdownhook is added before
+	 * the first test is executed.
+	 */
+	private static void initialiseExternalTools(ClassLoader classLoader, List<Class<?>> classes) {
+
+		for (String externalInitMethod : externalInitMethods) {
+			for(Class<?> clazz : classes) {
+				try {
+					Method initMethod = clazz.getDeclaredMethod(externalInitMethod);
+					logger.error("Found {} in class {}", externalInitMethod, clazz.getName());
+					initMethod.setAccessible(true);
+					initMethod.invoke(null);
+					// Once it has been invoked the agent should be loaded and we're done
+					break;
+				} catch (NoSuchMethodException e) {
+					// No instrumentation, no need to do anything
+				} catch (Throwable e) {
+					logger.info("Error while checking for {} in class {}: {}", externalInitMethod, clazz.getName(), e.getMessage());
+
+				}
+			}
+		}
 	}
 
 	/**

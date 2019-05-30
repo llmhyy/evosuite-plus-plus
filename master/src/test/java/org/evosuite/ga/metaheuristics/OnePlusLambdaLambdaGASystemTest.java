@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -37,7 +37,7 @@ public class OnePlusLambdaLambdaGASystemTest extends SystemTestBase {
 
   @Test
   public void testLambdaGAIntegration() {
-    Properties.ALGORITHM = Algorithm.ONEPLUSLAMBDALAMBDAGA;
+    Properties.ALGORITHM = Algorithm.ONE_PLUS_LAMBDA_LAMBDA_GA;
     Properties.MUTATION_PROBABILITY_DISTRIBUTION = Properties.MutationProbabilityDistribution.BINOMIAL;
 
     EvoSuite evoSuite = new EvoSuite();

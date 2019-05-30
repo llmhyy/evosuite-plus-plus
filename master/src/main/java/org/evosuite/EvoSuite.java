@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -35,10 +35,12 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.evosuite.Properties.StatisticsBackend;
+import org.apache.commons.lang3.SystemUtils;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.executionmode.Continuous;
 import org.evosuite.executionmode.Help;
 import org.evosuite.executionmode.ListClasses;
+import org.evosuite.executionmode.WriteDependencies;
 import org.evosuite.executionmode.ListParameters;
 import org.evosuite.executionmode.MeasureCoverage;
 import org.evosuite.executionmode.PrintStats;
@@ -160,6 +162,10 @@ public class EvoSuite {
 
             setupProperties();
 
+            if (SystemUtils.IS_JAVA_9 || SystemUtils.IS_JAVA_10) {
+                throw new RuntimeException(Properties.JAVA_VERSION_WARN_MSG);
+            }
+
             if (TestSuiteWriterUtils.needToUseAgent() && Properties.JUNIT_CHECK) {
                 ClassPathHacker.initializeToolJar();
             }
@@ -180,6 +186,35 @@ public class EvoSuite {
                 javaOpts.add("-Dcriterion=regression");
             }
 
+            if (line.hasOption("parallel")) {
+                String[] values = line.getOptionValues("parallel");
+
+                if (values.length != 3) {
+                    throw new Error("Invalid amount of arguments for parallel");
+                }
+
+                javaOpts.add("-Dnum_parallel_clients=" + values[0]);
+                javaOpts.add("-Dmigrants_iteration_frequency=" + values[1]);
+                javaOpts.add("-Dmigrants_communication_rate=" + values[2]);
+
+                try {
+                    Properties.getInstance().setValue("num_parallel_clients", values[0]);
+                    Properties.getInstance().setValue("migrants_iteration_frequency", values[1]);
+                    Properties.getInstance().setValue("migrants_communication_rate", values[2]);
+                } catch (Properties.NoSuchParameterException | IllegalAccessException e) {
+                    throw new Error("Invalid values for parallel: " + e.getMessage());
+                }
+            } else {
+                // Just to be save
+                javaOpts.add("-Dnum_parallel_clients=" + 1);
+
+                try {
+                    Properties.getInstance().setValue("num_parallel_clients", 1);
+                } catch (Properties.NoSuchParameterException | IllegalAccessException e) {
+                    throw new Error("Could not set value: " + e.getMessage());
+                }
+            }
+
 			/*
 			 * FIXME: every time in the Master we set a parameter with -D,
 			 * we should check if it actually exists (ie detect typos)
@@ -188,6 +223,10 @@ public class EvoSuite {
             CommandLineParameters.handleSeed(javaOpts, line);
 
             CommandLineParameters.addJavaDOptions(javaOpts, line);
+
+//            if (TestSuiteWriterUtils.needToUseAgent() && Properties.JUNIT_CHECK) {
+//                ClassPathHacker.initializeToolJar();
+//            }
 
             CommandLineParameters.handleClassPath(line);
 
@@ -227,6 +266,7 @@ public class EvoSuite {
                     LoggingUtils.getEvoLogger().info("* Configuration: " + conf);
                 }
             }
+
 
             if(Properties.CLIENT_ON_THREAD){
                 MSecurityManager.setRunningClientOnThread(true);

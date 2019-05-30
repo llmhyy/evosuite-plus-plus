@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -28,11 +28,11 @@ import org.evosuite.CoverageProgressGetter;
 import org.evosuite.Properties;
 import org.evosuite.StatisticChecker;
 import org.evosuite.coverage.TestFitnessFactory;
-import org.evosuite.coverage.archive.ArchiveTestChromosomeFactory;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.archive.ArchiveTestChromosomeFactory;
 import org.evosuite.ga.stoppingconditions.MaxTestsStoppingCondition;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
 import org.evosuite.rmi.ClientServices;
@@ -53,8 +53,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Iteratively generate random tests. If adding the random test leads to
- * improved fitness, keep it, otherwise drop it again.
+ * Iteratively generate random tests. If adding the random test
+ * leads to improved fitness, keep it, otherwise drop it again.
  * 
  * @author gordon
  *
@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
 public class RandomTestStrategy extends TestGenerationStrategy {
 
 	private static final Logger logger = LoggerFactory.getLogger(RandomTestStrategy.class);
-
+	
 	class RandomCoverageProgressGetter implements CoverageProgressGetter {
 
 		private TestSuiteChromosome suite;
@@ -85,7 +85,7 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 			this.suite = suite;
 		}
 	}
-
+	
 	@Override
 	public TestSuiteChromosome generateTests() {
 		LoggingUtils.getEvoLogger().info("* Using random test generation");
@@ -94,31 +94,26 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 
 		TestSuiteChromosome suite = new TestSuiteChromosome();
 		for (TestSuiteFitnessFunction fitnessFunction : fitnessFunctions)
-			suite.addFitness(fitnessFunction);
+			suite.addFitness( fitnessFunction);
 
 		List<TestFitnessFactory<? extends TestFitnessFunction>> goalFactories = getFitnessFactories();
 		List<TestFitnessFunction> goals = new ArrayList<TestFitnessFunction>();
 		LoggingUtils.getEvoLogger().info("* Total number of test goals: ");
 		for (TestFitnessFactory<? extends TestFitnessFunction> goalFactory : goalFactories) {
 			goals.addAll(goalFactory.getCoverageGoals());
-			LoggingUtils.getEvoLogger()
-					.info("  - " + goalFactory.getClass().getSimpleName().replace("CoverageFactory", "") + " "
-							+ goalFactory.getCoverageGoals().size());
+			LoggingUtils.getEvoLogger().info("  - " + goalFactory.getClass().getSimpleName().replace("CoverageFactory", "")
+					+ " " + goalFactory.getCoverageGoals().size());
 		}
-		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Total_Goals, goals.size());
+		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Total_Goals,
+				goals.size());
 
-		if (!canGenerateTestsForSUT()) {
-			LoggingUtils.getEvoLogger()
-					.info("* Found no testable methods in the target class " + Properties.TARGET_CLASS);
+		if(!canGenerateTestsForSUT()) {
+			LoggingUtils.getEvoLogger().info("* Found no testable methods in the target class "
+					+ Properties.TARGET_CLASS);
 			return new TestSuiteChromosome();
 		}
 		ChromosomeFactory<TestChromosome> factory = getChromosomeFactory();
-
-		StoppingCondition stoppingCondition = getStoppingCondition();
-		for (FitnessFunction<?> fitness_function : fitnessFunctions)
-			((TestSuiteFitnessFunction) fitness_function).getFitness(suite);
-		ClientServices.getInstance().getClientNode().changeState(ClientState.SEARCH);
-
+		
 		// setting information gathering
 		// ArrayList<Double> progress = new ArrayList<Double>();
 		RandomCoverageProgressGetter rcpGeter = new RandomCoverageProgressGetter(suite);
@@ -137,6 +132,11 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 			distributionMap.put(key, 0);
 		}
 
+		StoppingCondition stoppingCondition = getStoppingCondition();
+		for (FitnessFunction<?> fitness_function : fitnessFunctions)
+			((TestSuiteFitnessFunction)fitness_function).getFitness(suite);
+		ClientServices.getInstance().getClientNode().changeState(ClientState.SEARCH);
+
 		int number_generations = 0;
 		while (!isFinished(suite, stoppingCondition)) {
 			number_generations++;
@@ -144,32 +144,27 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 			TestSuiteChromosome clone = suite.clone();
 			clone.addTest(test);
 			for (FitnessFunction<?> fitness_function : fitnessFunctions) {
-				((TestSuiteFitnessFunction) fitness_function).getFitness(clone);
-				logger.debug("Old fitness: {}, new fitness: {}", suite.getFitness(), clone.getFitness());
+				((TestSuiteFitnessFunction)fitness_function).getFitness(clone);
+				logger.debug("Old fitness: {}, new fitness: {}", suite.getFitness(),
+						clone.getFitness());
 			}
 			if (clone.compareTo(suite) < 0) {
 				suite = clone;
-				rcpGeter.setSuite(suite);
-				StatisticsSender.executedAndThenSendIndividualToMaster(clone);
+				StatisticsSender.executedAndThenSendIndividualToMaster(clone);				
 			}
-			StatisticsSender.executedAndThenSendIndividualToMaster(clone);
 			updateDistribution(distributionMap, test);
-
 		}
-		// statistics.searchFinished(suiteGA);
+		//statistics.searchFinished(suiteGA);
 		LoggingUtils.getEvoLogger().info("* Search Budget:");
 		LoggingUtils.getEvoLogger().info("\t- " + stoppingCondition.toString());
-
-		// In the GA, these statistics are sent via the SearchListener when notified
-		// about the GA completing
+		
+		// In the GA, these statistics are sent via the SearchListener when notified about the GA completing
 		// Search is finished, send statistics
 		sendExecutionStatistics();
 
 		// TODO: Check this: Fitness_Evaluations = getNumExecutedTests?
-		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Fitness_Evaluations,
-				MaxTestsStoppingCondition.getNumExecutedTests());
-		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Generations,
-				number_generations);
+		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Fitness_Evaluations, MaxTestsStoppingCondition.getNumExecutedTests());
+		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Generations, number_generations);
 
 		int[] distribution = new int[distributionMap.keySet().size()];
 		int count = 0;
@@ -182,9 +177,9 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap, branchGoals);
 		suite.setUncoveredBranchDistribution(uncoveredBranchDistribution);
 		
-		return suite;
+		return suite;	
 	}
-
+	
 	private void updateDistribution(Map<Integer, Integer> distributionMap, TestChromosome test) {
 		if (distributionMap.isEmpty()) {
 			return;
@@ -217,11 +212,15 @@ public class RandomTestStrategy extends TestGenerationStrategy {
 		case ARCHIVE:
 			return new ArchiveTestChromosomeFactory();
 		case JUNIT:
-			return new JUnitTestCarvedChromosomeFactory(new RandomLengthTestFactory());
+			return new JUnitTestCarvedChromosomeFactory(
+					new RandomLengthTestFactory());
 		default:
-			throw new RuntimeException("Unsupported test factory: " + Properties.TEST_FACTORY);
+			throw new RuntimeException("Unsupported test factory: "
+					+ Properties.TEST_FACTORY);
 		}
-
+		
 	}
+	
 
+	
 }

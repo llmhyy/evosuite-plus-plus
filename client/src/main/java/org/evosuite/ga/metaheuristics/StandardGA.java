@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -54,7 +54,7 @@ public class StandardGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void evolve() {
-		logger.warn("standard ga");
+
 		List<T> newGeneration = new ArrayList<T>();
 
 		// Elitism

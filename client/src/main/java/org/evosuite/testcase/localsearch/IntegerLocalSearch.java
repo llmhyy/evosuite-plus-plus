@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -70,7 +70,6 @@ public class IntegerLocalSearch<T> extends StatementLocalSearch {
 
 		NumericalPrimitiveStatement<T> p = (NumericalPrimitiveStatement<T>) test.getTestCase().getStatement(statement);
 		ExecutionResult oldResult = test.getLastExecutionResult();
-		
 		oldValue = p.getValue();
 		logger.info("Applying search to: " + p.getCode());
 

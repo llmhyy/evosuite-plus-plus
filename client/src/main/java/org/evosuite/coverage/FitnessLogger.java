@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -29,13 +29,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.SearchListener;
 import org.evosuite.ga.stoppingconditions.MaxStatementsStoppingCondition;
-import org.evosuite.utils.FileIOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,17 +92,6 @@ public class FitnessLogger implements SearchListener {
 		evaluations_history.add(evaluations);
 		statements_history.add(MaxStatementsStoppingCondition.getNumExecutedStatements());
 		fitness_history.add(algorithm.getBestIndividual().getFitness());
-		
-		if(fitness_history.size() > 2) {
-			int size = fitness_history.size();
-			Double lastFitness = fitness_history.get(size-1);
-			Double lastFitnessButOne = fitness_history.get(size-2);
-			
-			if(lastFitnessButOne < lastFitness) {
-				System.currentTimeMillis();
-			}
-		}
-		
 		size_history.add(algorithm.getBestIndividual().size());
 	}
 
@@ -118,9 +105,8 @@ public class FitnessLogger implements SearchListener {
 			return;
 
 		File f = new File(name);
-		BufferedWriter out = null;
 		try {
-			out = new BufferedWriter(new FileWriter(f, true));
+			BufferedWriter out = new BufferedWriter(new FileWriter(f, true));
 			out.write("Iteration,Evaluations,Statements,Fitness,Size\n");
 			for (int i = 0; i < fitness_history.size(); i++) {
 				out.write(i + ",");
@@ -129,10 +115,9 @@ public class FitnessLogger implements SearchListener {
 				out.write(fitness_history.get(i) + ",");
 				out.write(size_history.get(i) + "\n");
 			}
+			out.close();
 		} catch (IOException e) {
 			logger.error("Could not open csv file: " + e);
-		} finally {
-			FileIOUtils.closeQuitely(out);
 		}
 	}
 

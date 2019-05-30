@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -24,12 +24,13 @@ package org.evosuite.setup;
 
 import org.evosuite.PackageInfo;
 import org.evosuite.Properties;
+import org.evosuite.testcase.execution.MethodCall;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+						
+							
+					  
 
 /**
  * <p>
@@ -84,11 +85,63 @@ public class CallContext implements Serializable {
 		while (endPos < stackTrace.length && shouldSkipEntry(stackTrace[endPos].getClassName())) {
 			endPos++;
 		}
+
 		for (int i = startPos; i >= endPos; i--) {
 			StackTraceElement element = stackTrace[i];
-			context.add(new Call(element.getClassName(), element.getMethodName(), element.getLineNumber()));
+			Call newCall = new Call(element.getClassName(), element.getMethodName(), element.getLineNumber());
+			boolean skip = false;
+			if(context.size() >= 2) { // Need at least a sequence of three for this check to make sense
+				Call previousCall1 = context.get(context.size() - 1);
+				Call previousCall2 = context.get(context.size() - 2);
+				if(previousCall1.equals(newCall) && previousCall2.equals(newCall)) {
+					skip = true;
+				}
+			}
+			if(!skip)
+			context.add(newCall);
 		}
 		this.context=context;
+		hcode = this.context.hashCode();
+	}
+
+	/**
+	 * Constructor for CallContext.
+	 *
+	 * @param stackTrace
+	 */
+	public CallContext(LinkedList<MethodCall> stackTrace) {
+		addJUnitExcludes();
+
+		int startPos = stackTrace.size() - 1;
+		int endPos = 0;
+		List<Call> context = new ArrayList<>();
+
+		while (startPos >= 0 && shouldSkipEntry(stackTrace.get(startPos).className)) {
+			startPos--;
+		}
+
+		while (endPos < stackTrace.size() && shouldSkipEntry(stackTrace.get(endPos).className)) {
+			endPos++;
+		}
+
+		for (int i = startPos; i >= endPos; i--) {
+			MethodCall element = stackTrace.get(i);
+
+			//TODO for Lin Yun, attach bytecode instruction id for calling this method.
+			Call newCall = new Call(element.className, element.methodName, -1);
+
+			boolean skip = false;
+			if(context.size() >= 2) { // Need at least a sequence of three for this check to make sense
+				Call previousCall1 = context.get(context.size() - 1);
+				Call previousCall2 = context.get(context.size() - 2);
+				if(previousCall1.equals(newCall) && previousCall2.equals(newCall)) {
+					skip = true;
+				}
+			}
+			if(!skip)
+				context.add(newCall);
+		}
+		this.context = context;
 		hcode = this.context.hashCode();
 	}
 
@@ -147,6 +200,8 @@ public class CallContext implements Serializable {
     }
 
     private boolean shouldSkipEntry(String entry) {
+    	if(entry.isEmpty())
+    		return true;
         for(String excludedPackage : excludedPackages) {
             if (entry.startsWith(excludedPackage))
                 return true;

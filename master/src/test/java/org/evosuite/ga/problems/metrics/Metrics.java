@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -98,8 +98,13 @@ public abstract class Metrics
         for (int i = 0; i < front.length; i++)
         {
             normalizedFront[i] = new double[front[i].length];
-            for (int j = 0; j < front[i].length; j++)
-                normalizedFront[i][j] = (front[i][j] - minimumValue[j]) / (maximumValue[j] - minimumValue[j]);
+            for (int j = 0; j < front[i].length; j++) {
+                if (maximumValue[j] == minimumValue[j]) {
+                    normalizedFront[i][j] = front[i][j];
+                } else {
+                    normalizedFront[i][j] = (front[i][j] - minimumValue[j]) / (maximumValue[j] - minimumValue[j]);
+                }
+            }
         }
 
         return normalizedFront;

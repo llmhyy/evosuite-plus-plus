@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -62,11 +62,11 @@ public class BranchCoverageFactory extends
 			if(!limitToCUT && (!Properties.INSTRUMENT_LIBRARIES && !DependencyAnalysis.isTargetProject(className))) continue;
 			final MethodNameMatcher matcher = new MethodNameMatcher();
 			// Branchless methods
-//			for (String method : BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getBranchlessMethods(className)) {
-//				if (matcher.fullyQualifiedMethodMatches(method)) {
-//					goals.add(createRootBranchTestFitness(className, method));
-//				}
-//			}
+			for (String method : BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getBranchlessMethods(className)) {
+				if (matcher.fullyQualifiedMethodMatches(method)) {
+					goals.add(createRootBranchTestFitness(className, method));
+				}
+			}
 
 			// Branches
 			for (String methodName : BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).knownMethods(className)) {

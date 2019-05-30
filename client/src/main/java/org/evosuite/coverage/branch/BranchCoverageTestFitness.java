@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -19,12 +19,15 @@
  */
 package org.evosuite.coverage.branch;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.ControlFlowDistance;
+import org.evosuite.ga.archive.Archive;
 import org.evosuite.testcase.ExecutableChromosome;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.MethodCall;
+import org.evosuite.utils.ArrayUtil;
 
 /**
  * Fitness function for a single test on a single branch
@@ -164,7 +167,20 @@ public class BranchCoverageTestFitness extends TestFitnessFunction {
 			logger.debug("Goal at line "+goal.getLineNumber()+": approach level = " + distance.getApproachLevel()
 					+ " / branch distance = " + distance.getBranchDistance() + ", fitness = " + fitness);
 		}
+
 		updateIndividual(this, individual, fitness);
+
+		if (fitness == 0.0) {
+			individual.getTestCase().addCoveredGoal(this);
+		}
+
+		if (Properties.TEST_ARCHIVE) {
+			// the next if condition is needed for DynaMOSA when branch coverage is not
+			// set as coverage criterion to optimize. However, branches are
+			// the backbone for all other criteria and thus they are always used in DynaMOSA
+			if (ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.BRANCH))
+				Archive.getArchiveInstance().updateArchive(this, individual, fitness);
+		}
 
 		return fitness;
 	}

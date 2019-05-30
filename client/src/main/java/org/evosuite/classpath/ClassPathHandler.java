@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -25,11 +25,8 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.jar.*;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.evosuite.Properties;
 import org.evosuite.runtime.util.Inputs;
-import org.evosuite.utils.FileIOUtils;
 import org.evosuite.utils.LoggingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,20 +159,21 @@ public class ClassPathHandler {
 	}
 
 	public static String writeClasspathToFile(String classpath) {
-		BufferedWriter out = null;
+
 		try {
 			File file = File.createTempFile("EvoSuite_classpathFile",".txt");
 			file.deleteOnExit();
 
-			out = new BufferedWriter(new FileWriter(file));
+			BufferedWriter out = new BufferedWriter(new FileWriter(file));
 			String line = classpath;
 			out.write(line);
 			out.newLine();
+			out.close();
+
 			return file.getAbsolutePath();
+
 		} catch (Exception e) {
 			throw new IllegalStateException("Failed to create tmp file for classpath specification: "+e.getMessage());
-		} finally {
-			FileIOUtils.closeQuitely(out);
 		}
 	}
 
@@ -209,7 +207,7 @@ public class ClassPathHandler {
 		}
 		
 		File file = new File(element);
-		if(!file.getAbsoluteFile().exists()){
+		if(!file.exists()){
 			throw new IllegalArgumentException("Classpath element does not exist on disk at: "+element);
 		}
 		if(!element.endsWith(".jar") && !file.isDirectory()){

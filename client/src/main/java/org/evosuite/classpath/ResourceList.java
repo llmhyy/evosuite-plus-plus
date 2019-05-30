@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -505,23 +505,20 @@ public class ResourceList {
 	}
 
 	private void addEntry(String classPathElement) throws IllegalArgumentException{
-		File file = new File(classPathElement);
+		final File file = new File(classPathElement);
 
 		classPathElement = file.getAbsolutePath();
-		file = new File(classPathElement);
-		
+
 		if(getCache().mapCPtoClasses.containsKey(classPathElement)){
 			return; //this classpath entry has already been analyzed
 		}
 
 		getCache().mapCPtoClasses.put(classPathElement, new LinkedHashSet<String>());
-		
+
+
 		if (!file.exists()) {
-//			throw new IllegalArgumentException("The class path resource "
-//					+ file.getAbsolutePath() + " does not exist");
-			logger.error("The class path resource "
+			throw new IllegalArgumentException("The class path resource "
 					+ file.getAbsolutePath() + " does not exist");
-			return;
 		}
 
 		if (file.isDirectory()) {

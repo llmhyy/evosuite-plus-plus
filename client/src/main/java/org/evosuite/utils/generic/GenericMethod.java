@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -176,8 +176,14 @@ public class GenericMethod extends GenericAccessibleObject<GenericMethod> {
 		Inputs.checkNull(m,type);
 
 		Type returnType = m.getGenericReturnType();
-		Type exactDeclaringType = GenericTypeReflector.getExactSuperType(GenericTypeReflector.capture(type),
-		                                                                 m.getDeclaringClass());
+		Type exactDeclaringType = null;
+		try {
+			exactDeclaringType = GenericTypeReflector.getExactSuperType(GenericTypeReflector.capture(type),
+					m.getDeclaringClass());
+		} catch(java.lang.TypeNotPresentException e) {
+			// May happen in completely intransparent circumstances when there are dependency issues with annotations:
+			// https://bugs.java.com/view_bug.do?bug_id=JDK-7183985
+		}
 
 		if (exactDeclaringType == null) { // capture(type) is not a subtype of m.getDeclaringClass()
 			logger.info("The method " + m + " is not a member of type " + type
@@ -410,6 +416,18 @@ public class GenericMethod extends GenericAccessibleObject<GenericMethod> {
 			LoggingUtils.getEvoLogger().info("Class not found - keeping old class loader ",e);
 		}
 	}
+
+	@Override
+	public boolean isPublic() { return Modifier.isPublic(method.getModifiers()); }
+
+	@Override
+	public boolean isPrivate() { return Modifier.isPrivate(method.getModifiers()); }
+
+	@Override
+	public boolean isProtected() { return Modifier.isProtected(method.getModifiers()); }
+
+	@Override
+	public boolean isDefault() { return !isPublic() && !isPrivate() && !isProtected(); }
 
 	@Override
 	public int hashCode() {

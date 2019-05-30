@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -72,7 +72,7 @@ public class TestChromosome extends ExecutableChromosome {
 	protected MutationHistory<TestMutationHistoryEntry> mutationHistory = new MutationHistory<TestMutationHistoryEntry>();
 
 	/** Secondary objectives used during ranking */
-	private static final List<SecondaryObjective<?>> secondaryObjectives = new ArrayList<SecondaryObjective<?>>();
+	private static final List<SecondaryObjective<TestChromosome>> secondaryObjectives = new ArrayList<SecondaryObjective<TestChromosome>>();
 
 	/**
 	 * <p>
@@ -139,6 +139,10 @@ public class TestChromosome extends ExecutableChromosome {
 			}
 		}
 		// c.mutationHistory.set(mutationHistory);
+		c.setNumberOfMutations(this.getNumberOfMutations());
+		c.setNumberOfEvaluations(this.getNumberOfEvaluations());
+		c.setKineticEnergy(getKineticEnergy());
+		c.setNumCollisions(getNumCollisions());
 
 		return c;
 	}
@@ -185,8 +189,13 @@ public class TestChromosome extends ExecutableChromosome {
 
 		for (int i = position2; i < other.size(); i++) {
 			GenericAccessibleObject<?> accessibleObject = otherChromosome.test.getStatement(i).getAccessibleObject();
-			if(accessibleObject != null && accessibleObject.getDeclaringClass().equals(Injector.class))
-				continue;
+			if(accessibleObject != null) {
+				if (accessibleObject.getDeclaringClass().equals(Injector.class))
+					continue;
+				if(!ConstraintVerifier.isValidPositionForInsertion(accessibleObject, offspring.test, offspring.test.size())) {
+					continue;
+				}
+			}
 			testFactory.appendStatement(offspring.test,
 					otherChromosome.test.getStatement(i));
 		}
@@ -337,6 +346,7 @@ public class TestChromosome extends ExecutableChromosome {
 		}
 
 		if (changed) {
+			this.increaseNumberOfMutations();
 			setChanged(true);
 			test.clearCoveredGoals();
 		}
@@ -476,8 +486,6 @@ public class TestChromosome extends ExecutableChromosome {
 	@SuppressWarnings("rawtypes")
 	private double checkRelevance(Set<FitnessFunction<? extends Chromosome>> interestedGoals, 
 			Map<FitnessFunction, Double> changeRelevance) {
-		
-		
 		double relevance = 1;
 		if(interestedGoals == null) {
 			return relevance;
@@ -494,8 +502,7 @@ public class TestChromosome extends ExecutableChromosome {
 		
 		return relevance;
 	}
-	
-	
+
 	/**
 	 * Each statement is replaced with probability 1/length
 	 *
@@ -508,14 +515,6 @@ public class TestChromosome extends ExecutableChromosome {
 		boolean changed = false;
 		int lastMutatableStatement = getLastMutatableStatement();
 		double pl = 1d / (lastMutatableStatement + 1);
-		
-		if(lastMutatableStatement < test.size()-1) {
-			pl = 2*pl;
-			if(pl > 1) {
-				pl = 1;
-			}
-		}
-		
 		TestFactory testFactory = TestFactory.getInstance();
 		
 		int targetMethodPosition = -1;
@@ -523,6 +522,7 @@ public class TestChromosome extends ExecutableChromosome {
 			targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
 //			System.currentTimeMillis();
 		}
+
 
 		if (Randomness.nextDouble() < Properties.CONCOLIC_MUTATION) {
 			try {
@@ -540,15 +540,6 @@ public class TestChromosome extends ExecutableChromosome {
 					targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
 				}
 				
-				if(position < targetMethodPosition && targetMethodPosition != -1) {
-					pl = 1d / (targetMethodPosition + 1);
-					if(pl < 0.3) pl = 0.3;
-				}
-				
-				if(targetMethodPosition == position) {
-					pl = 0.9;
-				}
-				
 				Statement statement = test.getStatement(position);
 				Map<FitnessFunction, Double> changeRelevance = statement.getChangeRelevanceMap();
 				if(changeRelevance!=null && !changeRelevance.isEmpty()) {
@@ -563,10 +554,11 @@ public class TestChromosome extends ExecutableChromosome {
 					ram = 0;
 				}
 				
-//				double ram = 0; 
 				if (ram <= pl) {
+//				if (Randomness.nextDouble() <= pl) {
 					assert (test.isValid());
 
+//					Statement statement = test.getStatement(position);
 
 					if(statement.isReflectionStatement())
 						continue;
@@ -627,7 +619,6 @@ public class TestChromosome extends ExecutableChromosome {
 
 			count++;
 			// Insert at position as during initialization (i.e., using helper sequences)
-			
 			int lastMutatableStatement = getLastMutatableStatement();
 			int targetMethodPosition = -1;
 			if(!Properties.TARGET_METHOD.isEmpty()) {
@@ -639,7 +630,6 @@ public class TestChromosome extends ExecutableChromosome {
 			}
 			
 			int position = testFactory.insertRandomStatement(test, lastMutatableStatement);
-			System.currentTimeMillis();
 
 			if (position >= 0 && position < test.size()) {
 				changed = true;
@@ -789,7 +779,7 @@ public class TestChromosome extends ExecutableChromosome {
 	 * @param objective
 	 *            a {@link org.evosuite.ga.SecondaryObjective} object.
 	 */
-	public static void addSecondaryObjective(SecondaryObjective<?> objective) {
+	public static void addSecondaryObjective(SecondaryObjective<TestChromosome> objective) {
 		secondaryObjectives.add(objective);
 	}
 
@@ -818,7 +808,7 @@ public class TestChromosome extends ExecutableChromosome {
 	 *
 	 * @return a {@link java.util.List} object.
 	 */
-	public static List<SecondaryObjective<?>> getSecondaryObjectives() {
+	public static List<SecondaryObjective<TestChromosome>> getSecondaryObjectives() {
 		return secondaryObjectives;
 	}
 

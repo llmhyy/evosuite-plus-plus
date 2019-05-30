@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -98,6 +98,8 @@ public class BranchInstrumentation implements MethodInstrumentation {
 										logger.debug("Found artificial branch: "+v);
 										Branch b = BranchPool.getInstance(classLoader).getBranchForInstruction(v);
 										b.setInstrumented(true);
+										if(aLabel.shouldIgnoreFalse())
+											b.setIgnoreFalse(true);
 									} else {
 										continue;
 									}
@@ -125,7 +127,7 @@ public class BranchInstrumentation implements MethodInstrumentation {
 		}
 		mn.maxStack += 4;
 	}
-	
+
 	protected InsnList getCmpInstrumentation(AbstractInsnNode insn, BytecodeInstruction ifBcInsn) {
 		if (insn == null) {
 			throw new IllegalArgumentException("null given");
@@ -185,7 +187,7 @@ public class BranchInstrumentation implements MethodInstrumentation {
 		}
 		return instrumentation;
 	}
-
+	
 	/**
 	 * <p>
 	 * getInstrumentation

@@ -23,6 +23,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
-	<classpathentry kind="var" path="M2_REPO/org/evosuite/evosuite-shaded/1.0.6-SNAPSHOT/evosuite-shaded-1.0.6-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/evosuite/evosuite-shaded/1.0.7-SNAPSHOT/evosuite-shaded-1.0.7-SNAPSHOT.jar"/>
 					
 </classpath>

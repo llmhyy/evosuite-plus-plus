@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -95,7 +95,7 @@ public class ReadWriteSystemPropertiesSystemTest extends SystemTestBase {
 		}
 		Assert.assertEquals(n, list.size());
 
-		TestGenerationResult tgr = TestGenerationResultBuilder.buildSuccessResult(null);
+		TestGenerationResult tgr = TestGenerationResultBuilder.buildSuccessResult(best);
 		String code = tgr.getTestSuiteCode();
 		Assert.assertTrue("Test code:\n" + code, code.contains("user.timezone"));
 		

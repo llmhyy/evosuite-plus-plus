@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<parent>
 		<artifactId>evosuite</artifactId>
 		<groupId>org.evosuite</groupId>
-		<version>1.0.6-SNAPSHOT</version>
+		<version>1.0.7-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>EvosuiteTest</artifactId>
@@ -52,7 +53,7 @@
 	</build>
 
 	<properties>
-		<evosuite.version>1.0.6-SNAPSHOT</evosuite.version>
+		<evosuite.version>1.0.7-SNAPSHOT</evosuite.version>
 		<poi.version>3.11</poi.version>
 	</properties>
 	<dependencies>
@@ -71,19 +72,25 @@
 			<artifactId>evosuite-master</artifactId>
 			<version>${evosuite.version}</version>
 		</dependency>
-		
+
 		<!-- https://mvnrepository.com/artifact/org.apache.poi/poi -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
 			<version>${poi.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
 			<version>${poi.version}</version>
 		</dependency>
+		
+		<!-- <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <optional>true</optional>
+        </dependency> -->
 	</dependencies>
 
 	<profiles>

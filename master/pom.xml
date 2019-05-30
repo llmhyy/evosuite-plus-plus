@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.evosuite</groupId>
         <artifactId>evosuite</artifactId>
-        <version>1.0.6-SNAPSHOT</version>
+        <version>1.0.7-SNAPSHOT</version>
     </parent>
 
     <artifactId>evosuite-master</artifactId>
@@ -30,15 +30,14 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        
-        <dependency> 
+        -->
+        <dependency> <!--  FIXME this is temporary -->
             <groupId>org.evosuite</groupId>
             <artifactId>evosuite-client</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        -->
         <dependency>
             <groupId>org.evosuite</groupId>
             <artifactId>evosuite-client</artifactId>
@@ -77,6 +76,11 @@
             <artifactId>cdi-api</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <optional>true</optional>
+        </dependency>
 
     </dependencies>
 
@@ -107,14 +111,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-				<configuration>
-				  <artifactSet>
-		                    <excludes>
-		                      <!-- the eclipse plugin needs this -->
-		                      <exclude>*:xml-apis</exclude>
-		                    </excludes>
-		                  </artifactSet>
-				</configuration>
+		<configuration>
+		  <artifactSet>
+                    <excludes>
+                      <!-- the eclipse plugin needs this -->
+                      <exclude>*:xml-apis</exclude>
+                    </excludes>
+                  </artifactSet>
+		</configuration>
             </plugin>
 
             <!-- create single jar with also shaded classes, eg ASM -->
@@ -227,26 +231,5 @@
         </plugins>
     </build>
 
-	<profiles>
-		<profile>
-			<id>package-jars</id>
-			<build>
-				<plugins>
-					<plugin>
-		                <groupId>org.apache.maven.plugins</groupId>
-		                <artifactId>maven-shade-plugin</artifactId>
-		               	  <executions>
-	                        <execution>
-	                            <phase>none</phase>
-	                            <goals>
-	                                <goal>shade</goal>
-	                            </goals>
-                            </execution>
-                    	</executions>
-		            </plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 </project>
 	

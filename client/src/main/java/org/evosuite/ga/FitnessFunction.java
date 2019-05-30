@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -46,10 +46,9 @@ public abstract class FitnessFunction<T extends Chromosome> implements Serializa
 	 */
 	protected void updateIndividual(FitnessFunction<?> ff, T individual, double fitness) {
 		individual.setFitness(ff, fitness);
-	}
-	
-	protected void updateIndividual(FitnessFunction<?> ff, T individual, double fitness, int toCoverTargets) {
-		individual.setFitness(ff, fitness);
+		// the following assumes updateIndividual is called from a 'getFitness' method,
+		// which seems to be case for all classes that extends 'FitnessFunction'
+		individual.increaseNumberOfEvaluations();
 	}
 
 	/**
@@ -97,8 +96,6 @@ public abstract class FitnessFunction<T extends Chromosome> implements Serializa
 	 */
 	public abstract boolean isMaximizationFunction();
 	
-//	public abstract boolean getGoalNum();
-	
 	/**
 	 * if the fitness function contains an archive, updates the archive and the fitness values of the population, and returns true.
 	 * if the fitness function doesn't contain an archive, return false.
@@ -109,5 +106,4 @@ public abstract class FitnessFunction<T extends Chromosome> implements Serializa
 	public boolean updateCoveredGoals(){
 		return false;
 	}
-
 }

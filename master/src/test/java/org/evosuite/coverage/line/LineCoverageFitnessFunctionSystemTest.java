@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -38,7 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.examples.with.different.packagename.ClassWithAnonymousClass;
-import com.examples.with.different.packagename.FlagExample3;
+import com.examples.with.different.packagename.instrumentation.testability.FlagExample3;
 import com.examples.with.different.packagename.IntExample;
 import com.examples.with.different.packagename.SingleMethod;
 import com.examples.with.different.packagename.coverage.IntExampleWithNoElse;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -30,13 +30,13 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.evosuite.ClientProcess;
 import org.evosuite.PackageInfo;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.statistics.RuntimeVariable;
-import org.evosuite.utils.FileIOUtils;
 import org.evosuite.utils.LoggingUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -70,12 +70,13 @@ public class InheritanceTreeGenerator {
 		if (!Properties.INSTRUMENT_CONTEXT && !Properties.INHERITANCE_FILE.isEmpty()) {
 			try {
 				InheritanceTree tree = readInheritanceTree(Properties.INHERITANCE_FILE);
-				LoggingUtils.getEvoLogger().info("* Inheritance tree loaded from {}",
-				                                 Properties.INHERITANCE_FILE);
+				LoggingUtils.getEvoLogger().info("* " + ClientProcess.getPrettyPrintIdentifier() +
+				                                 "Inheritance tree loaded from {}", Properties.INHERITANCE_FILE);
 				return tree;
 
 			} catch (IOException e) {
-				LoggingUtils.getEvoLogger().warn("* Error loading inheritance tree: {}", e);
+				LoggingUtils.getEvoLogger().warn("* " + ClientProcess.getPrettyPrintIdentifier() +
+				                                 "Error loading inheritance tree: {}", e);
 			}
 		}
 		
@@ -151,8 +152,6 @@ public class InheritanceTreeGenerator {
 
 	/**
 	 * 
-	 * @param inheritanceTree
-	 * @param entry
 	 */
 	private static void analyze(InheritanceTree inheritanceTree, File file) {
 		if (!file.canRead()) {
@@ -434,6 +433,8 @@ public class InheritanceTreeGenerator {
 		try {
 			FileOutputStream stream = new FileOutputStream(new File(resourceFolder+jdkFile));
 			XStream xstream = new XStream();
+			XStream.setupDefaultSecurity(xstream);
+			xstream.allowTypesByWildcard(new String[] {"org.evosuite.**", "org.jgrapht.**"});
 			xstream.toXML(inheritanceTree, stream);
 		} catch (FileNotFoundException e) {
 			logger.error("", e);
@@ -442,6 +443,8 @@ public class InheritanceTreeGenerator {
 
 	public static InheritanceTree readJDKData() {
 		XStream xstream = new XStream();
+		XStream.setupDefaultSecurity(xstream);
+		xstream.allowTypesByWildcard(new String[] {"org.evosuite.**", "org.jgrapht.**"});
 
 		String fileName;
 		if(! PackageInfo.isCurrentlyShaded()) {
@@ -462,6 +465,8 @@ public class InheritanceTreeGenerator {
 
 	public static InheritanceTree readInheritanceTree(String fileName) throws IOException {
 		XStream xstream = new XStream();
+		XStream.setupDefaultSecurity(xstream);
+		xstream.allowTypesByWildcard(new String[] {"org.evosuite.**", "org.jgrapht.**"});
 		GZIPInputStream inheritance = new GZIPInputStream(new FileInputStream(new File(fileName)));
 		return (InheritanceTree) xstream.fromXML(inheritance);
 	}
@@ -469,15 +474,19 @@ public class InheritanceTreeGenerator {
 	public static InheritanceTree readUncompressedInheritanceTree(String fileName)
 	        throws IOException {
 		XStream xstream = new XStream();
+		XStream.setupDefaultSecurity(xstream);
+		xstream.allowTypesByWildcard(new String[] {"org.evosuite.**", "org.jgrapht.**"});
 		InputStream inheritance = new FileInputStream(new File(fileName));
 		return (InheritanceTree) xstream.fromXML(inheritance);
 	}
 
 	public static void writeInheritanceTree(InheritanceTree tree, File file) throws IOException {
 		XStream xstream = new XStream();
-		try (GZIPOutputStream output = new GZIPOutputStream(new FileOutputStream(file));) {
-			xstream.toXML(tree, output);
-		}
+		XStream.setupDefaultSecurity(xstream);
+		xstream.allowTypesByWildcard(new String[] {"org.evosuite.**", "org.jgrapht.**"});
+		GZIPOutputStream output = new GZIPOutputStream(new FileOutputStream(file));
+		xstream.toXML(tree, output);
+		output.close();
 	}
 
 
@@ -521,14 +530,10 @@ public class InheritanceTreeGenerator {
 		if(shadedFile.exists()){
 			shadedFile.delete();
 		}
-		PrintWriter out = null;
-		try {
-			out = new PrintWriter(shadedFile);
+		try (PrintWriter out = new PrintWriter(shadedFile)) {
 			out.write(shadedContent);
 		} catch (Exception e){
 			logger.error("Error when making shaded copy");
-		} finally {
-			FileIOUtils.closeQuitely(out);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -63,9 +63,12 @@ public class TryCatchCoverageFactory extends AbstractFitnessFactory<TryCatchCove
                 for (Branch b : BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).retrieveBranchesInMethod(className,
                         methodName)) {
                     if(b.isInstrumented()) {
-                        // Only keep true branch of instrumented branch
                         goals.add(new TryCatchCoverageTestFitness(new BranchCoverageGoal(b,
                                 true, b.getClassName(), b.getMethodName())));
+                        if(!b.ignoreFalseBranch()) {
+                            goals.add(new TryCatchCoverageTestFitness(new BranchCoverageGoal(b,
+                                    false, b.getClassName(), b.getMethodName())));
+                        }
                     }
                 }
             }

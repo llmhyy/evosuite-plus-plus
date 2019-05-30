@@ -6,7 +6,7 @@ import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 
 public class MutationPurpose <T extends Chromosome> {
-	public static Set<FitnessFunction<? extends Chromosome>> purpose = null;
+	public static Set<FitnessFunction<? extends Chromosome>> purpose = new java.util.HashSet<>();
 	
 	
 	public static void reset() {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -95,6 +95,10 @@ public abstract class AbstractTestSuiteChromosome<T extends ExecutableChromosome
 		this.setCoverageValues(source.getCoverageValues());
         this.setNumsOfCoveredGoals(source.getNumsOfCoveredGoals());
         this.setNumsOfNotCoveredGoals(source.getNumsNotCoveredGoals());
+        this.setNumberOfMutations(source.getNumberOfMutations());
+        this.setNumberOfEvaluations(source.getNumberOfEvaluations());
+        this.setKineticEnergy(source.getKineticEnergy());
+        this.setNumCollisions(source.getNumCollisions());
 	}
 
 	/**
@@ -256,6 +260,7 @@ public abstract class AbstractTestSuiteChromosome<T extends ExecutableChromosome
 		
 
 		if (changed) {
+			this.increaseNumberOfMutations();
 			this.setChanged(true);
 		}
 	}

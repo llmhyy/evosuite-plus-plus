@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -106,9 +106,7 @@ public class IntPrimitiveStatement extends NumericalPrimitiveStatement<Integer> 
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();
 			value = constantPool.getRandomInt();
-			System.currentTimeMillis();
 		}
-//		value = (int)(Randomness.nextGaussian() * Properties.MAX_INT) ;
 	}
 
 	/* (non-Javadoc)

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -108,8 +108,8 @@ public class TestSuiteGeneratorHelper {
         LoggingUtils.getEvoLogger().info("  - Interprocedural Context Branch Coverage");
         break;
       case FBRANCH:
-		LoggingUtils.getEvoLogger().info("  - Flag Branch Coverage");
-		break;
+          LoggingUtils.getEvoLogger().info("  - Flag Branch Coverage");
+          break;
       case TRYCATCH:
         LoggingUtils.getEvoLogger().info("  - Try-Catch Branch Coverage");
         break;
@@ -240,9 +240,9 @@ public class TestSuiteGeneratorHelper {
 
   static void printTestCriterion() {
     if (Properties.CRITERION.length > 1) {
-      LoggingUtils.getEvoLogger().info("* Test criteria:");
+      LoggingUtils.getEvoLogger().info("* " + ClientProcess.getPrettyPrintIdentifier() + "Test criteria:");
     } else {
-      LoggingUtils.getEvoLogger().info("* Test criterion:");
+      LoggingUtils.getEvoLogger().info("* " + ClientProcess.getPrettyPrintIdentifier()+ "Test criterion:");
     }
     for (int i = 0; i < Properties.CRITERION.length; i++) {
       printTestCriterion(Properties.CRITERION[i]);

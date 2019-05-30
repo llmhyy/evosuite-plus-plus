@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -215,7 +215,7 @@ public class TestLocalSearchMIMEType {
 	public void testFitness()
 			throws NoSuchFieldException, SecurityException, NoSuchMethodException, ClassNotFoundException {
 		Properties.RESET_STATIC_FINAL_FIELDS = false;
-		
+		Properties.TEST_ARCHIVE = false;
 		Properties.LOCAL_SEARCH_PROBABILITY = 1.0;
 		Properties.LOCAL_SEARCH_RATE = 1;
 		Properties.LOCAL_SEARCH_BUDGET_TYPE = Properties.LocalSearchBudgetType.TESTS;

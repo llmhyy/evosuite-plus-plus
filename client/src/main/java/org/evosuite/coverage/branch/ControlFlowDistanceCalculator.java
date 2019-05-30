@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -19,21 +19,16 @@
  */
 package org.evosuite.coverage.branch;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.evosuite.coverage.ControlFlowDistance;
 import org.evosuite.coverage.TestCoverageGoal;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
-import org.evosuite.setup.callgraph.CallGraph;
-import org.evosuite.setup.callgraph.CallGraphGenerator;
+import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.MethodCall;
 import org.evosuite.testcase.statements.ConstructorStatement;
-import org.evosuite.testcase.statements.Statement;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -216,10 +211,8 @@ public class ControlFlowDistanceCalculator {
 
 		String className = branch.getClassName();
 		String methodName = branch.getMethodName();
-		
-//		CallGraph graph = CallGraphGenerator.analyze(className);
 
-		ControlFlowDistance r = new ControlFlowDistance(); 
+		ControlFlowDistance r = new ControlFlowDistance();
 		r.setApproachLevel(branch.getInstruction().getActualCFG().getDiameter() + 1);
 
 		// Minimal distance between target node and path
@@ -235,6 +228,7 @@ public class ControlFlowDistanceCalculator {
 				}
 			}
 		}
+
 		return r;
 	}
 
@@ -284,8 +278,8 @@ public class ControlFlowDistanceCalculator {
 					r.setBranchDistance(Math.min(r.getBranchDistance(),
 					                             falseDistances.get(branchTracePosition)));
 
-//			if (r.getBranchDistance() == Double.MAX_VALUE)
-//				throw new IllegalStateException("should be impossible");
+			if (r.getBranchDistance() == Double.MAX_VALUE)
+				throw new IllegalStateException("should be impossible");
 
 			//			result.intermediateDistances.put(branch, r);
 			return r;

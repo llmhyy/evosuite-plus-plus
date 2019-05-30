@@ -24,7 +24,6 @@ import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.CommonUtility;
-import org.evosuite.utils.ExternalProcessHandler;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.ProgramArgumentUtils;
 import org.objectweb.asm.Type;
@@ -475,7 +474,7 @@ public class EvosuiteForMethod {
 		LoggerUtils.setupLogger(Settings.getReportFolder(), projectId);
 		log = LoggerUtils.getLogger(EvosuiteForMethod.class);
 		// Properties.MAX_OPEN_FILES_PER_PROCESS = 250;
-		ExternalProcessHandler.terminateClientsIfCannotCancelGentlely = true;
+		
 		return root;
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -19,7 +19,15 @@
  */
 package org.evosuite.coverage.branch;
 
-import org.evosuite.Properties;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.Opcodes;
@@ -28,8 +36,6 @@ import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 // TODO: root branches should not be special cases
 // every root branch should be a branch just
@@ -498,7 +504,7 @@ public class BranchPool {
 				logger.info("Found matching class for branch count: " + className + "/"
 				        + prefix);
 				for (String method : branchMap.get(className).keySet()) {
-					String targetMethod = Properties.TARGET_METHOD;
+					String targetMethod = org.evosuite.Properties.TARGET_METHOD;
 					if(targetMethod.isEmpty() || targetMethod.equals(method)) {
 						num += branchMap.get(className).get(method).size();						
 					}

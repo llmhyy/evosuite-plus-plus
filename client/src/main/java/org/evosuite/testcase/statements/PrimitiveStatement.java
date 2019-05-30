@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -112,7 +112,7 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
         this.value = value;
         initializeMutationRelevance();
     }
-    
+
     public List<TestFitnessFunction> getGoals(){
     	List<TestFitnessFunction> goals = new ArrayList<>();
     	
@@ -140,7 +140,7 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
     		this.changeRelevanceMap.put(ff, (double) 1);
     	}
     }
-
+    
     /**
      * Access the value
      *
@@ -432,14 +432,12 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
         }
     }
 
-    
     /**
      * {@inheritDoc}
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
     public boolean mutate(TestCase test, TestFactory factory) {
-    	
     	Set<FitnessFunction<? extends Chromosome>> tffList = MutationPurpose.purpose;
     	TestChromosome tc = new TestChromosome();
     	tc.setTestCase(test);
@@ -471,7 +469,6 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
                 delta();
         }
         
-        
         for(FitnessFunction tff: tffList) {
         	tc.clearCachedResults();
     		Double fit = tff.getFitness(tc);
@@ -495,9 +492,7 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
         return true;
     }
 
-    
-
-	/**
+    /**
      * Set to a random value
      */
     public abstract void randomize();

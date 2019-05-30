@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -19,6 +19,7 @@
  */
 package org.evosuite.statistics;
 
+import org.evosuite.ClientProcess;
 import org.evosuite.Properties;
 import org.evosuite.coverage.ambiguity.AmbiguityCoverageSuiteFitness;
 import org.evosuite.coverage.branch.BranchCoverageSuiteFitness;
@@ -39,6 +40,7 @@ import org.evosuite.result.TestGenerationResult;
 import org.evosuite.rmi.MasterServices;
 import org.evosuite.rmi.service.ClientState;
 import org.evosuite.rmi.service.ClientStateInformation;
+import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.statistics.backend.*;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.Listener;
@@ -51,7 +53,7 @@ import java.util.*;
 
 
 /**
- * This singleton collects all the data values reported by the client node
+ * A singleton of SearchStatistics collects all the data values reported by a single client node.
  * 
  * @author gordon
  *
@@ -61,12 +63,12 @@ public class SearchStatistics implements Listener<ClientStateInformation>{
 	private static final long serialVersionUID = -1859683466333302151L;
 
 	/** Singleton instance */
-	private static SearchStatistics instance = null;
+	private static Map<String, SearchStatistics> instances = new LinkedHashMap<String, SearchStatistics>();
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchStatistics.class);
 
 	/** Map of client id to best individual received from that client so far */
-	private Map<String, TestSuiteChromosome> bestIndividual = new HashMap<String, TestSuiteChromosome>();
+	private TestSuiteChromosome bestIndividual = null;
 
 	/** Backend used to output the data */
 	private StatisticsBackend backend = null;
@@ -151,40 +153,49 @@ public class SearchStatistics implements Listener<ClientStateInformation>{
 	}
 
 	public static SearchStatistics getInstance() {
-		if(instance == null)
-			instance = new SearchStatistics();
+		return getInstance(ClientProcess.DEFAULT_CLIENT_NAME);
+	}
 
+	public static SearchStatistics getInstance(String rmiClientIdentifier) {
+		SearchStatistics instance = instances.get(rmiClientIdentifier);
+		if (instance == null) {
+			instance = new SearchStatistics();
+			instances.put(rmiClientIdentifier, instance);
+		}
 		return instance;
 	}
 
 	public static void clearInstance() {
-		instance = null;
+		clearInstance(ClientProcess.DEFAULT_CLIENT_NAME);
+	}
+
+	public static void clearInstance(String rmiClientIdentifier) {
+		instances.remove(rmiClientIdentifier);
 	}
 
 	/**
 	 * This method is called when a new individual is sent from a client.
 	 * The individual represents the best individual of the current generation.
 	 * 
-	 * @param rmiClientIdentifier
-	 * @param individual
+	 * @param individual best individual of current generation
 	 */
-	public void currentIndividual(String rmiClientIdentifier, Chromosome individual) {
+	public void currentIndividual(Chromosome individual) {
 		if(backend == null)
 			return;
 
-		logger.debug("Received individual");
-		
-		if(individual instanceof TestSuiteChromosome) {
-//			System.currentTimeMillis();
-			bestIndividual.put(rmiClientIdentifier, (TestSuiteChromosome) individual);
-			for(ChromosomeOutputVariableFactory<?> v : variableFactories.values()) {
-				setOutputVariable(v.getVariable((TestSuiteChromosome) individual));
-			}
-			for(SequenceOutputVariableFactory<?> v : sequenceOutputVariableFactories.values()) {
-				v.update((TestSuiteChromosome) individual);
-			}
+		if(!(individual instanceof TestSuiteChromosome)) {
+			AtMostOnceLogger.warn(logger, "searchStatistics expected a TestSuiteChromosome");
+			return;
 		}
-		
+
+		logger.debug("Received individual");
+		bestIndividual = (TestSuiteChromosome) individual;
+        for(ChromosomeOutputVariableFactory<?> v : variableFactories.values()) {
+            setOutputVariable(v.getVariable((TestSuiteChromosome) individual));
+        }
+		for(SequenceOutputVariableFactory<?> v : sequenceOutputVariableFactories.values()) {
+			v.update((TestSuiteChromosome) individual);
+		}
 	}
 
 	/**
@@ -332,12 +343,12 @@ public class SearchStatistics implements Listener<ClientStateInformation>{
 
 		outputVariables.put(RuntimeVariable.Total_Time.name(), new OutputVariable<Object>(RuntimeVariable.Total_Time.name(), System.currentTimeMillis() - startTime));
 
-		if(bestIndividual.isEmpty()) {
+		if(bestIndividual == null) {
 			logger.error("No statistics has been saved because EvoSuite failed to generate any test case");
 			return false;
 		}	
 
-		TestSuiteChromosome individual = bestIndividual.values().iterator().next();
+		TestSuiteChromosome individual = bestIndividual;
 
 		Map<String,OutputVariable<?>> map = getOutputVariables(individual);
 		if(map==null){

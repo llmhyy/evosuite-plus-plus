@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -21,7 +21,6 @@ package org.evosuite.testcase.execution;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -264,7 +263,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 			.synchronizedMap(new HashMap<String, Map<String, Map<Integer, Integer>>>());
 
 	// active calls
-	Deque<MethodCall> stack = new LinkedList<MethodCall>();
+	LinkedList<MethodCall> stack = new LinkedList<>();
 
 	public Set<Integer> touchedMutants = Collections.synchronizedSet(new HashSet<Integer>());
 
@@ -495,17 +494,17 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	 * Track reach/coverage of branch based on it's underlying opcode during
 	 * execution
 	 * 
-	 * @param the
+	 * @param trackedMap
 	 *            relevant map for the variable type (one of the three static
 	 *            maps)
-	 * @param The
+	 * @param v
 	 *            branch type (based on opcode)
-	 * @param id
+	 * @param branch_id
 	 *            of the tracked branch
 	 */
 	private void trackBranchOpcode(Map<RuntimeVariable, Set<Integer>> trackedMap, RuntimeVariable v, int branch_id) {
 		if (!trackedMap.containsKey(v))
-			trackedMap.put(v, new HashSet<Integer>());
+			trackedMap.put(v, new HashSet<>());
 		Set<Integer> branchSet = trackedMap.get(v);
 		branchSet.add(branch_id);
 		trackedMap.put(v, branchSet);
@@ -518,11 +517,13 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	 */
 	private void updateBranchContextMaps(int branch, double true_distance, double false_distance) {
 		if (!coveredPredicateContext.containsKey(branch)) {
-			coveredPredicateContext.put(branch, new HashMap<CallContext, Integer>());
-			coveredTrueContext.put(branch, new HashMap<CallContext, Double>());
-			coveredFalseContext.put(branch, new HashMap<CallContext, Double>());
+			coveredPredicateContext.put(branch, new HashMap<>());
+			coveredTrueContext.put(branch, new HashMap<>());
+			coveredFalseContext.put(branch, new HashMap<>());
 		}
-		CallContext context = new CallContext(Thread.currentThread().getStackTrace());
+		//CallContext context = new CallContext(new Throwable().getStackTrace());
+		CallContext context = new CallContext(stack);
+
 		if (!coveredPredicateContext.get(branch).containsKey(context)) {
 			coveredPredicateContext.get(branch).put(context, 1);
 			coveredTrueContext.get(branch).put(context, true_distance);
@@ -540,7 +541,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 			updateContextIterationMap(false, branch, false_distance, context);
 		}
 	}
-
+	
 	private void updateContextIterationMap(boolean branchValue, 
 			int branch, double distance, CallContext context) {
 		
@@ -756,7 +757,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 			} else {
 				coveredMethods.put(id, coveredMethods.get(id) + 1);
 			}
-			// Set<String> bms = BranchPool.getBranchlessMethods();
+
 			if (BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 					.isBranchlessMethod(className, id)) {
 				if (!coveredBranchlessMethods.containsKey(id)) {
@@ -766,11 +767,12 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 				}
 			}
 		}
-		if (!className.equals("") && !methodName.equals("")) {
+		if (!className.isEmpty() && !methodName.isEmpty()) {
+			int callingObjectID = registerObject(caller);
+			MethodCall call = new MethodCall(className, methodName, methodId, callingObjectID, stack.size());
+			methodId++;
+			// TODO: Skip this?
 			if (traceCalls) {
-				int callingObjectID = registerObject(caller);
-				methodId++;
-				MethodCall call = new MethodCall(className, methodName, methodId, callingObjectID, stack.size());
 				if (ArrayUtil.contains(Properties.CRITERION, Criterion.DEFUSE)
 						|| ArrayUtil.contains(Properties.CRITERION, Criterion.ALLDEFS)) {
 					call.branchTrace.add(-1);
@@ -779,31 +781,15 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 					call.defuseCounterTrace.add(duCounter);
 					// TODO line_trace ?
 				}
-				stack.push(call);
 			}
+			stack.push(call);
+
 			if (!disableContext
 					&& (Properties.INSTRUMENT_CONTEXT || ArrayUtil.contains(Properties.CRITERION, Criterion.IBRANCH)
 							|| ArrayUtil.contains(Properties.CRITERION, Criterion.CBRANCH))) {
 				updateMethodContextMaps(className, methodName, caller);
 			}
 		}
-		
-//		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
-//			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-//			CallContext context = new CallContext(elements);
-//			
-//			//System.currentTimeMillis();
-//			
-//			List<Call> calls = context.getContext();
-//			List<Call> prevCalls = new ArrayList<>();
-//			for(int i=0; i<calls.size()-1; i++) {
-//				prevCalls.add(calls.get(i));
-//			}
-//			CallContext previousContext = new CallContext(prevCalls);
-//			
-//			contextUpdateMap.put(previousContext, false);	
-//			contextUpdateMap.put(context, true);
-//		}
 	}
 
 	/**
@@ -814,9 +800,12 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	private void updateMethodContextMaps(String className, String methodName, Object caller) {
 		String id = className + "." + methodName;
 		if (!coveredMethodContext.containsKey(id)) {
-			coveredMethodContext.put(id, new HashMap<CallContext, Integer>());
+			coveredMethodContext.put(id, new HashMap<>());
 		}
-		CallContext context = new CallContext(Thread.currentThread().getStackTrace());
+
+		// CallContext context = new CallContext(new Throwable().getStackTrace());
+		CallContext context = new CallContext(stack);
+
 		if (!coveredMethodContext.get(id).containsKey(context)) {
 			coveredMethodContext.get(id).put(context, 1);
 		} else {
@@ -875,16 +864,13 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	 */
 	@Override
 	public void exitMethod(String classname, String methodname) {
-		if (!classname.equals("") && !methodname.equals("")) {
-			if (traceCalls) {
+		if (!classname.isEmpty() && !methodname.isEmpty()) {
+			// if(traceCalls) {
 				if (!stack.isEmpty() && !(stack.peek().methodName.equals(methodname))) {
-					logger.debug("Expecting " + stack.peek().methodName + ", got " + methodname);
-
-					if (stack.peek().methodName.equals("") && !stack.peek().branchTrace.isEmpty()) {
-						logger.debug("Found main method");
+					// Handle cases where unexpected calls are on the stack
+					if (stack.peek().methodName.isEmpty() && !stack.peek().branchTrace.isEmpty()) {
 						finishedCalls.add(stack.pop());
 					} else {
-						logger.debug("Bugger!");
 						// Usually, this happens if we use mutation testing and
 						// the mutation causes an unexpected exception or
 						// timeout
@@ -893,23 +879,8 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 				} else {
 					finishedCalls.add(stack.pop());
 				}
-			}
+			//}
 		}
-		
-//		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
-//			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-//			CallContext context = new CallContext(elements);
-//			
-//			List<Call> calls = context.getContext();
-//			List<Call> nextCalls = new ArrayList<>();
-//			for(int i=0; i<calls.size()-1; i++) {
-//				nextCalls.add(calls.get(i));
-//			}
-//			CallContext nextContext = new CallContext(nextCalls);
-//			
-//			contextUpdateMap.put(nextContext, false);	
-//			contextUpdateMap.put(context, true);
-//		}
 	}
 
 	/** {@inheritDoc} */
@@ -1684,7 +1655,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	 * Adds trace information to the active MethodCall in this.stack
 	 */
 	private void updateTopStackMethodCall(int branch, int bytecode_id, double true_distance, double false_distance) {
-		
+
 		if (traceCalls) {
 			if (stack.isEmpty()) {
 				return;
@@ -1819,16 +1790,6 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	public Map<Integer, Map<CallContext, Double>> getTrueDistancesContext() {
 		return coveredTrueContext;
 	}
-	
-	@Override
-	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> getContextIterationTrueMap(){
-		return contextIterationTrueMap;
-	}
-	
-	@Override
-	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> getContextIterationFalseMap(){
-		return contextIterationFalseMap;
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -1918,6 +1879,16 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	}
 
 	@Override
+	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> getContextIterationTrueMap(){
+		return contextIterationTrueMap;
+	}
+	
+	@Override
+	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> getContextIterationFalseMap(){
+		return contextIterationFalseMap;
+	}
+	
+	@Override
 	public Map<Integer, Integer> getCoveredTrue() {
 		return this.coveredTrue;
 	}
@@ -1927,5 +1898,4 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 		// TODO Auto-generated method stub
 		return this.coveredFalse;
 	}
-
 }

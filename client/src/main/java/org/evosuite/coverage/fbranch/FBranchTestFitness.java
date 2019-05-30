@@ -1032,4 +1032,16 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		this.inconsistencyHappen = inconsistencyHappen;
 	}
 
+	public String getClassName() {
+		return this.branchGoal.getClassName();
+	}
+
+	public String getMethod() {
+		return this.branchGoal.getMethodName();
+	}
+
+	public boolean getBranchExpressionValue() {
+		return this.branchGoal.getValue();
+	}
+
 }

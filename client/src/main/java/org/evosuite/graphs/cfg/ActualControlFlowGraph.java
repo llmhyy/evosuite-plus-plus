@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -866,7 +866,7 @@ public class ActualControlFlowGraph extends ControlFlowGraph<BasicBlock> {
 	public String getCFGType() {
 		return "ACFG";
 	}
-
+	
 	public int size() {
 		return this.rawGraph.edgeCount();
 	}

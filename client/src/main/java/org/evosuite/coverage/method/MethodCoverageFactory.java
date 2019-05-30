@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -20,6 +20,7 @@
 package org.evosuite.coverage.method;
 
 import org.evosuite.Properties;
+import org.evosuite.coverage.MethodNameMatcher;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.setup.TestUsageChecker;
 import org.evosuite.testsuite.AbstractFitnessFactory;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +47,7 @@ public class MethodCoverageFactory extends
 		AbstractFitnessFactory<MethodCoverageTestFitness> {
 
 	private static final Logger logger = LoggerFactory.getLogger(MethodCoverageFactory.class);
+	private final MethodNameMatcher matcher = new MethodNameMatcher();
 
 	/*
 	 * (non-Javadoc)
@@ -93,7 +96,15 @@ public class MethodCoverageFactory extends
 						continue;
 					}
 				}
+				if(clazz.isInterface() && Modifier.isAbstract(m.getModifiers())) {
+					// Don't count interface declarations as targets
+					continue;
+				}
 				String methodName = m.getName() + Type.getMethodDescriptor(m);
+				if (!matcher.methodMatches(methodName)) {
+					logger.info("Method {} does not match criteria. ",methodName);
+					continue;
+				}
 				logger.info("Adding goal for method " + className + "." + methodName);
 				goals.add(new MethodCoverageTestFitness(className, methodName));
 			}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -171,8 +171,8 @@ public class ContractGenerationSystemTest extends SystemTestBase {
 		String[] command = new String[] { "-generateSuite", "-class", targetClass };
 		evosuite.parseCommandLine(command);
 
-		Assert.assertEquals(4, FailingTestSet.getNumberOfUniqueViolations());
 		Assert.assertTrue(FailingTestSet.getNumberOfViolations(EqualsHashcodeContract.class) > 0);
+		Assert.assertTrue(FailingTestSet.getNumberOfViolations(EqualsSymmetricContract.class) > 0);
 	}
 
 	@Test

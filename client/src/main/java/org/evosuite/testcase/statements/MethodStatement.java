@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -542,8 +542,8 @@ public class MethodStatement extends EntityWithParametersStatement {
 	 */
 	@Override
 	public boolean mutate(TestCase test, TestFactory factory) {
-		double ram = Randomness.nextDouble();
-		if (ram >= Properties.P_CHANGE_PARAMETER)
+
+		if (Randomness.nextDouble() >= Properties.P_CHANGE_PARAMETER)
 			return false;
 
 		Constraints constraint = method.getMethod().getAnnotation(Constraints.class);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Gordon Fraser, Andrea Arcuri and EvoSuite
+ * Copyright (C) 2010-2018 Gordon Fraser, Andrea Arcuri and EvoSuite
  * contributors
  *
  * This file is part of EvoSuite.
@@ -85,6 +85,11 @@ public class RuntimeInstrumentation {
 
 		if(className.contains("EnhancerByMockito")){
 			//very special case, as Mockito will create classes on the fly
+			return false;
+		}
+
+		if(className.contains("__CLR")) {
+			// Instrumenting clover coverage instrumentation helper classes breaks clover
 			return false;
 		}
 
