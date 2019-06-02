@@ -26,6 +26,7 @@ import java.util.Set;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
@@ -79,16 +80,29 @@ public class BranchFitnessGraph<T extends Chromosome, V extends FitnessFunction<
 				}
 				
 				BranchCoverageGoal goal = new BranchCoverageGoal(newB, true, newB.getClassName(), newB.getMethodName());
-				BranchCoverageTestFitness newFitness = new BranchCoverageTestFitness(goal);
+				BranchCoverageTestFitness newFitness = createTestFitness(goal);
 				graph.addEdge((FitnessFunction<T>) newFitness, fitness);
 
 				BranchCoverageGoal goal2 = new BranchCoverageGoal(newB, false, newB.getClassName(), newB.getMethodName());
-				BranchCoverageTestFitness newfitness2 = new BranchCoverageTestFitness(goal2);
+				BranchCoverageTestFitness newfitness2 = createTestFitness(goal2);
 				graph.addEdge((FitnessFunction<T>) newfitness2, fitness);
 			}
 		}
 	}
 	
+	private BranchCoverageTestFitness createTestFitness(BranchCoverageGoal goal) {
+		FitnessFunction<T> ff = graph.vertexSet().iterator().next();
+		if(ff != null) {
+			if(ff instanceof FBranchTestFitness) {
+				return new FBranchTestFitness(goal);
+			}
+			else {
+				return new BranchCoverageTestFitness(goal);
+			}
+		}
+		
+		return new BranchCoverageTestFitness(goal);
+	}
 	
 	public Set<BasicBlock> lookForParent(BasicBlock block, ActualControlFlowGraph acfg, Set<BasicBlock> visitedBlock){
 		Set<BasicBlock> realParent = new HashSet<BasicBlock>();

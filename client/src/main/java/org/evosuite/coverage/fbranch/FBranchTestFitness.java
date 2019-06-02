@@ -34,20 +34,20 @@ import org.slf4j.LoggerFactory;
  * @author linyun
  *
  */
-public class FBranchTestFitness extends TestFitnessFunction {
+public class FBranchTestFitness extends BranchCoverageTestFitness {
 
 	private static final long serialVersionUID = -3538507758440177708L;
 	private static Logger logger = LoggerFactory.getLogger(FBranchTestFitness.class);
 
-	private final BranchCoverageGoal branchGoal;
+//	private final BranchCoverageGoal goal;
 	private boolean inconsistencyHappen = false;
 
 	public FBranchTestFitness(BranchCoverageGoal branchGoal) {
-		this.branchGoal = branchGoal;
+		super(branchGoal);
 	}
 
 	public Branch getBranch() {
-		return this.branchGoal.getBranch();
+		return this.goal.getBranch();
 	}
 
 	private String getReturnType(String signature) {
@@ -75,18 +75,18 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		 * branch distance as we need to pass its parent branch node.
 		 */
 		Double value = null;
-		if(this.branchGoal.getValue()) {
-			value = result.getTrace().getTrueDistances().get(this.branchGoal.getBranch().getActualBranchId());
+		if(this.goal.getValue()) {
+			value = result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId());
 		}
 		else {
-			value = result.getTrace().getFalseDistances().get(this.branchGoal.getBranch().getActualBranchId());
+			value = result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
 		}
 		
 		
 		if(value == null){
 //			return 1;
 //			System.currentTimeMillis();
-			value = findParentDistance(this.branchGoal, result);
+			value = findParentDistance(this.goal, result);
 			return value;
 		}
 		else if(value != 1){
@@ -94,7 +94,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		}
 		
 		double fitness = value;
-		BranchCoverageGoal goal = this.branchGoal;
+		BranchCoverageGoal goal = this.goal;
 		InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(goal);
 		if (flagResult.isInterproceduralFlag) {
 			List<Call> callContext = new ArrayList<>();
@@ -143,7 +143,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 //			System.currentTimeMillis();
 			
 			if(fitness==0) {
-				logger.error(this.branchGoal + " is not exercised, but " +
+				logger.error(this.goal + " is not exercised, but " +
 						"both branches of " + newDepBranch + " have 0 branch distance");
 				setInconsistencyHappen(true);
 				continue;
@@ -230,7 +230,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	}
 	
 	private void removeConflictsLoopContext(BranchCoverageGoal branchGoal2, List<List<Integer>> loopContext) {
-		Set<ControlDependency> parentDependencies = branchGoal.getBranch().getInstruction().getControlDependencies();
+		Set<ControlDependency> parentDependencies = goal.getBranch().getInstruction().getControlDependencies();
 		Iterator<List<Integer>> iter = loopContext.iterator();
 		while(iter.hasNext()) {
 			List<Integer> branchTrace = iter.next();
@@ -407,7 +407,7 @@ public class FBranchTestFitness extends TestFitnessFunction {
 			}	
 			
 			if(fitness==0) {
-				logger.error(this.branchGoal + " is not exercised, but " +
+				logger.error(this.goal + " is not exercised, but " +
 						"both branches of " + newDepBranch + " have 0 branch distance");
 				setInconsistencyHappen(true);
 				continue;
@@ -985,43 +985,8 @@ public class FBranchTestFitness extends TestFitnessFunction {
 		return compareClassName(other);
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((getBranchGoal() == null) ? 0 : getBranchGoal().hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		FBranchTestFitness other = (FBranchTestFitness) obj;
-		if (getBranchGoal() == null) {
-			if (other.getBranchGoal() != null)
-				return false;
-		} else if (!getBranchGoal().equals(other.getBranchGoal()))
-			return false;
-		return true;
-	}
-
-	@Override
-	public String getTargetClass() {
-		return getBranchGoal().getClassName();
-	}
-
-	@Override
-	public String getTargetMethod() {
-		return getBranchGoal().getMethodName();
-	}
-
 	public BranchCoverageGoal getBranchGoal() {
-		return branchGoal;
+		return goal;
 	}
 
 	public boolean isInconsistencyHappen() {
@@ -1033,15 +998,15 @@ public class FBranchTestFitness extends TestFitnessFunction {
 	}
 
 	public String getClassName() {
-		return this.branchGoal.getClassName();
+		return this.goal.getClassName();
 	}
 
 	public String getMethod() {
-		return this.branchGoal.getMethodName();
+		return this.goal.getMethodName();
 	}
 
 	public boolean getBranchExpressionValue() {
-		return this.branchGoal.getValue();
+		return this.goal.getValue();
 	}
 
 }

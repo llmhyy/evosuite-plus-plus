@@ -38,6 +38,8 @@ import org.evosuite.coverage.exception.ExceptionCoverageFactory;
 import org.evosuite.coverage.exception.ExceptionCoverageHelper;
 import org.evosuite.coverage.exception.ExceptionCoverageTestFitness;
 import org.evosuite.coverage.exception.TryCatchCoverageTestFitness;
+import org.evosuite.coverage.fbranch.FBranchFitnessFactory;
+import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.coverage.io.input.InputCoverageTestFitness;
 import org.evosuite.coverage.io.output.OutputCoverageTestFitness;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
@@ -90,6 +92,8 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 		for (Criterion criterion : Properties.CRITERION){
 			switch (criterion){
 				case BRANCH:
+					break; // branches have been handled by getControlDepencies4Branches
+				case FBRANCH:
 					break; // branches have been handled by getControlDepencies4Branches
 				case EXCEPTION:
 					break; // exception coverage is handled by calculateFitness
@@ -486,14 +490,24 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 		return covered_exceptions;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public BranchFitnessGraph getControlDepencies4Branches(List<FitnessFunction<T>> fitnessFunctions){
 		Set<FitnessFunction<T>> setOfBranches = new LinkedHashSet<FitnessFunction<T>>();
 		this.dependencies = new LinkedHashMap();
-
-		List<BranchCoverageTestFitness> branches = new BranchCoverageFactory().getCoverageGoals();
-		for (BranchCoverageTestFitness branch : branches){
-			setOfBranches.add((FitnessFunction<T>) branch);
-			this.dependencies.put(branch, new LinkedHashSet<FitnessFunction<T>>());
+		
+		if(!fitnessFunctions.isEmpty() && fitnessFunctions.get(0) instanceof FBranchTestFitness) {
+			List<FBranchTestFitness> branches = new FBranchFitnessFactory().getCoverageGoals();
+			for (FBranchTestFitness branch : branches){
+				setOfBranches.add((FitnessFunction<T>) branch);
+				this.dependencies.put(branch, new LinkedHashSet<FitnessFunction<T>>());
+			}
+		}
+		else {
+			List<BranchCoverageTestFitness> branches = new BranchCoverageFactory().getCoverageGoals();
+			for (BranchCoverageTestFitness branch : branches){
+				setOfBranches.add((FitnessFunction<T>) branch);
+				this.dependencies.put(branch, new LinkedHashSet<FitnessFunction<T>>());
+			}
 		}
 
 		// initialize the maps

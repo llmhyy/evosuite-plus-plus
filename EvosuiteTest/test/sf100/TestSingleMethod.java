@@ -307,14 +307,14 @@ public class TestSingleMethod {
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 1000000;
+		int budget = 100;
 		Long seed = null;
 //		seed = 1557106055943L;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+//		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
 		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  

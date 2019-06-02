@@ -39,7 +39,7 @@ public class BranchCoverageTestFitness extends TestFitnessFunction {
 	private static final long serialVersionUID = -6310967747257242580L;
 
 	/** Target branch */
-	private final BranchCoverageGoal goal;
+	protected final BranchCoverageGoal goal;
 
 	/**
 	 * Constructor - fitness is specific to a branch

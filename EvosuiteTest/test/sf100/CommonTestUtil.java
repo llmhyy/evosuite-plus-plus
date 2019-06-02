@@ -33,7 +33,9 @@ public class CommonTestUtil {
 //				"-generateSuiteUsingDSE",
 				"-generateMOSuite",
 				"-Dstrategy", "MOSUITE",
-				"-Dalgorithm", "MOSA",
+//				"-Dalgorithm", "MOSA",
+				"-Dalgorithm", "DYNAMOSA",
+				
 //				"-generateRandom",
 //				"-Dstrategy", "random",
 //				"-generateSuite",
