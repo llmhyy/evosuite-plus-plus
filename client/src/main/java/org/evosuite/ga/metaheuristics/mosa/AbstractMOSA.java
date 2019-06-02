@@ -34,16 +34,20 @@ import org.evosuite.ProgressMonitor;
 import org.evosuite.Properties;
 import org.evosuite.Properties.SelectionFunction;
 import org.evosuite.coverage.FitnessFunctions;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.exception.ExceptionCoverageSuiteFitness;
+import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.ga.metaheuristics.SearchListener;
 import org.evosuite.ga.operators.mutation.MutationHistory;
-import org.evosuite.testcase.MutationPurpose;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -62,6 +66,7 @@ import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.BudgetConsumptionMonitor;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -554,10 +559,25 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 
         // compute overall fitness and coverage
         this.computeCoverageAndFitness(best);
+        
+        best.setAge(this.currentIteration);
+        best.setProgressInfomation(getProgressInformation());
+        best.setUncoveredBranchDistribution(this.getUncoveredBranchDistribution());
+        best.setDistribution(this.getDistribution());
+        best.setDistributionMap(this.getDistributionMap());
+		
+		Map<FitnessFunction<T>, String> IPFlags = findIPFlagBranches();
+		Map<FitnessFunction<T>, String> uncoveredIPFlags = findUncoveredIPFlags(IPFlags);
+		
+		best.setUncoveredIPFlags(toIPFlagString(uncoveredIPFlags));
+		best.setMethodCallAvailabilityMap(RuntimeRecord.methodCallAvailabilityMap);
+		
+		double IPFlagCoverage = (double)uncoveredIPFlags.size()/IPFlags.size();
+		best.setIPFlagCoverage(1-IPFlagCoverage);
 
         return (T) best;
     }
-
+    
     protected void computeCoverageAndFitness(TestSuiteChromosome suite) {
       for (Entry<TestSuiteFitnessFunction, Class<?>> entry : this.suiteFitnessFunctions
           .entrySet()) {
@@ -579,5 +599,78 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
         suite.setNumOfNotCoveredGoals(suiteFitnessFunction, numberUncoveredTargets);
       }
     }
+    
+    private String toIPFlagString(Map<FitnessFunction<T>, String> uncoveredIPFlags) {
+		StringBuffer buffer = new StringBuffer();
+		for(FitnessFunction<T> ff: uncoveredIPFlags.keySet()) {
+			BranchCoverageGoal goal = transformBranchCoverage(ff);
+			buffer.append(goal + "~" + uncoveredIPFlags.get(ff) + "\n");
+		}
+		return buffer.toString();
+	}
+    
+    private Map<FitnessFunction<T>, String> findUncoveredIPFlags(Map<FitnessFunction<T>, String> iPFlags) {
+		Map<FitnessFunction<T>, String> uncoveredIPFlags = new HashMap<>();
+		for(FitnessFunction<T> goal: iPFlags.keySet()) {
+			if(getUncoveredGoals().contains(goal)) {
+				uncoveredIPFlags.put(goal, iPFlags.get(goal));
+			}
+		}
+		return uncoveredIPFlags;
+	}
 
+    private String getCalledInterproceduralFlagMethod(BranchCoverageGoal goal) {
+		String methodSig = null;
+		
+		BytecodeInstruction instruction = goal.getBranch().getInstruction();
+		
+		BytecodeInstruction interproceduralFlagCall = instruction.getSourceOfStackInstruction(0);
+//		boolean isInterproceduralFlag = false;
+		if (interproceduralFlagCall != null && interproceduralFlagCall.getASMNode() instanceof MethodInsnNode) {
+			MethodInsnNode mNode = (MethodInsnNode) interproceduralFlagCall.getASMNode();
+			String desc = mNode.desc;
+			String returnType = getReturnType(desc);
+			boolean isInterproceduralFlag = returnType.equals("Z");
+			
+			if(isInterproceduralFlag) {
+				methodSig = interproceduralFlagCall.getClassName() + "." + interproceduralFlagCall.getCalledMethod();	
+				System.currentTimeMillis();
+			}
+		}
+
+		
+		return methodSig;
+	}
+	
+	private BranchCoverageGoal transformBranchCoverage(FitnessFunction<T> fitnessFunction) {
+		BranchCoverageGoal goal = null;
+		if(fitnessFunction instanceof FBranchTestFitness) {
+			goal = ((FBranchTestFitness)fitnessFunction).getBranchGoal();
+		}
+		else if(fitnessFunction instanceof BranchCoverageTestFitness) {
+			goal = ((BranchCoverageTestFitness)fitnessFunction).getBranchGoal();
+		}
+		
+		return goal;
+	}
+	
+	private Map<FitnessFunction<T>, String> findIPFlagBranches(){
+		Map<FitnessFunction<T>, String> IPFlagBranches = new HashMap<>();
+		for(FitnessFunction<T> fitnessFunction: fitnessFunctions) {
+			BranchCoverageGoal goal = transformBranchCoverage(fitnessFunction);
+			String methodString = getCalledInterproceduralFlagMethod(goal);
+			if(goal != null && methodString != null) {
+				IPFlagBranches.put(fitnessFunction, methodString);
+			}
+			
+		}
+		
+		return IPFlagBranches;
+	}
+	
+	private String getReturnType(String signature) {
+		String r = signature.substring(signature.indexOf(")") + 1);
+		return r;
+	}
+    
 }
