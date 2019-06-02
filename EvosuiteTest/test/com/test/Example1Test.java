@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import com.example.Example1;
 
-public class Example1Test extends AbstractETest{
+public class Example1Test extends ExampleTestUility{
 	
 	@Test
 	public void test() {
@@ -19,7 +19,7 @@ public class Example1Test extends AbstractETest{
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
-		Method method = getTragetMethod(methodName, clazz, parameterNum);
+		Method method = ExampleTestUility.getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes;lib/commons-math-2.2.jar";
@@ -36,8 +36,7 @@ public class Example1Test extends AbstractETest{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 30000;
-		Example1Test t = new Example1Test();
-		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		ExampleTestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 
 	

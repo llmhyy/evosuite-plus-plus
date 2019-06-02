@@ -7,7 +7,7 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-public class BasicTest extends AbstractETest{
+public class BasicTest {
 	
 	@Test
 	public void test() {
@@ -16,7 +16,7 @@ public class BasicTest extends AbstractETest{
 		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
-		Method method = getTragetMethod(methodName, clazz, parameterNum);
+		Method method = ExampleTestUility.getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -34,7 +34,7 @@ public class BasicTest extends AbstractETest{
 		
 		int timeBudget = 100;
 		BasicTest t = new BasicTest();
-		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		ExampleTestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 //		List<Tuple> l = new ArrayList<>();
 //		for(int i=0; i<7; i++){

@@ -11,9 +11,9 @@ import org.evosuite.result.TestGenerationResult;
 
 import evosuite.shell.EvoTestResult;
 
-public class AbstractETest {
+public class ExampleTestUility {
 	@SuppressWarnings("unchecked")
-	public EvoTestResult evosuite(String targetClass, String targetMethod, String cp, int seconds,
+	public static EvoTestResult evosuite(String targetClass, String targetMethod, String cp, int seconds,
 			boolean instrumentContext, String fitnessAppraoch) {
 		EvoSuite evo = new EvoSuite();
 		Properties.TARGET_CLASS = targetClass;
@@ -23,11 +23,12 @@ public class AbstractETest {
 		String[] command = new String[] {
 				// "-generateRandom",
 				// "-generateSuite",
-//				"-generateMOSuite", 
+				"-generateMOSuite", 
 				"-Dstrategy", 
 				"MOSUITE", 
 				"-Dalgorithm", 
-				"MOSA",
+//				"MOSA",
+				"DYNAMOSA",
 				// "-generateMOSuite",
 //				 "-generateSuiteUsingDSE",
 				// "-Dstrategy", "random",

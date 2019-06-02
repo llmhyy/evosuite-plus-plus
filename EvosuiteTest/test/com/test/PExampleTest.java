@@ -7,7 +7,7 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-public class PExampleTest extends AbstractETest{
+public class PExampleTest{
 	@Test
 	public void test() {
 		Class<?> clazz = com.example.PExample.class;
@@ -15,7 +15,7 @@ public class PExampleTest extends AbstractETest{
 		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
-		Method method = getTragetMethod(methodName, clazz, parameterNum);
+		Method method = ExampleTestUility.getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -31,9 +31,8 @@ public class PExampleTest extends AbstractETest{
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 200;
-		PExampleTest t = new PExampleTest();
-		t.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		int timeBudget = 10000;
+		ExampleTestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 //		List<Tuple> l = new ArrayList<>();
 //		for(int i=0; i<7; i++){
