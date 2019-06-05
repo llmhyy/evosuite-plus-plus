@@ -72,6 +72,16 @@ public class TestCaseBuilder {
 
 		return constructorStmt.getReturnValue();
 	}
+	
+	public VariableReference appendConstructor(Constructor<?> constructor,
+			List<VariableReference> parameter_list) {
+		ConstructorStatement constructorStmt = new ConstructorStatement(tc,
+				new GenericConstructor(constructor,
+						constructor.getDeclaringClass()), parameter_list);
+		tc.addStatement(constructorStmt);
+
+		return constructorStmt.getReturnValue();
+	}
 
 	public VariableReference appendIntPrimitive(int intValue) {
 		IntPrimitiveStatement primitiveStmt = new IntPrimitiveStatement(tc,

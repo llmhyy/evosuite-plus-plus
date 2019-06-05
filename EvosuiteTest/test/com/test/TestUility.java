@@ -11,7 +11,7 @@ import org.evosuite.result.TestGenerationResult;
 
 import evosuite.shell.EvoTestResult;
 
-public class ExampleTestUility {
+public class TestUility {
 	@SuppressWarnings("unchecked")
 	public static EvoTestResult evosuite(String targetClass, String targetMethod, String cp, int seconds,
 			boolean instrumentContext, String fitnessAppraoch) {
@@ -21,39 +21,55 @@ public class ExampleTestUility {
 		// Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 		// Properties.STRATEGY = Strategy.RANDOM;
 		String[] command = new String[] {
-				// "-generateRandom",
-				// "-generateSuite",
-				"-generateMOSuite", 
-				"-Dstrategy", 
-				"MOSUITE", 
-				"-Dalgorithm", 
-//				"MOSA",
-				"DYNAMOSA",
-				// "-generateMOSuite",
-//				 "-generateSuiteUsingDSE",
-				// "-Dstrategy", "random",
-				"-class", targetClass, "-projectCP", cp, // ;lib/commons-math-2.2.jar
-				// "-setup", "bin", "lib/commons-math-2.2.jar",
-				"-Dtarget_method", targetMethod, "-Dsearch_budget", String.valueOf(seconds), "-Dcriterion",
-				fitnessAppraoch, "-Dinstrument_context", String.valueOf(instrumentContext),
-				// "-Dinsertion_uut", "0.1",
-				"-Dp_test_delete", "0.0", "-Dp_test_change", "0.7", "-Dp_test_insert", "0.3",
-				// "-Dheadless_chicken_test", "true",
-				"-Dp_change_parameter", "0.1", "-Dlocal_search_rate", "30", "-Dp_functional_mocking", "0",
-				"-Dmock_if_no_generator", "false", "-Dfunctional_mocking_percent", "0", "-Dprimitive_reuse_probability",
-				"0", "-Dmin_initial_tests", "10", "-Dmax_initial_tests", "20", "-Ddse_probability", "0",
-				// "-Dinstrument_method_calls", "true",
-				"-Dinstrument_libraries", "true", "-Dinstrument_parent", "true",
-				// "-Dmax_length", "1",
-				// "-Dmax_size", "1",
-				"-Dmax_attempts", "100", "-Dassertions", "false", "-Delite", "10",
+//				"-generateTests",
+//				"-Dstrategy", "ONEBRANCH",
+//				"-Dalgorithm", "random",
+				"-generateSuiteUsingDSE",
+				"-Dstrategy", "DSE",
+//				"-generateMOSuite",
+//				"-Dstrategy", "MOSUITE",
+//				"-Dalgorithm", "DYNAMOSA",
+//				"-generateRandom",
+//				"-Dstrategy", "random",
+//				"-generateSuite",
+				"-criterion", fitnessAppraoch, 
+				"-class", targetClass, 
+				"-projectCP", cp,
+				"-Dtarget_method", targetMethod,
+				"-Dsearch_budget", String.valueOf(seconds),
+				"-Dcriterion", fitnessAppraoch,
+				"-Dinstrument_context", String.valueOf(instrumentContext), 
+//				"-Dinsertion_uut", "0.1",
+				"-Dp_test_delete", "0.0",
+				"-Dp_test_change", "0.9",
+				"-Dp_test_insert", "0.3",
+//				"-Dheadless_chicken_test", "true",
+				"-Dp_change_parameter", "0.6",
+//				"-Dlocal_search_rate", "30",
+				"-Dp_functional_mocking", "0",
+				"-Dmock_if_no_generator", "false",
+				"-Dfunctional_mocking_percent", "0",
+				"-Dprimitive_reuse_probability", "0",
+				"-Dmin_initial_tests", "10",
+				"-Dmax_initial_tests", "20",
+				"-Ddse_probability", "0",
+//				"-Dinstrument_method_calls", "true",
+				"-Dinstrument_libraries", "true",
+				"-Dinstrument_parent", "true",
+//				"-Dmax_length", "1",
+//				"-Dmax_size", "1",
+				"-Dmax_attempts", "100",
+				"-Dassertions", "false",
+				"-Delite", "10",
 				"-Dprimitive_pool", "0.0",
 				"-Ddynamic_pool", "0.0",
 				"-Dlocal_search_ensure_double_execution", "false",
-				// "-Dstopping_condition", "maxgenerations",
-				// "-DTT", "true",
-				// "-Dtt_scope", "target",
-				"-seed", "100" };
+//				"-Dchromosome_length", "100",
+//				"-Dstopping_condition", "maxgenerations",
+//				"-DTT", "true",
+//				"-Dtt_scope", "target",
+//				"-seed", "1556035769590" 
+				};
 
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evo.parseCommandLine(command);
 		for (List<TestGenerationResult> l : list) {
