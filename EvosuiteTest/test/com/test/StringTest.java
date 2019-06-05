@@ -7,7 +7,7 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-public class StringTest extends ExampleTestUility{
+public class StringTest extends TestUility{
 	
 	@Test
 	public void test() {
@@ -17,7 +17,7 @@ public class StringTest extends ExampleTestUility{
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
-		Method method = ExampleTestUility.getTragetMethod(methodName, clazz, parameterNum);
+		Method method = TestUility.getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes;lib/commons-math-2.2.jar";
@@ -36,7 +36,7 @@ public class StringTest extends ExampleTestUility{
 		String fitnessApproach = "branch";
 		
 		int timeBudget = 200;
-		ExampleTestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 
 	

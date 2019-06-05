@@ -15,7 +15,7 @@ public class PExampleTest{
 		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
-		Method method = ExampleTestUility.getTragetMethod(methodName, clazz, parameterNum);
+		Method method = TestUility.getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -32,7 +32,7 @@ public class PExampleTest{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 10;
-		ExampleTestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 //		List<Tuple> l = new ArrayList<>();
 //		for(int i=0; i<7; i++){
