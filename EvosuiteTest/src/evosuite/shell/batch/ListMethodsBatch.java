@@ -33,8 +33,9 @@ public class ListMethodsBatch {
 //		runListMethod(MethodFilterOption.FLAG_PROCEDURE_METHOD);
 //		runListMethod(MethodFilterOption.NO_FLAG_METHOD);
 		runListMethod(MethodFilterOption.PRIMITIVE_PARAMETER);
+//	}
 	}
-	
+
 	@Test
 	public void listClassWithFlagProcedureFilter() throws IOException {
 		TargetMethodIOUtils.listTestableClasses(

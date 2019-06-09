@@ -29,6 +29,7 @@ import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
+import org.evosuite.setup.callgraph.Graph;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -42,10 +43,12 @@ import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.SourceValue;
 
 /**
@@ -962,6 +965,13 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 
 		return GraphPool.getInstance(classLoader).getRawCFG(getCalledMethodsClass(),
 		                                                    getCalledMethod());
+	}
+
+	public ActualControlFlowGraph getCalledActualCFG() {
+		if (!isMethodCall())
+			return null;
+
+		return GraphPool.getInstance(classLoader).getActualCFG(getCalledMethodName(), getCalledMethod());
 	}
 
 	/**
