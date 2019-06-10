@@ -76,11 +76,6 @@
             <artifactId>cdi-api</artifactId>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            
-        </dependency>
 
     </dependencies>
 
@@ -230,6 +225,26 @@
             -->
         </plugins>
     </build>
-
+	<profiles>
+		<profile>
+			<id>package-jars</id>
+			<build>
+				<plugins>
+					<plugin>
+		                <groupId>org.apache.maven.plugins</groupId>
+		                <artifactId>maven-shade-plugin</artifactId>
+		               	  <executions>
+	                        <execution>
+	                            <phase>none</phase>
+	                            <goals>
+	                                <goal>shade</goal>
+	                            </goals>
+                            </execution>
+                    	</executions>
+		            </plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
 	
