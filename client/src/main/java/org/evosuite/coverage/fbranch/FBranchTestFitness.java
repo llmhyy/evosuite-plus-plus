@@ -288,7 +288,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			}			
 			return true;
 		}
-		
+		System.currentTimeMillis();
 		return false;
 	}
 
@@ -768,7 +768,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			String desc = mNode.desc;
 			String returnType = getReturnType(desc);
 			isInterproceduralFlag = returnType.equals("Z");
-			callInfo = new Call(instruction.getClassName(), getSimpleMethod(instruction.getMethodName()), 
+			callInfo = new Call(instruction.getClassName(), instruction.getMethodName(), 
 					interproceduralFlagCall.getInstructionId());
 		}
 

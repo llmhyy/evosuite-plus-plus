@@ -166,4 +166,8 @@ public class MethodCall implements Cloneable {
 		copy.defuseCounterTrace = new ArrayList<Integer>(defuseCounterTrace);
 		return copy;
 	}
+
+	public void setCallSite(int callSite) {
+		this.callSite = callSite;
+	}
 }

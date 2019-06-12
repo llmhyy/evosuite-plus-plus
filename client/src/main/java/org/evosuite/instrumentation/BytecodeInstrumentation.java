@@ -200,7 +200,7 @@ public class BytecodeInstrumentation {
 			cv = new RemoveFinalClassAdapter(cv);
 
 			cv = new ExecutionPathClassAdapter(cv, className);
-
+			
 			cv = new CFGClassAdapter(classLoader, cv, className);
 
 			if (Properties.EXCEPTION_BRANCHES) {

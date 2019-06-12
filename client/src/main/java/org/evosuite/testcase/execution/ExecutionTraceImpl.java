@@ -769,7 +769,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 		}
 		if (!className.isEmpty() && !methodName.isEmpty()) {
 			int callingObjectID = registerObject(caller);
-			MethodCall call = new MethodCall(className, methodName, methodId, callingObjectID, stack.size(), callSite);
+			MethodCall call = new MethodCall(className, methodName, methodId, callingObjectID, stack.size(), -1);
 			methodId++;
 			// TODO: Skip this?
 			if (traceCalls) {
@@ -781,6 +781,9 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 					call.defuseCounterTrace.add(duCounter);
 					// TODO line_trace ?
 				}
+			}
+			if(!stack.isEmpty()) {
+				stack.peek().setCallSite(callSite);
 			}
 			stack.push(call);
 

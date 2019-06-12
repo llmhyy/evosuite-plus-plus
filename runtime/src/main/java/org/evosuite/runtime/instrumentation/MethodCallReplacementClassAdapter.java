@@ -89,6 +89,8 @@ public class MethodCallReplacementClassAdapter extends ClassVisitor {
 		if(name.equals("<init>")) {			
 			mv = new RegisterObjectForDeterministicHashCodeVisitor(mv, access, name, desc);
 		}
+		
+		mv = new MethodCallAdapter(mv);
 
 		return new MethodCallReplacementMethodAdapter(mv, className, superClassName, name, access, desc);
 	}

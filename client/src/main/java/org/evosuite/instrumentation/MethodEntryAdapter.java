@@ -20,6 +20,7 @@
 package org.evosuite.instrumentation;
 
 import org.evosuite.PackageInfo;
+import org.evosuite.runtime.instrumentation.EnterMethodCallSite;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -77,7 +78,7 @@ public class MethodEntryAdapter extends AdviceAdapter {
 			mv.visitVarInsn(Opcodes.ALOAD, 0);
 		}
 		//TODO instrument call site
-		mv.visitFieldInsn(Opcodes.GETSTATIC, PackageInfo.getNameWithSlash(ExecutionTracer.class), "callSite", "I");
+		mv.visitFieldInsn(Opcodes.GETSTATIC, PackageInfo.getNameWithSlash(EnterMethodCallSite.class), "callSite", "I");
 		System.currentTimeMillis();
 		mv.visitMethodInsn(Opcodes.INVOKESTATIC,
 				PackageInfo.getNameWithSlash(ExecutionTracer.class),

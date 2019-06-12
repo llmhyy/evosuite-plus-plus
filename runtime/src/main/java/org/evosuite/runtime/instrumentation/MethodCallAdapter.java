@@ -1,7 +1,6 @@
-package org.evosuite.instrumentation;
+package org.evosuite.runtime.instrumentation;
 
 import org.evosuite.PackageInfo;
-import org.evosuite.testcase.execution.ExecutionTracer;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -9,7 +8,7 @@ import org.objectweb.asm.Opcodes;
 
 public class MethodCallAdapter extends MethodVisitor {
 
-	private int index;
+	private int index = -1;
 	
 	protected MethodCallAdapter(final int api, final MethodVisitor mv) {
         super(api, mv);
@@ -91,9 +90,9 @@ public class MethodCallAdapter extends MethodVisitor {
     private void doVisitMethodInsn(int opcode, final String owner,
             final String name, final String desc, final boolean itf) {
         
-    	this.visitIntInsn(Opcodes.SIPUSH, this.index);
+    	this.visitIntInsn(Opcodes.SIPUSH, this.index+2);
 //    	this.visitLdcInsn(this.index);
-    	this.visitFieldInsn(Opcodes.PUTSTATIC, PackageInfo.getNameWithSlash(ExecutionTracer.class), "callSite", "I");
+    	this.visitFieldInsn(Opcodes.PUTSTATIC, PackageInfo.getNameWithSlash(EnterMethodCallSite.class), "callSite", "I");
 //    	mv.visitFieldInsn(Opcodes.GETSTATIC, PackageInfo.getNameWithSlash(ExecutionTracer.class), "callSite", "I");
         if (mv != null) {
             mv.visitMethodInsn(opcode, owner, name, desc, itf);
