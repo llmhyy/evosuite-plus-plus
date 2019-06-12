@@ -31,14 +31,14 @@ public class Call implements Serializable {
 	private static final long serialVersionUID = -8148115191773499144L;
 	private final String className;
 	private final String methodName;
-	private final int lineNumber;
+	private final int calledIndex;
 	private final int hcode;
 	private final int approxHcode;
 
-	public Call(String classname, String methodName, int lineNumber) {
+	public Call(String classname, String methodName, int calledIndex) {
 		this.className = classname;
 		this.methodName = methodName;
-		this.lineNumber = lineNumber;
+		this.calledIndex = calledIndex;
 		approxHcode = computeApproximatedHashCode();
 		hcode = computeHashCode();
 	}
@@ -46,7 +46,7 @@ public class Call implements Serializable {
 	public Call(Call call) {
 		this.className = call.className;
 		this.methodName = call.methodName;
-		this.lineNumber = call.lineNumber;
+		this.calledIndex = call.calledIndex;
 		approxHcode = computeApproximatedHashCode();
 		hcode = computeHashCode();
 	}
@@ -59,7 +59,7 @@ public class Call implements Serializable {
 		int result = 1;
 		result = prime * result + ((className == null) ? 0 : className.hashCode());
 		result = prime * result + ((mname == null) ? 0 : mname.hashCode());
-		return result + this.lineNumber;
+		return result + this.calledIndex;
 	}
 
 	/**
@@ -86,7 +86,7 @@ public class Call implements Serializable {
 		int result = 1;
 		result = prime * result + ((className == null) ? 0 : className.hashCode());
 		result = prime * result + ((methodName == null) ? 0 : methodName.hashCode());
-		return result + this.lineNumber;
+		return result + this.calledIndex;
 	}
 
 	@Override
@@ -112,11 +112,11 @@ public class Call implements Serializable {
 
 	@Override
 	public String toString() {
-		return className + ":" + methodName + ":" + lineNumber;
+		return className + ":" + methodName + ":" + calledIndex;
 	}
 
-	public int getLineNumber() {
-		return lineNumber;
+	public int getCalledIndex() {
+		return calledIndex;
 	}
 
 }

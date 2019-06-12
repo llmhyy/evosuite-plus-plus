@@ -357,8 +357,10 @@ public interface ExecutionTrace {
 	 *            a {@link java.lang.String} object.
 	 * @param caller
 	 *            a {@link java.lang.Object} object.
+	 * @param callSite
+	 *            an int, indicating where is this method called.
 	 */
-	public void enteredMethod(String className, String methodName, Object caller);
+	public void enteredMethod(String className, String methodName, Object caller, int callSite);
 
 	/**
 	 * Pop last method call from stack

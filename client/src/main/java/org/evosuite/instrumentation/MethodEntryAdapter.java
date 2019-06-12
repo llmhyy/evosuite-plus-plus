@@ -76,10 +76,13 @@ public class MethodEntryAdapter extends AdviceAdapter {
 		} else {
 			mv.visitVarInsn(Opcodes.ALOAD, 0);
 		}
+		//TODO instrument call site
+		mv.visitFieldInsn(Opcodes.GETSTATIC, PackageInfo.getNameWithSlash(ExecutionTracer.class), "callSite", "I");
+		System.currentTimeMillis();
 		mv.visitMethodInsn(Opcodes.INVOKESTATIC,
 				PackageInfo.getNameWithSlash(ExecutionTracer.class),
 		                   "enteredMethod",
-		                   "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V", false);
+		                   "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;I)V", false);
 		if (checkConstructor) {
 			if (constructorEntryListener != null) {
 				constructorEntryListener.onEnterConstructor();

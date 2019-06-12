@@ -292,7 +292,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	 * </p>
 	 */
 	public ExecutionTraceImpl() {
-		stack.add(new MethodCall("", "", 0, 0, 0)); // Main method
+		stack.add(new MethodCall("", "", 0, 0, 0, -1)); // Main method
 	}
 
 	/**
@@ -608,7 +608,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 
 		// stack.clear();
 		// finished_calls.clear();
-		stack.add(new MethodCall("", "", 0, 0, 0)); // Main method
+		stack.add(new MethodCall("", "", 0, 0, 0, -1)); // Main method
 		coverage = new HashMap<String, Map<String, Map<Integer, Integer>>>();
 		returnData = new HashMap<String, Map<String, Map<Integer, Integer>>>();
 
@@ -749,7 +749,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	 * Add a new method call to stack
 	 */
 	@Override
-	public void enteredMethod(String className, String methodName, Object caller) {
+	public void enteredMethod(String className, String methodName, Object caller, int callSite) {
 		if (traceCoverage) {
 			String id = className + "." + methodName;
 			if (!coveredMethods.containsKey(id)) {
@@ -769,7 +769,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 		}
 		if (!className.isEmpty() && !methodName.isEmpty()) {
 			int callingObjectID = registerObject(caller);
-			MethodCall call = new MethodCall(className, methodName, methodId, callingObjectID, stack.size());
+			MethodCall call = new MethodCall(className, methodName, methodId, callingObjectID, stack.size(), callSite);
 			methodId++;
 			// TODO: Skip this?
 			if (traceCalls) {

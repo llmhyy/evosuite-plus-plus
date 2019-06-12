@@ -124,9 +124,9 @@ public class ExecutionTraceProxy implements ExecutionTrace, Cloneable {
 	 */
 	/** {@inheritDoc} */
 	@Override
-	public void enteredMethod(String className, String methodName, Object caller) {
+	public void enteredMethod(String className, String methodName, Object caller, int callSite) {
 		copyOnWrite();
-		trace.enteredMethod(className, methodName, caller);
+		trace.enteredMethod(className, methodName, caller, callSite);
 	}
 
 	/*

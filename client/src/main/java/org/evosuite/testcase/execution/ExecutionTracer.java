@@ -56,6 +56,8 @@ public class ExecutionTracer {
 	private int num_statements = 0;
 
 	private ExecutionTrace trace;
+	
+	public static int callSite = -1;
 
 
 	private static boolean checkCallerThread = true;
@@ -263,7 +265,7 @@ public class ExecutionTracer {
 	 * @throws org.evosuite.testcase.execution.TestCaseExecutor$TimeoutExceeded
 	 *             if any.
 	 */
-	public static void enteredMethod(String classname, String methodname, Object caller)
+	public static void enteredMethod(String classname, String methodname, Object caller, int callSite)
 	        throws TestCaseExecutor.TimeoutExceeded {
 		ExecutionTracer tracer = getExecutionTracer();
 
@@ -276,7 +278,7 @@ public class ExecutionTracer {
 		checkTimeout();
 
 		//logger.trace("Entering method " + classname + "." + methodname);
-		tracer.trace.enteredMethod(classname, methodname, caller);
+		tracer.trace.enteredMethod(classname, methodname, caller, callSite);
 	}
 
 	/**

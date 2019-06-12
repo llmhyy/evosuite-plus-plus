@@ -37,6 +37,7 @@ public class MethodCall implements Cloneable {
 	public int methodId;
 	public int callingObjectID;
 	public int callDepth;
+	public int callSite;
 
 	/**
 	 * <p>Constructor for MethodCall.</p>
@@ -46,9 +47,10 @@ public class MethodCall implements Cloneable {
 	 * @param methodId a int.
 	 * @param callingObjectID a int.
 	 * @param callDepth a int.
+	 * @param callSite an int, i.e., where is this method called
 	 */
 	public MethodCall(String className, String methodName, int methodId,
-	        int callingObjectID, int callDepth) {
+	        int callingObjectID, int callDepth, int callSite) {
 		this.className = className;
 		this.methodName = methodName;
 		lineTrace = new ArrayList<Integer>();
@@ -59,6 +61,7 @@ public class MethodCall implements Cloneable {
 		this.methodId = methodId;
 		this.callingObjectID = callingObjectID;
 		this.callDepth = callDepth;
+		this.callSite = callSite;
 	}
 
 	/** {@inheritDoc} */
@@ -155,7 +158,7 @@ public class MethodCall implements Cloneable {
 	@Override
 	public MethodCall clone() {
 		MethodCall copy = new MethodCall(className, methodName, methodId,
-		        callingObjectID, callDepth);
+		        callingObjectID, callDepth, callSite);
 		copy.lineTrace = new ArrayList<Integer>(lineTrace);
 		copy.branchTrace = new ArrayList<Integer>(branchTrace);
 		copy.trueDistanceTrace = new ArrayList<Double>(trueDistanceTrace);

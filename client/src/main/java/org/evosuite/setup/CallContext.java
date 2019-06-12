@@ -128,7 +128,7 @@ public class CallContext implements Serializable {
 			MethodCall element = stackTrace.get(i);
 
 			//TODO for Lin Yun, attach bytecode instruction id for calling this method.
-			Call newCall = new Call(element.className, element.methodName, -1);
+			Call newCall = new Call(element.className, element.methodName, element.callSite);
 
 			boolean skip = false;
 			if(context.size() >= 2) { // Need at least a sequence of three for this check to make sense

@@ -299,7 +299,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 	private List<Call> updateCallContext(BytecodeInstruction sourceIns, List<Call> callContext){
 		List<Call> newContext = (List<Call>) ((ArrayList<Call>)callContext).clone();
 //		BytecodeInstruction ins = sourceIns.getCalledCFG().getInstruction(0);
-		Call call = new Call(sourceIns.getClassName(), getSimpleMethod(sourceIns.getMethodName()), sourceIns.getLineNumber());
+		Call call = new Call(sourceIns.getClassName(), getSimpleMethod(sourceIns.getMethodName()), sourceIns.getInstructionId());
 		if(!newContext.contains(call)) {
 			newContext.add(call);
 		}
@@ -768,7 +768,8 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			String desc = mNode.desc;
 			String returnType = getReturnType(desc);
 			isInterproceduralFlag = returnType.equals("Z");
-			callInfo = new Call(instruction.getClassName(), getSimpleMethod(instruction.getMethodName()), interproceduralFlagCall.getLineNumber());
+			callInfo = new Call(instruction.getClassName(), getSimpleMethod(instruction.getMethodName()), 
+					interproceduralFlagCall.getInstructionId());
 		}
 
 		InterproceduralFlagResult result = new InterproceduralFlagResult(interproceduralFlagCall,
