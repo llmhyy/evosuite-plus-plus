@@ -1663,6 +1663,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 			if (stack.isEmpty()) {
 				return;
 			}
+			stack.peek().setCallSite(bytecode_id);
 			stack.peek().branchTrace.add(branch); // was: bytecode_id
 			stack.peek().trueDistanceTrace.add(true_distance);
 			stack.peek().falseDistanceTrace.add(false_distance);

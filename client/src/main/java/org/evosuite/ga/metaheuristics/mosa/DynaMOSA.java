@@ -136,7 +136,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			if(t instanceof TestChromosome) {
 				for(FitnessFunction<T> ff: this.goalsManager.getCurrentGoals()) {
 					if(t instanceof TestChromosome) {
-						Double fitness = ff.getFitness(t);//TODO see whether the value is stored in t
+						Double fitness = ff.getFitness(t);
 						Double bestSoFar = bestMap.get(ff);
 						if(bestSoFar == null) {
 							bestSoFar = fitness;
