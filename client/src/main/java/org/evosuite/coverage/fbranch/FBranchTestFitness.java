@@ -219,7 +219,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			iteratedFitness.add(fit);
 		}
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 		if(iteratedFitness.isEmpty()) {
 			return 10000000d;
@@ -299,7 +299,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 	private List<Call> updateCallContext(BytecodeInstruction sourceIns, List<Call> callContext){
 		List<Call> newContext = (List<Call>) ((ArrayList<Call>)callContext).clone();
 //		BytecodeInstruction ins = sourceIns.getCalledCFG().getInstruction(0);
-		Call call = new Call(sourceIns.getClassName(), getSimpleMethod(sourceIns.getMethodName()), sourceIns.getInstructionId());
+		Call call = new Call(sourceIns.getClassName(), sourceIns.getMethodName(), sourceIns.getInstructionId());
 		if(!newContext.contains(call)) {
 			newContext.add(call);
 		}
