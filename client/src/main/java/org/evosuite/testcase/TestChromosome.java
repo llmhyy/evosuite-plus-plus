@@ -554,6 +554,10 @@ public class TestChromosome extends ExecutableChromosome {
 					ram = 0;
 				}
 				
+				if(targetMethodPosition == position) {
+					ram = 0;
+				}
+				
 				if (ram <= pl) {
 //				if (Randomness.nextDouble() <= pl) {
 					assert (test.isValid());

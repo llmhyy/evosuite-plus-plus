@@ -44,7 +44,7 @@ public class TestUility {
 				"-Dp_test_change", "0.9",
 				"-Dp_test_insert", "0.3",
 //				"-Dheadless_chicken_test", "true",
-				"-Dp_change_parameter", "0.6",
+				"-Dp_change_parameter", "0.7",
 //				"-Dlocal_search_rate", "30",
 				"-Dp_functional_mocking", "0",
 				"-Dmock_if_no_generator", "false",
