@@ -21,8 +21,10 @@ package org.evosuite.ga.metaheuristics.mosa;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+
 import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
@@ -31,6 +33,7 @@ import org.evosuite.ga.comparators.OnlyCrowdingComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.metaheuristics.mosa.structural.StructuralGoalManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.utils.LoggingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,6 +118,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 			remain = 0;
 		}
+		
+		printBestFitness();
 
 		this.currentIteration++;
 		//logger.debug("N. fronts = {}", ranking.getNumberOfSubfronts());
@@ -122,6 +127,36 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		logger.debug("Covered goals = {}", goalsManager.getCoveredGoals().size());
 		logger.debug("Current goals = {}", goalsManager.getCurrentGoals().size());
 		logger.debug("Uncovered goals = {}", goalsManager.getUncoveredGoals().size());
+	}
+
+	private void printBestFitness() {
+		Map<FitnessFunction<T>, Double> bestMap = new HashMap<>();
+		
+		for(T t: this.population) {
+			if(t instanceof TestChromosome) {
+				for(FitnessFunction<T> ff: this.goalsManager.getCurrentGoals()) {
+					if(t instanceof TestChromosome) {
+						Double fitness = ff.getFitness(t);//TODO see whether the value is stored in t
+						Double bestSoFar = bestMap.get(ff);
+						if(bestSoFar == null) {
+							bestSoFar = fitness;
+						}
+						else if(bestSoFar > fitness) {
+							bestSoFar = fitness;
+						}
+						bestMap.put(ff, bestSoFar);
+					}
+				}
+			}
+		}
+		
+		System.out.println(this.currentIteration + "th iteration ========================");
+		for(FitnessFunction<T> ff: bestMap.keySet()) {
+			Double fitness = bestMap.get(ff);
+			System.out.print(ff + ":");
+			System.out.println(fitness);
+		}
+		
 	}
 
 	/**
