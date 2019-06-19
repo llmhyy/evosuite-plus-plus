@@ -16,16 +16,16 @@ public class Util {
 	}
 
 	public static boolean checkPrecondition(int[] keys, int value) {
-		return checkArrayRange(keys) &&
-				checkValueRange(value);
+		return checkValueRange(value) &&
+				checkArrayRange(keys);
 	}
 
 	private static boolean checkValueRange(int value) {
-		return Math.abs(value) < 100000;
+		return Math.abs(value) < 10000;
 	}
 
 	private static boolean checkArrayRange(int[] keys) {
-		return keys.length < 100000;
+		return keys.length < 10000;
 	}
 
 	public static boolean checkValue(int[] hasValues, int index, int value) {

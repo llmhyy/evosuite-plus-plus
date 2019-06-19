@@ -32,7 +32,7 @@ public class BasicTest {
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 100000;
+		int timeBudget = 100;
 		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 	}

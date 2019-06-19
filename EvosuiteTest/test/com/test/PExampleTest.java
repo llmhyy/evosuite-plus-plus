@@ -31,7 +31,7 @@ public class PExampleTest{
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 10;
+		int timeBudget = 1000000;
 		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 //		List<Tuple> l = new ArrayList<>();

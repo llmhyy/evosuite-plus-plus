@@ -279,7 +279,13 @@ public abstract class EntityWithParametersStatement extends AbstractStatement{
             Statement originalStatement = test.getStatement(parameter.getStPosition());
             copy = originalStatement.clone(test);
             if (originalStatement instanceof PrimitiveStatement<?>) {
-                ((PrimitiveStatement<?>)copy).delta();
+            	 boolean isToDelta = Randomness.nextBoolean();
+            	 if(isToDelta) {
+            		 ((PrimitiveStatement<?>)copy).delta();            		 
+            	 }
+            	 else {
+            		 ((PrimitiveStatement<?>)copy).randomize();
+            	 }
             }
             objects.add(copy.getReturnValue());
         }
