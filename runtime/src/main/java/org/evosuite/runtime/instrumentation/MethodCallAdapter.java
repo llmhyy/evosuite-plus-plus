@@ -173,4 +173,11 @@ public class MethodCallAdapter extends MethodVisitor {
             mv.visitLabel(label);
         }
     }
+    
+    @Override
+    public void visitMaxs(int maxStack, int maxLocals) {
+        if (mv != null) {
+            mv.visitMaxs(maxStack+1, maxLocals);
+        }
+    }
 }
