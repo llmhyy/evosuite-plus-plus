@@ -308,12 +308,12 @@ public class TestUsageChecker {
 
     public static boolean canUse(Method m, Class<?> ownerClass) {
 
-        final MethodNameMatcher matcher = new MethodNameMatcher();
-        String methodSignature = m.getName() + Type.getMethodDescriptor(m);
-        if (!matcher.methodMatches(methodSignature)) {
-            logger.debug("Excluding method '" + methodSignature + "' that does not match criteria");
-            return false;
-        }
+//        final MethodNameMatcher matcher = new MethodNameMatcher();
+//        String methodSignature = m.getName() + Type.getMethodDescriptor(m);
+//        if (!matcher.methodMatches(methodSignature)) {
+//            logger.debug("Excluding method '" + methodSignature + "' that does not match criteria");
+//            return false;
+//        }
 
         if (m.isBridge()) {
             logger.debug("Excluding bridge method: " + m.toString());
