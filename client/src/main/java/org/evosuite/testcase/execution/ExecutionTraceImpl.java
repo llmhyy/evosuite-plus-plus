@@ -43,6 +43,7 @@ import org.evosuite.coverage.dataflow.Use;
 import org.evosuite.setup.CallContext;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.utils.ArrayUtil;
+import org.evosuite.utils.ImmutableArrayList;
 import org.objectweb.asm.Opcodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -589,11 +590,24 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 		}
 		
 		if(latestCall == null) {
-			return new ArrayList<>();
+			return new ImmutableArrayList<>();
 		}
 		
-		List<Integer> branchTrace = (List<Integer>) ((ArrayList<Integer>)latestCall.branchTrace).clone();
+		ArrayList<Integer> newBranchTrace = (ArrayList<Integer>) ((ArrayList<Integer>)latestCall.branchTrace).clone();
+		ImmutableArrayList<Integer> branchTrace = convertTo(newBranchTrace); 
+		
+//		List<Integer> branchTrace = (List<Integer>) ((ArrayList<Integer>)latestCall.branchTrace).clone();
 		return branchTrace;
+	}
+	
+	
+
+	private ImmutableArrayList<Integer> convertTo(ArrayList<Integer> branchTrace) {
+		ImmutableArrayList<Integer> list = new ImmutableArrayList<>();
+		for(Integer i: branchTrace) {
+			list.add(i);
+		}
+		return list;
 	}
 
 	/**
