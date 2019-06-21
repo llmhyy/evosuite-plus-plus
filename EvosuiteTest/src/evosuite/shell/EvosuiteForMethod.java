@@ -226,7 +226,7 @@ public class EvosuiteForMethod {
 				if (!filter.isValidProject(projectName)) {
 					return null;
 				}
-				System.out.println(projectName + "is valid!");
+				System.out.println(projectName + " is valid!");
 				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.ALL_OPTIONS);
 				String[] targetClasses = evoTest.listAllTargetClasses(args);
 
