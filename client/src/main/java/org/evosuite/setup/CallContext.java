@@ -126,8 +126,6 @@ public class CallContext implements Serializable {
 
 		for (int i = startPos; i >= endPos; i--) {
 			MethodCall element = stackTrace.get(i);
-
-			//TODO for Lin Yun, attach bytecode instruction id for calling this method.
 			Call newCall = new Call(element.className, element.methodName, element.callSite);
 
 			boolean skip = false;
