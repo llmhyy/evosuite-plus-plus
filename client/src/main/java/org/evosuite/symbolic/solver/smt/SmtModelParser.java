@@ -139,6 +139,10 @@ public final class SmtModelParser extends ResultParser {
 				solution.put(fun_name, value);
 				token = consumeTokens(tokenizer, NEW_LINE_TOKEN, BLANK_SPACE_TOKEN);
 			}
+			
+			if(token.equals("\r")) {
+				token = consumeTokens(tokenizer, "\r", NEW_LINE_TOKEN);
+			}
 		}
 
 		if (solution.isEmpty()) {
@@ -367,6 +371,7 @@ public final class SmtModelParser extends ResultParser {
 	}
 
 	private static void checkExpectedToken(String expectedToken, String actualToken) {
+		actualToken = actualToken.trim();
 		if (!actualToken.equals(expectedToken)) {
 			throw new IllegalArgumentException(
 					"Malformed CVC4 solution. Expected \"" + expectedToken + "\" but found \"" + actualToken + "\"");
