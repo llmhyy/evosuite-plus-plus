@@ -55,7 +55,7 @@ public class DistributionUtil {
 		siblingDistribution.put(index, (double)distributionMap.get(key));
 		
 		BytecodeInstruction ins = uncoveredGoal.getBranch().getInstruction();
-		while(ins.getControlDependencies().isEmpty()) {
+		while(!ins.getControlDependencies().isEmpty()) {
 			index++;
 			boolean visitNewParent = false;
 			for(ControlDependency cd: ins.getControlDependencies()) {
