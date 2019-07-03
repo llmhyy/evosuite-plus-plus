@@ -26,8 +26,6 @@ package org.evosuite.testcase.execution;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.evosuite.utils.ImmutableArrayList;
 public class MethodCall implements Cloneable {
 	public String className;
 	public String methodName;
@@ -56,7 +54,7 @@ public class MethodCall implements Cloneable {
 		this.className = className;
 		this.methodName = methodName;
 		lineTrace = new ArrayList<Integer>();
-		branchTrace = new ImmutableArrayList<Integer>();
+		branchTrace = new ArrayList<Integer>();
 		trueDistanceTrace = new ArrayList<Double>();
 		falseDistanceTrace = new ArrayList<Double>();
 		defuseCounterTrace = new ArrayList<Integer>();
