@@ -593,22 +593,29 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 			return new ImmutableArrayList<>();
 		}
 		
-		ArrayList<Integer> newBranchTrace = (ArrayList<Integer>) ((ArrayList<Integer>)latestCall.branchTrace).clone();
-		ImmutableArrayList<Integer> branchTrace = convertTo(newBranchTrace); 
+//		ArrayList<Integer> newBranchTrace = (ArrayList<Integer>) ((ArrayList<Integer>)latestCall.branchTrace).clone();
+//		ImmutableArrayList<Integer> branchTrace = convertTo(newBranchTrace); 
 		
+//		ImmutableArrayList<Integer> branchTrace = (ImmutableArrayList<Integer>) 
+//				((ImmutableArrayList<Integer>)latestCall.branchTrace).clone();
+		
+		ImmutableArrayList<Integer> branchTrace = new ImmutableArrayList<Integer>();
+		for(Integer i: latestCall.branchTrace) {
+			branchTrace.add(i);
+		}
 //		List<Integer> branchTrace = (List<Integer>) ((ArrayList<Integer>)latestCall.branchTrace).clone();
 		return branchTrace;
 	}
 	
 	
 
-	private ImmutableArrayList<Integer> convertTo(ArrayList<Integer> branchTrace) {
-		ImmutableArrayList<Integer> list = new ImmutableArrayList<>();
-		for(Integer i: branchTrace) {
-			list.add(i);
-		}
-		return list;
-	}
+//	private ImmutableArrayList<Integer> convertTo(ArrayList<Integer> branchTrace) {
+//		ImmutableArrayList<Integer> list = new ImmutableArrayList<>();
+//		for(Integer i: branchTrace) {
+//			list.add(i);
+//		}
+//		return list;
+//	}
 
 	/**
 	 * {@inheritDoc}
