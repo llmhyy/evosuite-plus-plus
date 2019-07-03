@@ -57,7 +57,7 @@ public class MethodPrimitiveFilter implements IMethodFilter {
         }
         return validMethods;
     }
-
+    
     @SuppressWarnings("unchecked")
     private boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode methodNode) throws AnalyzerException, IOException {
 
@@ -99,10 +99,11 @@ public class MethodPrimitiveFilter implements IMethodFilter {
 
                     // The actual CFG of invoked method
                     ActualControlFlowGraph innerCFG = entryInstruction.getCalledActualCFG();
-                    ActualControlFlowGraph innerActualCFG = null;
+                    
 
                     String innerClassName = entryInstruction.getCalledMethodsClass();
-                    String innerMethodName = entryInstruction.getCalledMethodName();
+                    String innerMethodName = entryInstruction.getCalledMethod();
+                    
 
                     String signature = innerClassName + "." + entryInstruction.getCalledMethod();
                     // Get number of available method
@@ -111,20 +112,7 @@ public class MethodPrimitiveFilter implements IMethodFilter {
                     InputStream innerIS = ResourceList.getInstance(classLoader).getClassAsStream(innerClassName);
                     List<MethodNode> innerMethodList = getMethodNodeList(innerIS);
 
-                    // Look for matched invoked method by methodInsnNode
-                    for (MethodNode innerMethod : innerMethodList) {
-                        if (innerMethodName.equals(innerMethod.desc)) {
-
-                            // All parameters are primitive type
-                            if (!checkParam(innerMethod)) {
-                                return false;
-                            }
-
-                            innerActualCFG = retrieveCFG(classLoader, innerClassName, innerMethodName, innerMethod);
-                            break;
-                        }
-                    }
-
+                    ActualControlFlowGraph innerActualCFG = lookForInnerActualCFG(innerMethodList, classLoader, innerClassName, innerMethodName);
                     BytecodeInstruction innerEntryInsn = innerActualCFG.getEntryPoint();
                     while (innerEntryInsn.getNextInstruction() != null) {
                         AbstractInsnNode innerNode = innerEntryInsn.getASMNode();
@@ -144,7 +132,26 @@ public class MethodPrimitiveFilter implements IMethodFilter {
         return hasBranchInside;
     }
 
-    @SuppressWarnings("unchecked")
+    private ActualControlFlowGraph lookForInnerActualCFG(List<MethodNode> innerMethodList, ClassLoader classLoader,
+			String innerClassName, String innerMethodName) throws AnalyzerException {
+    	// Look for matched invoked method by methodInsnNode
+        for (MethodNode innerMethod : innerMethodList) {
+        	String methodSig = innerMethod.name + innerMethod.desc;
+            if (innerMethodName.equals(methodSig)) {
+
+                // All parameters are primitive type
+                if (checkParam(innerMethod)) {
+                	ActualControlFlowGraph innerActualCFG = retrieveCFG(classLoader, innerClassName, innerMethodName, innerMethod);
+                	return innerActualCFG;
+                }
+                
+            }
+        }
+        System.currentTimeMillis();
+        return null;
+	}
+
+	@SuppressWarnings("unchecked")
     private List<MethodNode> getMethodNodeList(InputStream is) throws IOException {
         ClassReader reader = new ClassReader(is);
         ClassNode cn = new ClassNode();
