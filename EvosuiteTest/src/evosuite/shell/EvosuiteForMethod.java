@@ -370,50 +370,50 @@ public class EvosuiteForMethod {
 						for(ResultPair pair: goodCoveragePairs) {
 							comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "good coverage");
 							count++;
-							if(count>=3) {
-								break;
-							}
+//							if(count>=3) {
+//								break;
+//							}
 						}
 						
-						if(count<3) {
+						//if(count<3) {
 							for(ResultPair pair: goodTimePairs) {
 								comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "good time");	
 								count++;
-								if(count>=3) {
-									break;
-								}
+//								if(count>=3) {
+//									break;
+//								}
 							}
-						}
+						//}
 						
-						if(count<3) {
+						//if(count<3) {
 							for(ResultPair pair: equalPairs) {
 								comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "equal");	
 								count++;
-								if(count>=3) {
-									break;
-								}
+//								if(count>=3) {
+//									break;
+//								}
 							}
-						}
+						//}
 						
-						if(count<3) {
+						//if(count<3) {
 							for(ResultPair pair: worseTimePairs) {
 								comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "worse time");	
 								count++;
-								if(count>=3) {
-									break;
-								}
+//								if(count>=3) {
+//									break;
+//								}
 							}
-						}
+						//}
 						
-						if(count<3) {
+						//if(count<3) {
 							for(ResultPair pair: worseCoveragePairs) {
 								comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "worse coverage");	
 								count++;
-								if(count>=3) {
-									break;
-								}
+//								if(count>=3) {
+//									break;
+//								}
 							}
-						}
+						//}
 						
 						
 					} catch (Throwable t) {

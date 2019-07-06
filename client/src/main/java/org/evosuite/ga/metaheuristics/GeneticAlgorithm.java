@@ -611,8 +611,10 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 					iterator.remove();
 			} else {
 				this.calculateFitness(c);
+				System.currentTimeMillis();
 			}
 		}
+		System.currentTimeMillis();
 	}
 
 	/**
