@@ -141,6 +141,10 @@ public class PutStaticMethodCollector {
 		for (String calledClassName : getStaticFields.keySet()) {
 			ClassNode classNode = DependencyAnalysis
 					.getClassNode(calledClassName);
+//			if(classNode == null) {
+//				continue;
+//			}
+			
 			List<MethodNode> classMethods = classNode.methods;
 			for (MethodNode mn : classMethods) {
 				if (mn.name.equals(CLINIT))

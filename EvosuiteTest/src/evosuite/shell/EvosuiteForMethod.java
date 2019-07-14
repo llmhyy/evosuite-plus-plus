@@ -2,10 +2,10 @@ package evosuite.shell;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,12 +23,12 @@ import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.result.TestGenerationResult;
-import org.evosuite.utils.CommonUtility;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.ProgramArgumentUtils;
-import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
+import evosuite.shell.FilterConfiguration.Filter;
+import evosuite.shell.FilterConfiguration.InclusiveFilter;
 import evosuite.shell.ParameterOptions.TestLevel;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.SFConfiguration;
@@ -90,7 +90,7 @@ public class EvosuiteForMethod {
 	private static Logger log;
 	public static String projectName;
 	public static String projectId; // ex: 1_tullibee (project folder name)
-	static FilterConfiguration filter;
+	public static FilterConfiguration filter;
 
 	private URLClassLoader evoTestClassLoader;
 
@@ -228,21 +228,21 @@ public class EvosuiteForMethod {
 				}
 				System.out.println(projectName + " is valid!");
 				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.ALL_OPTIONS);
-				String[] targetClasses = evoTest.listAllTargetClasses(args);
+//				String[] targetClasses = evoTest.listAllTargetClasses(args);
+				String[] targetClasses = new String[0];
 
 				String[] truncatedArgs = extractArgs(args);
 
 				if(Settings.isRunBothMethods()) {
 					if (Settings.getTestLevel() == TestLevel.lMethod) {
-						results = evoTest.runAllMethodsWithBothStrategy(targetClasses, 
-								truncatedArgs, projectName);
+						results = evoTest.runAllMethodsWithBothStrategy(truncatedArgs, projectName);
 					} else {
 //						results = evoTest.runAllClassesWithBothStrategy(targetClasses, truncatedArgs, projectName, recorderList);
 					}	
 				}
 				else {
 					if (Settings.getTestLevel() == TestLevel.lMethod) {
-						results = evoTest.runAllMethods(targetClasses, truncatedArgs, projectName, recorderList);
+						results = evoTest.runAllMethods(truncatedArgs, projectName, recorderList);
 					} else {
 						results = evoTest.runAllClasses(targetClasses, truncatedArgs, projectName, recorderList);
 					}
@@ -256,180 +256,186 @@ public class EvosuiteForMethod {
 		log.info("Finish!");
 		return results;
 	}
+	
+	private InclusiveFilter getInclusiveFilter() {
+		for(Filter f: filter.getFilters()) {
+			if(f instanceof InclusiveFilter) {
+				return (InclusiveFilter)f;
+			}
+		}
+		
+		return null;
+	}
 
-	private List<EvoTestResult> runAllMethodsWithBothStrategy(String[] targetClasses, String[] args,
+	private List<EvoTestResult> runAllMethodsWithBothStrategy(String[] args,
 			String projectName) {
 		
 		ComparativeRecorder comRecorder = new ComparativeRecorder();
 		ActualStatisticsRecorder actRecorder = new ActualStatisticsRecorder();
 		
 		List<EvoTestResult> results = new ArrayList<>();
-		System.out.println("start comparing on " + targetClasses.length + " classes!");
-		for (String className : targetClasses) {
+		
+		InclusiveFilter inclusiveFilter = getInclusiveFilter();
+		
+		Set<String> methodIDs = inclusiveFilter.getInclusives().get(projectName);
+		List<String> methodIDList = new ArrayList<String>(methodIDs);
+		
+		Collections.sort(methodIDList);
+		
+		for(String methodID: methodIDList) {
+			String className = methodID.substring(0, methodID.indexOf("#"));
+			String methodName = methodID.substring(methodID.indexOf("#")+1, methodID.length());
+			
+			System.currentTimeMillis();
+			
+			if (!filter.isValidElementId(projectName, methodID)) {
+				continue;
+			}
+
+			if (Settings.longRunningMethods != null && Settings.longRunningMethods.contains(methodID)) {
+				continue;
+			}
+			
+//			if(Settings.analyzedMethods.contains(methodID)) {
+//				continue;
+//			}
+
 			try {
-				System.out.println("Analyzing " + className + " ...");
-				Class<?> targetClass = evoTestClassLoader.loadClass(className);
-				System.out.println("Loading " + className + ", the object is " + targetClass);
-				// ignore
-				if (targetClass.isInterface()) {
-					continue;
+				List<ResultPair> goodCoveragePairs = new ArrayList<>();
+				List<ResultPair> goodTimePairs = new ArrayList<>();
+				List<ResultPair> equalPairs = new ArrayList<>();
+				List<ResultPair> worseTimePairs = new ArrayList<>();
+				List<ResultPair> worseCoveragePairs = new ArrayList<>();
+				
+				for (int i = 0; i < Settings.getIteration(); i++) {
+					int critierionIndex = ProgramArgumentUtils.indexOfOpt(args, "-criterion");
+					int contextIndex = ProgramArgumentUtils.indexOfOpt(args, "-Dinstrument_context");
+					if(critierionIndex != -1) {
+						args[critierionIndex+1] = "branch";
+						args[contextIndex+1] = "false";
+						EvoTestResult branchResult = null;
+						try {
+							branchResult = runMethod(methodName, className, args, new ArrayList<>());									
+						}
+						catch(Exception e) {
+							e.printStackTrace();
+						}
+						
+						if(branchResult == null)continue;
+						
+						Long randomSeed = branchResult.getRandomSeed();
+						
+						args[critierionIndex+1] = "branch";
+						args[contextIndex+1] = "true";
+						String[] newArgs = args;
+						newArgs = ArrayUtils.addAll(newArgs, "-seed", String.valueOf(randomSeed));
+						EvoTestResult fBranchResult = null;
+						try {
+							fBranchResult = runMethod(methodName, className, newArgs, new ArrayList<>());									
+						}
+						catch(Exception e) {
+							e.printStackTrace();
+						}
+						
+						if(fBranchResult == null)continue;
+						
+						
+						ResultPair pair = new ResultPair(branchResult, fBranchResult);
+						if(pair.getCoverageAdvantage()>0) {
+							goodCoveragePairs.add(pair);
+						}
+						else {
+							if(pair.getTimeAdvantage()>0) {
+								goodTimePairs.add(pair);
+							}
+							else if(pair.getCoverageAdvantage()==0 && pair.getTimeAdvantage()==0) {
+								equalPairs.add(pair);
+							}
+							else if(pair.getTimeAdvantage()<0){
+								worseTimePairs.add(pair);
+							}
+							else {
+								worseCoveragePairs.add(pair);
+							}
+						}
+						
+//						if(goodCoveragePairs.size()>=3 || 
+//								(goodCoveragePairs.size()>=1 && goodTimePairs.size()>=2)) {
+//							break;
+//						}
+						
+						results.add(branchResult);
+						results.add(fBranchResult);
+					}
 				}
 				
-				for (Method method : targetClass.getDeclaredMethods()) {
-					String methodName = method.getName() + Type.getMethodDescriptor(method);
-					String methodID = CommonUtility.getMethodId(className, methodName);
-					if (!filter.isValidElementId(projectName, methodID)) {
-						continue;
-					}
+				int total = goodCoveragePairs.size() + goodTimePairs.size() + equalPairs.size()
+					+ worseCoveragePairs.size() + worseTimePairs.size();
+				int good = goodCoveragePairs.size() + goodTimePairs.size();
+				double ratio = (double)good/total;
+				
+				actRecorder.recordRatio(className, methodName, ratio);
 
-					if (Settings.longRunningMethods != null && Settings.longRunningMethods.contains(methodID)) {
-						continue;
-					}
-					
-					if(Settings.analyzedMethods.contains(methodID)) {
-						continue;
-					}
-
-					try {
-						List<ResultPair> goodCoveragePairs = new ArrayList<>();
-						List<ResultPair> goodTimePairs = new ArrayList<>();
-						List<ResultPair> equalPairs = new ArrayList<>();
-						List<ResultPair> worseTimePairs = new ArrayList<>();
-						List<ResultPair> worseCoveragePairs = new ArrayList<>();
-						
-						for (int i = 0; i < Settings.getIteration(); i++) {
-							int critierionIndex = ProgramArgumentUtils.indexOfOpt(args, "-criterion");
-							int contextIndex = ProgramArgumentUtils.indexOfOpt(args, "-Dinstrument_context");
-							if(critierionIndex != -1) {
-								args[critierionIndex+1] = "branch";
-								args[contextIndex+1] = "false";
-								EvoTestResult branchResult = null;
-								try {
-									branchResult = runMethod(methodName, className, args, new ArrayList<>());									
-								}
-								catch(Exception e) {
-									e.printStackTrace();
-								}
-								
-								if(branchResult == null)continue;
-								
-								Long randomSeed = branchResult.getRandomSeed();
-								
-								args[critierionIndex+1] = "branch";
-								args[contextIndex+1] = "true";
-								String[] newArgs = args;
-								newArgs = ArrayUtils.addAll(newArgs, "-seed", String.valueOf(randomSeed));
-								EvoTestResult fBranchResult = null;
-								try {
-									fBranchResult = runMethod(methodName, className, newArgs, new ArrayList<>());									
-								}
-								catch(Exception e) {
-									e.printStackTrace();
-								}
-								
-								if(fBranchResult == null)continue;
-								
-								
-								ResultPair pair = new ResultPair(branchResult, fBranchResult);
-								if(pair.getCoverageAdvantage()>0) {
-									goodCoveragePairs.add(pair);
-								}
-								else {
-									if(pair.getTimeAdvantage()>0) {
-										goodTimePairs.add(pair);
-									}
-									else if(pair.getCoverageAdvantage()==0 && pair.getTimeAdvantage()==0) {
-										equalPairs.add(pair);
-									}
-									else if(pair.getTimeAdvantage()<0){
-										worseTimePairs.add(pair);
-									}
-									else {
-										worseCoveragePairs.add(pair);
-									}
-								}
-								
-								if(goodCoveragePairs.size()>=3 || 
-										(goodCoveragePairs.size()>=1 && goodTimePairs.size()>=2)) {
-									break;
-								}
-								
-								results.add(branchResult);
-								results.add(fBranchResult);
-							}
-						}
-						
-						int total = goodCoveragePairs.size() + goodTimePairs.size() + equalPairs.size()
-							+ worseCoveragePairs.size() + worseTimePairs.size();
-						int good = goodCoveragePairs.size() + goodTimePairs.size();
-						double ratio = (double)good/total;
-						
-						actRecorder.recordRatio(className, methodName, ratio);
-
-						int count = 0;
-						for(ResultPair pair: goodCoveragePairs) {
-							comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "good coverage");
-							count++;
-//							if(count>=3) {
-//								break;
-//							}
-						}
-						
-						//if(count<3) {
-							for(ResultPair pair: goodTimePairs) {
-								comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "good time");	
-								count++;
-//								if(count>=3) {
-//									break;
-//								}
-							}
-						//}
-						
-						//if(count<3) {
-							for(ResultPair pair: equalPairs) {
-								comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "equal");	
-								count++;
-//								if(count>=3) {
-//									break;
-//								}
-							}
-						//}
-						
-						//if(count<3) {
-							for(ResultPair pair: worseTimePairs) {
-								comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "worse time");	
-								count++;
-//								if(count>=3) {
-//									break;
-//								}
-							}
-						//}
-						
-						//if(count<3) {
-							for(ResultPair pair: worseCoveragePairs) {
-								comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "worse coverage");	
-								count++;
-//								if(count>=3) {
-//									break;
-//								}
-							}
-						//}
-						
-						
-					} catch (Throwable t) {
-						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
-								.append("#").append(methodName).append("\n").append("Error: \n").append(t.getMessage())
-								.toString();
-						System.err.println(msg);
-						log.debug(msg, t);
-					}
+				int count = 0;
+				for(ResultPair pair: goodCoveragePairs) {
+					comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "good coverage");
+					count++;
+//					if(count>=3) {
+//						break;
+//					}
 				}
+				
+				//if(count<3) {
+					for(ResultPair pair: goodTimePairs) {
+						comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "good time");	
+						count++;
+//						if(count>=3) {
+//							break;
+//						}
+					}
+				//}
+				
+				//if(count<3) {
+					for(ResultPair pair: equalPairs) {
+						comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "equal");	
+						count++;
+//						if(count>=3) {
+//							break;
+//						}
+					}
+				//}
+				
+				//if(count<3) {
+					for(ResultPair pair: worseTimePairs) {
+						comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "worse time");	
+						count++;
+//						if(count>=3) {
+//							break;
+//						}
+					}
+				//}
+				
+				//if(count<3) {
+					for(ResultPair pair: worseCoveragePairs) {
+						comRecorder.recordBothResults(className, methodName, pair.branchResult, pair.fBranchResult, "worse coverage");	
+						count++;
+//						if(count>=3) {
+//							break;
+//						}
+					}
+				//}
+				
+				
 			} catch (Throwable t) {
-				log.error("Error!", t);
-//				System.out.println(t);
-				t.printStackTrace();
+				String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
+						.append("#").append(methodName).append("\n").append("Error: \n").append(t.getMessage())
+						.toString();
+				System.err.println(msg);
+				log.debug(msg, t);
 			}
 		}
+		
+		
 
 		return results;
 	}
@@ -538,71 +544,67 @@ public class EvosuiteForMethod {
 		evoTestClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
 	}
 
-	public List<EvoTestResult> runAllMethods(String[] targetClasses, String[] args, String projectName,
+	public List<EvoTestResult> runAllMethods(String[] args, String projectName,
 			List<ExperimentRecorder> recorders) {
 		List<EvoTestResult> results = new ArrayList<>();
-		for (String className : targetClasses) {
+		InclusiveFilter inclusiveFilter = getInclusiveFilter();
+		Set<String> methodIDs = inclusiveFilter.getInclusives().get(projectName);
+		List<String> methodIDList = new ArrayList<String>(methodIDs);
+		
+		Collections.sort(methodIDList);
+		
+		for(String methodID: methodIDList) {
+			String className = methodID.substring(0, methodID.indexOf("#"));
+			String methodName = methodID.substring(methodID.indexOf("#")+1, methodID.length());
+			
+			if (!filter.isValidElementId(projectName, methodID)) {
+				continue;
+			}
+
+			if (Settings.investigatedMethods != null && Settings.investigatedMethods.containsKey(methodID)) {
+				continue;
+			}
+
+			if (Settings.easyMethods != null && !Settings.easyMethods.containsKey(methodID)) {
+				continue;
+			}
+
 			try {
-				Class<?> targetClass = evoTestClassLoader.loadClass(className);
-				// ignore
-				if (targetClass.isInterface()) {
-					continue;
-				}
-				for (Method method : targetClass.getDeclaredMethods()) {
-					String methodName = method.getName() + Type.getMethodDescriptor(method);
-					String methodID = CommonUtility.getMethodId(className, methodName);
-					if (!filter.isValidElementId(projectName, methodID)) {
-						continue;
-					}
-
-					if (Settings.investigatedMethods != null && Settings.investigatedMethods.containsKey(methodID)) {
-						continue;
-					}
-
-					if (Settings.easyMethods != null && !Settings.easyMethods.containsKey(methodID)) {
-						continue;
-					}
-
+				for (int i = 0; i < Settings.getIteration(); i++) {
+					String[] evoArgs = args;
 					try {
-						for (int i = 0; i < Settings.getIteration(); i++) {
-							String[] evoArgs = args;
-							try {
-								if (!ProgramArgumentUtils.hasOpt(args, "-seed") && Settings.easyMethods != null) {
-									List<Long> seeds = Settings.easyMethods.get(methodID);
-									if(seeds!=null && !seeds.isEmpty()) {
-										Long seed = seeds.get(0);
-										seeds.remove(seed);
-										evoArgs = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
-									}
-								}
-								
-								if (!ProgramArgumentUtils.hasOpt(evoArgs, "-seed")) {
-									if(!TempGlobalVariables.seeds.isEmpty()) {
-										Long seed = TempGlobalVariables.seeds.get(0);
-										TempGlobalVariables.seeds.remove(seed);
-										evoArgs = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
-									}
-								}
-							} catch (Exception e) {
-								e.printStackTrace();
+						if (!ProgramArgumentUtils.hasOpt(args, "-seed") && Settings.easyMethods != null) {
+							List<Long> seeds = Settings.easyMethods.get(methodID);
+							if(seeds!=null && !seeds.isEmpty()) {
+								Long seed = seeds.get(0);
+								seeds.remove(seed);
+								evoArgs = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
 							}
-							
-							EvoTestResult result = runMethod(methodName, className, evoArgs, recorders);
-							results.add(result);
 						}
-
-						for (ExperimentRecorder recorder : recorders) {
-							recorder.recordEndIterations(methodName, className);
+						
+						if (!ProgramArgumentUtils.hasOpt(evoArgs, "-seed")) {
+							if(!TempGlobalVariables.seeds.isEmpty()) {
+								Long seed = TempGlobalVariables.seeds.get(0);
+								TempGlobalVariables.seeds.remove(seed);
+								evoArgs = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
+							}
 						}
-					} catch (Throwable t) {
-						String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
-								.append("#").append(methodName).append("\n").append("Error: \n").append(t.getMessage())
-								.toString();
-						log.debug(msg, t);
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
+					
+					EvoTestResult result = runMethod(methodName, className, evoArgs, recorders);
+					results.add(result);
+				}
+
+				for (ExperimentRecorder recorder : recorders) {
+					recorder.recordEndIterations(methodName, className);
 				}
 			} catch (Throwable t) {
-				log.error("Error!", t);
+				String msg = new StringBuilder().append("[").append(projectName).append("]").append(className)
+						.append("#").append(methodName).append("\n").append("Error: \n").append(t.getMessage())
+						.toString();
+				log.debug(msg, t);
 			}
 		}
 

@@ -50,6 +50,14 @@ public class FilterConfiguration {
 		return true;
 	}
 	
+	public List<Filter> getFilters() {
+		return filters;
+	}
+
+	public void setFilters(List<Filter> filters) {
+		this.filters = filters;
+	}
+
 	public static interface Filter {
 
 		boolean isValidProject(String projectName);
@@ -114,7 +122,7 @@ public class FilterConfiguration {
 					curProject = line.split("=")[1].split(" ")[0];
 				} else {
 					if (!line.startsWith("#")) {
-						CollectionUtil.getSetInitIfEmpty(inclusives, curProject).add(line);
+						CollectionUtil.getSetInitIfEmpty(getInclusives(), curProject).add(line);
 					}
 				}
 			}
@@ -122,12 +130,20 @@ public class FilterConfiguration {
 
 		@Override
 		public boolean isValidProject(String projectName) {
-			return inclusives.containsKey(projectName);
+			return getInclusives().containsKey(projectName);
 		}
 
 		@Override
 		public boolean isValidElementId(String projectName, String elementId) {
-			return inclusives.get(projectName).contains(elementId);
+			return getInclusives().get(projectName).contains(elementId);
+		}
+
+		public Map<String, Set<String>> getInclusives() {
+			return inclusives;
+		}
+
+		public void setInclusives(Map<String, Set<String>> inclusives) {
+			this.inclusives = inclusives;
 		}
 		
 	}
