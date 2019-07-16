@@ -108,6 +108,11 @@ public class TestSuiteGenerator {
 			throw t;
 		}
 
+		List<String> list = Arrays.asList(cp.split(File.pathSeparator));
+		
+		File f = new File(list.get(0));
+		f.getAbsoluteFile();
+		
 		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
 		LoggingUtils.getEvoLogger().info("* " + ClientProcess.getPrettyPrintIdentifier() + "Finished analyzing classpath");
 	}

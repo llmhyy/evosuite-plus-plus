@@ -220,7 +220,9 @@ public class TestSingleMethod {
 	public void runWeka() {
 		String projectId = "101_weka";
 		String[] targetMethods = new String[]{
-				"java_cup.runtime.lr_parser#error_recovery(Z)Z",
+//				"java_cup.runtime.lr_parser#error_recovery(Z)Z",
+				"weka.knowledgeflow.Data#setConnectionName(Ljava/lang/String;)V"
+//				"org.apache.commons.compress.compressors.CompressorStreamFactory#createCompressorInputStream(Ljava/io/InputStream;)Lorg/apache/commons/compress/compressors/CompressorInputStream;"
 //				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
 //				"weka.associations.Apriori#buildAssociations(Lweka/core/Instances;)V"
 //				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"

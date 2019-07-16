@@ -53,7 +53,7 @@ public class NoFlagMethodFilter extends FlagMethodProfilesFilter {
 		MethodContent mc = new MethodContent();
 		
 		/* check parameter types of target method */
-		mc.hasPrimitiveParam = hasPrimitiveParam(node, cn);
+		mc.hasPrimitiveParam = FilterHelper.hasAtLeastOnePrimitiveParam(node, cn);
 		
 		boolean valid = true;
 		Map<String, Boolean> methodValidityMap = new HashMap<>();

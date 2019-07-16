@@ -7,6 +7,7 @@ public enum MethodFilterOption {
 	HAS_BRANCH ("hasBranch"),
 	RELEVANT_JDK_CLASSES ("relJdkClasses"),
 	FLAG_METHOD_PROFILES("flagMethodProf"),
+	FLAG_PRIMITIVE_PARAMETER_FIELD("primitiveParamFieldMethod"),
 	NO_FLAG_METHOD("noFlag"),
 	PRIMITIVE_PARAMETER("primParam");
 	
@@ -31,6 +32,8 @@ public enum MethodFilterOption {
 			return new NoFlagMethodFilter();
 		case PRIMITIVE_PARAMETER:
 			return new MethodPrimitiveFilter();
+		case FLAG_PRIMITIVE_PARAMETER_FIELD:
+			return new PrimitiveBasedFlagMethodFilter();
 		}
 		return null;
 	}
