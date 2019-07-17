@@ -72,7 +72,6 @@
 	<classpathentry kind="var" path="M2_REPO/org/springframework/spring-aop/4.3.14.RELEASE/spring-aop-4.3.14.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-aop/4.3.14.RELEASE/spring-aop-4.3.14.RELEASE-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/springframework/spring-expression/4.3.14.RELEASE/spring-expression-4.3.14.RELEASE.jar" sourcepath="M2_REPO/org/springframework/spring-expression/4.3.14.RELEASE/spring-expression-4.3.14.RELEASE-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.7.22/slf4j-api-1.7.22.jar" sourcepath="M2_REPO/org/slf4j/slf4j-api/1.7.22/slf4j-api-1.7.22-sources.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.8.0_201/lib/tools.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/ow2/asm/asm/6.0/asm-6.0.jar" sourcepath="M2_REPO/org/ow2/asm/asm/6.0/asm-6.0-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/ow2/asm/asm-commons/6.0/asm-commons-6.0.jar" sourcepath="M2_REPO/org/ow2/asm/asm-commons/6.0/asm-commons-6.0-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/ow2/asm/asm-tree/6.0/asm-tree-6.0.jar" sourcepath="M2_REPO/org/ow2/asm/asm-tree/6.0/asm-tree-6.0-sources.jar"/>
