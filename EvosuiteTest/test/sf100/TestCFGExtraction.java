@@ -7,13 +7,12 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.junit.Before;
 import org.junit.Test;
 
-import evosuite.shell.experiment.BenchmarkAddress;
 import evosuite.shell.experiment.SFConfiguration;
 
 public class TestCFGExtraction {
 	@Before
 	public void setup() {
-		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
+//		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
 		
 //		Properties.DEBUG = true;
 //		Properties.PORT = 8000;

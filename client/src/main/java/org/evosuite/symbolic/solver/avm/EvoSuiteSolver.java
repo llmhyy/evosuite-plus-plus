@@ -72,6 +72,7 @@ public final class EvoSuiteSolver extends Solver {
 				long currentTimeMillis = System.currentTimeMillis();
 
 				long elapsed_solving_time = currentTimeMillis - startTimeMillis;
+//				timeout = 1000000;
 				if (elapsed_solving_time > timeout) {
 					throw new SolverTimeoutException();
 				}

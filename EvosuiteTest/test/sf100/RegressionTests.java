@@ -9,13 +9,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import evosuite.shell.EvoTestResult;
-import evosuite.shell.experiment.BenchmarkAddress;
-import evosuite.shell.experiment.SFConfiguration;
 
 public class RegressionTests {
 	@Before
 	public void setup() {
-		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		

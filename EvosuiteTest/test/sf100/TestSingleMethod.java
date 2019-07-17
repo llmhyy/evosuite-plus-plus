@@ -10,14 +10,12 @@ import org.junit.Test;
 
 import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
-import evosuite.shell.experiment.BenchmarkAddress;
-import evosuite.shell.experiment.SFConfiguration;
 
 public class TestSingleMethod {
 	
 	@Before
 	public void setup() {
-		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
+//		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
 		
 //		Properties.DEBUG = true;
 //		Properties.PORT = 8000;
