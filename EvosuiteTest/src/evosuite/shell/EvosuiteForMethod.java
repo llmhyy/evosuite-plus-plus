@@ -105,7 +105,6 @@ public class EvosuiteForMethod {
 	
 	public static List<EvoTestResult> execute(String[] args) {
 		List<EvoTestResult> results = new ArrayList<>();
-		StringBuffer strategy = new StringBuffer();
 		try {
 			// String workingDir = SFConfiguration.sfBenchmarkFolder + File.separator +
 			// "1_tullibee";
@@ -179,24 +178,7 @@ public class EvosuiteForMethod {
 			 * execute the test
 			 */
 			else {
-				for (int i = 0; i < args.length; i++) {
-					strategy.append(args[i]);
-				}
-				String strastr = strategy.toString();
-				if (strastr.indexOf("MOSA") >= 0) {
-					strastr = "MOSA";
-				} else {
-					if (strastr.indexOf("Random") >= 0) {
-						strastr = "Random";
-					} else {
-						if(strastr.indexOf("ONEBRANCH")>=0) {
-							strastr = "ONEBRANCH";
-						}
-						else {
-						strastr = "MonotonicGA";
-						}
-					}
-				}
+				String usedStrategy = getStrategy(args);
 				FitnessEffectiveRecorder fitnessRecorder;
 				DistributionRecorder distributionRecorder;
 				OneBranchRecorder oneBranchRecorder;
@@ -205,17 +187,17 @@ public class EvosuiteForMethod {
 
 				if (Settings.getIteration() > 1) {
 					fitnessRecorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
-					distributionRecorder = new IterDistributionRecorder(strastr);
+					distributionRecorder = new IterDistributionRecorder(usedStrategy);
 					recorderList.add(fitnessRecorder);
 					recorderList.add(distributionRecorder);
 				} else {
 					fitnessRecorder = new FitnessEffectiveRecorder();
-					distributionRecorder = new DistributionRecorder(strastr);
-					oneBranchRecorder = new OneBranchRecorder(strastr);
+					distributionRecorder = new DistributionRecorder(usedStrategy);
+//					oneBranchRecorder = new OneBranchRecorder(strastr);
 					
 					recorderList.add(fitnessRecorder);
-					recorderList.add(distributionRecorder);
-					recorderList.add(oneBranchRecorder);
+//					recorderList.add(distributionRecorder);
+//					recorderList.add(oneBranchRecorder);
 				}
 				String existingReport = distributionRecorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;
@@ -255,6 +237,29 @@ public class EvosuiteForMethod {
 
 		log.info("Finish!");
 		return results;
+	}
+
+	private static String getStrategy(String[] args) {
+		StringBuffer strategy = new StringBuffer();
+		for (int i = 0; i < args.length; i++) {
+			strategy.append(args[i]);
+		}
+		String strastr = strategy.toString();
+		if (strastr.indexOf("MOSA") >= 0) {
+			strastr = "MOSA";
+		} else {
+			if (strastr.indexOf("Random") >= 0) {
+				strastr = "Random";
+			} else {
+				if(strastr.indexOf("ONEBRANCH")>=0) {
+					strastr = "ONEBRANCH";
+				}
+				else {
+				strastr = "MonotonicGA";
+				}
+			}
+		}
+		return strastr;
 	}
 	
 	private InclusiveFilter getInclusiveFilter() {
