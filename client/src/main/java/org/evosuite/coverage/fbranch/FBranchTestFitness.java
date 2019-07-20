@@ -84,8 +84,10 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		
 		
 		if(value == null){
-//			return 1;
-//			System.currentTimeMillis();
+			//TODO
+			/**
+			 * dynamosa should not execute here
+			 */
 			value = findParentDistance(this.goal, result);
 			return value;
 		}
@@ -95,17 +97,21 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		
 		double fitness = value;
 		BranchCoverageGoal goal = this.goal;
-		InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(goal);
+		FlagEffectResult flagResult = isFlagMethod(goal);
 		if (flagResult.isInterproceduralFlag) {
 			List<Call> callContext = new ArrayList<>();
 			callContext.add(flagResult.call);
 			
 			double interproceduralFitness = calculateInterproceduralFitness(flagResult.interproceduralFlagCall, callContext, goal, result);
-			
 			double normalizedFitness = normalize(interproceduralFitness);
 			
 			return normalizedFitness;
-			
+		}
+		else {
+			FlagEffectResult r = FlagEffectChecker.checkFlagEffect(goal);
+			if(r.isInterproceduralFlag) {
+				
+			}
 		}
 		
 		return fitness;
@@ -119,8 +125,6 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		List<Call> callContext = new ArrayList<>();
 		List<Integer> branchTrace = new ArrayList<>();
 		List<Double> fitnessList = new ArrayList<>();
-		
-		System.currentTimeMillis();
 		
 		for(ControlDependency cd: sourceIns.getControlDependencies()) {
 			if(cd.getBranch().equals(branchGoal.getBranch()))continue;
@@ -151,7 +155,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 
 			BranchCoverageGoal newGoal = dCondition.goal;
 
-			InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
+			FlagEffectResult flagResult = isFlagMethod(newGoal);
 			if (flagResult.isInterproceduralFlag) {
 				List<Call> newContext = updateCallContext(flagResult.interproceduralFlagCall, callContext);
 				if(newContext.size() != callContext.size()) {
@@ -415,7 +419,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 
 			BranchCoverageGoal newGoal = dCondition.goal;
 
-			InterproceduralFlagResult flagResult = isInterproceduralFlagProblem(newGoal);
+			FlagEffectResult flagResult = isFlagMethod(newGoal);
 			if (flagResult.isInterproceduralFlag) {
 				List<Call> newContext = updateCallContext(flagResult.interproceduralFlagCall, callContext);
 				if(newContext.size() != callContext.size()) {
@@ -743,22 +747,8 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		return null;
 	}
 
-	class InterproceduralFlagResult {
-		BytecodeInstruction interproceduralFlagCall;
-		boolean isInterproceduralFlag;
-		Call call;
-
-		public InterproceduralFlagResult(BytecodeInstruction interproceduralFlagCall, boolean isInterproceduralFlag, Call call) {
-			super();
-			this.interproceduralFlagCall = interproceduralFlagCall;
-			this.isInterproceduralFlag = isInterproceduralFlag;
-			this.call = call;
-		}
-	}
-
-	private InterproceduralFlagResult isInterproceduralFlagProblem(BranchCoverageGoal goal) {
+	private FlagEffectResult isFlagMethod(BranchCoverageGoal goal) {
 		BytecodeInstruction instruction = goal.getBranch().getInstruction();
-		
 		
 		BytecodeInstruction interproceduralFlagCall = instruction.getSourceOfStackInstruction(0);
 		boolean isInterproceduralFlag = false;
@@ -772,7 +762,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 					interproceduralFlagCall.getInstructionId());
 		}
 
-		InterproceduralFlagResult result = new InterproceduralFlagResult(interproceduralFlagCall,
+		FlagEffectResult result = new FlagEffectResult(interproceduralFlagCall,
 				isInterproceduralFlag, callInfo);
 		return result;
 	}
