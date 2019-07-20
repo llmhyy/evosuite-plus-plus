@@ -219,7 +219,8 @@ public class TestSingleMethod {
 		String projectId = "101_weka";
 		String[] targetMethods = new String[]{
 //				"java_cup.runtime.lr_parser#error_recovery(Z)Z",
-				"weka.knowledgeflow.Data#setConnectionName(Ljava/lang/String;)V"
+				"weka.Run#main([Ljava/lang/String;)V"
+//				"weka.knowledgeflow.Data#setConnectionName(Ljava/lang/String;)V"
 //				"org.apache.commons.compress.compressors.CompressorStreamFactory#createCompressorInputStream(Ljava/io/InputStream;)Lorg/apache/commons/compress/compressors/CompressorInputStream;"
 //				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
 //				"weka.associations.Apriori#buildAssociations(Lweka/core/Instances;)V"
@@ -235,7 +236,7 @@ public class TestSingleMethod {
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 100000;
 //		Long seed = 1556171038486L;
 		Long seed = null;
 		
@@ -245,8 +246,8 @@ public class TestSingleMethod {
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
 		printResult(results0);
