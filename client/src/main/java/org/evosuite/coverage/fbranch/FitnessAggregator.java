@@ -9,22 +9,8 @@ public class FitnessAggregator {
 	public static final int aggreationSizeLimit = 3;
 	
 	public static double aggreateFitenss(List<Double> fitnessList) {
-//		double sum = epsilon;
-//		
-//		for (Double f : fitnessList) {
-//			sum += 1 / (f + epsilon);
-//		}
-//		
-//		double fit = fitnessList.size() / sum;
-		
-//		double fit = 0;
-//		for(double d: fitnessList) {
-//			fit += d;
-//		}
-//		fit /= fitnessList.size();
 
 		if(fitnessList.isEmpty()) {
-			System.currentTimeMillis();
 			return 1000000000d;
 		}
 		
@@ -34,7 +20,6 @@ public class FitnessAggregator {
 			return 0;
 		}
 		
-//		int size = aggreationSizeLimit > fitnessList.size() ? fitnessList.size() : aggreationSizeLimit;
 		int size = fitnessList.size();
 		
 		double fit = 0;
