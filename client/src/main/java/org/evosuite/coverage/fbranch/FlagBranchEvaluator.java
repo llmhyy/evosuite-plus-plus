@@ -16,10 +16,11 @@ import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.objectweb.asm.tree.MethodInsnNode;
 
 public class FlagBranchEvaluator {
 	public static double calculateInterproceduralFitness(BytecodeInstruction flagCallInstruction, List<Call> callContext,
-			BranchCoverageGoal branchGoal, ExecutionResult result, BranchCoverageGoal globalGoal) {
+			BranchCoverageGoal branchGoal, ExecutionResult result/*, BranchCoverageGoal globalGoal*/) {
 		RawControlFlowGraph calledGraph = flagCallInstruction.getCalledCFG();
 		String signature = flagCallInstruction.getCalledMethodsClass() + "." + flagCallInstruction.getCalledMethod();
 		if (calledGraph == null) {
@@ -33,7 +34,7 @@ public class FlagBranchEvaluator {
 		List<Double> iteratedFitness = new ArrayList<>();
 		List<List<Integer>> loopContext = identifyLoopContext(result, callContext);
 		
-		removeConflictsLoopContext(branchGoal, loopContext, globalGoal);
+//		removeConflictsLoopContext(branchGoal, loopContext, globalGoal);
 		sortLength(loopContext);
 		
 		for(List<Integer> branchTrace: loopContext) {
@@ -42,7 +43,7 @@ public class FlagBranchEvaluator {
 			for (BytecodeInstruction returnIns : exits) {
 				if(returnIns.isReturn()) {
 					List<Double> fList = new ReturnFitnessEvaluator().
-							calculateReturnInsFitness(returnIns, branchGoal, calledGraph, result, callContext, branchTrace, globalGoal);
+							calculateReturnInsFitness(returnIns, branchGoal, calledGraph, result, callContext, branchTrace);
 					returnFitnessList.addAll(fList);					
 				}
 				
@@ -78,7 +79,6 @@ public class FlagBranchEvaluator {
 	}
 
 	/**
-	 * 
 	 * I keep the method here as I cannot remember why I need to write such a check.
 	 * By right, that should always be the case.
 	 * 
@@ -147,5 +147,28 @@ public class FlagBranchEvaluator {
 		return false;
 	}
 	
+	public static FlagEffectResult isFlagMethod(BranchCoverageGoal goal) {
+		BytecodeInstruction instruction = goal.getBranch().getInstruction();
+		
+		BytecodeInstruction interproceduralFlagCall = instruction.getSourceOfStackInstruction(0);
+		boolean isInterproceduralFlag = false;
+		Call callInfo = null;
+		if (interproceduralFlagCall != null && interproceduralFlagCall.getASMNode() instanceof MethodInsnNode) {
+			MethodInsnNode mNode = (MethodInsnNode) interproceduralFlagCall.getASMNode();
+			String desc = mNode.desc;
+			String returnType = getReturnType(desc);
+			isInterproceduralFlag = returnType.equals("Z");
+			callInfo = new Call(instruction.getClassName(), instruction.getMethodName(), 
+					interproceduralFlagCall.getInstructionId());
+		}
+
+		FlagEffectResult result = new FlagEffectResult(interproceduralFlagCall,
+				isInterproceduralFlag, callInfo);
+		return result;
+	}
 	
+	public static String getReturnType(String signature) {
+		String r = signature.substring(signature.indexOf(")") + 1);
+		return r;
+	}
 }

@@ -34,6 +34,8 @@ public class Call implements Serializable {
 	private final int calledIndex;
 	private final int hcode;
 	private final int approxHcode;
+	
+	private int lineNumber = -1;
 
 	public Call(String classname, String methodName, int calledIndex) {
 		this.className = classname;
@@ -117,6 +119,14 @@ public class Call implements Serializable {
 
 	public int getCalledIndex() {
 		return calledIndex;
+	}
+
+	public int getLineNumber() {
+		return lineNumber;
+	}
+
+	public void setLineNumber(int lineNumber) {
+		this.lineNumber = lineNumber;
 	}
 
 }
