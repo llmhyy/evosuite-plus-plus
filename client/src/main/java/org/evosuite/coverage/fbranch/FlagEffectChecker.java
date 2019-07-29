@@ -1,5 +1,7 @@
 package org.evosuite.coverage.fbranch;
 
+import java.util.List;
+
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
@@ -55,12 +57,18 @@ public class FlagEffectChecker {
 			return new FlagEffectResult(defIns, false, null);
 		}
 		
-		for(BytecodeInstruction exit: defIns.getActualCFG().getExitPoints()) {
-			BytecodeInstruction returnDef = exit.getSourceOfStackInstruction(0);
+		for(BytecodeInstruction exit: calledGraph.determineExitPoints()) {
+			List<BytecodeInstruction> returnDefs = exit.getSourceOfStackInstructions(0);
+			if(returnDefs.size()>1) {
+				System.currentTimeMillis();
+			}
+			BytecodeInstruction returnDef = returnDefs.get(0);
+			
 			if(returnDef.isConstant() || returnDef.isLoadConstant()) {
 				
 				Call callInfo = new Call(defIns.getClassName(), defIns.getMethodName(), 
 						defIns.getInstructionId());
+				callInfo.setLineNumber(defIns.getLineNumber());
 				FlagEffectResult result = new FlagEffectResult(defIns, true, callInfo);
 				return result;
 			}

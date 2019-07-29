@@ -21,6 +21,7 @@ package org.evosuite.graphs.cfg;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -29,7 +30,6 @@ import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
-import org.evosuite.setup.callgraph.Graph;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -43,12 +43,10 @@ import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
-import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.SourceValue;
 
 /**
@@ -1201,6 +1199,39 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 				sourceInstruction);
 		return src;
 	}
+	
+	public List<BytecodeInstruction> getSourceOfStackInstructions(int positionFromTop) {
+		List<BytecodeInstruction> list = new ArrayList<>();
+		if (frame == null)
+			throw new IllegalStateException(
+					"expect each BytecodeInstruction to have its CFGFrame set");
+
+		int stackPos = frame.getStackSize() - (1 + positionFromTop);
+		if (stackPos < 0){
+			StackTraceElement[] se = new Throwable().getStackTrace();
+			int t=0;
+			System.out.println("Stack trace: ");
+			while(t<se.length){
+				System.out.println(se[t]);
+				t++;
+			}
+			return list;
+		}
+		SourceValue source = (SourceValue) frame.getStack(stackPos);
+		
+		Iterator<AbstractInsnNode> iter = source.insns.iterator();
+		while(iter.hasNext()) {
+			Object sourceIns =iter.next();
+			AbstractInsnNode sourceInstruction = (AbstractInsnNode) sourceIns;
+			BytecodeInstruction src = BytecodeInstructionPool.getInstance(classLoader).getInstruction(className,
+					methodName,
+					sourceInstruction);
+			list.add(src);
+		}
+		
+		return list;
+	}
+	
 
 	public boolean isFieldMethodCallDefinition() {
 		if (!isMethodCallOfField())

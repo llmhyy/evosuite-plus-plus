@@ -95,6 +95,7 @@ public class ReturnFitnessEvaluator {
 		List<Call> newContext = (List<Call>) ((ArrayList<Call>)callContext).clone();
 //		BytecodeInstruction ins = sourceIns.getCalledCFG().getInstruction(0);
 		Call call = new Call(sourceIns.getClassName(), sourceIns.getMethodName(), sourceIns.getInstructionId());
+		call.setLineNumber(sourceIns.getLineNumber());
 		if(!newContext.contains(call)) {
 			newContext.add(call);
 		}
