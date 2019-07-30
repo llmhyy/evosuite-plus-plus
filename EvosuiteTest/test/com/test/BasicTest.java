@@ -30,7 +30,7 @@ public class BasicTest {
 		Properties.TIMEOUT = 10000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "fbranch";
+		String fitnessApproach = "branch";
 		
 		int timeBudget = 100000;
 		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
