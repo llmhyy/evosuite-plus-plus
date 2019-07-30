@@ -7,18 +7,15 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.example.Example1;
-
-public class Example1Test extends TestUility{
+public class basicOperationTest {
 	
 	@Test
 	public void test() {
-		Class<?> clazz = Example1.class;
-		String methodName = "example";
-		int parameterNum = 4;
+		Class<?> clazz = com.example.basicOperation.class;
+		String methodName = "basicOperation";
+		int parameterNum = 10;
 		
 		String targetClass = clazz.getCanonicalName();
-//		Method method = clazz.getMethods()[0];
 		Method method = TestUility.getTragetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
@@ -29,14 +26,15 @@ public class Example1Test extends TestUility{
 //		Properties.PORT = 8000;
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-
+		Properties.BRANCH_COMPARISON_TYPES = true;
 		Properties.TIMEOUT = 10000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 30000;
+		int timeBudget = 100000;
 		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		
 	}
 
 	
