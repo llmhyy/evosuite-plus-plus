@@ -60,6 +60,9 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 //			value = findParentDistance(this.goal, result);
 			return 1;
 		}
+		else if(value == 0) {
+			return 0;
+		}
 		else if(value != 1){
 			FlagEffectResult r = FlagEffectChecker.checkFlagEffect(goal);
 			if(r.isInterproceduralFlag) {

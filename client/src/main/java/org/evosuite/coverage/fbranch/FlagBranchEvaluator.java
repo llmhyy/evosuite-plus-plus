@@ -160,6 +160,7 @@ public class FlagBranchEvaluator {
 			isInterproceduralFlag = returnType.equals("Z");
 			callInfo = new Call(instruction.getClassName(), instruction.getMethodName(), 
 					interproceduralFlagCall.getInstructionId());
+			callInfo.setLineNumber(instruction.getLineNumber());
 		}
 
 		FlagEffectResult result = new FlagEffectResult(interproceduralFlagCall,
