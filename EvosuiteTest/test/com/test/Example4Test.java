@@ -14,7 +14,7 @@ public class Example4Test extends TestUility{
 	@Test
 	public void test() {
 		Class<?> clazz = Example4.class;
-		String methodName = "recursiveTest";
+		String methodName = "test";
 		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
@@ -34,6 +34,9 @@ public class Example4Test extends TestUility{
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
 		String fitnessApproach = "fbranch";
+		
+		Properties.DSE_CONSTRAINT_SOLVER_TIMEOUT_MILLIS = 30000;
+//		Properties.DSE_VARIABLE_RESETS = 100;
 		
 		int timeBudget = 3000;
 		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);

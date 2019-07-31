@@ -35,7 +35,9 @@ public class Example3Test extends TestUility{
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 3000;
+		Properties.DSE_CONSTRAINT_SOLVER_TIMEOUT_MILLIS = 30000;
+		
+		int timeBudget = 30000;
 		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 

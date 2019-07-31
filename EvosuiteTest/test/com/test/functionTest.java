@@ -32,6 +32,8 @@ public class functionTest {
 		
 		String fitnessApproach = "fbranch";
 		
+		Properties.DSE_CONSTRAINT_SOLVER_TIMEOUT_MILLIS = 30000;
+		
 		int timeBudget = 100000;
 		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		

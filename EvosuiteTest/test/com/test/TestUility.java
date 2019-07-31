@@ -23,9 +23,12 @@ public class TestUility {
 		String[] command = new String[] {
 				"-generateTests",
 				"-Dstrategy", "ONEBRANCH",
+				
 //				"-Dalgorithm", "random",
+
 //				"-generateSuiteUsingDSE",
 //				"-Dstrategy", "DSE",
+				
 //				"-Ddse_solver", "z3_solver", "-Dz3_path", "C:\\\"Program Files (x86)\"\\\"Microsoft Research\"\\Z3-4.1\\bin\\z3.exe",
 //				"-Ddse_solver", "cvc4_solver", "-Dcvc4_path", "C:\\\"Program Files (x86)\"\\\"Microsoft Research\"\\Z3-4.1\\bin\\cvc4.exe",
 //				"-generateMOSuite",

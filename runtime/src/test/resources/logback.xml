@@ -25,6 +25,10 @@
 
     <contextName>ContextForTests</contextName>
 
+	<logger name="org.evosuite.symbolic.DSEAlgorithm" level="${log.level:-DEBUG}">
+		<appender-ref ref="STDOUT_${evosuite.log.appender:-MASTER}" />
+	</logger>
+
     <root level="WARN">
         <appender  class="ch.qos.logback.core.ConsoleAppender">
             <target>System.out</target>
