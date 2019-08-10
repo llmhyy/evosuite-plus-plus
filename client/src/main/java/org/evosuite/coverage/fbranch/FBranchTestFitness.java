@@ -38,43 +38,33 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 //		this.inconsistencyHappen = false;
 		
 		FlagEffectResult r = FlagEffectChecker.checkFlagEffect(goal);
-		if(r.hasFlagEffect) {
-			//TODO return modified value
-			
-		}
-		else {
-						
-		}
-		
-		/**
-		 * if the result does not exercise this branch node, we do not further process the detailed
-		 * branch distance as we need to pass its parent branch node.
-		 */
-		Double value = null;
-		if(this.goal.getValue()) {
-			value = result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId());
-		}
-		else {
-			value = result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
-		}
-		
-		
-		if(value == null){
-			//TODO
+		if(!r.hasFlagEffect) {
 			/**
-			 * dynamosa should not execute here
+			 * if the result does not exercise this branch node, we do not further process the detailed
+			 * branch distance as we need to pass its parent branch node.
 			 */
-//			value = findParentDistance(this.goal, result);
-			return 1;
-		}
-		else if(value == 0) {
-			return 0;
-		}
-		else if(value != 1){
-			return normalize(value);	
+			Double value = null;
+			if(this.goal.getValue()) {
+				value = result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId());
+			}
+			else {
+				value = result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
+			}
+			
+			if(value == null){
+				return 1;
+			}
+			else if(value == 0) {
+				return 0;
+			}
+			else if(value != 1){
+				//TODO what is the range of the value?
+				return normalize(value);	
+			}
 		}
 		
-		double fitness = value;
+		
+		double fitness = 1;
 		BranchCoverageGoal goal = this.goal;
 		FlagEffectResult flagResult = FlagEffectEvaluator.checkFlagEffect(goal);
 		if (flagResult.hasFlagEffect) {
