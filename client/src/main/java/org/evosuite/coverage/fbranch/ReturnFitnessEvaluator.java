@@ -39,7 +39,7 @@ public class ReturnFitnessEvaluator {
 				if(sourceIns.isMethodCall()) {
 					List<Call> newContext = updateCallContext(sourceIns, callContext);
 					if(newContext.size()!=callContext.size()) {
-						double f = FlagBranchEvaluator.calculateInterproceduralFitness(sourceIns, newContext, branchGoal, result);
+						double f = FlagEffectEvaluator.calculateInterproceduralFitness(sourceIns, newContext, branchGoal, result);
 						fitnessList.add(f);						
 					}
 					//stop for recursive call
@@ -75,7 +75,7 @@ public class ReturnFitnessEvaluator {
 		for(BytecodeInstruction methodCall: exercisedMethodCalls) {
 			List<Call> newContext = updateCallContext(methodCall, callContext);
 			if(newContext.size()!=callContext.size()) {
-				double f = FlagBranchEvaluator.calculateInterproceduralFitness(methodCall, newContext, branchGoal, result);
+				double f = FlagEffectEvaluator.calculateInterproceduralFitness(methodCall, newContext, branchGoal, result);
 				fitnessList.add(f);						
 			}
 			//stop for recursive call
@@ -263,12 +263,12 @@ public class ReturnFitnessEvaluator {
 			}
 
 			BranchCoverageGoal newGoal = dCondition.goal;
-			FlagEffectResult flagResult = FlagBranchEvaluator.isFlagMethod(newGoal);
+			FlagEffectResult flagResult = FlagEffectEvaluator.checkFlagEffect(newGoal);
 			
-			if (flagResult.isInterproceduralFlag) {
+			if (flagResult.hasFlagEffect) {
 				List<Call> newContext = updateCallContext(flagResult.interproceduralFlagCall, callContext);
 				if(newContext.size() != callContext.size()) {
-					double interproceduralFitness = FlagBranchEvaluator.calculateInterproceduralFitness(
+					double interproceduralFitness = FlagEffectEvaluator.calculateInterproceduralFitness(
 							flagResult.interproceduralFlagCall, newContext, newGoal, result);
 					fitnessList.add(interproceduralFitness);						
 				}
@@ -489,7 +489,7 @@ public class ReturnFitnessEvaluator {
 			} else if (ins.isMethodCall()) {
 				MethodInsnNode mNode = (MethodInsnNode) ins.getASMNode();
 				String desc = mNode.desc;
-				String returnType = FlagBranchEvaluator.getReturnType(desc);
+				String returnType = FlagEffectEvaluator.getReturnType(desc);
 				boolean isInterprocedural = returnType.equals("Z");
 				
 				boolean determined = canMethodContainConstantReturn(ins.getCalledCFG());

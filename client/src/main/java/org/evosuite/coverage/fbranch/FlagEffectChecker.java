@@ -30,7 +30,7 @@ public class FlagEffectChecker {
 			
 			if(defIns1.isMethodCall()) {
 				FlagEffectResult r = checkFlagEffect(defIns1);
-				if(r.isInterproceduralFlag) {
+				if(r.hasFlagEffect) {
 					if(defIns2.isConstant() || defIns2.isLoadConstant()) {
 						return r;						
 					}
@@ -39,7 +39,7 @@ public class FlagEffectChecker {
 			
 			if(defIns2.isMethodCall()) {
 				FlagEffectResult r = checkFlagEffect(defIns2);
-				if(r.isInterproceduralFlag) {
+				if(r.hasFlagEffect) {
 					if(defIns1.isConstant() || defIns1.isLoadConstant()) {
 						return r;						
 					}

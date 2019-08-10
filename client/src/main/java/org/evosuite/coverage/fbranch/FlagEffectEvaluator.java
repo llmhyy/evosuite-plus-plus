@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
@@ -16,9 +17,12 @@ import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
-public class FlagBranchEvaluator {
+public class FlagEffectEvaluator {
 	public static double calculateInterproceduralFitness(BytecodeInstruction flagCallInstruction, List<Call> callContext,
 			BranchCoverageGoal branchGoal, ExecutionResult result/*, BranchCoverageGoal globalGoal*/) {
 		RawControlFlowGraph calledGraph = flagCallInstruction.getCalledCFG();
@@ -147,26 +151,112 @@ public class FlagBranchEvaluator {
 		return false;
 	}
 	
-	public static FlagEffectResult isFlagMethod(BranchCoverageGoal goal) {
-		BytecodeInstruction instruction = goal.getBranch().getInstruction();
+	public static FlagEffectResult checkFlagEffect(BranchCoverageGoal goal) {
+		Branch branch = goal.getBranch();
+		BytecodeInstruction ins = branch.getInstruction();
 		
-		BytecodeInstruction interproceduralFlagCall = instruction.getSourceOfStackInstruction(0);
-		boolean isInterproceduralFlag = false;
-		Call callInfo = null;
-		if (interproceduralFlagCall != null && interproceduralFlagCall.getASMNode() instanceof MethodInsnNode) {
-			MethodInsnNode mNode = (MethodInsnNode) interproceduralFlagCall.getASMNode();
-			String desc = mNode.desc;
-			String returnType = getReturnType(desc);
-			isInterproceduralFlag = returnType.equals("Z");
-			callInfo = new Call(instruction.getClassName(), instruction.getMethodName(), 
-					interproceduralFlagCall.getInstructionId());
-			callInfo.setLineNumber(instruction.getLineNumber());
+		int numberOfOperands = getOperands(ins);
+		
+		if(numberOfOperands == 1) {
+			BytecodeInstruction defIns = ins.getSourceOfStackInstruction(0);
+			if(defIns.isMethodCall()) {
+				return checkFlagEffect(defIns);
+			}
 		}
-
-		FlagEffectResult result = new FlagEffectResult(interproceduralFlagCall,
-				isInterproceduralFlag, callInfo);
-		return result;
+		else if(numberOfOperands == 2){
+			BytecodeInstruction defIns1 = ins.getSourceOfStackInstruction(1);
+			BytecodeInstruction defIns2 = ins.getSourceOfStackInstruction(2);
+			
+			if(defIns1.isMethodCall()) {
+				FlagEffectResult r = checkFlagEffect(defIns1);
+				if(r.hasFlagEffect) {
+					if(defIns2.isConstant() || defIns2.isLoadConstant()) {
+						return r;						
+					}
+				}
+			}
+			
+			if(defIns2.isMethodCall()) {
+				FlagEffectResult r = checkFlagEffect(defIns2);
+				if(r.hasFlagEffect) {
+					if(defIns1.isConstant() || defIns1.isLoadConstant()) {
+						return r;						
+					}
+				}
+			}
+		}
+		
+		return new FlagEffectResult(ins, false, null);
 	}
+
+	public static FlagEffectResult checkFlagEffect(BytecodeInstruction defIns) {
+		RawControlFlowGraph calledGraph = defIns.getCalledCFG();
+//		String signature = defIns.getCalledMethodsClass() + "." + defIns.getCalledMethod();
+		if (calledGraph == null) {
+			return new FlagEffectResult(defIns, false, null);
+		}
+		
+		for(BytecodeInstruction exit: calledGraph.determineExitPoints()) {
+			List<BytecodeInstruction> returnDefs = exit.getSourceOfStackInstructions(0);
+			if(returnDefs.size()>1) {
+				System.currentTimeMillis();
+			}
+			BytecodeInstruction returnDef = returnDefs.get(0);
+			
+			if(returnDef.isConstant() || returnDef.isLoadConstant()) {
+				
+				Call callInfo = new Call(defIns.getClassName(), defIns.getMethodName(), 
+						defIns.getInstructionId());
+				callInfo.setLineNumber(defIns.getLineNumber());
+				FlagEffectResult result = new FlagEffectResult(defIns, true, callInfo);
+				return result;
+			}
+		}
+		
+		
+		return new FlagEffectResult(defIns, false, null);
+	}
+
+	private static int getOperands(BytecodeInstruction ins) {
+		AbstractInsnNode node = ins.getASMNode();
+		if(node instanceof JumpInsnNode) {
+			JumpInsnNode jNode = (JumpInsnNode)node;
+			if(jNode.getOpcode() == Opcodes.IFEQ ||
+					jNode.getOpcode() == Opcodes.IFGE ||
+					jNode.getOpcode() == Opcodes.IFGT ||
+					jNode.getOpcode() == Opcodes.IFLE ||
+					jNode.getOpcode() == Opcodes.IFNE ||
+					jNode.getOpcode() == Opcodes.IFNONNULL ||
+					jNode.getOpcode() == Opcodes.IFNULL) {
+				return 1;
+			}
+			else {
+				return 2;
+			}
+		}
+		return 0;
+	}
+	
+//	public static FlagEffectResult isFlagMethod(BranchCoverageGoal goal) {
+//		BytecodeInstruction instruction = goal.getBranch().getInstruction();
+//		
+//		BytecodeInstruction interproceduralFlagCall = instruction.getSourceOfStackInstruction(0);
+//		boolean isInterproceduralFlag = false;
+//		Call callInfo = null;
+//		if (interproceduralFlagCall != null && interproceduralFlagCall.getASMNode() instanceof MethodInsnNode) {
+//			MethodInsnNode mNode = (MethodInsnNode) interproceduralFlagCall.getASMNode();
+//			String desc = mNode.desc;
+//			String returnType = getReturnType(desc);
+//			isInterproceduralFlag = returnType.equals("Z");
+//			callInfo = new Call(instruction.getClassName(), instruction.getMethodName(), 
+//					interproceduralFlagCall.getInstructionId());
+//			callInfo.setLineNumber(instruction.getLineNumber());
+//		}
+//
+//		FlagEffectResult result = new FlagEffectResult(interproceduralFlagCall,
+//				isInterproceduralFlag, callInfo);
+//		return result;
+//	}
 	
 	public static String getReturnType(String signature) {
 		String r = signature.substring(signature.indexOf(")") + 1);

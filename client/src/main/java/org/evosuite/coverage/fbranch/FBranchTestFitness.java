@@ -10,8 +10,6 @@ import org.evosuite.setup.Call;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * F stands for flag fitness
@@ -39,6 +37,15 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 	public double getFitness(TestChromosome individual, ExecutionResult result) {
 //		this.inconsistencyHappen = false;
 		
+		FlagEffectResult r = FlagEffectChecker.checkFlagEffect(goal);
+		if(r.hasFlagEffect) {
+			//TODO return modified value
+			
+		}
+		else {
+						
+		}
+		
 		/**
 		 * if the result does not exercise this branch node, we do not further process the detailed
 		 * branch distance as we need to pass its parent branch node.
@@ -64,24 +71,17 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			return 0;
 		}
 		else if(value != 1){
-			FlagEffectResult r = FlagEffectChecker.checkFlagEffect(goal);
-			if(r.isInterproceduralFlag) {
-				//TODO return modified value
-				
-			}
-			else {
-				return normalize(value);				
-			}
+			return normalize(value);	
 		}
 		
 		double fitness = value;
 		BranchCoverageGoal goal = this.goal;
-		FlagEffectResult flagResult = FlagBranchEvaluator.isFlagMethod(goal);
-		if (flagResult.isInterproceduralFlag) {
+		FlagEffectResult flagResult = FlagEffectEvaluator.checkFlagEffect(goal);
+		if (flagResult.hasFlagEffect) {
 			List<Call> callContext = new ArrayList<>();
 			callContext.add(flagResult.call);
 			
-			double interproceduralFitness = FlagBranchEvaluator.calculateInterproceduralFitness(
+			double interproceduralFitness = FlagEffectEvaluator.calculateInterproceduralFitness(
 					flagResult.interproceduralFlagCall, 
 					callContext, goal, result);
 			double normalizedFitness = normalize(interproceduralFitness);
