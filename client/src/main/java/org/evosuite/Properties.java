@@ -1277,7 +1277,7 @@ public class Properties {
 	}
 
 	@Parameter(key = "tt_scope", description = "Testability transformation")
-	public static TransformationScope TT_SCOPE = TransformationScope.ALL;
+	public static TransformationScope TT_SCOPE = TransformationScope.TARGET;
 
 	// ---------------------------------------------------------------
 	// Contracts / Asserts:

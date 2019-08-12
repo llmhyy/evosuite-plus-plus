@@ -10,6 +10,9 @@ import java.util.Set;
 
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
+import org.evosuite.coverage.dataflow.DefUsePool;
+import org.evosuite.coverage.dataflow.Definition;
+import org.evosuite.coverage.dataflow.Use;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
@@ -20,9 +23,35 @@ import org.evosuite.testcase.execution.ExecutionResult;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
 
 public class FlagEffectEvaluator {
+	/**
+	 * We do not further analyze recursive method calls.
+	 */
+	@SuppressWarnings("unchecked")
+	public static List<Call> updateCallContext(BytecodeInstruction sourceIns, List<Call> callContext){
+		List<Call> newContext = (List<Call>) ((ArrayList<Call>)callContext).clone();
+//		BytecodeInstruction ins = sourceIns.getCalledCFG().getInstruction(0);
+		Call call = new Call(sourceIns.getClassName(), sourceIns.getMethodName(), sourceIns.getInstructionId());
+		call.setLineNumber(sourceIns.getLineNumber());
+		if(!newContext.contains(call)) {
+			newContext.add(call);
+		}
+		
+		return newContext;
+	}
+	
+	
+	public static List<Call> replaceContext(List<Call> context, Branch delegateBranch) {
+		List<Call> replacedContext = new ArrayList<>();
+		for(int i=0; i<context.size()-1; i++) {
+			replacedContext.add(context.get(i));
+		}
+		
+		replacedContext = updateCallContext(delegateBranch.getInstruction(), replacedContext);
+		return replacedContext;
+	}
+	
 	public static double calculateInterproceduralFitness(BytecodeInstruction flagCallInstruction, List<Call> callContext,
 			BranchCoverageGoal branchGoal, ExecutionResult result/*, BranchCoverageGoal globalGoal*/) {
 		RawControlFlowGraph calledGraph = flagCallInstruction.getCalledCFG();
@@ -44,10 +73,14 @@ public class FlagEffectEvaluator {
 		for(List<Integer> branchTrace: loopContext) {
 			
 			List<Double> returnFitnessList = new ArrayList<>();
+			
+			String coveredConstant = checkCoveredConstant(exits, callContext, branchTrace, result); 
+					
 			for (BytecodeInstruction returnIns : exits) {
 				if(returnIns.isReturn()) {
 					List<Double> fList = new ReturnFitnessEvaluator().
-							calculateReturnInsFitness(returnIns, branchGoal, calledGraph, result, callContext, branchTrace);
+							calculateReturnInsFitness(returnIns, branchGoal, calledGraph, 
+									result, callContext, branchTrace, coveredConstant);
 					returnFitnessList.addAll(fList);					
 				}
 				
@@ -68,6 +101,46 @@ public class FlagEffectEvaluator {
 		return FitnessAggregator.aggreateFitenss(iteratedFitness);
 	}
 	
+	private static String checkCoveredConstant(Set<BytecodeInstruction> exits, 
+			List<Call> callContext, List<Integer> branchTrace, ExecutionResult result) {
+		
+		for(BytecodeInstruction returnIns: exits) {
+			List<BytecodeInstruction> insList = returnIns.getSourceOfStackInstructionList(0);
+			for(BytecodeInstruction source: insList) {
+				Set<ControlDependency> controls = source.getControlDependencies();
+				if(!controls.isEmpty()) {
+					ControlDependency control = controls.iterator().next();
+					if(control.getBranchExpressionValue()) {
+						List<Call> newContext = updateCallContext(control.getBranch().getInstruction(), callContext);
+						try {
+							Double distance = result.getTrace().getContextIterationTrueMap().
+									get(control.getBranch().getActualBranchId()).get(new CallContext(newContext)).get(branchTrace);
+							if(distance != null && distance==0 && source.isConstant()) {
+								return source.explain();
+							}							
+						}
+						catch(NullPointerException e) {
+							
+						}
+					}
+					else {
+						List<Call> newContext = updateCallContext(control.getBranch().getInstruction(), callContext);
+						try {
+							Double distance = result.getTrace().getContextIterationFalseMap().
+									get(control.getBranch().getActualBranchId()).get(new CallContext(newContext)).get(branchTrace);
+							if(distance != null && distance==0 && source.isConstant()) {
+								return source.explain();
+							}
+						}
+						catch(NullPointerException e) {}
+					}
+				}
+			}
+		}
+		
+		return "";
+	}
+
 	/**
 	 * for debugging reason
 	 * @param loopContext
@@ -151,6 +224,32 @@ public class FlagEffectEvaluator {
 		return false;
 	}
 	
+	/**
+	 * TODO a very simplified implementation to find whether an instruction
+	 * can be traced back to a returned value from a method call.
+	 * @param ins
+	 * @return
+	 */
+	public static BytecodeInstruction traceBackToMethodCall(BytecodeInstruction ins) {
+		
+		if(ins.isUse()) {
+			FBranchDefUseAnalyzer.analyze(ins.getRawCFG());
+			
+			Use use = DefUsePool.getUseByInstruction(ins);
+			List<Definition> defs = DefUsePool.getDefinitions(use);
+			if(!defs.isEmpty()) {
+				Definition def = defs.get(0);
+				BytecodeInstruction call = def.getSourceOfStackInstruction(0);
+				
+				if(call != null && call.isMethodCall()) {
+					return call;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
 	public static FlagEffectResult checkFlagEffect(BranchCoverageGoal goal) {
 		Branch branch = goal.getBranch();
 		BytecodeInstruction ins = branch.getInstruction();
@@ -162,10 +261,14 @@ public class FlagEffectEvaluator {
 			if(defIns.isMethodCall()) {
 				return checkFlagEffect(defIns);
 			}
+			else {
+				BytecodeInstruction methodCall = traceBackToMethodCall(defIns);
+				return checkFlagEffect(methodCall);
+			}
 		}
 		else if(numberOfOperands == 2){
-			BytecodeInstruction defIns1 = ins.getSourceOfStackInstruction(1);
-			BytecodeInstruction defIns2 = ins.getSourceOfStackInstruction(2);
+			BytecodeInstruction defIns1 = ins.getSourceOfStackInstruction(0);
+			BytecodeInstruction defIns2 = ins.getSourceOfStackInstruction(1);
 			
 			if(defIns1.isMethodCall()) {
 				FlagEffectResult r = checkFlagEffect(defIns1);
@@ -173,6 +276,13 @@ public class FlagEffectEvaluator {
 					if(defIns2.isConstant() || defIns2.isLoadConstant()) {
 						return r;						
 					}
+				}
+			}
+			else {
+				BytecodeInstruction methodCall = traceBackToMethodCall(defIns1);
+				FlagEffectResult r = checkFlagEffect(methodCall);
+				if(r.hasFlagEffect) {
+					return r;
 				}
 			}
 			
@@ -184,12 +294,20 @@ public class FlagEffectEvaluator {
 					}
 				}
 			}
+			else {
+				BytecodeInstruction methodCall = traceBackToMethodCall(defIns2);
+				return checkFlagEffect(methodCall);
+			}
 		}
 		
 		return new FlagEffectResult(ins, false, null);
 	}
 
 	public static FlagEffectResult checkFlagEffect(BytecodeInstruction defIns) {
+		if(defIns == null) {
+			return new FlagEffectResult(defIns, false, null);
+		}
+		
 		RawControlFlowGraph calledGraph = defIns.getCalledCFG();
 //		String signature = defIns.getCalledMethodsClass() + "." + defIns.getCalledMethod();
 		if (calledGraph == null) {

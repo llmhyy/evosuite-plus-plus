@@ -37,7 +37,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 	public double getFitness(TestChromosome individual, ExecutionResult result) {
 //		this.inconsistencyHappen = false;
 		
-		FlagEffectResult r = FlagEffectChecker.checkFlagEffect(goal);
+		FlagEffectResult r = FlagEffectEvaluator.checkFlagEffect(goal);
 		if(!r.hasFlagEffect) {
 			/**
 			 * if the result does not exercise this branch node, we do not further process the detailed
@@ -54,32 +54,20 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			if(value == null){
 				return 1;
 			}
-			else if(value == 0) {
-				return 0;
-			}
-			else if(value != 1){
-				//TODO what is the range of the value?
-				return normalize(value);	
+			else {
+				return normalize(value);
 			}
 		}
-		
-		
-		double fitness = 1;
-		BranchCoverageGoal goal = this.goal;
-		FlagEffectResult flagResult = FlagEffectEvaluator.checkFlagEffect(goal);
-		if (flagResult.hasFlagEffect) {
+		else {
 			List<Call> callContext = new ArrayList<>();
-			callContext.add(flagResult.call);
+			callContext.add(r.call);
 			
 			double interproceduralFitness = FlagEffectEvaluator.calculateInterproceduralFitness(
-					flagResult.interproceduralFlagCall, 
-					callContext, goal, result);
+					r.interproceduralFlagCall, callContext, goal, result);
 			double normalizedFitness = normalize(interproceduralFitness);
 			
 			return normalizedFitness;
 		}
-		
-		return fitness;
 	}
 	
 	@Override

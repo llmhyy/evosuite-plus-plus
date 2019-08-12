@@ -17,27 +17,28 @@ import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.execution.ExecutionResult;
-import org.objectweb.asm.tree.MethodInsnNode;
 
 public class ReturnFitnessEvaluator {
 	public List<Double> calculateReturnInsFitness(BytecodeInstruction returnIns, BranchCoverageGoal branchGoal,
-			RawControlFlowGraph calledGraph, ExecutionResult result, List<Call> callContext, List<Integer> branchTrace
+			RawControlFlowGraph calledGraph, ExecutionResult result, List<Call> callContext, 
+			List<Integer> branchTrace, String coveredConstant
 			/*, BranchCoverageGoal globalGoal*/)  {
-		List<AnchorInstruction> anchorInsList = getAnchorInstructions(calledGraph, returnIns);
+//		List<BytecodeInstruction> anchorInsList = getAnchorInstructions(calledGraph, returnIns);
+		List<BytecodeInstruction> anchorInsList = returnIns.getSourceOfStackInstructionList(0);
 		List<Double> fitnessList = new ArrayList<>();
 		
 		List<BytecodeInstruction> exercisedMethodCalls = new ArrayList<>();
-		removeIncorrectAnchors(result, anchorInsList, exercisedMethodCalls, callContext, branchTrace);
-//		System.currentTimeMillis();
+		removeIncorrectAnchors(coveredConstant, result, anchorInsList, exercisedMethodCalls, callContext, branchTrace);
+		System.currentTimeMillis();
 		
-		for (AnchorInstruction anchorIns : anchorInsList) {
+		for (BytecodeInstruction anchorIns : anchorInsList) {
 			/**
 			 * no control dependency, we only care about method call
 			 */
-			BytecodeInstruction sourceIns = anchorIns.ins;
+			BytecodeInstruction sourceIns = anchorIns;
 			if(sourceIns.getControlDependencies().isEmpty()) {
 				if(sourceIns.isMethodCall()) {
-					List<Call> newContext = updateCallContext(sourceIns, callContext);
+					List<Call> newContext = FlagEffectEvaluator.updateCallContext(sourceIns, callContext);
 					if(newContext.size()!=callContext.size()) {
 						double f = FlagEffectEvaluator.calculateInterproceduralFitness(sourceIns, newContext, branchGoal, result);
 						fitnessList.add(f);						
@@ -73,7 +74,7 @@ public class ReturnFitnessEvaluator {
 		 * for exercised methods
 		 */
 		for(BytecodeInstruction methodCall: exercisedMethodCalls) {
-			List<Call> newContext = updateCallContext(methodCall, callContext);
+			List<Call> newContext = FlagEffectEvaluator.updateCallContext(methodCall, callContext);
 			if(newContext.size()!=callContext.size()) {
 				double f = FlagEffectEvaluator.calculateInterproceduralFitness(methodCall, newContext, branchGoal, result);
 				fitnessList.add(f);						
@@ -87,41 +88,27 @@ public class ReturnFitnessEvaluator {
 		return fitnessList;
 	}
 	
-	/**
-	 * We do not further analyze recursive method calls.
-	 */
-	@SuppressWarnings("unchecked")
-	private List<Call> updateCallContext(BytecodeInstruction sourceIns, List<Call> callContext){
-		List<Call> newContext = (List<Call>) ((ArrayList<Call>)callContext).clone();
-//		BytecodeInstruction ins = sourceIns.getCalledCFG().getInstruction(0);
-		Call call = new Call(sourceIns.getClassName(), sourceIns.getMethodName(), sourceIns.getInstructionId());
-		call.setLineNumber(sourceIns.getLineNumber());
-		if(!newContext.contains(call)) {
-			newContext.add(call);
-		}
-		
-		return newContext;
-	}
 	
-	
-	private List<AnchorInstruction> getAnchorInstructions(RawControlFlowGraph calledGraph,
-			BytecodeInstruction returnIns) {
-		List<AnchorInstruction> anchorInsList = findSourceForReturnInstructionInBlock(returnIns);
-		
-		if(anchorInsList.isEmpty()) {
-			BasicBlock block = returnIns.getBasicBlock();
-			Set<BytecodeInstruction> insParents = calledGraph.getParents(block.getFirstInstruction());
-			for (BytecodeInstruction parentIns : insParents) {
-//				BasicBlock parentBlock = parentIns.getBasicBlock();
-				List<AnchorInstruction> sources = findSourceForReturnInstructionInBlock(parentIns);
-				anchorInsList.addAll(sources);
-			}
 
-		}
-
-		return anchorInsList;
-		
-	}
+//	private List<AnchorInstruction> getAnchorInstructions(RawControlFlowGraph calledGraph,
+//			BytecodeInstruction returnIns) {
+//		List<AnchorInstruction> anchorInsList = findSourceForReturnInstructionInBlock(returnIns);
+//		System.currentTimeMillis();
+//		
+//		if(anchorInsList.isEmpty()) {
+//			BasicBlock block = returnIns.getBasicBlock();
+//			Set<BytecodeInstruction> insParents = calledGraph.getParents(block.getFirstInstruction());
+//			for (BytecodeInstruction parentIns : insParents) {
+////				BasicBlock parentBlock = parentIns.getBasicBlock();
+//				List<AnchorInstruction> sources = findSourceForReturnInstructionInBlock(parentIns);
+//				anchorInsList.addAll(sources);
+//			}
+//
+//		}
+//
+//		return anchorInsList;
+//		
+//	}
 	
 	private DistanceCondition checkOverallDistance(ExecutionResult result, boolean goalValue, Branch branch, 
 			List<Call> originContext, List<Integer> branchTrace) {
@@ -130,8 +117,8 @@ public class ReturnFitnessEvaluator {
 		 */
 		Set<Branch> visitedBranches = new HashSet<>();
 
-		List<Call> callContext = updateCallContext(branch.getInstruction(), originContext);
-		
+		List<Call> callContext = FlagEffectEvaluator.updateCallContext(branch.getInstruction(), originContext);
+		System.currentTimeMillis();
 		int approachLevel = 0;
 		double branchDistance = -1;
 		
@@ -178,7 +165,7 @@ public class ReturnFitnessEvaluator {
 			
 			goalValue = originBranchIns.getControlDependency(branch).getBranchExpressionValue();
 			
-			callContext = updateCallContext(branch.getInstruction(), originContext);
+			callContext = FlagEffectEvaluator.updateCallContext(branch.getInstruction(), originContext);
 			branchDistance = checkContextBranchDistance(result, branch, goalValue, callContext, branchTrace);
 			if(branchDistance == 0) {
 				goalValue = !goalValue;
@@ -192,7 +179,7 @@ public class ReturnFitnessEvaluator {
 			List<Boolean> expression = new ArrayList<>();
 			for(ControlDependency cd: prevBranch.getInstruction().getControlDependencies()) {
 				Branch b = cd.getBranch();
-				callContext = updateCallContext(b.getInstruction(), originContext);
+				callContext = FlagEffectEvaluator.updateCallContext(b.getInstruction(), originContext);
 				if(checkCovered(result, b, callContext, branchTrace)) {
 					visitedControlBranches.add(b);
 					expression.add(cd.getBranchExpressionValue());
@@ -207,7 +194,7 @@ public class ReturnFitnessEvaluator {
 					Branch b = visitedControlBranches.get(i);
 					boolean g = expression.get(i);
 					
-					callContext = updateCallContext(b.getInstruction(), originContext);
+					callContext = FlagEffectEvaluator.updateCallContext(b.getInstruction(), originContext);
 					double bd = checkContextBranchDistance(result, b, g, callContext, branchTrace);
 					average += bd;
 				}
@@ -216,7 +203,7 @@ public class ReturnFitnessEvaluator {
 			}			
 		}
 		else {
-			callContext = updateCallContext(branch.getInstruction(), originContext);
+			callContext = FlagEffectEvaluator.updateCallContext(branch.getInstruction(), originContext);
 			finalBranchDistance = checkContextBranchDistance(result, branch, goalValue, callContext, branchTrace);
 		}
 		
@@ -248,6 +235,8 @@ public class ReturnFitnessEvaluator {
 			DistanceCondition dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
 			fitness = dCondition.fitness;
 			
+			System.currentTimeMillis();
+			
 			// in case the returned direction is wrong.
 			if (fitness == 0) {
 				goalValue = !goalValue;
@@ -262,11 +251,13 @@ public class ReturnFitnessEvaluator {
 				continue;
 			}
 
+			
+			System.currentTimeMillis();
 			BranchCoverageGoal newGoal = dCondition.goal;
 			FlagEffectResult flagResult = FlagEffectEvaluator.checkFlagEffect(newGoal);
 			
 			if (flagResult.hasFlagEffect) {
-				List<Call> newContext = updateCallContext(flagResult.interproceduralFlagCall, callContext);
+				List<Call> newContext = FlagEffectEvaluator.updateCallContext(flagResult.interproceduralFlagCall, callContext);
 				if(newContext.size() != callContext.size()) {
 					double interproceduralFitness = FlagEffectEvaluator.calculateInterproceduralFitness(
 							flagResult.interproceduralFlagCall, newContext, newGoal, result);
@@ -280,29 +271,31 @@ public class ReturnFitnessEvaluator {
 			}
 //			break;
 		}
+		
+		System.currentTimeMillis();
 	}
 
 	/**
 	 * only keep the anchor instruction need to be covered
+	 * @param coveredConstant 
 	 * 
 	 * @param result
 	 * @param sourceInsList
 	 * @param exercisedMethodCalls 
 	 * @param cBranch
 	 */
-	private void removeIncorrectAnchors(ExecutionResult result,
-			List<AnchorInstruction> sourceInsList, List<BytecodeInstruction> exercisedMethodCalls, 
+	private void removeIncorrectAnchors(String coveredConstant, ExecutionResult result,
+			List<BytecodeInstruction> sourceInsList, List<BytecodeInstruction> exercisedMethodCalls, 
 			List<Call> context, List<Integer> branchTrace) {
 		
 		List<BytecodeInstruction> coveredInsList = new ArrayList<>();
-		for(AnchorInstruction anchor: sourceInsList) {
-			BytecodeInstruction ins = anchor.ins;
+		for(BytecodeInstruction ins: sourceInsList) {
 			if(ins.getControlDependencies().isEmpty()) {
 				coveredInsList.add(ins);
 			}
 			
 			for(ControlDependency cd: ins.getControlDependencies()) {
-				List<Call> newContext = updateCallContext(cd.getBranch().getInstruction(), context);
+				List<Call> newContext = FlagEffectEvaluator.updateCallContext(cd.getBranch().getInstruction(), context);
 				
 				boolean branchExpression = cd.getBranchExpressionValue();
 				double distance = checkContextBranchDistance(result, cd.getBranch(), branchExpression, newContext, branchTrace);
@@ -313,19 +306,23 @@ public class ReturnFitnessEvaluator {
 			}
 		}
 		
-		Iterator<AnchorInstruction> iter = sourceInsList.iterator();
+		Iterator<BytecodeInstruction> iter = sourceInsList.iterator();
 		while(iter.hasNext()) {
-			AnchorInstruction anchorIns = iter.next();
-			BytecodeInstruction ins = anchorIns.ins;
-			for(BytecodeInstruction coveredIns: coveredInsList) {
-				if((ins.explain().equals(coveredIns.explain()) && ins.isConstant()) 
-						|| ins.equals(coveredIns)) {
-					if(ins.isMethodCall()) {
-						exercisedMethodCalls.add(ins);
+			BytecodeInstruction ins = iter.next();
+			if(ins.explain().equals(coveredConstant)) {
+				iter.remove();
+			}			
+			else {
+				for(BytecodeInstruction coveredIns: coveredInsList) {
+					if((ins.explain().equals(coveredIns.explain()) && ins.isConstant()) 
+							|| ins.equals(coveredIns)) {
+						if(ins.isMethodCall()) {
+							exercisedMethodCalls.add(ins);
+						}
+						iter.remove();
+						break;						
+						
 					}
-					iter.remove();
-					break;						
-					
 				}
 			}
 		}
@@ -361,6 +358,9 @@ public class ReturnFitnessEvaluator {
 			if(value == null) {
 				return 1;
 			}
+			else if(value == 0) {
+				return value;
+			}
 			else {
 				/**
 				 *  handle internal flag problem 
@@ -381,7 +381,7 @@ public class ReturnFitnessEvaluator {
 								Branch delegateBranch = ins.getControlDependentBranch();
 								boolean delegateGoalValue = ins.getControlDependentBranchExpressionValue();
 								
-								List<Call> replacedContext = replaceContext(context, delegateBranch);
+								List<Call> replacedContext = FlagEffectEvaluator.replaceContext(context, delegateBranch);
 								
 								double distance = checkContextBranchDistance(result, delegateBranch, delegateGoalValue, 
 										replacedContext, branchTrace);
@@ -400,16 +400,6 @@ public class ReturnFitnessEvaluator {
 				return FitnessFunction.normalize(value);
 			}
 		}
-	}
-
-	private List<Call> replaceContext(List<Call> context, Branch delegateBranch) {
-		List<Call> replacedContext = new ArrayList<>();
-		for(int i=0; i<context.size()-1; i++) {
-			replacedContext.add(context.get(i));
-		}
-		
-		replacedContext = updateCallContext(delegateBranch.getInstruction(), replacedContext);
-		return replacedContext;
 	}
 
 	private boolean needDelegateBranch(Branch branch, Double value) {
@@ -449,95 +439,79 @@ public class ReturnFitnessEvaluator {
 		return false;
 	}
 
-	/**
-	 * Anchor instruction is either a constant, field use, method call, or local variable use.
-	 * Anchor means the value which determines the returned value.
-	 * @author linyun
-	 *
-	 */
-	class AnchorInstruction{
-		BytecodeInstruction ins;
-		boolean isDetermined = true;
-		public AnchorInstruction(BytecodeInstruction ins, boolean isDetermined) {
-			super();
-			this.ins = ins;
-			this.isDetermined = isDetermined;
-		}
-		
-		public String toString() {
-			String msg = this.ins.toString() + ": isDetermined: " + this.isDetermined;
-			return msg;
-		}
-	}
 	
-	private List<AnchorInstruction> findSourceForReturnInstructionInBlock(BytecodeInstruction returnIns) {
-		BasicBlock block = returnIns.getBasicBlock();
-		
-		List<AnchorInstruction> anchorList = new ArrayList<>();
-		
-		BytecodeInstruction lastIns = block.getLastInstruction();
-		BytecodeInstruction firstIns = block.getFirstInstruction();
-		BytecodeInstruction ins = lastIns;
-		
-		while (ins.getInstructionId() >= firstIns.getInstructionId()) {
-			if (ins.isConstant()) {
-				anchorList.add(new AnchorInstruction(ins, true));
-				break;
-			} else if (ins.isFieldUse()) {
-				anchorList.add(new AnchorInstruction(ins, false));
-				break;
-			} else if (ins.isMethodCall()) {
-				MethodInsnNode mNode = (MethodInsnNode) ins.getASMNode();
-				String desc = mNode.desc;
-				String returnType = FlagEffectEvaluator.getReturnType(desc);
-				boolean isInterprocedural = returnType.equals("Z");
-				
-				boolean determined = canMethodContainConstantReturn(ins.getCalledCFG());
-				
-				if(isInterprocedural) {
-					anchorList.add(new AnchorInstruction(ins, determined));
-					break;
-				}
-			} else if (ins.isLocalVariableUse()) {
-				List<BytecodeInstruction> istores = findDefinitions(ins);
-				
-				if(istores.isEmpty()) {
-					anchorList.add(new AnchorInstruction(ins, true));
-					break;
-				}
-				
-				for(BytecodeInstruction istore: istores) {
-					BytecodeInstruction prevIns = istore.getPreviousInstruction();
-					if(prevIns.isConstant()) {
-						anchorList.add(new AnchorInstruction(prevIns, true));
-					}
-					else {
-						anchorList.add(new AnchorInstruction(ins, false));
-					}
-				}
-				
-			}
-			ins = ins.getPreviousInstruction();
-		}
+//	private List<BytecodeInstruction> findSourceForReturnInstructionInBlock(BytecodeInstruction returnIns) {
+//		
+//		List<BytecodeInstruction> anchors = returnIns.getSourceOfStackInstructionList(0);
+//		
+//		
+//		BasicBlock block = returnIns.getBasicBlock();
+//		
+//		List<BytecodeInstruction> anchorList = new ArrayList<>();
+//		
+//		BytecodeInstruction lastIns = block.getLastInstruction();
+//		BytecodeInstruction firstIns = block.getFirstInstruction();
+//		BytecodeInstruction ins = lastIns;
+//		
+//		while (ins.getInstructionId() >= firstIns.getInstructionId()) {
+//			if (ins.isConstant()) {
+//				anchorList.add(new AnchorInstruction(ins, true));
+//				break;
+//			} else if (ins.isFieldUse()) {
+//				anchorList.add(new AnchorInstruction(ins, false));
+//				break;
+//			} else if (ins.isMethodCall()) {
+//				MethodInsnNode mNode = (MethodInsnNode) ins.getASMNode();
+//				String desc = mNode.desc;
+//				String returnType = FlagEffectEvaluator.getReturnType(desc);
+//				boolean isInterprocedural = returnType.equals("Z");
+//				
+//				boolean determined = canMethodContainConstantReturn(ins.getCalledCFG());
+//				
+//				if(isInterprocedural) {
+//					anchorList.add(new AnchorInstruction(ins, determined));
+//					break;
+//				}
+//			} else if (ins.isLocalVariableUse()) {
+//				List<BytecodeInstruction> istores = findDefinitions(ins);
+//				
+//				if(istores.isEmpty()) {
+//					anchorList.add(new AnchorInstruction(ins, true));
+//					break;
+//				}
+//				
+//				for(BytecodeInstruction istore: istores) {
+//					BytecodeInstruction prevIns = istore.getPreviousInstruction();
+//					if(prevIns.isConstant()) {
+//						anchorList.add(new AnchorInstruction(prevIns, true));
+//					}
+//					else {
+//						anchorList.add(new AnchorInstruction(ins, false));
+//					}
+//				}
+//				
+//			}
+//			ins = ins.getPreviousInstruction();
+//		}
+//
+//		return anchorList;
+//	}
 
-		return anchorList;
-	}
-
-	private boolean canMethodContainConstantReturn(RawControlFlowGraph calledCFG) {
-		if(calledCFG==null) {
-			return false;
-		}
-		
-		for(BytecodeInstruction ins: calledCFG.determineExitPoints()) {
-			if(ins.isReturn()) {
-				BytecodeInstruction returnDef = ins.getSourceOfStackInstruction(0);
-				if(returnDef.isConstant()) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+//	private boolean canMethodContainConstantReturn(RawControlFlowGraph calledCFG) {
+//		if(calledCFG==null) {
+//			return false;
+//		}
+//		
+//		for(BytecodeInstruction ins: calledCFG.determineExitPoints()) {
+//			if(ins.isReturn()) {
+//				BytecodeInstruction returnDef = ins.getSourceOfStackInstruction(0);
+//				if(returnDef.isConstant()) {
+//					return true;
+//				}
+//			}
+//		}
+//		return false;
+//	}
 
 	private List<BytecodeInstruction> findDefinitions(BytecodeInstruction iLoad) {
 		List<BytecodeInstruction> defs = new ArrayList<>();
