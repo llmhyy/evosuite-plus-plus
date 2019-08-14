@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractStatement implements Statement, Serializable {
 
 	Map<FitnessFunction, Double> changeRelevanceMap = new HashMap<>();
+	private boolean isChanged = false;
 	
 	/**
 	 * An interface to enable the concrete statements to use the executer/1
@@ -547,5 +548,17 @@ public abstract class AbstractStatement implements Statement, Serializable {
 	
 	public Map<FitnessFunction, Double> getChangeRelevanceMap(){
 		return this.changeRelevanceMap;
+	}
+	
+	public void setChangeRelevanceMap(Map<FitnessFunction, Double> changeRelevanceMap){
+		this.changeRelevanceMap = changeRelevanceMap;
+	}
+
+	public boolean isChanged() {
+		return isChanged;
+	}
+
+	public void setChanged(boolean isChanged) {
+		this.isChanged = isChanged;
 	}
 }

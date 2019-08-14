@@ -25,10 +25,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
@@ -37,11 +35,7 @@ import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.fbranch.FBranchFitnessFactory;
 import org.evosuite.coverage.fbranch.FBranchTestFitness;
-import org.evosuite.ga.Chromosome;
-import org.evosuite.ga.FitnessFunction;
-import org.evosuite.testcase.MutationPurpose;
 import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.CodeUnderTestException;
@@ -435,17 +429,8 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
     public boolean mutate(TestCase test, TestFactory factory) {
-    	Set<FitnessFunction<? extends Chromosome>> tffList = MutationPurpose.purpose;
-    	TestChromosome tc = new TestChromosome();
-    	tc.setTestCase(test);
-    	Map<FitnessFunction, Double> map = new HashMap<>();
-    	for(FitnessFunction tff: tffList) {
-    		map.put(tff, tff.getFitness(tc));
-    	}
-    	
         if (!hasMoreThanOneValue())
             return false;
 
@@ -468,26 +453,6 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
             } else
                 delta();
         }
-        
-        for(FitnessFunction tff: tffList) {
-        	tc.clearCachedResults();
-    		Double fit = tff.getFitness(tc);
-    		Double relevance = this.changeRelevanceMap.get(tff);
-    		if(relevance == null) {
-    			relevance = 0.5;
-    		}
-    		
-    		if(map.get(tff) - fit != 0.0) {
-    			relevance = Math.sqrt(relevance);
-    		}
-    		else {
-    			relevance = relevance * relevance;
-    			if(relevance < 0.1) {
-    				relevance = 0.1;
-    			}
-    		}
-    		this.changeRelevanceMap.put(tff, relevance);
-    	}
         
         return true;
     }

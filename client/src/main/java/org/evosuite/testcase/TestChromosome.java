@@ -483,35 +483,15 @@ public class TestChromosome extends ExecutableChromosome {
         }
 	}
 	
-	@SuppressWarnings("rawtypes")
-	private double checkRelevance(Set<FitnessFunction<? extends Chromosome>> interestedGoals, 
-			Map<FitnessFunction, Double> changeRelevance) {
-		double relevance = 1;
-		if(interestedGoals == null) {
-			return relevance;
-		}
-		
-		for(FitnessFunction<? extends Chromosome> ff: interestedGoals) {
-			Double relevantScore = changeRelevance.get(ff);
-			if(relevantScore != null) {
-				if(relevance > relevantScore) {
-					relevance = relevantScore;
-				}
-			}
-		}
-		
-		return relevance;
-	}
-
+	private List<Integer> changedPositionsInOldTest = new ArrayList<Integer>();
+	
 	/**
 	 * Each statement is replaced with probability 1/length
 	 *
 	 * @return
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private boolean mutationChange() {
-		Set<FitnessFunction<? extends Chromosome>> goals = MutationPurpose.purpose;
-		
 		boolean changed = false;
 		int lastMutatableStatement = getLastMutatableStatement();
 		double pl = 1d / (lastMutatableStatement + 1);
@@ -534,31 +514,32 @@ public class TestChromosome extends ExecutableChromosome {
 		}
 
 		if (!changed) {
-			for (int position = 0; position <= lastMutatableStatement; position++) {
+			getChangedPositionsInOldTest().clear();
+			double[] mutationProbability = calculateMutationProbability(lastMutatableStatement);
+			
+			System.currentTimeMillis();
+			
+			for (int position = 0, oldPosition = 0; position <= lastMutatableStatement; position++, oldPosition++) {
 				lastMutatableStatement = getLastMutatableStatement();
 				if(!Properties.TARGET_METHOD.isEmpty()) {
 					targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
 				}
 				
 				Statement statement = test.getStatement(position);
-				Map<FitnessFunction, Double> changeRelevance = statement.getChangeRelevanceMap();
-				if(changeRelevance!=null && !changeRelevance.isEmpty()) {
-		    		double relevanceScore = checkRelevance(goals, changeRelevance);
-		    		if(Randomness.nextDouble() > relevanceScore) {
-		    			continue;
-		    		}
-		    	}
+				statement.setChanged(false);
+				
+				System.currentTimeMillis();
 				
 				double ram = Randomness.nextDouble();
-				if(this.getAge() > 10 && changeRelevance!=null && !changeRelevance.isEmpty()) {
-					ram = 0;
+				if(this.getAge() > 30) {
+					if(oldPosition < mutationProbability.length) {
+						pl = mutationProbability[oldPosition];
+					}
+					
 				}
-				
-				if(targetMethodPosition == position) {
-					ram = 0;
+				else {
+					pl = 0.3;
 				}
-				
-				ram = 0;
 				
 				if (ram <= pl) {
 //				if (Randomness.nextDouble() <= pl) {
@@ -597,6 +578,11 @@ public class TestChromosome extends ExecutableChromosome {
 
 					statement.getReturnValue().setDistance(oldDistance);
 					position = statement.getPosition(); // Might have changed due to mutation
+					
+					statement.setChanged(changed);
+					if(changed) {
+						getChangedPositionsInOldTest().add(oldPosition);
+					}
 				}
 			}
 		}
@@ -606,6 +592,37 @@ public class TestChromosome extends ExecutableChromosome {
 		}
 
 		return changed;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private double[] calculateMutationProbability(int lastMutatableStatement) {
+		double[] mutationProbabililty = new double[lastMutatableStatement+1];
+		
+		Set<FitnessFunction<? extends Chromosome>> currentGoals = MutationPurpose.currentPurpose.goals;
+		
+		for(int i=0; i<lastMutatableStatement+1; i++) {
+			mutationProbabililty[i] = 1;
+			
+			Statement statement = test.getStatement(i);
+			Map<FitnessFunction, Double> map = statement.getChangeRelevanceMap();
+			for(FitnessFunction<?> ff: currentGoals) {
+				Double frequency = map.get(ff);
+				if(frequency != null) {
+					mutationProbabililty[i] += frequency;
+				}
+			}
+		}
+		
+		Double sum = 0d;
+		for(int i=0; i<lastMutatableStatement+1; i++) {
+			sum += mutationProbabililty[i];
+		}
+		
+		for(int i=0; i<lastMutatableStatement+1; i++) {
+			mutationProbabililty[i] /= sum;
+		}
+		
+		return mutationProbabililty;
 	}
 
 	/**
@@ -816,6 +833,14 @@ public class TestChromosome extends ExecutableChromosome {
 	 */
 	public static List<SecondaryObjective<TestChromosome>> getSecondaryObjectives() {
 		return secondaryObjectives;
+	}
+
+	public List<Integer> getChangedPositionsInOldTest() {
+		return changedPositionsInOldTest;
+	}
+
+	public void setChangedPositionsInOldTest(List<Integer> changedPositionsInOldTest) {
+		this.changedPositionsInOldTest = changedPositionsInOldTest;
 	}
 
 }

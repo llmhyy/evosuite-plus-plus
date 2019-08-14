@@ -46,12 +46,13 @@ import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.ga.metaheuristics.SearchListener;
-import org.evosuite.ga.operators.mutation.MutationHistory;
+import org.evosuite.ga.operators.mutation.MutationHistoryEntry;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.TestMutationHistoryEntry;
+import org.evosuite.testcase.TestMutationHistoryEntry.TestMutation;
 import org.evosuite.testcase.secondaryobjectives.TestCaseSecondaryObjective;
 import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
@@ -131,6 +132,10 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			// select best individuals
 			T parent1 = this.selectionFunction.select(this.population);
 			T parent2 = this.selectionFunction.select(this.population);
+			
+			this.removeUnusedVariables(parent1);
+			this.removeUnusedVariables(parent2);
+			
 			T offspring1 = (T) parent1.clone();
 			T offspring2 = (T) parent2.clone();
 			// apply crossover
@@ -142,20 +147,29 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 //				logger.debug("CrossOver failed.");
 //				continue;
 //			}
-
-			this.removeUnusedVariables(offspring1);
-			this.removeUnusedVariables(offspring2);
+			
+			offspring1.updateAge(this.currentIteration);
+			parent1.updateAge(this.currentIteration);
+			offspring2.updateAge(this.currentIteration);
+			parent2.updateAge(this.currentIteration);
+			
+//			this.removeUnusedVariables(offspring1);
+//			this.removeUnusedVariables(offspring2);
+			
+			if(offspring1 instanceof TestChromosome) {
+				if(((TestChromosome)offspring1).getTestCase().size() 
+						!= ((TestChromosome)parent1).getTestCase().size()) {
+					System.currentTimeMillis();
+				}
+			}
 
 			// apply mutation on offspring1
 			this.mutate(offspring1, parent1);
+			
 			if (offspring1.isChanged()) {
 				this.clearCachedResults(offspring1);
-				offspring1.updateAge(this.currentIteration);
 				this.calculateFitness(offspring1);
-				
-				//TODO
-				identifyRelevantMutations(offspring1);
-				
+				identifyRelevantMutations(offspring1, parent1);
 				offspringPopulation.add(offspring1);
 			}
 
@@ -163,12 +177,8 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			this.mutate(offspring2, parent2);
 			if (offspring2.isChanged()) {
 				this.clearCachedResults(offspring2);
-				offspring2.updateAge(this.currentIteration);
 				this.calculateFitness(offspring2);
-				
-				//TODO
-				identifyRelevantMutations(offspring1);
-				
+				identifyRelevantMutations(offspring2, parent2);
 				offspringPopulation.add(offspring2);
 			}
 		}
@@ -192,17 +202,52 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		return offspringPopulation;
 	}
 	
-	private void identifyRelevantMutations(T offspring) {
-		if(offspring instanceof TestChromosome) {
-			TestChromosome test = (TestChromosome)offspring;
-			MutationHistory<TestMutationHistoryEntry> history = test.getMutationHistory();
-			for(TestMutationHistoryEntry entry: history) {
-				//TODO
+	@SuppressWarnings("rawtypes")
+	private void identifyRelevantMutations(T offspring, T parent) {
+		if(offspring instanceof TestChromosome && parent instanceof TestChromosome) {
+			TestChromosome newTest = (TestChromosome)offspring;
+			TestChromosome oldTest = (TestChromosome)parent;
+			
+			List<FitnessFunction> changedFitnesses = identifyChangedFitness(newTest, oldTest);
+			
+			updateChangeRelevanceMap(changedFitnesses, newTest.getTestCase());
+			updateChangeRelevanceMap(changedFitnesses, oldTest.getTestCase());
+		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private void updateChangeRelevanceMap(List<FitnessFunction> changedFitnesses, TestCase test) {
+		for(int pos=0; pos<test.size()-1; pos++) {
+			Statement statement = test.getStatement(pos);
+			if(statement.isChanged()) {
+				for(FitnessFunction ff: changedFitnesses) {
+					Double d = statement.getChangeRelevanceMap().get(ff);
+					if(d==null) {
+						d = 0d;
+					}
+					d++;
+					statement.getChangeRelevanceMap().put(ff, d);
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private List<FitnessFunction> identifyChangedFitness(TestChromosome newTest, TestChromosome oldTest) {
+		List<FitnessFunction> list = new ArrayList<>();
+		
+		for(FitnessFunction changedFit: newTest.getFitnessValues().keySet()) {
+			double d1 = newTest.getFitness(changedFit);
+			double d2 = oldTest.getFitness(changedFit);
+			
+			if(d1 != d2) {
+				list.add(changedFit);
 			}
 		}
 		
+		return list;
 	}
-	
+
 	/**
 	 * Method used to mutate an offspring.
 	 * 
@@ -210,12 +255,30 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	 * @param parent
 	 */
 	private void mutate(T offspring, T parent) {
-		offspring.mutate();
 		TestChromosome tch = (TestChromosome) offspring;
+		tch.clearMutationHistory();
+		offspring.mutate();
 		if (!offspring.isChanged()) {
 			// if offspring is not changed, we try to mutate it once again
 			offspring.mutate();
 		}
+		
+		/**
+		 * update the changing information of statement
+		 */
+		TestMutationHistoryEntry tEntry = (TestMutationHistoryEntry)tch.getMutationHistory().getLastMutation();
+		if(tEntry!=null && tEntry.getMutationType() == TestMutation.CHANGE) {
+			List<Integer> changedPositions = tch.getChangedPositionsInOldTest();	
+			TestCase parentTestCase = ((TestChromosome)parent).getTestCase();
+			for(int position=0; position<parentTestCase.size(); position++) {
+				parentTestCase.getStatement(position).setChanged(false);
+			}
+			
+			for(Integer position: changedPositions) {
+				parentTestCase.getStatement(position).setChanged(true);
+			}
+		}
+		
 		if (!this.hasMethodCall(offspring)) {
 			tch.setTestCase(((TestChromosome) parent).getTestCase().clone());
 			boolean changed = tch.mutationInsert();

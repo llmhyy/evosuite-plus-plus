@@ -33,6 +33,7 @@ import org.evosuite.ga.comparators.OnlyCrowdingComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.metaheuristics.mosa.structural.StructuralGoalManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
+import org.evosuite.testcase.MutationPurpose;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.utils.LoggingUtils;
 import org.slf4j.Logger;
@@ -131,6 +132,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 	private void printBestFitness() {
 		Map<FitnessFunction<T>, Double> bestMap = new HashMap<>();
+		Map<FitnessFunction<T>, T> bestTestMap = new HashMap<>();
 		
 		for(T t: this.population) {
 			if(t instanceof TestChromosome) {
@@ -140,9 +142,11 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 						Double bestSoFar = bestMap.get(ff);
 						if(bestSoFar == null) {
 							bestSoFar = fitness;
+							bestTestMap.put(ff, t);
 						}
 						else if(bestSoFar > fitness) {
 							bestSoFar = fitness;
+							bestTestMap.put(ff, t);
 						}
 						bestMap.put(ff, bestSoFar);
 					}
@@ -155,6 +159,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			Double fitness = bestMap.get(ff);
 			System.out.print(ff + ":");
 			System.out.println(fitness);
+			System.currentTimeMillis();
 		}
 		
 	}
@@ -162,6 +167,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void generateSolution() {
 		logger.debug("executing generateSolution function");
@@ -190,6 +196,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		// next generations
 		while (!isFinished() && this.goalsManager.getUncoveredGoals().size() > 0) {
+			MutationPurpose.currentPurpose.
+				setPurpose(this.goalsManager.getUncoveredGoals());
 			this.evolve();
 			this.notifyIteration();
 		}

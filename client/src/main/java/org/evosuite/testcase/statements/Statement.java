@@ -401,6 +401,15 @@ public interface Statement {
 	 */
 	public void setRetval(VariableReference newRetVal);
 
+	/**
+	 * The method is used for building the relevance between a mutated statement
+	 * and a set of fitnesses. 
+	 * @return
+	 */
 	public Map<FitnessFunction, Double> getChangeRelevanceMap();
+	public void setChangeRelevanceMap(Map<FitnessFunction, Double> changeRelevanceMap);
 
+
+	public boolean isChanged();
+	public void setChanged(boolean isChanged);
 }
