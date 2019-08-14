@@ -270,6 +270,10 @@ public class FlagEffectEvaluator {
 			BytecodeInstruction defIns1 = ins.getSourceOfStackInstruction(0);
 			BytecodeInstruction defIns2 = ins.getSourceOfStackInstruction(1);
 			
+			if(defIns2==null) {
+				System.currentTimeMillis();
+			}
+			
 			if(defIns1.isMethodCall()) {
 				FlagEffectResult r = checkFlagEffect(defIns1);
 				if(r.hasFlagEffect) {

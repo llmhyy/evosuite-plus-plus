@@ -36,21 +36,24 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 	@Override
 	public double getFitness(TestChromosome individual, ExecutionResult result) {
 //		this.inconsistencyHappen = false;
+		/**
+		 * if the result does not exercise this branch node, we do not further process the detailed
+		 * branch distance as we need to pass its parent branch node.
+		 */
+		Double value = null;
+		if(this.goal.getValue()) {
+			value = result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId());
+		}
+		else {
+			value = result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
+		}
+		
+		if(value != null && value == 0) {
+			return 0;
+		}
 		
 		FlagEffectResult r = FlagEffectEvaluator.checkFlagEffect(goal);
 		if(!r.hasFlagEffect) {
-			/**
-			 * if the result does not exercise this branch node, we do not further process the detailed
-			 * branch distance as we need to pass its parent branch node.
-			 */
-			Double value = null;
-			if(this.goal.getValue()) {
-				value = result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId());
-			}
-			else {
-				value = result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
-			}
-			
 			if(value == null){
 				return 1;
 			}
@@ -66,6 +69,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 					r.interproceduralFlagCall, callContext, goal, result);
 			double normalizedFitness = normalize(interproceduralFitness);
 			
+			System.currentTimeMillis();
 			return normalizedFitness;
 		}
 	}

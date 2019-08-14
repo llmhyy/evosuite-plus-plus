@@ -122,9 +122,6 @@ public class BytecodeInstrumentation {
 		case TARGET:
 			if (className.equals(Properties.TARGET_CLASS) || className.startsWith(Properties.TARGET_CLASS + "$"))
 				return true;
-			else {
-				
-			}
 			break;
 		case PREFIX:
 			if (className.startsWith(Properties.PROJECT_PREFIX))
