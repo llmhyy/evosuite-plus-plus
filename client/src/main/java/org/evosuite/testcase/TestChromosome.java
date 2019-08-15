@@ -651,20 +651,116 @@ public class TestChromosome extends ExecutableChromosome {
 		return indexes;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked"})
 	private double[] calculateMutationProbability(int lastMutatableStatement) {
-		double[] mutationProbabililty = new double[lastMutatableStatement+1];
+		Set<FitnessFunction<? extends Chromosome>> currentGoalSet = MutationPurpose.currentPurpose.goals;
+		List<FitnessFunction<? extends Chromosome>> currentGoals = new ArrayList<>(currentGoalSet);
 		
-		Set<FitnessFunction<? extends Chromosome>> currentGoals = MutationPurpose.currentPurpose.goals;
+		double[][] relevanceMatrix = constructRelevanceMatrix(lastMutatableStatement, currentGoals);
+		List<List<Integer>> clusters = clusterGoals(relevanceMatrix);
 		
-		System.currentTimeMillis();
+		List<double[]> mutationProbabilityList = extractMutationProbabilityList(lastMutatableStatement, 
+				currentGoals, clusters);
+		
+		int randomIndex = (int) (Math.random() * mutationProbabilityList.size());
+		return mutationProbabilityList.get(randomIndex);
+	}
+
+	private List<List<Integer>> clusterGoals(double[][] relevanceMatrix) {
+		List<List<Integer>> clusters = new ArrayList<>();
+		List<Integer> markedGoals = new ArrayList<>();
+		
+		int totalGoalNum = relevanceMatrix[0].length; 
+		while(markedGoals.size() < totalGoalNum) {
+			List<Integer> cluster = new ArrayList<>();
+			for(int j=0; j<totalGoalNum; j++) {
+				if(markedGoals.contains(j)) {
+					continue;
+				}
+				
+				if(cluster.isEmpty()) {
+					cluster.add(j);
+					markedGoals.add(j);
+				}
+				else {
+					int goalIndex = cluster.get(0);
+					boolean isSimilar = compareSimilarity(goalIndex, j, relevanceMatrix);
+					if(isSimilar) {
+						cluster.add(j);
+						markedGoals.add(j);
+					}
+					
+				}
+			}			
+		}
+		
+		return clusters;
+	}
+
+	private boolean compareSimilarity(int goalIndex, int j, double[][] relevanceMatrix) {
+		double delta = 0.1;
+		
+		for(int i=0; i<relevanceMatrix.length; i++) {
+			double goalIndexValue = relevanceMatrix[i][goalIndex];
+			double jValue = relevanceMatrix[i][j];
+			
+			if(1-delta<goalIndexValue && goalIndexValue < 1+delta &&
+					1-delta<jValue && jValue < 1+delta) {
+				continue;
+			}
+			else if(goalIndexValue>1 || jValue<1) {
+				return false;
+			}
+			else if(goalIndexValue<1 || jValue>1) {
+				return false;
+			}
+			
+		}
+		
+		return true;
+	}
+
+	private List<double[]> extractMutationProbabilityList(int lastMutatableStatement,
+			List<FitnessFunction<? extends Chromosome>> currentGoals, List<List<Integer>> clusters) {
+		List<double[]> mutationProbabilityList = new ArrayList<>();
+		for(List<Integer> cluster: clusters) {
+			double[] mutationProbabililty = new double[lastMutatableStatement+1];
+			
+			Double sum = 0d;
+			for(int i=0; i<lastMutatableStatement+1; i++) {
+				Statement statement = test.getStatement(i);
+				Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
+				for(Integer index: cluster) {
+					FitnessFunction<?> ff = currentGoals.get(index);
+					Pair<Double, Double> effectFrequency = map.get(ff);
+					if(effectFrequency != null) {
+						Double positiveEffect = effectFrequency.getLeft();
+						Double negativeEffect = effectFrequency.getRight();
+						
+						mutationProbabililty[i] = positiveEffect + negativeEffect;
+						sum += mutationProbabililty[i];
+					}
+				}
+			}
+			
+			for(int i=0; i<lastMutatableStatement+1; i++) {
+				mutationProbabililty[i] =  mutationProbabililty[i] / sum;
+			}
+			
+			mutationProbabilityList.add(mutationProbabililty);
+		}
+		return mutationProbabilityList;
+	}
+
+	private double[][] constructRelevanceMatrix(int lastMutatableStatement,
+			List<FitnessFunction<? extends Chromosome>> currentGoals) {
+		double[][] relevanceMatrix = new double[test.size()][currentGoals.size()];
 		
 		for(int i=0; i<lastMutatableStatement+1; i++) {
-			mutationProbabililty[i] = 1;
-			
 			Statement statement = test.getStatement(i);
 			Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
-			for(FitnessFunction<?> ff: currentGoals) {
+			for(int j=0; j<currentGoals.size(); j++) {
+				FitnessFunction<?> ff = currentGoals.get(j);
 				Pair<Double, Double> effectFrequency = map.get(ff);
 				if(effectFrequency != null) {
 					Double positiveEffect = effectFrequency.getLeft();
@@ -672,36 +768,21 @@ public class TestChromosome extends ExecutableChromosome {
 					
 					double base = positiveEffect + negativeEffect;
 					if(base > 10) {
-						double alpha = 1;
 						if(negativeEffect==0 && positiveEffect != 0) {
-							alpha = MAX_POWER;
+							relevanceMatrix[i][j] = MAX_POWER;
 						}
 						else {
-							alpha = positiveEffect / negativeEffect;
+							relevanceMatrix[i][j] = positiveEffect / negativeEffect;
 						}
-						mutationProbabililty[i] += base * alpha;						
 					}
 					else {
-						mutationProbabililty[i] += base;
+						relevanceMatrix[i][j] = 1;
 					}
 					
 				}
 			}
 		}
-		
-		Double sum = 0d;
-		for(int i=0; i<lastMutatableStatement+1; i++) {
-			sum += mutationProbabililty[i];
-//			sum += Math.pow(Math.E, mutationProbabililty[i]);
-		}
-		
-		for(int i=0; i<lastMutatableStatement+1; i++) {
-			mutationProbabililty[i] =  mutationProbabililty[i] / sum;
-//			mutationProbabililty[i] =  Math.pow(Math.E, mutationProbabililty[i]) / sum;
-		}
-		
-//		mutationProbabililty = softmax(mutationProbabililty);
-		return mutationProbabililty;
+		return relevanceMatrix;
 	}
 	
 	public double[] softmax(double[] mutationProbabililty) {
