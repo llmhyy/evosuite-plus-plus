@@ -659,6 +659,8 @@ public class TestChromosome extends ExecutableChromosome {
 		double[][] relevanceMatrix = constructRelevanceMatrix(lastMutatableStatement, currentGoals);
 		List<List<Integer>> clusters = clusterGoals(relevanceMatrix);
 		
+//		System.currentTimeMillis();
+		
 		List<double[]> mutationProbabilityList = extractMutationProbabilityList(lastMutatableStatement, 
 				currentGoals, clusters);
 		
@@ -691,7 +693,9 @@ public class TestChromosome extends ExecutableChromosome {
 					}
 					
 				}
-			}			
+			}		
+			
+			clusters.add(cluster);
 		}
 		
 		return clusters;
@@ -708,10 +712,10 @@ public class TestChromosome extends ExecutableChromosome {
 					1-delta<jValue && jValue < 1+delta) {
 				continue;
 			}
-			else if(goalIndexValue>1 || jValue<1) {
+			else if(goalIndexValue>1 && jValue<1) {
 				return false;
 			}
-			else if(goalIndexValue<1 || jValue>1) {
+			else if(goalIndexValue<1 && jValue>1) {
 				return false;
 			}
 			
@@ -728,6 +732,8 @@ public class TestChromosome extends ExecutableChromosome {
 			
 			Double sum = 0d;
 			for(int i=0; i<lastMutatableStatement+1; i++) {
+				mutationProbabililty[i] = 1;
+				
 				Statement statement = test.getStatement(i);
 				Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
 				for(Integer index: cluster) {
@@ -737,10 +743,25 @@ public class TestChromosome extends ExecutableChromosome {
 						Double positiveEffect = effectFrequency.getLeft();
 						Double negativeEffect = effectFrequency.getRight();
 						
-						mutationProbabililty[i] = positiveEffect + negativeEffect;
+						double base = positiveEffect + negativeEffect;
+						double alpha = 1;
+						if(base > 10) {
+							if(negativeEffect==0 && positiveEffect != 0) {
+								alpha = MAX_POWER;
+							}
+							else {
+								alpha = positiveEffect / negativeEffect;
+							}
+						}
+						
+						mutationProbabililty[i] += base * alpha * alpha;
 						sum += mutationProbabililty[i];
 					}
 				}
+			}
+			
+			if(sum==0) {
+				sum = (double) (lastMutatableStatement+1);
 			}
 			
 			for(int i=0; i<lastMutatableStatement+1; i++) {
