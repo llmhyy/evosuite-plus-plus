@@ -173,6 +173,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		logger.debug("executing generateSolution function");
 
 		this.goalsManager = new MultiCriteriaManager<>(this.fitnessFunctions);
+		MutationPurpose.currentPurpose.goals = this.goalsManager.getCurrentGoals();
 
 		LoggingUtils.getEvoLogger().info("* Initial Number of Goals in DynMOSA = " +
 				this.goalsManager.getCurrentGoals().size() +" / "+ this.getUncoveredGoals().size());
@@ -197,7 +198,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		// next generations
 		while (!isFinished() && this.goalsManager.getUncoveredGoals().size() > 0) {
 			MutationPurpose.currentPurpose.
-				setPurpose(this.goalsManager.getUncoveredGoals());
+				setPurpose(this.goalsManager.getCurrentGoals());
 			this.evolve();
 			this.notifyIteration();
 		}
