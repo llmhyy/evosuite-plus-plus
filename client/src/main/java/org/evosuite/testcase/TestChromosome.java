@@ -517,9 +517,13 @@ public class TestChromosome extends ExecutableChromosome {
 			getChangedPositionsInOldTest().clear();
 			double[] mutationProbability = calculateMutationProbability(lastMutatableStatement);
 			
+			List<Integer> forceMutationPosition = checkForceMutationPosition(mutationProbability);
+			
 			System.currentTimeMillis();
 			
+			
 			for (int position = 0, oldPosition = 0; position <= lastMutatableStatement; position++, oldPosition++) {
+				boolean statementChanged = false;
 				lastMutatableStatement = getLastMutatableStatement();
 				if(!Properties.TARGET_METHOD.isEmpty()) {
 					targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
@@ -533,12 +537,19 @@ public class TestChromosome extends ExecutableChromosome {
 				double ram = Randomness.nextDouble();
 				if(this.getAge() > 30) {
 					if(oldPosition < mutationProbability.length) {
-						pl = mutationProbability[oldPosition];
+						/**
+						 * we choose the two largest position as force mutation position
+						 */
+						if(forceMutationPosition.contains(oldPosition)) {
+							pl = 1;
+						}
+						else {
+							pl = mutationProbability[oldPosition];							
+						}
 					}
-					
 				}
 				else {
-					pl = 0.3;
+					pl = 0.2;
 				}
 				
 				if (ram <= pl) {
@@ -555,6 +566,7 @@ public class TestChromosome extends ExecutableChromosome {
 					//constraints are handled directly in the statement mutations
 					if (statement.mutate(test, testFactory)) {
 						changed = true;
+						statementChanged = true;
 						mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
 						        TestMutationHistoryEntry.TestMutation.CHANGE, statement));
 						assert (test.isValid());
@@ -568,6 +580,7 @@ public class TestChromosome extends ExecutableChromosome {
 						int pos = statement.getPosition();
 						if (testFactory.changeRandomCall(test, statement)) {
 							changed = true;
+							statementChanged = true;
 							mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
 							        TestMutationHistoryEntry.TestMutation.CHANGE,
 							        test.getStatement(pos)));
@@ -579,7 +592,8 @@ public class TestChromosome extends ExecutableChromosome {
 					statement.getReturnValue().setDistance(oldDistance);
 					position = statement.getPosition(); // Might have changed due to mutation
 					
-					statement.setChanged(changed);
+//					if(statement instanceof Assignment)
+					statement.setChanged(statementChanged);
 					if(changed) {
 						getChangedPositionsInOldTest().add(oldPosition);
 					}
@@ -592,6 +606,43 @@ public class TestChromosome extends ExecutableChromosome {
 		}
 
 		return changed;
+	}
+
+	/**
+	 * we choose the two largest position as force mutation position
+	 * 
+	 * @param mutationProbability
+	 * @return
+	 */
+	private List<Integer> checkForceMutationPosition(double[] mutationProbability) {
+		List<Integer> indexes = new ArrayList<Integer>();
+		List<Double> values = new ArrayList<Double>();
+		
+		for(int i=0; i<mutationProbability.length; i++) {
+			if(values.size() < 2) {
+				indexes.add(i);
+				values.add(mutationProbability[i]);
+			}
+			
+			if(values.size()==2) {
+				if(values.get(0) < values.get(1)) {
+					Double tmp = values.get(1);
+					values.set(1, values.get(0));
+					values.set(0, tmp);
+					
+					Integer iTemp = indexes.get(1);
+					indexes.set(1, indexes.get(0));
+					indexes.set(0, iTemp);
+				}
+				
+				if(i>2 && mutationProbability[i] > values.get(1)) {
+					indexes.set(1, i);
+					values.set(1, mutationProbability[i]);
+				}
+			}
+		}
+		
+		return indexes;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -616,10 +667,26 @@ public class TestChromosome extends ExecutableChromosome {
 		Double sum = 0d;
 		for(int i=0; i<lastMutatableStatement+1; i++) {
 			sum += mutationProbabililty[i];
+//			sum += Math.pow(Math.E, mutationProbabililty[i]);
 		}
 		
 		for(int i=0; i<lastMutatableStatement+1; i++) {
-			mutationProbabililty[i] /= sum;
+			mutationProbabililty[i] =  mutationProbabililty[i] / sum;
+//			mutationProbabililty[i] =  Math.pow(Math.E, mutationProbabililty[i]) / sum;
+		}
+		
+//		mutationProbabililty = softmax(mutationProbabililty);
+		return mutationProbabililty;
+	}
+	
+	public double[] softmax(double[] mutationProbabililty) {
+		Double sum = 0d;
+		for(int i=0; i<mutationProbabililty.length; i++) {
+			sum += Math.pow(Math.E, mutationProbabililty[i]*10);
+		}
+		
+		for(int i=0; i<mutationProbabililty.length; i++) {
+			mutationProbabililty[i] = Math.pow(Math.E, mutationProbabililty[i]*10)/sum;
 		}
 		
 		return mutationProbabililty;

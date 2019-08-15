@@ -210,6 +210,8 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			
 			List<FitnessFunction> changedFitnesses = identifyChangedFitness(newTest, oldTest);
 			
+//			System.currentTimeMillis();
+			
 			updateChangeRelevanceMap(changedFitnesses, newTest.getTestCase());
 			updateChangeRelevanceMap(changedFitnesses, oldTest.getTestCase());
 		}

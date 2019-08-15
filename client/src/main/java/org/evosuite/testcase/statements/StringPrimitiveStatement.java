@@ -120,37 +120,75 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 		}
 		
 		final double P2 = 1d / 3d;
-		double P = 1d / s.length();
+		double random = Randomness.nextDouble();
+//		double P = 1d / s.length();
 		// Delete
-		if (Randomness.nextDouble() < P2) {
-			for (int i = s.length(); i > 0; i--) {
-				if (Randomness.nextDouble() < P) {
-					// logger.info("Before remove at "+i+": '"+s+"'");
-					s = removeCharAt(s, i - 1);
-					// logger.info("After remove: '"+s+"'");
-				}
+		if (random < P2) {
+			if(s.length()>0) {
+				int pos = (int )(s.length() * Math.random());
+				s = removeCharAt(s, pos);				
 			}
+			System.currentTimeMillis();
+//			for (int i = s.length(); i > 0; i--) {
+//				if (Randomness.nextDouble() < P) {
+//					// logger.info("Before remove at "+i+": '"+s+"'");
+//					s = removeCharAt(s, i - 1);
+//					// logger.info("After remove: '"+s+"'");
+//				}
+//			}
 		}
-		P = 1d / s.length();
+//		P = 1d / s.length();
 		// Change
-		if (Randomness.nextDouble() < P2) {
-			for (int i = 0; i < s.length(); i++) {
-				if (Randomness.nextDouble() < P) {
-					// logger.info("Before change: '"+s+"'");
-					s = replaceCharAt(s, i, Randomness.nextChar());
-					// logger.info("After change: '"+s+"'");
+		
+		else if (random >= P2 && random < 2*P2) {
+			if(s.length() > 0) {
+				int pos = (int )(s.length() * Math.random());
+				char character = s.charAt(pos);
+				
+				char replaceChar = Randomness.nextChar();
+				if(Randomness.nextDouble() < 0.9) {
+					try {
+						if(Randomness.nextDouble() < 0.5) {
+							replaceChar = (char) (character - 1);						
+						}
+						else {
+							replaceChar = (char) (character + 1);
+						}						
+					}
+					catch(Exception e) {
+						System.currentTimeMillis();
+					}
 				}
+				
+				s = replaceCharAt(s, pos, replaceChar);		
+				System.currentTimeMillis();
 			}
+			
+			
+//			for (int i = 0; i < s.length(); i++) {
+//				if (Randomness.nextDouble() < P) {
+//					// logger.info("Before change: '"+s+"'");
+//					s = replaceCharAt(s, i, Randomness.nextChar());
+//					// logger.info("After change: '"+s+"'");
+//				}
+//			}
 		}
 
 		// Insert
-		if (Randomness.nextDouble() < P2) {
+		else if (random >= 2*P2) {
 			// for(int i = 0; i < s.length(); i++) {
 			// if(Randomness.nextDouble() < P) {
 			int pos = 0;
 			if (s.length() > 0)
-				pos = Randomness.nextInt(s.length());
-			s = StringInsert(s, pos);
+				pos = (int)(Math.random() * s.length());
+			pos += (int)(Math.random() * 2);
+			System.currentTimeMillis();
+			if(pos > s.length()) {
+				pos--;
+			}
+			s = insertCharAt(s, pos, Randomness.nextChar());
+//			s = StringInsert(s, pos);
+			System.currentTimeMillis();
 			// }
 			// }
 		}
