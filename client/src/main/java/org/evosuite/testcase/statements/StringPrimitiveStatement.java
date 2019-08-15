@@ -148,11 +148,12 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 				char replaceChar = Randomness.nextChar();
 				if(Randomness.nextDouble() < 0.9) {
 					try {
+						int step = (int) (3*Math.random());
 						if(Randomness.nextDouble() < 0.5) {
-							replaceChar = (char) (character - 1);						
+							replaceChar = (char) (character - step);						
 						}
 						else {
-							replaceChar = (char) (character + 1);
+							replaceChar = (char) (character + step);
 						}						
 					}
 					catch(Exception e) {
