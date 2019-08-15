@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.ProgressMonitor;
 import org.evosuite.Properties;
 import org.evosuite.Properties.SelectionFunction;
@@ -46,7 +48,6 @@ import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.ga.metaheuristics.SearchListener;
-import org.evosuite.ga.operators.mutation.MutationHistoryEntry;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -208,7 +209,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			TestChromosome newTest = (TestChromosome)offspring;
 			TestChromosome oldTest = (TestChromosome)parent;
 			
-			List<FitnessFunction> changedFitnesses = identifyChangedFitness(newTest, oldTest);
+			Map<FitnessFunction, Boolean> changedFitnesses = identifyChangedFitness(newTest, oldTest);
 			
 //			System.currentTimeMillis();
 			
@@ -218,36 +219,55 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private void updateChangeRelevanceMap(List<FitnessFunction> changedFitnesses, TestCase test) {
+	private void updateChangeRelevanceMap(Map<FitnessFunction, Boolean> changedFitnesses, TestCase test) {
 		for(int pos=0; pos<test.size()-1; pos++) {
 			Statement statement = test.getStatement(pos);
 			if(statement.isChanged()) {
-				for(FitnessFunction ff: changedFitnesses) {
-					Double d = statement.getChangeRelevanceMap().get(ff);
-					if(d==null) {
-						d = 0d;
+				for(FitnessFunction ff: changedFitnesses.keySet()) {
+					Pair<Double, Double> pair = statement.getChangeRelevanceMap().get(ff);
+					if(pair==null) {
+						pair = MutablePair.of(0d, 0d);
 					}
-					d++;
-					statement.getChangeRelevanceMap().put(ff, d);
+					
+					if(changedFitnesses.get(ff)) {
+						pair = MutablePair.of(pair.getLeft()+1, pair.getRight());
+					}
+					else {
+						pair = MutablePair.of(pair.getLeft(), pair.getRight()+1);
+					}
+					statement.getChangeRelevanceMap().put(ff, pair);
 				}
 			}
 		}
 	}
 
+	/**
+	 * Lin Yun: If the new test is better than the old test, we record the map <fitness, true>, 
+	 * else we record the map <fitness, false>. 
+	 * 
+	 * We distinguish the positive/negative effect because we would like to know whether the
+	 * mutation on specific position always has negative effect. by our observation, the negative
+	 * effect happens because of local optima, i.e., the mutation causes that we can no longer
+	 * cover the parent branch. If it does, we can cancel out such mutation during search.
+	 * 
+	 * @param newTest
+	 * @param oldTest
+	 * @return
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private List<FitnessFunction> identifyChangedFitness(TestChromosome newTest, TestChromosome oldTest) {
-		List<FitnessFunction> list = new ArrayList<>();
+	private Map<FitnessFunction, Boolean> identifyChangedFitness(TestChromosome newTest, TestChromosome oldTest) {
+		Map<FitnessFunction, Boolean> map = new HashMap<>();
 		
 		for(FitnessFunction changedFit: newTest.getFitnessValues().keySet()) {
 			double d1 = newTest.getFitness(changedFit);
 			double d2 = oldTest.getFitness(changedFit);
 			
 			if(d1 != d2) {
-				list.add(changedFit);
+				map.put(changedFit, d1 < d2);
 			}
 		}
 		
-		return list;
+		return map;
 	}
 
 	/**

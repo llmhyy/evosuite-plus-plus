@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationExecutionResult;
@@ -73,6 +74,11 @@ public class TestChromosome extends ExecutableChromosome {
 
 	/** Secondary objectives used during ranking */
 	private static final List<SecondaryObjective<TestChromosome>> secondaryObjectives = new ArrayList<SecondaryObjective<TestChromosome>>();
+
+	/**
+	 * Use this constant to calculate the relevance of statement. 
+	 */
+	private static final double MAX_POWER = 100;
 
 	/**
 	 * <p>
@@ -651,15 +657,34 @@ public class TestChromosome extends ExecutableChromosome {
 		
 		Set<FitnessFunction<? extends Chromosome>> currentGoals = MutationPurpose.currentPurpose.goals;
 		
+		System.currentTimeMillis();
+		
 		for(int i=0; i<lastMutatableStatement+1; i++) {
 			mutationProbabililty[i] = 1;
 			
 			Statement statement = test.getStatement(i);
-			Map<FitnessFunction, Double> map = statement.getChangeRelevanceMap();
+			Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
 			for(FitnessFunction<?> ff: currentGoals) {
-				Double frequency = map.get(ff);
-				if(frequency != null) {
-					mutationProbabililty[i] += frequency;
+				Pair<Double, Double> effectFrequency = map.get(ff);
+				if(effectFrequency != null) {
+					Double positiveEffect = effectFrequency.getLeft();
+					Double negativeEffect = effectFrequency.getRight();
+					
+					double base = positiveEffect + negativeEffect;
+					if(base > 10) {
+						double alpha = 1;
+						if(negativeEffect==0 && positiveEffect != 0) {
+							alpha = MAX_POWER;
+						}
+						else {
+							alpha = positiveEffect / negativeEffect;
+						}
+						mutationProbabililty[i] += base * alpha;						
+					}
+					else {
+						mutationProbabililty[i] += base;
+					}
+					
 				}
 			}
 		}

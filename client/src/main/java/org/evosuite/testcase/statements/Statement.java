@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.assertion.Assertion;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.testcase.TestCase;
@@ -36,7 +37,6 @@ import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.Scope;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.generic.GenericAccessibleObject;
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 /**
  * <p>
@@ -406,8 +406,8 @@ public interface Statement {
 	 * and a set of fitnesses. 
 	 * @return
 	 */
-	public Map<FitnessFunction, Double> getChangeRelevanceMap();
-	public void setChangeRelevanceMap(Map<FitnessFunction, Double> changeRelevanceMap);
+	public Map<FitnessFunction, Pair<Double, Double>> getChangeRelevanceMap();
+	public void setChangeRelevanceMap(Map<FitnessFunction, Pair<Double, Double>> changeRelevanceMap);
 
 
 	public boolean isChanged();

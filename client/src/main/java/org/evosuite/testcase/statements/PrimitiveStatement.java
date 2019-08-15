@@ -85,7 +85,6 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
     public PrimitiveStatement(TestCase tc, VariableReference varRef, T value) {
         super(tc, varRef);
         this.value = value;
-        initializeMutationRelevance();
     }
 
     /**
@@ -98,13 +97,11 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
     public PrimitiveStatement(TestCase tc, Type type, T value) {
         super(tc, new VariableReferenceImpl(tc, type));
         this.value = value;
-        initializeMutationRelevance();
     }
 
     public PrimitiveStatement(TestCase tc, GenericClass clazz, T value) {
         super(tc, new VariableReferenceImpl(tc, clazz));
         this.value = value;
-        initializeMutationRelevance();
     }
 
     public List<TestFitnessFunction> getGoals(){
@@ -128,12 +125,12 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
     	return goals;
     }
     
-    public void initializeMutationRelevance() {
-    	List<TestFitnessFunction> goals = getGoals();
-    	for(TestFitnessFunction ff: goals) {
-    		this.changeRelevanceMap.put(ff, (double) 1);
-    	}
-    }
+//    public void initializeMutationRelevance() {
+//    	List<TestFitnessFunction> goals = getGoals();
+//    	for(TestFitnessFunction ff: goals) {
+//    		this.changeRelevanceMap.put(ff, (double) 1);
+//    	}
+//    }
     
     /**
      * Access the value
