@@ -138,6 +138,7 @@ public class FlagEffectEvaluator {
 			}
 		}
 		
+//		System.currentTimeMillis();
 		return "";
 	}
 
@@ -237,6 +238,11 @@ public class FlagEffectEvaluator {
 			
 			Use use = DefUsePool.getUseByInstruction(ins);
 			List<Definition> defs = DefUsePool.getDefinitions(use);
+			
+			if(defs==null) {
+				return null;
+			}
+			
 			if(!defs.isEmpty()) {
 				Definition def = defs.get(0);
 				BytecodeInstruction call = def.getSourceOfStackInstruction(0);
