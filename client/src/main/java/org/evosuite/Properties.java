@@ -214,7 +214,7 @@ public class Properties {
 	public static int MAX_DELTA = 20;
 
 	@Parameter(key = "random_perturbation", group = "Test Creation", description = "Probability to replace a primitive with a random new value rather than adding a delta")
-	public static double RANDOM_PERTURBATION = 0.2;
+	public static double RANDOM_PERTURBATION = 0.1;
 
 	@Parameter(key = "max_array", group = "Test Creation", description = "Maximum length of randomly generated arrays")
 	public static int MAX_ARRAY = 10;

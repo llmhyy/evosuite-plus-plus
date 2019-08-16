@@ -664,8 +664,51 @@ public class TestChromosome extends ExecutableChromosome {
 		List<double[]> mutationProbabilityList = extractMutationProbabilityList(lastMutatableStatement, 
 				currentGoals, clusters);
 		
-		int randomIndex = (int) (Math.random() * mutationProbabilityList.size());
-		return mutationProbabilityList.get(randomIndex);
+		/**
+		 * The distribution correspond to the size of cluster.
+		 */
+		double[] probabilityDistribution = deriveProbabilityDistributionFromClusters(clusters);
+		
+		int index = pickRandomIndex(probabilityDistribution);
+		
+		return mutationProbabilityList.get(index);
+	}
+
+	private int pickRandomIndex(double[] probabilityDistribution) {
+		double random = Math.random();
+		int index = 0;
+		for(int i=0; i<probabilityDistribution.length; i++) {
+			double lowerBound = (i==0) ? 0 : probabilityDistribution[i-1];
+			double upperBound = probabilityDistribution[i];
+			if(lowerBound < random && random <= upperBound) {
+				index = i;
+				break;
+			}
+		}
+		return index;
+	}
+
+	/**
+	 * The distribution correspond to the size of cluster.
+	 * @param clusters
+	 * @return
+	 */
+	private double[] deriveProbabilityDistributionFromClusters(List<List<Integer>> clusters) {
+		double[] probability = new double[clusters.size()];
+		double sum = 0d;
+		for(int i=0; i<probability.length; i++) {
+			probability[i] = (double) (clusters.get(i).size());
+			sum += probability[i];
+		}
+		
+		for(int i=0; i<probability.length; i++) {
+			probability[i] /= sum;
+		}
+		
+		for(int i=0; i<probability.length-1; i++) {
+			probability[i+1] += probability[i];
+		}
+		return probability;
 	}
 
 	private List<List<Integer>> clusterGoals(double[][] relevanceMatrix) {
