@@ -129,6 +129,7 @@ public class TestChromosome extends ExecutableChromosome {
 	 *
 	 * Create a deep copy of the chromosome
 	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	public Chromosome clone() {
 		TestChromosome c = new TestChromosome();
@@ -496,7 +497,7 @@ public class TestChromosome extends ExecutableChromosome {
 	 *
 	 * @return
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings("deprecation")
 	private boolean mutationChange() {
 		boolean changed = false;
 		int lastMutatableStatement = getLastMutatableStatement();
@@ -767,6 +768,7 @@ public class TestChromosome extends ExecutableChromosome {
 		return true;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private List<double[]> extractMutationProbabilityList(int lastMutatableStatement,
 			List<FitnessFunction<? extends Chromosome>> currentGoals, List<List<Integer>> clusters) {
 		List<double[]> mutationProbabilityList = new ArrayList<>();
@@ -816,6 +818,7 @@ public class TestChromosome extends ExecutableChromosome {
 		return mutationProbabilityList;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private double[][] constructRelevanceMatrix(int lastMutatableStatement,
 			List<FitnessFunction<? extends Chromosome>> currentGoals) {
 		double[][] relevanceMatrix = new double[test.size()][currentGoals.size()];
@@ -1005,12 +1008,12 @@ public class TestChromosome extends ExecutableChromosome {
 	/*
 	@Override
 	public boolean applyDSE(GeneticAlgorithm<?> ga) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	*/
 
 	/** {@inheritDoc} */
+	@SuppressWarnings("deprecation")
 	@Override
 	public ExecutionResult executeForFitnessFunction(
 	        TestSuiteFitnessFunction testSuiteFitnessFunction) {
