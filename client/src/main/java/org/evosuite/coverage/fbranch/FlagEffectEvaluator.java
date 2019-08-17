@@ -277,7 +277,7 @@ public class FlagEffectEvaluator {
 			BytecodeInstruction defIns2 = ins.getSourceOfStackInstruction(1);
 			
 			if(defIns2==null) {
-				System.currentTimeMillis();
+//				System.currentTimeMillis();
 			}
 			
 			if(defIns1.isMethodCall()) {
@@ -352,6 +352,7 @@ public class FlagEffectEvaluator {
 			if(jNode.getOpcode() == Opcodes.IFEQ ||
 					jNode.getOpcode() == Opcodes.IFGE ||
 					jNode.getOpcode() == Opcodes.IFGT ||
+					jNode.getOpcode() == Opcodes.IFLT ||
 					jNode.getOpcode() == Opcodes.IFLE ||
 					jNode.getOpcode() == Opcodes.IFNE ||
 					jNode.getOpcode() == Opcodes.IFNONNULL ||
