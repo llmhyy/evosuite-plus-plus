@@ -21,6 +21,7 @@ package org.evosuite.ga.metaheuristics.mosa;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,7 @@ import org.evosuite.ga.comparators.OnlyCrowdingComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.metaheuristics.mosa.structural.StructuralGoalManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
-import org.evosuite.testcase.MutationPurpose;
+import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.utils.LoggingUtils;
 import org.slf4j.Logger;
@@ -66,6 +67,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		super(factory);
 	}
 
+	
 	/** {@inheritDoc} */
 	@Override
 	protected void evolve() {
@@ -120,6 +122,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			remain = 0;
 		}
 		
+		MutationPositionDiscriminator.discriminator.decreaseFrozenIteration();
 		printBestFitness();
 
 		this.currentIteration++;
@@ -173,7 +176,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		logger.debug("executing generateSolution function");
 
 		this.goalsManager = new MultiCriteriaManager<>(this.fitnessFunctions);
-		MutationPurpose.currentPurpose.goals = this.goalsManager.getCurrentGoals();
+		MutationPositionDiscriminator.discriminator.currentGoals = this.goalsManager.getCurrentGoals();
 
 		LoggingUtils.getEvoLogger().info("* Initial Number of Goals in DynMOSA = " +
 				this.goalsManager.getCurrentGoals().size() +" / "+ this.getUncoveredGoals().size());
@@ -197,7 +200,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		// next generations
 		while (!isFinished() && this.goalsManager.getUncoveredGoals().size() > 0) {
-			MutationPurpose.currentPurpose.
+			MutationPositionDiscriminator.discriminator.
 				setPurpose(this.goalsManager.getCurrentGoals());
 			this.evolve();
 			this.notifyIteration();
@@ -211,7 +214,20 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	 */
 	@Override
 	protected void calculateFitness(T c) {
+		
+		String oldGoalFingerprint = this.goalsManager.getCurrentGoalFingerPrint();
+		
 		this.goalsManager.calculateFitness(c);
 		this.notifyEvaluation(c);
+		
+		String newGoalFingerprint = this.goalsManager.getCurrentGoalFingerPrint();
+		
+		if(!oldGoalFingerprint.equals(newGoalFingerprint)) {
+			MutationPositionDiscriminator.discriminator.resetFrozenIteartion();
+		}
+		else {
+//			MutationPositionDiscriminator.discriminator.decreaseFrozenIteration();
+		}
+		
 	}
 }

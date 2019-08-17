@@ -129,6 +129,10 @@ public class Properties {
 
 	@Parameter(key = "reset_standard_streams", group = "Test Creation", description = "Restore System.out, System.in and DebugGraphics.logStream after test execution")
 	public static boolean RESET_STANDARD_STREAMS = false;
+	
+	@Parameter(key = "pre_oneline_learning_iteration", group = "Test Creation", description = "The number of iterations before applying online learning")
+    @IntValue(min = 1, max = 32767) // String literals may not be longer than 32767
+    public static int PRE_ONLINE_LEARNING_ITERATION = 30;
 
 	/**
 	 * TODO: this option is off by default because still experimental and not
@@ -197,7 +201,6 @@ public class Properties {
     @Parameter(key = "max_string", group = "Test Creation", description = "Maximum length of strings in assertions")
     @IntValue(min = 1, max = 32767) // String literals may not be longer than 32767
     public static int MAX_STRING = 1000;
-
 
 	@Parameter(key = "epsilon", group = "Test Creation", description = "Epsilon for floats in local search")
 	@Deprecated

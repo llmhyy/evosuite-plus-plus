@@ -523,11 +523,7 @@ public class TestChromosome extends ExecutableChromosome {
 		if (!changed) {
 			getChangedPositionsInOldTest().clear();
 			double[] mutationProbability = calculateMutationProbability(lastMutatableStatement);
-			
 			List<Integer> forceMutationPosition = checkForceMutationPosition(mutationProbability);
-			
-			System.currentTimeMillis();
-			
 			
 			for (int position = 0, oldPosition = 0; position <= lastMutatableStatement; position++, oldPosition++) {
 				boolean statementChanged = false;
@@ -539,10 +535,8 @@ public class TestChromosome extends ExecutableChromosome {
 				Statement statement = test.getStatement(position);
 				statement.setChanged(false);
 				
-				System.currentTimeMillis();
-				
 				double ram = Randomness.nextDouble();
-				if(this.getAge() > 30) {
+				if(!MutationPositionDiscriminator.discriminator.isFrozen()) {
 					if(oldPosition < mutationProbability.length) {
 						/**
 						 * we choose the two largest position as force mutation position
@@ -654,7 +648,7 @@ public class TestChromosome extends ExecutableChromosome {
 
 	@SuppressWarnings({ "unchecked"})
 	private double[] calculateMutationProbability(int lastMutatableStatement) {
-		Set<FitnessFunction<? extends Chromosome>> currentGoalSet = MutationPurpose.currentPurpose.goals;
+		Set<FitnessFunction<? extends Chromosome>> currentGoalSet = MutationPositionDiscriminator.discriminator.currentGoals;
 		List<FitnessFunction<? extends Chromosome>> currentGoals = new ArrayList<>(currentGoalSet);
 		
 		double[][] relevanceMatrix = constructRelevanceMatrix(lastMutatableStatement, currentGoals);

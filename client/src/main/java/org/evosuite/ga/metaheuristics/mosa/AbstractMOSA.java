@@ -49,6 +49,7 @@ import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.ga.metaheuristics.SearchListener;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -157,13 +158,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 //			this.removeUnusedVariables(offspring1);
 //			this.removeUnusedVariables(offspring2);
 			
-			if(offspring1 instanceof TestChromosome) {
-				if(((TestChromosome)offspring1).getTestCase().size() 
-						!= ((TestChromosome)parent1).getTestCase().size()) {
-					System.currentTimeMillis();
-				}
-			}
-
 			// apply mutation on offspring1
 			this.mutate(offspring1, parent1);
 			

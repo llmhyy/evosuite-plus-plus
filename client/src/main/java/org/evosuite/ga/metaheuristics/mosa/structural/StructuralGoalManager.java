@@ -21,6 +21,8 @@ package org.evosuite.ga.metaheuristics.mosa.structural;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -87,5 +89,18 @@ public abstract class StructuralGoalManager<T extends Chromosome> implements Ser
 
 		// update covered targets
 		this.archive.updateArchive((TestFitnessFunction) f, (TestChromosome) tc, tc.getFitness(f));
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public String getCurrentGoalFingerPrint() {
+		List<FitnessFunction> list = new ArrayList<>(this.getCurrentGoals());
+		Collections.sort(list, new Comparator<FitnessFunction>() {
+			@Override
+			public int compare(FitnessFunction o1, FitnessFunction o2) {
+				return o1.toString().compareTo(o2.toString());
+			}
+		});
+		
+		return list.toString();
 	}
 }
