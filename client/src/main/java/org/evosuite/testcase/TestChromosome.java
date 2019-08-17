@@ -46,6 +46,7 @@ import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.localsearch.TestCaseLocalSearch;
 import org.evosuite.testcase.statements.FunctionalMockStatement;
+import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.variable.VariableReference;
@@ -579,7 +580,8 @@ public class TestChromosome extends ExecutableChromosome {
 						//if a statement should not be deleted, then it cannot be either replaced by another one
 
 						int pos = statement.getPosition();
-						if (testFactory.changeRandomCall(test, statement)) {
+						boolean isToReplaceTargetMethod = isToReplaceTargetMethod(statement);
+						if (!isToReplaceTargetMethod && testFactory.changeRandomCall(test, statement)) {
 							changed = true;
 							statementChanged = true;
 							mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
@@ -595,7 +597,7 @@ public class TestChromosome extends ExecutableChromosome {
 					
 //					if(statement instanceof Assignment)
 					statement.setChanged(statementChanged);
-					if(changed) {
+					if(statementChanged) {
 						getChangedPositionsInOldTest().add(oldPosition);
 					}
 				}
@@ -607,6 +609,18 @@ public class TestChromosome extends ExecutableChromosome {
 		}
 
 		return changed;
+	}
+
+	private boolean isToReplaceTargetMethod(Statement statement) {
+		if(!Properties.TARGET_METHOD.isEmpty() && statement instanceof MethodStatement) {
+			MethodStatement methodStat = (MethodStatement)statement;
+			String methodSig = methodStat.getMethodName() + methodStat.getDescriptor();
+			if(methodSig.equals(Properties.TARGET_METHOD)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 
 	/**
