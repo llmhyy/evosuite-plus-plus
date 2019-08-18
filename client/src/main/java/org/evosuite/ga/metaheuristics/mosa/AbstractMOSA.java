@@ -291,7 +291,9 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			}
 			
 			for(Integer position: changedPositions) {
-				parentTestCase.getStatement(position).setChanged(true);
+				if(position < parentTestCase.size()) {
+					parentTestCase.getStatement(position).setChanged(true);					
+				}
 			}
 		}
 		
