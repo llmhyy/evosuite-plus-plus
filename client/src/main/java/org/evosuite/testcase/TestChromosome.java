@@ -520,7 +520,7 @@ public class TestChromosome extends ExecutableChromosome {
 				logger.debug("Detailed exception trace: ", exc);
 			}
 		}
-
+		
 		if (!changed) {
 			getChangedPositionsInOldTest().clear();
 			double[] mutationProbability = calculateMutationProbability(this.test.size()-1);
@@ -670,16 +670,25 @@ public class TestChromosome extends ExecutableChromosome {
 	}
 
 	@SuppressWarnings({ "unchecked"})
-	private double[] calculateMutationProbability(int lastMutatableStatement) {
+	private double[] calculateMutationProbability(int size) {
 		Set<FitnessFunction<? extends Chromosome>> currentGoalSet = MutationPositionDiscriminator.discriminator.currentGoals;
+		
+		if(currentGoalSet.isEmpty()) {
+			double[] distribution = new double[size];
+			for(int i=0; i<size; i++) {
+				distribution[i] = 1d/size;
+			}
+			return distribution;
+		}
+		
 		List<FitnessFunction<? extends Chromosome>> currentGoals = new ArrayList<>(currentGoalSet);
 		
-		double[][] relevanceMatrix = constructRelevanceMatrix(lastMutatableStatement, currentGoals);
+		double[][] relevanceMatrix = constructRelevanceMatrix(size, currentGoals);
 		List<List<Integer>> clusters = clusterGoals(relevanceMatrix);
 		
 //		System.currentTimeMillis();
 		
-		List<double[]> mutationProbabilityList = extractMutationProbabilityList(lastMutatableStatement, 
+		List<double[]> mutationProbabilityList = extractMutationProbabilityList(size, 
 				currentGoals, clusters);
 		
 		/**
