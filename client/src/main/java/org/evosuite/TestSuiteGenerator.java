@@ -558,7 +558,12 @@ public class TestSuiteGenerator {
                     + "WARNING: Not including the runtime dependencies is likely to lead to flaky tests!");
 		}
 		else if (Properties.JUNIT_TESTS && Properties.JUNIT_CHECK) {
-			compileAndCheckTests(testSuite);
+			try {
+				compileAndCheckTests(testSuite);				
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		if (Properties.SERIALIZE_REGRESSION_TEST_SUITE) {
