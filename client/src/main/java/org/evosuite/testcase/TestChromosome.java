@@ -501,13 +501,13 @@ public class TestChromosome extends ExecutableChromosome {
 	@SuppressWarnings("deprecation")
 	private boolean mutationChange() {
 		boolean changed = false;
-		int lastMutatableStatement = getLastMutatableStatement();
-		double pl = 1d / (lastMutatableStatement + 1);
+//		int lastMutatableStatement = getLastMutatableStatement();
+//		double pl = 1d / (lastMutatableStatement + 1);
 		TestFactory testFactory = TestFactory.getInstance();
 		
 		int targetMethodPosition = -1;
 		if(!Properties.TARGET_METHOD.isEmpty()) {
-			targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
+			targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, this.test.size()-1);
 //			System.currentTimeMillis();
 		}
 
@@ -523,83 +523,92 @@ public class TestChromosome extends ExecutableChromosome {
 
 		if (!changed) {
 			getChangedPositionsInOldTest().clear();
-			double[] mutationProbability = calculateMutationProbability(lastMutatableStatement);
+			double[] mutationProbability = calculateMutationProbability(this.test.size()-1);
 			List<Integer> forceMutationPosition = checkForceMutationPosition(mutationProbability);
 			
-			for (int position = 0, oldPosition = 0; position <= lastMutatableStatement; position++, oldPosition++) {
+			for (int position = 0, oldPosition = 0; position < this.test.size(); position++, oldPosition++) {
 				boolean statementChanged = false;
-				lastMutatableStatement = getLastMutatableStatement();
-				if(!Properties.TARGET_METHOD.isEmpty()) {
-					targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, lastMutatableStatement);
-				}
-				
 				Statement statement = test.getStatement(position);
 				statement.setChanged(false);
 				
-				double ram = Randomness.nextDouble();
-				if(!MutationPositionDiscriminator.discriminator.isFrozen()) {
-					if(oldPosition < mutationProbability.length) {
-						/**
-						 * we choose the two largest position as force mutation position
-						 */
-						if(forceMutationPosition.contains(oldPosition)) {
-							pl = 1;
-						}
-						else {
-							pl = mutationProbability[oldPosition];							
-						}
-					}
-				}
-				else {
-					pl = 0.2;
-				}
-				
-				if (ram <= pl) {
-//				if (Randomness.nextDouble() <= pl) {
-					assert (test.isValid());
-
-//					Statement statement = test.getStatement(position);
-
-					if(statement.isReflectionStatement())
-						continue;
-
+				targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, this.test.size()-1);
+				if(!Properties.TARGET_METHOD.isEmpty() && targetMethodPosition == -1) {
 					int oldDistance = statement.getReturnValue().getDistance();
-
-					//constraints are handled directly in the statement mutations
-					if (statement.mutate(test, testFactory)) {
-						changed = true;
-						statementChanged = true;
-						mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
-						        TestMutationHistoryEntry.TestMutation.CHANGE, statement));
-						assert (test.isValid());
-						assert ConstraintVerifier.verifyTest(test);
-
-					} else if (!statement.isAssignmentStatement() &&
-							ConstraintVerifier.canDelete(test,position) &&
-							targetMethodPosition != position) {
-						//if a statement should not be deleted, then it cannot be either replaced by another one
-
-						int pos = statement.getPosition();
-						boolean isToReplaceTargetMethod = isToReplaceTargetMethod(statement);
-						if (!isToReplaceTargetMethod && testFactory.changeRandomCall(test, statement)) {
-							changed = true;
-							statementChanged = true;
-							mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
-							        TestMutationHistoryEntry.TestMutation.CHANGE,
-							        test.getStatement(pos)));
-							assert ConstraintVerifier.verifyTest(test);
-						}
-						assert (test.isValid());
-					}
-
+					statementChanged = testFactory.insertRandomCall(test, position);
 					statement.getReturnValue().setDistance(oldDistance);
-					position = statement.getPosition(); // Might have changed due to mutation
-					
-//					if(statement instanceof Assignment)
 					statement.setChanged(statementChanged);
 					if(statementChanged) {
 						getChangedPositionsInOldTest().add(oldPosition);
 					}
+					
+					break;
+				}
+				else {
+					double ram = Randomness.nextDouble();
+					double pl = 0;
+					if(!MutationPositionDiscriminator.discriminator.isFrozen()) {
+						if(oldPosition < mutationProbability.length) {
+							/**
+							 * we choose the two largest position as force mutation position
+							 */
+							if(forceMutationPosition.contains(oldPosition)) {
+								pl = 1;
+							}
+							else {
+								pl = mutationProbability[oldPosition];							
+							}
+						}
+					}
+					else {
+						pl = 0.2;
+					}
+					
+					if (ram <= pl) {
+//					if (Randomness.nextDouble() <= pl) {
+						assert (test.isValid());
+
+//						Statement statement = test.getStatement(position);
+
+						if(statement.isReflectionStatement())
+							continue;
+
+						int oldDistance = statement.getReturnValue().getDistance();
+
+						//constraints are handled directly in the statement mutations
+						if (statement.mutate(test, testFactory)) {
+							changed = true;
+							statementChanged = true;
+							mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
+							        TestMutationHistoryEntry.TestMutation.CHANGE, statement));
+							assert (test.isValid());
+							assert ConstraintVerifier.verifyTest(test);
+
+						} else if (!statement.isAssignmentStatement() &&
+								ConstraintVerifier.canDelete(test,position) &&
+								targetMethodPosition != position) {
+							//if a statement should not be deleted, then it cannot be either replaced by another one
+
+							int pos = statement.getPosition();
+							boolean isToReplaceTargetMethod = isToReplaceTargetMethod(statement);
+							if (!isToReplaceTargetMethod && testFactory.changeRandomCall(test, statement)) {
+								changed = true;
+								statementChanged = true;
+								mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
+								        TestMutationHistoryEntry.TestMutation.CHANGE,
+								        test.getStatement(pos)));
+								assert ConstraintVerifier.verifyTest(test);
+							}
+							assert (test.isValid());
+						}
+
+						statement.getReturnValue().setDistance(oldDistance);
+						position = statement.getPosition(); // Might have changed due to mutation
+						statement.setChanged(statementChanged);
+						if(statementChanged) {
+							getChangedPositionsInOldTest().add(oldPosition);
+						}
+					}
+					
 				}
 			}
 		}
@@ -827,11 +836,11 @@ public class TestChromosome extends ExecutableChromosome {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private double[][] constructRelevanceMatrix(int lastMutatableStatement,
+	private double[][] constructRelevanceMatrix(int testcaseSize,
 			List<FitnessFunction<? extends Chromosome>> currentGoals) {
 		double[][] relevanceMatrix = new double[test.size()][currentGoals.size()];
 		
-		for(int i=0; i<lastMutatableStatement+1; i++) {
+		for(int i=0; i<testcaseSize; i++) {
 			Statement statement = test.getStatement(i);
 			Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
 			for(int j=0; j<currentGoals.size(); j++) {

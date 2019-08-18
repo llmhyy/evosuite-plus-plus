@@ -1300,6 +1300,8 @@ public class TestCluster {
 
 	/**
 	 * Get random method or constructor of unit under test
+	 * 
+	 * Lin Yun: if the test contains no target method, it is determined to add that call.
 	 *
 	 * @return
 	 * @throws ConstructionFailedException
@@ -1308,7 +1310,7 @@ public class TestCluster {
 	        throws ConstructionFailedException {
 		List<GenericAccessibleObject<?>> candidateTestMethods = new ArrayList<>(testMethods);
 		
-		if(!test.isEmpty()) {
+		if(TestGenerationUtil.getTargetMethodPosition(test, test.size()-1) != -1) {
 			TestGenerationUtil.filterTargetMethod(test, candidateTestMethods);			
 		}
 
@@ -1324,7 +1326,7 @@ public class TestCluster {
 			// It may happen that all remaining test calls are constructors. In this case it's ok.
 			if(candidateTestMethods.isEmpty()) {
 				candidateTestMethods = new ArrayList<>(testMethods);
-				if(!test.isEmpty()) {
+				if(TestGenerationUtil.getTargetMethodPosition(test, test.size()-1) != -1) {
 					TestGenerationUtil.filterTargetMethod(test, candidateTestMethods);			
 				}
 			}

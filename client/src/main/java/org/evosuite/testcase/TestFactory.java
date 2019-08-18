@@ -2254,7 +2254,6 @@ public class TestFactory {
 		}
 	}
 
-
 	public boolean insertRandomCallOnObjectAt(TestCase test, VariableReference var, int position) {
 
 		// Select a random variable
