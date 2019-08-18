@@ -181,7 +181,7 @@ public class EvosuiteForMethod {
 				String usedStrategy = getStrategy(args);
 				FitnessEffectiveRecorder fitnessRecorder;
 				DistributionRecorder distributionRecorder;
-				OneBranchRecorder oneBranchRecorder;
+//				OneBranchRecorder oneBranchRecorder;
 
 				List<ExperimentRecorder> recorderList = new ArrayList<>();
 
@@ -189,7 +189,7 @@ public class EvosuiteForMethod {
 					fitnessRecorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
 					distributionRecorder = new IterDistributionRecorder(usedStrategy);
 					recorderList.add(fitnessRecorder);
-					recorderList.add(distributionRecorder);
+//					recorderList.add(distributionRecorder);
 				} else {
 					fitnessRecorder = new FitnessEffectiveRecorder();
 					distributionRecorder = new DistributionRecorder(usedStrategy);
