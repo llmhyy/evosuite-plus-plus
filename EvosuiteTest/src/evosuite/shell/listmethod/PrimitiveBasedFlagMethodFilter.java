@@ -73,7 +73,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 			ClassNode cn) throws AnalyzerException, IOException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
 		
-		//		GraphPool.clearAll();
+		// Get actual CFG
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		if (cfg == null) {
 			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
@@ -82,18 +82,23 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		}
 //		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+
+		/* Has branches */
 		if (CollectionUtil.isNullOrEmpty(cfg.getBranches())) {
 			return false;
 		} 
-		
+
+		/* Not a constructor */
 		if(methodName.contains("<init>")) {
 			return false;
 		}
-		
+
+		/* Must have parameters */
 		if(!hasParam(node, cn)) {
 			return false;
 		}
-		
+
+		/* All parameters must be of primitive types(including String) */
 		if(!FilterHelper.isMethodHasAllPrimitiveParameter(node)) {
 			return false;
 		}
@@ -109,7 +114,8 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		for (BytecodeInstruction insn : cfg.getBranches()) {
 			AbstractInsnNode insnNode = insn.getASMNode();
 			/* check whether it is a flag condition */
-			if (CollectionUtil.existIn(insnNode .getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
+			/* exist potential flag method */
+			if (CollectionUtil.existIn(insnNode.getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
 				StringBuilder sb = new StringBuilder()
 							.append(OpcodeUtils.getCode(insnNode.getOpcode()))
 							.append(", prev -- ")
@@ -122,17 +128,21 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 					
 					//TODO the value could be defined multiple times
 					AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
-					
+					/* Next instruction is to invokeMethod followed by IFEQ or IFNE*/
 					if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
-						
-						
+
 						if (checkFlagMethod(classLoader, condDefinition, insn.getLineNumber(), mc, methodValidityMap)) {
 							log.info("!FOUND IT! in method " + methodName);
 							valid = true;
 						}
 					} else {
 						BytecodeInstruction condBcDef = cfg.getInstruction(node.instructions.indexOf(condDefinition));
+						/*isFieldUse or isLocalVariableUse or isArrayLoadInstruction */
 						if (condBcDef.isUse()) {
+							/* Not valid if it's GETFIELD or GETSTATIC */
+							if (condBcDef.isFieldUse()) {
+								continue;
+							}
 							if (!defuseAnalyzed) {
 								DefUseAnalyzer instr = new DefUseAnalyzer();
 								instr.analyze(classLoader, node, className, methodName, node.access);
@@ -218,8 +228,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 			methodName = CommonUtility.getMethodName(methodInsn.name, methodInsn.desc);
 			
 			flagMethod.methodName = className + "#" + methodName;
-		}
-		if (!CollectionUtil.existIn(insn.getOpcode(), Opcodes.INVOKEVIRTUAL, Opcodes.INVOKESTATIC,
+		} else if (!CollectionUtil.existIn(insn.getOpcode(), Opcodes.INVOKEVIRTUAL, Opcodes.INVOKESTATIC,
 				Opcodes.INVOKESPECIAL)) {
 			flagMethod.notes.add("InvokedMethod insn opcode: " + OpcodeUtils.getCode(insn.getOpcode()));
 			return false;
