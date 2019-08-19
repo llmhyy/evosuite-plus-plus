@@ -423,25 +423,34 @@ public class TestCaseExecutor implements ThreadFactory {
 					ExecutionTracer.setKillSwitch(false);
 					logger.info("Run still not finished, but awaiting for static initializer to finish.");
 
-					try {
-						executor.awaitTermination(Properties.SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS);
-					} catch (InterruptedException e) {
-						logger.info("Interrupted");
-						e.printStackTrace();
-					}
+//					try {
+//						executor.awaitTermination(Properties.SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS);
+//					} catch (InterruptedException e) {
+//						logger.info("Interrupted");
+//						e.printStackTrace();
+//					}
+					
+					executor.shutdownNow();
+					ExecutionTracer.disable();
+					executor = Executors.newSingleThreadExecutor(this);
+					break;
 				}
 				LoopCounter.getInstance().setActive(loopCounter);
 				ExecutionTracer.setKillSwitch(true);
 
 				if (!callable.isRunFinished()) {
-					handler.getLastTask().cancel(true);
-					logger.info("Run not finished, waiting...");
-					try {
-						executor.awaitTermination(Properties.SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS);
-					} catch (InterruptedException e) {
-						logger.info("Interrupted");
-						e.printStackTrace();
-					}
+//					handler.getLastTask().cancel(true);
+//					logger.info("Run not finished, waiting...");
+//					try {
+//						executor.awaitTermination(Properties.SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS);
+//					} catch (InterruptedException e) {
+//						logger.info("Interrupted");
+//						e.printStackTrace();
+//					}
+					
+					executor.shutdownNow();
+					ExecutionTracer.disable();
+					executor = Executors.newSingleThreadExecutor(this);
 				}
 
 				if (!callable.isRunFinished()) {
