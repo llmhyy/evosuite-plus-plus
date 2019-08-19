@@ -30,12 +30,17 @@ public class FBranchDefUseAnalyzer {
 					DefUsePool.addAsFieldMethodCall(v);
 				} else {
 					// keep track of uses
-					if (v.isUse()) {
-						DefUsePool.addAsUse(v);						
+					try {
+						if (v.isUse()) {
+							DefUsePool.addAsUse(v);						
+						}
+						// keep track of definitions
+						if (v.isDefinition()) {
+							DefUsePool.addAsDefinition(v);
+						}						
 					}
-					// keep track of definitions
-					if (v.isDefinition()) {
-						DefUsePool.addAsDefinition(v);
+					catch(Exception e) {
+						e.printStackTrace();
 					}
 				}
 			}
