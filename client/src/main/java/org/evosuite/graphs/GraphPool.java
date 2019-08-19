@@ -259,9 +259,33 @@ public class GraphPool {
 		if (Properties.WRITE_CFG)
 			cfg.toDot();
 
-		if (DependencyAnalysis.shouldInstrument(cfg.getClassName(), cfg.getMethodName())) {
+		if (Properties.ALWAYS_REGISTER_BRANCH ||
+				DependencyAnalysis.shouldInstrument(cfg.getClassName(), cfg.getMethodName())) {
 			createAndRegisterControlDependence(cfg);
 		}
+	}
+	
+	public void alwaysRegisterActualCFG(ActualControlFlowGraph cfg) {
+		String className = cfg.getClassName();
+		String methodName = cfg.getMethodName();
+
+		if (className == null || methodName == null)
+			throw new IllegalStateException(
+			        "expect class and method name of CFGs to be set before entering the GraphPool");
+
+		if (!actualCFGs.containsKey(className)) {
+			actualCFGs.put(className, new HashMap<String, ActualControlFlowGraph>());
+			// diameters.put(className, new HashMap<String, Double>());
+		}
+		Map<String, ActualControlFlowGraph> methods = actualCFGs.get(className);
+		logger.debug("Added CFG for class " + className + " and method " + methodName);
+		cfg.finalise();
+		methods.put(methodName, cfg);
+
+		if (Properties.WRITE_CFG)
+			cfg.toDot();
+
+		createAndRegisterControlDependence(cfg);
 	}
 
 	private void createAndRegisterControlDependence(ActualControlFlowGraph cfg) {

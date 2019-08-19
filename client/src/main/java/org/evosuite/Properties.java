@@ -2496,6 +2496,8 @@ public class Properties {
 	public static final String JAVA_VERSION_WARN_MSG = "EvoSuite does not support Java versions > 8 yet";
 
 	public static final int RECORD_INTERVAL = 5;
+
+	public static boolean ALWAYS_REGISTER_BRANCH = false;
 	
 	/*
 	 * whether or not the regression mode is running

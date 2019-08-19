@@ -127,7 +127,8 @@ public class BranchPool {
 			throw new IllegalArgumentException("CFGVertex of a branch expected");
 		if (isKnownAsBranch(instruction))
 			return;
-		if (!DependencyAnalysis.shouldInstrument(instruction.getClassName(),
+		if (!org.evosuite.Properties.ALWAYS_REGISTER_BRANCH &&  
+				!DependencyAnalysis.shouldInstrument(instruction.getClassName(),
 		                                         instruction.getMethodName())) {
 			return;
 		} 
