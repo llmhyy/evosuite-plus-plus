@@ -245,10 +245,12 @@ public class FlagEffectEvaluator {
 			
 			if(!defs.isEmpty()) {
 				Definition def = defs.get(0);
-				BytecodeInstruction call = def.getSourceOfStackInstruction(0);
-				
-				if(call != null && call.isMethodCall()) {
-					return call;
+				if(def.getFrame().getStackSize() > 0) {
+					BytecodeInstruction call = def.getSourceOfStackInstruction(0);
+					
+					if(call != null && call.isMethodCall()) {
+						return call;
+					}					
 				}
 			}
 		}
