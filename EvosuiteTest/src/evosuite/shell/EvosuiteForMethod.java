@@ -178,28 +178,28 @@ public class EvosuiteForMethod {
 			 * execute the test
 			 */
 			else {
-				String usedStrategy = getStrategy(args);
+//				String usedStrategy = getStrategy(args);
 				FitnessEffectiveRecorder fitnessRecorder;
-				DistributionRecorder distributionRecorder;
+//				DistributionRecorder distributionRecorder;
 //				OneBranchRecorder oneBranchRecorder;
 
 				List<ExperimentRecorder> recorderList = new ArrayList<>();
 
 				if (Settings.getIteration() > 1) {
 					fitnessRecorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
-					distributionRecorder = new IterDistributionRecorder(usedStrategy);
+//					distributionRecorder = new IterDistributionRecorder(usedStrategy);
 					recorderList.add(fitnessRecorder);
 //					recorderList.add(distributionRecorder);
 				} else {
 					fitnessRecorder = new FitnessEffectiveRecorder();
-					distributionRecorder = new DistributionRecorder(usedStrategy);
+//					distributionRecorder = new DistributionRecorder(usedStrategy);
 //					oneBranchRecorder = new OneBranchRecorder(strastr);
 					
 					recorderList.add(fitnessRecorder);
 //					recorderList.add(distributionRecorder);
 //					recorderList.add(oneBranchRecorder);
 				}
-				String existingReport = distributionRecorder.getFinalReportFilePath();
+				String existingReport = fitnessRecorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;
 				if (Settings.isReportBasedFilterEnable()) {
 					succeedMethods = TargetMethodIOUtils.collectMethods(existingReport);
@@ -576,29 +576,7 @@ public class EvosuiteForMethod {
 
 			try {
 				for (int i = 0; i < Settings.getIteration(); i++) {
-					String[] evoArgs = args;
-					try {
-						if (!ProgramArgumentUtils.hasOpt(args, "-seed") && Settings.easyMethods != null) {
-							List<Long> seeds = Settings.easyMethods.get(methodID);
-							if(seeds!=null && !seeds.isEmpty()) {
-								Long seed = seeds.get(0);
-								seeds.remove(seed);
-								evoArgs = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
-							}
-						}
-						
-						if (!ProgramArgumentUtils.hasOpt(evoArgs, "-seed")) {
-							if(!TempGlobalVariables.seeds.isEmpty()) {
-								Long seed = TempGlobalVariables.seeds.get(0);
-								TempGlobalVariables.seeds.remove(seed);
-								evoArgs = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
-							}
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					
-					EvoTestResult result = runMethod(methodName, className, evoArgs, recorders);
+					EvoTestResult result = runMethod(methodName, className, args, recorders);
 					results.add(result);
 				}
 
@@ -674,16 +652,6 @@ public class EvosuiteForMethod {
 	@SuppressWarnings("unchecked")
 	private EvoTestResult invokeEvosuite(String methodName, String className, String[] args,
 			List<ExperimentRecorder> recorders) {
-		try {
-			if (!ProgramArgumentUtils.hasOpt(args, "-seed")) {
-				long seed = System.currentTimeMillis();
-				args = ArrayUtils.addAll(args, "-seed", String.valueOf(seed));
-				log.error(methodName + " has seed " + seed);
-			}
-		} catch (Exception e1) {
-			e1.printStackTrace();
-		}
-
 		EvoTestResult result = null;
 		try {
 			log.info("evosuite args: " + StringUtils.join((Object[]) args, " "));
