@@ -370,7 +370,9 @@ public class TestSingleMethod {
 		String projectId = "101_weka";
 		String[] targetMethods = new String[]{
 //				"java_cup.runtime.lr_parser#error_recovery(Z)Z",
-				"weka.Run#main([Ljava/lang/String;)V"
+//				"weka.Run#main([Ljava/lang/String;)V"
+				"weka.gui.scripting.SyntaxDocument#checkForTokens(Ljava/lang/String;II)V"
+//				"weka.gui.boundaryvisualizer.KDDataGenerator#generateInstances([I)[[D"
 //				"weka.knowledgeflow.Data#setConnectionName(Ljava/lang/String;)V"
 //				"org.apache.commons.compress.compressors.CompressorStreamFactory#createCompressorInputStream(Ljava/io/InputStream;)Lorg/apache/commons/compress/compressors/CompressorInputStream;"
 //				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
@@ -388,6 +390,49 @@ public class TestSingleMethod {
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
 		int budget = 100000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	
+	@Test
+	public void runSpring() {
+		String projectId = "114_spring";
+		String[] targetMethods = new String[]{
+//				"java_cup.runtime.lr_parser#error_recovery(Z)Z",
+//				"weka.Run#main([Ljava/lang/String;)V"
+				"org.springframework.beans.propertyeditors.CharacterEditor#setAsText(Ljava/lang/String;)V"
+//				"weka.knowledgeflow.Data#setConnectionName(Ljava/lang/String;)V"
+//				"org.apache.commons.compress.compressors.CompressorStreamFactory#createCompressorInputStream(Ljava/io/InputStream;)Lorg/apache/commons/compress/compressors/CompressorInputStream;"
+//				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
+//				"weka.associations.Apriori#buildAssociations(Lweka/core/Instances;)V"
+//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
+//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
+//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
+//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
+//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
+//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 10000;
 //		Long seed = 1556171038486L;
 		Long seed = null;
 		
@@ -826,39 +871,39 @@ public class TestSingleMethod {
 		printResult(results1);
 	}
 	
-	@Test
-	public void runSpring() {
-		String projectId = "114_spring";
-		String[] targetMethods = new String[]{
-//				"org.jscience.JScience#multiplyMatrices([[D)V"
-//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
-//				};
-//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
-//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
-				"org.springframework.beans.propertyeditors.ClassEditor#setAsText(Ljava/lang/String;)V"
-		};
-		
-		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
-		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
-		int repeatTime = 1;
-		int budget = 1000000;
-//		Long seed = 1556171038486L;
-		Long seed = null;
-		
-		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-		TempGlobalVariables.seeds = checkRandomSeeds(results0);
-		
-		fitnessApproach = "branch";
-//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//	@Test
+//	public void runSpring() {
+//		String projectId = "114_spring";
+//		String[] targetMethods = new String[]{
+////				"org.jscience.JScience#multiplyMatrices([[D)V"
+////				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+////				};
+////				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+////				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"org.springframework.beans.propertyeditors.ClassEditor#setAsText(Ljava/lang/String;)V"
+//		};
+//		
+//		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+//		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+//		int repeatTime = 1;
+//		int budget = 1000000;
+////		Long seed = 1556171038486L;
+//		Long seed = null;
+//		
+//		String fitnessApproach = "fbranch";
+//		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-		
-		System.out.println("fbranch" + ":");
-		printResult(results0);
-		System.out.println("branch" + ":");
-		printResult(results1);
-	}
+//		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+//		
+//		fitnessApproach = "branch";
+////		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+////				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		
+//		System.out.println("fbranch" + ":");
+//		printResult(results0);
+//		System.out.println("branch" + ":");
+//		printResult(results1);
+//	}
 	
 	@Test
 	public void runTurbine() {
