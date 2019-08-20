@@ -38,7 +38,7 @@ public class Settings {
 	private static boolean retrieveBranchFeature = false;
 	private static String branchLabelFile;
 	
-	public static List<String> insterestedProjects;
+	public static List<String> interestedProjects;
 
 	public static void setup(String[] args) throws Exception {
 		runBothMethods = ProgramArgumentUtils.hasOpt(args, ParameterOptions.RUN_BOTH_METHODS);
@@ -87,7 +87,7 @@ public class Settings {
 		}
 		
 		targetMethodFilePath = getTargetMethodFilePath(mFilterOpt);
-		insterestedProjects = parseInterestedProjects(inclusiveFilePath);
+		interestedProjects = parseInterestedProjects(inclusiveFilePath);
 		parseInterestedMethods(branchExperimentFile);
 		
 		if (ProgramArgumentUtils.hasOpt(args, ParameterOptions.REPORT_BASED_FILTER)) {

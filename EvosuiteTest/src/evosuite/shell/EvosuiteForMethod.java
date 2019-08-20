@@ -161,7 +161,13 @@ public class EvosuiteForMethod {
 				
 			}
 			
-			if (Settings.insterestedProjects!=null && !Settings.insterestedProjects.contains(projectName)) {
+			if (Settings.interestedProjects==null) {
+				System.out.println("Interested projects are null, return");
+				return new ArrayList<>();
+			}
+			
+			if(!Settings.interestedProjects.contains(projectName)) {
+				System.out.println("Interested projects do not contain " + projectName  + ", return ");
 				return new ArrayList<>();
 			}
 
@@ -194,7 +200,6 @@ public class EvosuiteForMethod {
 					fitnessRecorder = new FitnessEffectiveRecorder();
 //					distributionRecorder = new DistributionRecorder(usedStrategy);
 //					oneBranchRecorder = new OneBranchRecorder(strastr);
-					
 					recorderList.add(fitnessRecorder);
 //					recorderList.add(distributionRecorder);
 //					recorderList.add(oneBranchRecorder);
@@ -215,19 +220,10 @@ public class EvosuiteForMethod {
 
 				String[] truncatedArgs = extractArgs(args);
 
-				if(Settings.isRunBothMethods()) {
-					if (Settings.getTestLevel() == TestLevel.lMethod) {
-						results = evoTest.runAllMethodsWithBothStrategy(truncatedArgs, projectName);
-					} else {
-//						results = evoTest.runAllClassesWithBothStrategy(targetClasses, truncatedArgs, projectName, recorderList);
-					}	
-				}
-				else {
-					if (Settings.getTestLevel() == TestLevel.lMethod) {
-						results = evoTest.runAllMethods(truncatedArgs, projectName, recorderList);
-					} else {
-						results = evoTest.runAllClasses(targetClasses, truncatedArgs, projectName, recorderList);
-					}
+				if (Settings.getTestLevel() == TestLevel.lMethod) {
+					results = evoTest.runAllMethods(truncatedArgs, projectName, recorderList);
+				} else {
+					results = evoTest.runAllClasses(targetClasses, truncatedArgs, projectName, recorderList);
 				}
 			}
 		} catch (Throwable e) {
@@ -558,7 +554,10 @@ public class EvosuiteForMethod {
 		
 		Collections.sort(methodIDList);
 		
+		System.out.println("enter runAllMethods");
+		
 		for(String methodID: methodIDList) {
+			System.out.println("working on " + methodID);
 			String className = methodID.substring(0, methodID.indexOf("#"));
 			String methodName = methodID.substring(methodID.indexOf("#")+1, methodID.length());
 			
