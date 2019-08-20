@@ -14,7 +14,7 @@ public class FilterHelper {
 			}
 			
 			for (Type type : argTypes) {
-				if (considerAsPrimitiveType(type)) {
+				if (considerAsPrimitiveType(type) && type!=Type.BOOLEAN_TYPE) {
 					return true;
 				}
 			}
