@@ -379,14 +379,16 @@ public class ReturnFitnessEvaluator {
 						if(insList != null && !insList.isEmpty()) {
 							for(BytecodeInstruction ins: insList) {
 								Branch delegateBranch = ins.getControlDependentBranch();
-								boolean delegateGoalValue = ins.getControlDependentBranchExpressionValue();
 								
-								List<Call> replacedContext = FlagEffectEvaluator.replaceContext(context, delegateBranch);
-								
-								double distance = checkContextBranchDistance(result, delegateBranch, delegateGoalValue, 
-										replacedContext, branchTrace);
-								if(distance != 0) {
-									return distance;
+								if(delegateBranch != null) {
+									boolean delegateGoalValue = ins.getControlDependentBranchExpressionValue();
+									List<Call> replacedContext = FlagEffectEvaluator.replaceContext(context, delegateBranch);
+									
+									double distance = checkContextBranchDistance(result, delegateBranch, delegateGoalValue, 
+											replacedContext, branchTrace);
+									if(distance != 0) {
+										return distance;
+									}
 								}
 							}
 						}
