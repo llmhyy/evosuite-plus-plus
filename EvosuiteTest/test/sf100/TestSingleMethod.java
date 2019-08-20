@@ -371,7 +371,7 @@ public class TestSingleMethod {
 		String[] targetMethods = new String[]{
 //				"java_cup.runtime.lr_parser#error_recovery(Z)Z",
 //				"weka.Run#main([Ljava/lang/String;)V"
-				"weka.gui.scripting.SyntaxDocument#checkForTokens(Ljava/lang/String;II)V"
+				"weka.classifiers.bayes.net.BayesNetGenerator#generateRandomNetworkStructure(II)V"
 //				"weka.gui.boundaryvisualizer.KDDataGenerator#generateInstances([I)[[D"
 //				"weka.knowledgeflow.Data#setConnectionName(Ljava/lang/String;)V"
 //				"org.apache.commons.compress.compressors.CompressorStreamFactory#createCompressorInputStream(Ljava/io/InputStream;)Lorg/apache/commons/compress/compressors/CompressorInputStream;"
@@ -598,14 +598,14 @@ public class TestSingleMethod {
 	@Test
 	public void runBerkeleydb() {
 		String projectId = "107_berkeleydb";
-		String[] targetMethods = new String[]{
+		String[] targetMethods = new String[]{	
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
 //				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
 //				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 //				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
 //				"com.sleepycat.collections.StoredList#listIterator(I)Ljava/util/ListIterator;"
-				"com.sleepycat.je.tree.IN#deleteEntry(IZ)Z"
+				"com.sleepycat.je.log.CheckpointFileReader#isTargetEntry(BB)Z"
 		};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
@@ -1601,6 +1601,846 @@ public class TestSingleMethod {
 //				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
 //				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
 				"org.exolab.castor.jdo.drivers.SapDbFactory#quoteName(Ljava/lang/String;)Ljava/lang/String;"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runCommonsMath() {
+		String projectId = "137_commons-math";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.apache.commons.math.linear.RealMatrixImpl#getRow(I)[D"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runDwr() {
+		String projectId = "138_dwr";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.directwebremoting.util.Base64#isArrayByteBase64([B)Z"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runHsqldb() {
+		String projectId = "139_hsqldb";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.hsqldb.HsqlDateTime#toJavaDatePattern(Ljava/lang/String;)Ljava/lang/String;"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runHtmlUnit() {
+		String projectId = "140_htmlunit";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"com.gargoylesoftware.htmlunit.util.EncodingSniffer#extractEncodingFromContentType(Ljava/lang/String;)Ljava/nio/charset/Charset;"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runHivemind() {
+		String projectId = "141_hivemind";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.apache.hivemind.HiveMind#isNonBlank(Ljava/lang/String;)Z"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runEsper() {
+		String projectId = "142_esper";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"com.espertech.esper.epl.view.OutputConditionPolledCount#updateOutputCondition(II)Z"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runExist() {
+		String projectId = "143_exist";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.dbxml.core.filer.BTree#create(S)Z"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runExolabcore() {
+		String projectId = "144_exolabcore";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.exolab.core.messenger.PacketChannel#doReceive(J)Ljava/lang/Object;"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runFesi() {
+		String projectId = "145_fesi";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"FESI.Extensions.ESRowSet#getProperty(Ljava/lang/String;I)LFESI/Data/ESValue;"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runFop() {
+		String projectId = "146_fop";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.apache.fop.area.MainReference#createSpan(Z)Lorg/apache/fop/area/Span;"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runGrizzly() {
+		String projectId = "147_grizzly";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.apache.coyote.Response#setHeader(Ljava/lang/String;Ljava/lang/String;)V"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runCommonsLang() {
+		String projectId = "148_commons-lang";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.apache.commons.lang.CharSet#contains(C)Z"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runHttpunit() {
+		String projectId = "149_httpunit";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"com.meterware.httpunit.javascript.ScriptingEngineImpl#runScript(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runIdb() {
+		String projectId = "150_idb";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.enhydra.instantdb.db.Database#dbOpen(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/enhydra/instantdb/db/Transaction;"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runJanino() {
+		String projectId = "151_janino";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.codehaus.janino.Descriptor#size(Ljava/lang/String;)S"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runIsorelax() {
+		String projectId = "152_isorelax";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"jp.gr.xml.relax.sax.SimpleEntityResolver#resolveEntity(Ljava/lang/String;Ljava/lang/String;)Lorg/xml/sax/InputSource;"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runItext() {
+		String projectId = "153_itext";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"com.lowagie.text.markup.Parser#endElement(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runJacl() {
+		String projectId = "154_jacl";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"tcl.lang.Util#stringMatch(Ljava/lang/String;Ljava/lang/String;)Z"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runJalopy() {
+		String projectId = "155_jalopy";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"antlr.actions.cpp.ActionLexer#mSTUFF(Z)V"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runJavaCup() {
+		String projectId = "158_java-cup";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"java_cup.production#is_id_char(C)Z"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runJavacc() {
+		String projectId = "159_javacc";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.javacc.jjtree.TokenUtils#remove_escapes_and_quotes(Lorg/javacc/jjtree/Token;Ljava/lang/String;)Ljava/lang/String;"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runJavagroups() {
+		String projectId = "161_javagroups";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.javagroups.log.Trace#setOutput(Ljava/lang/String;ILjava/lang/String;)V"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runJaxen() {
+		String projectId = "162_jaxen";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"org.jaxen.saxpath.base.Verifier#isXMLNCNameCharacter(C)Z"
+		};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+//		Long seed = 1556171038486L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runJcifs() {
+		String projectId = "163_jcifs";
+		String[] targetMethods = new String[]{
+//				"org.jscience.JScience#multiplyMatrices([[D)V"
+//				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
+//				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+//				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
+//				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
+				"jcifs.UniAddress#getAllByName(Ljava/lang/String;Z)[Ljcifs/UniAddress;"
 		};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
