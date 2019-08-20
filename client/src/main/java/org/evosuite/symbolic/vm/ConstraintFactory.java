@@ -56,9 +56,4 @@ public abstract class ConstraintFactory {
 		return new IntegerConstraint(left, Comparator.GE, right);
 
 	}
-	public static IntegerConstraint gt(IntegerValue left,
-			IntegerValue right) {
-		return new IntegerConstraint(left, Comparator.GT, right);
-
-	}
 }
