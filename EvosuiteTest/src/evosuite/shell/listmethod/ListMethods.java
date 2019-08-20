@@ -7,6 +7,8 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
+import org.evosuite.coverage.branch.BranchPool;
+import org.evosuite.graphs.GraphPool;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
@@ -17,6 +19,7 @@ import evosuite.shell.FileUtils;
 import evosuite.shell.ParameterOptions;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.TargetMethodIOUtils;
+import javassist.ClassPool;
 
 /**
  * 
@@ -41,6 +44,14 @@ public class ListMethods {
 		if (!ArrayUtil.contains(Properties.CRITERION, Criterion.DEFUSE)) {
 			Properties.CRITERION = ArrayUtils.addAll(Properties.CRITERION, Criterion.DEFUSE);
 		}
+		
+		/**
+		 * we clear the branch pool and graph pool when analyzing a new project.
+		 */
+		BranchPool.getInstance(classLoader).reset();
+		GraphPool.getInstance(classLoader).clear();
+		
+		
 		IMethodFilter methodFilter = mFilterOpt.getCorrespondingFilter();
 		int total = 0;
 		StringBuilder tMethodSb = new StringBuilder(headerSb.toString());
