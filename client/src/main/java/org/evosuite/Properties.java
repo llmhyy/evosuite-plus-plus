@@ -129,6 +129,10 @@ public class Properties {
 
 	@Parameter(key = "reset_standard_streams", group = "Test Creation", description = "Restore System.out, System.in and DebugGraphics.logStream after test execution")
 	public static boolean RESET_STANDARD_STREAMS = false;
+	
+	@Parameter(key = "pre_oneline_learning_iteration", group = "Test Creation", description = "The number of iterations before applying online learning")
+    @IntValue(min = 1, max = 32767) // String literals may not be longer than 32767
+    public static int PRE_ONLINE_LEARNING_ITERATION = 30;
 
 	/**
 	 * TODO: this option is off by default because still experimental and not
@@ -198,7 +202,6 @@ public class Properties {
     @IntValue(min = 1, max = 32767) // String literals may not be longer than 32767
     public static int MAX_STRING = 1000;
 
-
 	@Parameter(key = "epsilon", group = "Test Creation", description = "Epsilon for floats in local search")
 	@Deprecated
 	// does not seem to be used anywhere
@@ -214,7 +217,7 @@ public class Properties {
 	public static int MAX_DELTA = 20;
 
 	@Parameter(key = "random_perturbation", group = "Test Creation", description = "Probability to replace a primitive with a random new value rather than adding a delta")
-	public static double RANDOM_PERTURBATION = 0.2;
+	public static double RANDOM_PERTURBATION = 0.1;
 
 	@Parameter(key = "max_array", group = "Test Creation", description = "Maximum length of randomly generated arrays")
 	public static int MAX_ARRAY = 10;
@@ -1277,7 +1280,7 @@ public class Properties {
 	}
 
 	@Parameter(key = "tt_scope", description = "Testability transformation")
-	public static TransformationScope TT_SCOPE = TransformationScope.ALL;
+	public static TransformationScope TT_SCOPE = TransformationScope.TARGET;
 
 	// ---------------------------------------------------------------
 	// Contracts / Asserts:
@@ -2493,6 +2496,8 @@ public class Properties {
 	public static final String JAVA_VERSION_WARN_MSG = "EvoSuite does not support Java versions > 8 yet";
 
 	public static final int RECORD_INTERVAL = 5;
+
+	public static boolean ALWAYS_REGISTER_BRANCH = false;
 	
 	/*
 	 * whether or not the regression mode is running

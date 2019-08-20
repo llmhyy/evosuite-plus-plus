@@ -126,7 +126,6 @@ public class BytecodeInstrumentation {
 		case PREFIX:
 			if (className.startsWith(Properties.PROJECT_PREFIX))
 				return true;
-
 		}
 		logger.info("Preventing transformation of " + className);
 		return false;
@@ -260,12 +259,14 @@ public class BytecodeInstrumentation {
 
 			if (Properties.STRING_REPLACEMENT) {
 				StringTransformation st = new StringTransformation(cn);
-				if (isTargetClassName(classNameWithDots) || shouldTransform(classNameWithDots))
+				if (isTargetClassName(classNameWithDots) || shouldTransform(classNameWithDots)
+						|| DependencyAnalysis.shouldAnalyze(classNameWithDots))
 					cn = st.transform();
 			}
 
 //			ComparisonTransformation cmp = new ComparisonTransformation(cn);
-			if (isTargetClassName(classNameWithDots) || shouldTransform(classNameWithDots)) {
+			if (isTargetClassName(classNameWithDots) || shouldTransform(classNameWithDots) 
+					|| DependencyAnalysis.shouldAnalyze(classNameWithDots)) {
 //				cn = cmp.transform();
 				ContainerTransformation ct = new ContainerTransformation(cn);
 				cn = ct.transform();

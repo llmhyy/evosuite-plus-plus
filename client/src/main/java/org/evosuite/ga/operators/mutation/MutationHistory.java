@@ -32,6 +32,14 @@ public class MutationHistory<T extends MutationHistoryEntry> implements Iterable
 
 	private final List<T> mutations = new ArrayList<T>();
 
+	public MutationHistoryEntry getLastMutation() {
+		if(mutations == null || mutations.isEmpty()) {
+			return null;
+		}
+		
+		return mutations.get(mutations.size()-1);
+	}
+	
 	public void clear() {
 		mutations.clear();
 	}

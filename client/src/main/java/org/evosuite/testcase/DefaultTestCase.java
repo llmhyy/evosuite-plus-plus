@@ -366,6 +366,7 @@ public class DefaultTestCase implements TestCase, Serializable {
 			t.statements.add(copy);
 			copy.setRetval(s.getReturnValue().clone(t));
 			copy.setAssertions(s.copyAssertions(t, 0));
+			copy.setChangeRelevanceMap(s.getChangeRelevanceMap());
 		}
 		t.coveredGoals.addAll(coveredGoals);
 		t.accessedEnvironment.copyFrom(accessedEnvironment);

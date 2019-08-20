@@ -29,6 +29,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.assertion.Assertion;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.testcase.TestCase;
@@ -46,11 +47,12 @@ import org.slf4j.LoggerFactory;
 /**
  * Abstract superclass of test case statements
  * 
- * @author Gordon Fraser
+ * @author Gordon Fraser, Lin Yun
  */
 public abstract class AbstractStatement implements Statement, Serializable {
 
-	Map<FitnessFunction, Double> changeRelevanceMap = new HashMap<>();
+	Map<FitnessFunction, Pair<Double, Double>> changeRelevanceMap = new HashMap<>();
+	private boolean isChanged = false;
 	
 	/**
 	 * An interface to enable the concrete statements to use the executer/1
@@ -545,7 +547,19 @@ public abstract class AbstractStatement implements Statement, Serializable {
 		return false;
 	}
 	
-	public Map<FitnessFunction, Double> getChangeRelevanceMap(){
+	public Map<FitnessFunction, Pair<Double, Double>> getChangeRelevanceMap(){
 		return this.changeRelevanceMap;
+	}
+	
+	public void setChangeRelevanceMap(Map<FitnessFunction, Pair<Double, Double>> changeRelevanceMap){
+		this.changeRelevanceMap = changeRelevanceMap;
+	}
+
+	public boolean isChanged() {
+		return isChanged;
+	}
+
+	public void setChanged(boolean isChanged) {
+		this.isChanged = isChanged;
 	}
 }

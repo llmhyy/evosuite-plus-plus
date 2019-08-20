@@ -28,6 +28,8 @@ public class ListMethodsBatch {
 
 	@Test
 	public void justRun() throws IOException {
+		org.evosuite.Properties.ALWAYS_REGISTER_BRANCH = true;
+		
 		runListMethod(MethodFilterOption.FLAG_PRIMITIVE_PARAMETER_FIELD);
 //		runListMethod(MethodFilterOption.FLAG_METHOD_PROFILES);
 //		runListMethod(MethodFilterOption.HAS_BRANCH);

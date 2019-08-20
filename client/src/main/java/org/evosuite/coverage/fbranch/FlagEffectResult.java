@@ -5,13 +5,13 @@ import org.evosuite.setup.Call;
 
 public class FlagEffectResult {
 	BytecodeInstruction interproceduralFlagCall;
-	boolean isInterproceduralFlag;
+	boolean hasFlagEffect;
 	Call call;
 
 	public FlagEffectResult(BytecodeInstruction interproceduralFlagCall, boolean isInterproceduralFlag, Call call) {
 		super();
 		this.interproceduralFlagCall = interproceduralFlagCall;
-		this.isInterproceduralFlag = isInterproceduralFlag;
+		this.hasFlagEffect = isInterproceduralFlag;
 		this.call = call;
 	}
 }

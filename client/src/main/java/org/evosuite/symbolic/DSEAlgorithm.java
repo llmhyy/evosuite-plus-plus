@@ -149,10 +149,15 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 				List<Constraint<?>> varBounds = createVarBounds(query);
 				query.addAll(varBounds);
 
+				long start = System.currentTimeMillis();
 				SolverResult result = DSETestGenerator.solve(query);
-
+				long end = System.currentTimeMillis();
+				long time = end - start;
+				
 				queryCache.put(constraintSet, result);
 				logger.debug("Number of stored entries in query cache : " + queryCache.keySet().size());
+				logger.debug(constraintsSet.toString());
+				logger.debug("It takes " + time + "ms  to solve this constraint");
 
 				if (result == null) {
 					logger.debug("Solver outcome is null (probably failure/unknown");
@@ -183,7 +188,7 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 					}
 
 				} else {
-					assert (result.isUNSAT());
+//					assert (result.isUNSAT());
 					logger.debug("query is UNSAT (no solution found)");
 				}
 			}

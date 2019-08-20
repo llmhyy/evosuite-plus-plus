@@ -223,9 +223,11 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 	public Map<String, Map<CallContext, Integer>> coveredMethodContext = Collections
 			.synchronizedMap(new HashMap<String, Map<CallContext, Integer>>());
 
+	// branch id -> call context -> loop context -> distance
 	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> contextIterationTrueMap = Collections
 			.synchronizedMap(new HashMap<Integer, Map<CallContext, Map<List<Integer>, Double>>>());
 
+	// branch id -> call context -> loop context -> distance
 	public Map<Integer, Map<CallContext, Map<List<Integer>, Double>>> contextIterationFalseMap = Collections
 			.synchronizedMap(new HashMap<Integer, Map<CallContext, Map<List<Integer>, Double>>>());
 	
@@ -480,7 +482,8 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 
 		if (!disableContext && (Properties.INSTRUMENT_CONTEXT || Properties.INSTRUMENT_METHOD_CALLS
 				|| ArrayUtil.contains(Properties.CRITERION, Criterion.IBRANCH)
-				|| ArrayUtil.contains(Properties.CRITERION, Criterion.CBRANCH))) {
+				|| ArrayUtil.contains(Properties.CRITERION, Criterion.CBRANCH)
+				|| ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH))) {
 			updateBranchContextMaps(branch, true_distance, false_distance);
 		}
 
