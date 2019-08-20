@@ -1,5 +1,6 @@
-package com.generate.input;
+package evosuite.experiment;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,13 +10,15 @@ import java.util.Random;
 
 import org.evosuite.Properties.Strategy;
 import org.evosuite.symbolic.expr.Constraint;
+import org.evosuite.symbolic.expr.bv.IntegerValue;
+import org.evosuite.symbolic.vm.ExpressionFactory;
 
-public class RealGenerateStrategy {
-
+public class StringGenerateStrategy {
+	
 	private static List<List<Outcome>> Outcome=new ArrayList<List<Outcome>>();
 	
 	public static List<Constraint<?>> getRandomConstraints(){
-		List<Constraint<?>> cons=RealGenerateConstraint.generateConstraints();
+		List<Constraint<?>> cons=StringGenerateConstraint.generateConstraints();
 		return cons;
 	}
 	
@@ -66,7 +69,7 @@ public class RealGenerateStrategy {
 	}
 	
 	public static void Output() throws IOException{
-		OutputStream f = new FileOutputStream("D:\\xianglin\\git_space\\evosuite\\EvosuiteTest\\src\\com\\generate\\RealOutcome.txt");
+		OutputStream f = new FileOutputStream("D:\\xianglin\\git_space\\evosuite\\EvosuiteTest\\src\\com\\generate\\StringOutcome.txt");
 		for(int i=0;i<Outcome.size();i++) {
 			List<Outcome> outcome=new ArrayList<Outcome>();
 			outcome=Outcome.get(i);
@@ -83,19 +86,19 @@ public class RealGenerateStrategy {
 		}
 	}
 	
-	public static void Random(int num){
+	public static void Random(int num) throws IOException {
 		for(;num>0;num--) {
 			List<Outcome> outcome=new ArrayList<Outcome>();
 			outcome=getRandomPathOutcome();
 			Outcome.add(outcome);		
 		}
 	}
-
-	public static void main(String[] argv) throws IOException {
+	
+	public static void main(String argv[]) throws IOException {
 		init();
 		Random(Integer.parseInt(argv[0]));
 		//Output();	
-		OutputStream f = new FileOutputStream("D:\\xianglin\\git_space\\evosuite\\EvosuiteTest\\src\\com\\generate\\input\\RealOutcome.txt");
+		OutputStream f = new FileOutputStream("D:\\xianglin\\git_space\\evosuite\\EvosuiteTest\\src\\com\\generate\\input\\StringOutcome.txt");
 		for(int i=0;i<Outcome.size();i++) {
 			List<Outcome> outcome=new ArrayList<Outcome>();
 			outcome=Outcome.get(i);
@@ -112,4 +115,5 @@ public class RealGenerateStrategy {
 		}
 		
 	}
+	
 }

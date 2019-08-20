@@ -1,4 +1,4 @@
-package com.generate.input;
+package evosuite.experiment;
 
 import java.io.FileOutputStream;
 import java.io.FileWriter;
