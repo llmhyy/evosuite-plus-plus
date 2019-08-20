@@ -347,7 +347,7 @@ public class FlagEffectEvaluator {
 		return new FlagEffectResult(defIns, false, null);
 	}
 
-	private static int getOperands(BytecodeInstruction ins) {
+	public static int getOperands(BytecodeInstruction ins) {
 		AbstractInsnNode node = ins.getASMNode();
 		if(node instanceof JumpInsnNode) {
 			JumpInsnNode jNode = (JumpInsnNode)node;
