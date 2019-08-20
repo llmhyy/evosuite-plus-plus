@@ -689,7 +689,6 @@ public class TestChromosome extends ExecutableChromosome {
 		List<FitnessFunction<? extends Chromosome>> currentGoals = new ArrayList<>(currentGoalSet);
 		
 		double[][] relevanceMatrix = constructRelevanceMatrix(size, currentGoals);
-		System.currentTimeMillis();
 		List<List<Integer>> clusters = clusterGoals(relevanceMatrix);
 		
 //		System.currentTimeMillis();
@@ -747,10 +746,6 @@ public class TestChromosome extends ExecutableChromosome {
 	private List<List<Integer>> clusterGoals(double[][] relevanceMatrix) {
 		List<List<Integer>> clusters = new ArrayList<>();
 		List<Integer> markedGoals = new ArrayList<>();
-		
-		if(relevanceMatrix.length==0) {
-			System.currentTimeMillis();
-		}
 		
 		int totalGoalNum = relevanceMatrix[0].length; 
 		while(markedGoals.size() < totalGoalNum) {
