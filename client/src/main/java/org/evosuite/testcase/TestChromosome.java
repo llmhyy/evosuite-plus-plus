@@ -508,7 +508,6 @@ public class TestChromosome extends ExecutableChromosome {
 		int targetMethodPosition = -1;
 		if(!Properties.TARGET_METHOD.isEmpty()) {
 			targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, this.test.size()-1);
-//			System.currentTimeMillis();
 		}
 
 

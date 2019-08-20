@@ -73,6 +73,8 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javassist.bytecode.Opcode;
+
 /**
  * Abstract class for MOSA or variants of MOSA.
  * 
@@ -739,6 +741,11 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		Map<FitnessFunction<T>, String> IPFlagBranches = new HashMap<>();
 		for(FitnessFunction<T> fitnessFunction: fitnessFunctions) {
 			BranchCoverageGoal goal = transformBranchCoverage(fitnessFunction);
+			int opcode = goal.getBranch().getInstruction().getASMNode().getOpcode();
+			if(opcode == Opcode.JSR || opcode == Opcode.JSR_W) {
+				continue;
+			}
+			
 			String methodString = getCalledInterproceduralFlagMethod(goal);
 			if(goal != null && methodString != null) {
 				IPFlagBranches.put(fitnessFunction, methodString);

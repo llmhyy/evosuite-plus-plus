@@ -24,6 +24,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 
+import javassist.bytecode.Opcode;
+
 public class FlagEffectEvaluator {
 	/**
 	 * We do not further analyze recursive method calls.
@@ -279,7 +281,7 @@ public class FlagEffectEvaluator {
 			BytecodeInstruction defIns2 = ins.getSourceOfStackInstruction(1);
 			
 			if(defIns2==null) {
-//				System.currentTimeMillis();
+				System.currentTimeMillis();
 			}
 			
 			if(defIns1.isMethodCall()) {
@@ -351,6 +353,9 @@ public class FlagEffectEvaluator {
 		AbstractInsnNode node = ins.getASMNode();
 		if(node instanceof JumpInsnNode) {
 			JumpInsnNode jNode = (JumpInsnNode)node;
+			if(jNode.getOpcode() == Opcode.JSR || jNode.getOpcode() == Opcode.JSR_W) {
+				return 0;
+			}
 			if(jNode.getOpcode() == Opcodes.IFEQ ||
 					jNode.getOpcode() == Opcodes.IFGE ||
 					jNode.getOpcode() == Opcodes.IFGT ||
