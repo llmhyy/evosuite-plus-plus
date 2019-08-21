@@ -10,6 +10,14 @@ fbranch_file_path=".\\f\\"
 branch_original_file_names=os.listdir(branch_file_path)
 fbranch_original_file_names=os.listdir(fbranch_file_path)
 
+def removeUnWantedFile(files):
+    for file in files:
+        if file.endswith("3times.xlsx"):
+            files.remove(file)
+
+removeUnWantedFile(branch_original_file_names)
+removeUnWantedFile(fbranch_original_file_names)
+
 def simplifyFileName(file_path,original_file_names):
     for file in original_file_names:
         target_file=file_path+file
@@ -24,6 +32,9 @@ simplifyFileName(fbranch_file_path,fbranch_original_file_names)
 
 branch_new_file_names=os.listdir(branch_file_path)
 fbranch_new_file_names=os.listdir(fbranch_file_path)
+
+removeUnWantedFile(branch_new_file_names)
+removeUnWantedFile(fbranch_new_file_names)
 
 #new_wb=Workbook()
 new_wb=load_workbook("result.xlsx")
