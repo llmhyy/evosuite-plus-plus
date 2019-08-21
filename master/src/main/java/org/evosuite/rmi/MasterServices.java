@@ -68,7 +68,9 @@ public class MasterServices {
 	public boolean startRegistry() throws IllegalStateException{
 		
 		if(registry != null){
-			throw new IllegalStateException("RMI registry is already running");
+			MasterServices.getInstance().stopServices();
+			registry = null;
+//			throw new IllegalStateException("RMI registry is already running");
 		}
 		
 		/*
