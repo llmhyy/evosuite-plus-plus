@@ -1,19 +1,22 @@
 import os
-import types
 from openpyxl import load_workbook
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 
-branch_file_path=".\\b\\"
-fbranch_file_path=".\\f\\"
+branch_file_path=".\\branch\\"
+fbranch_file_path=".\\fbranch\\"
 
 branch_original_file_names=os.listdir(branch_file_path)
 fbranch_original_file_names=os.listdir(fbranch_file_path)
 
+
 def removeUnWantedFile(files):
-    for file in files:
-        if file.endswith("3times.xlsx"):
-            files.remove(file)
+    i=0
+    while i<len(files):
+        if "30times" in files[i]:
+            del files[i]
+        else:
+            i+=1
 
 removeUnWantedFile(branch_original_file_names)
 removeUnWantedFile(fbranch_original_file_names)
@@ -36,9 +39,22 @@ fbranch_new_file_names=os.listdir(fbranch_file_path)
 removeUnWantedFile(branch_new_file_names)
 removeUnWantedFile(fbranch_new_file_names)
 
+
 #new_wb=Workbook()
 new_wb=load_workbook("result.xlsx")
 #new_ws=new_wb.active
+
+def checkValidity(ws,k):
+    if not isinstance(ws['C'+str(k)].value,float):
+        return False
+    if not isinstance(ws['D'+str(k)].value,float):
+        return False
+    if not isinstance(ws['E'+str(k)].value,float):
+        return False
+    if not isinstance(ws['G'+str(k)].value,float):
+        return False
+    return True
+
 
 def count_average(file,ws_title):
     #load file into Workbook
@@ -63,39 +79,37 @@ def count_average(file,ws_title):
                 j=j+1
             else:
                 break
-        j=j-1
 
-        #average_execution_time
+        # (i,j-1) contains the same method in the same class
+        errornum=0
         total_time=0.0
-        for column in original_ws['C'+str(i):'C'+str(j)]:
-            for cell in column:
-                total_time=total_time+float(cell.value)
-        average_time=total_time/(j-i+1)
-        #average_coverage
-        total_coverage=0.0
-        for column in original_ws['D'+str(i):'D'+str(j)]:
-            for cell in column:
-                total_coverage=total_coverage+float(cell.value)
-        average_coverage=total_coverage/(j-i+1)
-        #average_age
         total_age=0.0
-        for column in original_ws['E'+str(i):'E'+str(j)]:
-            for cell in column:
-                total_age+=float(cell.value)
-        average_age=total_age/(j-i+1)
-        #average_IP Flag Coverage
+        total_coverage=0.0
         total_ip_flag_coverage=0.0
-        for column in original_ws['G'+str(i):'G'+str(j)]:
-            for cell in column:
-                total_ip_flag_coverage+=float(cell.value)
-        average_ip_flag_coverage=total_ip_flag_coverage/(j-i+1)
-        #append new rows
-        new_ws['A'+str(new_index)].value=original_ws['A'+str(i)].value
-        new_ws['B'+str(new_index)].value=original_ws['B'+str(i)].value
-        new_ws['C'+str(new_index)].value=average_time
-        new_ws['D'+str(new_index)].value=average_coverage
-        new_ws['E'+str(new_index)].value=average_age
-        new_ws['F'+str(new_index)].value=average_ip_flag_coverage
+
+        for k in range(i,j):
+            if checkValidity(original_ws,k)==True:
+                total_time+=original_ws['C'+str(k)].value
+                total_coverage+=original_ws['D'+str(k)].value
+                total_age+=original_ws['E'+str(k)].value
+                total_ip_flag_coverage+=original_ws['G'+str(k)].value
+            else:
+                errornum+=1
+
+        if errornum!=(j-i+1):
+            # count_average
+            average_time=total_time/(j-i+1-errornum)
+            average_coverage=total_coverage/(j-i+1-errornum)
+            average_age=total_age/(j-i+1-errornum)
+            average_ip_flag_coverage=total_ip_flag_coverage/(j-i+1-errornum)
+
+            #append new rows
+            new_ws['A'+str(new_index)].value=original_ws['A'+str(i)].value
+            new_ws['B'+str(new_index)].value=original_ws['B'+str(i)].value
+            new_ws['C'+str(new_index)].value=average_time
+            new_ws['D'+str(new_index)].value=average_coverage
+            new_ws['E'+str(new_index)].value=average_age
+            new_ws['F'+str(new_index)].value=average_ip_flag_coverage
         #update parameters
         i=j+1
         j=i+1
@@ -202,11 +216,3 @@ def compare(b_ws_title,f_ws_title):
 
 for file in files:
     compare(file[0],file[1])
-
-def recoverFileName(file_path,original_file_names,new_file_names):
-    for i in range(len(new_file_names)):
-        os.rename(file_path+new_file_names[i],file_path+original_file_names[i])
-
-#recover file name
-recoverFileName(branch_file_path,branch_original_file_names,branch_new_file_names)
-recoverFileName(fbranch_file_path,fbranch_original_file_names,fbranch_new_file_names)
