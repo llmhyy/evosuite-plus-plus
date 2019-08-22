@@ -27,6 +27,28 @@ public class FilterHelper {
 		return false;
 	}
 	
+	public static boolean isMethodAtLeastStringParameter(MethodNode node) {
+		try {
+			Type[] argTypes = Type.getArgumentTypes(node.desc);
+			
+			if(argTypes.length==0) {
+				return false;
+			}
+			
+			for (Type type : argTypes) {
+				if (type.getClassName().contains("java.lang.String")) {
+					return true;
+				}
+			}
+			
+			return false;
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
 	public static boolean isAllMethodParameterPrimitive(String desc) {
 		try {
 			Type[] argTypes = Type.getArgumentTypes(desc);

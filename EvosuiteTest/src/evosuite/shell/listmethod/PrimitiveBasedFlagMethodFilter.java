@@ -109,7 +109,11 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		}
 
 		/* All parameters must be of primitive types(including String) */
-		if(!FilterHelper.isMethodAtLeastPrimitiveParameter(node)) {
+//		if(!FilterHelper.isMethodAtLeastPrimitiveParameter(node)) {
+//			return false;
+//		}
+		
+		if(!FilterHelper.isMethodAtLeastStringParameter(node)) {
 			return false;
 		}
 		
@@ -138,7 +142,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 							.append(OpcodeUtils.getCode(insnNode.getOpcode()))
 							.append(", prev -- ")
 							.append(OpcodeUtils.getCode(insnNode.getPrevious().getOpcode()));
-				log.info(sb.toString());
+//				log.info(sb.toString());
 				CFGFrame frame = insn.getFrame();
 				Value value = frame.getStack(0);
 				if (value instanceof SourceValue) {

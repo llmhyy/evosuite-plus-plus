@@ -161,16 +161,6 @@ public class EvosuiteForMethod {
 				
 			}
 			
-			if (Settings.interestedProjects==null) {
-				System.out.println("Interested projects are null, return");
-				return new ArrayList<>();
-			}
-			
-			if(!Settings.interestedProjects.contains(projectName)) {
-				System.out.println("Interested projects do not contain " + projectName  + ", return ");
-				return new ArrayList<>();
-			}
-
 			/**
 			 * show the statistics of the methods under class
 			 */
@@ -184,6 +174,16 @@ public class EvosuiteForMethod {
 			 * execute the test
 			 */
 			else {
+				if (Settings.interestedProjects==null) {
+					System.out.println("Interested projects are null, return");
+					return new ArrayList<>();
+				}
+				
+				if(!Settings.interestedProjects.contains(projectName)) {
+					System.out.println("Interested projects do not contain " + projectName  + ", return ");
+					return new ArrayList<>();
+				}
+				
 //				String usedStrategy = getStrategy(args);
 				FitnessEffectiveRecorder fitnessRecorder;
 //				DistributionRecorder distributionRecorder;
@@ -221,6 +221,7 @@ public class EvosuiteForMethod {
 				String[] truncatedArgs = extractArgs(args);
 
 				if (Settings.getTestLevel() == TestLevel.lMethod) {
+//					System.setProperty("java.io.tmpdir", "/temporary");
 					results = evoTest.runAllMethods(truncatedArgs, projectName, recorderList);
 				} else {
 					results = evoTest.runAllClasses(targetClasses, truncatedArgs, projectName, recorderList);
