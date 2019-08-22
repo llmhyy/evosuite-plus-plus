@@ -19,7 +19,7 @@ import evosuite.shell.resanalyzer.ComparativeResultMerger.Record;
 
 public class NewComparativeResultMerger {
 
-	public static String folderName = "new-result";
+	public static String folderName = "new-result0";
 	
 	public static void main(String[] args) {
 		NewComparativeResultMerger merger = new NewComparativeResultMerger();
@@ -48,6 +48,7 @@ public class NewComparativeResultMerger {
 		excelWriter.getSheet(EQUAL, ComparativeRecorder.header, 0);
 		excelWriter.getSheet(WORSE_COVERAGE, ComparativeRecorder.header, 0);
 		excelWriter.getSheet(WORSE_TIME, ComparativeRecorder.header, 0);
+		excelWriter.getSheet(ALL, ComparativeRecorder.header, 0);
 	}
 
 	private void runAnalyzer(String fbranchMaterialsAddress) {
@@ -80,13 +81,38 @@ public class NewComparativeResultMerger {
 			excelWriter.writeSheet(EQUAL, transferSetToList(results.get(EQUAL)));
 			excelWriter.writeSheet(WORSE_TIME, transferSetToList(results.get(WORSE_TIME)));
 			excelWriter.writeSheet(WORSE_COVERAGE, transferSetToList(results.get(WORSE_COVERAGE)));
-//			excelWriter.writeSheet(ALL, all);
+			excelWriter.writeSheet(ALL, transferSetToList(results));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 	}
 	
+	private List<List<Object>> transferSetToList(Map<String, List<CompareResult>> results) {
+		List<List<Object>> items = new ArrayList<>();
+		
+		for(String type: results.keySet()) {
+			for(CompareResult record: results.get(type)) {
+				List<Object> item = new ArrayList<>();
+				item.add(record.projectID);
+				item.add(record.className);
+				item.add(record.methodName);
+				item.add(record.timeF);
+				item.add(record.timeB);
+				item.add(record.coverageF);
+				item.add(record.coverageB);
+				item.add(record.IPConverageF);
+				item.add(record.IPConverageB);
+				item.add(record.ageF);
+				item.add(record.ageB);
+				item.add(record.uncoveredIPF);
+				items.add(item);
+			}
+		}
+		
+		return items;
+	}
+
 	private Map<String, List<CompareResult>> compare(Map<String, Map<String, RecordItem>> branchRecord,
 			Map<String, Map<String, RecordItem>> fbranchRecord) {
 		
