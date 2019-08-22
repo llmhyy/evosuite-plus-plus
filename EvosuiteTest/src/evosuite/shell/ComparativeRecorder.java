@@ -24,9 +24,9 @@ public class ComparativeRecorder extends ExperimentRecorder {
 	public static String WOSE_TIME = "worse time";
 	
 	public static String[] header = new String[]{
+			"ProjectID",
 			"Class", 
 			"Method", 
-			"Random Seed",
 			"Execution Time (F)", 
 			"Execution Time (B)", 
 			"Coverage (F)", 
