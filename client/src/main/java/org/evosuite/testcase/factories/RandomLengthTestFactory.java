@@ -19,6 +19,11 @@
  */
 package org.evosuite.testcase.factories;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.evosuite.Properties;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.testcase.DefaultTestCase;
@@ -62,6 +67,10 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 		while (length == 0)
 			length = Randomness.nextInt(size);
 
+		
+//		List<Method> setterMethods = findSetterMethod(Properties.TARGET_CLASS);
+		System.currentTimeMillis();
+		
 		TestFactory testFactory = TestFactory.getInstance();
 
 		// Then add random stuff
@@ -71,12 +80,22 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			int targetMethodCallPosition = -1;
 			if(!Properties.TARGET_METHOD.isEmpty()) {
 				targetMethodCallPosition = TestGenerationUtil.getTargetMethodPosition(test, test.size() - 1);
-				if(targetMethodCallPosition != -1 && Randomness.nextDouble() <= 0.5) {
-					position = targetMethodCallPosition - 1;
+				if(targetMethodCallPosition != -1) {
+//					if(!setterMethods.isEmpty() && !isTargetMethodStatic()) {
+//						insertAllSetterMethods(setterMethods, test, testFactory, position);
+//					}
+					/**
+					 * 50% of chance to insert before the target method.
+					 */
+					if(Randomness.nextDouble() <= 0.5) {
+						position = targetMethodCallPosition - 1;						
+					}
+					
 				}
 			}
 			
-			testFactory.insertRandomStatement(test, position);
+			testFactory.insertRandomStatement(test, position);		
+			
 			num++;
 		}
 		if (logger.isDebugEnabled())
@@ -86,6 +105,33 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			ExecutionTracer.enable();
 
 		return test;
+	}
+
+	private void insertAllSetterMethods(List<Method> setterMethods, TestCase test, TestFactory testFactory,
+			int position) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private boolean isTargetMethodStatic() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	private List<Method> findSetterMethod(String targetClassName) {
+		List<Method> setters = new ArrayList<Method>();
+		try {
+			Class<?> targetClass = Class.forName(targetClassName);
+			for(Method method: targetClass.getDeclaredMethods()) {
+				if(method.getName().startsWith("set") && method.getModifiers() == Modifier.PUBLIC) {
+					setters.add(method);
+				}
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		return setters;
 	}
 
 	/**
