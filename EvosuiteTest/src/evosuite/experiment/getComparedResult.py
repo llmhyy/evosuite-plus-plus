@@ -9,6 +9,22 @@ fbranch_file_path=".\\fbranch\\"
 branch_original_file_names=os.listdir(branch_file_path)
 fbranch_original_file_names=os.listdir(fbranch_file_path)
 
+def isNullFile(file):
+    wb=load_workbook(file)
+    sheets=wb.sheetnames
+    if len(sheets)==0:
+        return True
+    else:
+        return False
+
+def removeNullFile(files,path):
+    i=0
+    while i<len(files):
+        if isNullFile(path+files[i]):
+            del files[i]
+        else:
+            i+=1
+
 
 def removeUnWantedFile(files):
     i=0
@@ -19,7 +35,9 @@ def removeUnWantedFile(files):
             i+=1
 
 removeUnWantedFile(branch_original_file_names)
+removeNullFile(branch_original_file_names,branch_file_path)
 removeUnWantedFile(fbranch_original_file_names)
+removeNullFile(fbranch_original_file_names,fbranch_file_path)
 
 def simplifyFileName(file_path,original_file_names):
     for file in original_file_names:
@@ -37,12 +55,28 @@ branch_new_file_names=os.listdir(branch_file_path)
 fbranch_new_file_names=os.listdir(fbranch_file_path)
 
 removeUnWantedFile(branch_new_file_names)
+removeNullFile(branch_new_file_names,branch_file_path)
 removeUnWantedFile(fbranch_new_file_names)
+removeNullFile(fbranch_new_file_names,fbranch_file_path)
+
+# delete result and create a new one with one 'result' sheet
+def checkResultFile():
+    files=os.listdir(".\\")
+    if "result.xlsx" in files:
+        return True
+    else:
+        return False
+
+if checkResultFile():
+    os.remove(".\\result.xlsx")
+
+new_wb=Workbook("result.xlsx")
+ws=new_wb.create_sheet('result')
+new_wb.save('result.xlsx')
 
 
-#new_wb=Workbook()
 new_wb=load_workbook("result.xlsx")
-#new_ws=new_wb.active
+
 
 def checkValidity(ws,k):
     if not isinstance(ws['C'+str(k)].value,float):
@@ -147,7 +181,7 @@ def load_classes_methods(file_ws):
 
 def init_result():
     wb=load_workbook("result.xlsx")
-    com_ws=wb.create_sheet(title='result')
+    com_ws=wb["result"]
     #get header
     com_ws['A1'].value="project"
     com_ws['B1'].value="class"
@@ -216,3 +250,9 @@ def compare(b_ws_title,f_ws_title):
 
 for file in files:
     compare(file[0],file[1])
+
+for file in branch_original_file_names:
+    os.rename(branch_file_path+file.split("_")[0]+".xlsx",branch_file_path+file)
+
+for file in fbranch_original_file_names:
+    os.rename(fbranch_file_path+file.split("_")[0]+".xlsx",fbranch_file_path+file)
