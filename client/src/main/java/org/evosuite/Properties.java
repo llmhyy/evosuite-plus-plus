@@ -2500,7 +2500,7 @@ public class Properties {
 	/**
 	 * number of iteration context limit.
 	 */
-	public static final int ITERATION_CONTEXT_LIMIT = 5;
+	public static final int ITERATION_CONTEXT_LIMIT = 2;
 
 	public static boolean ALWAYS_REGISTER_BRANCH = false;
 	
