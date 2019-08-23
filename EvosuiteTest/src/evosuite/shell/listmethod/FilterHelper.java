@@ -71,6 +71,28 @@ public class FilterHelper {
 		return false;
 	}
 	
+	public static boolean isAtLeastMethodParameterPrimitive(String desc) {
+		try {
+			Type[] argTypes = Type.getArgumentTypes(desc);
+			
+			if(argTypes.length==0) {
+				return false;
+			}
+			
+			for (Type type : argTypes) {
+				if (considerAsPrimitiveType(type)) {
+					return true;
+				}
+			}
+			
+			return false;
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
 	public static boolean considerAsPrimitiveType(Type type) {
 		switch (type.getSort()) {
 		case Type.BOOLEAN:
