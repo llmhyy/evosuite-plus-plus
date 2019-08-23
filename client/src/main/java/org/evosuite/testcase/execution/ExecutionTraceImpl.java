@@ -561,18 +561,44 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 			contextMap.put(context, iterationTable);
 		}
 		
-		List<Integer> existingBranchTrace = getLatestBranchTrace();
-		
-		if(!iterationTable.containsKey(existingBranchTrace)) {
-			iterationTable.put(existingBranchTrace, distance);
+		if(iterationTable.keySet().size() < Properties.ITERATION_CONTEXT_LIMIT) {
+			List<Integer> existingBranchTrace = getLatestBranchTrace();
+			if(!iterationTable.containsKey(existingBranchTrace)) {
+				iterationTable.put(existingBranchTrace, distance);
+			}
+			else{
+				Double existingDistance = iterationTable.get(existingBranchTrace);
+				iterationTable.put(existingBranchTrace, Math.min(existingDistance, distance));					
+			}
 		}
 		else {
-			double existingDistance = iterationTable.get(existingBranchTrace);
-			iterationTable.put(existingBranchTrace, Math.min(existingDistance, distance));	
+			List<Integer> traceWithSmallestDistance = findTraceWithSmallestDistance(iterationTable);
+			Double smallestDistance = iterationTable.get(traceWithSmallestDistance);
+			iterationTable.put(traceWithSmallestDistance, Math.min(smallestDistance, distance));	
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
+	private List<Integer> findTraceWithSmallestDistance(Map<List<Integer>, Double> iterationTable) {
+		
+		List<Integer> traceWithSmallestDistance = null;
+		Double distance = -1d;
+		for(List<Integer> trace: iterationTable.keySet()) {
+			if(traceWithSmallestDistance == null) {
+				traceWithSmallestDistance = trace;
+				distance = iterationTable.get(trace);
+			}
+			else {
+				Double newDistance = iterationTable.get(trace);
+				if(newDistance < distance) {
+					distance = newDistance;
+					traceWithSmallestDistance = trace;
+				}
+			}
+		}
+		
+		return traceWithSmallestDistance;
+	}
+
 	private List<Integer> getLatestBranchTrace() {
 		Iterator<MethodCall> iterator = stack.iterator();
 		

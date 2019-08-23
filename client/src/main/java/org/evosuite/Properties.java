@@ -2497,6 +2497,11 @@ public class Properties {
 
 	public static final int RECORD_INTERVAL = 5;
 
+	/**
+	 * number of iteration context limit.
+	 */
+	public static final int ITERATION_CONTEXT_LIMIT = 5;
+
 	public static boolean ALWAYS_REGISTER_BRANCH = false;
 	
 	/*
