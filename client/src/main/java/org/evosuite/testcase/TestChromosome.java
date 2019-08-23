@@ -659,7 +659,7 @@ public class TestChromosome extends ExecutableChromosome {
 					indexes.set(0, iTemp);
 				}
 				
-				if(i>2 && mutationProbability[i] > values.get(1)) {
+				if(i>=2 && mutationProbability[i] > values.get(1)) {
 					indexes.set(1, i);
 					values.set(1, mutationProbability[i]);
 				}
