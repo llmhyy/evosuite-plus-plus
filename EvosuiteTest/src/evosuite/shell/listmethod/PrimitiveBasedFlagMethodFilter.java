@@ -108,14 +108,14 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 			return false;
 		}
 
-		/* All parameters must be of primitive types(including String) */
+		/* All parameters must be of primitive type (including String) */
 //		if(!FilterHelper.isMethodAtLeastPrimitiveParameter(node)) {
 //			return false;
 //		}
 		
-		if(!FilterHelper.isMethodAtLeastStringParameter(node)) {
-			return false;
-		}
+//		if(FilterHelper.isMethodAtLeastStringParameter(node)) {
+//			return false;
+//		}
 		
 		boolean defuseAnalyzed = false;
 		MethodContent mc = new MethodContent();
@@ -128,9 +128,9 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		for (BytecodeInstruction insn : cfg.getBranches()) {
 			
 			boolean isBranchDependOnBranchWithAllPrimitives = checkDependentBranchUseAllPrimitiveOperands(insn);
-			checkDependentBranchUseAllPrimitiveOperands(insn);
+//			checkDependentBranchUseAllPrimitiveOperands(insn);
 			if(!isBranchDependOnBranchWithAllPrimitives && !insn.getControlDependencies().isEmpty()) {
-				checkDependentBranchUseAllPrimitiveOperands(insn);
+//				checkDependentBranchUseAllPrimitiveOperands(insn);
 				continue;
 			}
 			
@@ -472,7 +472,8 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 				}
 				else {
 					//TODO all the arguments should be primitive
-					boolean isAllParamPrimitive = FilterHelper.isAllMethodParameterPrimitive(methodInsnNode.desc);
+//					boolean isAllParamPrimitive = FilterHelper.isAllMethodParameterPrimitive(methodInsnNode.desc);
+					boolean isAllParamPrimitive = FilterHelper.isAtLeastMethodParameterPrimitive(methodInsnNode.desc);
 					return isAllParamPrimitive;
 				}
 			}

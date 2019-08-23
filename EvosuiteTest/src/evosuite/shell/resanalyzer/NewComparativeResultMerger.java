@@ -19,7 +19,7 @@ import evosuite.shell.resanalyzer.ComparativeResultMerger.Record;
 
 public class NewComparativeResultMerger {
 
-	public static String folderName = "new-result0";
+	public static String folderName = "new-result2";
 	
 	public static void main(String[] args) {
 		NewComparativeResultMerger merger = new NewComparativeResultMerger();
@@ -113,6 +113,12 @@ public class NewComparativeResultMerger {
 		return items;
 	}
 
+	/**
+	 * prj => methodID => coverage information
+	 * @param branchRecord
+	 * @param fbranchRecord
+	 * @return
+	 */
 	private Map<String, List<CompareResult>> compare(Map<String, Map<String, RecordItem>> branchRecord,
 			Map<String, Map<String, RecordItem>> fbranchRecord) {
 		
@@ -125,7 +131,9 @@ public class NewComparativeResultMerger {
 				try {
 					fbranchItem = fbranchRecord.get(proj).get(methodID);					
 				}
-				catch(Exception e) {}
+				catch(Exception e) {
+					System.currentTimeMillis();
+				}
 				
 				if(fbranchItem != null) {
 					CompareResult cResult = new CompareResult(proj, branchItem.className, branchItem.methodName, 
