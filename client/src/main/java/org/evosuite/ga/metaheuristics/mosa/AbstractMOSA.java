@@ -48,8 +48,8 @@ import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.ga.metaheuristics.SearchListener;
+import org.evosuite.ga.operators.mutation.MutationHistory;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -284,8 +284,8 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		/**
 		 * update the changing information of statement
 		 */
-		TestMutationHistoryEntry tEntry = (TestMutationHistoryEntry)tch.getMutationHistory().getLastMutation();
-		if(tEntry!=null && tEntry.getMutationType() == TestMutation.CHANGE) {
+		boolean isHistoryContainChange = isHistoryContainChange(tch.getMutationHistory());
+		if(isHistoryContainChange) {
 			List<Integer> changedPositions = tch.getChangedPositionsInOldTest();	
 			TestCase parentTestCase = ((TestChromosome)parent).getTestCase();
 			for(int position=0; position<parentTestCase.size(); position++) {
@@ -310,6 +310,15 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			offspring.setChanged(changed);
 		}
 		this.notifyMutation(offspring);
+	}
+
+	private boolean isHistoryContainChange(MutationHistory<TestMutationHistoryEntry> mutationHistory) {
+		for(TestMutationHistoryEntry entry: mutationHistory) {
+			if(entry.getMutationType() == TestMutation.CHANGE) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
