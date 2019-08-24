@@ -20,7 +20,7 @@ import evosuite.shell.experiment.SFConfiguration;
 
 public class ComparativeResultMerger {
 
-	public static String folderName = "report-fbranch";
+	public static String folderName = "Aug24 5am results";
 	
 	public static void main(String[] args) {
 		ComparativeResultMerger merger = new ComparativeResultMerger();
