@@ -19,7 +19,7 @@ import evosuite.shell.resanalyzer.ComparativeResultMerger.Record;
 
 public class NewComparativeResultMerger {
 //	public static String folderName = "new-result3";
-	public static String folderName = "Aug24 3pm results";
+	public static String folderName = "Aug24 4pm results";
 	
 	public static void main(String[] args) {
 		NewComparativeResultMerger merger = new NewComparativeResultMerger();
@@ -237,8 +237,21 @@ public class NewComparativeResultMerger {
 					}
 					
 					prevItem = item;
-					
 				}
+				
+				if(!list.isEmpty()) {
+					RecordItem averageItem = deriveAverage(list);
+					Map<String, RecordItem> averageRecord = branchRecord.get(projectName);
+					if(averageRecord == null) {
+						averageRecord = new HashMap<String, RecordItem>();
+						branchRecord.put(projectName, averageRecord);
+					}
+					
+					String methodID = averageItem.className + "#" + averageItem.methodName;
+					averageRecord.put(methodID, averageItem);
+				}
+				
+				System.currentTimeMillis();
 			}
 		}
 		
