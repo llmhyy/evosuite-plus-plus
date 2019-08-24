@@ -17,18 +17,21 @@ import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.resanalyzer.ComparativeResultMerger.Record;
 
-public class NewComparativeResultMerger {
+public class WorseCoverageMerger2 {
 
-//	public static String folderName = "new-result3";
-	public static String folderName = "last-result";
+	public static String folderName = "new-result3";
+	public static String fileToBeImproved = "overall_compare1.xlsx";
+	public static String fileToBeEnhance = "overall_compare2.xlsx";
+//	public static String folderName = "last-result";
 	
 	public static void main(String[] args) {
-		NewComparativeResultMerger merger = new NewComparativeResultMerger();
+		WorseCoverageMerger2 merger = new WorseCoverageMerger2();
 
 		// String branchSummaryAddress = SFConfiguration.sfBenchmarkFolder +
 		// File.separator + "summary.xlsx";
-		String fbranchMaterialsAddress = SFConfiguration.sfBenchmarkFolder + File.separator + folderName;
-		merger.runAnalyzer(fbranchMaterialsAddress);
+		String fileToBeImprovedAddress = SFConfiguration.sfBenchmarkFolder + File.separator + folderName + File.separator + fileToBeImproved ;
+		String fileToBeEnhanceAddress = SFConfiguration.sfBenchmarkFolder + File.separator + folderName + File.separator + fileToBeEnhance ;
+		merger.runAnalyzer(fileToBeImprovedAddress, fileToBeEnhanceAddress);
 
 	}
 
@@ -41,9 +44,9 @@ public class NewComparativeResultMerger {
 
 	private ExcelWriter excelWriter;
 
-	public NewComparativeResultMerger() {
+	public WorseCoverageMerger2() {
 		excelWriter = new ExcelWriter(new File(SFConfiguration.sfBenchmarkFolder + File.separator + folderName
-				+ File.separator + "overall_compare.xlsx"));
+				+ File.separator + "final_overall_compare.xlsx"));
 		excelWriter.getSheet(BETTER_COVERAGE, ComparativeRecorder.header, 0);
 		excelWriter.getSheet(BETTER_TIME, ComparativeRecorder.header, 0);
 		excelWriter.getSheet(EQUAL, ComparativeRecorder.header, 0);
@@ -52,43 +55,62 @@ public class NewComparativeResultMerger {
 		excelWriter.getSheet(ALL, ComparativeRecorder.header, 0);
 	}
 
-	private void runAnalyzer(String fbranchMaterialsAddress) {
-		File root = new File(fbranchMaterialsAddress);
+	private void runAnalyzer(String fileToBeImprovedAddress, String fileToEnhanceAddress) {
+		File toImprovedFile = new File(fileToBeImprovedAddress);
+		File enhanacingFile = new File(fileToEnhanceAddress);
 
-		if (!root.exists()) {
-			System.err.println(root + " does not exsit");
+		if (!toImprovedFile.exists() || !enhanacingFile.exists()) {
+			System.err.println(fileToBeImprovedAddress + "or" + fileToEnhanceAddress + " does not exsit");
 			return;
 		}
+		
+		
+		List<List<Object>> betterCoverage = merge(toImprovedFile, enhanacingFile, BETTER_COVERAGE);
+		List<List<Object>> betterTime = merge(toImprovedFile, enhanacingFile, BETTER_TIME);
+		List<List<Object>> equal = merge(toImprovedFile, enhanacingFile, EQUAL);
+		List<List<Object>> worseTime = merge(toImprovedFile, enhanacingFile, WORSE_TIME);
+		List<List<Object>> worseCoverage = get(enhanacingFile, WORSE_COVERAGE);
+		
+		List<List<Object>> all = new ArrayList<List<Object>>();
+		all.addAll(betterCoverage);
+		all.addAll(betterTime);
+		all.addAll(equal);
+		all.addAll(worseTime);
+		all.addAll(worseCoverage);
 
-		Map<String, Map<String, RecordItem>> branchRecord = new HashMap<>();
-		Map<String, Map<String, RecordItem>> fbranchRecord = new HashMap<>();
-		
-		for (File file : root.listFiles()) {
-			if(file.exists() && file.isDirectory()) {
-				if(file.getName().endsWith("-branch")) {
-					aggregateRecord(file, branchRecord);
-				}
-				else if(file.getName().endsWith("-fbranch")) {
-					aggregateRecord(file, fbranchRecord);
-				}
-			}
-		}
-		
-		Map<String, List<CompareResult>> results = compare(branchRecord, fbranchRecord);
-		
 		try {
-			excelWriter.writeSheet(BETTER_COVERAGE, transferSetToList(results.get(BETTER_COVERAGE)));
-			excelWriter.writeSheet(BETTER_TIME, transferSetToList(results.get(BETTER_TIME)));
-			excelWriter.writeSheet(EQUAL, transferSetToList(results.get(EQUAL)));
-			excelWriter.writeSheet(WORSE_TIME, transferSetToList(results.get(WORSE_TIME)));
-			excelWriter.writeSheet(WORSE_COVERAGE, transferSetToList(results.get(WORSE_COVERAGE)));
-			excelWriter.writeSheet(ALL, transferSetToList(results));
+			excelWriter.writeSheet(BETTER_COVERAGE, betterCoverage);
+			excelWriter.writeSheet(BETTER_TIME, betterTime);
+			excelWriter.writeSheet(EQUAL, equal);
+			excelWriter.writeSheet(WORSE_TIME, worseTime);
+			excelWriter.writeSheet(WORSE_COVERAGE, worseCoverage);
+			excelWriter.writeSheet(ALL, all);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 	}
 	
+	private List<List<Object>> get(File enhanacingFile, String sheet) {
+		ExcelReader reader = new ExcelReader(enhanacingFile, 0);
+		List<List<Object>> bc = reader.listData(sheet);
+		return bc;
+	}
+
+	private List<List<Object>> merge(File toImprovedFile, File enhanacingFile, String betterCoverage) {
+		ExcelReader reader1 = new ExcelReader(toImprovedFile, 0);
+		List<List<Object>> itemList1 = reader1.listData(betterCoverage);
+		
+		ExcelReader reader2 = new ExcelReader(enhanacingFile, 0);
+		List<List<Object>> itemList2 = reader2.listData(betterCoverage);
+		
+		List<List<Object>> list = new ArrayList<List<Object>>();
+		list.addAll(itemList1);
+		list.addAll(itemList2);
+		
+		return list;
+	}
+
 	private List<List<Object>> transferSetToList(Map<String, List<CompareResult>> results) {
 		List<List<Object>> items = new ArrayList<>();
 		
