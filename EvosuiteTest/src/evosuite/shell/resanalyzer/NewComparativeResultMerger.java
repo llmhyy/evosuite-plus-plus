@@ -18,9 +18,8 @@ import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.resanalyzer.ComparativeResultMerger.Record;
 
 public class NewComparativeResultMerger {
-
 //	public static String folderName = "new-result3";
-	public static String folderName = "last-result";
+	public static String folderName = "Aug24 3pm results";
 	
 	public static void main(String[] args) {
 		NewComparativeResultMerger merger = new NewComparativeResultMerger();
@@ -178,21 +177,23 @@ public class NewComparativeResultMerger {
 
 	private List<List<Object>> transferSetToList(List<CompareResult> list) {
 		List<List<Object>> items = new ArrayList<>();
-		for(CompareResult record: list) {
-			List<Object> item = new ArrayList<>();
-			item.add(record.projectID);
-			item.add(record.className);
-			item.add(record.methodName);
-			item.add(record.timeF);
-			item.add(record.timeB);
-			item.add(record.coverageF);
-			item.add(record.coverageB);
-			item.add(record.IPConverageF);
-			item.add(record.IPConverageB);
-			item.add(record.ageF);
-			item.add(record.ageB);
-			item.add(record.uncoveredIPF);
-			items.add(item);
+		if (list != null && !list.isEmpty()) {
+			for (CompareResult record : list) {
+				List<Object> item = new ArrayList<>();
+				item.add(record.projectID);
+				item.add(record.className);
+				item.add(record.methodName);
+				item.add(record.timeF);
+				item.add(record.timeB);
+				item.add(record.coverageF);
+				item.add(record.coverageB);
+				item.add(record.IPConverageF);
+				item.add(record.IPConverageB);
+				item.add(record.ageF);
+				item.add(record.ageB);
+				item.add(record.uncoveredIPF);
+				items.add(item);
+			}
 		}
 		return items;
 	}
