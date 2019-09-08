@@ -57,19 +57,20 @@ public class IntegerGenerateConstraint {
 		Operator op;
 		if(operandNum==1) {
 			op=Operator.values()[new Random().nextInt(1)+18];
-			return op;
 		}		
 		else {
-			op=Operator.values()[new Random().nextInt(4)+1];
-			return op;
+			Operator op1=Operator.values()[new Random().nextInt(4)+1];
+			Operator op2=Operator.values()[new Random().nextInt(6)+12];
+			op=Math.random()>0.5?op1:op2;
 		}
+		return op;
 		
 	}
 	
+	//variable
 	public static IntegerValue RandomOneOperand(){
 		IntegerValue left;
-		
-		//根据Pool中的数量决定之后variable的生成方式		
+			
 		double probability;
 		if(VariablePool.size()<6) probability=0.1;
 		else if(VariablePool.size()<11) probability=0.5;
@@ -93,7 +94,7 @@ public class IntegerGenerateConstraint {
 	
 	public static IntegerValue RandomLeftOperand()
 	{
-		return RandomOneOperand();
+		return Math.random()>0.5?RandomOneOperand():RandomBinaryOperand();
 	}
 	
 	public static IntegerValue RandomBinaryOperand(){
@@ -167,7 +168,7 @@ public class IntegerGenerateConstraint {
 	
 	public static List<Constraint<?>> generateConstraints(){		
 		init();
-		int i=15;
+		int i=20;
 		for(;i>0;i--) {
 			IntegerConstraint ic=generateConstraint();
 			System.out.println(ic.toString());
@@ -190,46 +191,94 @@ public class IntegerGenerateConstraint {
 		System.out.print(succ);
 	}
 	
-	public static String[] parsingOperand(Expression<?> operand) {
-		String[] op_parameters=new String[3];
-		if(operand.containsSymbolicVariable()) {
-			op_parameters[0]="1";
-			op_parameters[1]="0";
-			op_parameters[2]="0";
-		}
-		else {
-			op_parameters[0]="0";
-			op_parameters[1]=operand.getConcreteValue().toString();
-			op_parameters[2]="0";
-		}
-		return op_parameters;
-	}
-	
-	public static String parsingComparator(Comparator cmp) {
-		StringBuilder sb = new StringBuilder();
-		switch(cmp) {
-		case EQ:
-			sb.append("0");
+	public static int parsingBinaryOperator(IntegerBinaryExpression b) {
+		Operator op=b.getOperator();
+		int type=0;
+		switch(op) {
+		case DIV:
+			type=0;
 			break;
-		case NE:
-			sb.append("1");
+		case MUL:
+			type=1;
 			break;
-		case LT:
-			sb.append("2");
+		case MINUS:
+			type=2;
 			break;
-		case LE:
-			sb.append("3");
+		case PLUS:
+			type=3;
 			break;
-		case GT:
-			sb.append("4");
+		case IAND:
+			type=4;
 			break;
-		case GE:
-			sb.append("5");
+		case IOR:
+			type=5;
+			break;
+		case SHR:
+			type=6;
+			break;
+		case SHL:
+			type=7;
+			break;
+		case USHR:
+			type=8;
+			break;
+		case IXOR:
+			type=9;
 			break;
 			default:
 				break;
 		}
-		return sb.toString();
+		return type;
+		
+	}
+	
+	public static String[] parsingOperand(Expression<?> operand) {
+		String[] op_parameters=new String[] {"0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"};
+		if(operand.containsSymbolicVariable()) {
+			op_parameters[1]="1";
+		}
+		else {			
+			op_parameters[0]=operand.getConcreteValue().toString();
+			op_parameters[2]="1";
+		}
+		if(operand.getSize()==1) op_parameters[3]="1";
+		else {
+			int op_type=parsingBinaryOperator((IntegerBinaryExpression)operand);
+			op_parameters[op_type]="1";
+		}
+			
+		op_parameters[14]="1";
+		
+		return op_parameters;
+	}
+	
+	public static String[] parsingComparator(Comparator cmp) {
+		String[] comparator=new String[] {"0","0","0","0","0","0"} ;
+		int type=0;
+		switch(cmp) {
+		case EQ:
+			type=0;
+			break;
+		case NE:
+			type=1;
+			break;
+		case LT:
+			type=2;
+			break;
+		case GT:
+			type=3;
+			break;
+		case LE:
+			type=4;
+			break;
+		case GE:
+			type=5;
+			break;
+			default:
+				break;
+		}
+		comparator[type]="1";
+		return comparator;
 	}
 	
 	public static void dynamicVariableConvertToConstant(){
@@ -257,38 +306,113 @@ public class IntegerGenerateConstraint {
 	}
 	
 	public static String[] constraintParsing(Constraint<?> cons) {
-		String[] data=new String[8];;
+		String[] data=new String[42];
 		String[] left=parsingOperand(cons.getLeftOperand());
 		String[] right=parsingOperand(cons.getRightOperand());
-		String cmp=parsingComparator(cons.getComparator());
-		System.arraycopy(left, 0, data, 0, 3);
-		System.arraycopy(right, 0, data, 3, 3);
-		data[6]=cmp;
-		data[7]="0";
+		String[] cmp=parsingComparator(cons.getComparator());
+		System.arraycopy(left, 0, data, 0, 17);
+		System.arraycopy(right, 0, data, 17, 17);
+		System.arraycopy(cmp, 0, data, 34, 6);
+		data[39]="1";
+		data[40]="0";
+		data[41]="0";
 		return data;
 		
+	}
+	public static String[] strategyParsing(String[] cons) {
+		String[] strategy=new String[] {"0","0","0","0"};
+		if(cons[34]=="1"||cons[35]=="1") {
+			strategy[1]="1";
+			strategy[3]=Double.toString(new Random().nextDouble()*0.05);
+			return strategy;
+		}
+		else if(cons[36]=="1"||cons[37]=="1") {
+			int flag=0;
+			if(cons[3]=="1") flag=1;
+			if(cons[4]=="1") flag=1;
+			if(cons[5]=="1") flag=1;
+			if(cons[6]=="1") flag=1;
+			if(cons[7]=="1") flag=1;
+			if(flag==1) {
+				strategy[0]="1";
+				strategy[3]=Double.toString(new Random().nextDouble()*0.05);
+				return strategy;
+				
+			}	
+		}
+		strategy[2]="1";
+		strategy[3]=Double.toString(new Random().nextDouble()/2+0.5);
+		return strategy;
 	}
 	
 	public static void main(String[] argv) throws Exception{
 		
 	    try { 
 	        // create FileWriter object with file as parameter 
-	        FileWriter outputfile = new FileWriter("D:\\xianglin\\git_space\\bi-direct-rnn\\input\\test.csv",false); 	  
-	        CSVWriter writer = new CSVWriter(outputfile,',','\0'); 
-	  
+	        FileWriter test_file = new FileWriter("D:\\xianglin\\git_space\\bi-direct-rnn\\input\\test.csv",false); 
+	        FileWriter test_label_file = new FileWriter("D:\\xianglin\\git_space\\bi-direct-rnn\\input\\test_label.csv",false);
+	        CSVWriter writer1 = new CSVWriter(test_file,',','\0');
+	        CSVWriter writer2 = new CSVWriter(test_label_file,',','\0');
 	        // adding header to csv 
-	        String[] header = { "left_op_constant_value", "left_op_isSymbolicValue", "left_op_type","right_op_constant_value","right_op_isSymbolicValue","right_op_type","cmp","condition" }; 
-	        writer.writeNext(header); 
-	        
+	        String[] header1 = { 
+	        		"l_constantValue", 
+	        		"l_isSymbolicValue",
+	        		"l_nonSymbolicValue",
+	        		"l_non_op",
+	        		"l_DIV",
+	        		"l_MUL",
+	        		"l_MINUS",
+	        		"l_PLUS",
+	        		"l_IAND",
+	        		"l_IOR",
+	        		"l_SHR", 
+	        		"l_SHL",
+	        		"l_USHR",
+	        		"l_IXOR",
+	        		"l_int",
+	        		"l_real",
+	        		"l_string",
+	        		"r_constantValue", 
+	        		"r_isSymbolicValue",
+	        		"r_nonSymbolicValue",
+	        		"r_non_op",
+	        		"r_DIV",
+	        		"r_MUL",
+	        		"r_MINUS",
+	        		"r_PLUS",
+	        		"r_IAND",
+	        		"r_IOR",
+	        		"r_SHR", 
+	        		"r_SHL",
+	        		"r_USHR",
+	        		"r_IXOR",
+	        		"r_int",
+	        		"r_real",
+	        		"r_string",
+	        		"EQ",
+	        		"NE",
+	        		"LT",
+	        		"GT",
+	        		"LE",
+	        		"GE",
+	        		"if",
+	        		"loop"
+	        		}; 
+	        String[] header2 = { "SE","SEARCH","RT", "timeout" }; 
+	        writer1.writeNext(header1); 
+	        writer2.writeNext(header2);
 	        for(int i=0;i<10000;i++) {
 	        	List<Constraint<?>> constraintsSet = new ArrayList<Constraint<?>>();
 	 			constraintsSet=generateConstraints();
 	 			for(int j=0;j<constraintsSet.size();j++) {
 	 				String[] data=constraintParsing(constraintsSet.get(j));
-	 				writer.writeNext(data);
+	 				String[] strategy=strategyParsing(data);
+	 				writer1.writeNext(data);
+	 				writer2.writeNext(strategy);
 	 			}
 	        }
-			writer.close();
+			writer1.close();
+			writer2.close();
 	    } 
 	    catch (IOException e) { 
 	        e.printStackTrace(); 
