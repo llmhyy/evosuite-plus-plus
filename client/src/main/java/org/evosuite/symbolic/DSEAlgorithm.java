@@ -523,7 +523,7 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 				String methodSig = m.getName() + MethodUtil.getSignature(m);
 				if (methodSig.equals(Properties.TARGET_METHOD)) {
 					targetStaticMethods.add(m);
-					continue;
+					break;
 				}
 			}
 
