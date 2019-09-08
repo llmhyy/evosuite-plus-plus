@@ -3,12 +3,14 @@ package com.example;
 public class Student {
 	private int age;
 	private int height;
+	
+	private Student friend;
 
-	public Student(int age, int height) {
-		super();
-		this.age = age;
-		this.height = height;
-	}
+//	public Student(int age, int height) {
+//		super();
+//		this.age = age;
+//		this.height = height;
+//	}
 
 	@Override
 	public String toString() {
@@ -29,6 +31,14 @@ public class Student {
 
 	public void setHeight(int height) {
 		this.height = height;
+	}
+
+	public Student getFriend() {
+		return friend;
+	}
+
+	public void setFriend(Student friend) {
+		this.friend = friend;
 	}
 
 }

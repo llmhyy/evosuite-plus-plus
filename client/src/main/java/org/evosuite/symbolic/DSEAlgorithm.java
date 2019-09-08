@@ -152,7 +152,7 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 				SolverResult result = DSETestGenerator.solve(query);
 				long end = System.currentTimeMillis();
 				long time = end - start;
-				
+
 				queryCache.put(constraintSet, result);
 				logger.debug("Number of stored entries in query cache : " + queryCache.keySet().size());
 				logger.debug(constraintsSet.toString());
@@ -255,7 +255,8 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 		return false;
 	}
 
-	public static ArrayList<VariableReference> getMethodArgs(String descriptor, Executable targetMethod, TestCaseBuilder testCaseBuilder) {
+	public static ArrayList<VariableReference> getMethodArgs(String descriptor, Executable targetMethod,
+			TestCaseBuilder testCaseBuilder) {
 		Type[] argumentTypes = Type.getArgumentTypes(descriptor);
 		Class<?>[] argumentClasses = targetMethod.getParameterTypes();
 
@@ -316,55 +317,9 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 					VariableReference stringVariable = testCaseBuilder.appendStringPrimitive("");
 					arguments.add(stringVariable);
 				} else {
-
-					VariableReference objectVariable = null;
-					try {
-						boolean validConstructor = false;
-						Constructor<?> emptyConstructor = null;
-						for(Constructor<?> constructor: argumentClass.getConstructors()) {
-							if(constructor.getParameterCount() != 0) {
-								String constructorDesc = Type.getConstructorDescriptor(constructor);
-								ArrayList<VariableReference> parameters = getMethodArgs(constructorDesc, constructor, testCaseBuilder);
-								objectVariable = testCaseBuilder.appendConstructor(constructor, parameters);
-								validConstructor = true;
-								break;
-							}
-							else {
-								emptyConstructor = constructor;
-							}
-						}
-						
-						if(!validConstructor && emptyConstructor != null) {
-							objectVariable = testCaseBuilder.appendConstructor(emptyConstructor, new ArrayList<VariableReference>());
-							for(Field field: argumentClass.getDeclaredFields()) {
-								Class<?> fieldType = field.getType();
-								if(fieldType.isPrimitive()) {
-									String fieldModifiers = Modifier.toString(field.getModifiers());
-									if(fieldModifiers.contains("public")) {
-										System.currentTimeMillis();
-									}
-									else if(fieldModifiers.contains("private") || fieldModifiers.contains("protected")) {
-										constructFieldVar(testCaseBuilder, field, argumentClass, objectVariable);
-									}
-									else {
-										//TODO
-										System.currentTimeMillis();
-									}									
-								}
-								else {
-									//TODO handle complex object type
-									
-								}
-							}
-						}
-						
-					} catch (SecurityException e) {
-//						e.printStackTrace();
-						objectVariable = testCaseBuilder.appendNull(argumentClass);
-						System.currentTimeMillis();
-					}
-					
-					arguments.add(objectVariable);
+					VariableReference complexVariable = constructVarReference4Obj(testCaseBuilder, 
+							argumentClass, Properties.OBJECT_CONSTRUCTION_DEPTH);
+					arguments.add(complexVariable);
 				}
 				break;
 			}
@@ -377,64 +332,105 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 		return arguments;
 	}
 
+	private static VariableReference constructVarReference4Obj(TestCaseBuilder testCaseBuilder, 
+			Class<?> argumentClass, int limit) {
+		VariableReference objectVariable = null;
+		try {
+			boolean validConstructor = false;
+			Constructor<?> emptyConstructor = null;
+			for (Constructor<?> constructor : argumentClass.getConstructors()) {
+				if (constructor.getParameterCount() != 0) {
+					String constructorDesc = Type.getConstructorDescriptor(constructor);
+					ArrayList<VariableReference> parameters = getMethodArgs(constructorDesc, constructor,
+							testCaseBuilder);
+					objectVariable = testCaseBuilder.appendConstructor(constructor, parameters);
+					validConstructor = true;
+					break;
+				} else {
+					emptyConstructor = constructor;
+				}
+			}
+
+			if (!validConstructor && emptyConstructor != null) {
+				objectVariable = testCaseBuilder.appendConstructor(emptyConstructor,
+						new ArrayList<VariableReference>());
+				for (Field field : argumentClass.getDeclaredFields()) {
+//								Class<?> fieldType = field.getType();
+//								if(fieldType.isPrimitive()) {
+//									
+//								}
+					String fieldModifiers = Modifier.toString(field.getModifiers());
+					if (fieldModifiers.contains("public")) {
+						System.currentTimeMillis();
+					} else if (fieldModifiers.contains("private") || fieldModifiers.contains("protected")) {
+						constructFieldVar(testCaseBuilder, field, argumentClass, objectVariable, limit-1);
+					} else {
+						// TODO
+						System.currentTimeMillis();
+					}
+				}
+			}
+
+		} catch (SecurityException e) {
+//			e.printStackTrace();
+			objectVariable = testCaseBuilder.appendNull(argumentClass);
+			System.currentTimeMillis();
+		}
+
+		return objectVariable;
+	}
+
 	private static Method findSetterMethod(Class<?> argumentClass, Field field) {
 		String fieldName = field.getName();
 		String intendedMethodName = "set" + fieldName;
 		intendedMethodName = intendedMethodName.toLowerCase();
-		for(Method method: argumentClass.getMethods()) {
-			if(method.getName().toLowerCase().contains(intendedMethodName)) {
+		for (Method method : argumentClass.getMethods()) {
+			if (method.getName().toLowerCase().contains(intendedMethodName)) {
 				return method;
 			}
 		}
 		return null;
 	}
 
-	private static VariableReference constructFieldVar(TestCaseBuilder testCaseBuilder, Field field, 
-			Class<?> argumentClass, VariableReference objectVariable) {
-		Class<?> fieldType  =  field.getType();
-		VariableReference variable =  null;
-		if(fieldType.getTypeName().equals("boolean")){
+	private static VariableReference constructFieldVar(TestCaseBuilder testCaseBuilder, Field field,
+			Class<?> argumentClass, VariableReference objectVariable, int limit) {
+		Class<?> fieldType = field.getType();
+		VariableReference variable = null;
+		if (fieldType.getTypeName().equals("boolean")) {
 			variable = testCaseBuilder.appendBooleanPrimitive(false);
-		}
-		else if(fieldType.getTypeName().equals("byte")){
+		} else if (fieldType.getTypeName().equals("byte")) {
 			variable = testCaseBuilder.appendBytePrimitive((byte) 0);
-		}
-		else if(fieldType.getTypeName().equals("char")) {
+		} else if (fieldType.getTypeName().equals("char")) {
 			variable = testCaseBuilder.appendCharPrimitive((char) 0);
-		}
-		else if(fieldType.getTypeName().equals("short")){
+		} else if (fieldType.getTypeName().equals("short")) {
 			variable = testCaseBuilder.appendShortPrimitive((short) 0);
-		}
-		else if(fieldType.getTypeName().equals("int")) {
+		} else if (fieldType.getTypeName().equals("int")) {
 			variable = testCaseBuilder.appendIntPrimitive(0);
-		}
-		else if(fieldType.getTypeName().equals("long")){
+		} else if (fieldType.getTypeName().equals("long")) {
 			variable = testCaseBuilder.appendLongPrimitive(0L);
-		}
-		else if(fieldType.getTypeName().equals("float")){
+		} else if (fieldType.getTypeName().equals("float")) {
 			variable = testCaseBuilder.appendFloatPrimitive((float) 0.0);
-		}
-		else if(fieldType.getTypeName().equals("double")){
+		} else if (fieldType.getTypeName().equals("double")) {
 			variable = testCaseBuilder.appendDoublePrimitive(0.0);
-		}
-		else if(fieldType.getTypeName().equals("array")){
+		} else if (fieldType.getTypeName().equals("array")) {
 			variable = testCaseBuilder.appendArrayStmt(fieldType, 0);
+		} else {
+			if(limit > 0) {
+				variable = constructVarReference4Obj(testCaseBuilder, argumentClass, limit-1);				
+			}
+			else {
+				variable = testCaseBuilder.appendNull(argumentClass);
+			}
 		}
-		else {
-			//TODO object type
-			System.currentTimeMillis();
-		}
-		
+
 		Method method = findSetterMethod(argumentClass, field);
-		if(method != null) {
+		if (method != null) {
 			testCaseBuilder.appendMethod(objectVariable, method, variable);
+		} else {
+			int position = testCaseBuilder.getDefaultTestCase().size() - 1;
+			testCaseBuilder.getDefaultTestCase().remove(position);
 		}
-		else {
-			int position = testCaseBuilder.getDefaultTestCase().size()-1;
-			testCaseBuilder.getDefaultTestCase().remove(position);			
-		}
-			
-		
+
 		return variable;
 	}
 
@@ -446,7 +442,7 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 	 */
 	private static DefaultTestCase buildTestCaseWithDefaultValues(Method targetMethod) {
 		TestCaseBuilder testCaseBuilder = new TestCaseBuilder();
-		
+
 		String methodDescriptor = Type.getMethodDescriptor(targetMethod);
 		ArrayList<VariableReference> arguments = getMethodArgs(methodDescriptor, targetMethod, testCaseBuilder);
 
@@ -456,12 +452,12 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 			Class<?> clazz = targetMethod.getDeclaringClass();
 			Constructor<?>[] constructors = clazz.getConstructors();
 			// TODO for Lin Yun, we should choose a more random way?
-			
+
 			String descriptor = Type.getConstructorDescriptor(constructors[0]);
 			ArrayList<VariableReference> constructorArgs = getMethodArgs(descriptor, constructors[0], testCaseBuilder);
-			
+
 			System.currentTimeMillis();
-			
+
 			VariableReference obj = testCaseBuilder.appendConstructor(constructors[0], constructorArgs);
 			testCaseBuilder.appendMethod(obj, targetMethod, arguments.toArray(new VariableReference[] {}));
 		}
@@ -515,8 +511,7 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 	/**
 	 * Returns a set with the static methods of a class
 	 * 
-	 * @param targetClass
-	 *            a class instance
+	 * @param targetClass a class instance
 	 * @return
 	 */
 	private static List<Method> getTargetStaticMethods(Class<?> targetClass) {

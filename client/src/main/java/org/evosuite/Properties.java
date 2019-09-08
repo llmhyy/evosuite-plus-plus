@@ -2502,7 +2502,16 @@ public class Properties {
 	 */
 	public static final int ITERATION_CONTEXT_LIMIT = 2;
 
+	/**
+	 * This field is for filtering target methods. When filtering a method, sometimes we need to construct
+	 * CFG for detailed and fined investigation.
+	 * 
+	 * Check the its usage in the project as tutorials.
+	 */
 	public static boolean ALWAYS_REGISTER_BRANCH = false;
+	
+	
+	public static final int OBJECT_CONSTRUCTION_DEPTH = 2;
 	
 	/*
 	 * whether or not the regression mode is running
