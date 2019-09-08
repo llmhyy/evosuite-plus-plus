@@ -2,6 +2,7 @@ package org.evosuite.symbolic;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -14,9 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.runtime.classhandling.ClassResetter;
 import org.evosuite.symbolic.expr.Constraint;
@@ -31,7 +30,6 @@ import org.evosuite.symbolic.vm.ConstraintFactory;
 import org.evosuite.symbolic.vm.ExpressionFactory;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.localsearch.DSETestGenerator;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testsuite.TestSuiteChromosome;
@@ -321,11 +319,43 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 
 					VariableReference objectVariable = null;
 					try {
+						boolean validConstructor = false;
+						Constructor<?> emptyConstructor = null;
 						for(Constructor<?> constructor: argumentClass.getConstructors()) {
-							String constructorDesc = Type.getConstructorDescriptor(constructor);
-							ArrayList<VariableReference> parameters = getMethodArgs(constructorDesc, constructor, testCaseBuilder);
-							objectVariable = testCaseBuilder.appendConstructor(constructor, parameters);
-							break;
+							if(constructor.getParameterCount() != 0) {
+								String constructorDesc = Type.getConstructorDescriptor(constructor);
+								ArrayList<VariableReference> parameters = getMethodArgs(constructorDesc, constructor, testCaseBuilder);
+								objectVariable = testCaseBuilder.appendConstructor(constructor, parameters);
+								validConstructor = true;
+								break;
+							}
+							else {
+								emptyConstructor = constructor;
+							}
+						}
+						
+						if(!validConstructor && emptyConstructor != null) {
+							objectVariable = testCaseBuilder.appendConstructor(emptyConstructor, new ArrayList<VariableReference>());
+							for(Field field: argumentClass.getDeclaredFields()) {
+								Class<?> fieldType = field.getType();
+								if(fieldType.isPrimitive()) {
+									String fieldModifiers = Modifier.toString(field.getModifiers());
+									if(fieldModifiers.contains("public")) {
+										System.currentTimeMillis();
+									}
+									else if(fieldModifiers.contains("private") || fieldModifiers.contains("protected")) {
+										constructFieldVar(testCaseBuilder, field, argumentClass, objectVariable);
+									}
+									else {
+										//TODO
+										System.currentTimeMillis();
+									}									
+								}
+								else {
+									//TODO handle complex object type
+									
+								}
+							}
 						}
 						
 					} catch (SecurityException e) {
@@ -345,6 +375,67 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 		}
 
 		return arguments;
+	}
+
+	private static Method findSetterMethod(Class<?> argumentClass, Field field) {
+		String fieldName = field.getName();
+		String intendedMethodName = "set" + fieldName;
+		intendedMethodName = intendedMethodName.toLowerCase();
+		for(Method method: argumentClass.getMethods()) {
+			if(method.getName().toLowerCase().contains(intendedMethodName)) {
+				return method;
+			}
+		}
+		return null;
+	}
+
+	private static VariableReference constructFieldVar(TestCaseBuilder testCaseBuilder, Field field, 
+			Class<?> argumentClass, VariableReference objectVariable) {
+		Class<?> fieldType  =  field.getType();
+		VariableReference variable =  null;
+		if(fieldType.getTypeName().equals("boolean")){
+			variable = testCaseBuilder.appendBooleanPrimitive(false);
+		}
+		else if(fieldType.getTypeName().equals("byte")){
+			variable = testCaseBuilder.appendBytePrimitive((byte) 0);
+		}
+		else if(fieldType.getTypeName().equals("char")) {
+			variable = testCaseBuilder.appendCharPrimitive((char) 0);
+		}
+		else if(fieldType.getTypeName().equals("short")){
+			variable = testCaseBuilder.appendShortPrimitive((short) 0);
+		}
+		else if(fieldType.getTypeName().equals("int")) {
+			variable = testCaseBuilder.appendIntPrimitive(0);
+		}
+		else if(fieldType.getTypeName().equals("long")){
+			variable = testCaseBuilder.appendLongPrimitive(0L);
+		}
+		else if(fieldType.getTypeName().equals("float")){
+			variable = testCaseBuilder.appendFloatPrimitive((float) 0.0);
+		}
+		else if(fieldType.getTypeName().equals("double")){
+			variable = testCaseBuilder.appendDoublePrimitive(0.0);
+		}
+		else if(fieldType.getTypeName().equals("array")){
+			variable = testCaseBuilder.appendArrayStmt(fieldType, 0);
+		}
+		else {
+			//TODO object type
+			System.currentTimeMillis();
+		}
+		
+		Method method = findSetterMethod(argumentClass, field);
+		if(method != null) {
+			testCaseBuilder.appendMethod(objectVariable, method, variable);
+		}
+		else {
+			int position = testCaseBuilder.getDefaultTestCase().size()-1;
+			testCaseBuilder.getDefaultTestCase().remove(position);			
+		}
+			
+		
+		return variable;
 	}
 
 	/**
