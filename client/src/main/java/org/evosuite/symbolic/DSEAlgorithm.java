@@ -16,6 +16,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.runtime.classhandling.ClassResetter;
 import org.evosuite.symbolic.expr.Constraint;
@@ -317,7 +318,22 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 					VariableReference stringVariable = testCaseBuilder.appendStringPrimitive("");
 					arguments.add(stringVariable);
 				} else {
-					VariableReference objectVariable = testCaseBuilder.appendNull(argumentClass);
+
+					VariableReference objectVariable = null;
+					try {
+						for(Constructor<?> constructor: argumentClass.getConstructors()) {
+							String constructorDesc = Type.getConstructorDescriptor(constructor);
+							ArrayList<VariableReference> parameters = getMethodArgs(constructorDesc, constructor, testCaseBuilder);
+							objectVariable = testCaseBuilder.appendConstructor(constructor, parameters);
+							break;
+						}
+						
+					} catch (SecurityException e) {
+//						e.printStackTrace();
+						objectVariable = testCaseBuilder.appendNull(argumentClass);
+						System.currentTimeMillis();
+					}
+					
 					arguments.add(objectVariable);
 				}
 				break;
@@ -352,6 +368,9 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 			
 			String descriptor = Type.getConstructorDescriptor(constructors[0]);
 			ArrayList<VariableReference> constructorArgs = getMethodArgs(descriptor, constructors[0], testCaseBuilder);
+			
+			System.currentTimeMillis();
+			
 			VariableReference obj = testCaseBuilder.appendConstructor(constructors[0], constructorArgs);
 			testCaseBuilder.appendMethod(obj, targetMethod, arguments.toArray(new VariableReference[] {}));
 		}
