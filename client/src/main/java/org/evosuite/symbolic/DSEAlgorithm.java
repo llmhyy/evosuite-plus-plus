@@ -31,9 +31,11 @@ import org.evosuite.symbolic.vm.ExpressionFactory;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.localsearch.DSETestGenerator;
+import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.MethodUtil;
+import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -308,7 +310,15 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 				break;
 			}
 			case Type.ARRAY: {
-				VariableReference arrayVariable = testCaseBuilder.appendArrayStmt(argumentClass, 0);
+				int length = Randomness.nextInt(10);
+				VariableReference arrayVariable = testCaseBuilder.appendArrayStmt(argumentClass, length);
+				
+				Class<?> componentClass = argumentClass.getComponentType();
+				for(int k=0; k<length; k++) {
+					VariableReference var = constructVarReference4AllType(testCaseBuilder, 
+							componentClass, Properties.OBJECT_CONSTRUCTION_DEPTH);
+					testCaseBuilder.appendAssignment((ArrayReference)arrayVariable, k, var);
+				}
 				arguments.add(arrayVariable);
 				break;
 			}
@@ -317,7 +327,7 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 					VariableReference stringVariable = testCaseBuilder.appendStringPrimitive("");
 					arguments.add(stringVariable);
 				} else {
-					VariableReference complexVariable = constructVarReference4Obj(testCaseBuilder, 
+					VariableReference complexVariable = constructVarReference4AllType(testCaseBuilder, 
 							argumentClass, Properties.OBJECT_CONSTRUCTION_DEPTH);
 					arguments.add(complexVariable);
 				}
@@ -332,8 +342,36 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 		return arguments;
 	}
 
-	private static VariableReference constructVarReference4Obj(TestCaseBuilder testCaseBuilder, 
+	private static VariableReference constructVarReference4AllType(TestCaseBuilder testCaseBuilder, 
 			Class<?> argumentClass, int limit) {
+		
+		if(argumentClass.isPrimitive()) {
+			VariableReference variable = null;
+			if (argumentClass.getTypeName().equals("boolean")) {
+				variable = testCaseBuilder.appendBooleanPrimitive(false);
+			} else if (argumentClass.getTypeName().equals("byte")) {
+				variable = testCaseBuilder.appendBytePrimitive((byte) 0);
+			} else if (argumentClass.getTypeName().equals("char")) {
+				variable = testCaseBuilder.appendCharPrimitive((char) 0);
+			} else if (argumentClass.getTypeName().equals("short")) {
+				variable = testCaseBuilder.appendShortPrimitive((short) 0);
+			} else if (argumentClass.getTypeName().equals("int")) {
+				variable = testCaseBuilder.appendIntPrimitive(0);
+			} else if (argumentClass.getTypeName().equals("long")) {
+				variable = testCaseBuilder.appendLongPrimitive(0L);
+			} else if (argumentClass.getTypeName().equals("float")) {
+				variable = testCaseBuilder.appendFloatPrimitive((float) 0.0);
+			} else if (argumentClass.getTypeName().equals("double")) {
+				variable = testCaseBuilder.appendDoublePrimitive(0.0);
+			} 
+			return variable;
+		}
+		
+		else if (argumentClass.getTypeName().equals("java.lang.String")) {
+			VariableReference variable = testCaseBuilder.appendStringPrimitive("");
+			return variable;
+		}
+		
 		VariableReference objectVariable = null;
 		try {
 			boolean validConstructor = false;
@@ -392,6 +430,7 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 		return null;
 	}
 
+	
 	private static VariableReference constructFieldVar(TestCaseBuilder testCaseBuilder, Field field,
 			Class<?> argumentClass, VariableReference objectVariable, int limit) {
 		Class<?> fieldType = field.getType();
@@ -413,10 +452,14 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 		} else if (fieldType.getTypeName().equals("double")) {
 			variable = testCaseBuilder.appendDoublePrimitive(0.0);
 		} else if (fieldType.getTypeName().equals("array")) {
-			variable = testCaseBuilder.appendArrayStmt(fieldType, 0);
+			//TODO
+			int length = Randomness.nextInt(10);
+			variable = testCaseBuilder.appendArrayStmt(fieldType, length);
+		} else if (argumentClass.getTypeName().equals("java.lang.String")) {
+			variable = testCaseBuilder.appendStringPrimitive("");
 		} else {
 			if(limit > 0) {
-				variable = constructVarReference4Obj(testCaseBuilder, argumentClass, limit-1);				
+				variable = constructVarReference4AllType(testCaseBuilder, argumentClass, limit-1);				
 			}
 			else {
 				variable = testCaseBuilder.appendNull(argumentClass);
@@ -455,8 +498,6 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 
 			String descriptor = Type.getConstructorDescriptor(constructors[0]);
 			ArrayList<VariableReference> constructorArgs = getMethodArgs(descriptor, constructors[0], testCaseBuilder);
-
-			System.currentTimeMillis();
 
 			VariableReference obj = testCaseBuilder.appendConstructor(constructors[0], constructorArgs);
 			testCaseBuilder.appendMethod(obj, targetMethod, arguments.toArray(new VariableReference[] {}));
