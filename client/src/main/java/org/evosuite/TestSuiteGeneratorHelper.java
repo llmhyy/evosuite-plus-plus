@@ -259,6 +259,10 @@ public class TestSuiteGeneratorHelper {
       return new FixedNumRandomTestStrategy();
     case ONEBRANCH:
       return new IndividualTestStrategy();
+    case EMPIRICAL_HYBRID_COLLECTOR:
+      return new EmpiricalHybridStrategyCollector();
+    case LEARNING_BASED_HYBRID:
+      return new HybridTestStrategy();
     case REGRESSION:
       return new RegressionSuiteStrategy();
     case ENTBUG:

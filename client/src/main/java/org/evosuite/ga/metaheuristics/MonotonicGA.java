@@ -20,6 +20,7 @@
 package org.evosuite.ga.metaheuristics;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,19 +53,18 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Gordon Fraser
  */
-public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
+public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> implements Hybridable{
 
 	private static final long serialVersionUID = 7846967347821123201L;
 
 	protected ReplacementFunction replacementFunction;
 
 	private final Logger logger = LoggerFactory.getLogger(MonotonicGA.class);
-	
+
 	/**
 	 * Constructor
 	 * 
-	 * @param factory
-	 *            a {@link org.evosuite.ga.ChromosomeFactory} object.
+	 * @param factory a {@link org.evosuite.ga.ChromosomeFactory} object.
 	 */
 	public MonotonicGA(ChromosomeFactory<T> factory) {
 		super(factory);
@@ -77,14 +77,10 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	 * keepOffspring
 	 * </p>
 	 * 
-	 * @param parent1
-	 *            a {@link org.evosuite.ga.Chromosome} object.
-	 * @param parent2
-	 *            a {@link org.evosuite.ga.Chromosome} object.
-	 * @param offspring1
-	 *            a {@link org.evosuite.ga.Chromosome} object.
-	 * @param offspring2
-	 *            a {@link org.evosuite.ga.Chromosome} object.
+	 * @param parent1    a {@link org.evosuite.ga.Chromosome} object.
+	 * @param parent2    a {@link org.evosuite.ga.Chromosome} object.
+	 * @param offspring1 a {@link org.evosuite.ga.Chromosome} object.
+	 * @param offspring2 a {@link org.evosuite.ga.Chromosome} object.
 	 * @return a boolean.
 	 */
 	protected boolean keepOffspring(Chromosome parent1, Chromosome parent2, Chromosome offspring1,
@@ -93,7 +89,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	}
 
 	private List<T> newGeneratedIndividuals = new ArrayList<>();
-	
+
 	/** {@inheritDoc} */
 	@SuppressWarnings("unchecked")
 	@Override
@@ -124,16 +120,16 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			T offspring1 = (T) parent1.clone();
 			T offspring2 = (T) parent2.clone();
 
-			try {
-				// Crossover
-				if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE) {
-					crossoverFunction.crossOver(offspring1, offspring2);
-				}
-
-			} catch (ConstructionFailedException e) {
-				logger.info("CrossOver failed");
-				continue;
-			}
+//			try {
+//				// Crossover
+//				if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE) {
+//					crossoverFunction.crossOver(offspring1, offspring2);
+//				}
+//
+//			} catch (ConstructionFailedException e) {
+//				logger.info("CrossOver failed");
+//				continue;
+//			}
 
 			// Mutation
 			notifyMutation(offspring1);
@@ -147,7 +143,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			if (offspring2.isChanged()) {
 				offspring2.updateAge(currentIteration);
 			}
-			
+
 			newGeneratedIndividuals.add(offspring1);
 			newGeneratedIndividuals.add(offspring2);
 
@@ -237,6 +233,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 		this.notifyIteration();
 	}
 
+	@SuppressWarnings("unused")
 	private static final double DELTA = 0.000000001; // it seems there is some
 														// rounding error in LS,
 														// but hard to debug :(
@@ -254,6 +251,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			initializePopulation();
 			assert !population.isEmpty() : "Could not create any test";
 		}
+		else {
+			this.notifyIteration();
+		}
 
 		logger.debug("Starting evolution");
 		int starvationCounter = 0;
@@ -266,21 +266,21 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 		RuntimeRecord.methodCallAvailabilityMap.clear();
 
-		StatisticChecker timer = new StatisticChecker(getProgressInformation(), new CoverageProgressGetter() {
-			@Override
-			public double getCoverage() {
-				T bestIndividual = getBestIndividual();
-				return bestIndividual.getCoverage();
-			}
-		});
-		Thread timerThread = new Thread(timer);
-		timerThread.start();
-		
+//		StatisticChecker timer = new StatisticChecker(getProgressInformation(), new CoverageProgressGetter() {
+//			@Override
+//			public double getCoverage() {
+//				T bestIndividual = getBestIndividual();
+//				return bestIndividual.getCoverage();
+//			}
+//		});
+//		Thread timerThread = new Thread(timer);
+//		timerThread.start();
+
 		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
 		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
 		Map<Integer, Integer> distributionMap = DistributionUtil.constructDistributionMap(branchGoals);
 		updateDistribution(distributionMap, true);
-		
+
 		while (!isFinished()) {
 
 			logger.info("Population size before: " + population.size());
@@ -289,28 +289,27 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			// according to the property value.
 
 			{
-				double bestFitnessBeforeEvolution = getBestFitness();
+//				double bestFitnessBeforeEvolution = getBestFitness();
 				evolve();
 				sortPopulation();
 
-				double bestFitnessAfterEvolution = getBestFitness();
+//				double bestFitnessAfterEvolution = getBestFitness();
+				bestFitness = getBestFitness();
 
-				// if (getFitnessFunction().isMaximizationFunction())
-				// assert (bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
-				// - DELTA)) : "best fitness before evolve()/sortPopulation() was: "
-				// + bestFitnessBeforeEvolution + ", now best fitness is " +
-				// bestFitnessAfterEvolution;
-				// else
-				// assert (bestFitnessAfterEvolution <= (bestFitnessBeforeEvolution
-				// + DELTA)) : "best fitness before evolve()/sortPopulation() was: "
-				// + bestFitnessBeforeEvolution + ", now best fitness is " +
-				// bestFitnessAfterEvolution;
+//				if (getFitnessFunction().isMaximizationFunction())
+//					assert (bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
+//							- DELTA)) : "best fitness before evolve()/sortPopulation() was: "
+//									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
+//				else
+//					assert (bestFitnessAfterEvolution <= (bestFitnessBeforeEvolution
+//							+ DELTA)) : "best fitness before evolve()/sortPopulation() was: "
+//									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
 			}
 
 			{
-				double bestFitnessBeforeLocalSearch = getBestFitness();
+//				double bestFitnessBeforeLocalSearch = getBestFitness();
 				applyLocalSearch();
-				double bestFitnessAfterLocalSearch = getBestFitness();
+//				double bestFitnessAfterLocalSearch = getBestFitness();
 
 				// if (getFitnessFunction().isMaximizationFunction())
 				// assert (bestFitnessAfterLocalSearch >= (bestFitnessBeforeLocalSearch
@@ -394,11 +393,11 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 			distribution[count++] = distributionMap.get(key);
 		}
 		this.setDistributionMap(distributionMap);
-		
-		
-		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap, branchGoals);
+
+		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap,
+				branchGoals);
 		this.setUncoveredBranchDistribution(uncoveredBranchDistribution);
-		
+
 		// this.setCallUninstrumentedMethod(true);
 
 		// for (Integer branchID : distributionMap.keySet()) {
@@ -518,18 +517,18 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 		List<T> individuals = firstTime ? this.population : this.newGeneratedIndividuals;
 		for (T individual : individuals) {
-			if(individual instanceof TestSuiteChromosome) {
+			if (individual instanceof TestSuiteChromosome) {
 				TestSuiteChromosome testSuite = (TestSuiteChromosome) individual;
 				for (ExecutionResult result : testSuite.getLastExecutionResults()) {
 					if (result != null) {
-						
+
 						for (Integer branchID : result.getTrace().getCoveredTrue().keySet()) {
 							if (distributionMap.get(branchID) != null) {
 								int count = distributionMap.get(branchID) + 1;
 								distributionMap.put(branchID, count);
 							}
 						}
-						
+
 						for (Integer branchID : result.getTrace().getCoveredFalse().keySet()) {
 							if (distributionMap.get(-branchID) != null) {
 								int count = distributionMap.get(-branchID) + 1;
@@ -538,20 +537,19 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 						}
 					}
 				}
-			}
-			else if(individual instanceof TestChromosome) {
-				TestChromosome test = (TestChromosome)individual;
+			} else if (individual instanceof TestChromosome) {
+				TestChromosome test = (TestChromosome) individual;
 				ExecutionResult result = test.getLastExecutionResult();
-				
+
 				if (result != null) {
-					
+
 					for (Integer branchID : result.getTrace().getCoveredTrue().keySet()) {
 						if (distributionMap.get(branchID) != null) {
 							int count = distributionMap.get(branchID) + 1;
 							distributionMap.put(branchID, count);
 						}
 					}
-					
+
 					for (Integer branchID : result.getTrace().getCoveredFalse().keySet()) {
 						if (distributionMap.get(-branchID) != null) {
 							int count = distributionMap.get(-branchID) + 1;
@@ -560,9 +558,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 					}
 				}
 			}
-			
-			
-			
+
 		}
 	}
 
@@ -579,8 +575,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	 * setReplacementFunction
 	 * </p>
 	 * 
-	 * @param replacement_function
-	 *            a {@link org.evosuite.ga.ReplacementFunction} object.
+	 * @param replacement_function a {@link org.evosuite.ga.ReplacementFunction}
+	 *                             object.
 	 */
 	public void setReplacementFunction(ReplacementFunction replacement_function) {
 		this.replacementFunction = replacement_function;
@@ -595,6 +591,208 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> {
 	 */
 	public ReplacementFunction getReplacementFunction() {
 		return replacementFunction;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void updatePopulation(TestSuiteChromosome previousSeeds) {
+		List<TestChromosome> pop = (List<TestChromosome>) this.population;
+		
+		if(pop.size() + previousSeeds.getTestChromosomes().size() < Properties.POPULATION) {
+			pop.addAll(previousSeeds.getTestChromosomes());			
+		}
+		else {
+			List<TestChromosome> selected = new ArrayList<TestChromosome>();
+			for(int i=0; i<10; i++) {
+				selected.add(previousSeeds.getTestChromosome(i));
+			}
+			
+			pop.addAll(previousSeeds.getTestChromosomes());	
+			while(pop.size() > Properties.POPULATION) {
+				pop.remove(0);
+			}
+		}
+		
+	}
+
+	@Override
+	public void generateSolution(TestSuiteChromosome previousSeeds) {
+		logger.warn("monotonic ga");
+		if (Properties.ENABLE_SECONDARY_OBJECTIVE_AFTER > 0 || Properties.ENABLE_SECONDARY_OBJECTIVE_STARVATION) {
+			disableFirstSecondaryCriterion();
+		}
+
+		if (population.isEmpty()) {
+			initializePopulation();
+			assert !population.isEmpty() : "Could not create any test";
+		}
+		else {
+			this.notifyIteration();
+		}
+		
+		this.updatePopulation(previousSeeds);
+
+		logger.debug("Starting evolution");
+		int starvationCounter = 0;
+		double bestFitness = Double.MAX_VALUE;
+		double lastBestFitness = Double.MAX_VALUE;
+		if (getFitnessFunction().isMaximizationFunction()) {
+			bestFitness = 0.0;
+			lastBestFitness = 0.0;
+		}
+
+		RuntimeRecord.methodCallAvailabilityMap.clear();
+
+//		StatisticChecker timer = new StatisticChecker(getProgressInformation(), new CoverageProgressGetter() {
+//			@Override
+//			public double getCoverage() {
+//				T bestIndividual = getBestIndividual();
+//				return bestIndividual.getCoverage();
+//			}
+//		});
+//		Thread timerThread = new Thread(timer);
+//		timerThread.start();
+
+		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
+		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
+		Map<Integer, Integer> distributionMap = DistributionUtil.constructDistributionMap(branchGoals);
+		updateDistribution(distributionMap, true);
+
+		while (!isFinished()) {
+
+			logger.info("Population size before: " + population.size());
+			// related to Properties.ENABLE_SECONDARY_OBJECTIVE_AFTER;
+			// check the budget progress and activate a secondary criterion
+			// according to the property value.
+
+			{
+//				double bestFitnessBeforeEvolution = getBestFitness();
+				evolve();
+				sortPopulation();
+
+//				double bestFitnessAfterEvolution = getBestFitness();
+				bestFitness = getBestFitness();
+
+//				if (getFitnessFunction().isMaximizationFunction())
+//					assert (bestFitnessAfterEvolution >= (bestFitnessBeforeEvolution
+//							- DELTA)) : "best fitness before evolve()/sortPopulation() was: "
+//									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
+//				else
+//					assert (bestFitnessAfterEvolution <= (bestFitnessBeforeEvolution
+//							+ DELTA)) : "best fitness before evolve()/sortPopulation() was: "
+//									+ bestFitnessBeforeEvolution + ", now best fitness is " + bestFitnessAfterEvolution;
+			}
+
+			{
+//				double bestFitnessBeforeLocalSearch = getBestFitness();
+				applyLocalSearch();
+//				double bestFitnessAfterLocalSearch = getBestFitness();
+
+				// if (getFitnessFunction().isMaximizationFunction())
+				// assert (bestFitnessAfterLocalSearch >= (bestFitnessBeforeLocalSearch
+				// - DELTA)) : "best fitness before applyLocalSearch() was: " +
+				// bestFitnessBeforeLocalSearch
+				// + ", now best fitness is " + bestFitnessAfterLocalSearch;
+				// else
+				// assert (bestFitnessAfterLocalSearch <= (bestFitnessBeforeLocalSearch
+				// + DELTA)) : "best fitness before applyLocalSearch() was: " +
+				// bestFitnessBeforeLocalSearch
+				// + ", now best fitness is " + bestFitnessAfterLocalSearch;
+			}
+
+			/*
+			 * TODO: before explanation: due to static state handling, LS can worse
+			 * individuals. so, need to re-sort.
+			 * 
+			 * now: the system tests that were failing have no static state... so re-sorting
+			 * does just hide the problem away, and reduce performance (likely
+			 * significantly). it is definitively a bug somewhere...
+			 */
+			// sortPopulation();
+
+			// double newFitness = getBestFitness();
+			// endtime = System.currentTimeMillis();
+			// if (endtime - begintime >= interval) {
+			// bestIndividual = getBestIndividual();
+			// if (bestIndividual != null) {
+			// double coverage = bestIndividual.getCoverage();
+			// progress.add(coverage);
+			// fList.add(bestIndividual.getFitness());
+			// }
+			// begintime = endtime;
+			// }
+
+			// if (getFitnessFunction().isMaximizationFunction())
+			// assert (newFitness >= (bestFitness - DELTA)) : "best fitness was: " +
+			// bestFitness
+			// + ", now best fitness is " + newFitness;
+			// else
+			// assert (newFitness <= (bestFitness + DELTA)) : "best fitness was: " +
+			// bestFitness
+			// + ", now best fitness is " + newFitness;
+			// bestFitness = newFitness;
+
+			if (Double.compare(bestFitness, lastBestFitness) == 0) {
+				starvationCounter++;
+			} else {
+				logger.info("reset starvationCounter after " + starvationCounter + " iterations");
+				starvationCounter = 0;
+				lastBestFitness = bestFitness;
+
+			}
+
+			updateSecondaryCriterion(starvationCounter);
+			updateDistribution(distributionMap, false);
+
+			// printUncoveredBranches(distributionMap, branchGoals);
+			// printUncoveredBranches(getBestIndividual(), branchGoals);
+
+			logger.error("Best fitness: " + bestFitness + ", Coverage: " + getBestIndividual().getCoverage());
+			logger.info("Current iteration: " + currentIteration);
+			this.notifyIteration();
+
+			logger.info("Population size: " + population.size());
+			logger.info("Best individual has fitness: " + population.get(0).getFitness());
+			logger.info("Worst individual has fitness: " + population.get(population.size() - 1).getFitness());
+
+		}
+		// bestIndividual = getBestIndividual();
+		// if (bestIndividual != null) {
+		// double coverage = bestIndividual.getCoverage();
+		// progress.add(coverage);
+		// }
+		// this.setProgressInformation(progress);
+		// logger.error(fList.toString());
+
+		int[] distribution = new int[distributionMap.keySet().size()];
+		int count = 0;
+		for (Integer key : distributionMap.keySet()) {
+			distribution[count++] = distributionMap.get(key);
+		}
+		this.setDistributionMap(distributionMap);
+
+		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap,
+				branchGoals);
+		this.setUncoveredBranchDistribution(uncoveredBranchDistribution);
+
+		// this.setCallUninstrumentedMethod(true);
+
+		// for (Integer branchID : distributionMap.keySet()) {
+		// logger.error("branch ID: " + branchID + ": " +
+		// distributionMap.get(branchID));
+		// }
+
+		double availabilityRatio = getAvailabilityRatio();
+
+		this.setAvailabilityRatio(availabilityRatio);
+		this.setAvailableCalls(getAvailableCalls());
+		this.setUnavailableCalls(getUnavailableCalls());
+
+		// archive
+		TimeController.execute(this::updateBestIndividualFromArchive, "update from archive", 5_000);
+
+		notifySearchFinished();
+		
 	}
 
 }

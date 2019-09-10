@@ -43,7 +43,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	private final Set<String> branchlessMethods;
 	private final Set<String> methods;
 
-	protected final Set<Integer> branchesId;
+	private final Set<Integer> branchesId;
 	
 	// Some stuff for debug output
 	public int maxCoveredBranches = 0;
@@ -51,8 +51,8 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 	public double bestFitness = Double.MAX_VALUE;
 
 	// Each test gets a set of distinct covered goals, these are mapped by branch id
-	protected final Map<Integer, TestFitnessFunction> branchCoverageTrueMap = new HashMap<Integer, TestFitnessFunction>();
-	protected final Map<Integer, TestFitnessFunction> branchCoverageFalseMap = new HashMap<Integer, TestFitnessFunction>();
+	private final Map<Integer, TestFitnessFunction> branchCoverageTrueMap = new HashMap<Integer, TestFitnessFunction>();
+	private final Map<Integer, TestFitnessFunction> branchCoverageFalseMap = new HashMap<Integer, TestFitnessFunction>();
 	private final Map<String, TestFitnessFunction> branchlessMethodCoverageMap = new HashMap<String, TestFitnessFunction>();
 
 	protected final Set<Integer> toRemoveBranchesT = new HashSet<>();
@@ -163,9 +163,9 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 				branchlessMethodCoverageMap.put(goal.getClassName() + "."
 				                                        + goal.getMethod(), goal);
 			} else {
-				branchesId.add(goal.getBranch().getActualBranchId());
+				getBranchesId().add(goal.getBranch().getActualBranchId());
 				if (goal.getBranchExpressionValue())
-					branchCoverageTrueMap.put(goal.getBranch().getActualBranchId(), goal);
+					getBranchCoverageTrueMap().put(goal.getBranch().getActualBranchId(), goal);
 				else
 					branchCoverageFalseMap.put(goal.getBranch().getActualBranchId(), goal);
 			}
@@ -242,7 +242,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 
 	protected void handlePredicateCount(ExecutionResult result, Map<Integer, Integer> predicateCount) {
 		for (Entry<Integer, Integer> entry : result.getTrace().getPredicateExecutionCount().entrySet()) {
-			if (!branchesId.contains(entry.getKey())
+			if (!getBranchesId().contains(entry.getKey())
 					|| (removedBranchesT.contains(entry.getKey())
 					&& removedBranchesF.contains(entry.getKey())))
 				continue;
@@ -259,7 +259,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 
 	protected void handleTrueDistances(TestChromosome test, ExecutionResult result, Map<Integer, Double> trueDistance) {
 		for (Entry<Integer, Double> entry : result.getTrace().getTrueDistances().entrySet()) {
-			if(!branchesId.contains(entry.getKey())||removedBranchesT.contains(entry.getKey())) continue;
+			if(!getBranchesId().contains(entry.getKey())||removedBranchesT.contains(entry.getKey())) continue;
 			if (!trueDistance.containsKey(entry.getKey()))
 				trueDistance.put(entry.getKey(), entry.getValue());
 			else {
@@ -267,22 +267,24 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 						Math.min(trueDistance.get(entry.getKey()),
 								entry.getValue()));
 			}
-			BranchCoverageTestFitness goal = (BranchCoverageTestFitness) this.branchCoverageTrueMap.get(entry.getKey());
-			assert goal != null;
-			if ((Double.compare(entry.getValue(), 0.0) == 0)) {
-				test.getTestCase().addCoveredGoal(goal);
-				toRemoveBranchesT.add(entry.getKey());
+			BranchCoverageTestFitness goal = (BranchCoverageTestFitness) this.getBranchCoverageTrueMap().get(entry.getKey());
+			if(goal != null) {
+				if ((Double.compare(entry.getValue(), 0.0) == 0)) {
+					test.getTestCase().addCoveredGoal(goal);
+					toRemoveBranchesT.add(entry.getKey());
+				}
+				if(Properties.TEST_ARCHIVE) {
+					Archive.getArchiveInstance().updateArchive(goal, test, entry.getValue());
+				}
 			}
-			if(Properties.TEST_ARCHIVE) {
-				Archive.getArchiveInstance().updateArchive(goal, test, entry.getValue());
-			}
+			
 		}
 
 	}
 
 	protected void handleFalseDistances(TestChromosome test, ExecutionResult result, Map<Integer, Double> falseDistance) {
 		for (Entry<Integer, Double> entry : result.getTrace().getFalseDistances().entrySet()) {
-			if(!branchesId.contains(entry.getKey())||!branchCoverageFalseMap.containsKey(entry.getKey())||removedBranchesF.contains(entry.getKey())) continue;
+			if(!getBranchesId().contains(entry.getKey())||!branchCoverageFalseMap.containsKey(entry.getKey())||removedBranchesF.contains(entry.getKey())) continue;
 			if (!falseDistance.containsKey(entry.getKey()))
 				falseDistance.put(entry.getKey(), entry.getValue());
 			else {
@@ -291,13 +293,14 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 								entry.getValue()));
 			}
 			BranchCoverageTestFitness goal = (BranchCoverageTestFitness) this.branchCoverageFalseMap.get(entry.getKey());
-			assert goal != null;
-			if ((Double.compare(entry.getValue(), 0.0) == 0)) {
-				test.getTestCase().addCoveredGoal(goal);
-				toRemoveBranchesF.add(entry.getKey());
-			}
-			if(Properties.TEST_ARCHIVE) {
-				Archive.getArchiveInstance().updateArchive(goal, test, entry.getValue());
+			if(goal != null) {
+				if ((Double.compare(entry.getValue(), 0.0) == 0)) {
+					test.getTestCase().addCoveredGoal(goal);
+					toRemoveBranchesF.add(entry.getKey());
+				}
+				if(Properties.TEST_ARCHIVE) {
+					Archive.getArchiveInstance().updateArchive(goal, test, entry.getValue());
+				}				
 			}
 		}
 
@@ -359,7 +362,7 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		}
 
 		for (Integer branch : toRemoveBranchesT) {
-			TestFitnessFunction f = branchCoverageTrueMap.remove(branch);
+			TestFitnessFunction f = getBranchCoverageTrueMap().remove(branch);
 			if (f != null) {
 				removedBranchesT.add(branch);
 				if (removedBranchesF.contains(branch)) {
@@ -415,8 +418,8 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 		}
 		
 		Map<BranchCoverageGoal, List<Double>> fitnessMap = new HashMap<>();
-		for(Integer key: branchCoverageTrueMap.keySet()) {
-			TestFitnessFunction tf = branchCoverageTrueMap.get(key);
+		for(Integer key: getBranchCoverageTrueMap().keySet()) {
+			TestFitnessFunction tf = getBranchCoverageTrueMap().get(key);
 			
 			if(tf instanceof BranchCoverageTestFitness) {
 				BranchCoverageGoal goal = ((BranchCoverageTestFitness) tf).getBranchGoal();
@@ -612,13 +615,13 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 
 		updateIndividual(this, suite, fitness);
 
-		assert (coverage <= totalGoals) : "Covered " + coverage + " vs total goals "
-		        + totalGoals;
-		assert (fitness >= 0.0);
-		assert (fitness != 0.0 || coverage == totalGoals) : "Fitness: " + fitness + ", "
-		        + "coverage: " + coverage + "/" + totalGoals;
-		assert (suite.getCoverage(this) <= 1.0) && (suite.getCoverage(this) >= 0.0) : "Wrong coverage value "
-		        + suite.getCoverage(this); 
+//		assert (coverage <= totalGoals) : "Covered " + coverage + " vs total goals "
+//		        + totalGoals;
+//		assert (fitness >= 0.0);
+//		assert (fitness != 0.0 || coverage == totalGoals) : "Fitness: " + fitness + ", "
+//		        + "coverage: " + coverage + "/" + totalGoals;
+//		assert (suite.getCoverage(this) <= 1.0) && (suite.getCoverage(this) >= 0.0) : "Wrong coverage value "
+//		        + suite.getCoverage(this); 
 		return fitness;
 	}
 	
@@ -665,6 +668,18 @@ public class FBranchSuiteFitness extends TestSuiteFitnessFunction {
 			logger.info("Fitness: " + fitness + ", size: " + suite.size() + ", length: "
 			        + suite.totalLengthOfTestCases());
 		}
+	}
+
+	public Set<Integer> getBranchesId() {
+		return branchesId;
+	}
+
+	public Map<Integer, TestFitnessFunction> getBranchCoverageTrueMap() {
+		return branchCoverageTrueMap;
+	}
+
+	public Map<Integer, TestFitnessFunction> getBranchCoverageFalseMap() {
+		return branchCoverageFalseMap;
 	}
 	
 }

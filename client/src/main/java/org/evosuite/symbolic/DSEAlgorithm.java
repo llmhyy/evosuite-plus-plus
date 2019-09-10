@@ -17,6 +17,7 @@ import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import org.evosuite.ga.metaheuristics.Hybridable;
 import org.evosuite.runtime.classhandling.ClassResetter;
 import org.evosuite.symbolic.expr.Constraint;
 import org.evosuite.symbolic.expr.IntegerConstraint;
@@ -30,6 +31,7 @@ import org.evosuite.symbolic.vm.ConstraintFactory;
 import org.evosuite.symbolic.vm.ExpressionFactory;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.localsearch.DSETestGenerator;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.VariableReference;
@@ -47,7 +49,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <T>
  */
-public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
+public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> implements Hybridable{
 
 	private static final Logger logger = LoggerFactory.getLogger(DSEAlgorithm.class);
 
@@ -625,6 +627,67 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> {
 
 		this.updateFitnessFunctionsAndValues();
 		this.notifySearchFinished();
+	}
+
+	@Override
+	public void updatePopulation(TestSuiteChromosome previousSeeds) {
+		
+		List<TestChromosome> pop = this.population.get(0).getTestChromosomes();
+		
+		if(pop.size() + previousSeeds.getTestChromosomes().size() < Properties.POPULATION) {
+			pop.addAll(previousSeeds.getTestChromosomes());			
+		}
+		else {
+			List<TestChromosome> selected = new ArrayList<TestChromosome>();
+			for(int i=0; i<10; i++) {
+				selected.add(previousSeeds.getTestChromosome(i));
+			}
+			
+			pop.addAll(previousSeeds.getTestChromosomes());	
+			while(pop.size() > Properties.POPULATION) {
+				pop.remove(0);
+			}
+		}
+		
+		
+	}
+
+	@Override
+	public void generateSolution(TestSuiteChromosome previousSeeds) {
+		this.notifySearchStarted();
+		this.initializePopulation();
+		
+		this.updatePopulation(previousSeeds);
+
+		final Class<?> targetClass = Properties.getTargetClassAndDontInitialise();
+
+		List<Method> targetStaticMethods = getTargetStaticMethods(targetClass);
+		Collections.sort(targetStaticMethods, new MethodComparator());
+		logger.debug("Found " + targetStaticMethods.size() + " as entry points for DSE");
+
+		for (Method entryMethod : targetStaticMethods) {
+
+			if (this.isFinished()) {
+				logger.debug("A stoping condition was met. No more tests can be generated using DSE.");
+				break;
+			}
+
+			if (getBestIndividual().getFitness() == 0) {
+				logger.debug("Best individual reached zero fitness");
+				break;
+			}
+
+			logger.debug("Generating tests for entry method" + entryMethod.getName());
+			int testCaseCount = getBestIndividual().getTests().size();
+			generateTestCasesAndAppendToBestIndividual(entryMethod);
+			int numOfGeneratedTestCases = getBestIndividual().getTests().size() - testCaseCount;
+			logger.debug(numOfGeneratedTestCases + " tests were generated for entry method " + entryMethod.getName());
+
+		}
+
+		this.updateFitnessFunctionsAndValues();
+		this.notifySearchFinished();
+		
 	}
 
 }

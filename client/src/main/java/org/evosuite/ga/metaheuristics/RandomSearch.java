@@ -22,8 +22,15 @@
  */
 package org.evosuite.ga.metaheuristics;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
+import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testsuite.TestSuiteChromosome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Gordon Fraser
  */
-public class RandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> {
+public class RandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> implements Hybridable{
 
 	private static final Logger logger = LoggerFactory.getLogger(RandomSearch.class);
 
@@ -95,6 +102,46 @@ public class RandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> {
 		}
 		updateBestIndividualFromArchive();
 		notifySearchFinished();
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void updatePopulation(TestSuiteChromosome previousSeeds) {
+		List<TestChromosome> pop = (List<TestChromosome>) this.population;
+		
+		if(pop.size() + previousSeeds.getTestChromosomes().size() < Properties.POPULATION) {
+			pop.addAll(previousSeeds.getTestChromosomes());			
+		}
+		else {
+			List<TestChromosome> selected = new ArrayList<TestChromosome>();
+			for(int i=0; i<10; i++) {
+				selected.add(previousSeeds.getTestChromosome(i));
+			}
+			
+			pop.addAll(previousSeeds.getTestChromosomes());	
+			while(pop.size() > Properties.POPULATION) {
+				pop.remove(0);
+			}
+		}
+	}
+
+	@Override
+	public void generateSolution(TestSuiteChromosome previousSeeds) {
+		notifySearchStarted();
+		if (population.isEmpty()) {
+			initializePopulation();
+		}
+		
+		this.updatePopulation(previousSeeds);
+
+		currentIteration = 0;
+		while (!isFinished()) {
+			evolve();
+			this.notifyIteration();
+		}
+		updateBestIndividualFromArchive();
+		notifySearchFinished();
+		
 	}
 
 }

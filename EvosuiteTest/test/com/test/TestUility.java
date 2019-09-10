@@ -21,8 +21,12 @@ public class TestUility {
 		// Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 		// Properties.STRATEGY = Strategy.RANDOM;
 		String[] command = new String[] {
+//				"-generateTests",
+//				"-Dstrategy", "ONEBRANCH",
+				
 				"-generateTests",
-				"-Dstrategy", "ONEBRANCH",
+				"-Dstrategy", "EMPIRICAL_HYBRID_COLLECTOR",
+//				"-Dstrategy", "LEARNING_BASED_HYBRID",
 				
 //				"-Dalgorithm", "random",
 

@@ -70,6 +70,8 @@ public class PropertiesTestGAFactory extends PropertiesSearchAlgorithmFactory<Te
 
 	protected ChromosomeFactory<TestChromosome> getChromosomeFactory() {
 		switch (Properties.STRATEGY) {
+		case EMPIRICAL_HYBRID_COLLECTOR:
+		case LEARNING_BASED_HYBRID:
 		case ONEBRANCH:
 			switch (Properties.TEST_FACTORY) {
 			case ALLMETHODS:

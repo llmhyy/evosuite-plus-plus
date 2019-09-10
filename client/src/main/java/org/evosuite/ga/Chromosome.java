@@ -106,8 +106,17 @@ public abstract class Chromosome implements Comparable<Chromosome>, Serializable
 				sumFitnesses += fitnessValues.get(fitnessFunction);
 			}
 			return sumFitnesses;
-		} else
-			return fitnessValues.isEmpty() ? 0.0 : fitnessValues.get(fitnessValues.keySet().iterator().next());
+		} else {
+			if(fitnessValues.isEmpty()) {
+				return 0.0;
+			}
+			else {
+				return fitnessValues.get(fitnessValues.keySet().iterator().next());
+			}
+			
+//			return fitnessValues.isEmpty() ? 0.0 : fitnessValues.get(fitnessValues.keySet().iterator().next());
+			
+		}
 	}
 
 	public <T extends Chromosome> double getFitness(FitnessFunction<T> ff) {

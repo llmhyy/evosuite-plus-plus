@@ -1,21 +1,26 @@
 package org.evosuite.strategy;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.Algorithm;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.ShutdownTestWriter;
+import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.fbranch.FBranchSuiteFitness;
 import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import org.evosuite.ga.metaheuristics.Hybridable;
 import org.evosuite.ga.stoppingconditions.MaxStatementsStoppingCondition;
+import org.evosuite.ga.stoppingconditions.MaxTimeStoppingCondition;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.rmi.ClientServices;
@@ -44,42 +49,23 @@ import org.slf4j.LoggerFactory;
  */
 public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
-	private static final Logger logger = LoggerFactory.getLogger(TestGenerationStrategy.class);
+	private static final Logger logger = LoggerFactory.getLogger(EmpiricalHybridStrategyCollector.class);
 	
 	/**
 	 * TODO we may need to change it according to the length of branch condition or path condition
 	 */
 	public static long branchWiseBudget = 100*1000;
 	
-	public static final long strategyWiseBudget = 20*1000;
+	public static final long strategyWiseBudget = 20;
 	
 	class Segmentation{
 		List<Branch> branchSegmentation;
 		List<Constraint<?>> constraintSegmentation;
 		long timeout;
-		@SuppressWarnings("rawtypes")
-		GeneticAlgorithm strategy;
+		String strategy;
 	}
 	
-	public List<Branch> transferGoal2BranchSeq(TestFitnessFunction tff){
-		//TODO need to get the control flow graph from the branch.
-		if(tff instanceof FBranchTestFitness) {
-			FBranchTestFitness fBranchFitness = (FBranchTestFitness)tff;
-			RawControlFlowGraph cfg = fBranchFitness.getBranch().getInstruction().getRawCFG();
-			
-			//TODO handle cfg.
-		}
-		
-		
-		return null;
-	}
-	
-	public List<Constraint<?>> transferGoal2ConstraintSeq(TestFitnessFunction tff){
-		//TODO
-		return null;
-	}
-	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "unchecked" })
 	@Override
 	public TestSuiteChromosome generateTests() {
 		// In order to improve strategy's performance, in here we explicitly disable EvoSuite's
@@ -92,8 +78,6 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 		PropertiesTestGAFactory factory = new PropertiesTestGAFactory();
 		
-		List<TestSuiteFitnessFunction> fitnessFunctions = getFitnessFunctions();
-
 		// Get list of goals
         List<TestFitnessFactory<? extends TestFitnessFunction>> goalFactories = getFitnessFactories();
 		// long goalComputationStart = System.currentTimeMillis();
@@ -114,10 +98,6 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		}
 
 		// Need to shuffle goals because the order may make a difference
-		if (Properties.SHUFFLE_GOALS) {
-			// LoggingUtils.getEvoLogger().info("* Shuffling goals");
-			Randomness.shuffle(goals);
-		}
 		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Total_Goals,
 		                                                                 goals.size());
 
@@ -133,79 +113,75 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 
 		stoppingCondition.setLimit(strategyWiseBudget);
-		List<GeneticAlgorithm<TestChromosome>> strategyList = getTotalStrategies(factory, stoppingCondition);
 		
 		for (TestFitnessFunction fitnessFunction : goals) {
+			
+			logger.warn("working on " + fitnessFunction);
+			
 			List<TestChromosome> seeds = new ArrayList<>();
 			suite.addTests(seeds);
 
-			//TODO need to reset the branch wise budget with regard to the goal here.
-			
-			//TODO one branch need to run multiple times, a good approximation is 10 times.
-			
-			
-			List<Branch> relevantBranchList = transferGoal2BranchSeq(fitnessFunction);
-			List<Constraint<?>> relevantConstraint = transferGoal2ConstraintSeq(fitnessFunction);
-			
-			
 			long start = System.currentTimeMillis();
 			long end = System.currentTimeMillis();
 			
+			List<Segmentation> segList = new ArrayList<>();
+			
+			Segmentation prevSeg = new Segmentation();
+			
 			for(; end - start < branchWiseBudget; end = System.currentTimeMillis()) {
 				/**
-				 * TODO randomly select a strategy and run it for a while.
+				 * randomly select a strategy and run it for a while.
 				 */
+				List<Hybridable> strategyList = getTotalStrategies(factory, stoppingCondition, fitnessFunction);
 				int index = Randomness.nextInt(strategyList.size());
-				GeneticAlgorithm strategy = strategyList.get(index);
+				Hybridable hybridStrategy = strategyList.get(index);
+				GeneticAlgorithm<TestChromosome> strategy = (GeneticAlgorithm<TestChromosome>)hybridStrategy;
 				
+				logger.warn("applying " + strategy.getClass().getCanonicalName());
 
 				if (ShutdownTestWriter.isInterrupted()) {
 					continue;
 				}
 
-				// FitnessFunction fitness_function = new
-				strategy.addFitnessFunction(fitnessFunction);
-
+				
 				// Perform search
 				logger.info("Starting evolution for goal " + fitnessFunction);
 				long t1 = System.currentTimeMillis();
-				strategy.generateSolution();
+				hybridStrategy.generateSolution(suite);
+				
 				long t2 = System.currentTimeMillis();
 				long realTimeout = t2 - t1;
 
 				/**
 				 * if this strategy can cover the branch
 				 */
-				if(strategy.getBestIndividual().getFitness() == 0.0) {
+				TestChromosome bestIndividual = null;
+				if(strategy.getBestIndividual() instanceof TestChromosome) {
+					bestIndividual = (TestChromosome)strategy.getBestIndividual();					
+				}
+				else{
+					bestIndividual = findIndividualChromosomeFromSuite(strategy.getBestIndividual(), fitnessFunction);
+				}
+				
+				Segmentation newSeg = parsePathSegmentation(prevSeg, bestIndividual, realTimeout, fitnessFunction);
+				segList.add(newSeg);
+				
+				if(fitnessFunction.getFitness(bestIndividual) == 0.0) {
 					if (Properties.PRINT_COVERED_GOALS)
 						LoggingUtils.getEvoLogger().info("* Covered!"); // : " +
-					logger.info("Found solution, adding to test suite at "
+					logger.warn("Found solution, adding to test suite at "
 					        + MaxStatementsStoppingCondition.getNumExecutedStatements());
-					TestChromosome best = (TestChromosome) strategy.getBestIndividual();
-					best.getTestCase().addCoveredGoal(fitnessFunction);
-					suite.addTest(best);
-					
-					//TODO record strategy and its breaking through path segmentation
-					
-					// Calculate and keep track of overall fitness
-					for (TestSuiteFitnessFunction fitness_function : fitnessFunctions)
-					    fitness_function.getFitness(suite);
-					
 					break;
 				} 
-				/**
-				 * TODO 
-				 * 1. check out which path segmentation is reached.
-				 * 2. set strategy and timeout for the path segmentation
-				 * 3. pass all the seeds to next strategy
-				 */
 				else {
-					logger.info("Found no solution for " + fitnessFunction + " at "
+					logger.warn("Found no solution for " + fitnessFunction + " at "
 					        + MaxStatementsStoppingCondition.getNumExecutedStatements());
 					seeds = strategy.getPopulation();
 					suite.addTests(seeds);
 				}
 			}
+			
+			recordSegmentationList(segList);
 			
 
 		}
@@ -215,25 +191,130 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		return suite;
 	}
 
+
+	/**
+	 * TODO 
+	 * 1. check out which path segmentation is reached.
+	 * 2. set strategy and timeout for the path segmentation
+	 * 3. pass all the seeds to next strategy
+	 * @param fitnessFunction 
+	 * @param realTimeout 
+	 */
+	private Segmentation parsePathSegmentation(Segmentation prevSeg, TestChromosome bestIndividual, 
+			long realTimeout, TestFitnessFunction fitnessFunction) {
+		if(fitnessFunction instanceof FBranchTestFitness) {
+			FBranchTestFitness fBranchFitness = (FBranchTestFitness)fitnessFunction;
+			RawControlFlowGraph cfg = fBranchFitness.getBranch().getInstruction().getRawCFG();
+			
+			logger.warn(cfg.toString());
+		}		
+		return null;
+	}
+
+	private void recordSegmentationList(List<Segmentation> segList) {
+		// TODO Xianglin
+		
+	}
+
+	private TestChromosome findIndividualChromosomeFromSuite(Object bestIndividual, TestFitnessFunction fitnessFunction) {
+		
+		TestChromosome best = null;
+		double fitness = -1;
+		
+		if(bestIndividual instanceof TestSuiteChromosome) {
+			TestSuiteChromosome suite = (TestSuiteChromosome)bestIndividual;
+			for(TestChromosome test: suite.getTestChromosomes()) {
+				if(best == null) {
+					best = test;
+					fitness = fitnessFunction.getFitness(test);
+				}
+				else {
+					double tmpFitness = fitnessFunction.getFitness(test);
+					if(tmpFitness < fitness) {
+						best = test;
+						fitness = fitnessFunction.getFitness(test);
+					}
+					
+				}
+				
+			}
+		}
+		
+		return best;
+	}
+
+	private void deriveSingleGoal(FBranchSuiteFitness ff, TestFitnessFunction fitnessFunction) {
+		ff.totalBranches = 1;
+		ff.totalGoals = 1;
+		
+		/**
+		 * TODO it is better to refactor, no need to be specific for FBranchTestFitness
+		 */
+		if(fitnessFunction instanceof FBranchTestFitness) {
+			FBranchTestFitness function = (FBranchTestFitness)fitnessFunction;
+			int branchID = function.getBranch().getActualBranchId();
+			
+			ff.getBranchesId().clear();
+			ff.getBranchesId().add(branchID);
+			
+			Map<Integer, TestFitnessFunction> mapToModify = function.getBranchExpressionValue() ? ff.getBranchCoverageTrueMap() : ff.getBranchCoverageFalseMap();
+			Map<Integer, TestFitnessFunction> mapToClear = !function.getBranchExpressionValue() ? ff.getBranchCoverageTrueMap() : ff.getBranchCoverageFalseMap();
+			
+			mapToClear.clear();
+			
+			Iterator<Integer> iter = mapToModify.keySet().iterator();
+			while(iter.hasNext()) {
+				Integer i = iter.next();
+				if(i != branchID) {
+					iter.remove();
+				}
+			}
+			
+			System.currentTimeMillis();
+		}
+		
+		
+		
+//		ff.get
+		
+	}
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private List<GeneticAlgorithm<TestChromosome>> getTotalStrategies(PropertiesTestGAFactory factory, StoppingCondition stoppingCondition) {
-		//TODO derive three strategies
-		List<GeneticAlgorithm<TestChromosome>> list = new ArrayList<GeneticAlgorithm<TestChromosome>>();
+	private List<Hybridable> getTotalStrategies(PropertiesTestGAFactory factory, StoppingCondition stoppingCondition, 
+			TestFitnessFunction fitnessFunction) {
+		List<Hybridable> list = new ArrayList<>();
 		
 		GeneticAlgorithm<TestChromosome> ga = factory.getSearchAlgorithm();
-		ga.setStoppingCondition(stoppingCondition);
-		list.add(ga);
+		setStrategyWiseBudget(ga);
+		ga.addFitnessFunction(fitnessFunction);
+		list.add((Hybridable)ga);
 		
 		Properties.ALGORITHM = Algorithm.RANDOM_SEARCH;
 		GeneticAlgorithm<TestChromosome> random = factory.getSearchAlgorithm();
-		random.setStoppingCondition(stoppingCondition);
-		list.add(random);
+		setStrategyWiseBudget(random);
+		random.addFitnessFunction(fitnessFunction);
+		list.add((Hybridable)random);
 		
 		DSEAlgorithm dse = new DSEAlgorithm();
-		dse.setStoppingCondition(stoppingCondition);
-		list.add((GeneticAlgorithm)dse);
+		setStrategyWiseBudget((GeneticAlgorithm)dse);
+		TestSuiteFitnessFunction function = FitnessFunctions.getFitnessFunction(Properties.CRITERION[0]);
+		if(function instanceof FBranchSuiteFitness) {
+			FBranchSuiteFitness ff = (FBranchSuiteFitness)function;
+			deriveSingleGoal(ff, fitnessFunction);
+		}
+		((GeneticAlgorithm)dse).addFitnessFunction(function);
+		list.add((Hybridable)dse);
 		
 		return list;
+	}
+
+	private void setStrategyWiseBudget(GeneticAlgorithm<TestChromosome> ga) {
+		for(StoppingCondition condition: ga.getStoppingConditions()) {
+			if(condition instanceof MaxTimeStoppingCondition) {
+				MaxTimeStoppingCondition mCondition = (MaxTimeStoppingCondition)condition;
+				mCondition.setLimit(strategyWiseBudget);
+			}
+		}
 	}
 
 	private Set<Integer> getAdditionallyCoveredGoals(

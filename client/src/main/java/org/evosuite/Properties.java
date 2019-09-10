@@ -1528,7 +1528,7 @@ public class Properties {
 	
 	
 	public enum Strategy {
-	    ONEBRANCH, EVOSUITE, RANDOM, RANDOM_FIXED, ENTBUG, REGRESSION, MOSUITE, DSE, NOVELTY
+	    ONEBRANCH, EVOSUITE, RANDOM, RANDOM_FIXED, ENTBUG, REGRESSION, MOSUITE, DSE, NOVELTY, EMPIRICAL_HYBRID_COLLECTOR, LEARNING_BASED_HYBRID
 	}
 
 	@Parameter(key = "strategy", group = "Runtime", description = "Which mode to use")
