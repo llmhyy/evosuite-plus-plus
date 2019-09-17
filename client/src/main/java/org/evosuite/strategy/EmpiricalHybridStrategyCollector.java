@@ -19,6 +19,7 @@ import org.evosuite.ShutdownTestWriter;
 import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.fbranch.FBranchSuiteFitness;
 import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.FitnessFunction;
@@ -72,8 +73,9 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 	private static final Logger logger = LoggerFactory.getLogger(EmpiricalHybridStrategyCollector.class);
 
-	
-	public static long branchWiseBudget = 100 * 1000;
+	public static final long DEFAULT_PATH_WISE_BUDGET = 100 * 1000;
+
+	public static long pathWiseBudget = DEFAULT_PATH_WISE_BUDGET;
 
 	public static final long strategyWiseBudget = 20;
 
@@ -129,109 +131,207 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 //		TestSuiteChromosome suite = (TestSuiteChromosome) bootstrapRandomSuite(fitnessFunctions.get(0), goalFactories.get(0));
 		TestSuiteChromosome suite = new TestSuiteChromosome();
-		
+
 //		StoppingCondition stoppingCondition = getStoppingCondition();
 //		stoppingCondition.setLimit(strategyWiseBudget);
 
 		for (TestFitnessFunction fitnessFunction : goals) {
+
+			List<ArrayList<BranchGoal>> paths = achieveAllPaths(fitnessFunction);
 
 			logger.warn("working on " + fitnessFunction);
 
 			List<TestChromosome> seeds = new ArrayList<>();
 			suite.addTests(seeds);
 
-			long start = System.currentTimeMillis();
-			long end = System.currentTimeMillis();
 
-			List<Segmentation> segList = new ArrayList<>();
+			for (List<BranchGoal> path : paths) {
+				List<Segmentation> segList = new ArrayList<>();
 
-//			Segmentation prevSeg = new Segmentation();
-			dynamicAdjust(fitnessFunction);
-
-			for (; end - start < branchWiseBudget; end = System.currentTimeMillis()) {
-				long remainBranchWiseBudget = end - start;
-				/**
-				 * randomly select a strategy and run it for a while.
-				 */
-				// the time budget has to be the smaller one(strategyBudget or remainBranchBudgt)
-				StoppingCondition stoppingCondition = getStoppingCondition();
-				long timeBudget = strategyWiseBudget>remainBranchWiseBudget?remainBranchWiseBudget:strategyWiseBudget;
-				stoppingCondition.setLimit(timeBudget);
-				
-				List<Hybridable> strategyList = getTotalStrategies(factory, stoppingCondition, fitnessFunction);
-				int index = Randomness.nextInt(strategyList.size());
-				Hybridable hybridStrategy = strategyList.get(index);
-				GeneticAlgorithm<TestChromosome> strategy = (GeneticAlgorithm<TestChromosome>) hybridStrategy;
-
-				String strategyName = strategy.getClass().getCanonicalName();
-
-				logger.warn("applying " + strategy.getClass().getCanonicalName());
-
-				if (ShutdownTestWriter.isInterrupted()) {
-					continue;
-				}
-
-				// Perform search
-				logger.info("Starting evolution for goal " + fitnessFunction);
-				long t1 = System.currentTimeMillis();
-				hybridStrategy.generateSolution(suite);
-
-				long t2 = System.currentTimeMillis();
-				long realTimeout = t2 - t1;
-				
+//				Segmentation prevSeg = new Segmentation();
+				setPathBudget(path.size());
 
 				/**
-				 * if this strategy can cover the branch
+				 * TODO extract 10 into a final field
 				 */
-				TestChromosome bestIndividual = null;
-				if (strategy.getBestIndividual() instanceof TestChromosome) {
-					bestIndividual = (TestChromosome) strategy.getBestIndividual();
-				} else {
-					bestIndividual = findIndividualChromosomeFromSuite(strategy.getBestIndividual(), fitnessFunction);
+				for(int i=0; i<10; i++) {
+					long start = System.currentTimeMillis();
+					long end = System.currentTimeMillis();
+					for (; end - start < pathWiseBudget; end = System.currentTimeMillis()) {
+						/**
+						 * randomly select a strategy and run it for a while.
+						 */
+						StoppingCondition stoppingCondition = getStoppingCondition();
+						stoppingCondition.setLimit(strategyWiseBudget);
+//						long remainBranchWiseBudget = end - start;
+//						long timeBudget = strategyWiseBudget > remainBranchWiseBudget ? remainBranchWiseBudget : strategyWiseBudget;
+						
+						List<Hybridable> strategyList = getTotalStrategies(factory, stoppingCondition, fitnessFunction);
+						int index = Randomness.nextInt(strategyList.size());
+						Hybridable hybridStrategy = strategyList.get(index);
+						GeneticAlgorithm<TestChromosome> strategy = (GeneticAlgorithm<TestChromosome>) hybridStrategy;
+						
+						String strategyName = strategy.getClass().getCanonicalName();
+						
+						logger.warn("applying " + strategy.getClass().getCanonicalName());
+						
+						if (ShutdownTestWriter.isInterrupted()) {
+							continue;
+						}
+						
+						// Perform search
+						logger.info("Starting evolution for goal " + fitnessFunction);
+						long t1 = System.currentTimeMillis();
+						hybridStrategy.generateSolution(suite);
+						
+						long t2 = System.currentTimeMillis();
+						long realTimeout = t2 - t1;
+						
+						/**
+						 * if this strategy can cover the branch
+						 */
+						TestChromosome bestIndividual = null;
+						if (strategy.getBestIndividual() instanceof TestChromosome) {
+							bestIndividual = (TestChromosome) strategy.getBestIndividual();
+						} else {
+							bestIndividual = findIndividualChromosomeFromSuite(strategy.getBestIndividual(),
+									fitnessFunction);
+						}
+						
+						Segmentation newSeg = parsePathSegmentation(segList, bestIndividual, realTimeout, fitnessFunction,
+								strategyName);
+						segList.add(newSeg);
+//						prevSeg = newSeg;
+						
+						if (fitnessFunction.getFitness(bestIndividual) == 0.0) {
+							if (Properties.PRINT_COVERED_GOALS)
+								LoggingUtils.getEvoLogger().info("* Covered!"); // : " +
+							logger.warn("Found solution, adding to test suite at "
+									+ MaxStatementsStoppingCondition.getNumExecutedStatements());
+							break;
+						} else {
+							logger.warn("Found no solution for " + fitnessFunction + " at "
+									+ MaxStatementsStoppingCondition.getNumExecutedStatements());
+							seeds = strategy.getPopulation();
+							suite.addTests(seeds);
+						}
+					}
+					
+					recordSegmentationList(segList, fitnessFunction);
+					
 				}
+				
 
-				Segmentation newSeg = parsePathSegmentation(segList, bestIndividual, realTimeout, fitnessFunction,
-						strategyName);
-				segList.add(newSeg);
-//				prevSeg = newSeg;
-
-				if (fitnessFunction.getFitness(bestIndividual) == 0.0) {
-					if (Properties.PRINT_COVERED_GOALS)
-						LoggingUtils.getEvoLogger().info("* Covered!"); // : " +
-					logger.warn("Found solution, adding to test suite at "
-							+ MaxStatementsStoppingCondition.getNumExecutedStatements());
-					break;
-				} else {
-					logger.warn("Found no solution for " + fitnessFunction + " at "
-							+ MaxStatementsStoppingCondition.getNumExecutedStatements());
-					seeds = strategy.getPopulation();
-					suite.addTests(seeds);
-				}
 			}
-
-			recordSegmentationList(segList,fitnessFunction);
 
 		}
 
 		return suite;
 	}
-	
+
+	class BranchGoal {
+		Branch branch;
+		boolean value;
+
+		public BranchGoal(Branch branch, boolean value) {
+			super();
+			this.branch = branch;
+			this.value = value;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getEnclosingInstance().hashCode();
+			result = prime * result + ((branch == null) ? 0 : branch.hashCode());
+			result = prime * result + (value ? 1231 : 1237);
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			BranchGoal other = (BranchGoal) obj;
+			if (!getEnclosingInstance().equals(other.getEnclosingInstance()))
+				return false;
+			if (branch == null) {
+				if (other.branch != null)
+					return false;
+			} else if (!branch.equals(other.branch))
+				return false;
+			if (value != other.value)
+				return false;
+			return true;
+		}
+
+		private EmpiricalHybridStrategyCollector getEnclosingInstance() {
+			return EmpiricalHybridStrategyCollector.this;
+		}
+
+	}
+
+	/**
+	 * TODO get all the paths to access a given branch
+	 * 
+	 * @param fitnessFunction
+	 * @return
+	 */
+	private List<ArrayList<BranchGoal>> achieveAllPaths(TestFitnessFunction fitnessFunction) {
+		List<ArrayList<BranchGoal>> pathList = new ArrayList<>();
+		if (fitnessFunction instanceof FBranchTestFitness) {
+			FBranchTestFitness fBranch = (FBranchTestFitness) fitnessFunction;
+			BranchCoverageGoal goal = fBranch.getBranchGoal();
+			ArrayList<BranchGoal> path = new ArrayList<>();
+			path.add(new BranchGoal(goal.getBranch(), goal.getValue()));
+
+			recursiveAchievePaths(pathList, path);
+		}
+
+		return pathList;
+	}
+
+	/**
+	 * assume path has at least one branch goal
+	 * 
+	 * @param pathList
+	 * @param path
+	 */
+	@SuppressWarnings("unchecked")
+	private void recursiveAchievePaths(List<ArrayList<BranchGoal>> pathList, ArrayList<BranchGoal> path) {
+		BranchGoal branchGoal = path.get(0);
+
+		if (branchGoal.branch.getInstruction().getControlDependencies().isEmpty()) {
+			pathList.add(path);
+			return;
+		}
+
+		for (ControlDependency cd : branchGoal.branch.getInstruction().getControlDependencies()) {
+			ArrayList<BranchGoal> newPath = (ArrayList<BranchGoal>) path.clone();
+			BranchGoal newGoal = new BranchGoal(cd.getBranch(), cd.getBranchExpressionValue());
+
+			if (!newPath.contains(newGoal)) {
+				newPath.add(0, newGoal);
+				recursiveAchievePaths(pathList, newPath);
+			}
+		}
+
+	}
+
 	/**
 	 * TODO we may need to change it according to the length of branch condition or
 	 * path condition
 	 */
-	private void dynamicAdjust(TestFitnessFunction fitnessFunction) {
-		if(fitnessFunction instanceof FBranchTestFitness) {
-			FBranchTestFitness fBranchFitness = (FBranchTestFitness) fitnessFunction;
-			RawControlFlowGraph cfg = fBranchFitness.getBranchGoal().getBranch().getInstruction().getRawCFG();
-			int branchLength = cfg.determineBranches().size();
-			if(branchLength<10)
-				this.branchWiseBudget = 50*1000 + branchLength * 5 * 1000;
-		}
-		else {
-			branchWiseBudget = 100 * 1000;
-		}
-		
+	private void setPathBudget(int pathSize) {
+		pathWiseBudget = DEFAULT_PATH_WISE_BUDGET;
+		if (pathSize < 10)
+			pathWiseBudget = 50 * 1000 + pathSize * 5 * 1000;
+
 	}
 
 	/**
@@ -242,8 +342,8 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 	 * @param realTimeout
 	 * @param strategyName
 	 */
-	private Segmentation parsePathSegmentation(List<Segmentation> segList, TestChromosome bestIndividual, long realTimeout,
-			TestFitnessFunction fitnessFunction, String strategyName) {
+	private Segmentation parsePathSegmentation(List<Segmentation> segList, TestChromosome bestIndividual,
+			long realTimeout, TestFitnessFunction fitnessFunction, String strategyName) {
 
 		Segmentation currSeg = new Segmentation();
 		currSeg.timeout = realTimeout;
@@ -251,7 +351,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 		if (fitnessFunction instanceof FBranchTestFitness) {
 			FBranchTestFitness fBranchFitness = (FBranchTestFitness) fitnessFunction;
-			
+
 			// get bestindividual control path
 			ExecutionResult er = fBranchFitness.runTest(bestIndividual.getTestCase());
 			Set<Integer> btrue = er.getTrace().getCoveredTrueBranches();
@@ -262,11 +362,12 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 			Set<BytecodeInstruction> bytecodeInstructionSet = cfg.determineBranches();
 			List<BytecodeInstruction> bytecodeInstructionList = new ArrayList<BytecodeInstruction>(
 					bytecodeInstructionSet);
-			// TODO determinebranch contains all the branch in the cfg, need to remove unnecessary ones
-			//is instruction bytecode unique 
-			BytecodeInstruction branchGoalBytecodeInstruction = fBranchFitness.getBranchGoal().getBranch().getInstruction();
-			bytecodeInstructionList = getControlDependentBranch(branchGoalBytecodeInstruction,
-					bytecodeInstructionList);
+			// TODO determinebranch contains all the branch in the cfg, need to remove
+			// unnecessary ones
+			// is instruction bytecode unique
+			BytecodeInstruction branchGoalBytecodeInstruction = fBranchFitness.getBranchGoal().getBranch()
+					.getInstruction();
+			bytecodeInstructionList = getControlDependentBranch(branchGoalBytecodeInstruction, bytecodeInstructionList);
 			// controlDependencies branch
 			for (int i = 0; i < bytecodeInstructionList.size(); i++) {
 				Branch b = bytecodeInstructionList.get(i).toBranch();
@@ -307,8 +408,8 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 			// TODO List<constraints>
 
 			// minus prevSeg List<Branch>
-			if(segList!=null) {
-				for(Segmentation seg:segList) {
+			if (segList != null) {
+				for (Segmentation seg : segList) {
 					List<Branch> prevBranchList = seg.branchSegmentation;
 					if (prevBranchList != null) {
 						for (Branch b : prevBranchList) {
@@ -316,7 +417,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 								coverBranch.remove(b);
 						}
 					}
-					
+
 				}
 			}
 			currSeg.branchSegmentation = coverBranch;
@@ -330,8 +431,8 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 			List<BytecodeInstruction> bytecodeInstructionList) {
 		// TODO Auto-generated method stub
 		int index = bytecodeInstructionList.indexOf(branchGoalBytecodeInstruction);
-		while(bytecodeInstructionList.size()-1>index) {
-			bytecodeInstructionList.remove(bytecodeInstructionList.size()-1);
+		while (bytecodeInstructionList.size() - 1 > index) {
+			bytecodeInstructionList.remove(bytecodeInstructionList.size() - 1);
 		}
 		return bytecodeInstructionList;
 	}
@@ -358,12 +459,11 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		if (!isExisted) {
 			initSegmentationListExcel(path + targetfileName);
 		}
-		
-		if(segList != null) {
-			recordTmpSegmentationList(path + tmpfileNme, segList,fitnessFunction);
+
+		if (segList != null) {
+			recordTmpSegmentationList(path + tmpfileNme, segList, fitnessFunction);
 			mergeSementationListResult(path + targetfileName, path + tmpfileNme);
 		}
-
 
 	}
 
@@ -433,16 +533,17 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		}
 	}
 
-	private void recordTmpSegmentationList(String tmpFileName, List<Segmentation> segList, TestFitnessFunction fitnessFunction) {
+	private void recordTmpSegmentationList(String tmpFileName, List<Segmentation> segList,
+			TestFitnessFunction fitnessFunction) {
 		try {
 			FileOutputStream fileOut = new FileOutputStream(tmpFileName);
 			XSSFWorkbook seg_wb = new XSSFWorkbook();
 			XSSFSheet seg_ws = seg_wb.createSheet("segmentationList");
 
 			XSSFRow Row = seg_ws.createRow(0);
-			XSSFCell goalCell=Row.createCell(0);
-			String goal="?";
-			if(fitnessFunction instanceof FBranchTestFitness) {
+			XSSFCell goalCell = Row.createCell(0);
+			String goal = "?";
+			if (fitnessFunction instanceof FBranchTestFitness) {
 				FBranchTestFitness fBranchFitness = (FBranchTestFitness) fitnessFunction;
 				goal = fBranchFitness.getBranchGoal().toString();
 			}
@@ -464,7 +565,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 	private void initSegmentationListExcel(String file) {
 		XSSFWorkbook segmentationList_wb = new XSSFWorkbook();
 		XSSFSheet segmentationList_ws = segmentationList_wb.createSheet("segmentationList");
-		String[] headers = { "Goals","Timeout", "Strategy", "Branch" };
+		String[] headers = { "Goals", "Timeout", "Strategy", "Branch" };
 		XSSFRow row = segmentationList_ws.createRow(0);
 		addHeader(row, headers);
 
@@ -479,16 +580,16 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 	}
 
 	private void addHeader(XSSFRow Row, String[] headers) {
-		for(int i=0;i<headers.length;i++) {
+		for (int i = 0; i < headers.length; i++) {
 			XSSFCell cell = Row.createCell((short) i);
 			XSSFRichTextString text = new XSSFRichTextString(headers[i]);
 			cell.setCellValue(text.toString());
-			
+
 		}
 	}
 
 	private void recordSegmentation(Segmentation seg, XSSFSheet seg_ws) {
-		
+
 		XSSFRow row = seg_ws.getRow(0);
 		short newCellNum = row.getLastCellNum();
 
@@ -501,15 +602,15 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		newCellNum++;
 
 		XSSFCell branch_cell = row.createCell(newCellNum);
-		String branch="";
+		String branch = "";
 		// branch
 		if (seg.branchSegmentation != null) {
 			for (int j = 0; j < seg.branchSegmentation.size(); j++) {
 				Branch b = seg.branchSegmentation.get(j);
-				branch=branch+b.toString()+",";
+				branch = branch + b.toString() + ",";
 			}
-			if(branch.length()>0) {
-				branch = branch.substring(0, branch.length()-1);
+			if (branch.length() > 0) {
+				branch = branch.substring(0, branch.length() - 1);
 			}
 		}
 		branch_cell.setCellValue(branch);
