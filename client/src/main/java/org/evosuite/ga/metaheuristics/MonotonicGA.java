@@ -603,7 +603,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		}
 		else {
 			List<TestChromosome> selected = new ArrayList<TestChromosome>();
-			for(int i=0; i<10; i++) {
+			int eliteNum = previousSeeds.size() < 10 ? previousSeeds.size() : 10;
+			for(int i=0; i<eliteNum; i++) {
 				selected.add(previousSeeds.getTestChromosome(i));
 			}
 			
