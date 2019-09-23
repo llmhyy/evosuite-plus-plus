@@ -1,5 +1,10 @@
 package org.evosuite.strategy;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -7,12 +12,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 
+import org.apache.poi.ss.usermodel.CellCopyPolicy;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Algorithm;
 import org.evosuite.Properties.Criterion;
@@ -31,20 +38,15 @@ import org.evosuite.ga.stoppingconditions.MaxTimeStoppingCondition;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
-import org.evosuite.graphs.cfg.ControlFlowEdge;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.rmi.service.ClientState;
 import org.evosuite.statistics.RuntimeVariable;
-import org.evosuite.strategy.EmpiricalHybridStrategyCollector.BranchGoal;
-import org.evosuite.strategy.EmpiricalHybridStrategyCollector.Segmentation;
 import org.evosuite.symbolic.DSEAlgorithm;
 import org.evosuite.symbolic.expr.Constraint;
-import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
-import org.evosuite.testcase.execution.ExecutionTraceImpl.BranchEval;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
@@ -52,18 +54,8 @@ import org.evosuite.testsuite.TestSuiteMinimizer;
 import org.evosuite.testsuite.factories.FixedSizeTestSuiteChromosomeFactory;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.LoggingUtils;
-import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.poi.ss.usermodel.CellCopyPolicy;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRichTextString;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
  * 
@@ -80,6 +72,9 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 	public static long pathWiseBudget = DEFAULT_PATH_WISE_BUDGET;
 
+	/**
+	 * unit: seconds
+	 */
 	public static final long strategyWiseBudget = 20;
 
 	class Segmentation {
@@ -152,7 +147,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 					
 					List<Segmentation> segList = new ArrayList<>();
 					
-//				Segmentation prevSeg = new Segmentation();
+//					Segmentation prevSeg = new Segmentation();
 					setPathBudget(path.size());
 					
 					long start = System.currentTimeMillis();
@@ -201,7 +196,6 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						Segmentation newSeg = parsePathSegmentation(segList, bestIndividual, realTimeout, fitnessFunction,
 								strategyName, path);
 						segList.add(newSeg);
-//						prevSeg = newSeg;
 						
 						if (fitnessFunction.getFitness(bestIndividual) == 0.0) {
 							if (Properties.PRINT_COVERED_GOALS)
@@ -217,21 +211,8 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						}
 					}
 					
-					recordSegmentationList(segList, fitnessFunction);
-//					FBranchTestFitness fb = (FBranchTestFitness)fitnessFunction;
-//					System.out.println(fb.getBranchGoal().getBranch().toString());
-//					for(Segmentation seg:segList) {
-//						System.out.println("time:"+seg.timeout);
-//						System.out.println("strategy:"+seg.strategy);
-//						List<Branch> branchList = seg.branchSegmentation;
-//						String branch="";
-//						for(Branch b : branchList) {
-//							branch+=b.toString()+",";
-//						}
-//						System.out.println(branch);
-//						
-//					}
-					
+					//TODO add it back
+//					recordSegmentationList(segList, fitnessFunction);
 					
 				}
 				
@@ -363,20 +344,18 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		if (fitnessFunction instanceof FBranchTestFitness) {
 			FBranchTestFitness fBranchFitness = (FBranchTestFitness) fitnessFunction;
 
-			// get bestindividual control path
+			/**
+			 * get bestindividual control path
+			 */
 			ExecutionResult er = fBranchFitness.runTest(bestIndividual.getTestCase());
 			Set<Integer> btrue = er.getTrace().getCoveredTrueBranches();
 			Set<Integer> bfalse = er.getTrace().getCoveredFalseBranches();
-			// get goal control path
+			
+			/**
+			 * get goal control path
+			 */
 			List<Branch> coverBranch = new ArrayList<Branch>();
 			RawControlFlowGraph cfg = fBranchFitness.getBranch().getInstruction().getRawCFG();
-			Set<BytecodeInstruction> bytecodeInstructionSet = cfg.determineBranches();
-//			List<BytecodeInstruction> bytecodeInstructionList = new ArrayList<BytecodeInstruction>(
-//					bytecodeInstructionSet);
-			// is instruction bytecode unique
-//			BytecodeInstruction branchGoalBytecodeInstruction = fBranchFitness.getBranchGoal().getBranch()
-//					.getInstruction();
-//			bytecodeInstructionList = getControlDependentBranch(branchGoalBytecodeInstruction, bytecodeInstructionList);
 			// controlDependencies branch
 			for (int i = 0; i < path.size(); i++) {
 				Branch b = path.get(i).branch;
@@ -400,22 +379,21 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 			}
 			// ? List<constraints>
 
-			// minus prevSeg List<Branch>
-			if (segList != null) {
-				for (Segmentation seg : segList) {
-					List<Branch> prevBranchList = seg.branchSegmentation;
-					if (prevBranchList != null) {
-						for (Branch b : prevBranchList) {
-							if (coverBranch.contains(b))
-								coverBranch.remove(b);
-						}
+			/**
+			 * compute segment difference with regard to existing segment list
+			 */
+			for (Segmentation seg : segList) {
+				List<Branch> prevBranchList = seg.branchSegmentation;
+				if (prevBranchList != null) {
+					for (Branch b : prevBranchList) {
+						if (coverBranch.contains(b))
+							coverBranch.remove(b);
 					}
-
 				}
+				
 			}
+			
 			currSeg.branchSegmentation = coverBranch;
-			// minus prevSeg List<constraint<?>>
-			logger.warn(cfg.toString());
 		}
 		return currSeg;
 	}
@@ -674,11 +652,11 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 			TestFitnessFunction fitnessFunction) {
 		List<Hybridable> list = new ArrayList<>();
 
-//		GeneticAlgorithm<TestChromosome> ga = factory.getSearchAlgorithm();
-//		setStrategyWiseBudget(ga);
-//		ga.addFitnessFunction(fitnessFunction);
-//		list.add((Hybridable)ga);
-//		
+		GeneticAlgorithm<TestChromosome> ga = factory.getSearchAlgorithm();
+		setStrategyWiseBudget(ga);
+		ga.addFitnessFunction(fitnessFunction);
+		list.add((Hybridable)ga);
+		
 		Properties.ALGORITHM = Algorithm.RANDOM_SEARCH;
 		GeneticAlgorithm<TestChromosome> random = factory.getSearchAlgorithm();
 		setStrategyWiseBudget(random);
