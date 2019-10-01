@@ -463,9 +463,9 @@ public class TestSingleMethod {
 //				"weka.core.ContingencyTables#entropyConditionedOnColumns([[D)D"
 //				"weka.core.FindWithCapabilities#setOptions([Ljava/lang/String;)V"
 //				"weka.core.TechnicalInformation#main([Ljava/lang/String;)V"
-//				"weka.core.TestInstances#main([Ljava/lang/String;)V"
+				"weka.core.TestInstances#main([Ljava/lang/String;)V"
 //				"weka.gui.beans.SubstringReplacer#connectionNotification(Ljava/lang/String;Ljava/lang/Object;)V"
-				"weka.gui.scripting.SyntaxDocument#checkForTokens(Ljava/lang/String;II)V"
+//				"weka.gui.scripting.SyntaxDocument#checkForTokens(Ljava/lang/String;II)V"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -481,14 +481,14 @@ public class TestSingleMethod {
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
-		fitnessApproach = "branch";
+//		fitnessApproach = "branch";
 //		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
 		System.out.println("fbranch" + ":");
 		printResult(results0);
-		System.out.println("branch" + ":");
-		printResult(results1);
+//		System.out.println("branch" + ":");
+//		printResult(results1);
 	}
 	
 	
