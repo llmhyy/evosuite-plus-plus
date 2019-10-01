@@ -258,6 +258,12 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> implemen
 		}
 		return false;
 	}
+	
+	@Override
+	public List<TestChromosome> getSeeds(){
+		TestSuiteChromosome suite = this.getPopulation().get(0);
+		return suite.getTestChromosomes();
+	}
 
 	public static ArrayList<VariableReference> getMethodArgs(String descriptor, Executable targetMethod,
 			TestCaseBuilder testCaseBuilder) {
