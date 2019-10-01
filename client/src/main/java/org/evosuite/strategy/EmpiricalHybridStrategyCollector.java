@@ -68,7 +68,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 	public static final long DEFAULT_PATH_WISE_BUDGET = 100 * 1000;
 	
-	public static final int DEFAULT_PATH_TESTING_NUM = 100;
+	public static final int DEFAULT_PATH_TESTING_NUM = 1;
 
 	public static long pathWiseBudget = DEFAULT_PATH_WISE_BUDGET;
 
@@ -206,7 +206,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						} else {
 							logger.warn("Found no solution for " + fitnessFunction + " at "
 									+ MaxStatementsStoppingCondition.getNumExecutedStatements());
-							seeds = strategy.getPopulation();
+							seeds = hybridStrategy.getSeeds();
 							suite.addTests(seeds);
 						}
 					}
@@ -409,7 +409,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 	}
 
 	private void recordSegmentationList(List<Segmentation> segList, TestFitnessFunction fitnessFunction) {
-		String path = "D:\\xianglin\\git_space\\evosuite\\EvosuiteTest\\src\\evosuite\\experiment\\";
+		String path = "D:\\linyun\\git_space\\evosuite\\EvosuiteTest\\src\\evosuite\\experiment\\";
 		String targetfileName = "segmentationList.xlsx";
 		String tmpfileNme = "segmentationList_tmp.xlsx";
 

@@ -72,6 +72,12 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		setReplacementFunction(new FitnessReplacementFunction());
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<TestChromosome> getSeeds(){
+		return (List<TestChromosome>) this.getPopulation();
+	}
+	
 	/**
 	 * <p>
 	 * keepOffspring

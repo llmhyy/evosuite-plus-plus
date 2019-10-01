@@ -74,6 +74,12 @@ public class RandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> impl
 		}
 		currentIteration++;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<TestChromosome> getSeeds(){
+		return (List<TestChromosome>) this.getPopulation();
+	}
 
 	/* (non-Javadoc)
 	 * @see org.evosuite.ga.GeneticAlgorithm#initializePopulation()
