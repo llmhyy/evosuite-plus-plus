@@ -17,7 +17,7 @@ public class ListRelevantJdkClasses extends MethodFlagCondFilter implements IMet
 	
 	@Override
 	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,
-			ClassNode cn) throws AnalyzerException, IOException {
+			ClassNode cn) throws AnalyzerException, IOException, ClassNotFoundException {
 		boolean valid = super.checkMethod(classLoader, className, methodName, node, cn);
 		if (valid) {
 			StringBuilder sb = new StringBuilder();
