@@ -51,7 +51,6 @@ public class ListMethods {
 		BranchPool.getInstance(classLoader).reset();
 		GraphPool.getInstance(classLoader).clear();
 		
-		
 		IMethodFilter methodFilter = mFilterOpt.getCorrespondingFilter();
 		int total = 0;
 		StringBuilder tMethodSb = new StringBuilder(headerSb.toString());
@@ -59,9 +58,8 @@ public class ListMethods {
 		for (String className : targetClasses) {
 			try {
 				Class<?> targetClass = classLoader.loadClass(className);
+				// Filter out interface
 				if (targetClass.isInterface()) {
-					/* although Evosuite does filter to get only testable classes, listClasses still contains interface 
-					 * which leads to error when executing Evosuite, that's why we need to add this additional check here */
 					continue;
 				}
 				System.out.println("Class " + targetClass.getName());

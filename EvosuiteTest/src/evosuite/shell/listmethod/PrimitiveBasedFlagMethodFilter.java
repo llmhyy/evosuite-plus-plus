@@ -60,23 +60,27 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 	public static final String excelProfileSubfix = "_primitiveFlagMethodProfiles.xlsx";
 	private static Logger log = LoggerUtils.getLogger(FlagMethodProfilesFilter.class);
 	private ExcelWriter writer;
-	
+
 	public PrimitiveBasedFlagMethodFilter() {
 		String statisticFile = new StringBuilder(Settings.getReportFolder()) 
 				.append(File.separator).append(EvosuiteForMethod.projectId)
 				.append(excelProfileSubfix).toString();
+		File newFile = new File(statisticFile);
+		if (newFile.exists()) {
+			newFile.delete();
+		}
 		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data", new String[]{
 				"ProjectId", "ProjectName", "Target Method", "Flag Method", "branch", "const0/1", "branch", "getfield", "branch",
 				"iLoad", "branch", "invokemethod", "other", "Remarks", "has Primitve type", "hasPrimitiveComparison", "isValid"}, 0);
 	}
-	
+
 	@Override
 	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,
-			ClassNode cn) throws AnalyzerException, IOException {
+			ClassNode cn) throws AnalyzerException, IOException, ClassNotFoundException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
-		
-		// Get actual CFG
+
+		// Get actual CFG for target method
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		if (cfg == null) {
 			BytecodeInstructionPool.getInstance(classLoader).registerMethodNode(node,
@@ -87,10 +91,6 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 			bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
 			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-//			GraphPool.getInstance(classLoader).alwaysRegisterActualCFG(cfg);
-			
-//			generateCDG(classLoader, className, node);
-//			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		}
 
 		/* Has branches */
@@ -109,45 +109,55 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		}
 
 		/* All parameters must be of primitive type (including String) */
-//		if(!FilterHelper.isMethodAtLeastPrimitiveParameter(node)) {
-//			return false;
-//		}
-		
-//		if(FilterHelper.isMethodAtLeastStringParameter(node)) {
-//			return false;
-//		}
-		
+		//		if(!FilterHelper.isMethodAtLeastPrimitiveParameter(node)) {
+		//			return false;
+		//		}
+
+		//		if(FilterHelper.isMethodAtLeastStringParameter(node)) {
+		//			return false;
+		//		}
+
 		boolean defuseAnalyzed = false;
 		MethodContent mc = new MethodContent();
-		
+
 		/* check parameter types of target method */
 		mc.hasPrimitiveParam = FilterHelper.hasAtLeastOnePrimitiveParam(node, cn);
-		
+
+		/* must have at least one primitive parameter */
+		if (!mc.hasPrimitiveParam) {
+			return false;
+		}
+		/* Parameter contains interface or abstract class object */
+		if (FilterHelper.hasUnsupportedParam(node, cn, classLoader)) {
+			return false;
+		}
+
 		boolean valid = false;
 		Map<String, Boolean> methodValidityMap = new HashMap<>();
 		for (BytecodeInstruction insn : cfg.getBranches()) {
-			
-			boolean isBranchDependOnBranchWithAllPrimitives = checkDependentBranchUseAllPrimitiveOperands(insn);
-//			checkDependentBranchUseAllPrimitiveOperands(insn);
-			if(!isBranchDependOnBranchWithAllPrimitives && !insn.getControlDependencies().isEmpty()) {
-//				checkDependentBranchUseAllPrimitiveOperands(insn);
-				continue;
-			}
-			
+
+			//			boolean isBranchDependOnBranchWithAllPrimitives = checkDependentBranchUseAllPrimitiveOperands(insn);
+			////			checkDependentBranchUseAllPrimitiveOperands(insn);
+			//			if(!isBranchDependOnBranchWithAllPrimitives && !insn.getControlDependencies().isEmpty()) {
+			////				checkDependentBranchUseAllPrimitiveOperands(insn);
+			//				continue;
+			//			}
+
 			AbstractInsnNode insnNode = insn.getASMNode();
+
 			/* check whether it is a flag condition */
 			/* exist potential flag method */
 			if (CollectionUtil.existIn(insnNode.getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
-				StringBuilder sb = new StringBuilder()
-							.append(OpcodeUtils.getCode(insnNode.getOpcode()))
-							.append(", prev -- ")
-							.append(OpcodeUtils.getCode(insnNode.getPrevious().getOpcode()));
-//				log.info(sb.toString());
+				//				StringBuilder sb = new StringBuilder()
+				//							.append(OpcodeUtils.getCode(insnNode.getOpcode()))
+				//							.append(", prev -- ")
+				//							.append(OpcodeUtils.getCode(insnNode.getPrevious().getOpcode()));
+				//				log.info(sb.toString());
 				CFGFrame frame = insn.getFrame();
 				Value value = frame.getStack(0);
 				if (value instanceof SourceValue) {
 					SourceValue srcValue = (SourceValue) value;
-					
+
 					//TODO the value could be defined multiple times
 					AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
 					/* Next instruction is to invokeMethod followed by IFEQ or IFNE*/
@@ -160,6 +170,8 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 					} else {
 						BytecodeInstruction condBcDef = cfg.getInstruction(node.instructions.indexOf(condDefinition));
 						/*isFieldUse or isLocalVariableUse or isArrayLoadInstruction */
+						// Check if the insn is use
+						List<BytecodeInstruction> list = condBcDef.getSourceOfStackInstructionList(0);
 						if (condBcDef.isUse()) {
 							if (!defuseAnalyzed) {
 								DefUseAnalyzer instr = new DefUseAnalyzer();
@@ -189,7 +201,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		return valid;
 	}
 
-	
+
 
 	protected boolean hasParam(MethodNode mn, ClassNode cn) {
 		try {
@@ -200,7 +212,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		}
 		return false;
 	}
-	
+
 
 	protected void logToExcel(MethodContent mc, String className, String methodName) throws IOException {
 		List<List<Object>> data = new ArrayList<>();
@@ -230,9 +242,9 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 	}
 
 	protected boolean checkFlagMethod(ClassLoader classLoader, AbstractInsnNode flagDefIns, int calledLineInTargetMethod, MethodContent mc,
-			Map<String, Boolean> visitMethods) throws AnalyzerException, IOException {
+			Map<String, Boolean> visitMethods) throws AnalyzerException, IOException, ClassNotFoundException {
 		FlagMethod flagMethod = new FlagMethod();
-		
+
 		MethodInsnNode methodInsn = null;
 		String className = null;
 		String methodName = null;
@@ -242,50 +254,49 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		if (flagDefIns.getOpcode() == Opcodes.INVOKEDYNAMIC) {
 			InvokeDynamicInsnNode idInsn = (InvokeDynamicInsnNode) flagDefIns;
 			flagMethod.methodName = idInsn.name + idInsn.desc;
-		} else if (flagDefIns instanceof MethodInsnNode) {
+		} else {
 			methodInsn = (MethodInsnNode) flagDefIns;
 			className = methodInsn.owner.replace("/", ".");
 			methodName = CommonUtility.getMethodName(methodInsn.name, methodInsn.desc);
-			
+
 			flagMethod.methodName = className + "#" + methodName;
-		} else if (!CollectionUtil.existIn(flagDefIns.getOpcode(), Opcodes.INVOKEVIRTUAL, Opcodes.INVOKESTATIC,
-				Opcodes.INVOKESPECIAL)) {
-			flagMethod.notes.add("InvokedMethod insn opcode: " + OpcodeUtils.getCode(flagDefIns.getOpcode()));
-			return false;
-		}
-		
+		} 
+
 		if (visitMethods.containsKey(flagMethod.methodName)) {
-			flagMethod.valid = visitMethods.get(flagMethod.methodName);
+			flagMethod.valid = true;
 			return flagMethod.valid;
 		}
+
 		mc.flagMethods.add(flagMethod);
+		// java.lang.Object not allowed here
 		if (!RuntimeInstrumentation.checkIfCanInstrument(className)) {
 			flagMethod.notes.add(Remarks.UNINSTRUMENTABLE.text);
 			visitMethods.put(flagMethod.methodName, false);
 			return false;
 		}
-		
+
 		MethodNode methodNode = getMethod(classLoader, methodInsn, className);
 		if (methodNode == null) {
 			flagMethod.notes.add(Remarks.NO_SOURCE.text);
 			visitMethods.put(flagMethod.methodName, false);
 			return false;
 		}
-		
+
+		// Called method should have at least one parameter
 		if(!FilterHelper.isMethodAtLeastPrimitiveParameter(methodNode)) {
 			return false;
 		}
-		
+
 		try {
-//			GraphPool.clearAll();
+			//			GraphPool.clearAll();
 			/**
 			 * we get the cfg for called method here.
 			 */
 			ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-			
+
 			if (cfg == null) {
-//				generateCDG(classLoader, className, methodNode);
-//				cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+				//				generateCDG(classLoader, className, methodNode);
+				//				cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 				BytecodeInstructionPool.getInstance(classLoader).registerMethodNode(methodNode,
 						className,
 						methodNode.name
@@ -294,93 +305,94 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 				bytecodeAnalyzer.analyze(classLoader, className, methodName, methodNode);
 				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 				cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-//				GraphPool.getInstance(classLoader).alwaysRegisterActualCFG(cfg);
+				//				GraphPool.getInstance(classLoader).alwaysRegisterActualCFG(cfg);
 			}
-			else {
-				
-				System.currentTimeMillis();
-			}
-			if (CollectionUtil.getSize(cfg.getBranches()) <= 1) {
+//			else {
+//
+//				System.currentTimeMillis();
+//			}
+//			
+			if (CollectionUtil.getSize(cfg.getBranches()) < 1) {
 				flagMethod.notes.add(Remarks.NOBRANCH.text);
 				visitMethods.put(flagMethod.methodName, false);
 				return false;
 			}
-			
-			System.currentTimeMillis();
-			
+
+//			System.currentTimeMillis();
+
 			flagMethod.branch = cfg.getBranches().size();
-			
-			BytecodeInstruction ins = cfg.getBranches().iterator().next();
-			ControlDependenceGraph g = ins.getCDG();
-			System.out.print(g);
+
+//			BytecodeInstruction ins = cfg.getBranches().iterator().next();
+//			ControlDependenceGraph g = ins.getCDG();
+			//			System.out.print(g);
 			Set<BytecodeInstruction> exitPoints = cfg.getExitPoints();
 			boolean valid = checkReturnDependOnBranchUsingAllPrimitiveOperands(className, exitPoints);
 			visitMethods.put(flagMethod.methodName, valid);
 			flagMethod.valid = valid;
 			return valid;
-			
-			
-//			DominatorTree<BasicBlock> dominatorTree = new DominatorTree<BasicBlock>(cfg);
-//			/**
-//			 * for each exit (i.e., return) instruction, ...
-//			 */
-//			for (BytecodeInstruction exit : exitPoints) {
-//				if (OpcodeUtils.isReturnInsn(exit.getASMNode().getOpcode())) {
-//					AbstractInsnNode returnDef = getDefinitionInsn(exit);
-//					flagMethod.notes.add("Invoked Line Number: " + calledLineInTargetMethod);
-//					
-//					if (returnDef instanceof MethodInsnNode) {
-//						flagMethod.invokeMethods ++;
-//						valid |= checkFlagMethod(classLoader, returnDef, calledLineInTargetMethod, mc, visitMethods);
-//					} else if (CollectionUtil.existIn(returnDef.getOpcode(), Opcodes.ICONST_0, Opcodes.ICONST_1)) {
-//						flagMethod.rConst ++;
-//						valid = true;
-//						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(returnDef));
-//						if (dominatorTree.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
-//							flagMethod.rConstBranch = 1;
-//							flagMethod.hasInterestedPrimitiveCompareCond = hasPrimitiveCompareCondConstrainst(dominatorTree, defBcInsn, exit.getActualCFG(), methodNode,
-//									classLoader, className);
-//						}
-//					} else if (CollectionUtil.existIn(returnDef.getOpcode(), Opcodes.GETFIELD)) {
-//						valid = true;
-//						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(returnDef));
-//						if (dominatorTree.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
-//							flagMethod.rGetFieldBranch = 1;
-//							flagMethod.hasInterestedPrimitiveCompareCond = hasPrimitiveCompareCondConstrainst(dominatorTree, defBcInsn, exit.getActualCFG(), methodNode,
-//									classLoader, className);
-//						}
-//						flagMethod.getField ++;
-//					} else if (CollectionUtil.existIn(returnDef.getOpcode(), Opcodes.ILOAD)) {
-//						valid = true;
-//						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(returnDef));
-//						if (dominatorTree.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
-//							flagMethod.rIloadBranch = 1;
-//							flagMethod.hasInterestedPrimitiveCompareCond = hasPrimitiveCompareCondConstrainst(dominatorTree, defBcInsn, exit.getActualCFG(), methodNode,
-//									classLoader, className);
-//						}
-//						flagMethod.iload ++;
-//					} else {
-//						flagMethod.other ++;
-//						if (returnDef.getOpcode() == -1) {
-//							flagMethod.notes.add(returnDef.getClass().getSimpleName());
-//						} else {
-//							flagMethod.notes.add(OpcodeUtils.getCode(returnDef.getOpcode()));
-//						}
-//					}
-//				}
-//			}
-			
+
+
+			//			DominatorTree<BasicBlock> dominatorTree = new DominatorTree<BasicBlock>(cfg);
+			//			/**
+			//			 * for each exit (i.e., return) instruction, ...
+			//			 */
+			//			for (BytecodeInstruction exit : exitPoints) {
+			//				if (OpcodeUtils.isReturnInsn(exit.getASMNode().getOpcode())) {
+			//					AbstractInsnNode returnDef = getDefinitionInsn(exit);
+			//					flagMethod.notes.add("Invoked Line Number: " + calledLineInTargetMethod);
+			//					
+			//					if (returnDef instanceof MethodInsnNode) {
+			//						flagMethod.invokeMethods ++;
+			//						valid |= checkFlagMethod(classLoader, returnDef, calledLineInTargetMethod, mc, visitMethods);
+			//					} else if (CollectionUtil.existIn(returnDef.getOpcode(), Opcodes.ICONST_0, Opcodes.ICONST_1)) {
+			//						flagMethod.rConst ++;
+			//						valid = true;
+			//						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(returnDef));
+			//						if (dominatorTree.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
+			//							flagMethod.rConstBranch = 1;
+			//							flagMethod.hasInterestedPrimitiveCompareCond = hasPrimitiveCompareCondConstrainst(dominatorTree, defBcInsn, exit.getActualCFG(), methodNode,
+			//									classLoader, className);
+			//						}
+			//					} else if (CollectionUtil.existIn(returnDef.getOpcode(), Opcodes.GETFIELD)) {
+			//						valid = true;
+			//						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(returnDef));
+			//						if (dominatorTree.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
+			//							flagMethod.rGetFieldBranch = 1;
+			//							flagMethod.hasInterestedPrimitiveCompareCond = hasPrimitiveCompareCondConstrainst(dominatorTree, defBcInsn, exit.getActualCFG(), methodNode,
+			//									classLoader, className);
+			//						}
+			//						flagMethod.getField ++;
+			//					} else if (CollectionUtil.existIn(returnDef.getOpcode(), Opcodes.ILOAD)) {
+			//						valid = true;
+			//						BytecodeInstruction defBcInsn = exit.getActualCFG().getInstruction(methodNode.instructions.indexOf(returnDef));
+			//						if (dominatorTree.getImmediateDominator(defBcInsn.getBasicBlock()) != null) {
+			//							flagMethod.rIloadBranch = 1;
+			//							flagMethod.hasInterestedPrimitiveCompareCond = hasPrimitiveCompareCondConstrainst(dominatorTree, defBcInsn, exit.getActualCFG(), methodNode,
+			//									classLoader, className);
+			//						}
+			//						flagMethod.iload ++;
+			//					} else {
+			//						flagMethod.other ++;
+			//						if (returnDef.getOpcode() == -1) {
+			//							flagMethod.notes.add(returnDef.getClass().getSimpleName());
+			//						} else {
+			//							flagMethod.notes.add(OpcodeUtils.getCode(returnDef.getOpcode()));
+			//						}
+			//					}
+			//				}
+			//			}
+
 		} catch (Exception e) {
 			log.debug("error!!", e);
 			visitMethods.put(flagMethod.methodName, false);
 			return false;
 		}
 	}
-	
+
 	private void generateCDG(ClassLoader classLoader, String className, MethodNode mn) {
 		if(BytecodeInstructionPool.getInstance(classLoader).hasMethod(className, mn.name + mn.desc))
 			return;
-		
+
 		BytecodeInstructionPool.getInstance(classLoader).registerMethodNode(mn,
 				className,
 				mn.name
@@ -391,7 +403,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		try {
 
 			bytecodeAnalyzer.analyze(classLoader, className,
-			                         mn.name + mn.desc, mn); // TODO
+					mn.name + mn.desc, mn); // TODO
 		} catch (AnalyzerException e) {
 			e.printStackTrace();
 		}
@@ -412,7 +424,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 				}
 			}
 		}
-		
+
 		return false;
 	}
 
@@ -420,13 +432,16 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		Set<ControlDependency> cds = source.getControlDependencies();
 		for (ControlDependency cd : cds) {
 			BytecodeInstruction ifBranch = cd.getBranch().getInstruction();
-			
+
+			// TODO should allow string compare null
 			if(ifBranch.getASMNode().getOpcode() == Opcodes.IFNONNULL || 
 					ifBranch.getASMNode().getOpcode() == Opcodes.IFNULL) {
 				continue;
 			}
-			
+
 			int numberOfOperands = FlagEffectEvaluator.getOperands(ifBranch);
+			// IF condition
+			// Only 1 value on the stack is used
 			if(numberOfOperands == 1) {
 				List<BytecodeInstruction> list = ifBranch.getSourceOfStackInstructionList(0);
 				boolean noUseOfObject = checkNoUseOfObject(list);
@@ -434,19 +449,20 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 					return true;
 				}
 			}
+			// 2 values on the stack will be used
 			else if(numberOfOperands == 2) {
 				List<BytecodeInstruction> list0 = ifBranch.getSourceOfStackInstructionList(0);
 				boolean noUseOfObject1 = checkNoUseOfObject(list0);
-				
+
 				List<BytecodeInstruction> list1 = ifBranch.getSourceOfStackInstructionList(1);
 				boolean noUseOfObject2 = checkNoUseOfObject(list1);
-				
+
 				if(noUseOfObject1 && noUseOfObject2) {
 					return true;
 				}
 			}
 		}
-		
+
 		return false;
 	}
 
@@ -466,13 +482,13 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 				if(methodInsnNode.owner.equals("java/lang/String")) {
 					return true;
 				}
-				
+
 				if(defIns.getCalledMethodsArgumentCount() == 0) {
 					continue;
 				}
 				else {
 					//TODO all the arguments should be primitive
-//					boolean isAllParamPrimitive = FilterHelper.isAllMethodParameterPrimitive(methodInsnNode.desc);
+					//					boolean isAllParamPrimitive = FilterHelper.isAllMethodParameterPrimitive(methodInsnNode.desc);
 					boolean isAllParamPrimitive = FilterHelper.isAtLeastMethodParameterPrimitive(methodInsnNode.desc);
 					return isAllParamPrimitive;
 				}
@@ -481,10 +497,10 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private int hasPrimitiveCompareCondConstrainst(DominatorTree<BasicBlock> dt, BytecodeInstruction defBcInsn,
 			ActualControlFlowGraph cfg, MethodNode node, ClassLoader classLoader, String className) {
@@ -560,7 +576,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		}
 		return false;
 	}
-		
+
 	private boolean isPrimitiveAssignment(AbstractInsnNode insn) {
 		String code = OpcodeUtils.getCode(insn.getOpcode());
 		if (code.startsWith("ICONST") || code.startsWith("FCONST")
@@ -584,11 +600,11 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 				return (AbstractInsnNode) srcValue.insns.iterator().next();
 			} 
 		}
-		
+
 		return prevInsn;
 	}
-	
-	private MethodNode getMethod(ClassLoader classLoader, MethodInsnNode methodInsn, String className) throws IOException {
+
+	private MethodNode getMethod(ClassLoader classLoader, MethodInsnNode methodInsn, String className) throws ClassNotFoundException,IOException {
 		InputStream is = null;
 		try {
 			if (methodInsn.owner.startsWith("java")) {
@@ -599,15 +615,19 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 			if (is == null) {
 				is = getClassAsStream(className);
 			}
+			Class<?> targetClass = classLoader.loadClass(className);
+			if (targetClass.isInterface()) {
+				return null;
+			}
 			ClassReader reader = new ClassReader(is);
 			ClassNode cn = new ClassNode();
 			reader.accept(cn, ClassReader.SKIP_FRAMES);
 			List<MethodNode> l = cn.methods;
+			if ((cn.access & Opcodes.ACC_ABSTRACT) == Opcodes.ACC_ABSTRACT) {
+				return null;
+			}
 			for (MethodNode m : l) {
 				if (m.name.equals(methodInsn.name) && m.desc.equals(methodInsn.desc)) {
-					if ((m.access & Opcodes.ACC_ABSTRACT) == Opcodes.ACC_ABSTRACT) {
-						return null;
-					}
 					dump(m);
 					return m;
 				}
@@ -619,7 +639,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		}
 		return null;
 	}
-	
+
 	private void dump(MethodNode m) {
 		ListIterator it = m.instructions.iterator();
 		while(it.hasNext()) {
@@ -649,12 +669,12 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		}
 		return null;
 	}
-	
+
 	static class MethodContent {
 		boolean hasPrimitiveParam;
 		List<FlagMethod> flagMethods = new ArrayList<>();
 	}
-	
+
 	private static class FlagMethod {
 		private String methodName;
 		private int branch;
@@ -670,18 +690,18 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		private List<String> notes = new ArrayList<>();
 		private boolean valid = false;
 	}
-	
+
 	public static enum Remarks {
 		UNINSTRUMENTABLE ("Cannot instrument!"),
 		NOBRANCH("No branch!"),
 		NO_SOURCE("Could not analyze (Does not have explicit code)!"),
 		;
-		
+
 		private String text;
 		private Remarks(String text) {
 			this.text = text;
 		}
-		
+
 		public String getText() {
 			return text;
 		}
