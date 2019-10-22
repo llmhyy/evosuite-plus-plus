@@ -171,7 +171,6 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 						BytecodeInstruction condBcDef = cfg.getInstruction(node.instructions.indexOf(condDefinition));
 						/*isFieldUse or isLocalVariableUse or isArrayLoadInstruction */
 						// Check if the insn is use
-						List<BytecodeInstruction> list = condBcDef.getSourceOfStackInstructionList(0);
 						if (condBcDef.isUse()) {
 							if (!defuseAnalyzed) {
 								DefUseAnalyzer instr = new DefUseAnalyzer();
