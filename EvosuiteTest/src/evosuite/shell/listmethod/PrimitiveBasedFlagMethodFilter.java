@@ -58,7 +58,7 @@ import evosuite.shell.utils.OpcodeUtils;
 
 public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 	public static final String excelProfileSubfix = "_primitiveFlagMethodProfiles.xlsx";
-	private static Logger log = LoggerUtils.getLogger(FlagMethodProfilesFilter.class);
+	private static Logger log = LoggerUtils.getLogger(PrimitiveBasedFlagMethodFilter.class);
 	private ExcelWriter writer;
 
 	public PrimitiveBasedFlagMethodFilter() {
