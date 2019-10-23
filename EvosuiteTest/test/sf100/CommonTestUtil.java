@@ -32,8 +32,11 @@ public class CommonTestUtil {
 //				"-Dstrategy", "ONEBRANCH",
 //				"-Dalgorithm", "random",
 				
-				"-generateSuiteUsingDSE",
-				"-Dstrategy", "DSE",
+//				"-generateSuiteUsingDSE",
+//				"-Dstrategy", "DSE",
+				
+				"-generateTests",
+				"-Dstrategy", "EMPIRICAL_HYBRID_COLLECTOR",
 				
 //				"-generateMOSuite",
 //				"-Dstrategy", "MOSUITE",
