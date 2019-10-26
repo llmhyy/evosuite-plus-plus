@@ -156,11 +156,16 @@ public class FilterHelper {
 				if (!RuntimeInstrumentation.checkIfCanInstrument(type.getClassName())) {
 					return false;
 				}
-				
+
 				if (FilterHelper.considerAsPrimitiveType(type)) {
 					continue;
 				}
+
 				
+				if (type.getClassName().contains("[]")) {
+					continue;
+				}
+
 				Class<?> targetClass = cl.loadClass(type.getClassName());
 				if (targetClass.isInterface()) {
 					return true;
