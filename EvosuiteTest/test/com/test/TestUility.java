@@ -24,9 +24,13 @@ public class TestUility {
 //				"-generateTests",
 //				"-Dstrategy", "ONEBRANCH",
 				
-				"-generateTests",
-				"-Dstrategy", "EMPIRICAL_HYBRID_COLLECTOR",
+//				"-generateTests",
+//				"-Dstrategy", "EMPIRICAL_HYBRID_COLLECTOR",
 //				"-Dstrategy", "LEARNING_BASED_HYBRID",
+				
+				"-generateMOSuite",
+				"-Dstrategy", "MOSUITE",
+				"-Dalgorithm", "DYNAMOSA",
 				
 //				"-Dalgorithm", "random",
 

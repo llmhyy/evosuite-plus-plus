@@ -35,12 +35,12 @@ public class CommonTestUtil {
 //				"-generateSuiteUsingDSE",
 //				"-Dstrategy", "DSE",
 				
-				"-generateTests",
-				"-Dstrategy", "EMPIRICAL_HYBRID_COLLECTOR",
+//				"-generateTests",
+//				"-Dstrategy", "EMPIRICAL_HYBRID_COLLECTOR",
 				
-//				"-generateMOSuite",
-//				"-Dstrategy", "MOSUITE",
-//				"-Dalgorithm", "DYNAMOSA",
+				"-generateMOSuite",
+				"-Dstrategy", "MOSUITE",
+				"-Dalgorithm", "DYNAMOSA",
 				
 //				"-generateRandom",
 //				"-Dstrategy", "random",

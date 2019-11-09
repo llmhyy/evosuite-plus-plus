@@ -205,7 +205,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			this.evolve();
 			this.notifyIteration();
 		}
-
+		
 		this.notifySearchFinished();
 	}
 
