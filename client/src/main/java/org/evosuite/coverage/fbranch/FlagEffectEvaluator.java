@@ -267,14 +267,23 @@ public class FlagEffectEvaluator {
 		int numberOfOperands = getOperands(ins);
 		
 		if(numberOfOperands == 1) {
-			BytecodeInstruction defIns = ins.getSourceOfStackInstruction(0);
-			if(defIns.isMethodCall()) {
-				return checkFlagEffect(defIns);
+			List<BytecodeInstruction> defInsList = ins.getSourceOfStackInstructionList(0);
+			FlagEffectResult flag = null;
+			for(BytecodeInstruction defIns: defInsList) {
+				if(defIns.isMethodCall()) {
+					flag = checkFlagEffect(defIns);
+				}
+				else {
+					BytecodeInstruction methodCall = traceBackToMethodCall(defIns);
+					flag =  checkFlagEffect(methodCall);
+				}			
+				
+				if(flag.hasFlagEffect) {
+					break;
+				}
 			}
-			else {
-				BytecodeInstruction methodCall = traceBackToMethodCall(defIns);
-				return checkFlagEffect(methodCall);
-			}
+			
+			return flag;
 		}
 		else if(numberOfOperands == 2){
 			BytecodeInstruction defIns1 = ins.getSourceOfStackInstruction(0);
