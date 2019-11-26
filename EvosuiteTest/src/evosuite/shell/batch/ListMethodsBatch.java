@@ -30,12 +30,13 @@ public class ListMethodsBatch {
 	public void justRun() throws IOException {
 		org.evosuite.Properties.ALWAYS_REGISTER_BRANCH = true;
 		
-		runListMethod(MethodFilterOption.FLAG_PRIMITIVE_PARAMETER_FIELD);
+//		runListMethod(MethodFilterOption.FLAG_PRIMITIVE_PARAMETER_FIELD);
 //		runListMethod(MethodFilterOption.FLAG_METHOD_PROFILES);
 //		runListMethod(MethodFilterOption.HAS_BRANCH);
 //		runListMethod(MethodFilterOption.FLAG_PROCEDURE_METHOD);
 //		runListMethod(MethodFilterOption.NO_FLAG_METHOD);
 //		runListMethod(MethodFilterOption.PRIMITIVE_PARAMETER);
+		runListMethod(MethodFilterOption.AT_LEAST_FOUR_BRANCHES);
 //	}
 	}
 

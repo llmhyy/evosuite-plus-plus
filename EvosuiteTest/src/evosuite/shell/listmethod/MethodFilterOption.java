@@ -9,7 +9,8 @@ public enum MethodFilterOption {
 	FLAG_METHOD_PROFILES("flagMethodProf"),
 	FLAG_PRIMITIVE_PARAMETER_FIELD("primitiveParamFieldMethod"),
 	NO_FLAG_METHOD("noFlag"),
-	PRIMITIVE_PARAMETER("primParam");
+	PRIMITIVE_PARAMETER("primParam"),
+	AT_LEAST_FOUR_BRANCHES("atLeastFourBranches");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -34,6 +35,8 @@ public enum MethodFilterOption {
 			return new MethodPrimitiveFilter();
 		case FLAG_PRIMITIVE_PARAMETER_FIELD:
 			return new PrimitiveBasedFlagMethodFilter();
+		case AT_LEAST_FOUR_BRANCHES:
+			return new MethodAtleastFourBranchesFilter();
 		}
 		return null;
 	}

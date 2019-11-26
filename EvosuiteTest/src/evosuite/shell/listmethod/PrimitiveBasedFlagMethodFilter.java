@@ -125,7 +125,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		if (!mc.hasPrimitiveParam) {
 			return false;
 		}
-		/* Parameter contains interface or abstract class object */
+		/* Parameter cannot contain interface or abstract class object */
 		if (FilterHelper.hasUnsupportedParam(node, cn, classLoader)) {
 			return false;
 		}
