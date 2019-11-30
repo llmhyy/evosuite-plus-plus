@@ -134,6 +134,9 @@ public class Properties {
     @IntValue(min = 1, max = 32767) // String literals may not be longer than 32767
     public static int PRE_ONLINE_LEARNING_ITERATION = 30;
 
+	@Parameter(key = "adopt_smart_mutation", group = "Test Creation", description = "Whether we adopt smart mutation to discriminate the mutation position")
+	public static boolean ADOPT_SMART_MUTATION = true;
+	
 	/**
 	 * TODO: this option is off by default because still experimental and not
 	 * fully tested

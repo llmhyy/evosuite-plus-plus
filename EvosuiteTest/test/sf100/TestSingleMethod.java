@@ -25,7 +25,7 @@ public class TestSingleMethod {
 		
 		Properties.SEARCH_BUDGET = 60000;
 		Properties.GLOBAL_TIMEOUT = 60000;
-		Properties.TIMEOUT = 3000000;
+//		Properties.TIMEOUT = 3000000;
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		FileUtils.deleteFolder(new File("/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest/evoTest-reports"));
@@ -1066,16 +1066,17 @@ public class TestSingleMethod {
 //				"weka.experiment.PairedTTester#setOptions([Ljava/lang/String;)V"
 //				"weka.gui.beans.Filter#connectionNotification(Ljava/lang/String;Ljava/lang/Object;)V"
 //				"weka.gui.beans.Join#connectionNotification(Ljava/lang/String;Ljava/lang/Object;)V"
-//				"weka.Run#main([Ljava/lang/String;)V"
-				
-				"weka.attributeSelection.AttributeSelection#setSearch(Lweka/attributeSelection/ASSearch)V"
+				"weka.Run#main([Ljava/lang/String;)V"
+//				"weka.filters.unsupervised.attribute.ReplaceMissingWithUserConstant#input(Lweka/core/Instance;)Z"
+//				"weka.classifiers.bayes.net.search.SearchAlgorithm#reverseArcMakesSense(Lweka/classifiers/bayes/BayesNet;Lweka/core/Instances;II)Z"
+//				"weka.attributeSelection.AttributeSelection#setSearch(Lweka/attributeSelection/ASSearch)V"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 100000;
 //		Long seed = 1556171038486L;
 		Long seed = null;
 		
@@ -1084,7 +1085,7 @@ public class TestSingleMethod {
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 //		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
-		fitnessApproach = "branch";
+		fitnessApproach = "fbranch";
 		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
@@ -1190,7 +1191,9 @@ public class TestSingleMethod {
 //				"org.apache.commons.math.transform.FastFourierTransformer#verifyDataSet([Ljava/lang/Object;)V"
 //				"org.apache.commons.math.util.OpenIntToFieldHashMap#get(I)Lorg/apache/commons/math/FieldElement;"
 //				"org.apache.commons.math.linear.SparseFieldVector#subtract([Lorg/apache/commons/math/FieldElement;)Lorg/apache/commons/math/linear/FieldVector;"
-				"org.apache.commons.math.util.MathUtils#equalsIncludingNaN(DD)Z"
+				
+				"org.apache.commons.math.linear.SparseFieldVector#subtract([Lorg/apache/commons/math/FieldElement;)Lorg/apache/commons/math/linear/FieldVector;"
+				
 //				"org.jfree.data.statistics.SimpleHistogramDataset#addObservation(DZ)V"
 //				"org.apache.commons.math.util.OpenIntToDoubleHashMap#get(I)D"
 //				"org.apache.commons.math.linear.OpenMapRealVector#setEntry(ID)V"
@@ -1206,9 +1209,9 @@ public class TestSingleMethod {
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
-		Long seed = null;
-//		Long seed = 1557106055943L;
+		int budget = 10000000;
+//		Long seed = null;
+		Long seed = 1557106055943L;
 		
 		String fitnessApproach = "fbranch";
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  

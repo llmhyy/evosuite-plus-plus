@@ -501,8 +501,9 @@ public class TestChromosome extends ExecutableChromosome {
 	@SuppressWarnings("deprecation")
 	private boolean mutationChange() {
 		boolean changed = false;
-//		int lastMutatableStatement = getLastMutatableStatement();
-//		double pl = 1d / (lastMutatableStatement + 1);
+		int lastMutatableStatement = getLastMutatableStatement();
+		double originalPL = 1d / (lastMutatableStatement + 1);
+		
 		TestFactory testFactory = TestFactory.getInstance();
 		
 		int targetMethodPosition = -1;
@@ -561,6 +562,10 @@ public class TestChromosome extends ExecutableChromosome {
 					}
 					else {
 						pl = 0.2;
+					}
+					
+					if(!Properties.ADOPT_SMART_MUTATION) {
+						pl = originalPL;
 					}
 					
 					if (ram <= pl) {

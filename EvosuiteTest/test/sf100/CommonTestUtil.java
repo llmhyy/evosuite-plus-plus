@@ -49,6 +49,7 @@ public class CommonTestUtil {
 				"-target", FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, projectName + ".jar"),
 				"-inclusiveFile", file.getAbsolutePath(),
 				"-iteration", String.valueOf(iteration),
+				"-Dadopt_smart_mutation", "true",
 //				"-Djunit_check", "false"
 ////				"-generateSuiteUsingDSE",
 ////				"-class", targetClass, 
