@@ -663,8 +663,11 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		
 		best.setUncoveredIPFlags(toIPFlagString(uncoveredIPFlags));
 		best.setMethodCallAvailabilityMap(RuntimeRecord.methodCallAvailabilityMap);
+
+		double IPFlagCoverage = 0;
+		if(IPFlags.size()!=0)
+			IPFlagCoverage = (double)uncoveredIPFlags.size()/IPFlags.size();
 		
-		double IPFlagCoverage = (double)uncoveredIPFlags.size()/IPFlags.size();
 		best.setIPFlagCoverage(1-IPFlagCoverage);
 
         return (T) best;
