@@ -556,12 +556,12 @@ public class TestChromosome extends ExecutableChromosome {
 								pl = 1;
 							}
 							else {
-								pl = mutationProbability[oldPosition];							
+								pl = mutationProbability[oldPosition] > originalPL ? mutationProbability[oldPosition] : originalPL;							
 							}
 						}
 					}
 					else {
-						pl = 0.2;
+						pl = 0.2 > originalPL ? 0.2 : originalPL;
 					}
 					
 					if(!Properties.ADOPT_SMART_MUTATION) {
