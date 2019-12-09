@@ -646,6 +646,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
             best.setCoverage(suiteFitness, 0.0);
             best.setFitness(suiteFitness,  1.0);
           }
+          best.setAge(this.currentIteration);
           return (T) best;
         }
 

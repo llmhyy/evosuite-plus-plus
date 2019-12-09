@@ -293,6 +293,9 @@ public class NewComparativeResultMerger {
 		RecordItem item = null;
 		
 		try {
+			if (data.get(6) == null) {
+				data.set(6, 0.0);
+			}
 			item = new RecordItem(
 					(String)data.get(0), 
 					(String)data.get(1), 
