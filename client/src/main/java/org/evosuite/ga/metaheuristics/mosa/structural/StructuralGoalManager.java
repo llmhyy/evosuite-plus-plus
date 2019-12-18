@@ -72,6 +72,10 @@ public abstract class StructuralGoalManager<T extends Chromosome> implements Ser
 	public Set<FitnessFunction<T>> getCurrentGoals() {
 		return currentGoals;
 	}
+	
+	public void updateCurrentGoals(FitnessFunction<T> goal) {
+		currentGoals.add(goal);
+	}
 
 	public Set<FitnessFunction<T>> getCoveredGoals() {
 		return this.archive.getCoveredTargets();

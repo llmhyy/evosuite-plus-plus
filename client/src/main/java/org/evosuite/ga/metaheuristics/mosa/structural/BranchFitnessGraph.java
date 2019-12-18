@@ -172,4 +172,49 @@ public class BranchFitnessGraph<T extends Chromosome, V extends FitnessFunction<
 		}
 		return parents;
 	}
+	
+//	public void updateRoot(FitnessFunction<T> trueGoal, FitnessFunction<T> falseGoal) {
+//		Set<FitnessFunction<T>> prevRoots = this.rootBranches;
+//
+//		graph.addVertex(trueGoal);
+//		graph.addVertex(falseGoal);
+//
+//		for (FitnessFunction<T> prevR : prevRoots) {
+//			graph.addEdge(trueGoal, prevR);
+//			graph.addEdge(falseGoal, prevR);
+//		}
+//
+//		this.rootBranches.clear();
+//		this.rootBranches.add(trueGoal);
+//		this.rootBranches.add(falseGoal);
+//
+//	}
+	
+	public void updateRoot(FitnessFunction<T> goal) {
+		Set<FitnessFunction<T>> prevRoots = this.rootBranches;
+
+		graph.addVertex(goal);
+
+		for (FitnessFunction<T> prevR : prevRoots) {
+			graph.addEdge(goal, prevR);
+		}
+
+		this.rootBranches.clear();
+		this.rootBranches.add(goal);
+	}
+	
+	public void updatePath(FitnessFunction<T> goal, FitnessFunction<T> parentGoal) {
+		graph.addVertex(goal);
+		Set<FitnessFunction<T>> prevChildren = getStructuralChildren(parentGoal);
+		
+		for (FitnessFunction<T> prevChild : prevChildren) {
+			graph.removeEdge(parentGoal, prevChild);
+		}
+		
+		for (FitnessFunction<T> prevChild : prevChildren) {
+			graph.addEdge(goal, prevChild);
+		}
+		
+		graph.addEdge(parentGoal, goal);
+	}
 }

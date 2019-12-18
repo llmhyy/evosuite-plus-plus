@@ -25,7 +25,7 @@ public class TestSingleMethod {
 		
 		Properties.SEARCH_BUDGET = 60000;
 		Properties.GLOBAL_TIMEOUT = 60000;
-//		Properties.TIMEOUT = 3000000;
+		Properties.TIMEOUT = 30000000;
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		FileUtils.deleteFolder(new File("/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest/evoTest-reports"));
@@ -1120,22 +1120,61 @@ public class TestSingleMethod {
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		
 		int repeatTime = 5;
 		int budget = 100000;
 		Long seed = 1557418276377L;
 		seed = null;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 //		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
-//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
-		System.out.println("fbranch" + ":");
-		printResult(results0);
+//		System.out.println("fbranch" + ":");
+//		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
+	public void runTest() {
+		String projectId = "175_test";
+		String[] targetMethods = new String[]{
+//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
+//				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
+//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
+//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
+//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
+//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
+//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
+//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
+				"Main#test([III)V"
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 10000;
+//		Long seed = 1557418276377L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+//		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+//		System.out.println("fbranch" + ":");
+//		printResult(results0);
 		System.out.println("branch" + ":");
 		printResult(results1);
 	}
@@ -1176,6 +1215,16 @@ public class TestSingleMethod {
 //				"weka.classifiers.trees.m5.CorrelationSplitInfo#attrSplit(ILweka/core/Instances;)V"
 //				"weka.Run#main([Ljava/lang/String;)V"
 				"org.apache.commons.compress.archivers.dump.TapeInputStream#skip(J)J"
+//				"weka.Run#main([Ljava/lang/String;)V"
+//				"weka.associations.Apriori#removeMissingColumns(Lweka/core/Instances;)Lweka/core/Instances;"
+//				"weka.filters.unsupervised.attribute.ReplaceMissingWithUserConstant#input(Lweka/core/Instance;)Z"
+//				"weka.classifiers.bayes.net.search.SearchAlgorithm#reverseArcMakesSense(Lweka/classifiers/bayes/BayesNet;Lweka/core/Instances;II)Z"
+//				"weka.attributeSelection.AttributeSelection#setSearch(Lweka/attributeSelection/ASSearch)V"
+//				"weka.classifiers.trees.RandomTree#buildClassifier(Lweka/core/Instances;)V"
+//				"weka.classifiers.functions.MultilayerPerceptron#getOptions()[Ljava/lang/String;"
+//				"weka.classifiers.bayes.net.search.global.GeneticSearch#search(Lweka/classifiers/bayes/BayesNet;Lweka/core/Instances;)V"
+//				"weka.classifiers.trees.RandomTree#buildClassifier(Lweka/core/Instances;)V"
+//				"weka.classifiers.functions.MultilayerPerceptron#getOptions()[Ljava/lang/String;"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -1196,9 +1245,6 @@ public class TestSingleMethod {
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 //		
 		System.out.println("fbranch" + ":");
-		printResult(results0);
-//		System.out.println("branch" + ":");
-//		printResult(results1);
 	}
 	
 	
@@ -1287,7 +1333,7 @@ public class TestSingleMethod {
 		String[] targetMethods = new String[]{
 //				"org.apache.commons.math.util.MathUtils#equalsIncludingNaN(FF)Z"
 //				"org.jfree.data.Range#constrain(D)D"
-				"org.apache.commons.math.linear.SparseFieldVector#subtract([Lorg/apache/commons/math/FieldElement;)Lorg/apache/commons/math/linear/FieldVector;"
+//				"org.apache.commons.math.linear.SparseFieldVector#subtract([Lorg/apache/commons/math/FieldElement;)Lorg/apache/commons/math/linear/FieldVector;"
 //				"org.apache.commons.math.util.OpenIntToDoubleHashMap#get(I)D"
 //				"org.apache.commons.math.util.OpenIntToDoubleHashMap#remove(I)D"
 //				"org.apache.commons.math.analysis.solvers.UnivariateRealSolverImpl#verifyBracketing(DDLorg/apache/commons/math/analysis/UnivariateRealFunction;)V"
@@ -1307,6 +1353,7 @@ public class TestSingleMethod {
 //				"org.apache.commons.math.stat.descriptive.SummaryStatistics#equals(Ljava/lang/Object;)Z"
 //				"org.apache.commons.math.linear.OpenMapRealVector#subtract(Lorg/apache/commons/math/linear/OpenMapRealVector;)Lorg/apache/commons/math/linear/OpenMapRealVector;"
 //				"org.apache.commons.math.linear.OpenMapRealVector#add(Lorg/apache/commons/math/linear/OpenMapRealVector;)Lorg/apache/commons/math/linear/OpenMapRealVector;"
+				"org.apache.commons.math.ode.nonstiff.GraggBulirschStoerStepInterpolator#computeInterpolatedStateAndDerivatives(DD)V"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -1379,27 +1426,28 @@ public class TestSingleMethod {
 //				"org.jscience.mathematics.function.Polynomial#valueOf(Lorg/jscience/mathematics/structure/Ring;Lorg/jscience/mathematics/function/Term;)Lorg/jscience/mathematics/function/Polynomial;"
 //				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
-				"org.jscience.mathematics.number.LargeInteger#shiftRight(I)Lorg/jscience/mathematics/number/LargeInteger;"
+//				"org.jscience.mathematics.number.LargeInteger#shiftRight(I)Lorg/jscience/mathematics/number/LargeInteger;"
+				"org.jscience.physics.amount.Amount#sqrt()Lorg/jscience/physics/amount/Amount;"
 		};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 1000000;
+		int budget = 100;
 //		Long seed = 1556171038486L;
 		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+//		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
-//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
-		System.out.println("fbranch" + ":");
-		printResult(results0);
+//		System.out.println("fbranch" + ":");
+//		printResult(results0);
 		System.out.println("branch" + ":");
 		printResult(results1);
 	}
@@ -2003,27 +2051,28 @@ public class TestSingleMethod {
 //				"com.lts.io.archive.AbstractNestedArchive#getEntryType(Ljava/lang/String;)I"
 //				"com.lts.io.DirectoryScanner#matchPath(Ljava/lang/String;Ljava/lang/String;)Z"
 //				"com.lts.io.DirectoryScanner#couldHoldIncluded(Ljava/lang/String;)Z"
-				"com.lts.io.DirectoryScanner#isExcluded(Ljava/lang/String;)Z"
+//				"com.lts.io.DirectoryScanner#isExcluded(Ljava/lang/String;)Z"
+				"com.lts.xmlser.tags.ObjectTag#processProperty(Ljava/lang/String;Ljava/lang/Object;Lorg/w3c/dom/Element;Lcom/lts/xmlser/XmlSerializer;)V"
 		};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 1000000;
+		int budget = 100;
 //		Long seed = 1556171038486L;
 		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+//		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
-//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
-		System.out.println("fbranch" + ":");
-		printResult(results0);
+//		System.out.println("fbranch" + ":");
+//		printResult(results0);
 		System.out.println("branch" + ":");
 		printResult(results1);
 	}
@@ -2779,7 +2828,8 @@ public class TestSingleMethod {
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 //				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
 //				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
-				"org.hsqldb.types.BlobDataID#setBytes(Lorg/hsqldb/SessionInterface;J[BII)V"
+//				"org.hsqldb.types.BlobDataID#setBytes(Lorg/hsqldb/SessionInterface;J[BII)V"
+				"org.hsqldb.ExpressionColumn#resolveColumnReferences(Lorg/hsqldb/Session;Lorg/hsqldb/RangeGroup;I[Lorg/hsqldb/RangeGroup;Lorg/hsqldb/lib/HsqlList;Z)Lorg/hsqldb/lib/HsqlList;"
 		};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
@@ -3341,27 +3391,28 @@ public class TestSingleMethod {
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 //				"com.sleepycat.collections.DataCursor#getLockMode(Z)Lcom/sleepycat/je/LockMode;"
 //				"com.google.common.base.Ascii#toLowerCase(Ljava/lang/String;)Ljava/lang/String;"
-				"antlr.actions.cpp.ActionLexer#mSTUFF(Z)V"
+//				"antlr.actions.cpp.ActionLexer#mSTUFF(Z)V"
+				"antlr.actions.python.ActionLexer#mSTRING(Z)V"
 		};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 1000000;
+		int budget = 100;
 //		Long seed = 1556171038486L;
 		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+//		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
-//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
-//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-		
-		System.out.println("fbranch" + ":");
-		printResult(results0);
+		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		
+//		System.out.println("fbranch" + ":");
+//		printResult(results0);
 		System.out.println("branch" + ":");
 		printResult(results1);
 	}

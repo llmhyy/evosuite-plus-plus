@@ -122,7 +122,10 @@ public class ControlFlowDistanceCalculator {
 				return new ControlFlowDistance(0, 0.0);
 		}
 		else {
-			if (result.getTrace().getCoveredFalseBranches().contains(branch.getActualBranchId()))
+			if (result.getTrace().getCoveredFalseBranches().contains(branch.getActualBranchId())) 
+//				if (branch.getMethodName().equals(branch.getMethodName()) || result.getTrace().) {
+//					}
+//			}
                 return new ControlFlowDistance(0, 0.0);
 		}
 

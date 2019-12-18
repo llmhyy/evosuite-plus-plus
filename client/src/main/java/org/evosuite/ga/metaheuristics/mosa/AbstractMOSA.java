@@ -502,6 +502,18 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
     protected int getNumberOfUncoveredGoals() {
       return Archive.getArchiveInstance().getNumberOfUncoveredTargets();
     }
+    
+    /**
+     * Returns the overall goals.
+     * 
+     * @return
+     */
+    protected Set<FitnessFunction<T>> getTotalGoals() {
+      Set<FitnessFunction<T>> totalGoals = new LinkedHashSet<FitnessFunction<T>>();
+      totalGoals.addAll(getCoveredGoals());
+      totalGoals.addAll(getUncoveredGoals());
+      return totalGoals;
+    }
 
     /**
      * Returns the total number of goals, i.e., number of covered goals + number of uncovered goals.

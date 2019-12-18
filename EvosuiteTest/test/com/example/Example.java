@@ -1,18 +1,39 @@
 package com.example;
 
 public class Example {
-	
+
 	Test test;
 	static Test test1 = new Test(1, 2);
 	private int c;
 	private Helper x = new Helper();
-	
+
 //	public boolean test(int a, int b) {
 //		if (Util.isOk(a, b)) {
 //			if (Util.isCornerCase(a, b)) {
 //				return true;
 //			}
 //		}
+
+//	public boolean test(int a, int b){
+//		if(Util.isOk(a, b)){
+//			if(Util.isCornerCase(a, b)){
+//				return true;
+//			}	
+//		}
+//		
+//		return false;
+//	}
+//	
+//	public boolean test2(Obj o, int a, int b) {
+//		if(o.isbField()) {
+//			if(Util.isOk(a, b)){
+//				if(Util.isCornerCase(a, b)){
+//					return true;
+//				}	
+//			}
+//		}
+//		
+//		return false;
 //	}
 
 //	public int test(int a, int b) {
@@ -83,7 +104,7 @@ public class Example {
 //		}
 //		return false;
 //	}
-	
+
 //	public void test(Test testAA, int b) {
 ////		int e = test1.a;
 ////		int e = test1.helper(a);
@@ -92,7 +113,7 @@ public class Example {
 //			return;
 //		}
 //	}
-	
+
 //	public void test1(Test testAA, int b) {
 ////		int e = test1.a;
 ////		int e = test1.helper(a);
@@ -105,18 +126,44 @@ public class Example {
 //		}
 //	}
 	public void setTest() {
-		this.test = new Test(1,2);
+		this.test = new Test(1, 2);
 	}
-	
+
 	public void setTest1() {
-		test1 = new Test(2,3);
+		test1 = new Test(2, 3);
 	}
-	
+
 	public void test2(int num1) {
 //		int c1 = test1.a;
 		int c = test1.getA();
 		if (x.test.isOk(num1, c)) {
 			return;
+		}
+	}
+
+	public static int test(int a, int b) {
+
+		if (a < b) {
+			rangeCheck(a, b);
+			rangeCheck1(a, b);
+			if (b - a < 10) {
+				if (b - a < 3) {
+					return a;
+				}
+			}
+		}
+		return -1;
+	}
+
+	public static void rangeCheck(int a, int b) {
+		if (b <= 5000) {
+			throw new IllegalArgumentException("TEST");
+		}
+	}
+
+	public static void rangeCheck1(int a, int b) {
+		if (b <= 7000) {
+			throw new IllegalArgumentException("TESTTEST");
 		}
 	}
 

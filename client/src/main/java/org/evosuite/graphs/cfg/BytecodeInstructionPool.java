@@ -613,4 +613,35 @@ public class BytecodeInstructionPool {
 		}
 		return null;
 	}
+	
+	public List<BytecodeInstruction> getAllInstructionsAtLineNumber(String className, String methodName, int lineNumber) {
+		List<BytecodeInstruction> insList = new ArrayList<BytecodeInstruction>();
+		if (instructionMap.get(className) == null)
+			return null;
+		if (instructionMap.get(className).get(methodName) == null)
+			return null;
+		if (instructionMap.get(className).get(methodName).isEmpty())
+			return null;
+
+		for (BytecodeInstruction ins : instructionMap.get(className).get(methodName)) {
+			if (ins.getLineNumber() == lineNumber)
+				insList.add(ins);
+		}
+		return insList;
+	}
+	
+	public List<BytecodeInstruction> getAllInstructionsAtClass(String className, int lineNumber) {
+		List<BytecodeInstruction> insList = new ArrayList<BytecodeInstruction>();
+		if (instructionMap.get(className) == null)
+			return null;
+
+		for (List<BytecodeInstruction> instructions : instructionMap.get(className).values()) {
+			for (BytecodeInstruction instruction : instructions) {
+				if (instruction.getLineNumber() == lineNumber) {
+					insList.add(instruction);
+				}
+			}
+		}
+		return insList;
+	}
 }
