@@ -25,6 +25,7 @@ import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.stoppingconditions.MaxStatementsStoppingCondition;
 import org.evosuite.result.TestGenerationResultBuilder;
@@ -127,7 +128,8 @@ public class MOSuiteStrategy extends TestGenerationStrategy {
 			}
 		}
 
-		long endTime = System.currentTimeMillis() / 1000;
+//		long endTime = System.currentTimeMillis() / 1000;
+		long endTime = Archive.getArchiveInstance().getFeasibleTime() == 0l ? startTime : Archive.getArchiveInstance().getFeasibleTime();
 
 //		goals = getGoals(false); //recalculated now after the search, eg to handle exception fitness
 //        ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Total_Goals, goals.size());

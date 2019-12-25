@@ -56,6 +56,8 @@ public class CoverageArchive<F extends TestFitnessFunction, T extends TestChromo
    * Set used to store all targets that have not been covered yet
    */
   private final Set<F> uncovered = new LinkedHashSet<F>();
+  
+  private long feasibleTime = 0l;
 
   public static final CoverageArchive<TestFitnessFunction, TestChromosome> instance =
       new CoverageArchive<TestFitnessFunction, TestChromosome>();
@@ -97,6 +99,7 @@ public class CoverageArchive<F extends TestFitnessFunction, T extends TestChromo
     if (currentSolution == null) {
       logger.debug("Solution for non-covered target '" + target + "'");
       isNewCoveredTarget = true;
+      this.feasibleTime = System.currentTimeMillis() / 1000;
     } else {
       isNewSolutionBetterThanCurrent = this.isBetterThanCurrent(currentSolution, solution);
     }
@@ -120,6 +123,11 @@ public class CoverageArchive<F extends TestFitnessFunction, T extends TestChromo
           "A solution with a timeout/exception result has been added to the archive. The covered goal was "
               + target.toString());
     }
+  }
+  
+  @Override
+  public long getFeasibleTime() {
+	  return this.feasibleTime;
   }
 
   /**
