@@ -60,7 +60,7 @@ public class FixedLengthTestChromosomeFactory implements
 			int targetMethodCallPosition = -1;
 			if(!Properties.TARGET_METHOD.isEmpty()) {
 				targetMethodCallPosition = TestGenerationUtil.getTargetMethodPosition(test, test.size() - 1);
-				if(targetMethodCallPosition != -1 && Randomness.nextDouble() <= 0.5) {
+				if (targetMethodCallPosition != -1 /* && Randomness.nextDouble() <= 0.5 */) {
 					position = targetMethodCallPosition - 1;
 				}
 			}

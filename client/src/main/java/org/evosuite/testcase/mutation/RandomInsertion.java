@@ -29,6 +29,7 @@ import org.evosuite.testcase.ConstraintHelper;
 import org.evosuite.testcase.ConstraintVerifier;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
+import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.statements.FunctionalMockStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.variable.NullReference;
@@ -132,6 +133,12 @@ public class RandomInsertion implements InsertionStrategy {
 				//Why was it different from UUT insertion? ie, in random position instead of last
 				//position = Randomness.nextInt(max);
 				position = test.size();
+				if(!Properties.TARGET_METHOD.isEmpty()) {
+					int targetPos = TestGenerationUtil.getTargetMethodPosition(test, test.size() - 1);
+					if(targetPos != -1) {
+						position = targetPos;
+					}
+				}
 				success = TestFactory.getInstance().insertRandomCall(test, position);
 			}
 		}

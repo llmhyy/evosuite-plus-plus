@@ -87,7 +87,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					/**
 					 * 50% of chance to insert before the target method.
 					 */
-					if(Randomness.nextDouble() <= 0.5) {
+					if(Randomness.nextDouble() <= 1) {
 						position = targetMethodCallPosition - 1;						
 					}
 					
