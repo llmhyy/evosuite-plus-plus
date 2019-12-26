@@ -105,6 +105,11 @@ public class MIOArchive<F extends TestFitnessFunction, T extends TestChromosome>
   public boolean isArchiveEmpty() {
     return this.getNumberOfSolutions() == 0;
   }
+  
+	@Override
+	public long getFeasibleTime() {
+		return 0;
+	}
 
   /**
    * {@inheritDoc}
