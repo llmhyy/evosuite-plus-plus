@@ -123,8 +123,8 @@ public class MethodFlagCondFilter implements IMethodFilter {
 						BytecodeInstruction condBcDef = cfg.getInstruction(node.instructions.indexOf(condDefinition));
 						if (condBcDef.isUse()) {
 							if (!defuseAnalyzed) {
-								DefUseAnalyzer instr = new DefUseAnalyzer();
-								instr.analyze(classLoader, node, className, methodName, node.access);
+								DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
+								defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
 								defuseAnalyzed = true;
 							}
 							Use use = DefUseFactory.makeUse(condBcDef);
