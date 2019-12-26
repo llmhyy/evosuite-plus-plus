@@ -50,7 +50,10 @@ import org.slf4j.LoggerFactory;
  * @author Gordon Fraser, Lin Yun
  */
 public abstract class AbstractStatement implements Statement, Serializable {
-
+	/**
+	 * the left is the positive effect, the right is negative effect.
+	 */
+	@SuppressWarnings("rawtypes")
 	Map<FitnessFunction, Pair<Double, Double>> changeRelevanceMap = new HashMap<>();
 	private boolean isChanged = false;
 	

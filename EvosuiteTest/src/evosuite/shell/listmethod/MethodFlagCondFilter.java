@@ -18,6 +18,7 @@ import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.CFGFrame;
+import org.evosuite.graphs.dataflow.DefUseAnalyzer;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.ClassReader;
@@ -30,7 +31,6 @@ import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 
-import evosuite.shell.DefUseAnalyzer;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.OpcodeUtils;
 

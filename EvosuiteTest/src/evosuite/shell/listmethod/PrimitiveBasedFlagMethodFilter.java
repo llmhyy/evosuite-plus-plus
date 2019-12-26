@@ -22,7 +22,6 @@ import org.evosuite.coverage.dataflow.Definition;
 import org.evosuite.coverage.dataflow.Use;
 import org.evosuite.coverage.fbranch.FlagEffectEvaluator;
 import org.evosuite.graphs.GraphPool;
-import org.evosuite.graphs.cdg.ControlDependenceGraph;
 import org.evosuite.graphs.cdg.DominatorTree;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BasicBlock;
@@ -31,6 +30,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.CFGFrame;
 import org.evosuite.graphs.cfg.ControlDependency;
+import org.evosuite.graphs.dataflow.DefUseAnalyzer;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
@@ -49,7 +49,6 @@ import org.slf4j.Logger;
 
 import com.sun.tools.classfile.Opcode;
 
-import evosuite.shell.DefUseAnalyzer;
 import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelWriter;

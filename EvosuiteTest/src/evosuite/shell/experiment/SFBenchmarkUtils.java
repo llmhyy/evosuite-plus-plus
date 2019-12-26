@@ -11,16 +11,15 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHandler;
+import org.evosuite.graphs.dataflow.DefUseAnalyzer;
 import org.evosuite.utils.CollectionUtil;
 
-import evosuite.shell.DefUseAnalyzer;
 import evosuite.shell.FileUtils;
 import evosuite.shell.utils.AlphanumComparator;
 
