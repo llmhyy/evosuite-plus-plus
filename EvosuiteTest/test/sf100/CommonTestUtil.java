@@ -27,6 +27,8 @@ public class CommonTestUtil {
 
 //		boolean instrumentContext = true;
 		String[] args = new String[] {
+				"-Dapply_object_rule", "true",
+				
 				"-generateTests",
 				
 //				"-Dstrategy", "ONEBRANCH",
@@ -41,6 +43,7 @@ public class CommonTestUtil {
 				"-generateMOSuite",
 				"-Dstrategy", "MOSUITE",
 				"-Dalgorithm", "DYNAMOSA",
+				
 				
 //				"-generateRandom",
 //				"-Dstrategy", "random",

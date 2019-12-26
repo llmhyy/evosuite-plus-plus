@@ -19,6 +19,17 @@
  */
 package org.evosuite;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 import org.evosuite.Properties.AssertionStrategy;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.Properties.TestFactory;
@@ -28,14 +39,28 @@ import org.evosuite.contracts.ContractChecker;
 import org.evosuite.contracts.FailingTestSet;
 import org.evosuite.coverage.CoverageCriteriaAnalyzer;
 import org.evosuite.coverage.FitnessFunctions;
+import org.evosuite.coverage.MethodNameMatcher;
 import org.evosuite.coverage.TestFitnessFactory;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUseCoverageSuiteFitness;
+import org.evosuite.coverage.dataflow.DefUseFactory;
+import org.evosuite.coverage.dataflow.DefUsePool;
+import org.evosuite.coverage.dataflow.Definition;
+import org.evosuite.coverage.dataflow.Use;
+import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
+import org.evosuite.graphs.GraphPool;
+import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.CFGFrame;
+import org.evosuite.graphs.dataflow.DefUseAnalyzer;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.junit.JUnitAnalyzer;
 import org.evosuite.junit.writer.TestSuiteWriter;
-import org.evosuite.regression.bytecode.RegressionClassDiff;
 import org.evosuite.regression.RegressionSuiteMinimizer;
+import org.evosuite.regression.bytecode.RegressionClassDiff;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.TestGenerationResultBuilder;
 import org.evosuite.rmi.ClientServices;
@@ -49,7 +74,7 @@ import org.evosuite.setup.ExceptionMapGenerator;
 import org.evosuite.setup.TestCluster;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.statistics.StatisticsSender;
-import org.evosuite.strategy.*;
+import org.evosuite.strategy.TestGenerationStrategy;
 import org.evosuite.symbolic.DSEStats;
 import org.evosuite.testcase.ConstantInliner;
 import org.evosuite.testcase.DefaultTestCase;
@@ -67,17 +92,23 @@ import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.StringPrimitiveStatement;
 import org.evosuite.testcase.statements.numeric.BooleanPrimitiveStatement;
 import org.evosuite.testcase.variable.VariableReference;
-import org.evosuite.testsuite.*;
+import org.evosuite.testsuite.RegressionSuiteSerializer;
+import org.evosuite.testsuite.TestSuiteChromosome;
+import org.evosuite.testsuite.TestSuiteFitnessFunction;
+import org.evosuite.testsuite.TestSuiteMinimizer;
+import org.evosuite.testsuite.TestSuiteSerialization;
 import org.evosuite.utils.ArrayUtil;
+import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.generic.GenericMethod;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.SourceValue;
+import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.lang.reflect.Method;
-import java.text.NumberFormat;
-import java.util.*;
 
 /**
  * Main entry point. Does all the static analysis, invokes a test generation
@@ -671,10 +702,114 @@ public class TestSuiteGenerator {
 		}
 		return 0;
 	}
+	
+	private void initializeDataflow() {
+		
+		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		for (String className : BranchPool.getInstance(classLoader).knownClasses()) {
+			//when limitToCUT== true, if not the class under test of a inner/anonymous class, continue
+			if(!isCUT(className)) continue;
+			//when limitToCUT==false, consider all classes, but excludes libraries ones according the INSTRUMENT_LIBRARIES property
+			if(!Properties.INSTRUMENT_LIBRARIES && !DependencyAnalysis.isTargetProject(className)) continue;
+//			final MethodNameMatcher matcher = new MethodNameMatcher();
 
+			// Branches
+			for (String methodName : BranchPool.getInstance(classLoader).knownMethods(className)) {
+//				if (!matcher.methodMatches(methodName)) {
+//					logger.info("Method " + methodName + " does not match criteria. ");
+//					continue;
+//				}
+				
+				ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+				FBranchDefUseAnalyzer.analyze(cfg.getRawGraph());
+				
+				for (Branch b : BranchPool.getInstance(classLoader).retrieveBranchesInMethod(className,
+						methodName)) {
+					
+                    if(!b.isInstrumented()) {
+                    	List<Value> operandValues = getOperands(b.getInstruction());
+        				
+        				for(Value value: operandValues) {
+        					if(value instanceof SourceValue) {
+        						SourceValue srcValue = (SourceValue)value;
+        						AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
+        						
+        						MethodNode node = getMethodNode(classLoader, className, methodName);
+        						BytecodeInstruction condBcDef = cfg.getInstruction(node.instructions.indexOf(condDefinition));
+        						if (condBcDef.isUse()) {
+        							DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
+        							defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
+        							Use use = DefUseFactory.makeUse(condBcDef);
+        							List<Definition> defs = DefUsePool.getDefinitions(use); // null if it is a method parameter.
+        							Definition lastDef = null;
+        							for (Definition def : CollectionUtil.nullToEmpty(defs)) {
+        								if (lastDef == null || def.getInstructionId() > lastDef.getInstructionId()) {
+        									lastDef = def;
+        								}
+        							}
+        						}
+        					}
+        				}
+                    }
+				}
+			}
+		}
+		
+	}
+
+	private List<Value> getOperands(BytecodeInstruction branchInstruction) {
+		List<Value> values = new ArrayList<Value>();
+		//TODO check the operand number
+		// if (...)
+		CFGFrame frame = branchInstruction.getFrame();
+		Value value = frame.getStack(0);
+		
+		values.add(value);
+		
+		return values;
+	}
+
+	private MethodNode getMethodNode(InstrumentingClassLoader classLoader, String className, String methodName) {
+		InputStream is = ResourceList.getInstance(classLoader).getClassAsStream(className);
+		try {
+			ClassReader reader = new ClassReader(is);
+			ClassNode cn = new ClassNode();
+			reader.accept(cn, ClassReader.SKIP_FRAMES);
+			List<MethodNode> l = cn.methods;
+			
+			for(MethodNode n: l) {
+				String methodSig = n.name + n.desc;
+				if(methodSig.equals(methodName)) {
+					return n;
+				}
+			}
+			
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+
+	private boolean isCUT(String className) {
+		if (!Properties.TARGET_CLASS.equals("")
+				&& !(className.equals(Properties.TARGET_CLASS) || className
+						.startsWith(Properties.TARGET_CLASS + "$"))) {
+			return false;
+		}
+		return true;
+	}
+	
 	private TestSuiteChromosome generateTests() {
 		// Make sure target class is loaded at this point
 		TestCluster.getInstance();
+		
+		// Parse the data flow before generating tests
+		if(Properties.APPLY_OBJECT_RULE) {
+			initializeDataflow();
+		}
 
 		ContractChecker checker = null;
 		if (Properties.CHECK_CONTRACTS) {

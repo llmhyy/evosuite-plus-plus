@@ -1005,7 +1005,7 @@ public class TestSingleMethod {
 	public void runColt() {
 		String projectId = "102_colt";
 		String[] targetMethods = new String[]{
-				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
+//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
 //				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
 //				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
 //				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
@@ -1013,15 +1013,16 @@ public class TestSingleMethod {
 //				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
 //				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
 //				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
+				"cern.colt.Sorting#mergeSortInPlace([III)V"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 5;
-		int budget = 100;
+		int budget = 100000;
 		Long seed = 1557418276377L;
-//		seed = null;
+		seed = null;
 		
 		String fitnessApproach = "fbranch";
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
@@ -1068,10 +1069,11 @@ public class TestSingleMethod {
 //				"weka.experiment.PairedTTester#setOptions([Ljava/lang/String;)V"
 //				"weka.gui.beans.Filter#connectionNotification(Ljava/lang/String;Ljava/lang/Object;)V"
 //				"weka.gui.beans.Join#connectionNotification(Ljava/lang/String;Ljava/lang/Object;)V"
-				"weka.Run#main([Ljava/lang/String;)V"
 //				"weka.filters.unsupervised.attribute.ReplaceMissingWithUserConstant#input(Lweka/core/Instance;)Z"
 //				"weka.classifiers.bayes.net.search.SearchAlgorithm#reverseArcMakesSense(Lweka/classifiers/bayes/BayesNet;Lweka/core/Instances;II)Z"
 //				"weka.attributeSelection.AttributeSelection#setSearch(Lweka/attributeSelection/ASSearch)V"
+				"weka.classifiers.trees.m5.CorrelationSplitInfo#attrSplit(ILweka/core/Instances;)V"
+//				"weka.Run#main([Ljava/lang/String;)V"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -1087,7 +1089,7 @@ public class TestSingleMethod {
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 //		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
-		fitnessApproach = "fbranch";
+		fitnessApproach = "branch";
 		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
