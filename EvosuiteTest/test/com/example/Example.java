@@ -1,6 +1,11 @@
 package com.example;
 
 public class Example {
+	
+	Test test;
+	static Test test1 = new Test(1, 2);
+	private int c;
+	
 //	public boolean test(int a, int b) {
 //		if (Util.isOk(a, b)) {
 //			if (Util.isCornerCase(a, b)) {
@@ -78,10 +83,39 @@ public class Example {
 //		return false;
 //	}
 	
-	public void test(int a, int b) {
-		double c = Math.pow(a, 2);
-		if (c > a) {
+//	public void test(Test testAA, int b) {
+////		int e = test1.a;
+////		int e = test1.helper(a);
+////		double c = 5.0;
+//		if (testAA.a > b) {
+//			return;
+//		}
+//	}
+	
+//	public void test1(Test testAA, int b) {
+////		int e = test1.a;
+////		int e = test1.helper(a);
+////		double c = 5.0;
+//		int[] c = new int[10];
+//		test1.helper1(c);
+////		if (testAA.a > c[5]) {
+//		if (c[5] > b) {
+//			return;
+//		}
+//	}
+	public void setTest() {
+		this.test = new Test(1,2);
+	}
+	
+	public void setTest1() {
+		test1 = new Test(2,3);
+	}
+	
+	public void test2(int num1) {
+		c = test1.getA();
+		if (test.isOk(num1, c)) {
 			return;
 		}
 	}
+
 }

@@ -486,7 +486,7 @@ public abstract class ASMWrapper {
 
 	/**
 	 * <p>
-	 * isFieldDU
+	 * isFieldDU: is field definition or field use
 	 * </p>
 	 * 
 	 * @return a boolean.
@@ -501,7 +501,7 @@ public abstract class ASMWrapper {
 
 	/**
 	 * <p>
-	 * isLocalDU
+	 * isLocalDU: is local variable or local use
 	 * </p>
 	 * 
 	 * @return a boolean.

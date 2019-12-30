@@ -12,8 +12,8 @@ public class BasicTest {
 	@Test
 	public void test() {
 		Class<?> clazz = com.example.Example.class;
-		String methodName = "test";
-		int parameterNum = 2;
+		String methodName = "test2";
+		int parameterNum = 1;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = TestUility.getTragetMethod(methodName, clazz, parameterNum);
@@ -32,7 +32,7 @@ public class BasicTest {
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 100000;
+		int timeBudget = 10000;
 		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 	}
