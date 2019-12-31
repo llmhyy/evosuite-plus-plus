@@ -5,6 +5,7 @@ public class Example {
 	Test test;
 	static Test test1 = new Test(1, 2);
 	private int c;
+	private Example x = new Example();
 	
 //	public boolean test(int a, int b) {
 //		if (Util.isOk(a, b)) {
@@ -112,8 +113,9 @@ public class Example {
 	}
 	
 	public void test2(int num1) {
-		c = test1.getA();
-		if (test.isOk(num1, c)) {
+		int c1 = test1.a;
+		int c = test1.getA();
+		if (x.test.isOk(num1, c)) {
 			return;
 		}
 	}

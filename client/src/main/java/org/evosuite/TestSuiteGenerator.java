@@ -20,17 +20,13 @@
 package org.evosuite;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.evosuite.Properties.AssertionStrategy;
 import org.evosuite.Properties.Criterion;
@@ -41,28 +37,11 @@ import org.evosuite.contracts.ContractChecker;
 import org.evosuite.contracts.FailingTestSet;
 import org.evosuite.coverage.CoverageCriteriaAnalyzer;
 import org.evosuite.coverage.FitnessFunctions;
-import org.evosuite.coverage.MethodNameMatcher;
 import org.evosuite.coverage.TestFitnessFactory;
-import org.evosuite.coverage.branch.Branch;
-import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUseCoverageSuiteFitness;
-import org.evosuite.coverage.dataflow.DefUseFactory;
-import org.evosuite.coverage.dataflow.DefUsePool;
-import org.evosuite.coverage.dataflow.Definition;
-import org.evosuite.coverage.dataflow.Use;
-import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
-import org.evosuite.graphs.GraphPool;
-import org.evosuite.graphs.cfg.ActualControlFlowGraph;
-import org.evosuite.graphs.cfg.BytecodeAnalyzer;
-import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.cfg.CFGFrame;
-import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.graphs.dataflow.Dataflow;
-import org.evosuite.graphs.dataflow.DefUseAnalyzer;
-import org.evosuite.graphs.dataflow.DepVariable;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.junit.JUnitAnalyzer;
 import org.evosuite.junit.writer.TestSuiteWriter;
 import org.evosuite.regression.RegressionSuiteMinimizer;
@@ -104,25 +83,10 @@ import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.evosuite.testsuite.TestSuiteMinimizer;
 import org.evosuite.testsuite.TestSuiteSerialization;
 import org.evosuite.utils.ArrayUtil;
-import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.generic.GenericMethod;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.VarInsnNode;
-import org.objectweb.asm.tree.analysis.AnalyzerException;
-import org.objectweb.asm.tree.analysis.Frame;
-import org.objectweb.asm.tree.analysis.SourceValue;
-import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javassist.bytecode.Bytecode;
 
 /**
  * Main entry point. Does all the static analysis, invokes a test generation
@@ -134,10 +98,6 @@ public class TestSuiteGenerator {
 
 	private static final String FOR_NAME = "forName";
 	private static Logger logger = LoggerFactory.getLogger(TestSuiteGenerator.class);
-
-	private List<DepVariable> depVars = new ArrayList<DepVariable>();
-	private Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
-	private Set<MethodNode> visitedNode = new HashSet<MethodNode>();
 
 	private void initializeTargetClass() throws Throwable {
 		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
@@ -733,219 +693,7 @@ public class TestSuiteGenerator {
 		return 0;
 	}
 
-	private void initializeDataflow() {
-
-		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-
-		for (String className : BranchPool.getInstance(classLoader).knownClasses()) {
-			// when limitToCUT== true, if not the class under test of a inner/anonymous
-			// class, continue
-			if (!isCUT(className))
-				continue;
-			// when limitToCUT==false, consider all classes, but excludes libraries ones
-			// according the INSTRUMENT_LIBRARIES property
-			if (!Properties.INSTRUMENT_LIBRARIES && !DependencyAnalysis.isTargetProject(className))
-				continue;
-
-			// Branches
-			for (String methodName : BranchPool.getInstance(classLoader).knownMethods(className)) {
-
-				ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-				FBranchDefUseAnalyzer.analyze(cfg.getRawGraph());
-
-				// TODO determine dependent branches
-				Set<BytecodeInstruction> exits = determineExitPoints(cfg);
-
-				MethodNode node = getMethodNode(classLoader, className, methodName);
-
-				for (Branch b : BranchPool.getInstance(classLoader).retrieveBranchesInMethod(className, methodName)) {
-
-					depVars = new ArrayList<DepVariable>();
-					visitedIns = new HashSet<BytecodeInstruction>();
-
-					if (!b.isInstrumented()) {
-						List<Value> operandValues = getOperands(b.getInstruction());
-
-						for (Value value : operandValues) {
-							checkUseForInstruction(value, cfg, node, classLoader, className, methodName);
-						}
-					}
-					Dataflow dataflow = new Dataflow();
-					dataflow.addEntry(b, depVars);
-				}
-			}
-		}
-	}
-
-	private List<Value> getOperands(BytecodeInstruction branchInstruction) {
-		List<Value> values = new ArrayList<Value>();
-		CFGFrame frame = branchInstruction.getFrame();
-		values.add(frame.getStack(0));
-
-		if (!CollectionUtil.existIn(branchInstruction.getASMNode().getOpcode(), Opcodes.IFEQ, Opcodes.IFNE,
-				Opcodes.IFGE, Opcodes.IFGT, Opcodes.IFLE, Opcodes.IFLT, Opcodes.IFNULL, Opcodes.IFNONNULL)) {
-			values.add(frame.getStack(1));
-		}
-
-		return values;
-	}
-
-	private Set<BytecodeInstruction> determineExitPoints(ActualControlFlowGraph cfg) {
-		return cfg.getExitPoints();
-	}
-
-	private MethodNode getMethodNode(InstrumentingClassLoader classLoader, String className, String methodName) {
-		InputStream is = ResourceList.getInstance(classLoader).getClassAsStream(className);
-		try {
-			ClassReader reader = new ClassReader(is);
-			ClassNode cn = new ClassNode();
-			reader.accept(cn, ClassReader.SKIP_FRAMES);
-			List<MethodNode> l = cn.methods;
-
-			for (MethodNode n : l) {
-				String methodSig = n.name + n.desc;
-				if (methodSig.equals(methodName)) {
-					return n;
-				}
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	}
-
-	private boolean isCUT(String className) {
-		if (!Properties.TARGET_CLASS.equals("") && !(className.equals(Properties.TARGET_CLASS)
-				|| className.startsWith(Properties.TARGET_CLASS + "$"))) {
-			return false;
-		}
-		return true;
-	}
-
-	private DepVariable checkUseForInstruction(Value value, ActualControlFlowGraph cfg, MethodNode node,
-			InstrumentingClassLoader classLoader, String className, String methodName) {
-
-		if (value instanceof SourceValue) {
-
-			if (!visitedNode.contains(node)) {
-				DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
-				defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
-				visitedNode.add(node);
-			}
-
-			SourceValue srcValue = (SourceValue) value;
-			AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
-			BytecodeInstruction condBcDef = cfg.getInstruction(node.instructions.indexOf(condDefinition));
-
-			if (visitedIns.contains(condBcDef)) {
-				return null;
-			}
-
-			visitedIns.add(condBcDef);
-
-			if (condBcDef.getFrame().getStackSize() > 0) {
-				checkStack(condBcDef, cfg, node, classLoader, className, methodName);
-			}
-
-			// ALOAD 0
-//			if (condBcDef.loadsReferenceToThis()) {
-////				depDefs.add(e);
-////				condBcDef.getASMNode()
-//			}
-
-			// Field access, local variable or array load
-			if (condBcDef.isUse()) {
-
-				// check invoked method
-				if (condBcDef.isMethodCall()) {
-					String innerClass = condBcDef.getCalledMethodsClass();
-					String innerMethod = condBcDef.getCalledMethod();
-					ActualControlFlowGraph calledCfg = GraphPool.getInstance(classLoader).getActualCFG(innerClass,
-							innerMethod);
-					MethodNode innerNode = getMethodNode(classLoader, innerClass, innerMethod);
-					if (calledCfg == null) {
-						BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
-						try {
-							bytecodeAnalyzer.analyze(classLoader, innerClass, innerMethod, innerNode);
-						} catch (AnalyzerException e) {
-							e.printStackTrace();
-						}
-						bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
-						calledCfg = GraphPool.getInstance(classLoader).getActualCFG(innerClass, innerMethod);
-					}
-					FBranchDefUseAnalyzer.analyze(calledCfg.getRawGraph());
-
-					Set<BytecodeInstruction> exits = determineExitPoints(calledCfg);
-					for (BytecodeInstruction exit : exits) {
-						//control flow
-						if (!exit.getControlDependencies().isEmpty()) {
-							Set<ControlDependency> cds = exit.getControlDependencies();
-							for (ControlDependency cd : cds) {
-								BytecodeInstruction ins = cd.getBranch().getInstruction();
-								if (ins.getFrame().getStackSize() > 0) {
-									checkStack(ins, calledCfg, innerNode, classLoader, innerClass, innerMethod);
-								}
-							}
-						}
-						//data flow
-						if (exit.getFrame().getStackSize() > 0) {
-							checkStack(exit, calledCfg, innerNode, classLoader, innerClass, innerMethod);
-						}
-					}
-				}
-
-				// getField or getStatic
-				else if (condBcDef.isFieldUse()) {
-					assert condBcDef.getASMNode() instanceof FieldInsnNode;
-					FieldInsnNode insnNode = ((FieldInsnNode) condBcDef.getASMNode());
-					String varName = insnNode.name;
-					String clazz = insnNode.owner;
-					DepVariable depVar = new DepVariable(clazz, varName, condBcDef);
-					return depVar;
-				}
-
-				else {
-					Use use = DefUseFactory.makeUse(condBcDef);
-
-					// Ignore method parameter
-					List<Definition> defs = DefUsePool.getDefinitions(use);
-					Definition lastDef = null;
-					for (Definition def : CollectionUtil.nullToEmpty(defs)) {
-						if (lastDef == null || def.getInstructionId() > lastDef.getInstructionId()) {
-							lastDef = def;
-						}
-					}
-
-					if (lastDef == null) {
-						return null;
-					} else if (lastDef.getFrame().getStackSize() == 0) {
-						DepVariable depVar = new DepVariable("", "", lastDef);
-						return depVar;
-					} else {
-						checkStack(lastDef, cfg, node, classLoader, className, methodName);
-					}
-				}
-			}
-
-		}
-		return null;
-	}
-
-	private Definition checkStack(BytecodeInstruction def, ActualControlFlowGraph cfg, MethodNode node,
-			InstrumentingClassLoader classLoader, String className, String methodName) {
-		Frame frame = def.getFrame();
-		int stackSize = frame.getStackSize();
-		for (int i = 0; i < stackSize; i++) {
-			Value val = frame.getStack(i);
-			DepVariable depVar = checkUseForInstruction(val, cfg, node, classLoader, className, methodName);
-			if (depVar != null) {
-				depVars.add(depVar);
-			}
-		}
-		return null;
-	}
+	
 
 	private TestSuiteChromosome generateTests() {
 		// Make sure target class is loaded at this point
@@ -953,7 +701,7 @@ public class TestSuiteGenerator {
 
 		// Parse the data flow before generating tests
 		if (Properties.APPLY_OBJECT_RULE) {
-			initializeDataflow();
+			Dataflow.initializeDataflow();
 		}
 
 		ContractChecker checker = null;

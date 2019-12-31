@@ -1,8 +1,5 @@
 package org.evosuite.graphs.dataflow;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 
 /**
@@ -14,38 +11,34 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 public class DepVariable {
 	private String className;
 	private String varName;
-	private Set<DepVariable> depVars;
 	private BytecodeInstruction depIns;
-	private int layer;
+	
+	private DepVariable parent;
+	
+//	private int layer;
 
-	public DepVariable(String className, String varName, BytecodeInstruction insn) {
+	public DepVariable(String className, String varName, BytecodeInstruction insn, DepVariable parent) {
 		this.className = className;
 		this.varName = varName;
 		this.depIns = insn;
-		depVars = new HashSet<DepVariable>();
+		this.parent = parent;
 	}
 	
-	public DepVariable(String className, String varName, BytecodeInstruction insn, int layer) {
-		this.className = className;
-		this.varName = varName;
-		this.depIns = insn;
-		depVars = new HashSet<DepVariable>();
-		this.layer = layer;
+	
+	@Override
+	public String toString() {
+		return "DepVariable [className=" + className + ", varName=" + varName + ", depIns=" + depIns + "]";
+	}
+
+
+	public DepVariable getParent() {
+		return parent;
+	}
+
+
+	public void setParent(DepVariable parent) {
+		this.parent = parent;
 	}
 	
-	public void addDepForVar(DepVariable depVar) {
-		this.getDepVariables().add(depVar);
-	}
 	
-	public Set<DepVariable> getDepVariables() {
-		return this.depVars;
-	}
-	
-	public void setLayer(int layer) {
-		this.layer = layer;
-	}
-	
-	public int getLayer(int layer) {
-		return this.layer;
-	}
 }
