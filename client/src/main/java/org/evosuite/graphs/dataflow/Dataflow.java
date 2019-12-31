@@ -90,7 +90,7 @@ public class Dataflow {
 						List<Value> operandValues = getOperands(b.getInstruction());
 //						DepVariable parent = new DepVariable(className, "this", null, null);
 						for (Value value : operandValues) {
-							checkUseForInstruction(value, cfg, node, classLoader, className, methodName, allDepVars,
+							searchDependantVariables(value, cfg, node, classLoader, className, methodName, allDepVars,
 									visitedIns, null);
 						}
 					}
@@ -165,7 +165,7 @@ public class Dataflow {
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	private static void checkUseForInstruction(Value value, ActualControlFlowGraph cfg, MethodNode node,
+	private static void searchDependantVariables(Value value, ActualControlFlowGraph cfg, MethodNode node,
 			InstrumentingClassLoader classLoader, String className, String methodName, List<DepVariable> allDepVars,
 			Set<BytecodeInstruction> visitedIns, DepVariable callParent) {
 
@@ -193,15 +193,15 @@ public class Dataflow {
 					int stackSize = frame.getStackSize();
 					for (int i = 0; i < stackSize; i++) {
 						Value val = frame.getStack(i);
-						checkUseForInstruction(val, cfg, node, classLoader, className, methodName, allDepVars, visitedIns, callParent);
+						searchDependantVariables(val, cfg, node, classLoader, className, methodName, allDepVars, visitedIns, callParent);
 					}
 				}
 				
 				// ALOAD 0
-//			if (condBcDef.loadsReferenceToThis()) {
-////				depDefs.add(e);
-////				condBcDef.getASMNode()
-//			}
+	//			if (condBcDef.loadsReferenceToThis()) {
+	////				depDefs.add(e);
+	////				condBcDef.getASMNode()
+	//			}
 				
 				// Field access, local variable or array load
 				if (condDefinitionInstruction.isUse()) {
@@ -245,7 +245,7 @@ public class Dataflow {
 								int stackSize = frame.getStackSize();
 								for (int i = 0; i < stackSize; i++) {
 									Value val = frame.getStack(i);
-									checkUseForInstruction(val, cfg, node, classLoader, className, methodName, allDepVars, visitedIns, callParent);
+									searchDependantVariables(val, cfg, node, classLoader, className, methodName, allDepVars, visitedIns, callParent);
 								}
 							}
 						}
@@ -315,7 +315,7 @@ public class Dataflow {
 						int stackSize = frame.getStackSize();
 						for (int i = 0; i < stackSize; i++) {
 							Value val = frame.getStack(i);
-							checkUseForInstruction(val, calledCfg, innerNode, classLoader, innerClass, innerMethod, allDepVars, visitedIns, callParent);
+							searchDependantVariables(val, calledCfg, innerNode, classLoader, innerClass, innerMethod, allDepVars, visitedIns, callParent);
 						}
 					}
 				}
@@ -326,7 +326,7 @@ public class Dataflow {
 				int stackSize = frame.getStackSize();
 				for (int i = 0; i < stackSize; i++) {
 					Value val = frame.getStack(i);
-					checkUseForInstruction(val, calledCfg, innerNode, classLoader, innerClass, innerMethod, allDepVars, visitedIns, callParent);
+					searchDependantVariables(val, calledCfg, innerNode, classLoader, innerClass, innerMethod, allDepVars, visitedIns, callParent);
 				}
 			}
 		}
