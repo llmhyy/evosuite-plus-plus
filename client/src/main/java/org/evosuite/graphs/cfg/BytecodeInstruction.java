@@ -49,6 +49,8 @@ import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.SourceValue;
 
+import javassist.bytecode.Opcode;
+
 /**
  * Internal representation of a BytecodeInstruction
  * 
@@ -1371,4 +1373,114 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		return getLineNumber() - o.getLineNumber();
 	}
 
+	
+	public int getOperandNum() {
+		if(this.asmNode.getType() == AbstractInsnNode.FIELD_INSN) {
+			if(this.asmNode.getOpcode() == Opcodes.GETSTATIC || this.asmNode.getOpcode() == Opcodes.PUTSTATIC) {
+				return 0;
+			}
+			else {
+				return 1;
+			}
+		}
+		else if(this.asmNode.getType() == AbstractInsnNode.INVOKE_DYNAMIC_INSN) {
+			//TODO for ziheng
+			return this.getCalledMethodsArgumentCount();
+		}
+		else if(this.asmNode.getType() == AbstractInsnNode.METHOD_INSN) {
+			if(this.isCallToStaticMethod()) {
+				return this.getCalledMethodsArgumentCount();
+			}
+			else {
+				return this.getCalledMethodsArgumentCount() + 1;
+			}
+		}
+		else if(this.asmNode.getType() == AbstractInsnNode.TYPE_INSN) {
+			return 1;
+		}
+		else if(this.isLocalVariableUse()) {
+			return 0;
+		}
+		else if(this.isLocalVariableDefinition()){
+			return 1;
+		}
+		else if(this.isReturn()) {
+			return 1;
+		}
+		else if(this.isArrayLoadInstruction()) {
+			return 2;
+		}
+		else if(this.isArrayStoreInstruction()) {
+			return 3;
+		}
+		else if(this.isCheckCast()) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcode.NEWARRAY) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcode.ARRAYLENGTH) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcode.ATHROW) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcode.IADD || this.asmNode.getOpcode() == Opcode.FADD
+				|| this.asmNode.getOpcode() == Opcode.IADD || this.asmNode.getOpcode() == Opcode.LAND
+				|| this.asmNode.getOpcode() == Opcode.IDIV || this.asmNode.getOpcode() == Opcode.DDIV
+				|| this.asmNode.getOpcode() == Opcode.FDIV || this.asmNode.getOpcode() == Opcode.LDIV
+				|| this.asmNode.getOpcode() == Opcode.IMUL || this.asmNode.getOpcode() == Opcode.DMUL
+				|| this.asmNode.getOpcode() == Opcode.FMUL || this.asmNode.getOpcode() == Opcode.LMUL
+				|| this.asmNode.getOpcode() == Opcode.INEG || this.asmNode.getOpcode() == Opcode.DNEG
+				|| this.asmNode.getOpcode() == Opcode.FNEG || this.asmNode.getOpcode() == Opcode.LNEG
+				|| this.asmNode.getOpcode() == Opcode.IREM || this.asmNode.getOpcode() == Opcode.DREM
+				|| this.asmNode.getOpcode() == Opcode.FREM || this.asmNode.getOpcode() == Opcode.LREM
+				|| this.asmNode.getOpcode() == Opcode.ISUB || this.asmNode.getOpcode() == Opcode.DSUB
+				|| this.asmNode.getOpcode() == Opcode.FSUB || this.asmNode.getOpcode() == Opcode.LSUB) {
+			return 2;
+		}
+		else if(this.asmNode.getOpcode() == Opcode.DUP) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcode.DUP2) {
+			return 2;
+		}
+		else if(this.asmNode.getOpcode() == Opcode.DUP_X1) {
+			return 2;
+		}
+		else if(this.asmNode.getOpcode() == Opcode.DUP_X2) {
+			return 3;
+		}
+		else if(this.asmNode.getOpcode() == Opcode.DUP2_X1) {
+			return 3;
+		}
+		else if(this.asmNode.getOpcode() == Opcode.DUP2_X2) {
+			return 4;
+		}
+		
+		return 0;
+	}
+
+	private boolean isCheckCast() {
+		if(this.asmNode.getOpcode() == Opcode.D2F 
+				|| this.asmNode.getOpcode() == Opcode.D2L
+				|| this.asmNode.getOpcode() == Opcode.D2I
+				|| this.asmNode.getOpcode() == Opcode.F2D
+				|| this.asmNode.getOpcode() == Opcode.F2I
+				|| this.asmNode.getOpcode() == Opcode.F2L
+				|| this.asmNode.getOpcode() == Opcode.I2B
+				|| this.asmNode.getOpcode() == Opcode.I2C
+				|| this.asmNode.getOpcode() == Opcode.I2D
+				|| this.asmNode.getOpcode() == Opcode.I2F
+				|| this.asmNode.getOpcode() == Opcode.I2L
+				|| this.asmNode.getOpcode() == Opcode.I2S
+				|| this.asmNode.getOpcode() == Opcode.L2D
+				|| this.asmNode.getOpcode() == Opcode.L2F
+				|| this.asmNode.getOpcode() == Opcode.L2I
+				//TODO add shift-left, shift-right, or
+				) {
+			return true;
+		}
+		return false;
+	}
 }
