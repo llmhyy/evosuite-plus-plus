@@ -40,7 +40,7 @@ import org.objectweb.asm.tree.analysis.Value;
 
 public class Dataflow {
 	/**
-	 * a map maintains what variables are dependent by which branch
+	 * a map maintains what variables are dependent by which branch, method->branch->dependant variable
 	 * 
 	 */
 	public static Map<String, Map<Branch, List<DepVariable>>> branchDepVarsMap = new HashMap<>();
@@ -215,10 +215,6 @@ public class Dataflow {
 				}
 				
 				/**
-				 * TODO handle constant
-				 */
-				
-				/**
 				 * the variable is computed by local variables
 				 */
 				if (defIns.isLocalVariableUse()){
@@ -277,6 +273,10 @@ public class Dataflow {
 						
 						allDepVars.add(var);
 					}
+					
+					/**
+					 * TODO handle control flow, for ziheng
+					 */
 				}
 			}
 			

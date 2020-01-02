@@ -1416,6 +1416,9 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		else if(this.isCheckCast()) {
 			return 1;
 		}
+		else if(this.isCheckAlgorithmic()) {
+			return 2;
+		}
 		else if(this.asmNode.getOpcode() == Opcode.NEWARRAY) {
 			return 1;
 		}
@@ -1461,6 +1464,12 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		return 0;
 	}
 
+	private boolean isCheckAlgorithmic() {
+		//TODO ziheng, add shift-left, shift-right, or
+		
+		return true;
+	}
+	
 	private boolean isCheckCast() {
 		if(this.asmNode.getOpcode() == Opcode.D2F 
 				|| this.asmNode.getOpcode() == Opcode.D2L
@@ -1477,7 +1486,6 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 				|| this.asmNode.getOpcode() == Opcode.L2D
 				|| this.asmNode.getOpcode() == Opcode.L2F
 				|| this.asmNode.getOpcode() == Opcode.L2I
-				//TODO add shift-left, shift-right, or
 				) {
 			return true;
 		}
