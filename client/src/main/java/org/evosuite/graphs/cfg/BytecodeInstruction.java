@@ -1467,7 +1467,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	private boolean isCheckAlgorithmic() {
 		//TODO ziheng, add shift-left, shift-right, or
 		
-		return true;
+		return false;
 	}
 	
 	private boolean isCheckCast() {
