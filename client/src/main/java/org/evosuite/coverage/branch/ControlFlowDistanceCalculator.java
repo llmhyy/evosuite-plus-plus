@@ -331,7 +331,7 @@ public class ControlFlowDistanceCalculator {
 
 		Set<ControlFlowDistance> r = new HashSet<ControlFlowDistance>();
 		Set<ControlDependency> nextToLookAt = instruction.getControlDependencies();
-
+		//TODO cdg needs to be altered?
 		for (ControlDependency next : nextToLookAt) {
 			if (instruction.equals(next.getBranch().getInstruction()))
 				continue; // avoid loops

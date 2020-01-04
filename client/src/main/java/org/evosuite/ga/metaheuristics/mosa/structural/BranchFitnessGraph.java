@@ -204,8 +204,9 @@ public class BranchFitnessGraph<T extends Chromosome, V extends FitnessFunction<
 	}
 	
 	public void updatePath(FitnessFunction<T> goal, FitnessFunction<T> parentGoal) {
-		graph.addVertex(goal);
 		Set<FitnessFunction<T>> prevChildren = getStructuralChildren(parentGoal);
+		
+		graph.addVertex(goal);
 		
 		for (FitnessFunction<T> prevChild : prevChildren) {
 			graph.removeEdge(parentGoal, prevChild);

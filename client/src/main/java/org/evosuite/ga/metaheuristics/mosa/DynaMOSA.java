@@ -37,7 +37,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
-
+import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
@@ -57,6 +57,9 @@ import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.utils.LoggingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.transform.impl.AddDelegateTransformer;
+
+import com.sun.xml.internal.ws.policy.spi.PolicyAssertionValidator.Fitness;
 
 /**
  * Implementation of the DynaMOSA (Many Objective Sorting Algorithm) described
@@ -80,19 +83,21 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 	protected Map<FitnessFunction<T>, Integer> goalsFreq = new LinkedHashMap<>();
 
-	// Goal -> <GoalToAdd, ExceptionTimes>
-	Map<FitnessFunction<T>, Map<FitnessFunction<T>, Integer>> exceptionMap = new HashMap<>();
-	Map<FitnessFunction<T>, Integer> coveredMap = new HashMap<>();
-	Map<FitnessFunction<T>, Double> exceptionP = new HashMap<>();
+	/**
+	 * map for all covered goals
+	 */
+	Map<FitnessFunction<T>, Integer> coveredTimesMap = new HashMap<>();
 
-	int rootCovered = 0;
-
-	Map<FitnessFunction<T>, Integer> rootExceptionMap = new HashMap<>();
-	Map<FitnessFunction<T>, Double> rootExceptionP = new HashMap<>();
-
-//	Set<Branch> rootBranchs = new HashSet<Branch>();
+	/**
+	 * goals added to the tree
+	 */
 	Set<FitnessFunction<T>> addedGoals = new HashSet<FitnessFunction<T>>();
-
+	FitnessFunction<T> ff = null;
+	// GoalToEnhance -> <GoalToAdd, ExceptionTimes>
+	Map<FitnessFunction<T>, Map<FitnessFunction<T>, Integer>> exceptionMap = new HashMap<>();
+	int rootCoveredTimes = 0;
+	Map<FitnessFunction<T>, Integer> rootExceptionMap = new HashMap<>();
+	Set<FitnessFunction<T>> goalsToAdd = new HashSet<FitnessFunction<T>>();
 	FitnessFunction<T> edgeInTarget = null;
 
 	/**
@@ -250,7 +255,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		while (!isFinished() && this.goalsManager.getUncoveredGoals().size() > 0) {
 			MutationPositionDiscriminator.discriminator.setPurpose(this.goalsManager.getCurrentGoals());
 
-//			this.branchEnhancement();
+			this.branchEnhancement();
 			this.evolve();
 			this.notifyIteration();
 		}
@@ -279,109 +284,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 	}
 
-//	private void branchEnhancement1() {
-//		for (T population : this.population) {
-//			Collection<Throwable> exceptionsCollections = ((TestChromosome) population).getLastExecutionResult()
-//					.getAllThrownExceptions();
-//			for (Throwable throwable : exceptionsCollections) {
-//				if (!(throwable instanceof NullPointerException)) {
-//					System.currentTimeMillis();
-//				}
-//			}
-//		}
-//		FitnessFunction<T> prevFitnessFunction = null;
-//		for (FitnessFunction<T> ff : this.goalsManager.getCurrentGoals()) {
-//			goalsFreq.replace(ff, goalsFreq.get(ff) + 1);
-//			// Cannot breakthrough a goal in 30 iterations
-//			if (goalsFreq.get(ff) >= 30) {
-//				// Check if potential exception situations occur
-//				if (prevFitnessFunction != null) {
-//					Branch targetBranch = ((BranchCoverageTestFitness) prevFitnessFunction).getBranchGoal().getBranch();
-//					Branch currentBranch = ((BranchCoverageTestFitness) ff).getBranchGoal().getBranch();
-//					if (targetBranch == currentBranch) {
-//						for (T population : this.population) {
-//							Map<String, Map<String, Map<Integer, Integer>>> coverageDataMap = ((TestChromosome) population)
-//									.getLastExecutionResult().getTrace().getCoverageData();
-//							for (Map.Entry<String, Map<String, Map<Integer, Integer>>> entry : coverageDataMap
-//									.entrySet()) {
-//								if (entry != null) {
-//									String className = entry.getKey();
-//									for (Map.Entry<String, Map<Integer, Integer>> entry2 : entry.getValue()
-//											.entrySet()) {
-//										if (entry2 != null) {
-//											String methodName = entry2.getKey();
-//											Set<Integer> lineNums = entry2.getValue().keySet();
-//
-//											if (!hasVisitParentGoal(targetBranch, lineNums, methodName)) {
-//												return;
-//											}
-//
-//											for (Map.Entry<Integer, Integer> entry3 : entry2.getValue().entrySet()) {
-//												if (entry3 != null) {
-//													Integer lineNum = entry3.getKey();
-//													checkPotentialException(className, methodName, lineNum, ff);
-//												}
-//											}
-//										}
-//									}
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//			prevFitnessFunction = ff;
-//		}
-//	}
-//
-//	private boolean hasVisitParentGoal(Branch targetBranch, Set<Integer> lineNums, String methodName) {
-//		// Visit the goal?
-//		int parentTarget;
-//		if (targetBranch.getInstruction().getControlDependentBranch() != null) {
-//			BytecodeInstruction fatherBranch = targetBranch.getInstruction().getControlDependentBranch()
-//					.getInstruction();
-//			parentTarget = fatherBranch.getLineNumber();
-//			for (Integer line : lineNums) {
-//				if (line == parentTarget + 1 && methodName == fatherBranch.getMethodName()) {
-//					return true;
-//				}
-//			}
-//			return false;
-//		}
-//		return true;
-//	}
-//
-//	@SuppressWarnings("unchecked")
-//	private void checkPotentialException(String className, String methodName, int lineNum,
-//			FitnessFunction<T> fitnessFunction) {
-//
-//		List<BytecodeInstruction> insList = BytecodeInstructionPool
-//				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-//				.getAllInstructionsAtLineNumber(className, methodName, lineNum);
-//		for (BytecodeInstruction ins : insList) {
-//			if (ins.getASMNodeString().contains("Exception")) {
-//				Set<Branch> branchesToAdd = ins.getControlDependentBranches();
-//				for (Branch branch : branchesToAdd) {
-//					if (!branch.isInstrumented()) {
-//						this.goalsManager.updateCurrentGoals((FitnessFunction<T>) BranchCoverageFactory
-//								.createBranchCoverageTestFitness(branch, true));
-//						this.goalsManager.updateCurrentGoals((FitnessFunction<T>) BranchCoverageFactory
-//								.createBranchCoverageTestFitness(branch, false));
-//						goalsFreq.replace(fitnessFunction, 0);
-//					}
-//				}
-//			}
-//		}
-//	}
-
 	protected void branchEnhancement() {
-//		Set<Integer> branchGoalsId = new HashSet<Integer>();
-//		List<Integer> branchLineNums = new ArrayList<Integer>();
-
-//		for (FitnessFunction<T> ff : this.fitnessFunctions) {
-//			branchGoalsId.add(((BranchCoverageTestFitness) ff).getBranchGoal().getId());
-//			branchLineNums.add(((BranchCoverageTestFitness) ff).getBranchGoal().getLineNumber());
-//		}
 
 		for (T population : this.population) {
 
@@ -390,13 +293,14 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			Map<Integer, Integer> trueGoals = executionResult.getTrace().getCoveredTrue();
 			Collection<Throwable> allExceptions = executionResult.getAllThrownExceptions();
 
-			// className -> methodName -> lineNumber -> 1
+			// className -> methodName -> lineNumber -> coveredTimes
 			Map<String, Map<String, Map<Integer, Integer>>> coverageMap = executionResult.getTrace().getCoverageData();
 
 			// target method is covered
 			if (coverageMap.get(Properties.TARGET_CLASS) != null) {
 				if (coverageMap.get(Properties.TARGET_CLASS).get(Properties.TARGET_METHOD) != null) {
-					rootCovered++;
+					// root is covered
+					rootCoveredTimes++;
 				} else {
 					continue;
 				}
@@ -407,317 +311,273 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			addCoveredTimes(falseGoals, false);
 			addCoveredTimes(trueGoals, true);
 
-			for (Throwable exception : allExceptions) {
-				Set<FitnessFunction<T>> goalsToAdd = detectExceptions(exception);
+			if (!allExceptions.isEmpty()) {
+				Throwable thrownException = allExceptions.iterator().next();
+				goalsToAdd = new HashSet<FitnessFunction<T>>();
 
+				retrieveGoalsToAdd(thrownException);
+//				population.getFitnessValues()
 				if (goalsToAdd != null && !goalsToAdd.isEmpty()) {
 
-//					Branch targetBranch = getCorrespondingBranch(exception);
-//					int toAddId = toAdd.getActualBranchId();
-					FitnessFunction<T> goalToAdd = goalsToAdd.iterator().next();
-					int result = getEdgeInTargetMethod(exception);
+					for (FitnessFunction<T> goalToAdd : goalsToAdd) {
+						boolean foundInTarget = getEdgeInTargetMethod(thrownException);
 
-					if (result == 1) {
-						// ROOT
-						if (edgeInTarget == null) {
-							if (rootExceptionMap.get(goalToAdd) == null) {
-								rootExceptionMap.put(goalToAdd, 1);
-							} else {
-								rootExceptionMap.replace(goalToAdd, rootExceptionMap.get(goalToAdd) + 1);
-							}
+						// Invoked by target
+						if (foundInTarget) {
+							// Root
+							if (edgeInTarget == null) {
+								if (rootExceptionMap.get(goalToAdd) == null) {
+									rootExceptionMap.put(goalToAdd, 1);
+								} else {
+									rootExceptionMap.replace(goalToAdd, rootExceptionMap.get(goalToAdd) + 1);
+								}
 
-						} else {
-//						FitnessFunction<T> ff = getCorrespondingGoal(targetBranch, coverageMap);
-//						if (ff != null) {
-							if (exceptionMap.get(edgeInTarget) == null
-									|| exceptionMap.get(edgeInTarget).get(goalToAdd) == null) {
-								Map<FitnessFunction<T>, Integer> toAddMap = new HashMap<>();
-								toAddMap.put(goalToAdd, 1);
-								exceptionMap.put(edgeInTarget, toAddMap);
 							} else {
-								exceptionMap.get(edgeInTarget).replace(goalToAdd,
-										exceptionMap.get(edgeInTarget).get(goalToAdd) + 1);
+								if (exceptionMap.get(edgeInTarget) == null
+										|| exceptionMap.get(edgeInTarget).get(goalToAdd) == null) {
+									Map<FitnessFunction<T>, Integer> toAddMap = new HashMap<>();
+									toAddMap.put(goalToAdd, 1);
+									exceptionMap.put(edgeInTarget, toAddMap);
+								} else {
+									exceptionMap.get(edgeInTarget).replace(goalToAdd,
+											exceptionMap.get(edgeInTarget).get(goalToAdd) + 1);
+								}
 							}
+						}
+
+						// Not invoked by target
+						// TODO: handle exception before target
+						// Some insights: can be parallel, added to the root path, breakthru one by one;
+						else {
+
 						}
 					}
 
 				}
 			}
-
-//			calculateRootProb();
-
 		}
 
-		calculateProb();
+		checkExceptionProb();
 
 	}
 
-	protected Set<FitnessFunction<T>> detectExceptions(Throwable exception) {
-		int lineNum = 0;
-		String className = null;
-		Set<ControlDependency> dependencies = new HashSet<ControlDependency>();
-		Set<FitnessFunction<T>> goalsToAdd = new HashSet<FitnessFunction<T>>();
+	protected void retrieveGoalsToAdd(Throwable exception) {
+		Set<ControlDependency> cds = new HashSet<ControlDependency>();
 		MockFramework.disable();
 		StackTraceElement[] stack = exception.getStackTrace();
 		if (stack != null && stack.length != 0 && stack[0] != null) {
-			className = stack[0].getClassName();
-			lineNum = stack[0].getLineNumber();
-			if (className.equals(Properties.TARGET_CLASS)) {
-				List<BytecodeInstruction> insList = BytecodeInstructionPool
-						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-						.getAllInstructionsAtClass(className, lineNum);
-				for (BytecodeInstruction ins : insList) {
-					if (ins.getASMNodeString().contains(exception.getClass().getSimpleName())) {
-						dependencies = ins.getControlDependencies();
-						for (Iterator<ControlDependency> dependencyIterator = dependencies
-								.iterator(); dependencyIterator.hasNext();) {
-							ControlDependency dependency = dependencyIterator.next();
-//							goalsToAdd.add((FitnessFunction<T>) BranchCoverageFactory.createBranchCoverageTestFitness(dependency));
-							goalsToAdd.add(createRevFitnessFunction(dependency));
-
+			String className = stack[0].getClassName();
+			int lineNum = stack[0].getLineNumber();
+			List<BytecodeInstruction> insList = BytecodeInstructionPool
+					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+					.getAllInstructionsAtClass(className, lineNum);
+			for (BytecodeInstruction ins : insList) {
+				if (ins.getASMNodeString().contains(exception.getClass().getSimpleName())) {
+					cds = ins.getControlDependencies();
+					for (ControlDependency cd : cds) {
+						// precaution to prevent wrongly add goals
+						for (FitnessFunction<T> addedGoal: addedGoals) {
+							if (((BranchCoverageTestFitness) addedGoal).getBranch() == cd.getBranch()) {
+								return;
+							}
 						}
-						return goalsToAdd;
+						// Add the goal which will not incur this exception
+						goalsToAdd.add(createOppFitnessFunction(cd));
+//						searchParent(cd);
 					}
+					break;
 				}
 			}
 		}
-		return goalsToAdd;
 	}
 
-//	protected Branch getCorrespondingBranch(Throwable exception) {
-//		StackTraceElement[] stack = exception.getStackTrace();
-//		for (StackTraceElement element : stack) {
-//			if (element.getClassName().equals(Properties.TARGET_CLASS)
-//					&& element.getMethodName().equals(Properties.TARGET_METHOD.split(Pattern.quote("("))[0])) {
-//				int targetLine = element.getLineNumber();
-//				List<BytecodeInstruction> insList = BytecodeInstructionPool
-//						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-//						.getAllInstructionsAtLineNumber(element.getClassName(), Properties.TARGET_METHOD, targetLine);
-//				Set<ControlDependency> dependencies = insList.get(0).getControlDependencies();
-//				
-//				//ROOT
-//				if (dependencies == null || dependencies.isEmpty()) {
-//					return null;
-//				} else {
-//					
-//				}
-//				return insList.get(0).getControlDependentBranch();
-////				insList.get(0).getControlDependentBranches()
-//			}
-//		}
-//		return null;
-//	}
-
-//	protected FitnessFunction<T> getCorrespondingGoal(Branch target,
-//			Map<String, Map<String, Map<Integer, Integer>>> coverageMap) {
-//		int targetLine = target.getInstruction().getLineNumber() + 1;
-//		for (Map.Entry<String, Map<String, Map<Integer, Integer>>> entry : coverageMap.entrySet()) {
-//			String className = entry.getKey();
-//			if (className.equals(Properties.TARGET_CLASS)) {
-//				for (Map.Entry<String, Map<Integer, Integer>> entry2 : entry.getValue().entrySet()) {
-//					String methodName = entry2.getKey();
-//					if (methodName.equals(Properties.TARGET_METHOD)) {
-//						for (Map.Entry<Integer, Integer> entry3 : entry2.getValue().entrySet()) {
-//							if (entry3.getKey() == targetLine) {
-//								for (FitnessFunction<T> ff : fitnessFunctions) {
-//									if (((BranchCoverageTestFitness) ff).getBranch() == target
-//											&& ((BranchCoverageTestFitness) ff).getBranchExpressionValue() == false) {
-//										return ff;
-//									}
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
-//		return null;
-//	}
-	protected int getEdgeInTargetMethod(Throwable exception) {
+	protected boolean getEdgeInTargetMethod(Throwable exception) {
 		edgeInTarget = null;
 		StackTraceElement[] stack = exception.getStackTrace();
-
-//		if (!addedGoals.isEmpty()) {
-//		List<BytecodeInstruction> insList1 = BytecodeInstructionPool
-//				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-//				.getAllInstructionsAtClass(stack[0].getClassName(), stack[0].getLineNumber());
-//		String method = insList1.get(0).getMethodName();
-//
-//		}
-//		}
-//		GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getRawCFG(Properties.TARGET_CLASS,Properties.TARGET_METHOD).determineMethodCalls().get(0).;
 
 		for (StackTraceElement element : stack) {
 			if (element.getClassName().equals(Properties.TARGET_CLASS)
 					&& element.getMethodName().equals(Properties.TARGET_METHOD.split(Pattern.quote("("))[0])) {
+				// Invoke by target method
 				int targetLine = element.getLineNumber();
 				List<BytecodeInstruction> insList = BytecodeInstructionPool
 						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 						.getAllInstructionsAtLineNumber(element.getClassName(), Properties.TARGET_METHOD, targetLine);
-				Set<ControlDependency> dependencies = insList.get(0).getControlDependencies();
+				Set<ControlDependency> cds = insList.get(0).getControlDependencies();
 
-				
-				if (!addedGoals.isEmpty())
+				if (!addedGoals.isEmpty()) {
 					checkPotentialNewPath();
-				
+				}
+
 				// ROOT
-				if (dependencies == null || dependencies.isEmpty()) {
+				if (cds == null || cds.isEmpty()) {
 					edgeInTarget = null;
-					checkPotentialNewPath();
-				} else if (dependencies.size() == 1) {
-//					checkPotentialNewPath(dependencies.iterator().next());
-					edgeInTarget = createFitnessFunction(dependencies.iterator().next());
+//					checkPotentialNewPath();
+				} else if (cds.size() == 1) {
+//					checkPotentialNewPath(cds.iterator().next());
+					edgeInTarget = createFitnessFunction(cds.iterator().next());
 				} else {
 					// Get nearest goal
-					Iterator<ControlDependency> dependencyIterator = dependencies.iterator();
-					while (dependencyIterator.hasNext()) {
-						Set<ControlDependency> cds = dependencyIterator.next().getBranch().getInstruction()
-								.getControlDependencies();
-						if (dependencies.contains(cds))
-							dependencies.remove(cds);
+					for (ControlDependency cd : cds) {
+						Set<ControlDependency> parentCds = cd.getBranch().getInstruction().getControlDependencies();
+						if (cds.contains(parentCds)) {
+							cds.remove(parentCds);
+						}
 					}
-					edgeInTarget = dependencies.iterator().hasNext()
-							? createFitnessFunction(dependencies.iterator().next())
-							: null;
+					edgeInTarget = cds.iterator().hasNext() ? createFitnessFunction(cds.iterator().next()) : null;
 				}
-				return 1;
+				return true;
 			}
 		}
-		return -1;
+		return false;
 	}
 
+	/**
+	 * Add covered times for each goal
+	 * 
+	 * @param goals
+	 * @param value
+	 */
+	@SuppressWarnings("unchecked")
 	protected void addCoveredTimes(Map<Integer, Integer> goals, boolean value) {
 		for (Integer goal : goals.keySet()) {
 			for (FitnessFunction<T> ff : fitnessFunctions) {
 				if (((BranchCoverageTestFitness) ff).getBranchGoal().getId() == goal
 						&& ((BranchCoverageTestFitness) ff).getBranchExpressionValue() == value) {
-					if (coveredMap.get(ff) == null) {
-						coveredMap.put(ff, 1);
+					if (coveredTimesMap.get(ff) == null) {
+						coveredTimesMap.put(ff, 1);
 					} else {
-						coveredMap.replace(ff, coveredMap.get(ff) + 1);
+						coveredTimesMap.replace(ff, coveredTimesMap.get(ff) + 1);
 					}
 				}
 			}
 		}
 	}
 
-	protected FitnessFunction<T> createRevFitnessFunction(ControlDependency cd) {
+	@SuppressWarnings("unchecked")
+	protected FitnessFunction<T> createOppFitnessFunction(ControlDependency cd) {
 		Branch branch = cd.getBranch();
 		boolean value = cd.getBranchExpressionValue();
 		return (FitnessFunction<T>) BranchCoverageFactory.createBranchCoverageTestFitness(branch, !value);
 	}
 
+	@SuppressWarnings("unchecked")
 	protected FitnessFunction<T> createFitnessFunction(ControlDependency cd) {
 		Branch branch = cd.getBranch();
 		boolean value = cd.getBranchExpressionValue();
 		return (FitnessFunction<T>) BranchCoverageFactory.createBranchCoverageTestFitness(branch, value);
 	}
 
-	protected void calculateProb() {
+	protected void searchParent(ControlDependency cd) {
+		if (!cd.getBranch().getInstruction().getControlDependencies().isEmpty()) {
+			Set<ControlDependency> parentCds = cd.getBranch().getInstruction().getControlDependencies();
+			for (ControlDependency parentCd : parentCds) {
+				goalsToAdd.add(createFitnessFunction(parentCd));
+				searchParent(parentCd);
+			}
+		}
+	}
+
+	protected void checkExceptionProb() {
 		if (this.currentIteration > 30) {
 
-			if (waitIterations > 0) {
-				waitIterations--;
+			if (frozen()) {
+				reduceFrozenIterations();
 				return;
 			}
-			
+
+			FitnessFunction<T> goalToAddToRoot = null;
 			double sumRoot = 0.0;
-			double timesRoot = 0.0;
-			double maxRoot = 0.0;
-			FitnessFunction<T> targetGoalRoot = null;
+			
+			// For root
 			for (Entry<FitnessFunction<T>, Integer> entry : rootExceptionMap.entrySet()) {
-				rootExceptionP.put(entry.getKey(), entry.getValue() * 1.0 / rootCovered);
-			}
-			for (Entry<FitnessFunction<T>, Double> entry : rootExceptionP.entrySet()) {
-				timesRoot = entry.getValue();
-				sumRoot += entry.getValue();
+				double maxRoot = 0.0;
+				double timesRoot = entry.getValue() * 1.0 / rootCoveredTimes;
+				sumRoot += entry.getValue() * 1.0 / rootCoveredTimes;
 				if (timesRoot > maxRoot) {
 					maxRoot = timesRoot;
-					targetGoalRoot = entry.getKey();
+					goalToAddToRoot = entry.getKey();
 				}
-				
-				if (sumRoot > EXCEPTION_THRESHOLD) {
-					if (!addedGoals.contains(targetGoalRoot)) {
-						addedGoals.add(targetGoalRoot);
-						updateRootPath(targetGoalRoot);
-					}
-				}
-//				if (entry.getValue() > 0.3) {
-//					// FOUND
-//					FitnessFunction<T> targetGoalRoot = entry.getKey();
-////					Branch targetBranch = BranchPool
-////							.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-////							.getBranch(branchId);
-////					while (targetBranch.getInstruction().getControlDependentBranch() != null) {
-////						rootBranchs.add(targetBranch.getInstruction().getControlDependentBranch());
-////					}
-////					if (!rootBranchs.contains(targetBranch)) {
-////						rootBranchs.add(targetBranch);
-////						updateRootPath(targetBranch);
-////					}
-//					if (!addedGoals.contains(targetGoalRoot)) {
-//						addedGoals.add(targetGoalRoot);
-//						updateRootPath(targetGoalRoot);
-//					}
-//				}
 			}
 
+			if (sumRoot > EXCEPTION_THRESHOLD) {
+				if (!addedGoals.contains(goalToAddToRoot)) {
+					addedGoals.add(goalToAddToRoot);
+					updateRootPath(goalToAddToRoot);
+					resetFrozenIteration();
+				}
+			}
+
+			// For normal path
 			for (Entry<FitnessFunction<T>, Map<FitnessFunction<T>, Integer>> entry : exceptionMap.entrySet()) {
-				int sum = 0;
-				int times = 0;
-				int max = 0;
-				int coveredTimes = coveredMap.get(entry.getKey());
+				int sumNormal = 0;
+				int timesNormal = 0;
+				int maxNormal = 0;
+				int coveredTimes = 0;
+				if (coveredTimesMap.keySet().iterator().next() instanceof FBranchTestFitness) {
+					coveredTimes = coveredTimesMap.get(new FBranchTestFitness(((BranchCoverageTestFitness) entry.getKey()).getBranchGoal()));
+				} else if (coveredTimesMap.keySet().iterator().next() instanceof BranchCoverageTestFitness) {
+					coveredTimes = coveredTimesMap.get(((BranchCoverageTestFitness) entry.getKey()));
+				}
+
 				FitnessFunction<T> targetGoal = null;
 				FitnessFunction<T> parentGoal = null;
 				Map<FitnessFunction<T>, Integer> exceptionsInGoal = entry.getValue();
 				for (Entry<FitnessFunction<T>, Integer> entry1 : exceptionsInGoal.entrySet()) {
-					times = entry1.getValue();
-					sum += times;
-					if (times > max) {
+					timesNormal = entry1.getValue();
+					sumNormal += timesNormal;
+					if (timesNormal > maxNormal) {
 						targetGoal = entry1.getKey();
 						parentGoal = entry.getKey();
 					}
 				}
-				// FOUND
-				if (sum * 1.0 / coveredTimes > EXCEPTION_THRESHOLD) {
-//					exceptionP.put(entry1.getKey(), (entry1.getValue() * 1.0 / coveredTimes));	
+
+				if (sumNormal * 1.0 / coveredTimes > EXCEPTION_THRESHOLD) {
 					if (!addedGoals.contains(targetGoal)) {
 						addedGoals.add(targetGoal);
 						updateNormalPath(targetGoal, parentGoal);
-						waitIterations = 10;
+						resetFrozenIteration();
 					}
 				}
 			}
 		}
 	}
 
-//	protected void updateRootPath(Branch targetBranch) {
-//		FitnessFunction<T> ff1 = (FitnessFunction<T>) BranchCoverageFactory
-//				.createBranchCoverageTestFitness(targetBranch, true);
-//		FitnessFunction<T> ff2 = (FitnessFunction<T>) BranchCoverageFactory
-//				.createBranchCoverageTestFitness(targetBranch, false);
-//		((MultiCriteriaManager<T>) goalsManager).getBranchFitnessGraph().updateRoot(ff1, ff2);
-//		this.goalsManager.getCurrentGoals().clear();
-//		this.goalsManager.getCurrentGoals().add(ff1);
-//		this.goalsManager.getCurrentGoals().add(ff2);
-//	}
+	private void reduceFrozenIterations() {
+		waitIterations--;
+	}
 
-	protected void updateRootPath(FitnessFunction<T> goal) {
-		((MultiCriteriaManager<T>) goalsManager).getBranchFitnessGraph().updateRoot(goal);
+	private boolean frozen() {
+		return waitIterations > 0;
+	}
+
+	private void resetFrozenIteration() {
+		waitIterations = 10;
+	}
+
+	protected void updateRootPath(FitnessFunction<T> goalToAdd) {
+		((MultiCriteriaManager<T>) goalsManager).getBranchFitnessGraph().updateRoot(goalToAdd);
 		this.goalsManager.getCurrentGoals().clear();
-		this.goalsManager.getCurrentGoals().add(goal);
+		this.goalsManager.getCurrentGoals().add(goalToAdd);
+		rootExceptionMap.clear();
+		rootCoveredTimes = 0;
 	}
 
-	protected void updateNormalPath(FitnessFunction<T> goal, FitnessFunction<T> parentGoal) {
-		BranchFitnessGraph<T, FitnessFunction<T>> graph = ((MultiCriteriaManager<T>) goalsManager)
-				.getBranchFitnessGraph();
-		graph.updatePath(goal, parentGoal);
-		this.goalsManager.getCurrentGoals().add(goal);
-		for (FitnessFunction<T> child : graph.getStructuralChildren(goal)) {
-			this.goalsManager.getCurrentGoals().remove(child);
-		}
+	protected void updateNormalPath(FitnessFunction<T> goalToAdd, FitnessFunction<T> parentGoal) {
+		((MultiCriteriaManager<T>) goalsManager).getBranchFitnessGraph().updatePath(goalToAdd, parentGoal);
+		this.goalsManager.getCurrentGoals().add(goalToAdd);
+//		for (FitnessFunction<T> child : graph.getStructuralChildren(goalToAdd)) {
+//			this.goalsManager.getCurrentGoals().remove(child);
+//		}
+		exceptionMap.get(parentGoal).clear();
+		coveredTimesMap.remove(parentGoal);
 	}
 
+	/**
+	 * check parent after adding a goal
+	 * 
+	 * @return
+	 */
 	protected int checkPotentialNewPath() {
 		Set<BytecodeInstruction> allExits = GraphPool
 				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
@@ -728,20 +588,20 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		Set<BytecodeInstruction> throwExits = allExits;
 		throwExits.removeAll(exits);
 		for (BytecodeInstruction exit : throwExits) {
-				FitnessFunction<T> goal = createFitnessFunction(exit.getControlDependencies().iterator().next());
-				if (!addedGoals.contains(goal)) {
-					while (exit.getControlDependencies().iterator().next() != null) {
-						
-					}
-				}
-				
-				//Inside same method
+			FitnessFunction<T> goal = createFitnessFunction(exit.getControlDependencies().iterator().next());
+			if (!addedGoals.contains(goal)) {
 				while (exit.getControlDependencies().iterator().next() != null) {
-					
+
+				}
+			}
+
+			// Inside same method
+			while (exit.getControlDependencies().iterator().hasNext()) {
+
 //					if (exit.getControlDependentBranch().get)
-					exit.getControlDependencies().iterator().next().getBranch().getInstruction().getControlDependencies();
+				exit.getControlDependencies().iterator().next().getBranch().getInstruction().getControlDependencies();
 			}
 		}
-		return rootCovered;
+		return rootCoveredTimes;
 	}
 }
