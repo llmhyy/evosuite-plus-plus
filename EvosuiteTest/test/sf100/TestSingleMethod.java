@@ -190,13 +190,14 @@ public class TestSingleMethod {
 	public void runGfarcegestionfa() {
 		String projectId = "8_gfarcegestionfa";
 		String[] targetMethods = new String[]{
-				"fr.unice.gfarce.interGraph.ModifTableStockage#fusionnerColonnes(I)Lfr/unice/gfarce/interGraph/TableStockage;"
+//				"fr.unice.gfarce.interGraph.ModifTableStockage#fusionnerColonnes(I)Lfr/unice/gfarce/interGraph/TableStockage;"
+				"fr.unice.gfarce.interGraph.MonFiltre#accept(Ljava/io/File;)Z"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10000;
 		Long seed = 1556814527153L;
 //		Long seed = null;
 		
@@ -250,13 +251,14 @@ public class TestSingleMethod {
 		String[] targetMethods = new String[]{
 //				"dsachat.Main#main([Ljava/lang/String;)V"
 //				"dsachat.gm.gui.InternalGmChatFrame#addText(Ljava/lang/String;)V"
-				"dsachat.gm.gui.MultiHeroTreeModel#getChild(Ljava/lang/Object;I)Ljava/lang/Object;"
+//				"dsachat.gm.gui.MultiHeroTreeModel#getChild(Ljava/lang/Object;I)Ljava/lang/Object;"
+				"dsachat.gm.gui.InternalGmHeroFrame#valueChanged(Ljavax/swing/event/TreeSelectionEvent;)V"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10000;
 //		Long seed = 1556814527153L;
 		Long seed = null;
 		
@@ -285,13 +287,14 @@ public class TestSingleMethod {
 //				"org.databene.jdbacl.model.DBCatalog#getTable(Ljava/lang/String;)Lorg/databene/jdbacl/model/DBTable;"
 //				"org.databene.jdbacl.DBUtil#getConnectData(Ljava/lang/String;)Lorg/databene/commons/JDBCConnectData;"
 //				"org.databene.jdbacl.DBUtil#prepareStatement(Ljava/sql/Connection;Ljava/lang/String;ZIII)Ljava/sql/PreparedStatement;"
-				"org.databene.jdbacl.SQLUtil#mutatesStructure(Ljava/lang/String;)Ljava/lang/Boolean;"
+//				"org.databene.jdbacl.SQLUtil#mutatesStructure(Ljava/lang/String;)Ljava/lang/Boolean;"
+				"org.databene.jdbacl.SQLUtil#mutatesDataOrStructure(Ljava/lang/String;)Ljava/lang/Boolean;"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10000;
 //		Long seed = 1556814527153L;
 		Long seed = null;
 		
@@ -830,7 +833,7 @@ public class TestSingleMethod {
 		String projectId = "44_summa";
 		String[] targetMethods = new String[]{
 //				"org.databene.jdbacl.model.DefaultDatabase#getTable(Ljava/lang/String;Z)Lorg/databene/jdbacl/model/DBTable;" 
-				"dk.statsbiblioteket.summa.ingest.split.XMLSplitterHandler#startElement(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/xml/sax/Attributes;)V"
+//				"dk.statsbiblioteket.summa.ingest.split.XMLSplitterHandler#startElement(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/xml/sax/Attributes;)V"
 //				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
 //				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
 //				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
@@ -838,13 +841,77 @@ public class TestSingleMethod {
 //				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
 //				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
 //				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
+				"dk.statsbiblioteket.summa.common.index.IndexGroup#isMatch(Ljava/lang/String;Ljava/lang/String;)Z"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10000;
+//		Long seed = 1557418276377L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+//		System.out.println("branch" + ":");
+//		printResult(results1);
+	}
+	
+	@Test
+	public void runJiprof() {
+		String projectId = "51_jiprof";
+		String[] targetMethods = new String[]{
+//				"com.mentorgen.tools.profile.output.FrameDump#dump(Ljava/io/PrintWriter;Lcom/mentorgen/tools/profile/runtime/Frame;I)V"
+//				"org.objectweb.asm.jip.commons.GeneratorAdapter#checkCast(Lorg/objectweb/asm/jip/Type;)V"
+		
+		"org.objectweb.asm.jip.commons.GeneratorAdapter#checkCast(Lorg/objectweb/asm/jip/Type;)V"
+				};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1;
+//		Long seed = 1557418276377L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+//		System.out.println("branch" + ":");
+//		printResult(results1);
+	}
+	
+	@Test
+	public void runJhandballmove() {
+		String projectId = "56_jhandballmoves";
+		String[] targetMethods = new String[]{
+				"visu.handball.moves.actions.NewPassEventAction#actionPerformed(Ljava/awt/event/ActionEvent;)V"
+		};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 10000;
 //		Long seed = 1557418276377L;
 		Long seed = null;
 		
@@ -876,7 +943,8 @@ public class TestSingleMethod {
 //				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
 //				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
 //				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
-				"corina.Species#getCode(Ljava/lang/String;)Ljava/lang/String;"
+//				"corina.Species#getCode(Ljava/lang/String;)Ljava/lang/String;"
+				"corina.map.PngEncoderB#pngEncode(Z)[B"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -941,6 +1009,38 @@ public class TestSingleMethod {
 	}
 	
 	@Test
+	public void runLilith() {
+		String projectId = "43_lilith";
+		String[] targetMethods = new String[]{
+//				"de.huxhorn.lilith.data.logging.protobuf.LoggingEventProtobufDecoder#convert(Lde/huxhorn/lilith/data/logging/protobuf/generated/LoggingProto$Message;)Lde/huxhorn/lilith/data/logging/Message;"
+				"de.huxhorn.lilith.data.logging.LoggingEvents#equals(Ljava/lang/Object;)Z"
+//				"de.huxhorn.lilith.data.access.protobuf.AccessEventWrapperProtobufDecoder#convert(Lde/huxhorn/lilith/data/access/protobuf/generated/AccessProto$EventWrapper;)Lde/huxhorn/lilith/data/eventsource/EventWrapper;"
+		};
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 10000;
+		Long seed = 1557418276377L;
+//		seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+		System.out.println("branch" + ":");
+		printResult(results1);
+	}
+	
+	@Test
 	public void runJavathena() {
 		String projectId = "81_javathena";
 		String[] targetMethods = new String[]{
@@ -976,20 +1076,21 @@ public class TestSingleMethod {
 		String[] targetMethods = new String[]{
 //				"com.gbshape.dbe.struts.action.SQLQueryAction#execute(Lorg/apache/struts/action/ActionMapping;Lorg/apache/struts/action/ActionForm;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)Lorg/apache/struts/action/ActionForward;"
 //				"com.gbshape.dbe.utils.DBEHelper#getConnection(Lcom/gbshape/dbe/struts/bean/DBDataBean;)Ljava/sql/Connection;"
-				"com.gbshape.dbe.struts.action.LoginAction#execute(Lorg/apache/struts/action/ActionMapping;Lorg/apache/struts/action/ActionForm;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)Lorg/apache/struts/action/ActionForward;"
-				};
+//				"com.gbshape.dbe.struts.action.LoginAction#execute(Lorg/apache/struts/action/ActionMapping;Lorg/apache/struts/action/ActionForm;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)Lorg/apache/struts/action/ActionForward;"
+				"com.gbshape.dbe.factory.DataBaseFactory#getInstance(Ljava/lang/String;)Lcom/gbshape/dbe/idb/DataBase;"
+		};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 1000;
 //		Long seed = 1557418276377L;
 		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-//		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
 		fitnessApproach = "branch";
 //		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
@@ -1072,27 +1173,28 @@ public class TestSingleMethod {
 //				"weka.filters.unsupervised.attribute.ReplaceMissingWithUserConstant#input(Lweka/core/Instance;)Z"
 //				"weka.classifiers.bayes.net.search.SearchAlgorithm#reverseArcMakesSense(Lweka/classifiers/bayes/BayesNet;Lweka/core/Instances;II)Z"
 //				"weka.attributeSelection.AttributeSelection#setSearch(Lweka/attributeSelection/ASSearch)V"
-				"weka.classifiers.trees.m5.CorrelationSplitInfo#attrSplit(ILweka/core/Instances;)V"
+//				"weka.classifiers.trees.m5.CorrelationSplitInfo#attrSplit(ILweka/core/Instances;)V"
 //				"weka.Run#main([Ljava/lang/String;)V"
+				"org.apache.commons.compress.archivers.dump.TapeInputStream#skip(J)J"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100000;
+		int budget = 30;
 //		Long seed = 1556171038486L;
 		Long seed = null;
 		
-		String fitnessApproach = "branch";
-//		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
-//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-//		TempGlobalVariables.seeds = checkRandomSeeds(results0);
-		
-		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-		
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+//		
+//		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		
 		System.out.println("fbranch" + ":");
 		printResult(results0);
 //		System.out.println("branch" + ":");

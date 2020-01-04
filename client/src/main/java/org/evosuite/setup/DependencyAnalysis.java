@@ -31,6 +31,7 @@ import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.mutation.MutationPool;
 import org.evosuite.graphs.cfg.CFGMethodAdapter;
+import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.instrumentation.LinePool;
 import org.evosuite.junit.CoverageAnalysis;
 import org.evosuite.rmi.ClientServices;
@@ -129,6 +130,12 @@ public class DependencyAnalysis {
 			ClassNotFoundException {
 
 		initInheritanceTree(classPath);
+		
+		// Parse the data flow before generating tests
+		if (Properties.APPLY_OBJECT_RULE) {
+			Dataflow.initializeDataflow();
+		}
+		
 		analyze(className, classPath);
 	}
 

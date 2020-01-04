@@ -40,7 +40,7 @@ import org.objectweb.asm.tree.analysis.Value;
 
 public class Dataflow {
 	/**
-	 * a map maintains what variables are dependent by which branch, method->branch->dependant variable
+	 * a map maintains what variables are dependent by which branch, method->branch->dependent variables
 	 * 
 	 */
 	public static Map<String, Map<Branch, List<DepVariable>>> branchDepVarsMap = new HashMap<>();
@@ -204,7 +204,7 @@ public class Dataflow {
 				}
 				
 				/**
-				 *  handle load/get static, need to put the variale into the return list
+				 *  handle load/get static, need to put the variable into the return list
 				 */
 				if(outputVar.isStaticField() || outputVar.isInstaceField()) {
 					allDepVars.add(outputVar);
