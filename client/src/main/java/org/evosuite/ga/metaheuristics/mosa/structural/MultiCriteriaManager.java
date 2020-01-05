@@ -394,6 +394,7 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 			if (past_size == visitedTargets.size())
 				continue;
 
+			//TODO context-sensitive, may need call graph
 			double value = fitnessFunction.getFitness(c);
 			
 			// Current goal has been covered, fitness = 0

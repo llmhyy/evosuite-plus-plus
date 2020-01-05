@@ -36,6 +36,7 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.Chromosome;
@@ -73,7 +74,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	private static final long serialVersionUID = 146182080947267628L;
 
 	private static final Logger logger = LoggerFactory.getLogger(DynaMOSA.class);
-	private static final double EXCEPTION_THRESHOLD = 0.9;
+	private static final double EXCEPTION_THRESHOLD = 0.5;
 	private static int waitIterations = 0;
 
 	/** Manager to determine the test goals to consider at each generation */
@@ -86,19 +87,19 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	/**
 	 * map for all covered goals
 	 */
-	Map<FitnessFunction<T>, Integer> coveredTimesMap = new HashMap<>();
+	private Map<FitnessFunction<T>, Integer> coveredTimesMap = new HashMap<>();
 
 	/**
 	 * goals added to the tree
 	 */
-	Set<FitnessFunction<T>> addedGoals = new HashSet<FitnessFunction<T>>();
-	FitnessFunction<T> ff = null;
+	private Set<FitnessFunction<T>> addedGoals = new HashSet<FitnessFunction<T>>();
+
 	// GoalToEnhance -> <GoalToAdd, ExceptionTimes>
-	Map<FitnessFunction<T>, Map<FitnessFunction<T>, Integer>> exceptionMap = new HashMap<>();
-	int rootCoveredTimes = 0;
-	Map<FitnessFunction<T>, Integer> rootExceptionMap = new HashMap<>();
-	Set<FitnessFunction<T>> goalsToAdd = new HashSet<FitnessFunction<T>>();
-	FitnessFunction<T> edgeInTarget = null;
+	private Map<FitnessFunction<T>, Map<FitnessFunction<T>, Integer>> exceptionMap = new HashMap<>();
+	private int rootCoveredTimes = 0;
+	private Map<FitnessFunction<T>, Integer> rootExceptionMap = new HashMap<>();
+	private Set<FitnessFunction<T>> goalsToAdd = new HashSet<FitnessFunction<T>>();
+	private FitnessFunction<T> edgeInTarget = null;
 
 	/**
 	 * Constructor based on the abstract class {@link AbstractMOSA}.
@@ -376,7 +377,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 					cds = ins.getControlDependencies();
 					for (ControlDependency cd : cds) {
 						// precaution to prevent wrongly add goals
-						for (FitnessFunction<T> addedGoal: addedGoals) {
+						for (FitnessFunction<T> addedGoal : addedGoals) {
 							if (((BranchCoverageTestFitness) addedGoal).getBranch() == cd.getBranch()) {
 								return;
 							}
@@ -405,9 +406,9 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 						.getAllInstructionsAtLineNumber(element.getClassName(), Properties.TARGET_METHOD, targetLine);
 				Set<ControlDependency> cds = insList.get(0).getControlDependencies();
 
-				if (!addedGoals.isEmpty()) {
-					checkPotentialNewPath();
-				}
+//				if (!addedGoals.isEmpty()) {
+//					checkPotentialNewPath();
+//				}
 
 				// ROOT
 				if (cds == null || cds.isEmpty()) {
@@ -438,7 +439,6 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	 * @param goals
 	 * @param value
 	 */
-	@SuppressWarnings("unchecked")
 	protected void addCoveredTimes(Map<Integer, Integer> goals, boolean value) {
 		for (Integer goal : goals.keySet()) {
 			for (FitnessFunction<T> ff : fitnessFunctions) {
@@ -458,14 +458,32 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	protected FitnessFunction<T> createOppFitnessFunction(ControlDependency cd) {
 		Branch branch = cd.getBranch();
 		boolean value = cd.getBranchExpressionValue();
-		return (FitnessFunction<T>) BranchCoverageFactory.createBranchCoverageTestFitness(branch, !value);
+		Class clazz = checkCriterion();
+		BranchCoverageGoal goal = new BranchCoverageGoal(branch, !value, cd.getBranch().getClassName(),
+				cd.getBranch().getMethodName());
+		if (clazz.equals(BranchCoverageTestFitness.class)) {
+			return (FitnessFunction<T>) BranchCoverageFactory.createBranchCoverageTestFitness(branch, !value);
+		} else if (clazz.equals(FBranchTestFitness.class)) {
+			return (FitnessFunction<T>) new FBranchTestFitness(goal);
+		} else {
+			return null;
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	protected FitnessFunction<T> createFitnessFunction(ControlDependency cd) {
 		Branch branch = cd.getBranch();
 		boolean value = cd.getBranchExpressionValue();
-		return (FitnessFunction<T>) BranchCoverageFactory.createBranchCoverageTestFitness(branch, value);
+		Class clazz = checkCriterion();
+		BranchCoverageGoal goal = new BranchCoverageGoal(branch, value, cd.getBranch().getClassName(),
+				cd.getBranch().getMethodName());
+		if (clazz.equals(BranchCoverageTestFitness.class)) {
+			return (FitnessFunction<T>) BranchCoverageFactory.createBranchCoverageTestFitness(branch, !value);
+		} else if (clazz.equals(FBranchTestFitness.class)) {
+			return (FitnessFunction<T>) new FBranchTestFitness(goal);
+		} else {
+			return null;
+		}
 	}
 
 	protected void searchParent(ControlDependency cd) {
@@ -486,60 +504,69 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 				return;
 			}
 
-			FitnessFunction<T> goalToAddToRoot = null;
-			double sumRoot = 0.0;
-			
-			// For root
-			for (Entry<FitnessFunction<T>, Integer> entry : rootExceptionMap.entrySet()) {
-				double maxRoot = 0.0;
-				double timesRoot = entry.getValue() * 1.0 / rootCoveredTimes;
-				sumRoot += entry.getValue() * 1.0 / rootCoveredTimes;
-				if (timesRoot > maxRoot) {
-					maxRoot = timesRoot;
-					goalToAddToRoot = entry.getKey();
+			checkRootPathException();
+
+			checkNormalPathException();
+		}
+	}
+
+	private void checkNormalPathException() {
+		int sumNormal = 0;
+		int maxNormal = 0;
+		for (Entry<FitnessFunction<T>, Map<FitnessFunction<T>, Integer>> entry : exceptionMap.entrySet()) {
+			int timesNormal = 0;
+			int coveredTimes = 0;
+			if (coveredTimesMap.keySet().iterator().next() instanceof FBranchTestFitness) {
+				coveredTimes = coveredTimesMap
+						.get(new FBranchTestFitness(((BranchCoverageTestFitness) entry.getKey()).getBranchGoal()));
+			} else if (coveredTimesMap.keySet().iterator().next() instanceof BranchCoverageTestFitness) {
+				coveredTimes = coveredTimesMap.get(((BranchCoverageTestFitness) entry.getKey()));
+			}
+
+			FitnessFunction<T> targetGoal = null;
+			FitnessFunction<T> parentGoal = null;
+			Map<FitnessFunction<T>, Integer> exceptionsInGoal = entry.getValue();
+			for (Entry<FitnessFunction<T>, Integer> entry1 : exceptionsInGoal.entrySet()) {
+				if (addedGoals.contains(entry1.getKey())) {
+					continue;
+				}
+				timesNormal = entry1.getValue();
+				sumNormal += timesNormal;
+				if (timesNormal > maxNormal) {
+					targetGoal = entry1.getKey();
+					parentGoal = entry.getKey();
 				}
 			}
 
-			if (sumRoot > EXCEPTION_THRESHOLD) {
-				if (!addedGoals.contains(goalToAddToRoot)) {
-					addedGoals.add(goalToAddToRoot);
-					updateRootPath(goalToAddToRoot);
+			if (sumNormal * 1.0 / coveredTimes > EXCEPTION_THRESHOLD) {
+					addedGoals.add(targetGoal);
+					updateNormalPath(targetGoal, parentGoal);
 					resetFrozenIteration();
 				}
+		}
+	}
+
+	private void checkRootPathException() {
+		FitnessFunction<T> goalToAddToRoot = null;
+		double sumRoot = 0.0;
+		double maxRoot = 0.0;
+		// For root
+		for (Entry<FitnessFunction<T>, Integer> entry : rootExceptionMap.entrySet()) {
+			if (addedGoals.contains(entry.getKey())) {
+				continue;
 			}
-
-			// For normal path
-			for (Entry<FitnessFunction<T>, Map<FitnessFunction<T>, Integer>> entry : exceptionMap.entrySet()) {
-				int sumNormal = 0;
-				int timesNormal = 0;
-				int maxNormal = 0;
-				int coveredTimes = 0;
-				if (coveredTimesMap.keySet().iterator().next() instanceof FBranchTestFitness) {
-					coveredTimes = coveredTimesMap.get(new FBranchTestFitness(((BranchCoverageTestFitness) entry.getKey()).getBranchGoal()));
-				} else if (coveredTimesMap.keySet().iterator().next() instanceof BranchCoverageTestFitness) {
-					coveredTimes = coveredTimesMap.get(((BranchCoverageTestFitness) entry.getKey()));
-				}
-
-				FitnessFunction<T> targetGoal = null;
-				FitnessFunction<T> parentGoal = null;
-				Map<FitnessFunction<T>, Integer> exceptionsInGoal = entry.getValue();
-				for (Entry<FitnessFunction<T>, Integer> entry1 : exceptionsInGoal.entrySet()) {
-					timesNormal = entry1.getValue();
-					sumNormal += timesNormal;
-					if (timesNormal > maxNormal) {
-						targetGoal = entry1.getKey();
-						parentGoal = entry.getKey();
-					}
-				}
-
-				if (sumNormal * 1.0 / coveredTimes > EXCEPTION_THRESHOLD) {
-					if (!addedGoals.contains(targetGoal)) {
-						addedGoals.add(targetGoal);
-						updateNormalPath(targetGoal, parentGoal);
-						resetFrozenIteration();
-					}
-				}
+			double timesRoot = entry.getValue() * 1.0 / rootCoveredTimes;
+			sumRoot += entry.getValue() * 1.0 / rootCoveredTimes;
+			if (timesRoot > maxRoot) {
+				maxRoot = timesRoot;
+				goalToAddToRoot = entry.getKey();
 			}
+		}
+
+		if (sumRoot > EXCEPTION_THRESHOLD) {
+				addedGoals.add(goalToAddToRoot);
+				updateRootPath(goalToAddToRoot);
+				resetFrozenIteration();
 		}
 	}
 
@@ -571,6 +598,21 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 //		}
 		exceptionMap.get(parentGoal).clear();
 		coveredTimesMap.remove(parentGoal);
+	}
+
+	@SuppressWarnings("rawtypes")
+	protected Class checkCriterion() {
+		for (Properties.Criterion criterion : Properties.CRITERION) {
+			switch (criterion) {
+			case FBRANCH:
+				return FBranchTestFitness.class;
+			case BRANCH:
+				return BranchCoverageTestFitness.class;
+			default:
+				return null;
+			}
+		}
+		return null;
 	}
 
 	/**
