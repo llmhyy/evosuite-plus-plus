@@ -317,15 +317,13 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 				goalsToAdd = new HashSet<FitnessFunction<T>>();
 
 				retrieveGoalsToAdd(thrownException);
-//				population.getFitnessValues()
 				if (goalsToAdd != null && !goalsToAdd.isEmpty()) {
-
 					for (FitnessFunction<T> goalToAdd : goalsToAdd) {
 						boolean foundInTarget = getEdgeInTargetMethod(thrownException);
 
 						// Invoked by target
 						if (foundInTarget) {
-							// Root
+							// Root path
 							if (edgeInTarget == null) {
 								if (rootExceptionMap.get(goalToAdd) == null) {
 									rootExceptionMap.put(goalToAdd, 1);
@@ -333,7 +331,9 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 									rootExceptionMap.replace(goalToAdd, rootExceptionMap.get(goalToAdd) + 1);
 								}
 
-							} else {
+							}
+							// Normal path
+							else {
 								if (exceptionMap.get(edgeInTarget) == null
 										|| exceptionMap.get(edgeInTarget).get(goalToAdd) == null) {
 									Map<FitnessFunction<T>, Integer> toAddMap = new HashMap<>();
@@ -350,7 +350,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 						// TODO: handle exception before target
 						// Some insights: can be parallel, added to the root path, breakthru one by one;
 						else {
-
+							
 						}
 					}
 
@@ -363,6 +363,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	}
 
 	protected void retrieveGoalsToAdd(Throwable exception) {
+		//TODO consider the case where the throw statement/instruction does not have control dependency
 		Set<ControlDependency> cds = new HashSet<ControlDependency>();
 		MockFramework.disable();
 		StackTraceElement[] stack = exception.getStackTrace();
@@ -410,7 +411,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 //					checkPotentialNewPath();
 //				}
 
-				// ROOT
+				// Root
 				if (cds == null || cds.isEmpty()) {
 					edgeInTarget = null;
 //					checkPotentialNewPath();
@@ -454,7 +455,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected FitnessFunction<T> createOppFitnessFunction(ControlDependency cd) {
 		Branch branch = cd.getBranch();
 		boolean value = cd.getBranchExpressionValue();
@@ -470,7 +471,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected FitnessFunction<T> createFitnessFunction(ControlDependency cd) {
 		Branch branch = cd.getBranch();
 		boolean value = cd.getBranchExpressionValue();
@@ -505,7 +506,6 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			}
 
 			checkRootPathException();
-
 			checkNormalPathException();
 		}
 	}
@@ -593,9 +593,9 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	protected void updateNormalPath(FitnessFunction<T> goalToAdd, FitnessFunction<T> parentGoal) {
 		((MultiCriteriaManager<T>) goalsManager).getBranchFitnessGraph().updatePath(goalToAdd, parentGoal);
 		this.goalsManager.getCurrentGoals().add(goalToAdd);
-//		for (FitnessFunction<T> child : graph.getStructuralChildren(goalToAdd)) {
-//			this.goalsManager.getCurrentGoals().remove(child);
-//		}
+		for (FitnessFunction<T> child : ((MultiCriteriaManager<T>) goalsManager).getBranchFitnessGraph().getStructuralChildren(goalToAdd)) {
+			this.goalsManager.getCurrentGoals().remove(child);
+		}
 		exceptionMap.get(parentGoal).clear();
 		coveredTimesMap.remove(parentGoal);
 	}

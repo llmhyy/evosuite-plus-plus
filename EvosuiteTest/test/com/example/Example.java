@@ -141,23 +141,38 @@ public class Example {
 		}
 	}
 
-	public static int test(int a, int b) {
-
-		if (a < b) {
+	public static int test(int a, int b) throws Exception {
+//
+//		if (a < b) {
+//			if (b - a < 19000) {
+//				throw new Exception("DDD");
+//			}
+		if (a != b) {
 			rangeCheck(a, b);
-			rangeCheck1(a, b);
+//			rangeCheck1(a, b);
 			if (b - a < 10) {
 				if (b - a < 3) {
 					return a;
 				}
 			}
 		}
+//		}
 		return -1;
 	}
 
 	public static void rangeCheck(int a, int b) {
-		if (b <= 5000) {
+//		if (b <= 0) {
+//			return;
+//		}
+//		if (b >= 5000) {
+//			return;
+//		}
+//		if (b <= 4999) {
+		if (b <= 10000) {
 			throw new IllegalArgumentException("TEST");
+		}
+		if (b <= 20000) {
+			throw new IllegalArgumentException("TTT");
 		}
 	}
 
