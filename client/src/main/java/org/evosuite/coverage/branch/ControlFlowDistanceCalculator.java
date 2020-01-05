@@ -123,9 +123,6 @@ public class ControlFlowDistanceCalculator {
 		}
 		else {
 			if (result.getTrace().getCoveredFalseBranches().contains(branch.getActualBranchId())) 
-//				if (branch.getMethodName().equals(branch.getMethodName()) || result.getTrace().) {
-//					}
-//			}
                 return new ControlFlowDistance(0, 0.0);
 		}
 
@@ -331,7 +328,7 @@ public class ControlFlowDistanceCalculator {
 
 		Set<ControlFlowDistance> r = new HashSet<ControlFlowDistance>();
 		Set<ControlDependency> nextToLookAt = instruction.getControlDependencies();
-		//TODO cdg needs to be altered?
+		//TODO adopt another way to calculate branch distance?
 		for (ControlDependency next : nextToLookAt) {
 			if (instruction.equals(next.getBranch().getInstruction()))
 				continue; // avoid loops

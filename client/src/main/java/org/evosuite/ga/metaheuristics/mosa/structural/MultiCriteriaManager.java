@@ -387,7 +387,6 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 
 		while (targets.size()>0){
 			FitnessFunction<T> fitnessFunction = targets.poll();
-//			Set<FitnessFunction<T>> temp = graph.getStructuralChildren(fitnessFunction);
 
 			int past_size = visitedTargets.size();
 			visitedTargets.add(fitnessFunction);

@@ -173,23 +173,6 @@ public class BranchFitnessGraph<T extends Chromosome, V extends FitnessFunction<
 		return parents;
 	}
 	
-//	public void updateRoot(FitnessFunction<T> trueGoal, FitnessFunction<T> falseGoal) {
-//		Set<FitnessFunction<T>> prevRoots = this.rootBranches;
-//
-//		graph.addVertex(trueGoal);
-//		graph.addVertex(falseGoal);
-//
-//		for (FitnessFunction<T> prevR : prevRoots) {
-//			graph.addEdge(trueGoal, prevR);
-//			graph.addEdge(falseGoal, prevR);
-//		}
-//
-//		this.rootBranches.clear();
-//		this.rootBranches.add(trueGoal);
-//		this.rootBranches.add(falseGoal);
-//
-//	}
-	
 	public void updateRoot(FitnessFunction<T> goal) {
 		Set<FitnessFunction<T>> prevRoots = this.rootBranches;
 
