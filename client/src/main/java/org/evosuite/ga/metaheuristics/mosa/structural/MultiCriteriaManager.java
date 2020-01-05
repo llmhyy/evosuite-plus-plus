@@ -393,15 +393,22 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 			if (past_size == visitedTargets.size())
 				continue;
 
+			//TODO context-sensitive, may need call graph
 			double value = fitnessFunction.getFitness(c);
+			
+			// Current goal has been covered, fitness = 0
+			// 25.0 for not reached
 			if (value == 0.0) {
 				updateCoveredGoals(fitnessFunction, c);
 				if (fitnessFunction instanceof BranchCoverageTestFitness){
 					for (FitnessFunction<T> child : graph.getStructuralChildren(fitnessFunction)){
+						// Set current goal
 						targets.addLast(child);
 					}
-					for (FitnessFunction<T> dependentTarget : dependencies.get(fitnessFunction)){
-						targets.addLast(dependentTarget);
+					if (dependencies.get(fitnessFunction) != null) {
+						for (FitnessFunction<T> dependentTarget : dependencies.get(fitnessFunction)) {
+							targets.addLast(dependentTarget);
+						}
 					}
 				}
 			} else {
@@ -514,5 +521,9 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 		this.initializeMaps(setOfBranches);
 
 		return new BranchFitnessGraph<T, FitnessFunction<T>>(setOfBranches);
+	}
+	
+	public BranchFitnessGraph<T, FitnessFunction<T>> getBranchFitnessGraph() {
+		return graph;
 	}
 }

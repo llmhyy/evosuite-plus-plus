@@ -16,7 +16,7 @@ public class BasicTest {
 		int parameterNum = 1;
 		
 		String targetClass = clazz.getCanonicalName();
-		Method method = TestUility.getTragetMethod(methodName, clazz, parameterNum);
+		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -30,7 +30,7 @@ public class BasicTest {
 		Properties.TIMEOUT = 10000000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "fbranch";
+		String fitnessApproach = "branch";
 		
 		int timeBudget = 10000;
 		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);

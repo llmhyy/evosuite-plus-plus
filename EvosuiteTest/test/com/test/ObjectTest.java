@@ -18,7 +18,7 @@ public class ObjectTest extends TestUility{
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
-		Method method = TestUility.getTragetMethod(methodName, clazz, parameterNum);
+		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";

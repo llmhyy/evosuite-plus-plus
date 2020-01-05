@@ -135,7 +135,7 @@ public class TestUility {
 		return calls.toString();
 	}
 
-	public static Method getTragetMethod(String name, Class<?> clazz, int parameterNum) {
+	public static Method getTargetMethod(String name, Class<?> clazz, int parameterNum) {
 		for (Method method : clazz.getDeclaredMethods()) {
 			if (method.getName().equals(name) && method.getParameterCount() == parameterNum) {
 				return method;

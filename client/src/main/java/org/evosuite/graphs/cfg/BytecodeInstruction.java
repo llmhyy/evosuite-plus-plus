@@ -21,6 +21,7 @@ package org.evosuite.graphs.cfg;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -493,6 +494,16 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 			return cd.getBranch();
 
 		return null; // root branch
+	}
+	
+	public Set<Branch> getControlDependentBranches() {
+
+		Set<ControlDependency> controlDependentBranches = getControlDependencies();
+		Set<Branch> branchs = new HashSet<Branch>();
+		for (ControlDependency cd : controlDependentBranches) {
+			branchs.add(cd.getBranch());
+		}
+		return branchs;
 	}
 
 	/**
