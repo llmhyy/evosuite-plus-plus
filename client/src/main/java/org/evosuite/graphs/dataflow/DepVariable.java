@@ -25,11 +25,11 @@ public class DepVariable {
 	
 	private int type;
 	
-	public static int PARAMETER = 0;
-	public static int STATIC_FIELD = 1;
-	public static int INSTANCE_FIELD = 2;
-	public static int THIS = 3;
-	public static int OTHER = 4;
+	public static final int PARAMETER = 0;
+	public static final int STATIC_FIELD = 1;
+	public static final int INSTANCE_FIELD = 2;
+	public static final int THIS = 3;
+	public static final int OTHER = 4;
 	
 	private Map<String, List<DepVariable>> relations = new HashMap<String, List<DepVariable>>();
 	private Map<String, List<DepVariable>> reverseRelations = new HashMap<String, List<DepVariable>>();

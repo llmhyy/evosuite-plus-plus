@@ -357,6 +357,19 @@ public class RawControlFlowGraph extends ControlFlowGraph<BytecodeInstruction> {
 
 	}
 
+	public Set<BytecodeInstruction> determineAllExitPoints() {
+
+		Set<BytecodeInstruction> exits = new HashSet<BytecodeInstruction>();
+		exits.addAll(super.determineExitPoints());
+		
+		for (BytecodeInstruction methodCall : determineMethodCalls()) {
+			exits.addAll(methodCall.getCalledCFG().determineExitPoints());
+		}
+
+		return exits;
+
+	}
+
 	/**
 	 * <p>
 	 * getInstructionWithSmallestId

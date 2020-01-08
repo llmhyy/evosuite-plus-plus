@@ -122,7 +122,7 @@ public class ControlFlowDistanceCalculator {
 				return new ControlFlowDistance(0, 0.0);
 		}
 		else {
-			if (result.getTrace().getCoveredFalseBranches().contains(branch.getActualBranchId()))
+			if (result.getTrace().getCoveredFalseBranches().contains(branch.getActualBranchId())) 
                 return new ControlFlowDistance(0, 0.0);
 		}
 
@@ -328,7 +328,7 @@ public class ControlFlowDistanceCalculator {
 
 		Set<ControlFlowDistance> r = new HashSet<ControlFlowDistance>();
 		Set<ControlDependency> nextToLookAt = instruction.getControlDependencies();
-
+		//TODO adopt another way to calculate branch distance?
 		for (ControlDependency next : nextToLookAt) {
 			if (instruction.equals(next.getBranch().getInstruction()))
 				continue; // avoid loops

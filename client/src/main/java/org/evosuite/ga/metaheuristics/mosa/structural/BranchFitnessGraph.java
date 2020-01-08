@@ -172,4 +172,33 @@ public class BranchFitnessGraph<T extends Chromosome, V extends FitnessFunction<
 		}
 		return parents;
 	}
+	
+	public void updateRoot(FitnessFunction<T> goal) {
+		Set<FitnessFunction<T>> prevRoots = this.rootBranches;
+
+		graph.addVertex(goal);
+
+		for (FitnessFunction<T> prevR : prevRoots) {
+			graph.addEdge(goal, prevR);
+		}
+
+		this.rootBranches.clear();
+		this.rootBranches.add(goal);
+	}
+	
+	public void updatePath(FitnessFunction<T> goal, FitnessFunction<T> parentGoal) {
+		Set<FitnessFunction<T>> prevChildren = getStructuralChildren(parentGoal);
+		
+		graph.addVertex(goal);
+		
+		for (FitnessFunction<T> prevChild : prevChildren) {
+			graph.removeEdge(parentGoal, prevChild);
+		}
+		
+		for (FitnessFunction<T> prevChild : prevChildren) {
+			graph.addEdge(goal, prevChild);
+		}
+		
+		graph.addEdge(parentGoal, goal);
+	}
 }

@@ -121,9 +121,12 @@ public class TestSuiteGenerator {
 		File f = new File(list.get(0));
 		f.getAbsoluteFile();
 
+		
 		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
 		LoggingUtils.getEvoLogger()
 				.info("* " + ClientProcess.getPrettyPrintIdentifier() + "Finished analyzing classpath");
+		
+		
 	}
 
 	/**
@@ -698,11 +701,6 @@ public class TestSuiteGenerator {
 	private TestSuiteChromosome generateTests() {
 		// Make sure target class is loaded at this point
 		TestCluster.getInstance();
-
-		// Parse the data flow before generating tests
-		if (Properties.APPLY_OBJECT_RULE) {
-			Dataflow.initializeDataflow();
-		}
 
 		ContractChecker checker = null;
 		if (Properties.CHECK_CONTRACTS) {

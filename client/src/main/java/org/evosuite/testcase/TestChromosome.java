@@ -547,6 +547,8 @@ public class TestChromosome extends ExecutableChromosome {
 				else {
 					double ram = Randomness.nextDouble();
 					double pl = 0;
+					
+					// After 30 iterations
 					if(!MutationPositionDiscriminator.discriminator.isFrozen() && test.size()>0) {
 						if(oldPosition < mutationProbability.length) {
 							/**

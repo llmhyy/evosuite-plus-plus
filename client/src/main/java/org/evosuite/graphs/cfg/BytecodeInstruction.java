@@ -21,6 +21,7 @@ package org.evosuite.graphs.cfg;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -493,6 +494,16 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 			return cd.getBranch();
 
 		return null; // root branch
+	}
+	
+	public Set<Branch> getControlDependentBranches() {
+
+		Set<ControlDependency> controlDependentBranches = getControlDependencies();
+		Set<Branch> branchs = new HashSet<Branch>();
+		for (ControlDependency cd : controlDependentBranches) {
+			branchs.add(cd.getBranch());
+		}
+		return branchs;
 	}
 
 	/**
@@ -1373,20 +1384,18 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		return getLineNumber() - o.getLineNumber();
 	}
 
-	
 	public int getOperandNum() {
 		if(this.asmNode.getType() == AbstractInsnNode.FIELD_INSN) {
 			if(this.asmNode.getOpcode() == Opcodes.GETSTATIC || this.asmNode.getOpcode() == Opcodes.PUTSTATIC) {
 				return 0;
 			}
-			else {
+			else if (this.asmNode.getOpcode() == Opcodes.GETFIELD || this.asmNode.getOpcode() == Opcodes.PUTFIELD) {
 				return 1;
 			}
 		}
-		else if(this.asmNode.getType() == AbstractInsnNode.INVOKE_DYNAMIC_INSN) {
-			//TODO for ziheng
-			return this.getCalledMethodsArgumentCount();
-		}
+//		else if(this.asmNode.getType() == AbstractInsnNode.INVOKE_DYNAMIC_INSN) {
+//			return this.getCalledMethodsArgumentCount();
+//		}
 		else if(this.asmNode.getType() == AbstractInsnNode.METHOD_INSN) {
 			if(this.isCallToStaticMethod()) {
 				return this.getCalledMethodsArgumentCount();
@@ -1394,6 +1403,9 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 			else {
 				return this.getCalledMethodsArgumentCount() + 1;
 			}
+		}
+		else if (this.asmNode.getOpcode() == Opcodes.NEW) {
+			return 0;
 		}
 		else if(this.asmNode.getType() == AbstractInsnNode.TYPE_INSN) {
 			return 1;
@@ -1413,80 +1425,114 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		else if(this.isArrayStoreInstruction()) {
 			return 3;
 		}
+		else if (this.isConstant()) {
+			return 0;
+		}
 		else if(this.isCheckCast()) {
 			return 1;
 		}
 		else if(this.isCheckAlgorithmic()) {
 			return 2;
 		}
-		else if(this.asmNode.getOpcode() == Opcode.NEWARRAY) {
+		else if(this.asmNode.getOpcode() == Opcodes.ACONST_NULL) {
+			return 0;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.CHECKCAST) {
 			return 1;
 		}
-		else if(this.asmNode.getOpcode() == Opcode.ARRAYLENGTH) {
-			return 1;
-		}
-		else if(this.asmNode.getOpcode() == Opcode.ATHROW) {
-			return 1;
-		}
-		else if(this.asmNode.getOpcode() == Opcode.IADD || this.asmNode.getOpcode() == Opcode.FADD
-				|| this.asmNode.getOpcode() == Opcode.IADD || this.asmNode.getOpcode() == Opcode.LAND
-				|| this.asmNode.getOpcode() == Opcode.IDIV || this.asmNode.getOpcode() == Opcode.DDIV
-				|| this.asmNode.getOpcode() == Opcode.FDIV || this.asmNode.getOpcode() == Opcode.LDIV
-				|| this.asmNode.getOpcode() == Opcode.IMUL || this.asmNode.getOpcode() == Opcode.DMUL
-				|| this.asmNode.getOpcode() == Opcode.FMUL || this.asmNode.getOpcode() == Opcode.LMUL
-				|| this.asmNode.getOpcode() == Opcode.INEG || this.asmNode.getOpcode() == Opcode.DNEG
-				|| this.asmNode.getOpcode() == Opcode.FNEG || this.asmNode.getOpcode() == Opcode.LNEG
-				|| this.asmNode.getOpcode() == Opcode.IREM || this.asmNode.getOpcode() == Opcode.DREM
-				|| this.asmNode.getOpcode() == Opcode.FREM || this.asmNode.getOpcode() == Opcode.LREM
-				|| this.asmNode.getOpcode() == Opcode.ISUB || this.asmNode.getOpcode() == Opcode.DSUB
-				|| this.asmNode.getOpcode() == Opcode.FSUB || this.asmNode.getOpcode() == Opcode.LSUB) {
+		else if (this.asmNode.getOpcode() == Opcodes.DCMPG || this.asmNode.getOpcode() == Opcodes.DCMPL
+				|| this.asmNode.getOpcode() == Opcodes.FCMPG || this.asmNode.getOpcode() == Opcodes.FCMPL) {
 			return 2;
 		}
-		else if(this.asmNode.getOpcode() == Opcode.DUP) {
+		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
 			return 1;
 		}
-		else if(this.asmNode.getOpcode() == Opcode.DUP2) {
+		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.ARRAYLENGTH) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.ATHROW) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.IADD || this.asmNode.getOpcode() == Opcodes.FADD
+				|| this.asmNode.getOpcode() == Opcodes.IADD
+				|| this.asmNode.getOpcode() == Opcodes.IDIV || this.asmNode.getOpcode() == Opcodes.DDIV
+				|| this.asmNode.getOpcode() == Opcodes.FDIV || this.asmNode.getOpcode() == Opcodes.LDIV
+				|| this.asmNode.getOpcode() == Opcodes.IMUL || this.asmNode.getOpcode() == Opcodes.DMUL
+				|| this.asmNode.getOpcode() == Opcodes.FMUL || this.asmNode.getOpcode() == Opcodes.LMUL
+				|| this.asmNode.getOpcode() == Opcodes.IREM || this.asmNode.getOpcode() == Opcodes.DREM
+				|| this.asmNode.getOpcode() == Opcodes.FREM || this.asmNode.getOpcode() == Opcodes.LREM
+				|| this.asmNode.getOpcode() == Opcodes.ISUB || this.asmNode.getOpcode() == Opcodes.DSUB
+				|| this.asmNode.getOpcode() == Opcodes.FSUB || this.asmNode.getOpcode() == Opcodes.LSUB) {
 			return 2;
 		}
-		else if(this.asmNode.getOpcode() == Opcode.DUP_X1) {
+		else if (this.asmNode.getOpcode() == Opcodes.INEG || this.asmNode.getOpcode() == Opcodes.DNEG
+				|| this.asmNode.getOpcode() == Opcodes.FNEG || this.asmNode.getOpcode() == Opcodes.LNEG) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.DUP) {
+			return 1;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.DUP2) {
 			return 2;
 		}
-		else if(this.asmNode.getOpcode() == Opcode.DUP_X2) {
+		else if(this.asmNode.getOpcode() == Opcodes.DUP_X1) {
+			return 2;
+		}
+		else if(this.asmNode.getOpcode() == Opcodes.DUP_X2) {
 			return 3;
 		}
-		else if(this.asmNode.getOpcode() == Opcode.DUP2_X1) {
+		else if(this.asmNode.getOpcode() == Opcodes.DUP2_X1) {
 			return 3;
 		}
-		else if(this.asmNode.getOpcode() == Opcode.DUP2_X2) {
+		else if(this.asmNode.getOpcode() == Opcodes.DUP2_X2) {
 			return 4;
 		}
-		
 		return 0;
 	}
 
 	private boolean isCheckAlgorithmic() {
-		//TODO ziheng, add shift-left, shift-right, or
-		
-		return false;
+		switch (this.asmNode.getOpcode()) {
+		case Opcodes.ISHL:
+		case Opcodes.ISHR:
+		case Opcodes.IUSHR:
+		case Opcodes.LSHL:
+		case Opcodes.LSHR:
+		case Opcodes.LUSHR:
+		case Opcodes.IOR:
+		case Opcodes.IXOR:
+		case Opcodes.LAND:
+		case Opcodes.LOR:
+		case Opcodes.LXOR:
+			return true;
+		default:
+			return false;
+		}
 	}
-	
+
 	private boolean isCheckCast() {
-		if(this.asmNode.getOpcode() == Opcode.D2F 
-				|| this.asmNode.getOpcode() == Opcode.D2L
-				|| this.asmNode.getOpcode() == Opcode.D2I
-				|| this.asmNode.getOpcode() == Opcode.F2D
-				|| this.asmNode.getOpcode() == Opcode.F2I
-				|| this.asmNode.getOpcode() == Opcode.F2L
-				|| this.asmNode.getOpcode() == Opcode.I2B
-				|| this.asmNode.getOpcode() == Opcode.I2C
-				|| this.asmNode.getOpcode() == Opcode.I2D
-				|| this.asmNode.getOpcode() == Opcode.I2F
-				|| this.asmNode.getOpcode() == Opcode.I2L
-				|| this.asmNode.getOpcode() == Opcode.I2S
-				|| this.asmNode.getOpcode() == Opcode.L2D
-				|| this.asmNode.getOpcode() == Opcode.L2F
-				|| this.asmNode.getOpcode() == Opcode.L2I
-				) {
+		if (this.asmNode.getOpcode() == Opcodes.D2F || this.asmNode.getOpcode() == Opcodes.D2L
+				|| this.asmNode.getOpcode() == Opcodes.D2I || this.asmNode.getOpcode() == Opcodes.F2D
+				|| this.asmNode.getOpcode() == Opcodes.F2I || this.asmNode.getOpcode() == Opcodes.F2L
+				|| this.asmNode.getOpcode() == Opcodes.I2B || this.asmNode.getOpcode() == Opcodes.I2C
+				|| this.asmNode.getOpcode() == Opcodes.I2D || this.asmNode.getOpcode() == Opcodes.I2F
+				|| this.asmNode.getOpcode() == Opcodes.I2L || this.asmNode.getOpcode() == Opcodes.I2S
+				|| this.asmNode.getOpcode() == Opcodes.L2D || this.asmNode.getOpcode() == Opcodes.L2F
+				|| this.asmNode.getOpcode() == Opcodes.L2I) {
 			return true;
 		}
 		return false;
