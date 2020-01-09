@@ -320,7 +320,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 				MockFramework.enable();
 
 				if (newGoal != null) {
-					FitnessFunction<T> goalInTarget = getCorrespondingGoalInTargetMethod(thrownException);
+					FitnessFunction<T> goalInTarget = getCorrespondingGoalInGraph(thrownException);
 
 					if (goalInTarget != null) {
 						if (exceptionMap.get(goalInTarget) == null
@@ -335,10 +335,6 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 									exceptionMap.get(goalInTarget).get(newGoal) + 1);
 						}
 					}
-					// Not invoked by target
-					// TODO: handle exception before target
-					// Some insights: can be parallel, added to the root path, breakthrough one by
-					// one;
 					else {
 						if (rootExceptionMap.get(newGoal) == null) {
 							rootExceptionMap.put(newGoal, 1);
@@ -393,32 +389,47 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	 * @param exception
 	 * @return
 	 */
-	protected FitnessFunction<T> getCorrespondingGoalInTargetMethod(Throwable exception) {
-		FitnessFunction<T> edgeInTarget = null;
+	protected FitnessFunction<T> getCorrespondingGoalInGraph(Throwable exception) {
 		StackTraceElement[] stack = exception.getStackTrace();
 
 		for (StackTraceElement element : stack) {
-			if (element.getClassName().equals(Properties.TARGET_CLASS)
-					&& element.getMethodName().equals(Properties.TARGET_METHOD.split(Pattern.quote("("))[0])) {
-				// Invoke by target method
-				int targetLine = element.getLineNumber();
-				List<BytecodeInstruction> insList = BytecodeInstructionPool
-						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-						.getAllInstructionsAtLineNumber(element.getClassName(), Properties.TARGET_METHOD, targetLine);
-				Set<ControlDependency> cds = insList.get(0).getControlDependencies();
-
-				/**
-				 * Choose an arbitrary control dependency
-				 */
-				if (cds != null && !cds.isEmpty()) {
-					edgeInTarget = createFitnessFunction(cds.iterator().next());
+			for(FitnessFunction<T> ff: this.goalsManager.getCurrentGoals()) {
+				BranchCoverageGoal branchGoal = getBranch(ff);
+				String branchClassName = branchGoal.getBranch().getInstruction().getClassName();
+				String branchMethodName = branchGoal.getBranch().getInstruction().getMethodName();
+				if (element.getClassName().equals(branchClassName)
+						&& element.getMethodName().equals(branchMethodName.split(Pattern.quote("("))[0])) {
+					int targetLine = element.getLineNumber();
+					List<BytecodeInstruction> insList = BytecodeInstructionPool
+							.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+							.getAllInstructionsAtLineNumber(element.getClassName(), Properties.TARGET_METHOD, targetLine);
+					Set<ControlDependency> cds = insList.get(0).getControlDependencies();
+		
+					/**
+					 * Choose an arbitrary control dependency
+					 */
+					for(ControlDependency cd: cds) {
+						if(cd.getBranch().equals(branchGoal.getBranch()) && 
+								cd.getBranchExpressionValue()==branchGoal.getValue()) {
+							return ff;
+						}
+					}
 				}
-
-				return edgeInTarget;
 			}
 		}
 
-		return edgeInTarget;
+		return null;
+	}
+
+	private BranchCoverageGoal getBranch(FitnessFunction<T> ff) {
+		if(ff instanceof FBranchTestFitness) {
+			return ((FBranchTestFitness)ff).getBranchGoal();
+		}
+		else if(ff instanceof BranchCoverageTestFitness) {
+			return ((BranchCoverageTestFitness)ff).getBranchGoal();
+		}
+		
+		return null;
 	}
 
 	/**
