@@ -37,6 +37,11 @@ public abstract class FitnessFunction<T extends Chromosome> implements Serializa
 	protected static final Logger logger = LoggerFactory.getLogger(FitnessFunction.class);
 
 	/**
+	 * indicate whether the goal is inside the user specified target method.
+	 */
+	private boolean isInTarget = false;
+	
+	/**
 	 * Make sure that the individual gets to know about its fitness
 	 * 
 	 * @param individual
@@ -105,5 +110,13 @@ public abstract class FitnessFunction<T extends Chromosome> implements Serializa
 	 */
 	public boolean updateCoveredGoals(){
 		return false;
+	}
+
+	public boolean isInTarget() {
+		return isInTarget;
+	}
+
+	public void setInTarget(boolean isInTarget) {
+		this.isInTarget = isInTarget;
 	}
 }
