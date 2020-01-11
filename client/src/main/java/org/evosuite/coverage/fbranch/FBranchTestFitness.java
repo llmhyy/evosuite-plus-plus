@@ -2,10 +2,12 @@ package org.evosuite.coverage.fbranch;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.setup.Call;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -55,6 +57,11 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		FlagEffectResult r = FlagEffectEvaluator.checkFlagEffect(goal);
 		if(!r.hasFlagEffect) {
 			if(value == null){
+				Double branchDisntanceWithApproachLevel = getBranchDisntanceWithApproachLevel(result, this.goal);
+				if(branchDisntanceWithApproachLevel != null) {
+					return normalize(branchDisntanceWithApproachLevel);					
+				}
+				
 				return 1;
 			}
 			else {
@@ -74,6 +81,43 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		}
 	}
 	
+	private Double getBranchDisntanceWithApproachLevel(ExecutionResult result, BranchCoverageGoal goal) {
+		
+		Set<ControlDependency> cds = goal.getBranch().getInstruction().getControlDependencies();
+		
+		if(cds.isEmpty()) {
+			return null;
+		}
+		else {
+			ControlDependency cd = cds.iterator().next();
+			Double value = null;
+			if(cd.getBranchExpressionValue()) {
+				value = result.getTrace().getTrueDistances().get(cd.getBranch().getActualBranchId());
+			}
+			else {
+				value = result.getTrace().getFalseDistances().get(cd.getBranch().getActualBranchId());
+			}
+			
+			if(value != null) {
+				return 1 + normalize(value);
+			}
+			else {
+				String className = cd.getBranch().getInstruction().getClassName();
+				String methodName = cd.getBranch().getInstruction().getMethodName();
+				
+				BranchCoverageGoal newGoal = new BranchCoverageGoal(cd, className, methodName);
+				Double subValue = getBranchDisntanceWithApproachLevel(result, newGoal);
+				if(subValue != null) {
+					return 1 + subValue;
+				}
+				else {
+					return null;
+				}
+			}
+		}
+		
+	}
+
 	@Override
 	public int compareTo(TestFitnessFunction other) {
 		if (other instanceof FBranchTestFitness) {
