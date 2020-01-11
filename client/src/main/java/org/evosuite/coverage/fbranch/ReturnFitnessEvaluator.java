@@ -235,8 +235,6 @@ public class ReturnFitnessEvaluator {
 			DistanceCondition dCondition = checkOverallDistance(result, goalValue, newDepBranch, callContext, branchTrace);
 			fitness = dCondition.fitness;
 			
-			System.currentTimeMillis();
-			
 			// in case the returned direction is wrong.
 			if (fitness == 0) {
 				goalValue = !goalValue;
@@ -252,7 +250,6 @@ public class ReturnFitnessEvaluator {
 			}
 
 			
-			System.currentTimeMillis();
 			BranchCoverageGoal newGoal = dCondition.goal;
 			FlagEffectResult flagResult = FlagEffectEvaluator.checkFlagEffect(newGoal);
 			
