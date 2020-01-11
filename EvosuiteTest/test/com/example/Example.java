@@ -6,6 +6,10 @@ public class Example {
 	static Test test1 = new Test(1, 2);
 	private int c;
 	private Helper x = new Helper();
+	
+	private int field1;
+	private int field2;
+	private Example example;
 
 //	public boolean test(int a, int b) {
 //		if (Util.isOk(a, b)) {
@@ -14,6 +18,7 @@ public class Example {
 //			}
 //		}
 
+	
 //	public boolean test(int a, int b){
 //		if(Util.isOk(a, b)){
 //			if(Util.isCornerCase(a, b)){
@@ -125,6 +130,7 @@ public class Example {
 //			return;
 //		}
 //	}
+	
 	public void setTest() {
 		this.test = new Test(1, 2);
 	}
@@ -134,20 +140,29 @@ public class Example {
 	}
 
 	public void test2(int num1) {
-//		int c1 = test1.a;
 		int c = test1.getA();
 		if (x.test.isOk(num1, c)) {
 			return;
 		}
 	}
 
-	public static int test(int a, int b) throws Exception {
-//
-//		if (a < b) {
-//			if (b - a < 19000) {
-//				throw new Exception("DDD");
-//			}
-		if (a != b) {
+	public Example(int num1) {
+		if (num1 < 15000) {
+			throw new IllegalArgumentException("Constructor 1 : num1 needs to be larger than 10000");
+		}
+		this.field1 = num1;
+	}
+	
+	public Example(int num1, int num2) {
+		if (num1 < 10000) {
+			throw new IllegalArgumentException("Constructor 2 : num2 needs to be larger than 10000");
+		}
+		this.field1 = num1;
+		this.field2 = num2;
+	}
+	
+	public int test(int a, int b) {
+		if (example.field1 < b) {
 			rangeCheck(a, b);
 //			rangeCheck1(a, b);
 			if (b - a < 10) {
@@ -156,18 +171,10 @@ public class Example {
 				}
 			}
 		}
-//		}
 		return -1;
 	}
 
 	public static void rangeCheck(int a, int b) {
-//		if (b <= 0) {
-//			return;
-//		}
-//		if (b >= 5000) {
-//			return;
-//		}
-//		if (b <= 4999) {
 		if (b <= 10000) {
 			throw new IllegalArgumentException("TEST");
 		}
