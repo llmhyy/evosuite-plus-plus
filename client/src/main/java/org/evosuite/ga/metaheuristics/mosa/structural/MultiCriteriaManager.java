@@ -19,6 +19,8 @@
  */
 package org.evosuite.ga.metaheuristics.mosa.structural;
 
+import static org.evosuite.Properties.Criterion.EXCEPTION;
+
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -28,8 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
 import org.evosuite.Properties.Criterion;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
@@ -65,8 +67,6 @@ import org.evosuite.utils.LoggingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.evosuite.Properties.Criterion.*;
-
 public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalManager<T> implements Serializable {
 
 	private static final Logger logger = LoggerFactory.getLogger(MultiCriteriaManager.class);
@@ -77,10 +77,11 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 
 	protected Map<BranchCoverageTestFitness, Set<FitnessFunction<T>>> dependencies;
 
-	protected final Map<Integer, FitnessFunction<T>> branchCoverageTrueMap = new LinkedHashMap<Integer, FitnessFunction<T>>();
-	protected final Map<Integer, FitnessFunction<T>> branchCoverageFalseMap = new LinkedHashMap<Integer, FitnessFunction<T>>();
+	private final Map<Integer, FitnessFunction<T>> branchCoverageTrueMap = new LinkedHashMap<Integer, FitnessFunction<T>>();
+	private final Map<Integer, FitnessFunction<T>> branchCoverageFalseMap = new LinkedHashMap<Integer, FitnessFunction<T>>();
 	private final Map<String, FitnessFunction<T>> branchlessMethodCoverageMap = new LinkedHashMap<String, FitnessFunction<T>>();
 
+	@SuppressWarnings("unchecked")
 	public MultiCriteriaManager(List<FitnessFunction<T>> fitnessFunctions) {
 		super(fitnessFunctions);
 
@@ -135,6 +136,28 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 		// initialize current goals
 		this.currentGoals.addAll(graph.getRootBranches());
 	}
+	
+	public void updateBranchGoal(FitnessFunction<T> newGoal) {
+		BranchCoverageGoal branchGoal = getBranchGoal(newGoal);
+		if(branchGoal != null) {
+			if (branchGoal.getValue()) {
+				getBranchCoverageTrueMap().put(branchGoal.getId(), newGoal);
+			}
+			else {
+				getBranchCoverageFalseMap().put(branchGoal.getId(), newGoal);
+			}
+		}
+	}
+	
+	private BranchCoverageGoal getBranchGoal(FitnessFunction<T> ff) {
+		if (ff instanceof FBranchTestFitness) {
+			return ((FBranchTestFitness) ff).getBranchGoal();
+		} else if (ff instanceof BranchCoverageTestFitness) {
+			return ((BranchCoverageTestFitness) ff).getBranchGoal();
+		}
+
+		return null;
+	}
 
 	@SuppressWarnings("unchecked")
 	private void addDependencies4TryCatch() {
@@ -163,9 +186,9 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 						+ goal.getMethod(), ff);
 			} else {
 				if (goal.getBranchExpressionValue())
-					branchCoverageTrueMap.put(goal.getBranch().getActualBranchId(), ff);
+					getBranchCoverageTrueMap().put(goal.getBranch().getActualBranchId(), ff);
 				else
-					branchCoverageFalseMap.put(goal.getBranch().getActualBranchId(), ff);
+					getBranchCoverageFalseMap().put(goal.getBranch().getActualBranchId(), ff);
 			}
 		}
 	}
@@ -418,13 +441,13 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 		currentGoals.removeAll(this.getCoveredGoals());
 		// 2) we update the archive
 		for (Integer branchid : result.getTrace().getCoveredFalseBranches()){
-			FitnessFunction<T> branch = this.branchCoverageFalseMap.get(branchid);
+			FitnessFunction<T> branch = this.getBranchCoverageFalseMap().get(branchid);
 			if (branch == null)
 				continue;
 			updateCoveredGoals((FitnessFunction<T>) branch, c);
 		}
 		for (Integer branchid : result.getTrace().getCoveredTrueBranches()){
-			FitnessFunction<T> branch = this.branchCoverageTrueMap.get(branchid);
+			FitnessFunction<T> branch = this.getBranchCoverageTrueMap().get(branchid);
 			if (branch == null)
 				continue;
 			updateCoveredGoals((FitnessFunction<T>) branch, c);
@@ -525,5 +548,13 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 	
 	public BranchFitnessGraph<T, FitnessFunction<T>> getBranchFitnessGraph() {
 		return graph;
+	}
+
+	public Map<Integer, FitnessFunction<T>> getBranchCoverageFalseMap() {
+		return branchCoverageFalseMap;
+	}
+
+	public Map<Integer, FitnessFunction<T>> getBranchCoverageTrueMap() {
+		return branchCoverageTrueMap;
 	}
 }

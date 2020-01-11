@@ -18,7 +18,6 @@ import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
-import org.evosuite.ga.metaheuristics.mosa.structural.StructuralGoalManager;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.ControlDependency;
@@ -35,7 +34,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	private Map<FitnessFunction<T>, Integer> goalCoverageFrequency = new HashMap<>();
 
 	/**
-	 * handledGoals avoids repetatively working on the same exception goals
+	 * handledGoals avoids repetitively working on the same exception goals
 	 */
 	private Set<FitnessFunction<T>> handledExceptions = new HashSet<FitnessFunction<T>>();
 
@@ -65,10 +64,10 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	
 	
 	private List<T> population;
-	private StructuralGoalManager<T> goalsManager;
+	private MultiCriteriaManager<T> goalsManager;
 	
 	
-	public ExceptionBranchEnhancer(StructuralGoalManager<T> goalsManager) {
+	public ExceptionBranchEnhancer(MultiCriteriaManager<T> goalsManager) {
 		super();
 		this.goalsManager = goalsManager;
 	}
@@ -77,7 +76,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		this.population = population;
 	}
 	
-	public void setGoalManager(StructuralGoalManager<T> goalsManager) {
+	public void setGoalManager(MultiCriteriaManager<T> goalsManager) {
 		this.goalsManager = goalsManager;
 	}
 
@@ -88,6 +87,15 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		 */
 		MockFramework.disable();
 
+		/**
+		 * consider some exception may be called by both target and non-target methods,
+		 * temporarily, as long as an exception is triggered by target method, the exception
+		 * is considered as an insider.
+		 * 
+		 * TODO: support context-sensitive fitness.
+		 */
+		Map<FitnessFunction<T>, FitnessFunction<T>> exceptionGoalInTarget = new HashMap<>();
+		
 		for (T population : this.population) {
 			ExecutionResult executionResult = ((TestChromosome) population).getLastExecutionResult();
 			Map<Integer, Integer> falseGoals = executionResult.getTrace().getCoveredFalse();
@@ -105,7 +113,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			}
 
 			/**
-			 * TODO here, the branch coverage is not context sensitive.
+			 * TODO for ziheng, the branch coverage is not context sensitive.
 			 * 
 			 * we collect the number of coverage of each goal (i.e., branch) so that we can
 			 * detect how many "bombs" between each goal.
@@ -124,6 +132,14 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 
 				if (newExceptionGoal != null) {
 					FitnessFunction<T> goalInGraph = getCorrespondingGoalInGraph(thrownException, newExceptionGoal);
+					/**
+					 * TODO: need to improve here to support context sensitive goal. 
+					 */
+					FitnessFunction<T> prevGoal = exceptionGoalInTarget.get(newExceptionGoal);
+					if(prevGoal != null) {
+						newExceptionGoal.setInTarget(prevGoal.isInTarget() || newExceptionGoal.isInTarget());						
+					}
+					
 					exceptionGoal2Corresponder.put(newExceptionGoal, goalInGraph);
 
 					Integer freq = exceptionFrequencyMap.get(newExceptionGoal);
@@ -142,10 +158,23 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			}
 		}
 
-		evolveGoalGraphWithException();
+		boolean needToEvolveGoalGraph = needToEvolveGoalGraph();
+		
+		if(needToEvolveGoalGraph) {
+			evolveGoalGraphWithException();			
+		}
 
 		MockFramework.enable();
 
+	}
+
+	private boolean needToEvolveGoalGraph() {
+		for(FitnessFunction<T> goal: this.goalsManager.getCurrentGoals()) {
+			if(this.handledExceptions.contains(goal)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private FitnessFunction<T> createNewGoals(Throwable exception, StackTraceElement[] stack, int level) {
@@ -158,6 +187,10 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 					.getAllInstructionsAtClass(className, lineNum);
 
+			if(insList == null) {
+				System.currentTimeMillis();
+			}
+			
 			for (BytecodeInstruction ins : insList) {
 				if (ins.getASMNodeString().contains(exception.getClass().getSimpleName())) {
 					cds = ins.getControlDependencies();
@@ -175,6 +208,16 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 					}
 				}
 			}
+		}
+
+		return null;
+	}
+	
+	private BranchCoverageGoal getBranchGoal(FitnessFunction<T> ff) {
+		if (ff instanceof FBranchTestFitness) {
+			return ((FBranchTestFitness) ff).getBranchGoal();
+		} else if (ff instanceof BranchCoverageTestFitness) {
+			return ((BranchCoverageTestFitness) ff).getBranchGoal();
 		}
 
 		return null;
@@ -197,7 +240,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			}
 
 			for (FitnessFunction<T> ff : this.goalsManager.getCurrentGoals()) {
-				BranchCoverageGoal branchGoal = getBranch(ff);
+				BranchCoverageGoal branchGoal = getBranchGoal(ff);
 				String branchClassName = branchGoal.getBranch().getInstruction().getClassName();
 				String branchMethodName = branchGoal.getBranch().getInstruction().getMethodName();
 				if (element.getClassName().equals(branchClassName)
@@ -232,16 +275,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		}
 
 		System.currentTimeMillis();
-
-		return null;
-	}
-
-	private BranchCoverageGoal getBranch(FitnessFunction<T> ff) {
-		if (ff instanceof FBranchTestFitness) {
-			return ((FBranchTestFitness) ff).getBranchGoal();
-		} else if (ff instanceof BranchCoverageTestFitness) {
-			return ((BranchCoverageTestFitness) ff).getBranchGoal();
-		}
 
 		return null;
 	}
@@ -307,10 +340,10 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			if(insider != null) {
 				FitnessFunction<T> corresponder = exceptionGoal2Corresponder.get(insider);
 				if(corresponder == null) {
-					updateRoot(outsider);
+					updateRoot(insider);
 				}
 				else {
-					updatePath(outsider, corresponder);
+					updatePath(insider, corresponder);
 				}
 			}
 			handledExceptions.add(insider);
@@ -390,17 +423,21 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		this.targetMethodCoveringTimes = 0;
 	}
 
-	private void updateRoot(FitnessFunction<T> goalToAdd) {
-		((MultiCriteriaManager<T>) goalsManager).getBranchFitnessGraph().updateRoot(goalToAdd);
+	private void updateRoot(FitnessFunction<T> newGoal) {
+		//TODO for ziheng, need to restructure the graph based on the control flow of new goal
+		this.goalsManager.getBranchFitnessGraph().updateRoot(newGoal);
 		this.goalsManager.getCurrentGoals().clear();
-		this.goalsManager.getCurrentGoals().add(goalToAdd);
+		this.goalsManager.getCurrentGoals().add(newGoal);
+		this.goalsManager.updateBranchGoal(newGoal);
 	}
 
-	private void updatePath(FitnessFunction<T> goalToAdd, FitnessFunction<T> parentGoal) {
-		((MultiCriteriaManager<T>) goalsManager).getBranchFitnessGraph().updatePath(goalToAdd, parentGoal);
-		this.goalsManager.getCurrentGoals().add(goalToAdd);
+	private void updatePath(FitnessFunction<T> newGoal, FitnessFunction<T> parentGoal) {
+		// TODO for ziheng, need to restructure the graph based on the control flow of new goal
+		this.goalsManager.getBranchFitnessGraph().updatePath(newGoal, parentGoal);
+		this.goalsManager.getCurrentGoals().add(newGoal);
+		this.goalsManager.updateBranchGoal(newGoal);
 		for (FitnessFunction<T> child : ((MultiCriteriaManager<T>) goalsManager).getBranchFitnessGraph()
-				.getStructuralChildren(goalToAdd)) {
+				.getStructuralChildren(newGoal)) {
 			this.goalsManager.getCurrentGoals().remove(child);
 		}
 	}
@@ -416,6 +453,10 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			FitnessFunction<T> corresponder = exceptionGoal2Corresponder.get(exceptionGoal);
 
 			Integer freq = exceptionFrequencyMap.get(exceptionGoal);
+			if(freq == null) {
+				System.currentTimeMillis();
+			}
+			
 			if (corresponder != null) {
 				Integer totalCoverage = goalCoverageFrequency.get(corresponder);
 				Double prob = freq * 1.0 / totalCoverage;

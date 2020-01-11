@@ -31,7 +31,6 @@ import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.comparators.OnlyCrowdingComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
-import org.evosuite.ga.metaheuristics.mosa.structural.StructuralGoalManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestChromosome;
@@ -53,7 +52,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	private static final Logger logger = LoggerFactory.getLogger(DynaMOSA.class);
 
 	/** Manager to determine the test goals to consider at each generation */
-	protected StructuralGoalManager<T> goalsManager = null;
+	protected MultiCriteriaManager<T> goalsManager = null;
 
 	protected CrowdingDistance<T> distance = new CrowdingDistance<T>();
 
