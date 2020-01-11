@@ -148,7 +148,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 
 	}
 
-	protected FitnessFunction<T> createNewGoals(Throwable exception, StackTraceElement[] stack, int level) {
+	private FitnessFunction<T> createNewGoals(Throwable exception, StackTraceElement[] stack, int level) {
 		Set<ControlDependency> cds = new HashSet<ControlDependency>();
 		if (stack != null && stack.length > level && stack[level] != null) {
 			String className = stack[level].getClassName();
