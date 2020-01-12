@@ -1,6 +1,7 @@
 package org.evosuite.coverage.fbranch;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -57,7 +58,9 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		FlagEffectResult r = FlagEffectEvaluator.checkFlagEffect(goal);
 		if(!r.hasFlagEffect) {
 			if(value == null){
-				Double branchDisntanceWithApproachLevel = getBranchDisntanceWithApproachLevel(result, this.goal);
+				Set<BranchCoverageGoal> set = new HashSet<BranchCoverageGoal>();
+				set.add(this.goal);
+				Double branchDisntanceWithApproachLevel = getBranchDisntanceWithApproachLevel(result, this.goal, set);
 				if(branchDisntanceWithApproachLevel != null) {
 					return normalize(branchDisntanceWithApproachLevel);					
 				}
@@ -81,7 +84,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		}
 	}
 	
-	private Double getBranchDisntanceWithApproachLevel(ExecutionResult result, BranchCoverageGoal goal) {
+	private Double getBranchDisntanceWithApproachLevel(ExecutionResult result, BranchCoverageGoal goal, Set<BranchCoverageGoal> set) {
 		
 		Set<ControlDependency> cds = goal.getBranch().getInstruction().getControlDependencies();
 		
@@ -90,6 +93,16 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		}
 		else {
 			ControlDependency cd = cds.iterator().next();
+			String className = cd.getBranch().getInstruction().getClassName();
+			String methodName = cd.getBranch().getInstruction().getMethodName();
+			BranchCoverageGoal newGoal = new BranchCoverageGoal(cd, className, methodName);
+			
+			if(set.contains(newGoal)) {
+				return null;
+			}
+			
+			set.add(newGoal);
+			
 			Double value = null;
 			if(cd.getBranchExpressionValue()) {
 				value = result.getTrace().getTrueDistances().get(cd.getBranch().getActualBranchId());
@@ -102,11 +115,9 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 				return 1 + normalize(value);
 			}
 			else {
-				String className = cd.getBranch().getInstruction().getClassName();
-				String methodName = cd.getBranch().getInstruction().getMethodName();
 				
-				BranchCoverageGoal newGoal = new BranchCoverageGoal(cd, className, methodName);
-				Double subValue = getBranchDisntanceWithApproachLevel(result, newGoal);
+				
+				Double subValue = getBranchDisntanceWithApproachLevel(result, newGoal, set);
 				if(subValue != null) {
 					return 1 + subValue;
 				}

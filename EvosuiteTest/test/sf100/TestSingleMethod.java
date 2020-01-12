@@ -1127,18 +1127,18 @@ public class TestSingleMethod {
 		seed = null;
 		
 		String fitnessApproach = "fbranch";
-//		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
-//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 //		TempGlobalVariables.seeds = checkRandomSeeds(results0);
 		
-		fitnessApproach = "branch";
-		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
-//		System.out.println("fbranch" + ":");
-//		printResult(results0);
-		System.out.println("branch" + ":");
-		printResult(results1);
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+//		System.out.println("branch" + ":");
+//		printResult(results1);
 	}
 	
 	@Test

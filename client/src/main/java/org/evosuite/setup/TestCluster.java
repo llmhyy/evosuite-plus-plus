@@ -44,6 +44,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.archive.Archive;
+import org.evosuite.ga.metaheuristics.mosa.CallBlackList;
 import org.evosuite.junit.CoverageAnalysis;
 import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.runtime.util.Inputs;
@@ -1337,7 +1338,20 @@ public class TestCluster {
 			candidateTestMethods = sortCalls(candidateTestMethods);
 		}
 
+		
 		GenericAccessibleObject<?> choice = Properties.SORT_CALLS ? ListUtil.selectRankBiased(candidateTestMethods) : Randomness.choice(candidateTestMethods);
+		
+		/**
+		 * TODO for ziheng: sample the call according to the blacklist
+		 * now I work on a simple solution, we need to sample the candidateTestMethods w.r.t probability distribution
+		 */
+		if(Properties.ENABLE_BRANCH_ENHANCEMENT) {
+			boolean isChoiceInBlackList = CallBlackList.isInevitable(choice);
+			while(isChoiceInBlackList) {
+				choice = Randomness.choice(candidateTestMethods);
+				isChoiceInBlackList = CallBlackList.isInevitable(choice);
+			}
+		}
 		
 		/**
 		 * Lin Yun: if the test is empty, we need to insert the target method first.

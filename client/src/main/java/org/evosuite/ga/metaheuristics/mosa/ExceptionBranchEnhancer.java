@@ -62,7 +62,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	 */
 	private int totalOutsideExceptionTimes = 0;
 	
-	
 	private List<T> population;
 	private MultiCriteriaManager<T> goalsManager;
 	
@@ -120,16 +119,39 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			 */
 			collectCoveredTimes(falseGoals, false);
 			collectCoveredTimes(trueGoals, true);
-
+			
 			/**
-			 * record the where the exception happens.
+			 * TODO for ziheng, collect the called method for each individual, update CallBlackList.calledMethods()
 			 */
+
 			if (!allExceptions.isEmpty()) {
 				Throwable thrownException = allExceptions.iterator().next();
 
 				StackTraceElement[] stack = thrownException.getStackTrace();
 				FitnessFunction<T> newExceptionGoal = createNewGoals(thrownException, stack, 0);
-
+				
+				/**
+				 * record what method call can trigger exception
+				 */
+				StackTraceElement elementToCallException = findElementForException(stack);
+				if(elementToCallException != null) {
+					String methodSig = covert2Sig(elementToCallException);
+					if(methodSig == null) {
+						/**
+						 * TODO, it means some method is not instrumented.
+						 */
+					}
+					
+					Integer freq = CallBlackList.exceptionTriggeringCall.get(methodSig);		
+					if(freq == null) {
+						freq = 0;
+					}
+					CallBlackList.exceptionTriggeringCall.put(methodSig, freq+1);
+				}
+				
+				/**
+				 * record the where the exception happens.
+				 */
 				if (newExceptionGoal != null) {
 					FitnessFunction<T> goalInGraph = getCorrespondingGoalInGraph(thrownException, newExceptionGoal);
 					/**
@@ -144,11 +166,9 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 
 					Integer freq = exceptionFrequencyMap.get(newExceptionGoal);
 					if (freq == null) {
-						freq = new Integer(1);
-					} else {
-						freq = freq + 1;
+						freq = 0;
 					}
-					exceptionFrequencyMap.put(newExceptionGoal, freq);
+					exceptionFrequencyMap.put(newExceptionGoal, freq+1);
 
 				} else {
 					/**
@@ -163,9 +183,41 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		if(needToEvolveGoalGraph) {
 			evolveGoalGraphWithException();			
 		}
-
+		
 		MockFramework.enable();
 
+	}
+
+	private String covert2Sig(StackTraceElement elementToCallException) {
+		String className = elementToCallException.getClassName();
+		int lineNumber = elementToCallException.getLineNumber();
+		
+		List<BytecodeInstruction> instructions = 
+				BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
+				getAllInstructionsAtClass(className, lineNumber);
+		
+		if(instructions == null) {
+			System.currentTimeMillis();
+		}
+		
+		if(!instructions.isEmpty()) {
+			BytecodeInstruction instruction = instructions.get(0);
+			return instruction.getMethodName();
+		}
+		
+		return null;
+	}
+
+	private StackTraceElement findElementForException(StackTraceElement[] stack) {
+		StackTraceElement target = null;
+		for(StackTraceElement element: stack) {
+			if(element.getClassName().startsWith("sun.")) {
+				break;
+			}
+			target = element;
+		}
+		
+		return target;
 	}
 
 	private boolean needToEvolveGoalGraph() {
@@ -274,8 +326,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			}
 		}
 
-		System.currentTimeMillis();
-
 		return null;
 	}
 
@@ -299,7 +349,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected FitnessFunction<T> createOppFitnessFunction(ControlDependency cd) {
+	private FitnessFunction<T> createOppFitnessFunction(ControlDependency cd) {
 		Branch branch = cd.getBranch();
 		boolean value = cd.getBranchExpressionValue();
 		Class clazz = checkCriterion();
@@ -314,7 +364,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		}
 	}
 
-	protected void evolveGoalGraphWithException() {
+	private void evolveGoalGraphWithException() {
 		Map<FitnessFunction<T>, Double> exceptionOccuringProbability = updateExceptionOcurringProbability(
 				exceptionGoal2Corresponder, exceptionFrequencyMap, goalCoverageFrequency, targetMethodCoveringTimes,
 				totalOutsideExceptionTimes);
@@ -330,7 +380,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			else {
 				updatePath(outsider, corresponder);
 			}
-			handledExceptions.add(outsider);
+			handledExceptions.add(outsider);	
 		}
 		/**
 		 * find the most frequent occurred insider exception goal
@@ -346,7 +396,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 					updatePath(insider, corresponder);
 				}
 			}
-			handledExceptions.add(insider);
+			handledExceptions.add(insider);			
 		}
 		
 		resetStates();
