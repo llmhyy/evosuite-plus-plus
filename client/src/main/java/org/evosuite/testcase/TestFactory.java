@@ -2400,5 +2400,73 @@ public class TestFactory {
 		return parameters;
 	}
 
+	public boolean changeNullStatement(TestCase test, Statement statement) {
+		if(statement instanceof NullStatement) {
+			NullStatement nullStat = (NullStatement)statement;
+			Type type = nullStat.getReturnType();
+			
+			try {
+				VariableReference obj = null;
+				if(type.getTypeName().contains("[")) {
+					GenericClass clazz = new GenericClass(type);
+					obj = createArray(test, clazz, nullStat.getPosition(), 0);
+				}
+				else {
+					String className = type.getTypeName();
+					try {
+						Class<?> clazz = Class.forName(className, true, TestGenerationContext.getInstance().getClassLoaderForSUT());
+						if(clazz.isInterface()) {
+							InheritanceTree inheritanceTree = DependencyAnalysis.getInheritanceTree();
+							/**
+							 * TODO (low priority) for ziheng, find a better way to get subclass?
+							 */
+							Set<String> subclasses = inheritanceTree.getSubclasses(className);
+							String subclass = Randomness.choice(subclasses);
+							if(!subclass.equals(type.getTypeName())) {
+								Class<?> subClazz = Class.forName(subclass, true, TestGenerationContext.getInstance().getClassLoaderForSUT());
+								try {
+									obj = createObject(test, subClazz, nullStat.getPosition(), 0, null, false, false,true);																			
+								}
+								catch(Exception e) {
+									System.currentTimeMillis();
+									return false;
+								}
+							}
+							
+						}
+						else {
+							obj = createObject(test, type, nullStat.getPosition(), 0, null, false, false,true);							
+						}
+					} catch (Exception e) {
+						System.currentTimeMillis();
+//						e.printStackTrace();
+					}
+					
+				}
+				
+				if(obj != null) {
+					VariableReference ref = nullStat.getVariableReferences().iterator().next();
+					test.replace(ref, obj);
+//					for(int i=nullStat.getPosition()+1; i<test.size(); i++) {
+//						Statement stat = test.getStatement(i);
+//						if(stat.references(ref)) {
+//							stat.replace(ref, obj);
+//						}
+//					}
+				}
+				else {
+					return false;
+				}
+			} catch (ConstructionFailedException e) {
+				e.printStackTrace();
+				return false;
+			}
+			
+			return true;
+		}
+		
+		return false;
+	}
+
 
 }

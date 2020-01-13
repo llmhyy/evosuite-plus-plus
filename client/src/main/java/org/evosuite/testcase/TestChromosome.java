@@ -590,23 +590,29 @@ public class TestChromosome extends ExecutableChromosome {
 							assert (test.isValid());
 							assert ConstraintVerifier.verifyTest(test);
 
-						} else if (!statement.isAssignmentStatement() &&
+						} 
+						else if (!statement.isAssignmentStatement() &&
 								ConstraintVerifier.canDelete(test,position) &&
 								targetMethodPosition != position) {
 							//if a statement should not be deleted, then it cannot be either replaced by another one
-
 							int pos = statement.getPosition();
 							boolean isToReplaceTargetMethod = isToReplaceTargetMethod(statement);
-							if (!isToReplaceTargetMethod && testFactory.changeRandomCall(test, statement)) {
-								changed = true;
-								statementChanged = true;
-								mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
-								        TestMutationHistoryEntry.TestMutation.CHANGE,
-								        test.getStatement(pos)));
-								assert ConstraintVerifier.verifyTest(test);
+							if (!isToReplaceTargetMethod) {
+								
+								if(testFactory.changeRandomCall(test, statement) ||
+										testFactory.changeNullStatement(test, statement)) {
+									changed = true;
+									statementChanged = true;
+									mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
+											TestMutationHistoryEntry.TestMutation.CHANGE,
+											test.getStatement(pos)));
+									assert ConstraintVerifier.verifyTest(test);									
+								}
+								
 							}
 							assert (test.isValid());
-						}
+						} 
+						
 
 						statement.getReturnValue().setDistance(oldDistance);
 						position = statement.getPosition(); // Might have changed due to mutation
