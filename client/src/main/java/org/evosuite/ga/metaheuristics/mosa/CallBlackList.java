@@ -42,29 +42,28 @@ public class CallBlackList {
 	 * @param choice
 	 * @return
 	 */
-	public static boolean isInevitable(GenericAccessibleObject<?> choice) {
+	public static boolean needToSkip(GenericAccessibleObject<?> choice) {
 
 		if(exceptionTriggeringCall.isEmpty()) {
-			return false;
-		}
-		
-		int sum = getTotalNumberOfException();
-		if(sum == 0) {
 			return false;
 		}
 		
 		if(choice.isMethod()) {
 			GenericMethod method = (GenericMethod)choice;
 			String methodName = method.getName() + method.getDescriptor();
+			String className = method.getDeclaringClass().getCanonicalName();
+			
+			String fullName = className + "." + methodName;
 			
 			if(methodName.equals(Properties.TARGET_METHOD)) {
 				return false;
 			}
 			
-			Integer exceptionNum = exceptionTriggeringCall.get(methodName);
-			if(exceptionNum != null) {
+			Integer exceptionNum = exceptionTriggeringCall.get(fullName);
+			Integer sum = calledMethods.get(fullName);
+			if(exceptionNum != null && sum != null) {
 				double ratio = exceptionNum * 1.0 / sum;
-				return ratio < INEVITABLE_THRES && ratio != 0;
+				return ratio > INEVITABLE_THRES;
 			}
 			
 		}

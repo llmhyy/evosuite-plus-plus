@@ -39,7 +39,7 @@ public abstract class FitnessFunction<T extends Chromosome> implements Serializa
 	/**
 	 * indicate whether the goal is inside the user specified target method.
 	 */
-	private boolean isInTarget = false;
+//	private boolean isInTarget = false;
 	
 	/**
 	 * Make sure that the individual gets to know about its fitness
@@ -112,11 +112,11 @@ public abstract class FitnessFunction<T extends Chromosome> implements Serializa
 		return false;
 	}
 
-	public boolean isInTarget() {
-		return isInTarget;
-	}
-
-	public void setInTarget(boolean isInTarget) {
-		this.isInTarget = isInTarget;
-	}
+//	public boolean isInTarget() {
+//		return isInTarget;
+//	}
+//
+//	public void setInTarget(boolean isInTarget) {
+//		this.isInTarget = isInTarget;
+//	}
 }

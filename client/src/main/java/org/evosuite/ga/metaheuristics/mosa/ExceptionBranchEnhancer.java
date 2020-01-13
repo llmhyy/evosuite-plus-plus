@@ -2,6 +2,7 @@ package org.evosuite.ga.metaheuristics.mosa;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +28,7 @@ import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 
 public class ExceptionBranchEnhancer<T extends Chromosome> {
-	private static final double EXCEPTION_THRESHOLD = 0.5;
+	private static final double EXCEPTION_THRESHOLD = 0.1;
 	
 	/**
 	 * frequency for all covered goals
@@ -87,15 +88,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		 */
 		MockFramework.disable();
 
-		/**
-		 * consider some exception may be called by both target and non-target methods,
-		 * temporarily, as long as an exception is triggered by target method, the exception
-		 * is considered as an insider.
-		 * 
-		 * TODO: support context-sensitive fitness.
-		 */
-		Map<FitnessFunction<T>, FitnessFunction<T>> exceptionGoalInTarget = new HashMap<>();
-		
 		for (T individual : this.population) {
 			ExecutionResult executionResult = ((TestChromosome) individual).getLastExecutionResult();
 			Map<Integer, Integer> falseGoals = executionResult.getTrace().getCoveredFalse();
@@ -113,7 +105,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			}
 
 			/**
-			 * TODO for ziheng, the branch coverage is not context sensitive.
+			 * TODO (high) linyun, the branch coverage is not context sensitive.
 			 * 
 			 * we collect the number of coverage of each goal (i.e., branch) so that we can
 			 * detect how many "bombs" between each goal.
@@ -122,7 +114,8 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			collectCoveredTimes(trueGoals, true);
 			
 			/**
-			 * update all covered method times
+			 * TODO (high) ziheng, this is not correct, we need to top-level method coverage, 
+			 * the covered called method should not be counted.
 			 */
 			for (String methodName : executionResult.getTrace().getCoveredMethods()) {
 				Integer freq = CallBlackList.calledMethods.get(methodName);
@@ -163,14 +156,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 				 */
 				if (newExceptionGoal != null) {
 					FitnessFunction<T> goalInGraph = getCorrespondingGoalInGraph(stack, newExceptionGoal);
-					/**
-					 * TODO: need to improve here to support context sensitive goal. 
-					 */
-					FitnessFunction<T> prevGoal = exceptionGoalInTarget.get(newExceptionGoal);
-					if(prevGoal != null) {
-						newExceptionGoal.setInTarget(prevGoal.isInTarget() || newExceptionGoal.isInTarget());						
-					}
-					
 					exceptionGoal2Corresponder.put(newExceptionGoal, goalInGraph);
 
 					Integer freq = exceptionFrequencyMap.get(newExceptionGoal);
@@ -181,7 +166,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 
 				} else {
 					/**
-					 * TODO for ziheng, means that the goal for the exception is not instrumented
+					 *  means that the goal for the exception is not instrumented
 					 */
 					
 				}
@@ -190,7 +175,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 
 		boolean needToEvolveGoalGraph = needToEvolveGoalGraph();
 		
-		//after certain iterations
 		if(needToEvolveGoalGraph) {
 			evolveGoalGraphWithException();			
 		}
@@ -287,6 +271,8 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	}
 
 	/**
+	 * TODO (high) for ziheng, need to consider the call graph
+	 * 
 	 * return null if the exception is not incurred from the target method.
 	 * 
 	 * @param stack
@@ -295,11 +281,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	 */
 	private FitnessFunction<T> getCorrespondingGoalInGraph(StackTraceElement[] stack, FitnessFunction<T> newExceptionGoal) {
 		for (StackTraceElement element : stack) {
-			if (element.getClassName().equals(Properties.TARGET_CLASS)
-					&& element.getMethodName().equals(Properties.TARGET_METHOD.split(Pattern.quote("("))[0])) {
-				newExceptionGoal.setInTarget(true);
-			}
-
 			List<FitnessFunction<T>> allCorrespondingGolas = new ArrayList<FitnessFunction<T>>();
 			allCorrespondingGolas.addAll(this.goalsManager.getCurrentGoals());
 			allCorrespondingGolas.addAll(this.goalsManager.getCoveredGoals());
@@ -328,11 +309,15 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 					/**
 					 * Choose an arbitrary control dependency
 					 */
-					for (ControlDependency cd : cds) {
+					ControlDependency cd = cds.iterator().next();
+					while(cd != null) {
 						if (cd.getBranch().equals(branchGoal.getBranch())
 								&& cd.getBranchExpressionValue() == branchGoal.getValue()) {
 							return ff;
 						}
+						
+						cds = cd.getBranch().getInstruction().getControlDependencies();
+						cd = cds.isEmpty() ? null : cds.iterator().next();
 					}
 				}
 			}
@@ -384,90 +369,70 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		Map<FitnessFunction<T>, Double> exceptionOccuringProbability = updateExceptionOcurringProbability(
 				exceptionGoal2Corresponder, exceptionFrequencyMap, goalCoverageFrequency, targetMethodCoveringTimes,
 				totalOutsideExceptionTimes);
-		/**
-		 * find the most frequently occurred outsider exception goal
-		 */
-		FitnessFunction<T> outsider = findFrequentOutsiderException(exceptionOccuringProbability);
-		if(outsider != null && isInevitable(outsider, exceptionOccuringProbability)) {
-			FitnessFunction<T> corresponder = exceptionGoal2Corresponder.get(outsider);
+		
+		FitnessFunction<T> exceptionGoal = findTopValidException(exceptionOccuringProbability);
+		System.currentTimeMillis();
+		if(exceptionGoal != null) {
+			FitnessFunction<T> corresponder = exceptionGoal2Corresponder.get(exceptionGoal);
 			if(corresponder == null) {
-				updateRoot(outsider);
+				updateRoot(exceptionGoal);
 			}
 			else {
-				updatePath(outsider, corresponder);
+				updatePath(exceptionGoal, corresponder);
 			}
-			handledExceptions.add(outsider);	
-		}
-		/**
-		 * find the most frequent occurred insider exception goal
-		 */
-		else {
-			FitnessFunction<T> insider = findFrequentInsiderException(exceptionOccuringProbability);
-			if(insider != null) {
-				FitnessFunction<T> corresponder = exceptionGoal2Corresponder.get(insider);
-				if(corresponder == null) {
-					updateRoot(insider);
-				}
-				else {
-					updatePath(insider, corresponder);
-				}
-			}
-			handledExceptions.add(insider);			
+			
+			handledExceptions.add(exceptionGoal);	
 		}
 		
 		resetStates();
 	}
 	
-	private boolean isInevitable(FitnessFunction<T> outsider, Map<FitnessFunction<T>, Double> exceptionOccuringProbability) {
-		return exceptionOccuringProbability.get(outsider) > EXCEPTION_THRESHOLD;
+	/**
+	 * TODO (high) linyun, check whether the goal's context is in blacklist.
+	 * 
+	 * @param exception
+	 * @param exceptionOccuringProbability
+	 * @return
+	 */
+	private boolean isContextAvoidable(FitnessFunction<T> exception) {
+		//TODO
+		return false;
 	}
 
-	private FitnessFunction<T> findFrequentInsiderException(
+	private FitnessFunction<T> findTopValidException(
 			Map<FitnessFunction<T>, Double> exceptionOccuringProbability) {
-		FitnessFunction<T> frequentGoal = null;
-		Double freq = -1.0;
-
-		for (FitnessFunction<T> exceptionGoal : exceptionOccuringProbability.keySet()) {
-			if (!exceptionGoal.isInTarget()) {
-				continue;
-			}
-
-			if (handledExceptions.contains(exceptionGoal)) {
-				continue;
-			}
-
-			double newFreq = exceptionOccuringProbability.get(exceptionGoal);
-			if (newFreq > freq) {
-				frequentGoal = exceptionGoal;
-				freq = newFreq;
+		
+		List<FitnessFunction<T>> rankedExceptionGoalWithStructure = rankExceptionGoalWithStructure(exceptionOccuringProbability);
+		for(FitnessFunction<T> exceptionGoal: rankedExceptionGoalWithStructure) {
+			if(exceptionOccuringProbability.get(exceptionGoal) > EXCEPTION_THRESHOLD
+					&& !isContextAvoidable(exceptionGoal)
+					&& !handledExceptions.contains(exceptionGoal)) {
+				return exceptionGoal;
 			}
 		}
-
-		return frequentGoal;
+		
+		return null;
 	}
 
-	private FitnessFunction<T> findFrequentOutsiderException(
+	/**
+	 * TODO (high) ziheng, find the most top exception goal
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private List<FitnessFunction<T>> rankExceptionGoalWithStructure(
 			Map<FitnessFunction<T>, Double> exceptionOccuringProbability) {
-		FitnessFunction<T> frequentGoal = null;
-		Double freq = -1.0;
-
-		for (FitnessFunction<T> exceptionGoal : exceptionOccuringProbability.keySet()) {
-			if (exceptionGoal.isInTarget()) {
-				continue;
+		List<FitnessFunction<T>> list = new ArrayList<FitnessFunction<T>>(exceptionOccuringProbability.keySet());
+		
+		//TODO 
+		list.sort(new Comparator() {
+			@Override
+			public int compare(Object o1, Object o2) {
+				FBranchTestFitness f1 = (FBranchTestFitness)o1;
+				FBranchTestFitness f2 = (FBranchTestFitness)o2;
+				return f1.getBranch().getInstruction().getLineNumber() - f2.getBranch().getInstruction().getLineNumber();
 			}
-
-			if (handledExceptions.contains(exceptionGoal)) {
-				continue;
-			}
-
-			double newFreq = exceptionOccuringProbability.get(exceptionGoal);
-			if (newFreq > freq) {
-				frequentGoal = exceptionGoal;
-				freq = newFreq;
-			}
-		}
-
-		return frequentGoal;
+		});
+		
+		return list;
 	}
 
 	private void resetStates() {
@@ -478,7 +443,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	}
 
 	private void updateRoot(FitnessFunction<T> newGoal) {
-		//TODO for ziheng, need to restructure the graph based on the control flow of new goal
 		this.goalsManager.getBranchFitnessGraph().updateRoot(newGoal);
 		this.goalsManager.getCurrentGoals().clear();
 		this.goalsManager.getCurrentGoals().add(newGoal);
@@ -486,7 +450,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	}
 
 	private void updatePath(FitnessFunction<T> newGoal, FitnessFunction<T> parentGoal) {
-		// TODO for ziheng, need to restructure the graph based on the control flow of new goal
 		this.goalsManager.getBranchFitnessGraph().updatePath(newGoal, parentGoal);
 		this.goalsManager.getCurrentGoals().add(newGoal);
 		this.goalsManager.updateBranchGoal(newGoal);
@@ -519,7 +482,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 				totalCoverage = goalCoverageFrequency.get(corresponder);
 				prob = freq * 1.0 / totalCoverage;
 			} else {
-				totalCoverage = exceptionGoal.isInTarget() ? targetMethodCoveringTimes
+				totalCoverage = isInTarget(exceptionGoal) ? targetMethodCoveringTimes
 						: totalOutsideExceptionTimes;
 				prob = freq * 1.0 / totalCoverage;
 			}
@@ -530,6 +493,15 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	}
 	
 	
+	/**
+	 * TODO (high) ziheng, is context in target 
+	 * @param exceptionGoal
+	 * @return
+	 */
+	private boolean isInTarget(FitnessFunction<T> exceptionGoal) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 	@SuppressWarnings("rawtypes")
 	private Class checkCriterion() {
