@@ -347,9 +347,11 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	 * @param value
 	 */
 	protected void collectCoveredTimes(Map<Integer, Integer> goals, boolean value) {
-		// why use current goals
+		List<FitnessFunction<T>> totalGoals = new ArrayList<FitnessFunction<T>>();
+		totalGoals.addAll(this.goalsManager.getCurrentGoals());
+		totalGoals.addAll(this.goalsManager.getCoveredGoals());
 		for (Integer goal : goals.keySet()) {
-			for (FitnessFunction<T> ff : this.goalsManager.getCurrentGoals()) {
+			for (FitnessFunction<T> ff : totalGoals) {
 				if (((BranchCoverageTestFitness) ff).getBranchGoal().getId() == goal
 						&& ((BranchCoverageTestFitness) ff).getBranchExpressionValue() == value) {
 					if (goalCoverageFrequency.get(ff) == null) {
