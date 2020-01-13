@@ -95,8 +95,8 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		 */
 		Map<FitnessFunction<T>, FitnessFunction<T>> exceptionGoalInTarget = new HashMap<>();
 		
-		for (T population : this.population) {
-			ExecutionResult executionResult = ((TestChromosome) population).getLastExecutionResult();
+		for (T individual : this.population) {
+			ExecutionResult executionResult = ((TestChromosome) individual).getLastExecutionResult();
 			Map<Integer, Integer> falseGoals = executionResult.getTrace().getCoveredFalse();
 			Map<Integer, Integer> trueGoals = executionResult.getTrace().getCoveredTrue();
 			Collection<Throwable> allExceptions = executionResult.getAllThrownExceptions();
@@ -239,27 +239,26 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 					.getAllInstructionsAtClass(className, lineNum);
 
-			if(insList == null) {
-				System.currentTimeMillis();
-			}
-			
-			for (BytecodeInstruction ins : insList) {
-				if (ins.getASMNodeString().contains(exception.getClass().getSimpleName())) {
-					cds = ins.getControlDependencies();
-
-					if (cds != null && cds.size() > 0) {
-						for (ControlDependency cd : cds) {
-							FitnessFunction<T> fitness = createOppFitnessFunction(cd);
+			if(insList != null) {
+				for (BytecodeInstruction ins : insList) {
+					if (ins.getASMNodeString().contains(exception.getClass().getSimpleName())) {
+						cds = ins.getControlDependencies();
+						
+						if (cds != null && cds.size() > 0) {
+							for (ControlDependency cd : cds) {
+								FitnessFunction<T> fitness = createOppFitnessFunction(cd);
+								return fitness;
+							}
+							
+							break;
+						} else {
+							FitnessFunction<T> fitness = createNewGoals(exception, stack, level + 1);
 							return fitness;
 						}
-
-						break;
-					} else {
-						FitnessFunction<T> fitness = createNewGoals(exception, stack, level + 1);
-						return fitness;
 					}
 				}
 			}
+			
 		}
 
 		return null;
@@ -504,7 +503,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 
 			Integer freq = exceptionFrequencyMap.get(exceptionGoal);
 			if(freq == null) {
-				System.currentTimeMillis();
+				continue;
 			}
 			
 			if (corresponder != null) {
