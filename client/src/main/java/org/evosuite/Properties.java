@@ -137,6 +137,9 @@ public class Properties {
 	@Parameter(key = "adopt_smart_mutation", group = "Test Creation", description = "Whether we adopt smart mutation to discriminate the mutation position")
 	public static boolean ADOPT_SMART_MUTATION = true;
 	
+	@Parameter(key = "enable_branch_enhancement", group = "Test Creation", description = "Whether we adopt branch enhancement to deal with exceptions")
+	public static boolean ENABLE_BRANCH_ENHANCEMENT = true;
+	
 	/**
 	 * TODO: this option is off by default because still experimental and not
 	 * fully tested
