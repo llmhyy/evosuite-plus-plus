@@ -21,10 +21,12 @@ package org.evosuite.coverage.branch;
 
 import java.util.*;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.ControlFlowDistance;
 import org.evosuite.coverage.TestCoverageGoal;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
+import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.MethodCall;
@@ -117,13 +119,24 @@ public class ControlFlowDistanceCalculator {
 		if (branch == null)
 			return getRootDistance(result, className, methodName);
 
-		if(value) {
-			if (result.getTrace().getCoveredTrueBranches().contains(branch.getActualBranchId()))
-				return new ControlFlowDistance(0, 0.0);
-		}
-		else {
-			if (result.getTrace().getCoveredFalseBranches().contains(branch.getActualBranchId())) 
-                return new ControlFlowDistance(0, 0.0);
+		if (value) {
+			if (result.getTrace().getCoveredTrueBranches().contains(branch.getActualBranchId())) {
+				for (CallContext callContext : result.getTrace().getTrueDistancesContext()
+						.get(branch.getActualBranchId()).keySet()) {
+					if (callContext.getRootMethodName().equals(Properties.TARGET_METHOD)) {
+						return new ControlFlowDistance(0, 0.0);
+					}
+				}
+			}
+		} else {
+			if (result.getTrace().getCoveredFalseBranches().contains(branch.getActualBranchId())) {
+				for (CallContext callContext : result.getTrace().getTrueDistancesContext()
+						.get(branch.getActualBranchId()).keySet()) {
+					if (callContext.getRootMethodName().equals(Properties.TARGET_METHOD)) {
+						return new ControlFlowDistance(0, 0.0);
+					}
+				}
+			}
 		}
 
 		ControlFlowDistance nonRootDistance = getNonRootDistance(result, branch, value);
