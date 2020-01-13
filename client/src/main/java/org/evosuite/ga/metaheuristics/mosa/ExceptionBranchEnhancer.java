@@ -1,5 +1,6 @@
 package org.evosuite.ga.metaheuristics.mosa;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -121,8 +122,15 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			collectCoveredTimes(trueGoals, true);
 			
 			/**
-			 * TODO for ziheng, collect the called method for each individual, update CallBlackList.calledMethods()
+			 * update all covered method times
 			 */
+			for (String methodName : executionResult.getTrace().getCoveredMethods()) {
+				Integer freq = CallBlackList.calledMethods.get(methodName);
+				if (freq == null) {
+					freq = 0;
+				}
+				CallBlackList.calledMethods.put(methodName, freq + 1);
+			}
 
 			if (!allExceptions.isEmpty()) {
 				Throwable thrownException = allExceptions.iterator().next();
@@ -205,7 +213,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		
 		if(!insList.isEmpty()) {
 			BytecodeInstruction instruction = insList.get(0);
-			return instruction.getMethodName();
+			return className + "." + instruction.getMethodName();
 		}
 		
 		return null;
@@ -292,8 +300,11 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 				newExceptionGoal.setInTarget(true);
 			}
 
-			// why loop thru current goals
-			for (FitnessFunction<T> ff : this.goalsManager.getCurrentGoals()) {
+			List<FitnessFunction<T>> allCorrespondingGolas = new ArrayList<FitnessFunction<T>>();
+			allCorrespondingGolas.addAll(this.goalsManager.getCurrentGoals());
+			allCorrespondingGolas.addAll(this.goalsManager.getCoveredGoals());
+			
+			for (FitnessFunction<T> ff : allCorrespondingGolas) {
 				BranchCoverageGoal branchGoal = getBranchGoal(ff);
 				String branchClassName = branchGoal.getBranch().getInstruction().getClassName();
 				String branchMethodName = branchGoal.getBranch().getInstruction().getMethodName();
@@ -303,7 +314,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 							.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 							.getAllInstructionsAtLineNumber(element.getClassName(), branchMethodName,
 									element.getLineNumber());
-					// TODO indicate that the method is not instrumented
 					if (insList == null) {
 						System.currentTimeMillis();
 						continue;
