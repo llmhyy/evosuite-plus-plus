@@ -422,6 +422,7 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 			// Current goal has been covered, fitness = 0
 			// 25.0 for not reached
 			if (value == 0.0) {
+				fitnessFunction.getFitness(c);
 				updateCoveredGoals(fitnessFunction, c);
 				if (fitnessFunction instanceof BranchCoverageTestFitness){
 					for (FitnessFunction<T> child : graph.getStructuralChildren(fitnessFunction)){

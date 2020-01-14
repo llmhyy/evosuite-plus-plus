@@ -1,6 +1,12 @@
 package org.evosuite.ga.metaheuristics.mosa;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
+import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.setup.Call;
@@ -9,7 +15,7 @@ import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
 
-public class ExceptionFitnessFunction<T extends Chromosome> extends FitnessFunction {
+public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFunction implements BranchFitness {
 	/**
 	 * 
 	 */
@@ -18,7 +24,7 @@ public class ExceptionFitnessFunction<T extends Chromosome> extends FitnessFunct
 	private CallContext context;
 	private FitnessFunction<T> fitnessFunction;
 
-	public ExceptionFitnessFunction(CallContext context, FitnessFunction<T> fitnessFunction) {
+	public ContextFitnessFunction(CallContext context, FitnessFunction<T> fitnessFunction) {
 		super();
 		this.context = context;
 		this.fitnessFunction = fitnessFunction;
@@ -39,6 +45,12 @@ public class ExceptionFitnessFunction<T extends Chromosome> extends FitnessFunct
 	public void setFitnessFunction(FitnessFunction<T> fitnessFunction) {
 		this.fitnessFunction = fitnessFunction;
 	}
+	
+
+	@Override
+	public String toString() {
+		return "ExceptionFitnessFunction [context=" + context + ", fitnessFunction=" + fitnessFunction + "]";
+	}
 
 	@Override
 	public int hashCode() {
@@ -58,7 +70,7 @@ public class ExceptionFitnessFunction<T extends Chromosome> extends FitnessFunct
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ExceptionFitnessFunction<T> other = (ExceptionFitnessFunction<T>) obj;
+		ContextFitnessFunction<T> other = (ContextFitnessFunction<T>) obj;
 		if (context == null) {
 			if (other.context != null)
 				return false;
@@ -73,9 +85,11 @@ public class ExceptionFitnessFunction<T extends Chromosome> extends FitnessFunct
 	}
 
 	public boolean isInTarget() {
+		String targetMethodSig = Properties.TARGET_CLASS + "." + Properties.TARGET_METHOD;
 		for(Call call: this.context.getContext()) {
-			if(call.getClassName().equals(Properties.TARGET_CLASS) &&
-					call.getMethodName().equals(call.getMethodName())) {
+			
+			String callSig = BranchEnhancementUtil.covert2Sig(call);
+			if(targetMethodSig.equals(callSig)) {
 				return true;
 			}
 		}
@@ -95,24 +109,105 @@ public class ExceptionFitnessFunction<T extends Chromosome> extends FitnessFunct
 	}
 
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public double getFitness(Chromosome individual) {
-		//TODO check whether the result can match the call context
-		if(individual instanceof TestChromosome) {
-			TestChromosome test = (TestChromosome)individual;
-			ExecutionResult origResult = test.getLastExecutionResult();
-			
-			return this.fitnessFunction.getFitness((T) individual);
+//	@SuppressWarnings("unchecked")
+//	@Override
+//	public double getFitness(Chromosome individual) {
+//		
+//	}
+
+	private boolean isContextVisited(Set<CallContext> allContext) {
+		for(CallContext context: allContext) {
+			if(context.size() == this.context.size()) {
+				if(context.size() == 0) {
+					return true;
+				}
+				
+				for(int i=0; i<context.size(); i++) {
+					Call thatCall = context.getContext().get(i); 
+					Call thisCall = this.context.getContext().get(i);
+					
+					if(thisCall.getClassName().equals(thatCall.getClassName()) &&
+							//TODO for ziheng, use a more accurate match (method signature vs method name)
+							thatCall.getMethodName().contains(thisCall.getMethodName())) {
+						return true;
+					}
+				}
+				
+				return false;
+			}
+		}
+		return false;
+	}
+
+	private Set<CallContext> retrieveAllContext(ExecutionResult origResult) {
+		
+		Set<CallContext> set = new HashSet<CallContext>();
+		
+		for(Integer i: origResult.getTrace().getTrueDistancesContext().keySet()) {
+			Map<CallContext, Double> value = origResult.getTrace().getTrueDistancesContext().get(i);
+			for(CallContext context: value.keySet()) {
+				set.add(context);
+			}
 		}
 		
-		return 1;
+		for(Integer i: origResult.getTrace().getFalseDistancesContext().keySet()) {
+			Map<CallContext, Double> value = origResult.getTrace().getFalseDistancesContext().get(i);
+			for(CallContext context: value.keySet()) {
+				set.add(context);
+			}
+		}
+		
+		return set;
 	}
 
 	@Override
 	public boolean isMaximizationFunction() {
-		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public double getFitness(TestChromosome individual, ExecutionResult result) {
+		
+		if(fitnessFunction instanceof BranchFitness) {
+			BranchCoverageGoal goal = ((BranchFitness)fitnessFunction).getBranchGoal();
+			if(goal != null) {
+				Set<CallContext> allContext = retrieveAllContext(result);
+				if(isContextVisited(allContext)) {
+					double fitness = this.fitnessFunction.getFitness((T) individual);
+					return fitness;
+				}
+			}
+		}
+		
+		
+		return 100000d;
+	}
+
+	@Override
+	public int compareTo(TestFitnessFunction other) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public String getTargetClass() {
+		return null;
+	}
+
+	@Override
+	public String getTargetMethod() {
+		return null;
+	}
+
+	@Override
+	public BranchCoverageGoal getBranchGoal() {
+		
+		if(fitnessFunction instanceof BranchFitness) {
+			return ((BranchFitness)fitnessFunction).getBranchGoal();
+		}
+		
+		return null;
 	}
 
 }

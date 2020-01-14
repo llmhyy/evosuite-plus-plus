@@ -34,7 +34,7 @@ import org.evosuite.utils.ArrayUtil;
  * 
  * @author Gordon Fraser
  */
-public class BranchCoverageTestFitness extends TestFitnessFunction {
+public class BranchCoverageTestFitness extends TestFitnessFunction implements BranchFitness{
 
 	private static final long serialVersionUID = -6310967747257242580L;
 
