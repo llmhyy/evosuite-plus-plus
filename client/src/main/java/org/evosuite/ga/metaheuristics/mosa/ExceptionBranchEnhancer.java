@@ -26,8 +26,11 @@ import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.runtime.mock.MockFramework;
 import org.evosuite.setup.CallContext;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.statements.MethodStatement;
+import org.evosuite.testcase.statements.Statement;
 
 public class ExceptionBranchEnhancer<T extends Chromosome> {
 	private static final double EXCEPTION_THRESHOLD = 0.1;
@@ -82,6 +85,27 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	public void setGoalManager(MultiCriteriaManager<T> goalsManager) {
 		this.goalsManager = goalsManager;
 	}
+	
+	private void collectMethodCoveredTimes(ExecutionResult executionResult) {
+		TestCase tc = executionResult.test;
+		Set<String> addedMethodNames = new HashSet<String>();
+		for (int pos = 0; pos < tc.size(); pos++) {
+			Statement statement = tc.getStatement(pos);
+			if (statement instanceof MethodStatement) {
+				MethodStatement ms = ((MethodStatement) statement);
+				String fullName = ms.getMethodName() + ms.getDescriptor();
+				if (addedMethodNames.contains(fullName)) {
+					continue;
+				}
+				Integer freq = CallBlackList.calledMethods.get(fullName);
+				if (freq == null) {
+					freq = 0;
+				}
+				addedMethodNames.add(fullName);
+				CallBlackList.calledMethods.put(fullName, freq + 1);
+			}
+		}
+	}
 
 	public void enhanceBranchGoals() {
 		/**
@@ -115,18 +139,8 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			collectCoveredTimes(falseGoals, false);
 			collectCoveredTimes(trueGoals, true);
 			
-			/**
-			 * TODO (high) ziheng, this is not correct, we need to top-level method coverage, 
-			 * the covered called method should not be counted.
-			 */
-			for (String methodName : executionResult.getTrace().getCoveredMethods()) {
-				Integer freq = CallBlackList.calledMethods.get(methodName);
-				if (freq == null) {
-					freq = 0;
-				}
-				CallBlackList.calledMethods.put(methodName, freq + 1);
-			}
-
+			collectMethodCoveredTimes(executionResult);
+			
 			if (!allExceptions.isEmpty()) {
 				Throwable thrownException = allExceptions.iterator().next();
 
