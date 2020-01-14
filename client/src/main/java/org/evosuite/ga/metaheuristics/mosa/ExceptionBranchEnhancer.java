@@ -258,7 +258,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	}
 	
 	/**
-	 * TODO (high) for ziheng, need to consider the call graph
 	 * 
 	 * return null if the exception is not incurred from the target method.
 	 * 
@@ -272,7 +271,9 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			allCorrespondingGolas.addAll(this.goalsManager.getCurrentGoals());
 			allCorrespondingGolas.addAll(this.goalsManager.getCoveredGoals());
 			
+			Map<FitnessFunction<T>, Integer> validCorresponder = new HashMap<FitnessFunction<T>, Integer>();
 			for (FitnessFunction<T> ff : allCorrespondingGolas) {
+				
 				if(ff instanceof BranchFitness) {
 					BranchCoverageGoal branchGoal = ((BranchFitness)(ff)).getBranchGoal();
 					String branchClassName = branchGoal.getBranch().getInstruction().getClassName();
@@ -298,19 +299,34 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 						 * Choose an arbitrary control dependency
 						 */
 						ControlDependency cd = cds.iterator().next();
+						int count = 1;
 						while(cd != null) {
 							if (cd.getBranch().equals(branchGoal.getBranch())
 									&& cd.getBranchExpressionValue() == branchGoal.getValue()) {
-								return ff;
+								validCorresponder.put(ff, count);
 							}
 							
 							cds = cd.getBranch().getInstruction().getControlDependencies();
 							cd = cds.isEmpty() ? null : cds.iterator().next();
+							count++;
 						}
 					}
-					
+				}
+			}
+			
+			if(!validCorresponder.isEmpty()) {
+				
+				if(validCorresponder.keySet().size() > 1) {
+					System.currentTimeMillis();
 				}
 				
+				FitnessFunction<T> bestCorresponder = validCorresponder.keySet().iterator().next();
+				for(FitnessFunction<T> corresponder: validCorresponder.keySet()) {
+					if(validCorresponder.get(corresponder) < validCorresponder.get(bestCorresponder)) {
+						bestCorresponder = corresponder;
+					}
+				}
+				return bestCorresponder;
 			}
 		}
 
@@ -368,7 +384,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 				totalOutsideExceptionTimes);
 		
 		ContextFitnessFunction<T> exceptionGoal = findTopValidException(exceptionOccuringProbability);
-		System.currentTimeMillis();
+		
 		if(exceptionGoal != null) {
 			FitnessFunction<T> corresponder = exceptionGoal2Corresponder.get(exceptionGoal);
 			if(corresponder == null) {
@@ -390,7 +406,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		List<ContextFitnessFunction<T>> rankedExceptionGoalWithStructure = rankExceptionGoalWithStructure(exceptionOccuringProbability);
 		for(ContextFitnessFunction<T> exceptionGoal: rankedExceptionGoalWithStructure) {
 			if(exceptionOccuringProbability.get(exceptionGoal) > EXCEPTION_THRESHOLD
-					&& !exceptionGoal.isContextAvoidable()
+					&& !exceptionGoal.isAvoidable()
 					&& !handledExceptions.contains(exceptionGoal)) {
 				return exceptionGoal;
 			}
