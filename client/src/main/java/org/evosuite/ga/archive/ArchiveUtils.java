@@ -41,6 +41,7 @@ import org.evosuite.coverage.mutation.StrongMutationTestFitness;
 import org.evosuite.coverage.mutation.WeakMutationTestFitness;
 import org.evosuite.coverage.rho.RhoCoverageTestFitness;
 import org.evosuite.coverage.statement.StatementCoverageTestFitness;
+import org.evosuite.ga.metaheuristics.mosa.ContextFitnessFunction;
 import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.slf4j.Logger;
@@ -82,6 +83,9 @@ public final class ArchiveUtils {
 				if (goal instanceof BranchCoverageTestFitness) {
 					return true;
 				}
+				if (goal instanceof ContextFitnessFunction) {
+					return true;
+				}
 				break;
 			case CBRANCH:
 				if (goal instanceof CBranchTestFitness) {
@@ -90,6 +94,9 @@ public final class ArchiveUtils {
 				break;
 			case FBRANCH:
 				if (goal instanceof FBranchTestFitness) {
+					return true;
+				}
+				if (goal instanceof ContextFitnessFunction) {
 					return true;
 				}
 				break;
