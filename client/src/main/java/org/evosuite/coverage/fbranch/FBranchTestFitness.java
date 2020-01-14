@@ -62,7 +62,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 				set.add(this.goal);
 				Double branchDisntanceWithApproachLevel = getBranchDisntanceWithApproachLevel(result, this.goal, set);
 				if(branchDisntanceWithApproachLevel != null) {
-					return normalize(branchDisntanceWithApproachLevel);					
+					return branchDisntanceWithApproachLevel;					
 				}
 				
 				return 1;
