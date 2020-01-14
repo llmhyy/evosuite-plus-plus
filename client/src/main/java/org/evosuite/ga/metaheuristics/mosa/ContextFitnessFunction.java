@@ -49,7 +49,7 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 
 	@Override
 	public String toString() {
-		return "ExceptionFitnessFunction [context=" + context + ", fitnessFunction=" + fitnessFunction + "]";
+		return "[context=" + context + "\n, fitnessFunction=" + fitnessFunction + "]";
 	}
 
 	@Override
@@ -97,23 +97,18 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 	}
 	
 	/**
-	 * TODO (high) ziheng, check whether the goal's context is in blacklist.
-	 * 
 	 * @param exception
 	 * @param exceptionOccuringProbability
 	 * @return
 	 */
-	public boolean isContextAvoidable() {
-		//TODO
+	public boolean isAvoidable() {
+		if(this.context.getContext().size() > 0) {
+			Call call = this.context.getContext().get(0);
+			return CallBlackList.isInBlackList(call);
+		}
+		
 		return false;
 	}
-
-
-//	@SuppressWarnings("unchecked")
-//	@Override
-//	public double getFitness(Chromosome individual) {
-//		
-//	}
 
 	private boolean isContextVisited(Set<CallContext> allContext) {
 		for(CallContext context: allContext) {
@@ -122,18 +117,23 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 					return true;
 				}
 				
+				boolean isOverallMatch = true;
 				for(int i=0; i<context.size(); i++) {
 					Call thatCall = context.getContext().get(i); 
 					Call thisCall = this.context.getContext().get(i);
 					
-					if(thisCall.getClassName().equals(thatCall.getClassName()) &&
-							//TODO for ziheng, use a more accurate match (method signature vs method name)
-							thatCall.getMethodName().contains(thisCall.getMethodName())) {
-						return true;
+					boolean match = thisCall.getClassName().equals(thatCall.getClassName()) &&
+						//TODO for ziheng, use a more accurate match (method signature vs method name)
+						thatCall.getMethodName().contains(thisCall.getMethodName());
+					
+					isOverallMatch = isOverallMatch && match;
+					
+					if(!isOverallMatch) {
+						return false;
 					}
 				}
 				
-				return false;
+				return true;
 			}
 		}
 		return false;

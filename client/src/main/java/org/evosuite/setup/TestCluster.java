@@ -1348,9 +1348,16 @@ public class TestCluster {
 		if(Properties.ENABLE_BRANCH_ENHANCEMENT) {
 			boolean isChoiceInBlackList = CallBlackList.needToSkip(choice);
 			while(isChoiceInBlackList) {
-				choice = Randomness.choice(candidateTestMethods);
-				isChoiceInBlackList = CallBlackList.needToSkip(choice);
+				double r = Randomness.nextDouble();
+				if(r >= 0.1) {
+					choice = Randomness.choice(candidateTestMethods);
+					isChoiceInBlackList = CallBlackList.needToSkip(choice);					
+				}
+				else {
+					break;
+				}
 			}
+			
 		}
 		
 		/**

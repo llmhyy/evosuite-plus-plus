@@ -28,6 +28,11 @@ public class BranchEnhancementUtil {
 		return null;
 	}
 	
+	/**
+	 * return the method full name including class name 
+	 * @param call
+	 * @return
+	 */
 	public static String covert2Sig(Call call) {
 		String className = call.getClassName();
 		int lineNumber = call.getLineNumber();
@@ -48,14 +53,4 @@ public class BranchEnhancementUtil {
 		return null;
 	}
 	
-//	@SuppressWarnings("rawtypes")
-//	public static BranchCoverageGoal getBranchGoal(FitnessFunction ff) {
-//		if (ff instanceof FBranchTestFitness) {
-//			return ((FBranchTestFitness) ff).getBranchGoal();
-//		} else if (ff instanceof BranchCoverageTestFitness) {
-//			return ((BranchCoverageTestFitness) ff).getBranchGoal();
-//		}
-//
-//		return null;
-//	}
 }
