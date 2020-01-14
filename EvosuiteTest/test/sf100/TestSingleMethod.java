@@ -36,13 +36,6 @@ public class TestSingleMethod {
 		String projectId = "1_tullibee";
 		String[] targetMethods = new String[]{
 //				"com.ib.client.EReader#processMsg(I)Z"
-//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
-//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
-//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
-//				"com.ib.client.EWrapperMsgGenerator#openOrder(ILcom/ib/client/Contract;Lcom/ib/client/Order;Lcom/ib/client/OrderState;)Ljava/lang/String;"
 				
 				"com.ib.client.EClientSocket#reqContractDetails(ILcom/ib/client/Contract;)V"
 				};
@@ -651,12 +644,6 @@ public class TestSingleMethod {
 		String projectId = "10_water-simulator";
 		String[] targetMethods = new String[]{
 				"simulator.CA.BehaviourReplyNeighbour#action()V"
-//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
-//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
-//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -687,12 +674,6 @@ public class TestSingleMethod {
 		String projectId = "75_openhre";
 		String[] targetMethods = new String[]{
 				"com.browsersoft.openhre.hl7.impl.regular.ExpressionNodeList#addExpressionList(Lcom/browsersoft/openhre/hl7/impl/regular/ExpressionNodeList;)V"
-//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
-//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
-//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -723,12 +704,6 @@ public class TestSingleMethod {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.ifxfv3.beans.AcctBal#equals(Ljava/lang/Object;)Z"
-//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
-//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
-//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -759,12 +734,6 @@ public class TestSingleMethod {
 		String projectId = "85_shop";
 		String[] targetMethods = new String[]{
 				"umd.cs.shop.JSListConjuncts#<init>(Ljava/io/StreamTokenizer;)V"
-//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
-//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
-//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -796,12 +765,6 @@ public class TestSingleMethod {
 		String[] targetMethods = new String[]{
 //				"org.databene.jdbacl.model.DefaultDatabase#getTable(Ljava/lang/String;Z)Lorg/databene/jdbacl/model/DBTable;" 
 				"org.databene.jdbacl.SQLUtil#mutatesDataOrStructure(Ljava/lang/String;)Ljava/lang/Boolean;"
-//				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
-//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
-//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
 //				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
@@ -832,15 +795,6 @@ public class TestSingleMethod {
 	public void runSumma() {
 		String projectId = "44_summa";
 		String[] targetMethods = new String[]{
-//				"org.databene.jdbacl.model.DefaultDatabase#getTable(Ljava/lang/String;Z)Lorg/databene/jdbacl/model/DBTable;" 
-//				"dk.statsbiblioteket.summa.ingest.split.XMLSplitterHandler#startElement(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/xml/sax/Attributes;)V"
-//				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
-//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
-//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
-//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
 				"dk.statsbiblioteket.summa.common.index.IndexGroup#isMatch(Ljava/lang/String;Ljava/lang/String;)Z"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
@@ -934,16 +888,6 @@ public class TestSingleMethod {
 	public void runCorina() {
 		String projectId = "35_corina";
 		String[] targetMethods = new String[]{
-//				"corina.site.Location#setLocation(Ljava/lang/String;)V" 
-//				"corina.site.Location#setLocation(Ljava/lang/String;)V"
-//				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
-//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
-//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
-//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
-//				"corina.Species#getCode(Ljava/lang/String;)Ljava/lang/String;"
 				"corina.map.PngEncoderB#pngEncode(Z)[B"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
@@ -975,14 +919,6 @@ public class TestSingleMethod {
 		String projectId = "36_schemaspy";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.schemaspy.util.Inflection#pluralize(Ljava/lang/String;)Ljava/lang/String;" 
-//				"corina.site.Location#setLocation(Ljava/lang/String;)V"
-//				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
-//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
-//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
-//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -1106,14 +1042,6 @@ public class TestSingleMethod {
 	public void runColt() {
 		String projectId = "102_colt";
 		String[] targetMethods = new String[]{
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
-//				"cern.colt.matrix.ObjectMatrix3D#assign(Lcern/colt/matrix/ObjectMatrix3D;)Lcern/colt/matrix/ObjectMatrix3D;"
-//				"cern.colt.matrix.DoubleFactory2D#sample(Lcern/colt/matrix/DoubleMatrix2D;DD)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.colt.matrix.linalg.Algebra#inverse(Lcern/colt/matrix/DoubleMatrix2D;)Lcern/colt/matrix/DoubleMatrix2D;"
-//				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
-//				"hep.aida.bin.DynamicBin1D#sample(IZLcern/jet/random/engine/RandomEngine;Lcern/colt/buffer/DoubleBuffer;)V"
-//				"hep.aida.bin.DynamicBin1D#equals(Ljava/lang/Object;)Z"
 				"cern.colt.Sorting#mergeSortInPlace([III)V"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
@@ -1123,8 +1051,8 @@ public class TestSingleMethod {
 		
 		int repeatTime = 5;
 		int budget = 100000;
-		Long seed = 1557418276377L;
-		seed = null;
+		Long seed = 1578927395578L;
+//		seed = null;
 		
 		String fitnessApproach = "fbranch";
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  

@@ -1346,10 +1346,10 @@ public class TestCluster {
 		 * now I work on a simple solution, we need to sample the candidateTestMethods w.r.t probability distribution
 		 */
 		if(Properties.ENABLE_BRANCH_ENHANCEMENT) {
-			boolean isChoiceInBlackList = CallBlackList.isInevitable(choice);
+			boolean isChoiceInBlackList = CallBlackList.needToSkip(choice);
 			while(isChoiceInBlackList) {
 				choice = Randomness.choice(candidateTestMethods);
-				isChoiceInBlackList = CallBlackList.isInevitable(choice);
+				isChoiceInBlackList = CallBlackList.needToSkip(choice);
 			}
 		}
 		

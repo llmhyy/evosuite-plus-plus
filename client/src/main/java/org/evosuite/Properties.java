@@ -149,7 +149,7 @@ public class Properties {
 	
 	@Parameter(key = "apply_object_rule", group = "Test Creation", description = "Ask the tool to analyze the branch-dependant variables")
 	public static boolean APPLY_OBJECT_RULE = false;
-
+	
 	@Parameter(key = "chop_carved_exceptions", group = "Test Creation", description = "If a carved test throws an exception, either chop it off, or drop it")
 	public static boolean CHOP_CARVED_EXCEPTIONS = true;
 
