@@ -89,6 +89,7 @@ public class CallContext implements Serializable {
 		for (int i = startPos; i >= endPos; i--) {
 			StackTraceElement element = stackTrace[i];
 			Call newCall = new Call(element.getClassName(), element.getMethodName(), element.getLineNumber());
+			newCall.setLineNumber(element.getLineNumber());
 			boolean skip = false;
 			if(context.size() >= 2) { // Need at least a sequence of three for this check to make sense
 				Call previousCall1 = context.get(context.size() - 1);
