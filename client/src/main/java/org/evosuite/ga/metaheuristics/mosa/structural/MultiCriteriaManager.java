@@ -52,6 +52,7 @@ import org.evosuite.coverage.mutation.WeakMutationTestFitness;
 import org.evosuite.coverage.statement.StatementCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.metaheuristics.mosa.ContextFitnessFunction;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.ControlDependency;
@@ -424,7 +425,8 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 			if (value == 0.0) {
 				fitnessFunction.getFitness(c);
 				updateCoveredGoals(fitnessFunction, c);
-				if (fitnessFunction instanceof BranchCoverageTestFitness){
+				if (fitnessFunction instanceof BranchCoverageTestFitness ||
+						fitnessFunction instanceof ContextFitnessFunction){
 					for (FitnessFunction<T> child : graph.getStructuralChildren(fitnessFunction)){
 						// Set current goal
 						targets.addLast(child);
