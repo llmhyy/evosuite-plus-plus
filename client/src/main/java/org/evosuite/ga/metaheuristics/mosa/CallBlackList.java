@@ -81,7 +81,8 @@ public class CallBlackList {
 			return false;
 		}
 		
-		boolean isContructor = methodName.contains(classShortName);
+		boolean isContructor = className.equals(Properties.TARGET_CLASS) && 
+				(methodName.contains(classShortName) || methodName.contains("<init>"));
 		if(isContructor) {
 			return false;
 		}
