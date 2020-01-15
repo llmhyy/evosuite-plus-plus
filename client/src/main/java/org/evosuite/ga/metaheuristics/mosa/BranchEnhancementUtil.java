@@ -17,7 +17,7 @@ public class BranchEnhancementUtil {
 				getAllInstructionsAtClass(className, lineNumber);
 		
 		if(insList == null) {
-			System.currentTimeMillis();
+			return null;
 		}
 		
 		if(!insList.isEmpty()) {
