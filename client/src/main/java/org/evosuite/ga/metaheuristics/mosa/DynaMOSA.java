@@ -22,8 +22,10 @@ package org.evosuite.ga.metaheuristics.mosa;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
@@ -83,7 +85,24 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		// Ranking the union using the best rank algorithm (modified version of the non
 		// dominated sorting algorithm
-		this.rankingFunction.computeRankingAssignment(union, this.goalsManager.getCurrentGoals());
+		FitnessFunction<T> newCoveredGoal = null;
+		int count = 0;
+		for(FitnessFunction<T> goal: this.goalsManager.getCoveredGoals()) {
+			if(count == this.goalsManager.getCoveredGoals().size()-1) {
+				newCoveredGoal = goal;
+			}
+			count++;
+		}
+		
+		Set<FitnessFunction<T>> caredSet = new HashSet<>();
+		if(newCoveredGoal == null) {
+			caredSet = this.goalsManager.getCurrentGoals();
+		}
+		else {
+			caredSet.add(newCoveredGoal);
+		}
+		
+		this.rankingFunction.computeRankingAssignment(union, caredSet);
 
 		// let's form the next population using "preference sorting and non-dominated
 		// sorting" on the
