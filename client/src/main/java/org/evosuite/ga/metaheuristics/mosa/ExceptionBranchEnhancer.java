@@ -154,9 +154,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 				if(elementToCallException != null) {
 					String methodSig = BranchEnhancementUtil.covert2Sig(elementToCallException);
 					if(methodSig == null) {
-						/**
-						 * TODO, it means some method is not instrumented.
-						 */
+						continue;
 					}
 					
 					Integer freq = CallBlackList.exceptionTriggeringCall.get(methodSig);		
