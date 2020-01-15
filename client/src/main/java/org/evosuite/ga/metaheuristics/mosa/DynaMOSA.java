@@ -206,9 +206,11 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		while (!isFinished() && this.goalsManager.getUncoveredGoals().size() > 0) {
 			MutationPositionDiscriminator.discriminator.setPurpose(this.goalsManager.getCurrentGoals());
 
-			exceptionBranchEnhancer.setGoalManager(goalsManager);
-			exceptionBranchEnhancer.updatePopulation(population);
-			exceptionBranchEnhancer.enhanceBranchGoals();
+			if(Properties.ENABLE_BRANCH_ENHANCEMENT) {
+				exceptionBranchEnhancer.setGoalManager(goalsManager);
+				exceptionBranchEnhancer.updatePopulation(population);
+				exceptionBranchEnhancer.enhanceBranchGoals();				
+			}
 			
 			this.evolve();
 			this.notifyIteration();

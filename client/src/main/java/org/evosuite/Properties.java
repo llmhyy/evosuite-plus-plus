@@ -138,7 +138,7 @@ public class Properties {
 	public static boolean ADOPT_SMART_MUTATION = true;
 	
 	@Parameter(key = "enable_branch_enhancement", group = "Test Creation", description = "Whether we adopt branch enhancement to deal with exceptions")
-	public static boolean ENABLE_BRANCH_ENHANCEMENT = true;
+	public static boolean ENABLE_BRANCH_ENHANCEMENT = false;
 	
 	/**
 	 * TODO: this option is off by default because still experimental and not
