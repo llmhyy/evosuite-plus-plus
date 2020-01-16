@@ -238,12 +238,15 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 				else{
 					ins = insList.get(0);
 				}
+				
+				if(ins == null) return null;
+				
 				cds = ins.getControlDependencies();
 				if (cds != null && cds.size() > 0) {
 					for (ControlDependency cd : cds) {
 						FitnessFunction<T> fitness = createOppFitnessFunction(cd);
 						StackTraceElement[] newStack = Arrays.copyOfRange(stack, level, stack.length);
-						CallContext context = new CallContext(newStack);
+						CallContext context = new CallContext(newStack, true);
 						return new ContextFitnessFunction<T>(context, fitness);
 					}
 				} 
@@ -319,11 +322,26 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		}
 		
 		int sharedIndex = commonContext.size()-1;
-		
 		BytecodeInstruction exceptionInsPoint = getCorrespondingInstruction(exceptionContext.getContext().get(sharedIndex));
-		BytecodeInstruction parentInsPoint = getCorrespondingInstruction(parentContext.getContext().get(sharedIndex));
 		
-		double depth = getIntraproceduralControlDistance(exceptionInsPoint, parentInsPoint);
+		double depth = -1;
+		BytecodeInstruction parentInsPoint = null;
+		if(parentContext.size() == commonContext.size()) {
+			/**
+			 * the parent goal is in use
+			 */
+			BranchCoverageGoal parentGoal = ((BranchFitness)potentialParentGoal).getBranchGoal();
+			depth = getIntraproceduralControlDistance(exceptionInsPoint, parentGoal);
+		}
+		else {
+			/**
+			 * we track the parent goal to some "start point" in a method calling a method defining the parent goal
+			 */
+			parentInsPoint = getCorrespondingInstruction(parentContext.getContext().get(sharedIndex)); 
+			depth = getIntraproceduralControlDistance(exceptionInsPoint, parentInsPoint);
+		}
+		
+		
 		if(depth == -1) {
 			return -1;
 		}
@@ -341,7 +359,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 				getInstructionsIn(call.getClassName(), call.getMethodName());
 		
 		for(BytecodeInstruction ins: insList) {
-			if(call.getLineNumber() != call.getCalledIndex()) {
+			if(call.getLineNumber() != call.getCalledIndex() && call.getLineNumber() != -1) {
 				if(ins.getInstructionId() == call.getCalledIndex()) {
 					return ins;
 				}
@@ -405,6 +423,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			BranchFitness f = (BranchFitness)potentialParentGoal;
 			BranchCoverageGoal goal = f.getBranchGoal();
 			Call call = new Call(goal.getClassName(), goal.getMethodName(), goal.getLineNumber());
+			call.setLineNumber(goal.getLineNumber());
 			List<Call> calls = new ArrayList<Call>();
 			calls.add(call);
 			CallContext context = new CallContext(calls);
@@ -413,11 +432,40 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		
 		return null;
 	}
+	
+	private double getIntraproceduralControlDistance(BytecodeInstruction exceptionIns, BranchCoverageGoal parentGoal) {
+		
+		Set<ControlDependency> cds = exceptionIns.getControlDependencies();
+		if (cds.isEmpty()) {
+			return -1;
+		}
+		
+		/**
+		 * Choose an arbitrary control dependency
+		 */
+		ControlDependency cd = cds.iterator().next();
+		int count = 1;
+		while(cd != null) {
+			if (cd.getBranch().equals(parentGoal.getBranch())
+					&& cd.getBranchExpressionValue() == parentGoal.getValue()) {
+				return count;
+			}
+			
+			cds = cd.getBranch().getInstruction().getControlDependencies();
+			cd = cds.isEmpty() ? null : cds.iterator().next();
+			count++;
+		}
+		
+		return -1;
+	}
 
 	private double getIntraproceduralControlDistance(BytecodeInstruction exceptionIns, BytecodeInstruction parentIns) {
 		
 		if(exceptionIns.getBasicBlock().equals(parentIns.getBasicBlock())) {
 			int innerBlockDistance = exceptionIns.getInstructionId() - parentIns.getInstructionId();
+			if(innerBlockDistance < 0) {
+				return -1;
+			}
 			return 1.0*innerBlockDistance/(innerBlockDistance+1);
 		}
 		
