@@ -73,8 +73,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	/** {@inheritDoc} */
 	@Override
 	protected void evolve() {
-		Set<FitnessFunction<T>> prevCoveredGoals = new HashSet<FitnessFunction<T>>();
-		prevCoveredGoals.addAll(this.goalsManager.getCoveredGoals());
+//		Set<FitnessFunction<T>> prevCoveredGoals = new HashSet<FitnessFunction<T>>();
+//		prevCoveredGoals.addAll(this.goalsManager.getCoveredGoals());
 		List<T> offspringPopulation = this.breedNextGeneration();
 
 		// Create the union of parents and offSpring
@@ -88,15 +88,25 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		// Ranking the union using the best rank algorithm (modified version of the non
 		// dominated sorting algorithm
 
-		Set<FitnessFunction<T>> caredSet = new HashSet<FitnessFunction<T>>();
-		if (!this.goalsManager.getCoveredGoals().equals(prevCoveredGoals)) {
-			Set<FitnessFunction<T>> newCoveredGoals = new HashSet<>(this.goalsManager.getCoveredGoals());
-			newCoveredGoals.removeAll(prevCoveredGoals);
-			caredSet.add(newCoveredGoals.iterator().next());
-		} else {
-			caredSet = this.goalsManager.getCurrentGoals();
+		FitnessFunction<T> newCoveredGoal = null;
+		int count = 0;
+		for(FitnessFunction<T> goal: this.goalsManager.getCoveredGoals()) {
+			if(count == this.goalsManager.getCoveredGoals().size()-1) {
+				newCoveredGoal = goal;
+			}
+			count++;
 		}
 		
+		Set<FitnessFunction<T>> caredSet = new HashSet<>();
+		if(newCoveredGoal == null) {
+			caredSet = this.goalsManager.getCurrentGoals();
+		}
+		else {
+			caredSet.add(newCoveredGoal);
+		}
+		/**
+		 * rank with the previous covered goal
+		 */
 		this.rankingFunction.computeRankingAssignment(union, caredSet);
 
 		// let's form the next population using "preference sorting and non-dominated
@@ -109,6 +119,12 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		// Obtain the next front
 		front = this.rankingFunction.getSubfront(index);
+		this.population.addAll(front);
+		remain = remain - front.size();
+		/**
+		 * re-rank with the current goal
+		 */
+		this.rankingFunction.computeRankingAssignment(union, this.goalsManager.getCurrentGoals());
 
 		while ((remain > 0) && (remain >= front.size()) && !front.isEmpty()) {
 			// Assign crowding distance to individuals
