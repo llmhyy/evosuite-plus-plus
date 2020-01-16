@@ -90,7 +90,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		Set<FitnessFunction<T>> caredSet = new HashSet<FitnessFunction<T>>();
 		if (!this.goalsManager.getCoveredGoals().equals(prevCoveredGoals)) {
-			Set<FitnessFunction<T>> newCoveredGoals = this.goalsManager.getCoveredGoals();
+			Set<FitnessFunction<T>> newCoveredGoals = new HashSet<>(this.goalsManager.getCoveredGoals());
 			newCoveredGoals.removeAll(prevCoveredGoals);
 			caredSet.add(newCoveredGoals.iterator().next());
 		} else {
