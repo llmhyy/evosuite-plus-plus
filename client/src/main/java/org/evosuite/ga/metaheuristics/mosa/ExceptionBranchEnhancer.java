@@ -21,9 +21,11 @@ import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
+import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.ControlDependency;
+import org.evosuite.graphs.cfg.ControlFlowEdge;
 import org.evosuite.runtime.mock.MockFramework;
 import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
@@ -34,6 +36,8 @@ import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.EntityWithParametersStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.DijkstraShortestPath;
 
 public class ExceptionBranchEnhancer<T extends Chromosome> {
 	private static final double EXCEPTION_THRESHOLD = 0.1;
@@ -387,8 +391,15 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		
 		List<Call> commonList = new ArrayList<Call>();
 		
-		for(int i=0; i<parentList.size(); i++) {
+		int upbound = parentList.size() < exceptionList.size() ? parentList.size() : exceptionList.size();  
+		
+		for(int i=0; i<upbound; i++) {
 			Call parentCall = parentList.get(i);
+			
+			if(exceptionList.size() <= i) {
+				System.currentTimeMillis();
+			}
+			
 			Call exceptionCall = exceptionList.get(i);
 			
 			if(parentCall.getClassName().equals(exceptionCall.getClassName()) &&
@@ -459,9 +470,11 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		return -1;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private double getIntraproceduralControlDistance(BytecodeInstruction exceptionIns, BytecodeInstruction parentIns) {
-		
-		if(exceptionIns.getBasicBlock().equals(parentIns.getBasicBlock())) {
+		BasicBlock exceptionBlock = exceptionIns.getBasicBlock();
+		BasicBlock parentBlock = parentIns.getBasicBlock();
+		if(exceptionBlock.equals(parentBlock)) {
 			int innerBlockDistance = exceptionIns.getInstructionId() - parentIns.getInstructionId();
 			if(innerBlockDistance < 0) {
 				return -1;
@@ -469,34 +482,32 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			return 1.0*innerBlockDistance/(innerBlockDistance+1);
 		}
 		
-		Set<ControlDependency> cds = exceptionIns.getControlDependencies();
-		if (cds.isEmpty()) {
+		DijkstraShortestPath d = new DijkstraShortestPath(exceptionBlock.getCDG().getGraph(),
+				parentBlock, exceptionBlock);
+		if(d.getPath() == null) {
 			return -1;
 		}
-		
-		Set<ControlDependency> parentCDs = parentIns.getControlDependencies();
-		if(parentCDs.isEmpty()) {
-			return -1;
-		}
-		ControlDependency parentControlDependency = parentCDs.iterator().next();
-		
-		/**
-		 * Choose an arbitrary control dependency
-		 */
-		ControlDependency cd = cds.iterator().next();
-		int count = 1;
-		while(cd != null) {
-			if (cd.getBranch().equals(parentControlDependency.getBranch())
-					&& cd.getBranchExpressionValue() == parentControlDependency.getBranchExpressionValue()) {
-				return count;
+		else {
+			int innerBlockDistance = parentBlock.getLastInstruction().getInstructionId() 
+					- parentBlock.getFirstInstruction().getInstructionId();
+			for(Object edge: d.getPathEdgeList()) {
+				if(edge instanceof ControlFlowEdge) {
+					ControlFlowEdge cfe = (ControlFlowEdge)edge;
+					Object target = cfe.getTarget();
+					if(target instanceof BasicBlock) {
+						BasicBlock tBlock = (BasicBlock)target;
+						int insNum = tBlock.getLastInstruction().getInstructionId() 
+								- tBlock.getFirstInstruction().getInstructionId();
+						
+						innerBlockDistance += insNum;
+					}
+				}
+				
 			}
 			
-			cds = cd.getBranch().getInstruction().getControlDependencies();
-			cd = cds.isEmpty() ? null : cds.iterator().next();
-			count++;
+			return 1.0*innerBlockDistance/(innerBlockDistance+1);
 		}
 		
-		return -1;
 	}
 
 	/**

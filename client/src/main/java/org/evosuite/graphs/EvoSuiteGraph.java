@@ -111,6 +111,10 @@ public abstract class EvoSuiteGraph<V, E extends DefaultEdge> {
 
 		setId();
 	}
+	
+	public DirectedGraph<V, E> getGraph(){
+		return this.graph;
+	}
 
 	private void setId() {
 		evoSuiteGraphs++;

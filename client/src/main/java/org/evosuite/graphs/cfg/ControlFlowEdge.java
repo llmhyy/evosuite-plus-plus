@@ -158,4 +158,13 @@ public class ControlFlowEdge extends DefaultEdge {
 			r += cd.toString();
 		return r;
 	}
+	
+	public Object getSource() {
+		return super.getSource();
+	}
+	
+	public Object getTarget() {
+		return super.getTarget();
+	}
+	
 }
