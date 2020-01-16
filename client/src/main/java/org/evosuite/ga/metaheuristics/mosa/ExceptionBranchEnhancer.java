@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
@@ -25,6 +24,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.runtime.mock.MockFramework;
+import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -169,7 +169,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 				 * record the where the exception happens.
 				 */
 				if (newExceptionGoal != null) {
-					FitnessFunction<T> goalInGraph = getCorrespondingGoalInGraph(stack, newExceptionGoal.getFitnessFunction());
+					FitnessFunction<T> goalInGraph = getCorrespondingGoalInGraph(newExceptionGoal);
 					exceptionGoal2Corresponder.put(newExceptionGoal, goalInGraph);
 
 					Integer freq = exceptionFrequencyMap.get(newExceptionGoal);
@@ -259,76 +259,183 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	 * 
 	 * return null if the exception is not incurred from the target method.
 	 * 
-	 * @param stack
 	 * @param newExceptionGoal
 	 * @return
 	 */
-	private FitnessFunction<T> getCorrespondingGoalInGraph(StackTraceElement[] stack, FitnessFunction<T> newExceptionGoal) {
-		for (StackTraceElement element : stack) {
-			List<FitnessFunction<T>> allCorrespondingGolas = new ArrayList<FitnessFunction<T>>();
-			allCorrespondingGolas.addAll(this.goalsManager.getCurrentGoals());
-			allCorrespondingGolas.addAll(this.goalsManager.getCoveredGoals());
-			
-			Map<FitnessFunction<T>, Integer> validCorresponder = new HashMap<FitnessFunction<T>, Integer>();
-			for (FitnessFunction<T> ff : allCorrespondingGolas) {
-				
-				if(ff instanceof BranchFitness) {
-					BranchCoverageGoal branchGoal = ((BranchFitness)(ff)).getBranchGoal();
-					String branchClassName = branchGoal.getBranch().getInstruction().getClassName();
-					String branchMethodName = branchGoal.getBranch().getInstruction().getMethodName();
-					if (element.getClassName().equals(branchClassName)
-							&& element.getMethodName().equals(branchMethodName.split(Pattern.quote("("))[0])) {
-						List<BytecodeInstruction> insList = BytecodeInstructionPool
-								.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-								.getAllInstructionsAtLineNumber(element.getClassName(), branchMethodName,
-										element.getLineNumber());
-						if (insList == null) {
-							System.currentTimeMillis();
-							continue;
-						}
-						
-						Set<ControlDependency> cds = insList.get(0).getControlDependencies();
-						
-						if (cds.isEmpty()) {
-							return null;
-						}
-						
-						/**
-						 * Choose an arbitrary control dependency
-						 */
-						ControlDependency cd = cds.iterator().next();
-						int count = 1;
-						while(cd != null) {
-							if (cd.getBranch().equals(branchGoal.getBranch())
-									&& cd.getBranchExpressionValue() == branchGoal.getValue()) {
-								validCorresponder.put(ff, count);
-							}
-							
-							cds = cd.getBranch().getInstruction().getControlDependencies();
-							cd = cds.isEmpty() ? null : cds.iterator().next();
-							count++;
-						}
-					}
+	private FitnessFunction<T> getCorrespondingGoalInGraph(ContextFitnessFunction<T> newExceptionGoal) {
+		List<FitnessFunction<T>> allCorrespondingGolas = new ArrayList<FitnessFunction<T>>();
+		allCorrespondingGolas.addAll(this.goalsManager.getCurrentGoals());
+		allCorrespondingGolas.addAll(this.goalsManager.getCoveredGoals());
+		
+		Map<FitnessFunction<T>, Double> validCorresponder = new HashMap<FitnessFunction<T>, Double>();
+		for (FitnessFunction<T> potentialParnet : allCorrespondingGolas) {
+			double dependencyDistance = getInterproceduralDependencyDepth(potentialParnet, newExceptionGoal);
+			if(dependencyDistance > 0) {
+				validCorresponder.put(potentialParnet, dependencyDistance);
+			}
+		}
+		
+		if(!validCorresponder.isEmpty()) {
+			FitnessFunction<T> bestCorresponder = validCorresponder.keySet().iterator().next();
+			for(FitnessFunction<T> corresponder: validCorresponder.keySet()) {
+				if(validCorresponder.get(corresponder) < validCorresponder.get(bestCorresponder)) {
+					bestCorresponder = corresponder;
 				}
 			}
 			
-			if(!validCorresponder.isEmpty()) {
-				
-				if(validCorresponder.keySet().size() > 1) {
-					System.currentTimeMillis();
-				}
-				
-				FitnessFunction<T> bestCorresponder = validCorresponder.keySet().iterator().next();
-				for(FitnessFunction<T> corresponder: validCorresponder.keySet()) {
-					if(validCorresponder.get(corresponder) < validCorresponder.get(bestCorresponder)) {
-						bestCorresponder = corresponder;
-					}
-				}
-				return bestCorresponder;
-			}
+			return bestCorresponder;
 		}
 
 		return null;
+	}
+
+	/**
+	 * return -1 if branchGoal is not a control depended by new exception goal,
+	 * otherwise, return the control depth from new exception goal to the branch goal.
+	 * @param potentialParentGoal
+	 * @param newExceptionGoal
+	 * @return
+	 */
+	private double getInterproceduralDependencyDepth(FitnessFunction<T> potentialParentGoal, ContextFitnessFunction<T> newExceptionGoal) {
+		CallContext exceptionContext = newExceptionGoal.getContext();
+		CallContext parentContext = getContextForPotentialContext(potentialParentGoal);
+		
+		List<Call> commonContext = getCommonPrefix(parentContext, exceptionContext);
+		if(commonContext.isEmpty()) {
+			return -1;
+		}
+		
+		int sharedIndex = commonContext.size()-1;
+		
+		BytecodeInstruction exceptionInsPoint = getCorrespondingInstruction(exceptionContext.getContext().get(sharedIndex));
+		BytecodeInstruction parentInsPoint = getCorrespondingInstruction(parentContext.getContext().get(sharedIndex));
+		
+		double depth = getIntraproceduralControlDistance(exceptionInsPoint, parentInsPoint);
+		if(depth == -1) {
+			return -1;
+		}
+		
+		double d = depth * 1.0;
+		double contextDiff = exceptionContext.getContext().size() - commonContext.size();
+				
+		return contextDiff + d/(d+1);
+	}
+
+	private BytecodeInstruction getCorrespondingInstruction(Call call) {
+		
+		List<BytecodeInstruction> insList = BytecodeInstructionPool
+				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
+				getInstructionsIn(call.getClassName(), call.getMethodName());
+		
+		for(BytecodeInstruction ins: insList) {
+			if(call.getLineNumber() != call.getCalledIndex()) {
+				if(ins.getInstructionId() == call.getCalledIndex()) {
+					return ins;
+				}
+			}
+			else {
+				if(ins.getLineNumber() == call.getLineNumber()) {
+					return ins;
+				}
+			}
+		}
+		
+		return null;
+	}
+
+	/**
+	 * this method should be easy, basically, the parent context should share a prefix with 
+	 * the exception context
+	 * @param parentContext
+	 * @param exceptionContext
+	 * @return
+	 */
+	private List<Call> getCommonPrefix(CallContext parentContext, CallContext exceptionContext) {
+		List<Call> parentList = parentContext.getContext();
+		List<Call> exceptionList = exceptionContext.getContext();
+		
+		List<Call> commonList = new ArrayList<Call>();
+		
+		for(int i=0; i<parentList.size(); i++) {
+			Call parentCall = parentList.get(i);
+			Call exceptionCall = exceptionList.get(i);
+			
+			if(parentCall.getClassName().equals(exceptionCall.getClassName()) &&
+					parentCall.getMethodName().equals(exceptionCall.getMethodName())) {
+				commonList.add(parentCall);
+			}
+			else {
+				break;
+			}
+		}
+		
+		System.currentTimeMillis();
+		
+		return commonList;
+	}
+
+	/**
+	 * analyze the context for every goal in the goal graph.
+	 * 
+	 * @param potentialParentGoal
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	private CallContext getContextForPotentialContext(FitnessFunction<T> potentialParentGoal) {
+		if(potentialParentGoal instanceof ContextFitnessFunction) {
+			return ((ContextFitnessFunction<T>)potentialParentGoal).getContext();
+		}
+		/**
+		 * for those original goal in goal graph, we need to generate call context for them.
+		 */
+		else if(potentialParentGoal instanceof BranchFitness) {
+			BranchFitness f = (BranchFitness)potentialParentGoal;
+			BranchCoverageGoal goal = f.getBranchGoal();
+			Call call = new Call(goal.getClassName(), goal.getMethodName(), goal.getLineNumber());
+			List<Call> calls = new ArrayList<Call>();
+			calls.add(call);
+			CallContext context = new CallContext(calls);
+			return context;
+		}
+		
+		return null;
+	}
+
+	private double getIntraproceduralControlDistance(BytecodeInstruction exceptionIns, BytecodeInstruction parentIns) {
+		
+		if(exceptionIns.getBasicBlock().equals(parentIns.getBasicBlock())) {
+			int innerBlockDistance = exceptionIns.getInstructionId() - parentIns.getInstructionId();
+			return 1.0*innerBlockDistance/(innerBlockDistance+1);
+		}
+		
+		Set<ControlDependency> cds = exceptionIns.getControlDependencies();
+		if (cds.isEmpty()) {
+			return -1;
+		}
+		
+		Set<ControlDependency> parentCDs = parentIns.getControlDependencies();
+		if(parentCDs.isEmpty()) {
+			return -1;
+		}
+		ControlDependency parentControlDependency = parentCDs.iterator().next();
+		
+		/**
+		 * Choose an arbitrary control dependency
+		 */
+		ControlDependency cd = cds.iterator().next();
+		int count = 1;
+		while(cd != null) {
+			if (cd.getBranch().equals(parentControlDependency.getBranch())
+					&& cd.getBranchExpressionValue() == parentControlDependency.getBranchExpressionValue()) {
+				return count;
+			}
+			
+			cds = cd.getBranch().getInstruction().getControlDependencies();
+			cd = cds.isEmpty() ? null : cds.iterator().next();
+			count++;
+		}
+		
+		return -1;
 	}
 
 	/**
