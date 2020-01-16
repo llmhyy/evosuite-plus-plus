@@ -73,6 +73,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	/** {@inheritDoc} */
 	@Override
 	protected void evolve() {
+		Set<FitnessFunction<T>> prevCoveredGoals = new HashSet<FitnessFunction<T>>();
+		prevCoveredGoals.addAll(this.goalsManager.getCoveredGoals());
 		List<T> offspringPopulation = this.breedNextGeneration();
 
 		// Create the union of parents and offSpring
@@ -85,21 +87,14 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		// Ranking the union using the best rank algorithm (modified version of the non
 		// dominated sorting algorithm
-		FitnessFunction<T> newCoveredGoal = null;
-		int count = 0;
-		for(FitnessFunction<T> goal: this.goalsManager.getCoveredGoals()) {
-			if(count == this.goalsManager.getCoveredGoals().size()-1) {
-				newCoveredGoal = goal;
-			}
-			count++;
-		}
-		
-		Set<FitnessFunction<T>> caredSet = new HashSet<>();
-		if(newCoveredGoal == null) {
+
+		Set<FitnessFunction<T>> caredSet = new HashSet<FitnessFunction<T>>();
+		if (!this.goalsManager.getCoveredGoals().equals(prevCoveredGoals)) {
+			Set<FitnessFunction<T>> newCoveredGoals = this.goalsManager.getCoveredGoals();
+			newCoveredGoals.removeAll(prevCoveredGoals);
+			caredSet.add(newCoveredGoals.iterator().next());
+		} else {
 			caredSet = this.goalsManager.getCurrentGoals();
-		}
-		else {
-			caredSet.add(newCoveredGoal);
 		}
 		
 		this.rankingFunction.computeRankingAssignment(union, caredSet);

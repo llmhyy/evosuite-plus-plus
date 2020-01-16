@@ -1,6 +1,7 @@
 package org.evosuite.ga.metaheuristics.mosa;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -29,6 +30,8 @@ import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.statements.ConstructorStatement;
+import org.evosuite.testcase.statements.EntityWithParametersStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
 
@@ -91,8 +94,8 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		Set<String> addedMethodNames = new HashSet<String>();
 		for (int pos = 0; pos < tc.size(); pos++) {
 			Statement statement = tc.getStatement(pos);
-			if (statement instanceof MethodStatement) {
-				MethodStatement ms = ((MethodStatement) statement);
+			if (statement instanceof MethodStatement || statement instanceof ConstructorStatement) {
+				EntityWithParametersStatement ms = ((EntityWithParametersStatement) statement);
 				String fullName = ms.getMethodName() + ms.getDescriptor();
 				if (addedMethodNames.contains(fullName)) {
 					continue;
@@ -103,7 +106,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 				}
 				addedMethodNames.add(fullName);
 				CallBlackList.calledMethods.put(fullName, freq + 1);
-			}
+			} 
 		}
 	}
 
@@ -161,7 +164,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 					if(freq == null) {
 						freq = 0;
 					}
-					// methodSig doesn't correspond to any class here
 					CallBlackList.exceptionTriggeringCall.put(methodSig, freq+1);
 				}
 				
@@ -199,7 +201,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 
 	private StackTraceElement findElementForException(StackTraceElement[] stack) {
 		StackTraceElement target = null;
-		// Not sure what this means
 		for(StackTraceElement element: stack) {
 			if(element.getClassName().startsWith("sun.")) {
 				break;
@@ -229,24 +230,26 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 					.getAllInstructionsAtClass(className, lineNum);
 
-			if(insList != null) {
-				for (BytecodeInstruction ins : insList) {
-					if (ins.getASMNodeString().contains(exception.getClass().getSimpleName())) {
-						cds = ins.getControlDependencies();
-						
-						if (cds != null && cds.size() > 0) {
-							for (ControlDependency cd : cds) {
-								FitnessFunction<T> fitness = createOppFitnessFunction(cd);
-								CallContext context = new CallContext(stack);
-								return new ContextFitnessFunction<T>(context, fitness);
-							}
-							
-							break;
-						} else {
-							ContextFitnessFunction<T> fitness = createNewGoals(exception, stack, level + 1);
-							return fitness;
-						}
+			if(insList != null && !insList.isEmpty()) {
+				BytecodeInstruction ins = null;
+				if(level == 0){
+					ins = getThrownExpInstruction(insList, exception);
+				}
+				else{
+					ins = insList.get(0);
+				}
+				cds = ins.getControlDependencies();
+				if (cds != null && cds.size() > 0) {
+					for (ControlDependency cd : cds) {
+						FitnessFunction<T> fitness = createOppFitnessFunction(cd);
+						StackTraceElement[] newStack = Arrays.copyOfRange(stack, level, stack.length);
+						CallContext context = new CallContext(newStack);
+						return new ContextFitnessFunction<T>(context, fitness);
 					}
+				} 
+				else {
+					ContextFitnessFunction<T> fitness = createNewGoals(exception, stack, level + 1);
+					return fitness;
 				}
 			}
 			
@@ -255,6 +258,16 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 		return null;
 	}
 	
+	private BytecodeInstruction getThrownExpInstruction(List<BytecodeInstruction> insList, Throwable exception) {
+		for (BytecodeInstruction ins : insList) {
+			if (ins.getASMNodeString().contains(exception.getClass().getSimpleName())) {
+				return ins;
+			}
+		}
+		
+		return null;
+	}
+
 	/**
 	 * 
 	 * return null if the exception is not incurred from the target method.
