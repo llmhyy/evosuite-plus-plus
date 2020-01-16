@@ -24,6 +24,9 @@ package org.evosuite.setup;
 
 import org.evosuite.PackageInfo;
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.testcase.execution.MethodCall;
 
 import java.io.Serializable;
@@ -105,6 +108,69 @@ public class CallContext implements Serializable {
 		hcode = this.context.hashCode();
 	}
 
+	public static String covert2Sig(StackTraceElement elementToCallException) {
+		String className = elementToCallException.getClassName();
+		int lineNumber = elementToCallException.getLineNumber();
+		
+		List<BytecodeInstruction> insList = 
+				BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
+				getAllInstructionsAtClass(className, lineNumber);
+		
+		if(insList == null) {
+			return null;
+		}
+		
+		if(!insList.isEmpty()) {
+			BytecodeInstruction instruction = insList.get(0);
+			return instruction.getMethodName();
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * <p>
+	 * Constructor for CallContext.
+	 * </p>
+	 * 
+	 * @param stackTrace
+	 *            an array of {@link java.lang.StackTraceElement} objects.
+	 */
+	public CallContext(StackTraceElement[] stackTrace, boolean createMethodSignature) {
+        addJUnitExcludes();
+
+        int startPos = stackTrace.length - 1;
+		int endPos = 0;
+		List<Call> context = new ArrayList<Call>();
+
+		// Stack traces may be empty, e.g. if an exception is thrown in a constructor call in a test
+		while (startPos >= 0 && shouldSkipEntry(stackTrace[startPos].getClassName())) {
+			startPos--;
+		}
+		while (endPos < stackTrace.length && shouldSkipEntry(stackTrace[endPos].getClassName())) {
+			endPos++;
+		}
+
+		for (int i = startPos; i >= endPos; i--) {
+			StackTraceElement element = stackTrace[i];
+			String methodSig = covert2Sig(element);
+			Call newCall = new Call(element.getClassName(), methodSig, element.getLineNumber());
+			newCall.setLineNumber(element.getLineNumber());
+			boolean skip = false;
+			if(context.size() >= 2) { // Need at least a sequence of three for this check to make sense
+				Call previousCall1 = context.get(context.size() - 1);
+				Call previousCall2 = context.get(context.size() - 2);
+				if(previousCall1.equals(newCall) && previousCall2.equals(newCall)) {
+					skip = true;
+				}
+			}
+			if(!skip)
+			context.add(newCall);
+		}
+		this.context=context;
+		hcode = this.context.hashCode();
+	}
+	
 	/**
 	 * Constructor for CallContext.
 	 *
