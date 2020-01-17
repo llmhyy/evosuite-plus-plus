@@ -1615,6 +1615,21 @@ public class TestFactory {
 		recursiveDeleteInclusion(test,toDelete,position);
 
 		List<Integer> pos = new ArrayList<>(toDelete);
+		
+		if(!Properties.TARGET_METHOD.isEmpty()) {
+			for(Integer i: pos) {
+				Statement statement = test.getStatement(i);
+				if(statement instanceof MethodStatement) {
+					MethodStatement mStat = (MethodStatement)statement;
+					GenericMethod method = mStat.getMethod();
+					if(method.getDeclaringClass().getName().equals(Properties.TARGET_CLASS) &&
+							Properties.TARGET_METHOD.equals(method.getName()+method.getDescriptor())) {
+						return false;
+					}
+				}
+			}
+		}
+		
 		Collections.sort(pos, Collections.reverseOrder());
 
 		for (Integer i : pos) {

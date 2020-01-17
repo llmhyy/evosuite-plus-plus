@@ -28,6 +28,8 @@ public class TestUility {
 //				"-Dstrategy", "EMPIRICAL_HYBRID_COLLECTOR",
 //				"-Dstrategy", "LEARNING_BASED_HYBRID",
 				"-Dapply_object_rule", "true",
+				"-Denable_branch_enhancement", "true",
+				
 				"-generateMOSuite",
 				"-Dstrategy", "MOSUITE",
 				"-Dalgorithm", "DYNAMOSA",
@@ -53,7 +55,7 @@ public class TestUility {
 				"-Dcriterion", fitnessAppraoch,
 				"-Dinstrument_context", String.valueOf(instrumentContext), 
 //				"-Dinsertion_uut", "0.1",
-				"-Dp_test_delete", "0.0",
+				"-Dp_test_delete", "0.2",
 				"-Dp_test_change", "0.9",
 				"-Dp_test_insert", "0.3",
 //				"-Dheadless_chicken_test", "true",
@@ -81,7 +83,7 @@ public class TestUility {
 //				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
-//				"-seed", "1556035769590" 
+				"-seed", "1579088026377" 
 				};
 
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evo.parseCommandLine(command);
