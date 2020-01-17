@@ -38,16 +38,17 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 
 	@Override
 	public double getFitness(TestChromosome individual, ExecutionResult result) {
-//		this.inconsistencyHappen = false;
 		/**
 		 * if the result does not exercise this branch node, we do not further process the detailed
 		 * branch distance as we need to pass its parent branch node.
 		 */
 		Double value = null;
 		if(this.goal.getValue()) {
+			//TODO ziheng
 			value = result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId());
 		}
 		else {
+			//TODO ziheng
 			value = result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
 		}
 		
@@ -105,9 +106,11 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			
 			Double value = null;
 			if(cd.getBranchExpressionValue()) {
+				//TODO ziheng
 				value = result.getTrace().getTrueDistances().get(cd.getBranch().getActualBranchId());
 			}
 			else {
+				//TODO ziheng
 				value = result.getTrace().getFalseDistances().get(cd.getBranch().getActualBranchId());
 			}
 			

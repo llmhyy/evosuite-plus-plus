@@ -22,6 +22,7 @@ package org.evosuite.coverage.branch;
 import org.evosuite.Properties;
 import org.evosuite.coverage.ControlFlowDistance;
 import org.evosuite.ga.archive.Archive;
+import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.ExecutableChromosome;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -35,6 +36,8 @@ import org.evosuite.utils.ArrayUtil;
  * @author Gordon Fraser
  */
 public class BranchCoverageTestFitness extends TestFitnessFunction implements BranchFitness{
+	
+	protected CallContext callContext = null;
 
 	private static final long serialVersionUID = -6310967747257242580L;
 
@@ -245,6 +248,11 @@ public class BranchCoverageTestFitness extends TestFitnessFunction implements Br
 	@Override
 	public String getTargetMethod() {
 		return getMethod();
+	}
+
+	@Override
+	public void setContext(CallContext callContext) {
+		this.callContext = callContext;
 	}
 
 }

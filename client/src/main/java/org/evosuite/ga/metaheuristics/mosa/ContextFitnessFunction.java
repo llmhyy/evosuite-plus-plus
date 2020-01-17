@@ -27,7 +27,7 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 	public ContextFitnessFunction(CallContext context, FitnessFunction<T> fitnessFunction) {
 		super();
 		this.context = context;
-		this.fitnessFunction = fitnessFunction;
+		this.setFitnessFunction(fitnessFunction);
 	}
 
 	public CallContext getContext() {
@@ -44,6 +44,9 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 
 	public void setFitnessFunction(FitnessFunction<T> fitnessFunction) {
 		this.fitnessFunction = fitnessFunction;
+		if(fitnessFunction instanceof BranchFitness) {
+			((BranchFitness)fitnessFunction).setContext(this.context);
+		}
 	}
 	
 
@@ -168,11 +171,11 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 		if(fitnessFunction instanceof BranchFitness) {
 			BranchCoverageGoal goal = ((BranchFitness)fitnessFunction).getBranchGoal();
 			if(goal != null) {
-				Set<CallContext> allContext = retrieveAllContext(result);
-				if(isContextVisited(allContext)) {
-					double fitness = this.fitnessFunction.getFitness((T) individual);
-					return fitness;
-				}
+//				Set<CallContext> allContext = retrieveAllContext(result);
+//				if(isContextVisited(allContext)) {
+//				}
+				double fitness = this.fitnessFunction.getFitness((T) individual);
+				return fitness;
 			}
 		}
 		
