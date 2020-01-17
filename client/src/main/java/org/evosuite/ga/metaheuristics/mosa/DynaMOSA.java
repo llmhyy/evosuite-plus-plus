@@ -137,10 +137,10 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			remain = remain - front.size();
 
 			// Obtain the next front
-			index++;
 			if (remain > 0) {
 				front = this.rankingFunction.getSubfront(index);
 			}
+			index++;
 		}
 
 		// Remain is less than front(index).size, insert only the best one
