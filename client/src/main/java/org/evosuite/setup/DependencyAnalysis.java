@@ -130,13 +130,12 @@ public class DependencyAnalysis {
 			ClassNotFoundException {
 
 		initInheritanceTree(classPath);
+		analyze(className, classPath);
 		
 		// Parse the data flow before generating tests
 		if (Properties.APPLY_OBJECT_RULE) {
 			Dataflow.initializeDataflow();
 		}
-		
-		analyze(className, classPath);
 	}
 
 	/**
