@@ -110,55 +110,6 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 		return false;
 	}
 
-	private boolean isContextVisited(Set<CallContext> allContext) {
-		mainLoop : for(CallContext context: allContext) {
-			if(context.size() == this.context.size()) {
-				if(context.size() == 0) {
-					return true;
-				}
-				
-				boolean isOverallMatch = true;
-				for(int i=0; i<context.size(); i++) {
-					Call thatCall = context.getContext().get(i); 
-					Call thisCall = this.context.getContext().get(i);
-					
-					boolean match = thisCall.getClassName().equals(thatCall.getClassName()) &&
-						thatCall.getMethodName().contains(thisCall.getMethodName());
-					
-					isOverallMatch = isOverallMatch && match;
-					
-					if(!isOverallMatch) {
-						continue mainLoop;
-					}
-				}
-				
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private Set<CallContext> retrieveAllContext(ExecutionResult origResult) {
-		
-		Set<CallContext> set = new HashSet<CallContext>();
-		
-		for(Integer i: origResult.getTrace().getTrueDistancesContext().keySet()) {
-			Map<CallContext, Double> value = origResult.getTrace().getTrueDistancesContext().get(i);
-			for(CallContext context: value.keySet()) {
-				set.add(context);
-			}
-		}
-		
-		for(Integer i: origResult.getTrace().getFalseDistancesContext().keySet()) {
-			Map<CallContext, Double> value = origResult.getTrace().getFalseDistancesContext().get(i);
-			for(CallContext context: value.keySet()) {
-				set.add(context);
-			}
-		}
-		
-		return set;
-	}
-
 	@Override
 	public boolean isMaximizationFunction() {
 		return false;
@@ -171,15 +122,10 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 		if(fitnessFunction instanceof BranchFitness) {
 			BranchCoverageGoal goal = ((BranchFitness)fitnessFunction).getBranchGoal();
 			if(goal != null) {
-//				Set<CallContext> allContext = retrieveAllContext(result);
-//				if(isContextVisited(allContext)) {
-//				}
 				double fitness = this.fitnessFunction.getFitness((T) individual);
 				return fitness;
 			}
-		}
-		
-		
+		}	
 		return 100000d;
 	}
 

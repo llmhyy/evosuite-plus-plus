@@ -3,6 +3,8 @@ package org.evosuite.coverage.fbranch;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.coverage.branch.Branch;
@@ -10,6 +12,7 @@ import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.setup.Call;
+import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
@@ -42,16 +45,8 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		 * if the result does not exercise this branch node, we do not further process the detailed
 		 * branch distance as we need to pass its parent branch node.
 		 */
-		Double value = null;
-		if(this.goal.getValue()) {
-			//TODO ziheng
-			value = result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId());
-		}
-		else {
-			//TODO ziheng
-			value = result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
-		}
-		
+
+		Double value = getContextSensitiveBranchDistance(result, this.goal.getValue());	
 		if(value != null && value == 0) {
 			return 0;
 		}
@@ -84,6 +79,27 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			return normalizedFitness;
 		}
 	}
+
+	private Double getContextSensitiveBranchDistance(ExecutionResult result, boolean expressionValue) {
+		Double value = null;
+		if (this.callContext != null) {
+			Map<CallContext, Double> contextDistanceMap = expressionValue
+					? result.getTrace().getTrueDistancesContext().get(this.goal.getBranch().getActualBranchId())
+					: result.getTrace().getFalseDistancesContext().get(this.goal.getBranch().getActualBranchId());
+			for (Entry<CallContext, Double> contextMap : contextDistanceMap.entrySet()) {
+				if (isSameContextVisited(contextMap.getKey())) {
+					value = contextMap.getValue();
+					break;
+				}
+			}
+		} else {
+			value = expressionValue
+					? result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId())
+					: result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
+		}
+
+		return value;
+	}
 	
 	private Double getBranchDisntanceWithApproachLevel(ExecutionResult result, BranchCoverageGoal goal, Set<BranchCoverageGoal> set) {
 		
@@ -104,22 +120,11 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			
 			set.add(newGoal);
 			
-			Double value = null;
-			if(cd.getBranchExpressionValue()) {
-				//TODO ziheng
-				value = result.getTrace().getTrueDistances().get(cd.getBranch().getActualBranchId());
-			}
-			else {
-				//TODO ziheng
-				value = result.getTrace().getFalseDistances().get(cd.getBranch().getActualBranchId());
-			}
-			
+			Double value = getContextSensitiveBranchDistance(result, cd.getBranchExpressionValue());		
 			if(value != null) {
 				return 1 + normalize(value);
 			}
-			else {
-				
-				
+			else {	
 				Double subValue = getBranchDisntanceWithApproachLevel(result, newGoal, set);
 				if(subValue != null) {
 					return 1 + subValue;
@@ -166,6 +171,31 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 
 	public boolean getBranchExpressionValue() {
 		return this.goal.getValue();
+	}
+	
+	private boolean isSameContextVisited(CallContext context) {
+		if (context.size() == this.callContext.size()) {
+			if (context.size() == 0) {
+				return true;
+			}
+
+			boolean isOverallMatch = true;
+			for (int i = 0; i < context.size(); i++) {
+				Call thatCall = context.getContext().get(i);
+				Call thisCall = this.callContext.getContext().get(i);
+
+				boolean match = thisCall.getClassName().equals(thatCall.getClassName())
+						&& thatCall.getMethodName().equals(thisCall.getMethodName());
+
+				isOverallMatch = isOverallMatch && match;
+
+				if (!isOverallMatch) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 
 }
