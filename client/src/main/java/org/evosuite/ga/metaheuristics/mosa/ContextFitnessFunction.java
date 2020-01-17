@@ -108,7 +108,7 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 	}
 
 	private boolean isContextVisited(Set<CallContext> allContext) {
-		for(CallContext context: allContext) {
+		mainLoop : for(CallContext context: allContext) {
 			if(context.size() == this.context.size()) {
 				if(context.size() == 0) {
 					return true;
@@ -120,13 +120,12 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 					Call thisCall = this.context.getContext().get(i);
 					
 					boolean match = thisCall.getClassName().equals(thatCall.getClassName()) &&
-						//TODO for ziheng, use a more accurate match (method signature vs method name)
 						thatCall.getMethodName().contains(thisCall.getMethodName());
 					
 					isOverallMatch = isOverallMatch && match;
 					
 					if(!isOverallMatch) {
-						return false;
+						continue mainLoop;
 					}
 				}
 				
