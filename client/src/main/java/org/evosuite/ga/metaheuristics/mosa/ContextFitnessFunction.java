@@ -85,14 +85,11 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 	}
 
 	public boolean isInTarget() {
-		String targetMethodSig = Properties.TARGET_CLASS + "." + Properties.TARGET_METHOD;
-		for(Call call: this.context.getContext()) {
-			
-			String callSig = BranchEnhancementUtil.covert2Sig(call);
+		String targetMethodSig = Properties.TARGET_CLASS + "." + Properties.TARGET_METHOD;			
+			String callSig = BranchEnhancementUtil.covert2Sig(this.context.getContext().get(0));
 			if(targetMethodSig.equals(callSig)) {
 				return true;
 			}
-		}
 		return false;
 	}
 	
