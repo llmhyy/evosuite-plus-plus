@@ -86,10 +86,12 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			Map<CallContext, Double> contextDistanceMap = expressionValue
 					? result.getTrace().getTrueDistancesContext().get(this.goal.getBranch().getActualBranchId())
 					: result.getTrace().getFalseDistancesContext().get(this.goal.getBranch().getActualBranchId());
-			for (Entry<CallContext, Double> contextMap : contextDistanceMap.entrySet()) {
-				if (isSameContextVisited(contextMap.getKey())) {
-					value = contextMap.getValue();
-					break;
+			if (contextDistanceMap != null) {
+				for (Entry<CallContext, Double> contextMap : contextDistanceMap.entrySet()) {
+					if (isSameContextVisited(contextMap.getKey())) {
+						value = contextMap.getValue();
+						break;
+					}
 				}
 			}
 		} else {
