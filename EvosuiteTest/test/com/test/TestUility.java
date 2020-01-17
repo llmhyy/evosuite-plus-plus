@@ -55,7 +55,7 @@ public class TestUility {
 				"-Dcriterion", fitnessAppraoch,
 				"-Dinstrument_context", String.valueOf(instrumentContext), 
 //				"-Dinsertion_uut", "0.1",
-				"-Dp_test_delete", "0.2",
+				"-Dp_test_delete", "0.0",
 				"-Dp_test_change", "0.9",
 				"-Dp_test_insert", "0.3",
 //				"-Dheadless_chicken_test", "true",
