@@ -52,7 +52,7 @@ public class ContextFitnessFunction<T extends Chromosome> extends TestFitnessFun
 
 	@Override
 	public String toString() {
-		return "[context=" + context + "\n, fitnessFunction=" + fitnessFunction + "]";
+		return "[context = " + context + "\n fitnessFunction = " + fitnessFunction + "]";
 	}
 
 	@Override

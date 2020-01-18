@@ -283,15 +283,15 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 	 * @return
 	 */
 	private FitnessFunction<T> getCorrespondingGoalInGraph(ContextFitnessFunction<T> newExceptionGoal) {
-		List<FitnessFunction<T>> allCorrespondingGolas = new ArrayList<FitnessFunction<T>>();
-		allCorrespondingGolas.addAll(this.goalsManager.getCurrentGoals());
-		allCorrespondingGolas.addAll(this.goalsManager.getCoveredGoals());
+		List<FitnessFunction<T>> allCorrespondingGoals = new ArrayList<FitnessFunction<T>>();
+		allCorrespondingGoals.addAll(this.goalsManager.getCurrentGoals());
+		allCorrespondingGoals.addAll(this.goalsManager.getCoveredGoals());
 		
 		Map<FitnessFunction<T>, Double> validCorresponder = new HashMap<FitnessFunction<T>, Double>();
-		for (FitnessFunction<T> potentialParnet : allCorrespondingGolas) {
-			double dependencyDistance = getInterproceduralDependencyDepth(potentialParnet, newExceptionGoal);
+		for (FitnessFunction<T> potentialParent : allCorrespondingGoals) {
+			double dependencyDistance = getInterproceduralDependencyDepth(potentialParent, newExceptionGoal);
 			if(dependencyDistance > 0) {
-				validCorresponder.put(potentialParnet, dependencyDistance);
+				validCorresponder.put(potentialParent, dependencyDistance);
 			}
 		}
 		

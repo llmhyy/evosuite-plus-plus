@@ -319,7 +319,9 @@ public class CallContext implements Serializable {
 		StringBuilder builder = new StringBuilder();
 		for (Call call : context) {
 			builder.append(call.toString());
-			builder.append(" ");
+			if (context.get(context.size() - 1) != call) {
+				builder.append(" -> ");
+			}
 		}
 		String tmp = builder.toString();
 		return tmp.trim();
