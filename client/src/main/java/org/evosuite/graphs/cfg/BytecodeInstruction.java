@@ -31,6 +31,7 @@ import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
+import org.evosuite.utils.CollectionUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -1393,9 +1394,16 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 				return 1;
 			}
 		}
-//		else if(this.asmNode.getType() == AbstractInsnNode.INVOKE_DYNAMIC_INSN) {
-//			return this.getCalledMethodsArgumentCount();
-//		}
+		else if (this.asmNode.getType() == AbstractInsnNode.JUMP_INSN) {
+			if (CollectionUtil.existIn(this.asmNode.getOpcode(), Opcodes.IFEQ, Opcodes.IFNE, Opcodes.IFGE, Opcodes.IFGT,
+					Opcodes.IFLE, Opcodes.IFLT, Opcodes.IFNULL, Opcodes.IFNONNULL)) {
+				return 1;
+			} else if (CollectionUtil.existIn(this.asmNode.getOpcode(), Opcodes.IF_ACMPEQ, Opcodes.IF_ACMPNE,
+					Opcodes.IF_ICMPEQ, Opcodes.IF_ICMPGE, Opcodes.IF_ICMPGT, Opcodes.IF_ICMPLE, Opcodes.IF_ICMPLE,
+					Opcodes.IF_ICMPLT, Opcodes.IF_ICMPNE)) {
+				return 2;
+			}
+		}
 		else if(this.asmNode.getType() == AbstractInsnNode.METHOD_INSN) {
 			if(this.isCallToStaticMethod()) {
 				return this.getCalledMethodsArgumentCount();
