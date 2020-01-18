@@ -24,6 +24,7 @@ import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.CFGFrame;
+import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.CollectionUtil;
@@ -164,12 +165,11 @@ public class Dataflow {
 	 * 
 	 * @param value
 	 * @param cfg
-	 * @param allDepVars
+	 * @param allLeafDepVars
 	 * @param visitedIns
 	 * @return
 	 */
-	@SuppressWarnings("rawtypes")
-	private static void searchDependantVariables(Value value, ActualControlFlowGraph cfg, Set<DepVariable> allDepVars,
+	private static void searchDependantVariables(Value value, ActualControlFlowGraph cfg, Set<DepVariable> allLeafDepVars,
 			Set<BytecodeInstruction> visitedIns) {
 		String className = cfg.getClassName();
 		String methodName = cfg.getMethodName();
@@ -186,77 +186,24 @@ public class Dataflow {
 				visitedIns.add(defIns);
 				
 				DepVariable outputVar = parseVariable(srcValue, defIns);
-				List<DepVariable> intputVars = new ArrayList<DepVariable>();
 				/**
 				 * the variable is computed by values on stack
 				 */
-				int operandNum = defIns.getOperandNum();
-				for (int i = 0; i < operandNum; i++) {
-					Frame frame = defIns.getFrame();
-					int index = frame.getStackSize() - i -1;
-					Value val = frame.getStack(index);
-					
-					SourceValue inputVal = (SourceValue)val;
-					for(AbstractInsnNode newDefInsNode: inputVal.insns) {
-						BytecodeInstruction newDefIns = convert2BytecodeInstruction(cfg, node, newDefInsNode);
-						DepVariable inputVar = parseVariable((SourceValue)val, newDefIns);
-						inputVar.buildRelation(outputVar);
-						
-						searchDependantVariables(val, cfg, allDepVars, visitedIns);
-						
-						intputVars.add(inputVar);
-					}
-				}
+				List<DepVariable> intputVars = buildInputOutputForInstruction(defIns, node,
+						outputVar, cfg, allLeafDepVars, visitedIns);
 				
 				/**
-				 * if defIns is a method call, we need to explore more potential variables.
+				 * if defIns is a method call, we need to explore more potential variables (fields) inside the method.
 				 */
 				if(defIns.isMethodCall()) {
-					DepVariable objectVar = null;
-					List<DepVariable> paramVars = new ArrayList<DepVariable>();
-					/**
-					 * is the method static?
-					 */
-					if(defIns.getCalledMethodsArgumentCount() != intputVars.size()) {
-						objectVar = intputVars.get(intputVars.size()-1);
-						for(int i=0; i<intputVars.size()-1; i++) {
-							paramVars.add(intputVars.get(i));
-						}
-					}
-					else {
-						paramVars.addAll(intputVars);
-					}
-					
-					Set<DepVariable> relatedVariables = analyzeReturnValueFromMethod(defIns);
-					for(DepVariable var: relatedVariables) {
-						DepVariable rootVar = var.getRootVar();
-						if(var.getType() == DepVariable.STATIC_FIELD) {
-							allDepVars.add(var);					
-						}
-						else {
-							List<DepVariable> path = rootVar.findPath(var);
-							if(path != null) {
-								DepVariable secVar = path.get(1);
-								if(rootVar.getType() == DepVariable.PARAMETER) {
-									int paramOrder = secVar.getParamOrder();
-									DepVariable param = paramVars.get(paramOrder);
-									param.buildRelation(secVar);
-								}
-								else if(rootVar.getType() == DepVariable.THIS) {
-									objectVar.buildRelation(secVar);
-								}
-							}
-						}
-						
-						allDepVars.add(var);
-					}
+					exploreInterproceduralInstruction(allLeafDepVars, defIns, intputVars);
 				}
 				
 				/**
 				 *  handle load/get static, need to put the variable into the return list
 				 */
 				if(outputVar.isStaticField() || outputVar.isInstaceField()) {
-					allDepVars.add(outputVar);
+					allLeafDepVars.add(outputVar);
 				}
 				
 				if(outputVar.referenceToThis() || outputVar.isParameter() || outputVar.isStaticField()) {
@@ -276,35 +223,91 @@ public class Dataflow {
 					for (Definition def : CollectionUtil.nullToEmpty(defs)) {
 						if (def != null) {
 							BytecodeInstruction defInstruction = convert2BytecodeInstruction(cfg, node, def.getASMNode());
-							Frame frame = def.getFrame();
-							
-							for (int i = 0; i < defInstruction.getOperandNum(); i++) {
-								int index = frame.getStackSize() - i -1;
-								Value val = frame.getStack(index);
-								SourceValue sVal = (SourceValue)val;
-								
-								for(AbstractInsnNode newDefInsNode: sVal.insns) {
-									BytecodeInstruction newDefIns = convert2BytecodeInstruction(cfg, node, newDefInsNode);
-									DepVariable inputVar = parseVariable((SourceValue)val, newDefIns);
-									
-									inputVar.buildRelation(outputVar);
-									searchDependantVariables(val, cfg, allDepVars, visitedIns);							
-								}
-							}
+							buildInputOutputForInstruction(defInstruction, node,
+									outputVar, cfg, allLeafDepVars, visitedIns);
 						}
-						
-						
 					}
 				}
 				
-				
 				/**
-				 * TODO handle control flow, for ziheng
+				 * handle control flow
 				 */
+				for(ControlDependency control: defIns.getControlDependencies()) {
+					buildInputOutputForInstruction(control.getBranch().getInstruction(), node,
+							outputVar, cfg, allLeafDepVars, visitedIns);
+				}
+				
 			}
 			
 
 		}
+	}
+
+	private static void exploreInterproceduralInstruction(Set<DepVariable> allLeafDepVars, BytecodeInstruction defIns,
+			List<DepVariable> intputVars) {
+		DepVariable objectVar = null;
+		List<DepVariable> paramVars = new ArrayList<DepVariable>();
+		/**
+		 * is the method static?
+		 */
+		if(defIns.getCalledMethodsArgumentCount() != intputVars.size()) {
+			objectVar = intputVars.get(intputVars.size()-1);
+			for(int i=0; i<intputVars.size()-1; i++) {
+				paramVars.add(intputVars.get(i));
+			}
+		}
+		else {
+			paramVars.addAll(intputVars);
+		}
+		
+		Set<DepVariable> relatedVariables = analyzeReturnValueFromMethod(defIns);
+		for(DepVariable var: relatedVariables) {
+			DepVariable rootVar = var.getRootVar();
+			if(var.getType() == DepVariable.STATIC_FIELD) {
+				allLeafDepVars.add(var);					
+			}
+			else {
+				List<DepVariable> path = rootVar.findPath(var);
+				if(path != null) {
+					DepVariable secVar = path.get(1);
+					if(rootVar.getType() == DepVariable.PARAMETER) {
+						int paramOrder = secVar.getParamOrder();
+						DepVariable param = paramVars.get(paramOrder);
+						param.buildRelation(secVar);
+					}
+					else if(rootVar.getType() == DepVariable.THIS) {
+						objectVar.buildRelation(secVar);
+					}
+				}
+			}
+			
+			allLeafDepVars.add(var);
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static List<DepVariable> buildInputOutputForInstruction(BytecodeInstruction defInstruction, MethodNode node, 
+			DepVariable outputVar, ActualControlFlowGraph cfg, Set<DepVariable> allDepVars, Set<BytecodeInstruction> visitedIns) {
+		List<DepVariable> intputVars = new ArrayList<DepVariable>();
+		int operandNum = defInstruction.getOperandNum();
+		for (int i = 0; i < operandNum; i++) {
+			Frame frame = defInstruction.getFrame();
+			int index = frame.getStackSize() - i - 1;
+			Value val = frame.getStack(index);
+			
+			SourceValue inputVal = (SourceValue)val;
+			for(AbstractInsnNode newDefInsNode: inputVal.insns) {
+				BytecodeInstruction newDefIns = convert2BytecodeInstruction(cfg, node, newDefInsNode);
+				DepVariable inputVar = parseVariable((SourceValue)val, newDefIns);
+				inputVar.buildRelation(outputVar);
+				
+				searchDependantVariables(val, cfg, allDepVars, visitedIns);
+				
+				intputVars.add(inputVar);
+			}
+		}
+		
+		return intputVars;
 	}
 
 	private static void setType(DepVariable outputVar) {
