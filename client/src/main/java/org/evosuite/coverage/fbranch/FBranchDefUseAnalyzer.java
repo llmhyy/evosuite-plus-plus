@@ -1,24 +1,22 @@
 package org.evosuite.coverage.fbranch;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 
 public class FBranchDefUseAnalyzer {
-	public static Set<String> analyzedMethods = new HashSet<String>();
+	public static Map<String, Boolean> analyzedMethods = new HashMap<>();
 	
-	public static void analyze(RawControlFlowGraph completeCFG) {
+	public static boolean analyze(RawControlFlowGraph completeCFG) {
 		String methodName = completeCFG.getClassName() + "#" + completeCFG.getMethodName();
-		if(analyzedMethods.contains(methodName)) {
-			return;
-		}
-		else {
-			analyzedMethods.add(methodName);
+		if(analyzedMethods.containsKey(methodName)) {
+			return analyzedMethods.get(methodName);
 		}
 		
+		boolean isValid = true;
 		for (BytecodeInstruction v : completeCFG.vertexSet()) {
 		    if (v.isDefUse()) {
 
@@ -32,7 +30,8 @@ public class FBranchDefUseAnalyzer {
 					// keep track of uses
 					try {
 						if (v.isUse()) {
-							DefUsePool.addAsUse(v);						
+							boolean success = DefUsePool.addAsUse(v);		
+							if(!success) isValid = false;
 						}
 						// keep track of definitions
 						if (v.isDefinition()) {
@@ -40,10 +39,15 @@ public class FBranchDefUseAnalyzer {
 						}						
 					}
 					catch(Exception e) {
-						e.printStackTrace();
+						isValid = false;
 					}
 				}
 			}
 		}
+		
+		
+		analyzedMethods.put(methodName, isValid);
+		
+		return isValid;
 	}
 }

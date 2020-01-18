@@ -174,13 +174,13 @@ public class DefUsePool {
 			throw new IllegalStateException(
 			        "expect registering to fail only on field method calls");
 
-		registerAsUse(u);
+		boolean success = registerAsUse(u);
 
 //		if (u.isMethodCallOfField())
 //			LoggingUtils.getEvoLogger().info("Registered field method call as Use "
 //			                                         + u.toString());
 
-		return true;
+		return success;
 	}
 
 	/**
@@ -282,8 +282,7 @@ public class DefUsePool {
 		Use use = DefUseFactory.makeUse(d);
 
 		// finally add the use to all corresponding maps
-		fillUseMaps(use);
-		return true;
+		return fillUseMaps(use);
 	}
 
 	private static void registerParameterUse(BytecodeInstruction d) {
@@ -308,7 +307,7 @@ public class DefUsePool {
 		}
 	}
 
-	private static void fillUseMaps(Use use) {
+	private static boolean fillUseMaps(Use use) {
 		addToUseMap(use);
 		defuseIdsToDefUses.put(use.getDefUseId(), use);
 		defuseIdsToUses.put(use.getDefUseId(), use);
@@ -316,8 +315,10 @@ public class DefUsePool {
 		try {
 			logger.debug("Added to DefUsePool as use: " + use.toString());
 		} catch (Exception e) {
-			// ignore
+			return false;
 		}
+		
+		return true;
 	}
 
 	// filling the maps

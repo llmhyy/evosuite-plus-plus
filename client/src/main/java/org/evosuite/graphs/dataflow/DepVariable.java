@@ -9,6 +9,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FieldInsnNode;
 
 /**
  * This class should detailedly describe the dependent variables, including whether it is
@@ -32,11 +33,11 @@ public class DepVariable {
 	private Map<String, List<DepVariable>> relations = new HashMap<String, List<DepVariable>>();
 	private Map<String, List<DepVariable>> reverseRelations = new HashMap<String, List<DepVariable>>();
 	
-	public DepVariable(String className, String varName, int type, BytecodeInstruction insn) {
+	public DepVariable(String className, String varName, BytecodeInstruction insn) {
 		this.className = className;
 		this.varName = varName;
-		this.setType(type);
 		this.setInstruction(insn);
+		this.setType();
 	}
 	
 	
@@ -44,6 +45,30 @@ public class DepVariable {
 	public String toString() {
 		return "DepVariable [className=" + getClassName()  + ", type=" + getTypeString() 
 				+ ", varName=" + varName + ", instruction=" + getInstruction() + "]";
+	}
+	
+	public void setType(int type) {
+		this.type = type;
+	}
+	
+	private void setType() {
+		BytecodeInstruction ins = this.getInstruction();
+		if(this.referenceToThis()) {
+			this.setType(DepVariable.THIS);
+			this.setName("this");
+		}
+		else if(this.isParameter()) {
+			this.setType(DepVariable.PARAMETER);
+			this.setName(ins.getVariableName());
+		}
+		else if(this.isStaticField()) {
+			this.setType(DepVariable.STATIC_FIELD);
+			this.setName(((FieldInsnNode)ins.getASMNode()).name);
+		}
+		else if(this.isInstaceField()) {
+			this.setType(DepVariable.INSTANCE_FIELD);
+			this.setName(((FieldInsnNode)ins.getASMNode()).name);
+		}
 	}
 
 	public String getTypeString() {
@@ -167,11 +192,6 @@ public class DepVariable {
 
 	public int getType() {
 		return type;
-	}
-
-
-	public void setType(int type) {
-		this.type = type;
 	}
 
 
