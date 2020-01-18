@@ -23,13 +23,11 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.cfg.CFGFrame;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.CollectionUtil;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -73,6 +71,7 @@ public class Dataflow {
 
 	}
 
+	@SuppressWarnings("rawtypes")
 	private static Map<Branch, Set<DepVariable>> analyzeMethod(ActualControlFlowGraph cfg) {
 		Map<Branch, Set<DepVariable>> map = new HashMap<>();
 		
@@ -84,12 +83,15 @@ public class Dataflow {
 			Set<DepVariable> allDepVars = new HashSet<DepVariable>();
 			Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 			if (!b.isInstrumented()) {
-				List<Value> operandValues = new ArrayList<Value>();
 				for (int i = 0; i < b.getInstruction().getOperandNum(); i ++) {
-					operandValues.add(b.getInstruction().getFrame().getStack(i));
-				}
-				for (Value value : operandValues) {
-					searchDependantVariables(value, cfg, allDepVars, visitedIns);
+					int operandNum = b.getInstruction().getOperandNum();
+					for (int j = 0; j < operandNum; j++) {
+						Frame frame = b.getInstruction().getFrame();
+						int index = frame.getStackSize() - j - 1;
+						Value val = frame.getStack(index);
+						searchDependantVariables(val, cfg, allDepVars, visitedIns);
+					}
+					
 				}
 			}
 			
