@@ -43,7 +43,7 @@ public class Dataflow {
 	 * a map maintains what variables are dependent by which branch, method->branch->dependent variables
 	 * 
 	 */
-	public static Map<String, Map<Branch, List<DepVariable>>> branchDepVarsMap = new HashMap<>();
+	public static Map<String, Map<Branch, Set<DepVariable>>> branchDepVarsMap = new HashMap<>();
 
 	public static void initializeDataflow() {
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
@@ -64,7 +64,7 @@ public class Dataflow {
 					ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 					FBranchDefUseAnalyzer.analyze(cfg.getRawGraph());
 					
-					Map<Branch, List<DepVariable>> map = analyzeMethod(cfg);
+					Map<Branch, Set<DepVariable>> map = analyzeMethod(cfg);
 					branchDepVarsMap.put(methodName, map);					
 				}
 			}
@@ -72,15 +72,15 @@ public class Dataflow {
 
 	}
 
-	private static Map<Branch, List<DepVariable>> analyzeMethod(ActualControlFlowGraph cfg) {
-		Map<Branch, List<DepVariable>> map = new HashMap<Branch, List<DepVariable>>();
+	private static Map<Branch, Set<DepVariable>> analyzeMethod(ActualControlFlowGraph cfg) {
+		Map<Branch, Set<DepVariable>> map = new HashMap<>();
 		
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		String className = cfg.getClassName();
 		String methodName = cfg.getMethodName();
 		
 		for (Branch b : BranchPool.getInstance(classLoader).retrieveBranchesInMethod(className, methodName)) {
-			List<DepVariable> allDepVars = new ArrayList<DepVariable>();
+			Set<DepVariable> allDepVars = new HashSet<DepVariable>();
 			Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 			if (!b.isInstrumented()) {
 				List<Value> operandValues = getBranchOperands(b.getInstruction());
@@ -96,7 +96,7 @@ public class Dataflow {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private static List<DepVariable> analyzeReturnValueFromMethod(BytecodeInstruction instruction){
+	private static Set<DepVariable> analyzeReturnValueFromMethod(BytecodeInstruction instruction){
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		
 		String className = instruction.getCalledMethodsClass();
@@ -115,7 +115,7 @@ public class Dataflow {
 		}
 		FBranchDefUseAnalyzer.analyze(calledCfg.getRawGraph());
 		
-		List<DepVariable> allDepVars = new ArrayList<DepVariable>();
+		Set<DepVariable> allDepVars = new HashSet<DepVariable>();
 		Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 		for (BytecodeInstruction exit : calledCfg.getExitPoints()) {
 			if (exit.getOperandNum() > 0) {
@@ -169,7 +169,7 @@ public class Dataflow {
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	private static void searchDependantVariables(Value value, ActualControlFlowGraph cfg, List<DepVariable> allDepVars,
+	private static void searchDependantVariables(Value value, ActualControlFlowGraph cfg, Set<DepVariable> allDepVars,
 			Set<BytecodeInstruction> visitedIns) {
 		String className = cfg.getClassName();
 		String methodName = cfg.getMethodName();
@@ -186,20 +186,69 @@ public class Dataflow {
 				visitedIns.add(defIns);
 				
 				DepVariable outputVar = parseVariable(srcValue, defIns);
+				List<DepVariable> intputVars = new ArrayList<DepVariable>();
 				/**
 				 * the variable is computed by values on stack
 				 */
 				int operandNum = defIns.getOperandNum();
 				for (int i = 0; i < operandNum; i++) {
 					Frame frame = defIns.getFrame();
-					Value val = frame.getStack(i);
-					SourceValue sVal = (SourceValue)val;
-					for(AbstractInsnNode newDefInsNode: sVal.insns) {
+					int index = frame.getStackSize() - i -1;
+					Value val = frame.getStack(index);
+					
+					SourceValue inputVal = (SourceValue)val;
+					for(AbstractInsnNode newDefInsNode: inputVal.insns) {
 						BytecodeInstruction newDefIns = convert2BytecodeInstruction(cfg, node, newDefInsNode);
 						DepVariable inputVar = parseVariable((SourceValue)val, newDefIns);
+						inputVar.buildRelation(outputVar);
 						
-						RelationBuilder.buildRelation(outputVar, inputVar);
-						searchDependantVariables(val, cfg, allDepVars, visitedIns);							
+						searchDependantVariables(val, cfg, allDepVars, visitedIns);
+						
+						intputVars.add(inputVar);
+					}
+				}
+				
+				/**
+				 * if defIns is a method call, we need to explore more potential variables.
+				 */
+				if(defIns.isMethodCall()) {
+					DepVariable objectVar = null;
+					List<DepVariable> paramVars = new ArrayList<DepVariable>();
+					/**
+					 * is the method static?
+					 */
+					if(defIns.getCalledMethodsArgumentCount() != intputVars.size()) {
+						objectVar = intputVars.get(intputVars.size()-1);
+						for(int i=0; i<intputVars.size()-1; i++) {
+							paramVars.add(intputVars.get(i));
+						}
+					}
+					else {
+						paramVars.addAll(intputVars);
+					}
+					
+					Set<DepVariable> relatedVariables = analyzeReturnValueFromMethod(defIns);
+					for(DepVariable var: relatedVariables) {
+						DepVariable rootVar = var.getRootVar();
+						if(var.getType() == DepVariable.STATIC_FIELD) {
+							allDepVars.add(var);					
+						}
+						else {
+							List<DepVariable> path = rootVar.findPath(var);
+							if(path != null) {
+								DepVariable secVar = path.get(1);
+								if(rootVar.getType() == DepVariable.PARAMETER) {
+									int paramOrder = secVar.getParamOrder();
+									DepVariable param = paramVars.get(paramOrder);
+									param.buildRelation(secVar);
+								}
+								else if(rootVar.getType() == DepVariable.THIS) {
+									objectVar.buildRelation(secVar);
+								}
+							}
+						}
+						
+						allDepVars.add(var);
 					}
 				}
 				
@@ -228,56 +277,30 @@ public class Dataflow {
 						if (def != null) {
 							BytecodeInstruction defInstruction = convert2BytecodeInstruction(cfg, node, def.getASMNode());
 							Frame frame = def.getFrame();
+							
 							for (int i = 0; i < defInstruction.getOperandNum(); i++) {
-								Value val = frame.getStack(i);
+								int index = frame.getStackSize() - i -1;
+								Value val = frame.getStack(index);
 								SourceValue sVal = (SourceValue)val;
+								
 								for(AbstractInsnNode newDefInsNode: sVal.insns) {
 									BytecodeInstruction newDefIns = convert2BytecodeInstruction(cfg, node, newDefInsNode);
 									DepVariable inputVar = parseVariable((SourceValue)val, newDefIns);
 									
-									RelationBuilder.buildRelation(outputVar, inputVar);
+									inputVar.buildRelation(outputVar);
 									searchDependantVariables(val, cfg, allDepVars, visitedIns);							
 								}
 							}
 						}
+						
+						
 					}
 				}
 				
+				
 				/**
-				 *  analyze the method information, checking fields 
+				 * TODO handle control flow, for ziheng
 				 */
-				if(defIns.isMethodCall()) {
-					List<DepVariable> relatedVariables = analyzeReturnValueFromMethod(defIns);
-					for(DepVariable var: relatedVariables) {
-						DepVariable rootVar = var.getRootVar();
-						if(var.getType() == DepVariable.STATIC_FIELD) {
-							allDepVars.add(var);					
-						}
-						else if(rootVar.getType() == DepVariable.PARAMETER) {
-							//TODO for ziheng, (1) check which parameter to build relation and (2) continue to propagate
-						}
-						else if(rootVar.getType() == DepVariable.THIS) {
-							/**
-							 * TODO: change object reference to its field.
-							 * locate the object reference to call the method, and build the relation
-							 */
-							Value objVal = defIns.getFrame().getStack(0);
-							SourceValue sVal = (SourceValue)objVal;
-							for(AbstractInsnNode newDefInsNode: sVal.insns) {
-								BytecodeInstruction objDefIns = convert2BytecodeInstruction(cfg, node, newDefInsNode);
-								DepVariable inputVar = parseVariable(sVal, objDefIns);
-								
-								RelationBuilder.buildRelation(rootVar.getRelations().get(Relation.FIELD).get(0), inputVar, Relation.FIELD);
-							}
-						}
-						
-						allDepVars.add(var);
-					}
-					
-					/**
-					 * TODO handle control flow, for ziheng
-					 */
-				}
 			}
 			
 

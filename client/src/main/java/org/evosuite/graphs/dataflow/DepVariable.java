@@ -5,12 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.AbstractInsnNode;
 
 /**
  * This class should detailedly describe the dependent variables, including whether it is
@@ -102,8 +100,24 @@ public class DepVariable {
 		return this.instruction.loadsReferenceToThis();
 	}
 
+	
+	public void buildRelation(DepVariable outputVar) {
+		BytecodeInstruction instruction = outputVar.getInstruction();
+		AbstractInsnNode insNode = instruction.getASMNode();
+		
+		int type = insNode.getType();
+		String relation = null;
+		if(type == AbstractInsnNode.FIELD_INSN) {
+			relation = Relation.FIELD;
+		}
+		else {
+			relation = Relation.OTHER;
+		}
+		
+		addRelation(relation, outputVar);
+	}
 
-	public void addRelation(String relation, DepVariable var) {
+	private void addRelation(String relation, DepVariable var) {
 		List<DepVariable> list = this.getRelations().get(relation);
 		if(list == null) {
 			list = new ArrayList<DepVariable>();
@@ -191,6 +205,69 @@ public class DepVariable {
 	public void setName(String name) {
 		this.varName = name;
 		
+	}
+
+
+	public int getParamOrder() {
+		//TODO
+		if(varName.contains("LV_")) {
+			System.currentTimeMillis();
+			
+			return 0;
+		}
+		
+		return -1;
+	}
+
+
+	/**
+	 * find the path from this variable to the given variable
+	 * return null if such a path does not exist
+	 * 
+	 * @param var
+	 * @return
+	 */
+	public List<DepVariable> findPath(DepVariable var) {
+		ArrayList<DepVariable> path = new ArrayList<DepVariable>();
+		path.add(this);
+		
+		List<DepVariable> linkPath = findPath(path, var);
+		
+		return linkPath;
+	}
+
+
+	@SuppressWarnings("unchecked")
+	private ArrayList<DepVariable> findPath(ArrayList<DepVariable> path, DepVariable var) {
+		DepVariable lastNode = path.get(path.size()-1);
+		
+		ArrayList<DepVariable> foundPath = null;
+		for(String relation: lastNode.getRelations().keySet()) {
+			List<DepVariable> children = this.getRelations().get(relation);
+			for(DepVariable child: children) {
+				if(path.contains(child)) continue;
+				
+				if(child.equals(var)) {
+					path.add(child);
+					foundPath = path;
+					break;
+				}
+				else {
+					ArrayList<DepVariable> clonePath = (ArrayList<DepVariable>) path.clone();
+					clonePath.add(child);
+					
+					ArrayList<DepVariable> p = findPath(clonePath, var);
+					if(p != null) {
+						foundPath = path;
+						break;
+					}
+				}
+			}
+			
+			if(foundPath != null) break;
+		}
+		
+		return foundPath;
 	}
 
 }
