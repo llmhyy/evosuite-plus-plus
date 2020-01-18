@@ -83,7 +83,10 @@ public class Dataflow {
 			Set<DepVariable> allDepVars = new HashSet<DepVariable>();
 			Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 			if (!b.isInstrumented()) {
-				List<Value> operandValues = getBranchOperands(b.getInstruction());
+				List<Value> operandValues = new ArrayList<Value>();
+				for (int i = 0; i < b.getInstruction().getOperandNum(); i ++) {
+					operandValues.add(b.getInstruction().getFrame().getStack(i));
+				}
 				for (Value value : operandValues) {
 					searchDependantVariables(value, cfg, allDepVars, visitedIns);
 				}
@@ -333,20 +336,6 @@ public class Dataflow {
 		AbstractInsnNode condDefinition = (AbstractInsnNode)ins;
 		BytecodeInstruction defIns = cfg.getInstruction(node.instructions.indexOf(condDefinition));
 		return defIns;
-	}
-
-
-	private static List<Value> getBranchOperands(BytecodeInstruction branchInstruction) {
-		List<Value> values = new ArrayList<Value>();
-		CFGFrame frame = branchInstruction.getFrame();
-		values.add(frame.getStack(0));
-
-		if (!CollectionUtil.existIn(branchInstruction.getASMNode().getOpcode(), Opcodes.IFEQ, Opcodes.IFNE,
-				Opcodes.IFGE, Opcodes.IFGT, Opcodes.IFLE, Opcodes.IFLT, Opcodes.IFNULL, Opcodes.IFNONNULL)) {
-			values.add(frame.getStack(1));
-		}
-
-		return values;
 	}
 
 	public static MethodNode getMethodNode(InstrumentingClassLoader classLoader, String className, String methodName) {
