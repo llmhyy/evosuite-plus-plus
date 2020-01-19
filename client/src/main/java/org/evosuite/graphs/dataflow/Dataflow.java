@@ -68,15 +68,11 @@ public class Dataflow {
 			Set<DepVariable> allDepVars = new HashSet<DepVariable>();
 			Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 			if (!b.isInstrumented()) {
-				for (int i = 0; i < b.getInstruction().getOperandNum(); i ++) {
-					int operandNum = b.getInstruction().getOperandNum();
-					for (int j = 0; j < operandNum; j++) {
-						Frame frame = b.getInstruction().getFrame();
-						int index = frame.getStackSize() - j - 1;
-						Value val = frame.getStack(index);
-						fAnalyzer.searchDependantVariables(val, cfg, allDepVars, visitedIns);
-					}
-					
+				Frame frame = b.getInstruction().getFrame();
+				for (int i = 0; i < b.getInstruction().getOperandNum(); i++) {
+					int index = frame.getStackSize() - i - 1;
+					Value val = frame.getStack(index);
+					fAnalyzer.searchDependantVariables(val, cfg, allDepVars, visitedIns);
 				}
 			}
 			
@@ -112,8 +108,6 @@ public class Dataflow {
 					}
 				}
 			}
-			
-			System.currentTimeMillis();
 			
 			if(!paths.isEmpty()) {
 				interestedPaths.put(branch, paths);				

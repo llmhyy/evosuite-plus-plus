@@ -111,6 +111,7 @@ public class FieldUseAnalyzer {
 	 * @param visitedIns
 	 * @return
 	 */
+	@SuppressWarnings("rawtypes")
 	public void searchDependantVariables(Value value, ActualControlFlowGraph cfg, Set<DepVariable> allLeafDepVars,
 			Set<BytecodeInstruction> visitedIns) {
 		String className = cfg.getClassName();
@@ -172,11 +173,17 @@ public class FieldUseAnalyzer {
 				}
 				
 				/**
-				 * handle control flow
+				 * handle control flow, note that there is no need to build data flow
 				 */
 				for(ControlDependency control: defIns.getControlDependencies()) {
-					buildInputOutputForInstruction(control.getBranch().getInstruction(), node,
-							outputVar, cfg, allLeafDepVars, visitedIns);
+					BytecodeInstruction controlIns = control.getBranch().getInstruction();
+					int operandNum = controlIns.getOperandNum();
+					for (int i = 0; i < operandNum; i++) {
+						Frame frame = controlIns.getFrame();
+						int index = frame.getStackSize() - i - 1;
+						Value val = frame.getStack(index);
+						searchDependantVariables(val, cfg, allLeafDepVars, visitedIns);
+					}
 				}
 				
 			}

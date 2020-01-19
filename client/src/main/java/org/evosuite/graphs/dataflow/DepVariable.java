@@ -170,6 +170,10 @@ public class DepVariable {
 			list.add(var);
 		}
 		
+		if(this.getInstruction().getInstructionId()==20 && var.getInstruction().getInstructionId()==25) {
+			System.currentTimeMillis();
+		}
+		
 		this.getRelations().put(relation, list);
 		var.addReverseRelation(relation, this);
 	}
