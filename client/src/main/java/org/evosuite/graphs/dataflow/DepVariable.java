@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.Properties;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -76,7 +77,7 @@ public class DepVariable {
 			this.setName("$unknwon");
 		}
 	}
-
+	
 	public String getTypeString() {
 		if(type == DepVariable.PARAMETER) {
 			return "parameter";
@@ -190,7 +191,33 @@ public class DepVariable {
 	public boolean equals(Object obj) {
 		if(obj instanceof DepVariable) {
 			DepVariable var = (DepVariable)obj;
-			return var.getInstruction().equals(this.getInstruction());
+			if(var.getInstruction().equals(this.getInstruction())) {
+				return true;
+			}
+			else {
+				if(var.getType() == this.getType()) {
+					if(var.getType() == DepVariable.INSTANCE_FIELD) {
+						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName()) &&
+								var.getInstruction().getName().equals(this.getInstruction().getName()) &&
+								var.getInstruction().getClassName().equals(Properties.TARGET_CLASS) &&
+								var.getInstruction().getMethodName().equals(Properties.TARGET_METHOD);
+					}
+					else if(var.getType() == DepVariable.STATIC_FIELD) {
+						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName()) &&
+								var.getInstruction().getName().equals(this.getInstruction().getName());
+					}
+					else if(var.getType() == DepVariable.PARAMETER) {
+						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName()) &&
+								var.getInstruction().getMethodName().equals(this.getInstruction().getMethodName()) &&
+								var.getParamOrder() == this.getParamOrder();
+					}
+					else if(var.getType() == DepVariable.THIS) {
+						
+					}
+				}
+				
+				return false;
+			}
 		}
 		
 		return false;
@@ -276,11 +303,9 @@ public class DepVariable {
 
 
 	public int getParamOrder() {
-		//TODO
 		if(varName.contains("LV_")) {
-			System.currentTimeMillis();
-			
-			return 0;
+			String order = varName.substring(varName.indexOf("LV_")+3, varName.length());
+			return Integer.valueOf(order);
 		}
 		
 		return -1;
