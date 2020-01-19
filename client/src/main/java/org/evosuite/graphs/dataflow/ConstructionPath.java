@@ -32,8 +32,8 @@ public class ConstructionPath {
 
 			if (otherPath.size() == path.size()) {
 				for (int i = 0; i < otherPath.size(); i++) {
-					if (!otherPath.getPath().get(i).equals(this.path.get(i))
-							&& otherPath.getPosition().get(i).equals(this.positions.get(i))) {
+					if (!otherPath.getPath().get(i).getInstruction().equals(this.path.get(i).getInstruction())
+							|| !otherPath.getPosition().get(i).equals(this.positions.get(i))) {
 						return false;
 					}
 				}

@@ -180,7 +180,7 @@ public class FieldUseAnalyzer {
 					int operandNum = controlIns.getOperandNum();
 					for (int i = 0; i < operandNum; i++) {
 						Frame frame = controlIns.getFrame();
-						int index = frame.getStackSize() - i - 1;
+						int index = frame.getStackSize() - operandNum + i ;
 						Value val = frame.getStack(index);
 						searchDependantVariables(val, cfg, allLeafDepVars, visitedIns);
 					}
@@ -205,9 +205,9 @@ public class FieldUseAnalyzer {
 		/**
 		 * is the method static?
 		 */
-		int parameterStartIndex = 0;
-		if(defIns.getCalledMethodsArgumentCount() != inputVarArray.length) {
-			parameterStartIndex = 1;
+		int parameterStartIndex = 1;
+		if(defIns.isCallToStaticMethod()) {
+			parameterStartIndex = 0;
 		}
 		
 		Set<DepVariable> relatedVariables = analyzeReturnValueFromMethod(defIns);
@@ -227,13 +227,13 @@ public class FieldUseAnalyzer {
 								List<DepVariable> params = inputVarArray[index];
 								
 								for(DepVariable param: params) {
-									param.buildRelation(secVar, path.getPosition().get(1));
+									param.buildRelation(secVar, path.getPosition().get(0));
 								}
 							}
 							else if(rootVar.getType() == DepVariable.THIS) {
 								List<DepVariable> objectVars = inputVarArray[0];
 								for(DepVariable objectVar: objectVars) {
-									objectVar.buildRelation(secVar, path.getPosition().get(1));									
+									objectVar.buildRelation(secVar, path.getPosition().get(0));									
 								}
 							}
 						}
@@ -254,7 +254,7 @@ public class FieldUseAnalyzer {
 			List<DepVariable> inputVars = new ArrayList<DepVariable>();
 			
 			Frame frame = defInstruction.getFrame();
-			int index = frame.getStackSize() - i - 1;
+			int index = frame.getStackSize() - operandNum + i;
 			Value val = frame.getStack(index);
 			
 			SourceValue inputVal = (SourceValue)val;
