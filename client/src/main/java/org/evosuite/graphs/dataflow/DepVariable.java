@@ -338,7 +338,7 @@ public class DepVariable {
 		
 		ArrayList<DepVariable> foundPath = null;
 		for(String relation: lastNode.getRelations().keySet()) {
-			List<DepVariable> children = this.getRelations().get(relation);
+			List<DepVariable> children = lastNode.getRelations().get(relation);
 			for(DepVariable child: children) {
 				if(path.contains(child)) continue;
 				
