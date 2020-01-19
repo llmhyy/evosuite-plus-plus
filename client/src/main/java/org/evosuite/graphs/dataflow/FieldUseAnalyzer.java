@@ -206,21 +206,30 @@ public class FieldUseAnalyzer {
 		
 		Set<DepVariable> relatedVariables = analyzeReturnValueFromMethod(defIns);
 		for(DepVariable var: relatedVariables) {
-			DepVariable rootVar = var.getRootVar();
-			if(var.getType() == DepVariable.STATIC_FIELD) {
-				allLeafDepVars.add(var);					
-			}
-			else {
-				List<DepVariable> path = rootVar.findPath(var);
-				if(path != null) {
-					DepVariable secVar = path.get(1);
-					if(rootVar.getType() == DepVariable.PARAMETER) {
-						int paramOrder = secVar.getParamOrder();
-						DepVariable param = paramVars.get(paramOrder);
-						param.buildRelation(secVar);
+			for(DepVariable rootVar: var.getRootVars()) {
+				if(rootVar.getInstruction().getClassName().equals(defIns.getCalledCFG().getClassName()) && 
+						rootVar.getInstruction().getMethodName().equals(defIns.getCalledCFG().getMethodName())) {
+					if(var.getType() == DepVariable.STATIC_FIELD) {
+						allLeafDepVars.add(var);					
 					}
-					else if(rootVar.getType() == DepVariable.THIS) {
-						objectVar.buildRelation(secVar);
+					else {
+						ConstructionPath path = rootVar.findPath(var);
+						if(path != null) {
+							if(path.size() < 2) {
+								System.currentTimeMillis();
+								path = rootVar.findPath(var);
+							}
+							
+							DepVariable secVar = path.getPath().get(1);
+							if(rootVar.getType() == DepVariable.PARAMETER) {
+								int paramOrder = secVar.getParamOrder();
+								DepVariable param = paramVars.get(paramOrder);
+								param.buildRelation(secVar);
+							}
+							else if(rootVar.getType() == DepVariable.THIS) {
+								objectVar.buildRelation(secVar);
+							}
+						}
 					}
 				}
 			}

@@ -2,8 +2,10 @@ package org.evosuite.graphs.dataflow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.objectweb.asm.Opcodes;
@@ -24,11 +26,11 @@ public class DepVariable {
 	
 	private int type;
 	
-	public static final int PARAMETER = 0;
-	public static final int STATIC_FIELD = 1;
-	public static final int INSTANCE_FIELD = 2;
-	public static final int THIS = 3;
-	public static final int OTHER = 4;
+	public static final int PARAMETER = 1;
+	public static final int STATIC_FIELD = 2;
+	public static final int INSTANCE_FIELD = 3;
+	public static final int THIS = 4;
+	public static final int OTHER = 5;
 	
 	private Map<String, List<DepVariable>> relations = new HashMap<String, List<DepVariable>>();
 	private Map<String, List<DepVariable>> reverseRelations = new HashMap<String, List<DepVariable>>();
@@ -47,7 +49,7 @@ public class DepVariable {
 				+ ", varName=" + varName + ", instruction=" + getInstruction() + "]";
 	}
 	
-	public void setType(int type) {
+	private void setType(int type) {
 		this.type = type;
 	}
 	
@@ -69,6 +71,10 @@ public class DepVariable {
 			this.setType(DepVariable.INSTANCE_FIELD);
 			this.setName(((FieldInsnNode)ins.getASMNode()).name);
 		}
+		else {
+			this.setType(DepVariable.OTHER);
+			this.setName("$unknwon");
+		}
 	}
 
 	public String getTypeString() {
@@ -84,8 +90,10 @@ public class DepVariable {
 		else if(type == DepVariable.THIS) {
 			return "this";
 		}
+		else {
+			return "other";			
+		}
 		
-		return "other";
 	}
 
 	public BytecodeInstruction getInstruction() {
@@ -102,12 +110,17 @@ public class DepVariable {
 		if(this.instruction.isLocalVariableUse()) {
 			String methodName = this.instruction.getRawCFG().getMethodName();
 			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
-			Type[] typeArgs1 = Type.getArgumentTypes(methodDesc);
-			int paramNum = typeArgs1.length;
+			Type[] typeArgs = Type.getArgumentTypes(methodDesc);
+			int paramNum = typeArgs.length;
 			
 			int slot = this.instruction.getLocalVariableSlot();
 			
-			return slot < paramNum+1 && slot != 0;
+			if(this.instruction.getRawCFG().isStaticMethod()) {
+				return slot < paramNum;
+			}
+			else {
+				return slot < paramNum+1 && slot != 0;				
+			}
 		}
 		return false;
 	}
@@ -137,6 +150,10 @@ public class DepVariable {
 		}
 		else {
 			relation = Relation.OTHER;
+		}
+		
+		if(outputVar.getInstruction().getInstructionId()==3 && outputVar.getInstruction().getLineNumber()==41) {
+			System.currentTimeMillis();
 		}
 		
 		addRelation(relation, outputVar);
@@ -200,27 +217,57 @@ public class DepVariable {
 	}
 
 
-	public DepVariable getRootVar() {
-		List<DepVariable> parents = this.reverseRelations.get(Relation.FIELD);
-		while(parents != null && !parents.isEmpty()) {
-			for(DepVariable parent: parents) {
-				if(parent.getType() == DepVariable.THIS) {
-					return parent;
+	private void getRootVar(List<DepVariable> roots, DepVariable parent, Set<DepVariable> visited) {
+		if(visited.contains(parent)) {
+			return;
+		}
+		visited.add(parent);
+		
+		
+		if(parent.getType() == DepVariable.THIS) {
+			roots.add(parent);
+		}
+		else if(parent.getType() == DepVariable.PARAMETER) {
+			roots.add(parent);
+		}
+		else {
+			List<DepVariable> parents = parent.getAllParents();
+			if(parents != null && !parents.isEmpty()) {
+				for(DepVariable par: parents) {
+					getRootVar(roots, par, visited);					
 				}
-				else if(parent.getType() == DepVariable.PARAMETER) {
-					return parent;
-				}
-				else {
-					parents = parent.reverseRelations.get(Relation.FIELD);
-				}
-				
-				break;
 			}
 		}
 		
-		return null;
+		
 	}
 
+	private List<DepVariable> getAllParents() {
+		List<DepVariable> parents = new ArrayList<DepVariable>();
+		for(String relation: this.reverseRelations.keySet()) {
+			List<DepVariable> pars = this.reverseRelations.get(relation);
+			parents.addAll(pars);
+		}
+		return parents;
+	}
+
+	private List<DepVariable> roots;
+
+	public List<DepVariable> getRootVars() {
+		
+		List<DepVariable> directParents = this.reverseRelations.get(Relation.FIELD);
+		
+		List<DepVariable> roots = new ArrayList<DepVariable>();
+		Set<DepVariable> visited = new HashSet<DepVariable>();
+		for(DepVariable parent: directParents) {
+			getRootVar(roots, parent, visited);
+		}
+//		this.roots = roots;
+//		if(this.roots == null) {
+//		}
+		
+		return roots;
+	}
 
 	public void setName(String name) {
 		this.varName = name;
@@ -247,13 +294,16 @@ public class DepVariable {
 	 * @param var
 	 * @return
 	 */
-	public List<DepVariable> findPath(DepVariable var) {
+	public ConstructionPath findPath(DepVariable var) {
 		ArrayList<DepVariable> path = new ArrayList<DepVariable>();
 		path.add(this);
 		
 		List<DepVariable> linkPath = findPath(path, var);
 		
-		return linkPath;
+		if(linkPath == null)
+			return null;
+		
+		return new ConstructionPath(linkPath);
 	}
 
 
@@ -278,7 +328,7 @@ public class DepVariable {
 					
 					ArrayList<DepVariable> p = findPath(clonePath, var);
 					if(p != null) {
-						foundPath = path;
+						foundPath = p;
 						break;
 					}
 				}
