@@ -1,7 +1,9 @@
 package org.evosuite.graphs.dataflow;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -90,6 +92,35 @@ public class Dataflow {
 			return false;
 		}
 		return true;
+	}
+
+	public static Map<Branch, List<ConstructionPath>> checkObjectDifficultPath() {
+		Map<Branch, Set<DepVariable>> interestedBranches = branchDepVarsMap.get(Properties.TARGET_METHOD);
+		
+		Map<Branch, List<ConstructionPath>> interestedPaths = new HashMap<>(); 
+		for(Branch branch: interestedBranches.keySet()) {
+			Set<DepVariable> interestedVariables = interestedBranches.get(branch);
+			
+			List<ConstructionPath> paths = new ArrayList<ConstructionPath>();
+			for(DepVariable interestVar: interestedVariables) {
+				for(DepVariable root: interestVar.getRootVars()) {
+					ConstructionPath path = root.findPath(interestVar);
+					if(path != null && path.isDifficult()) {
+						if(!paths.contains(path)) {
+							paths.add(path);							
+						}
+					}
+				}
+			}
+			
+			System.currentTimeMillis();
+			
+			if(!paths.isEmpty()) {
+				interestedPaths.put(branch, paths);				
+			}
+		}
+		
+		return interestedPaths;
 	}
 
 }

@@ -19,22 +19,34 @@
  */
 package org.evosuite.testcase;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServlet;
+
 import org.apache.commons.lang3.ClassUtils;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.TimeController;
 import org.evosuite.ga.ConstructionFailedException;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.dataflow.ConstructionPath;
+import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.runtime.annotation.Constraints;
 import org.evosuite.runtime.javaee.injection.Injector;
 import org.evosuite.runtime.javaee.javax.servlet.EvoServletState;
@@ -43,31 +55,48 @@ import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.runtime.util.Inputs;
 import org.evosuite.seeding.CastClassManager;
 import org.evosuite.seeding.ObjectPoolManager;
-import org.evosuite.setup.*;
+import org.evosuite.setup.DependencyAnalysis;
+import org.evosuite.setup.InheritanceTree;
+import org.evosuite.setup.TestCluster;
+import org.evosuite.setup.TestClusterGenerator;
+import org.evosuite.setup.TestUsageChecker;
 import org.evosuite.testcase.jee.InjectionSupport;
 import org.evosuite.testcase.jee.InstanceOnlyOnce;
 import org.evosuite.testcase.jee.ServletSupport;
 import org.evosuite.testcase.mutation.RandomInsertion;
-import org.evosuite.testcase.statements.*;
+import org.evosuite.testcase.statements.ArrayStatement;
+import org.evosuite.testcase.statements.AssignmentStatement;
+import org.evosuite.testcase.statements.ConstructorStatement;
+import org.evosuite.testcase.statements.EntityWithParametersStatement;
+import org.evosuite.testcase.statements.FieldStatement;
+import org.evosuite.testcase.statements.FunctionalMockForAbstractClassStatement;
+import org.evosuite.testcase.statements.FunctionalMockStatement;
+import org.evosuite.testcase.statements.MethodStatement;
+import org.evosuite.testcase.statements.NullStatement;
+import org.evosuite.testcase.statements.PrimitiveStatement;
+import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.environment.EnvironmentStatements;
 import org.evosuite.testcase.statements.reflection.PrivateFieldStatement;
 import org.evosuite.testcase.statements.reflection.PrivateMethodStatement;
 import org.evosuite.testcase.statements.reflection.ReflectionFactory;
-import org.evosuite.testcase.variable.*;
+import org.evosuite.testcase.variable.ArrayIndex;
+import org.evosuite.testcase.variable.ArrayReference;
+import org.evosuite.testcase.variable.ConstantValue;
+import org.evosuite.testcase.variable.FieldReference;
+import org.evosuite.testcase.variable.NullReference;
+import org.evosuite.testcase.variable.VariableReference;
+import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericAccessibleObject;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericField;
 import org.evosuite.utils.generic.GenericMethod;
 import org.evosuite.utils.generic.GenericUtils;
-import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.googlecode.gentyref.CaptureType;
 import com.googlecode.gentyref.GenericTypeReflector;
-
-import javax.servlet.http.HttpServlet;
 
 /**
  * @author Gordon Fraser
@@ -2481,6 +2510,148 @@ public class TestFactory {
 		}
 		
 		return false;
+	}
+
+	public void constructDifficultObjectStatement(TestCase test, List<ConstructionPath> paths, int position) throws ConstructionFailedException {
+		
+		Collections.sort(paths, new Comparator<ConstructionPath>() {
+			@Override
+			public int compare(ConstructionPath o1, ConstructionPath o2) {
+				return o1.size() - o2.size();
+			}
+		});
+		
+		for(ConstructionPath path: paths) {
+			VariableReference parentVarRef = null;
+			
+			List<DepVariable> vars = path.getPath();
+			for(int i=0; i<vars.size(); i++) {
+				DepVariable var = vars.get(i);
+				if(var.getType() == DepVariable.STATIC_FIELD) {
+					parentVarRef = generateStaticFieldStatement(test, position, var, parentVarRef);
+				}
+				else if(var.getType() == DepVariable.PARAMETER) {
+					parentVarRef = generateParameterStatement(test, position, var, parentVarRef);
+					if(i==0) {
+						//TODO
+						System.currentTimeMillis();
+					}
+				}
+				else if(var.getType() == DepVariable.INSTANCE_FIELD) {
+					parentVarRef = generateInstanceFieldStatement(test, position, var, parentVarRef);
+					if(i==0) {
+						//TODO
+						System.currentTimeMillis();
+					}
+				}
+				else if(var.getType() == DepVariable.OTHER) {
+					parentVarRef = generateOtherStatement(test, position, var, parentVarRef);
+				}
+				
+				if(parentVarRef != null) {
+					position = parentVarRef.getStPosition();
+				}
+			}
+		}
+		
+	}
+
+	private VariableReference generateOtherStatement(TestCase test, int position, DepVariable var,
+			VariableReference parentVarRef) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private VariableReference generateInstanceFieldStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef) {
+		BytecodeInstruction staticFieldInstruction = var.getInstruction();
+		String className = staticFieldInstruction.getClassName();
+		String fieldType = staticFieldInstruction.getFieldType();
+		String fieldName = staticFieldInstruction.getFieldMethodCallName();
+		
+		Class<?> clazz;
+		try {
+			clazz = TestGenerationContext.getInstance().getClassLoaderForSUT()
+					.loadClass(className);
+			Field field = clazz.getField(fieldName);
+			GenericField genericField = new GenericField(field, clazz);
+			
+			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
+			GenericClass fieldDeclaringClazz = new GenericClass(fieldDeclaringClass);
+			
+			Constructor<?> constructor = Randomness.choice(fieldDeclaringClazz.getRawClass().getConstructors());
+			GenericConstructor gc = new GenericConstructor(constructor, fieldDeclaringClazz);
+
+			VariableReference varRef = this.addConstructor(test, gc, position, 2);
+			FieldStatement stmt = new FieldStatement(test, genericField, varRef);
+			test.addStatement(stmt, position);
+			
+			return stmt.getReturnValue();
+			
+		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+
+	private VariableReference generateParameterStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef) throws ConstructionFailedException {
+		String methodName = var.getInstruction().getActualCFG().getMethodName();
+		String variableName = var.getInstruction().getVariableName();
+		Class<?> parameterType = checkParameterType(methodName, var.getParamOrder());
+		GenericClass fieldDeclaringClazz = new GenericClass(parameterType);
+		Constructor<?> constructor = Randomness.choice(fieldDeclaringClazz.getRawClass().getConstructors());
+		GenericConstructor gc = new GenericConstructor(constructor, fieldDeclaringClazz);
+
+		VariableReference paramRef = this.addConstructor(test, gc, position, 2);
+		
+		MethodStatement targetStatement = findTargetMethodCallStatement(test);
+		int paramOrder = var.getParamOrder();
+		VariableReference oldParamRef = targetStatement.getParameterReferences().get(paramOrder);
+		targetStatement.replace(oldParamRef, paramRef);
+		
+		return paramRef;
+	}
+
+	private MethodStatement findTargetMethodCallStatement(TestCase test) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Class<?> checkParameterType(String methodName, int paramOrder) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private VariableReference generateStaticFieldStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef) {
+		BytecodeInstruction staticFieldInstruction = var.getInstruction();
+		String className = staticFieldInstruction.getClassName();
+		String fieldType = staticFieldInstruction.getFieldType();
+		String fieldName = staticFieldInstruction.getFieldMethodCallName();
+		
+		Class<?> clazz;
+		try {
+			clazz = TestGenerationContext.getInstance().getClassLoaderForSUT()
+					.loadClass(className);
+			Field field = clazz.getField(fieldName);
+			GenericField genericField = new GenericField(field, clazz);
+			
+			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
+			GenericClass fieldDeclaringClazz = new GenericClass(fieldDeclaringClass);
+			
+			Constructor<?> constructor = Randomness.choice(fieldDeclaringClazz.getRawClass().getConstructors());
+			GenericConstructor gc = new GenericConstructor(constructor, fieldDeclaringClazz);
+
+			VariableReference varRef = this.addConstructor(test, gc, position, 2);
+			FieldStatement stmt = new FieldStatement(test, genericField, varRef);
+			test.addStatement(stmt, position);
+			
+			return stmt.getReturnValue();
+			
+		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 
 

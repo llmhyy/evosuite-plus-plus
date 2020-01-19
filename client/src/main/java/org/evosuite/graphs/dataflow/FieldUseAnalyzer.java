@@ -11,8 +11,6 @@ import java.util.Set;
 
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
-import org.evosuite.coverage.branch.Branch;
-import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUseFactory;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.dataflow.Definition;

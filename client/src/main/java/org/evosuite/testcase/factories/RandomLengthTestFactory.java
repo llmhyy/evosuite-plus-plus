@@ -23,9 +23,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.ChromosomeFactory;
+import org.evosuite.ga.ConstructionFailedException;
+import org.evosuite.graphs.dataflow.ConstructionPath;
+import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -81,20 +86,29 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			if(!Properties.TARGET_METHOD.isEmpty()) {
 				targetMethodCallPosition = TestGenerationUtil.getTargetMethodPosition(test, test.size() - 1);
 				if(targetMethodCallPosition != -1) {
-//					if(!setterMethods.isEmpty() && !isTargetMethodStatic()) {
-//						insertAllSetterMethods(setterMethods, test, testFactory, position);
-//					}
-					/**
-					 * 50% of chance to insert before the target method.
-					 */
-					if(Randomness.nextDouble() <= 1) {
-						position = targetMethodCallPosition - 1;						
-					}
-					
+					position = targetMethodCallPosition - 1;						
 				}
 			}
 			
-			testFactory.insertRandomStatement(test, position);		
+			/**
+			 * the first call must be the target method, we add difficult branch support after the target method
+			 * is called in test case.
+			 */
+			if(num == 1 && Properties.APPLY_OBJECT_RULE) {
+				Map<Branch, List<ConstructionPath>> difficulties = Dataflow.checkObjectDifficultPath();
+				Branch b = Randomness.choice(difficulties.keySet());
+				List<ConstructionPath> paths = difficulties.get(b);
+				
+				try {
+					testFactory.constructDifficultObjectStatement(test, paths, position);
+				} catch (ConstructionFailedException e) {
+					e.printStackTrace();
+				}
+				
+			}
+			else {
+				testFactory.insertRandomStatement(test, position);						
+			}
 			
 			num++;
 		}
