@@ -132,14 +132,14 @@ public class FieldUseAnalyzer {
 				/**
 				 * the variable is computed by values on stack
 				 */
-				List<DepVariable> intputVars = buildInputOutputForInstruction(defIns, node,
+				List<DepVariable>[] intputVarArray = buildInputOutputForInstruction(defIns, node,
 						outputVar, cfg, allLeafDepVars, visitedIns);
 				
 				/**
 				 * if defIns is a method call, we need to explore more potential variables (fields) inside the method.
 				 */
 				if(defIns.isMethodCall()) {
-					exploreInterproceduralInstruction(allLeafDepVars, defIns, intputVars);
+					exploreInterproceduralInstruction(allLeafDepVars, defIns, intputVarArray);
 				}
 				
 				/**
@@ -192,21 +192,22 @@ public class FieldUseAnalyzer {
 		}
 	}
 
+	/**
+	 * precondition: defIns is a method call
+	 * 
+	 * @param allLeafDepVars
+	 * @param defIns
+	 * @param inputVarArray
+	 */
 	private void exploreInterproceduralInstruction(Set<DepVariable> allLeafDepVars, BytecodeInstruction defIns,
-			List<DepVariable> intputVars) {
-		DepVariable objectVar = null;
-		List<DepVariable> paramVars = new ArrayList<DepVariable>();
+			List<DepVariable>[] inputVarArray) {
+		
 		/**
 		 * is the method static?
 		 */
-		if(defIns.getCalledMethodsArgumentCount() != intputVars.size()) {
-			objectVar = intputVars.get(intputVars.size()-1);
-			for(int i=intputVars.size()-1; i>=1; i--) {
-				paramVars.add(intputVars.get(i));
-			}
-		}
-		else {
-			paramVars.addAll(intputVars);
+		int parameterStartIndex = 0;
+		if(defIns.getCalledMethodsArgumentCount() != inputVarArray.length) {
+			parameterStartIndex = 1;
 		}
 		
 		Set<DepVariable> relatedVariables = analyzeReturnValueFromMethod(defIns);
@@ -220,19 +221,20 @@ public class FieldUseAnalyzer {
 					else {
 						ConstructionPath path = rootVar.findPath(var);
 						if(path != null) {
-							if(path.size() < 2) {
-								System.currentTimeMillis();
-								path = rootVar.findPath(var);
-							}
-							
 							DepVariable secVar = path.getPath().get(1);
 							if(rootVar.getType() == DepVariable.PARAMETER) {
-								int paramOrder = secVar.getParamOrder();
-								DepVariable param = paramVars.get(paramOrder);
-								param.buildRelation(secVar);
+								int index = parameterStartIndex + rootVar.getParamOrder() - 1;
+								List<DepVariable> params = inputVarArray[index];
+								
+								for(DepVariable param: params) {
+									param.buildRelation(secVar, path.getPosition().get(1));
+								}
 							}
 							else if(rootVar.getType() == DepVariable.THIS) {
-								objectVar.buildRelation(secVar);
+								List<DepVariable> objectVars = inputVarArray[0];
+								for(DepVariable objectVar: objectVars) {
+									objectVar.buildRelation(secVar, path.getPosition().get(1));									
+								}
 							}
 						}
 					}
@@ -243,12 +245,14 @@ public class FieldUseAnalyzer {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	private List<DepVariable> buildInputOutputForInstruction(BytecodeInstruction defInstruction, MethodNode node, 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private List<DepVariable>[] buildInputOutputForInstruction(BytecodeInstruction defInstruction, MethodNode node, 
 			DepVariable outputVar, ActualControlFlowGraph cfg, Set<DepVariable> allDepVars, Set<BytecodeInstruction> visitedIns) {
-		List<DepVariable> intputVars = new ArrayList<DepVariable>();
+		List<DepVariable>[] intputVarArray = new ArrayList[DepVariable.OPERAND_NUM_LIMIT];
 		int operandNum = defInstruction.getOperandNum();
 		for (int i = 0; i < operandNum; i++) {
+			List<DepVariable> inputVars = new ArrayList<DepVariable>();
+			
 			Frame frame = defInstruction.getFrame();
 			int index = frame.getStackSize() - i - 1;
 			Value val = frame.getStack(index);
@@ -257,15 +261,18 @@ public class FieldUseAnalyzer {
 			for(AbstractInsnNode newDefInsNode: inputVal.insns) {
 				BytecodeInstruction newDefIns = convert2BytecodeInstruction(cfg, node, newDefInsNode);
 				DepVariable inputVar = parseVariable((SourceValue)val, newDefIns);
-				inputVar.buildRelation(outputVar);
+				inputVar.buildRelation(outputVar, i);
 				
 				searchDependantVariables(val, cfg, allDepVars, visitedIns);
 				
-				intputVars.add(inputVar);
+				inputVars.add(inputVar);
 			}
+			
+			intputVarArray[i] = inputVars;
 		}
 		
-		return intputVars;
+		//TODO infer the position for each input variables
+		return intputVarArray;
 	}
 
 	private BytecodeInstruction convert2BytecodeInstruction(ActualControlFlowGraph cfg, MethodNode node,

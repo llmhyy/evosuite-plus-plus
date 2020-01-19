@@ -1,10 +1,8 @@
 package org.evosuite.graphs.dataflow;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
@@ -33,8 +31,19 @@ public class DepVariable {
 	public static final int THIS = 4;
 	public static final int OTHER = 5;
 	
-	private Map<String, List<DepVariable>> relations = new HashMap<String, List<DepVariable>>();
-	private Map<String, List<DepVariable>> reverseRelations = new HashMap<String, List<DepVariable>>();
+	public static int OPERAND_NUM_LIMIT = 30;
+	
+	/**
+	 * this variable take a child in the ith operand (assume that no instruction takes over 30 operands)
+	 */
+	@SuppressWarnings("unchecked")
+	private List<DepVariable>[] relations = new ArrayList[OPERAND_NUM_LIMIT];
+	
+	/**
+	 * this variable is used for the ith position of the parent (assume that no instruction takes over 30 operands).
+	 */
+	@SuppressWarnings("unchecked")
+	private List<DepVariable>[] reverseRelations = new ArrayList[OPERAND_NUM_LIMIT];
 	
 	public DepVariable(String className, String varName, BytecodeInstruction insn) {
 		this.className = className;
@@ -43,6 +52,21 @@ public class DepVariable {
 		this.setType();
 	}
 	
+	public String inferRelation(DepVariable var) {
+		BytecodeInstruction instruction = var.getInstruction();
+		AbstractInsnNode insNode = instruction.getASMNode();
+		
+		int type = insNode.getType();
+		String relation = null;
+		if(type == AbstractInsnNode.FIELD_INSN) {
+			relation = Relation.FIELD;
+		}
+		else {
+			relation = Relation.OTHER;
+		}
+		
+		return relation;
+	}
 	
 	@Override
 	public String toString() {
@@ -140,55 +164,41 @@ public class DepVariable {
 	}
 
 	
-	public void buildRelation(DepVariable outputVar) {
-		BytecodeInstruction instruction = outputVar.getInstruction();
-		AbstractInsnNode insNode = instruction.getASMNode();
+	public void buildRelation(DepVariable outputVar, int position) {
+//		if(outputVar.getInstruction().getInstructionId()==3 && outputVar.getInstruction().getLineNumber()==41) {
+//			System.currentTimeMillis();
+//		}
 		
-		int type = insNode.getType();
-		String relation = null;
-		if(type == AbstractInsnNode.FIELD_INSN) {
-			relation = Relation.FIELD;
-		}
-		else {
-			relation = Relation.OTHER;
+		List<DepVariable> list = this.relations[position];
+		if(list == null) {
+			list = new ArrayList<DepVariable>();
 		}
 		
-		if(outputVar.getInstruction().getInstructionId()==3 && outputVar.getInstruction().getLineNumber()==41) {
+		if(!list.contains(outputVar)) {
+			list.add(outputVar);
+		}
+		
+		this.relations[position] = list;
+		
+		if(this.getInstruction().getInstructionId()==20 && outputVar.getInstruction().getInstructionId()==25) {
 			System.currentTimeMillis();
 		}
 		
-		addRelation(relation, outputVar);
+		outputVar.addReverseRelation(this, position);
 	}
 
-	private void addRelation(String relation, DepVariable var) {
-		List<DepVariable> list = this.getRelations().get(relation);
-		if(list == null) {
-			list = new ArrayList<DepVariable>();
-		}
-		
-		if(!list.contains(var)) {
-			list.add(var);
-		}
-		
-		if(this.getInstruction().getInstructionId()==20 && var.getInstruction().getInstructionId()==25) {
-			System.currentTimeMillis();
-		}
-		
-		this.getRelations().put(relation, list);
-		var.addReverseRelation(relation, this);
-	}
 	
-	private void addReverseRelation(String relation, DepVariable var) {
-		List<DepVariable> list = this.reverseRelations.get(relation);
+	private void addReverseRelation(DepVariable inputVar, int position) {
+		List<DepVariable> list = this.reverseRelations[position];
 		if(list == null) {
 			list = new ArrayList<DepVariable>();
 		}
 		
-		if(!list.contains(var)) {
-			list.add(var);
+		if(!list.contains(inputVar)) {
+			list.add(inputVar);
 		}
 		
-		this.reverseRelations.put(relation, list);
+		this.reverseRelations[position] = list;
 	}
 
 	
@@ -225,16 +235,6 @@ public class DepVariable {
 		}
 		
 		return false;
-	}
-
-
-	public Map<String, List<DepVariable>> getRelations() {
-		return relations;
-	}
-
-
-	public void setRelations(Map<String, List<DepVariable>> relations) {
-		this.relations = relations;
 	}
 
 
@@ -275,24 +275,31 @@ public class DepVariable {
 
 	private List<DepVariable> getAllParents() {
 		List<DepVariable> parents = new ArrayList<DepVariable>();
-		for(String relation: this.reverseRelations.keySet()) {
-			List<DepVariable> pars = this.reverseRelations.get(relation);
-			parents.addAll(pars);
+		for(int i=0; i<this.reverseRelations.length; i++) {
+			List<DepVariable> pars = this.reverseRelations[0];
+			if(pars != null) {
+				parents.addAll(pars);				
+			}
 		}
 		return parents;
 	}
 
 	public List<DepVariable> getRootVars() {
-		List<DepVariable> directParents = this.reverseRelations.get(Relation.FIELD);
-		
 		List<DepVariable> roots = new ArrayList<DepVariable>();
 		Set<DepVariable> visited = new HashSet<DepVariable>();
-		if (directParents != null) {
-			for (DepVariable parent : directParents) {
-				getRootVar(roots, parent, visited);
+		
+		for(int i=0; i<this.reverseRelations.length; i++) {
+			List<DepVariable> directParents = this.reverseRelations[i];
+			if(directParents != null && !directParents.isEmpty()) {
+				DepVariable p = directParents.get(0);
+				String relation = p.inferRelation(this);
+				if(relation.equals(Relation.FIELD)) {
+					for (DepVariable parent : directParents) {
+						getRootVar(roots, parent, visited);
+					}
+				}
 			}
 		}
-
 		
 		if(roots.isEmpty()) {
 			roots.add(this);
@@ -326,50 +333,51 @@ public class DepVariable {
 	 */
 	public ConstructionPath findPath(DepVariable var) {
 		ArrayList<DepVariable> path = new ArrayList<DepVariable>();
+		ArrayList<Integer> positions = new ArrayList<Integer>();
+		
 		path.add(this);
 		
-		List<DepVariable> linkPath = findPath(path, var);
-		
-		if(linkPath == null)
-			return null;
-		
-		return new ConstructionPath(linkPath);
+		ConstructionPath constructionPath = findPath(path, positions, var);
+		return constructionPath;
 	}
 
 
 	@SuppressWarnings("unchecked")
-	private ArrayList<DepVariable> findPath(ArrayList<DepVariable> path, DepVariable var) {
+	private ConstructionPath findPath(ArrayList<DepVariable> path, ArrayList<Integer> positions, DepVariable var) {
 		DepVariable lastNode = path.get(path.size()-1);
 		
 		if(lastNode.equals(var)) {
-			return path;
+			return new ConstructionPath(path, positions);
 		}
 		
-		ArrayList<DepVariable> foundPath = null;
-		for(String relation: lastNode.getRelations().keySet()) {
-			List<DepVariable> children = lastNode.getRelations().get(relation);
+		ConstructionPath foundPath = null;
+		for(int i=0; i<lastNode.relations.length; i++) {
+			List<DepVariable> children = lastNode.relations[i];
 			if (children != null) {
-			for(DepVariable child: children) {
-				if(path.contains(child)) continue;
-				
-				if(child.equals(var)) {
-					path.add(child);
-					foundPath = path;
-					break;
-				}
-				else {
-					ArrayList<DepVariable> clonePath = (ArrayList<DepVariable>) path.clone();
-					clonePath.add(child);
+				for(DepVariable child: children) {
+					if(path.contains(child)) continue;
 					
-					ArrayList<DepVariable> p = findPath(clonePath, var);
-					if(p != null) {
-						foundPath = p;
+					if(child.equals(var)) {
+						path.add(child);
+						positions.add(i);
+						foundPath = new ConstructionPath(path, positions);
 						break;
 					}
+					else {
+						ArrayList<DepVariable> clonePath = (ArrayList<DepVariable>) path.clone();
+						ArrayList<Integer> clonePositions = (ArrayList<Integer>) positions.clone();
+						clonePath.add(child);
+						clonePositions.add(i);
+						
+						ConstructionPath p = findPath(clonePath, clonePositions, var);
+						if(p != null) {
+							foundPath = p;
+							break;
+						}
+					}
 				}
-			}
-			
-			if(foundPath != null) break;
+				
+				if(foundPath != null) break;
 			}
 		}
 		
