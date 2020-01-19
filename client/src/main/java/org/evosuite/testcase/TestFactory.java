@@ -64,6 +64,7 @@ import org.evosuite.testcase.jee.InjectionSupport;
 import org.evosuite.testcase.jee.InstanceOnlyOnce;
 import org.evosuite.testcase.jee.ServletSupport;
 import org.evosuite.testcase.mutation.RandomInsertion;
+import org.evosuite.testcase.statements.AbstractStatement;
 import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
@@ -92,6 +93,7 @@ import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericField;
 import org.evosuite.utils.generic.GenericMethod;
 import org.evosuite.utils.generic.GenericUtils;
+import org.objectweb.asm.tree.FieldInsnNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2623,28 +2625,52 @@ public class TestFactory {
 	}
 
 	private VariableReference generateStaticFieldStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef) {
-		BytecodeInstruction staticFieldInstruction = var.getInstruction();
-		String className = staticFieldInstruction.getClassName();
-		String fieldType = staticFieldInstruction.getFieldType();
-		String fieldName = staticFieldInstruction.getFieldMethodCallName();
-		
-		Class<?> clazz;
+		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
+		String desc = fieldNode.desc;
+		String owner = fieldNode.owner;
+		String fieldName = fieldNode.name;
+		String fieldOwner = owner.replace("/", ".");
+		String fieldType = desc.replace("/", ".").substring(1, desc.length() - 1);
+		AbstractStatement stmt = null;
+
 		try {
-			clazz = TestGenerationContext.getInstance().getClassLoaderForSUT()
-					.loadClass(className);
-			Field field = clazz.getField(fieldName);
+			Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT()
+					.loadClass(fieldOwner);
+			Field field = clazz.getDeclaredField(fieldName);
 			GenericField genericField = new GenericField(field, clazz);
 			
 			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
 			GenericClass fieldDeclaringClazz = new GenericClass(fieldDeclaringClass);
 			
-			Constructor<?> constructor = Randomness.choice(fieldDeclaringClazz.getRawClass().getConstructors());
-			GenericConstructor gc = new GenericConstructor(constructor, fieldDeclaringClazz);
-
-			VariableReference varRef = this.addConstructor(test, gc, position, 2);
-			FieldStatement stmt = new FieldStatement(test, genericField, varRef);
-			test.addStatement(stmt, position);
+			int fieldModifiers = field.getModifiers();
+		
+			if (!Modifier.isStatic(fieldModifiers)) {
+				return null;
+			}
 			
+			if (Modifier.isPublic(fieldModifiers) || Modifier.isProtected(fieldModifiers) || fieldModifiers == 8) {
+				if (fieldDeclaringClazz.isPrimitive()) {
+					ConstantValue cons = new ConstantValue(test, fieldDeclaringClazz.getRawClass());
+					FieldReference fieldVar = new FieldReference(test, genericField);
+					stmt = new AssignmentStatement(test, fieldVar, cons);
+					test.addStatement(stmt, position + 1);
+				} else {
+					Constructor<?> constructor = Randomness.choice(fieldDeclaringClazz.getRawClass().getConstructors());
+					GenericConstructor genericConstructor = new GenericConstructor(constructor, fieldDeclaringClazz);
+					
+					FieldReference fieldVar = new FieldReference(test, genericField);
+					VariableReference varRef = addConstructor(test, genericConstructor, position, 0);
+					stmt = new AssignmentStatement(test, fieldVar, varRef);
+					test.addStatement(stmt, position + 1);
+				}
+			}
+			
+			else if (genericField.isPrivate()) {
+				for (Method method : clazz.getDeclaredMethods()) {
+					GenericMethod genericMethod = new GenericMethod(method, method.getDeclaringClass());
+				}
+			}
+
 			return stmt.getReturnValue();
 			
 		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException e) {

@@ -278,20 +278,21 @@ public class DepVariable {
 		return parents;
 	}
 
-	private List<DepVariable> roots;
-
 	public List<DepVariable> getRootVars() {
-		
 		List<DepVariable> directParents = this.reverseRelations.get(Relation.FIELD);
 		
 		List<DepVariable> roots = new ArrayList<DepVariable>();
 		Set<DepVariable> visited = new HashSet<DepVariable>();
-		for(DepVariable parent: directParents) {
-			getRootVar(roots, parent, visited);
+		if (directParents != null) {
+			for (DepVariable parent : directParents) {
+				getRootVar(roots, parent, visited);
+			}
 		}
-//		this.roots = roots;
-//		if(this.roots == null) {
-//		}
+
+		
+		if(roots.isEmpty()) {
+			roots.add(this);
+		}
 		
 		return roots;
 	}
@@ -336,9 +337,14 @@ public class DepVariable {
 	private ArrayList<DepVariable> findPath(ArrayList<DepVariable> path, DepVariable var) {
 		DepVariable lastNode = path.get(path.size()-1);
 		
+		if(lastNode.equals(var)) {
+			return path;
+		}
+		
 		ArrayList<DepVariable> foundPath = null;
 		for(String relation: lastNode.getRelations().keySet()) {
 			List<DepVariable> children = lastNode.getRelations().get(relation);
+			if (children != null) {
 			for(DepVariable child: children) {
 				if(path.contains(child)) continue;
 				
@@ -360,6 +366,7 @@ public class DepVariable {
 			}
 			
 			if(foundPath != null) break;
+			}
 		}
 		
 		return foundPath;
