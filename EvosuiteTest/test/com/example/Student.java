@@ -17,10 +17,14 @@ public class Student {
 		return "Student [age=" + age + ", height=" + height + "]";
 	}
 
-	public int getAge() {
+	public int getAge(int a) {
 		return age;
 	}
 
+	public int getfadfad() {
+		return 0;
+	}
+	
 	public void setAge(int age) {
 		this.age = age;
 	}
