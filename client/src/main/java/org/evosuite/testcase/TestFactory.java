@@ -48,6 +48,7 @@ import org.evosuite.TimeController;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.runtime.annotation.Constraints;
@@ -2689,8 +2690,7 @@ public class TestFactory {
 		AbstractStatement stmt = null;
 
 		try {
-			Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT()
-					.loadClass(fieldOwner);
+			Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldOwner);
 			Field field = clazz.getDeclaredField(fieldName);
 			GenericField genericField = new GenericField(field, clazz);
 			
@@ -2720,15 +2720,52 @@ public class TestFactory {
 				}
 			}
 			
-			else if (genericField.isPrivate()) {
-				for (Method method : clazz.getDeclaredMethods()) {
-					GenericMethod genericMethod = new GenericMethod(method, method.getDeclaringClass());
+			else if (genericField.isPrivate()) {				
+//					method.invoke(obj, args)
+					List<BytecodeInstruction> insList = BytecodeInstructionPool
+							.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+							.getInstructionsIn(clazz.getName());
+					if (insList != null) {
+						for (BytecodeInstruction ins : insList) {
+							if (ins.getASMNodeString().contains("PUTSTATIC")) {
+								FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
+								String tmpName = insnNode.name;
+								String tmpOwner = insnNode.owner;
+								if (tmpName.equals(fieldName) && tmpOwner.equals(owner)) {
+//									Method targetMethod = new Method(ins.getMethodName(), ins.getMethodCallDescriptor());
+									String fullName = ins.getMethodName();
+									org.objectweb.asm.Type[] types = org.objectweb.asm.Type.getArgumentTypes(fullName.substring(fullName.indexOf("("), fullName.length()));
+									Class<?>[] paramClasses = new Class<?>[types.length];
+									int index = 0;
+									for (org.objectweb.asm.Type type : types) {
+										Class<?> paramClazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(type.getClassName());
+										paramClasses[index] = paramClazz;
+										index ++;
+									}
+									Method targetMethod = clazz.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
+									for (Method method : clazz.getMethods()) {
+										if (method.toString().contains("setFriend1")) {
+											targetMethod = method;
+										}
+										GenericMethod genericMethod = new GenericMethod(method, method.getDeclaringClass());
+//										VariableReference varRef = addMethod(test, genericMethod, position, 0);
+									}
+									GenericMethod genericMethod = new GenericMethod(targetMethod, targetMethod.getDeclaringClass());
+									VariableReference varRef = addMethod(test, genericMethod, position, 0);
+//									stmt = new MethodStatement(test, genericMethod, null, parameters)
+									System.currentTimeMillis();
+								}
+								String target = ins.getMethodName();
+
+								System.currentTimeMillis();
+							}
+						}
+					}
 				}
-			}
 
 			return stmt.getReturnValue();
 			
-		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException e) {
+		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException | NoSuchMethodException e) {
 			e.printStackTrace();
 		}
 		
