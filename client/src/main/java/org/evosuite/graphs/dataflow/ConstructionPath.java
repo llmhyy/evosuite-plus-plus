@@ -3,6 +3,8 @@ package org.evosuite.graphs.dataflow;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.evosuite.Properties;
+
 public class ConstructionPath {
 
 	private List<DepVariable> path = new ArrayList<>();
@@ -69,5 +71,16 @@ public class ConstructionPath {
 
 	public void setPosition(List<Integer> position) {
 		this.positions = position;
+	}
+
+	public boolean hasValidRoot() {
+		if(this.getPath().isEmpty()) return false;
+		
+		DepVariable root = this.getPath().get(0);
+		if(root.getInstruction().getClassName().equals(Properties.TARGET_CLASS)) {
+			return true;
+		}
+		
+		return false;
 	}
 }

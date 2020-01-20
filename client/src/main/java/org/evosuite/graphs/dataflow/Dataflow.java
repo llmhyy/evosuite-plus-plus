@@ -101,8 +101,9 @@ public class Dataflow {
 			for(DepVariable interestVar: interestedVariables) {
 				for(DepVariable root: interestVar.getRootVars()) {
 					ConstructionPath path = root.findPath(interestVar);
-					if(path != null && path.isDifficult()) {
-						if(!paths.contains(path)) {
+					if(path != null) {
+						if(path.hasValidRoot() 
+								&& !paths.contains(path)) {
 							paths.add(path);							
 						}
 					}
