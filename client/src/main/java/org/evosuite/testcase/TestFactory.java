@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -81,6 +82,15 @@ import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.environment.EnvironmentStatements;
+import org.evosuite.testcase.statements.numeric.BooleanPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.BytePrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.CharPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.DoublePrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.FloatPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.LongPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.NumericalPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.ShortPrimitiveStatement;
 import org.evosuite.testcase.statements.reflection.PrivateFieldStatement;
 import org.evosuite.testcase.statements.reflection.PrivateMethodStatement;
 import org.evosuite.testcase.statements.reflection.ReflectionFactory;
@@ -90,6 +100,7 @@ import org.evosuite.testcase.variable.ConstantValue;
 import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.NullReference;
 import org.evosuite.testcase.variable.VariableReference;
+import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericAccessibleObject;
 import org.evosuite.utils.generic.GenericClass;
@@ -2581,34 +2592,64 @@ public class TestFactory {
 	}
 
 	private VariableReference generateInstanceFieldStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef) {
-		BytecodeInstruction staticFieldInstruction = var.getInstruction();
-		String className = staticFieldInstruction.getClassName();
-		String fieldType = staticFieldInstruction.getFieldType();
-		String fieldName = staticFieldInstruction.getFieldMethodCallName();
-		
-		Class<?> clazz;
-		try {
-			clazz = TestGenerationContext.getInstance().getClassLoaderForSUT()
-					.loadClass(className);
-			Field field = clazz.getField(fieldName);
-			GenericField genericField = new GenericField(field, clazz);
-			
-			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
-			GenericClass fieldDeclaringClazz = new GenericClass(fieldDeclaringClass);
-			
-			Constructor<?> constructor = Randomness.choice(fieldDeclaringClazz.getRawClass().getConstructors());
-			GenericConstructor gc = new GenericConstructor(constructor, fieldDeclaringClazz);
+		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
+		String desc = fieldNode.desc;
+		String owner = fieldNode.owner;
+		String fieldName = fieldNode.name;
+		String fieldOwner = owner.replace("/", ".");
+		AbstractStatement stmt = null;
 
-			VariableReference varRef = this.addConstructor(test, gc, position, 2);
-			FieldStatement stmt = new FieldStatement(test, genericField, varRef);
-			test.addStatement(stmt, position);
-			
+		try {
+
+			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+					.loadClass(fieldOwner);
+			Field field = fieldDeclaringClass.getDeclaredField(fieldName);
+			GenericField genericField = new GenericField(field, fieldDeclaringClass);
+			int fieldModifiers = field.getModifiers();
+
+			if (Modifier.isPublic(fieldModifiers) || Modifier.isProtected(fieldModifiers) || fieldModifiers == 8) {
+				if (CollectionUtil.existIn(desc, "Z", "B", "C", "S", "I", "J", "F", "D")) {
+					stmt = addStatementToSetStaticPrimitiveField(test, position, desc, genericField);
+				} else {
+					stmt = addStatementToSetStaticNonPrimitiveField(test, position, desc, genericField);
+				}
+			}
+
+			else if (genericField.isPrivate()) {	
+				List<BytecodeInstruction> insList = BytecodeInstructionPool
+						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+						.getInstructionsIn(fieldDeclaringClass.getName());
+				if (insList != null) {
+					Method potentialSetter = searchForPotentialSetter(owner, fieldName, fieldDeclaringClass, insList, "PUTFIELD");
+					GenericMethod genericMethod = new GenericMethod(potentialSetter,
+							potentialSetter.getDeclaringClass());
+					VariableReference varRef;
+					VariableReference calleeVarRef;
+					if (CollectionUtil.existIn(desc, "Z", "B", "C", "S", "I", "J", "F", "D")) {
+						varRef = addPrimitiveStatement(test, position, desc, genericField);
+					} else {
+						varRef = addConstructorForClass(test, position, desc, genericField);
+					}
+					calleeVarRef = addConstructorForClass(test, position + 1, fieldDeclaringClass.getName(), genericField);
+//					addMethodFor(test, varRef, genericMethod, position + 1);
+					List<VariableReference> refs = new ArrayList<>();
+					for (int i = 0; i < potentialSetter.getParameterTypes().length; i++) {
+						refs.add(varRef);
+					}
+					stmt = new MethodStatement(test, genericMethod, calleeVarRef, refs);
+					test.addStatement(stmt, position + 2);
+				}
+
+				System.currentTimeMillis();
+			}
 			return stmt.getReturnValue();
-			
-		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException e) {
+//			return null;
+
+		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException
+				| NoSuchMethodException e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
 
@@ -2680,97 +2721,239 @@ public class TestFactory {
 		return args;
 	}
 
-	private VariableReference generateStaticFieldStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef) {
+	private VariableReference generateStaticFieldStatement(TestCase test, int position, DepVariable var,
+			VariableReference parentVarRef) {
 		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
 		String desc = fieldNode.desc;
 		String owner = fieldNode.owner;
 		String fieldName = fieldNode.name;
 		String fieldOwner = owner.replace("/", ".");
-		String fieldType = desc.replace("/", ".").substring(1, desc.length() - 1);
 		AbstractStatement stmt = null;
 
 		try {
-			Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldOwner);
-			Field field = clazz.getDeclaredField(fieldName);
-			GenericField genericField = new GenericField(field, clazz);
-			
-			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
-			GenericClass fieldDeclaringClazz = new GenericClass(fieldDeclaringClass);
-			
+
+			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+					.loadClass(fieldOwner);
+			Field field = fieldDeclaringClass.getDeclaredField(fieldName);
+			GenericField genericField = new GenericField(field, fieldDeclaringClass);
 			int fieldModifiers = field.getModifiers();
-		
+
 			if (!Modifier.isStatic(fieldModifiers)) {
 				return null;
 			}
-			
+
 			if (Modifier.isPublic(fieldModifiers) || Modifier.isProtected(fieldModifiers) || fieldModifiers == 8) {
-				if (fieldDeclaringClazz.isPrimitive()) {
-					ConstantValue cons = new ConstantValue(test, fieldDeclaringClazz.getRawClass());
-					FieldReference fieldVar = new FieldReference(test, genericField);
-					stmt = new AssignmentStatement(test, fieldVar, cons);
-					test.addStatement(stmt, position + 1);
+				if (CollectionUtil.existIn(desc, "Z", "B", "C", "S", "I", "J", "F", "D")) {
+					stmt = addStatementToSetStaticPrimitiveField(test, position, desc, genericField);
 				} else {
-					Constructor<?> constructor = Randomness.choice(fieldDeclaringClazz.getRawClass().getConstructors());
-					GenericConstructor genericConstructor = new GenericConstructor(constructor, fieldDeclaringClazz);
-					
-					FieldReference fieldVar = new FieldReference(test, genericField);
-					VariableReference varRef = addConstructor(test, genericConstructor, position, 0);
-					stmt = new AssignmentStatement(test, fieldVar, varRef);
-					test.addStatement(stmt, position + 1);
+					stmt = addStatementToSetStaticNonPrimitiveField(test, position, desc, genericField);
 				}
 			}
-			
-			else if (genericField.isPrivate()) {				
-//					method.invoke(obj, args)
-					List<BytecodeInstruction> insList = BytecodeInstructionPool
-							.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-							.getInstructionsIn(clazz.getName());
-					if (insList != null) {
-						for (BytecodeInstruction ins : insList) {
-							if (ins.getASMNodeString().contains("PUTSTATIC")) {
-								FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
-								String tmpName = insnNode.name;
-								String tmpOwner = insnNode.owner;
-								if (tmpName.equals(fieldName) && tmpOwner.equals(owner)) {
-//									Method targetMethod = new Method(ins.getMethodName(), ins.getMethodCallDescriptor());
-									String fullName = ins.getMethodName();
-									org.objectweb.asm.Type[] types = org.objectweb.asm.Type.getArgumentTypes(fullName.substring(fullName.indexOf("("), fullName.length()));
-									Class<?>[] paramClasses = new Class<?>[types.length];
-									int index = 0;
-									for (org.objectweb.asm.Type type : types) {
-										Class<?> paramClazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(type.getClassName());
-										paramClasses[index] = paramClazz;
-										index ++;
-									}
-									Method targetMethod = clazz.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
-									for (Method method : clazz.getMethods()) {
-										if (method.toString().contains("setFriend1")) {
-											targetMethod = method;
-										}
-										GenericMethod genericMethod = new GenericMethod(method, method.getDeclaringClass());
-//										VariableReference varRef = addMethod(test, genericMethod, position, 0);
-									}
-									GenericMethod genericMethod = new GenericMethod(targetMethod, targetMethod.getDeclaringClass());
-									VariableReference varRef = addMethod(test, genericMethod, position, 0);
-//									stmt = new MethodStatement(test, genericMethod, null, parameters)
-									System.currentTimeMillis();
-								}
-								String target = ins.getMethodName();
 
-								System.currentTimeMillis();
-							}
-						}
+			else if (genericField.isPrivate()) {	
+				List<BytecodeInstruction> insList = BytecodeInstructionPool
+						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+						.getInstructionsIn(fieldDeclaringClass.getName());
+				if (insList != null) {
+					Method potentialSetter = searchForPotentialSetter(owner, fieldName, fieldDeclaringClass, insList, "PUTSTATIC");
+					GenericMethod genericMethod = new GenericMethod(potentialSetter,
+							potentialSetter.getDeclaringClass());
+					VariableReference varRef;
+					VariableReference calleeVarRef;
+					if (CollectionUtil.existIn(desc, "Z", "B", "C", "S", "I", "J", "F", "D")) {
+						varRef = addPrimitiveStatement(test, position, desc, genericField);
+					} else {
+						varRef = addConstructorForClass(test, position, desc, genericField);
 					}
+					
+					//TODO : need to check reference of target method
+//					for (int i = 0;i < test.size(); i ++) {
+//						Statement statement = test.getStatement(i);
+//						if (statement instanceof ConstructorStatement) {
+//							ConstructorStatement constructorStmt = ((ConstructorStatement) statement);
+//							if (constructorStmt.getDeclaringClassName().equals(fieldDeclaringClass.getName())) {
+////								calleeVarRef = 
+//							}
+//						}
+//					}
+					calleeVarRef = addConstructorForClass(test, position + 1, fieldDeclaringClass.getName(), genericField);
+//					addMethodFor(test, varRef, genericMethod, position + 1);
+					List<VariableReference> refs = new ArrayList<>();
+					for (int i = 0; i < potentialSetter.getParameterTypes().length; i++) {
+						refs.add(varRef);
+					}
+					stmt = new MethodStatement(test, genericMethod, calleeVarRef, refs);
+					test.addStatement(stmt, position + 2);
 				}
 
+				System.currentTimeMillis();
+			}
 			return stmt.getReturnValue();
-			
-		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException | NoSuchMethodException e) {
+//			return null;
+
+		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException
+				| NoSuchMethodException e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
 
+	private Method searchForPotentialSetter(String owner, String fieldName, Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList, String operation) throws NoSuchMethodException {
+		Set<Method> targetMethods = new HashSet<Method>();
+		for (BytecodeInstruction ins : insList) {
+			if (ins.getASMNodeString().contains(operation)) {
+				FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
+				String tmpName = insnNode.name;
+				String tmpOwner = insnNode.owner;
+				if (tmpName.equals(fieldName) && tmpOwner.equals(owner)) {
+					String fullName = ins.getMethodName();
+					org.objectweb.asm.Type[] types = org.objectweb.asm.Type
+							.getArgumentTypes(fullName.substring(fullName.indexOf("("), fullName.length()));
+					Class<?>[] paramClasses = new Class<?>[types.length];
+					int index = 0;
+					for (org.objectweb.asm.Type type : types) {
+						Class<?> paramClass = getClassForType(type);
+						paramClasses[index++] = paramClass;
+					}
+					Method targetMethod = fieldDeclaringClass
+							.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
+					targetMethods.add(targetMethod);
+				}
+			}
+		}
+		return Randomness.choice(targetMethods);
+	}
+	
+	private VariableReference addConstructorForClass(TestCase test, int position, String desc, GenericField genericField) {
+		try {
+			String fieldType;
+			if (desc.contains("/")) {
+				fieldType = desc.replace("/", ".").substring(1, desc.length() - 1);
+			} else {
+				fieldType = desc;
+			}
+			Class<?> fieldClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
+			Constructor<?> constructor = Randomness.choice(fieldClass.getConstructors());
+			GenericConstructor genericConstructor = new GenericConstructor(constructor, fieldClass);
+			VariableReference varRef = addConstructor(test, genericConstructor, position, 0);
+			return varRef;
+		} catch (ClassNotFoundException | ConstructionFailedException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private AbstractStatement addStatementToSetStaticNonPrimitiveField(TestCase test, int position, String desc,
+			GenericField genericField) {
+		VariableReference constructorVarRef = addConstructorForClass(test, position, desc, genericField);
+		FieldReference fieldVar = new FieldReference(test, genericField);
+		AbstractStatement stmt = new AssignmentStatement(test, fieldVar, constructorVarRef);
+		test.addStatement(stmt, position + 1);
+		return stmt;
+	}
+	
+	private VariableReference addPrimitiveStatement(TestCase test, int position, String desc,
+			GenericField genericField) {
+		try {
+			NumericalPrimitiveStatement<?> primStatement = createNewPrimitiveStatement(test, desc);
+			VariableReference varRef = addPrimitive(test, primStatement, position);
+			return varRef;
+		} catch (ConstructionFailedException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
+	private AbstractStatement addStatementToSetStaticPrimitiveField(TestCase test, int position, String desc,
+			GenericField genericField) throws ConstructionFailedException {
+		FieldReference fieldVar = new FieldReference(test, genericField);
+		VariableReference primVarRef = addPrimitiveStatement(test, position, desc, genericField);
+		AbstractStatement stmt = new AssignmentStatement(test, fieldVar, primVarRef);
+		test.addStatement(stmt, position + 1);
+		return stmt;
+	}
+
+	private Class<?> getClassForType(org.objectweb.asm.Type type) {
+		if (type == org.objectweb.asm.Type.BOOLEAN_TYPE) {
+			return boolean.class;
+		}
+		else if (type == org.objectweb.asm.Type.BYTE_TYPE) {
+			return byte.class;
+		}
+		else if (type == org.objectweb.asm.Type.CHAR_TYPE) {
+			return char.class;
+		}
+		else if (type == org.objectweb.asm.Type.SHORT_TYPE) {
+			return short.class;
+		}
+		else if (type == org.objectweb.asm.Type.INT_TYPE) {
+			return int.class;
+		}
+		else if (type == org.objectweb.asm.Type.LONG_TYPE) {
+			return long.class;
+		}
+		else if (type == org.objectweb.asm.Type.FLOAT_TYPE) {
+			return float.class;
+		}
+		else if (type == org.objectweb.asm.Type.DOUBLE_TYPE) {
+			return double.class;
+		}
+		else {
+			try {
+				return TestGenerationContext.getInstance().getClassLoaderForSUT()
+						.loadClass(type.getClassName());
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	private NumericalPrimitiveStatement createNewPrimitiveStatement(TestCase test, String desc) {
+		switch (desc) {
+		case "Z":
+			return new BooleanPrimitiveStatement(test);
+		case "B":
+			return new BytePrimitiveStatement(test);
+		case "C":
+			return new CharPrimitiveStatement(test);
+		case "S":
+			return new ShortPrimitiveStatement(test);
+		case "I":
+			return new IntPrimitiveStatement(test);
+		case "J":
+			return new LongPrimitiveStatement(test);
+		case "F":
+			return new FloatPrimitiveStatement(test);
+		case "D":
+			return new DoublePrimitiveStatement(test);
+		default:
+			return null;
+		}
+	}
+
+	private Class<?> convertSigToPrimitiveClass(String desc) {
+		switch (desc) {
+		case "Z":
+			return BooleanPrimitiveStatement.class;
+		case "B":
+			return BytePrimitiveStatement.class;
+		case "C":
+			return CharPrimitiveStatement.class;
+		case "S":
+			return ShortPrimitiveStatement.class;
+		case "I":
+			return IntPrimitiveStatement.class;
+		case "J":
+			return LongPrimitiveStatement.class;
+		case "F":
+			return FloatPrimitiveStatement.class;
+		case "D":
+			return DoublePrimitiveStatement.class;
+		default:
+			return null;
+		}
+	}
 }
