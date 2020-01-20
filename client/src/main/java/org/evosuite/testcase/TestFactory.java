@@ -31,9 +31,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,6 +46,7 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.TimeController;
 import org.evosuite.ga.ConstructionFailedException;
+import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.DepVariable;
@@ -2514,7 +2517,7 @@ public class TestFactory {
 		return false;
 	}
 
-	public void constructDifficultObjectStatement(TestCase test, List<ConstructionPath> paths, int position) throws ConstructionFailedException {
+	public void constructDifficultObjectStatement(TestCase test, List<ConstructionPath> paths, int position) throws ConstructionFailedException, ClassNotFoundException {
 		
 		Collections.sort(paths, new Comparator<ConstructionPath>() {
 			@Override
@@ -2523,12 +2526,23 @@ public class TestFactory {
 			}
 		});
 		
+		/**
+		 * track what variable reference can be reused.
+		 */
+		Map<DepVariable, VariableReference> map = new HashMap<>();
+		
 		for(ConstructionPath path: paths) {
 			VariableReference parentVarRef = null;
 			
 			List<DepVariable> vars = path.getPath();
 			for(int i=0; i<vars.size(); i++) {
 				DepVariable var = vars.get(i);
+				VariableReference codeVar = map.get(var);
+				if(codeVar != null) {
+					parentVarRef = codeVar;
+					continue;
+				}
+				
 				if(var.getType() == DepVariable.STATIC_FIELD) {
 					parentVarRef = generateStaticFieldStatement(test, position, var, parentVarRef);
 				}
@@ -2552,6 +2566,7 @@ public class TestFactory {
 				
 				if(parentVarRef != null) {
 					position = parentVarRef.getStPosition();
+					map.put(var, parentVarRef);
 				}
 			}
 		}
@@ -2596,32 +2611,72 @@ public class TestFactory {
 		return null;
 	}
 
-	private VariableReference generateParameterStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef) throws ConstructionFailedException {
-		String methodName = var.getInstruction().getActualCFG().getMethodName();
-		String variableName = var.getInstruction().getVariableName();
-		Class<?> parameterType = checkParameterType(methodName, var.getParamOrder());
-		GenericClass fieldDeclaringClazz = new GenericClass(parameterType);
-		Constructor<?> constructor = Randomness.choice(fieldDeclaringClazz.getRawClass().getConstructors());
-		GenericConstructor gc = new GenericConstructor(constructor, fieldDeclaringClazz);
-
-		VariableReference paramRef = this.addConstructor(test, gc, position, 2);
+	/**
+	 * parameter statement is supposed to be used only in the target method invocation
+	 * @param test
+	 * @param position
+	 * @param var
+	 * @param parentVarRef
+	 * @return
+	 * @throws ConstructionFailedException
+	 * @throws ClassNotFoundException 
+	 */
+	private VariableReference generateParameterStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef) 
+			throws ConstructionFailedException, ClassNotFoundException {
+		VariableReference paramRef = generateParameter(test, position, var);
 		
 		MethodStatement targetStatement = findTargetMethodCallStatement(test);
-		int paramOrder = var.getParamOrder();
-		VariableReference oldParamRef = targetStatement.getParameterReferences().get(paramOrder);
-		targetStatement.replace(oldParamRef, paramRef);
+		if(targetStatement != null) {
+			VariableReference oldParamRef = targetStatement.getParameterReferences().get(var.getParamOrder()-1);
+			targetStatement.replace(oldParamRef, paramRef);			
+		}
 		
 		return paramRef;
 	}
 
 	private MethodStatement findTargetMethodCallStatement(TestCase test) {
-		// TODO Auto-generated method stub
+		for(int i=0; i<test.size(); i++) {
+			Statement stat = test.getStatement(i);
+			if(stat instanceof MethodStatement) {
+				MethodStatement methodStat = (MethodStatement)stat;
+				if(methodStat.getMethod().getNameWithDescriptor().equals(Properties.TARGET_METHOD)) {
+					return methodStat;
+				}
+			}
+		}
+		
+		System.currentTimeMillis();
+		
 		return null;
 	}
 
-	private Class<?> checkParameterType(String methodName, int paramOrder) {
-		// TODO Auto-generated method stub
-		return null;
+	private VariableReference generateParameter(TestCase test, int position, DepVariable var)
+			throws ClassNotFoundException, ConstructionFailedException {
+		ActualControlFlowGraph actualControlFlowGraph = var.getInstruction().getActualCFG();
+		int paramOrder = var.getParamOrder();
+		
+		String methodSig = actualControlFlowGraph.getMethodName();
+		String[] parameters = extractParameter(methodSig);
+		String paramType = parameters[paramOrder-1];
+		
+		Class<?> paramClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(paramType);
+		GenericClass paramDeclaringClazz = new GenericClass(paramClass);
+		
+		Constructor<?> constructor = Randomness.choice(paramDeclaringClazz.getRawClass().getConstructors());
+		GenericConstructor gc = new GenericConstructor(constructor, paramDeclaringClazz);
+
+		VariableReference paramRef = this.addConstructor(test, gc, position, 2);
+		return paramRef;
+	}
+
+	private String[] extractParameter(String methodSig) {
+		//TODO ziheng
+		String[] args = new String[1];
+		for(int i=0; i<args.length; i++) {
+			args[i] = "Lcom/example/Student";
+			args[i] = args[i].replace("/", ".").substring(1, args[i].length());
+		}
+		return args;
 	}
 
 	private VariableReference generateStaticFieldStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef) {

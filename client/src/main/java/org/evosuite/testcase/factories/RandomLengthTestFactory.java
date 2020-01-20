@@ -101,7 +101,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				
 				try {
 					testFactory.constructDifficultObjectStatement(test, paths, position);
-				} catch (ConstructionFailedException e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 				
