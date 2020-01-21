@@ -2630,13 +2630,13 @@ public class TestFactory {
 					} else {
 						varRef = addConstructorForClass(test, position, desc, genericField);
 					}
-					calleeVarRef = addConstructorForClass(test, position + 1, fieldDeclaringClass.getName(), genericField);
+//					calleeVarRef = addConstructorForClass(test, position + 1, fieldDeclaringClass.getName(), genericField);
 //					addMethodFor(test, varRef, genericMethod, position + 1);
 					List<VariableReference> refs = new ArrayList<>();
 					for (int i = 0; i < potentialSetter.getParameterTypes().length; i++) {
 						refs.add(varRef);
 					}
-					stmt = new MethodStatement(test, genericMethod, calleeVarRef, refs);
+					stmt = new MethodStatement(test, genericMethod, parentVarRef, refs);
 					test.addStatement(stmt, position + 2);
 				}
 
@@ -2816,6 +2816,9 @@ public class TestFactory {
 						Class<?> paramClass = getClassForType(type);
 						paramClasses[index++] = paramClass;
 					}
+					
+					//TODO fix construction
+					
 					Method targetMethod = fieldDeclaringClass
 							.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
 					targetMethods.add(targetMethod);
