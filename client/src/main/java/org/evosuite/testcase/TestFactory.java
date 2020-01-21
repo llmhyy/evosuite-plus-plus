@@ -109,6 +109,7 @@ import org.evosuite.utils.generic.GenericField;
 import org.evosuite.utils.generic.GenericMethod;
 import org.evosuite.utils.generic.GenericUtils;
 import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2573,7 +2574,11 @@ public class TestFactory {
 					}
 				}
 				else if(var.getType() == DepVariable.OTHER) {
-					parentVarRef = generateOtherStatement(test, position, var, parentVarRef);
+					/** For "OTHER" statement, we only care for method invocation for now
+					 *  A naive approach is to attach the method right before the target method
+					 */
+					int methodPos = findTargetMethodCallStatement(test).getPosition();
+					parentVarRef = generateOtherStatement(test, methodPos, var, parentVarRef);
 				}
 				
 				if(parentVarRef != null) {
@@ -2587,12 +2592,71 @@ public class TestFactory {
 
 	private VariableReference generateOtherStatement(TestCase test, int position, DepVariable var,
 			VariableReference parentVarRef) {
-		// TODO Auto-generated method stub
-		return null;
+		AbstractStatement stmt = null;
+		if (var.getInstruction().getASMNode() instanceof MethodInsnNode) {
+			try {
+				MethodInsnNode methodNode = ((MethodInsnNode) var.getInstruction().getASMNode());
+				String owner = methodNode.owner;
+				String fieldOwner = owner.replace("/", ".");
+				String fullName = methodNode.name + methodNode.desc;
+				Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+						.loadClass(fieldOwner);
+				org.objectweb.asm.Type[] types = org.objectweb.asm.Type
+						.getArgumentTypes(fullName.substring(fullName.indexOf("("), fullName.length()));
+				Class<?>[] paramClasses = new Class<?>[types.length];
+				int index = 0;
+				for (org.objectweb.asm.Type type : types) {
+					Class<?> paramClass = getClassForType(type);
+					paramClasses[index++] = paramClass;
+				}
+				
+				if(!fullName.contains("<init>")) {
+					Method targetMethod = fieldDeclaringClass
+							.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);		
+					VariableReference paramRef = null;
+					List<VariableReference> paramRefs = new ArrayList<>();
+					for (int i = 0; i < targetMethod.getParameterTypes().length; i++) {
+						Class<?> paramClass = targetMethod.getParameterTypes()[i];
+						if (paramClass.isPrimitive()) {
+							if (paramRef != null) {
+								paramRef = addPrimitiveStatement(test, paramRef.getStPosition() + 1,
+										paramClass.getName());
+							} else {
+								paramRef = addPrimitiveStatement(test, position, paramClass.getName());
+							}
+						} else {
+							if (paramRef != null) {
+								paramRef = addConstructorForClass(test, paramRef.getStPosition() + 1,
+										paramClass.getName());
+							} else {
+								paramRef = addConstructorForClass(test, position, paramClass.getName());
+							}
+						}
+						paramRefs.add(paramRef);
+					}
+
+					VariableReference calleeVarRef;
+					if (parentVarRef == null) {
+						calleeVarRef = addConstructorForClass(test, paramRef.getStPosition() + 1,
+								fieldDeclaringClass.getName());
+					} else {
+						calleeVarRef = parentVarRef;
+					}
+
+					GenericMethod genericMethod = new GenericMethod(targetMethod,
+							targetMethod.getDeclaringClass());
+					stmt = new MethodStatement(test, genericMethod, calleeVarRef, paramRefs);
+					test.addStatement(stmt, position);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return stmt.getReturnValue();
 	}
 
 	
-	private VariableReference generateFieldStatement(TestCase test, int position, DepVariable var, 
+	private VariableReference generateFieldStatement(TestCase test, int position, DepVariable var,
 			VariableReference parentVarRef, boolean isStatic) {
 		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
 		String desc = fieldNode.desc;
@@ -2616,48 +2680,61 @@ public class TestFactory {
 				}
 			}
 
-			else if (genericField.isPrivate()) {	
+			else if (genericField.isPrivate()) {
 				List<BytecodeInstruction> insList = BytecodeInstructionPool
 						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 						.getInstructionsIn(fieldDeclaringClass.getName());
 				if (insList != null) {
 					String fieldWriteOpcode = "PUTSTATIC";
-					if(!isStatic) {
+					if (!isStatic) {
 						fieldWriteOpcode = "PUTFIELD";
 					}
-					
-					Method potentialSetter = searchForPotentialSetter(owner, fieldName, fieldDeclaringClass, insList, fieldWriteOpcode);
-					GenericMethod genericMethod = new GenericMethod(potentialSetter,
-							potentialSetter.getDeclaringClass());
-					VariableReference varRef;
+
+					Method potentialSetter = searchForPotentialSetter(owner, fieldName, fieldDeclaringClass, insList,
+							fieldWriteOpcode);
+
+					VariableReference paramRef = null;
+					List<VariableReference> paramRefs = new ArrayList<>();
+					for (int i = 0; i < potentialSetter.getParameterTypes().length; i++) {
+						Class<?> paramClass = potentialSetter.getParameterTypes()[i];
+						if (paramClass.isPrimitive()) {
+							if (paramRef != null) {
+								paramRef = addPrimitiveStatement(test, paramRef.getStPosition() + 1,
+										paramClass.getName());
+							} else {
+								paramRef = addPrimitiveStatement(test, position, paramClass.getName());
+							}
+						} else {
+							if (paramRef != null) {
+								paramRef = addConstructorForClass(test, paramRef.getStPosition() + 1,
+										paramClass.getName());
+							} else {
+								paramRef = addConstructorForClass(test, position, paramClass.getName());
+							}
+						}
+						paramRefs.add(paramRef);
+					}
+
 					VariableReference calleeVarRef;
-					if (CollectionUtil.existIn(desc, "Z", "B", "C", "S", "I", "J", "F", "D")) {
-						varRef = addPrimitiveStatement(test, position, desc, genericField);
+					if (parentVarRef == null) {
+						calleeVarRef = addConstructorForClass(test, paramRef.getStPosition() + 1,
+								fieldDeclaringClass.getName());
 					} else {
-						varRef = addConstructorForClass(test, position, desc, genericField);
-					}
-					
-					if(parentVarRef == null) {
-						calleeVarRef = addConstructorForClass(test, varRef.getStPosition()+1, fieldDeclaringClass.getName(), genericField);						
-					}
-					else {
 						calleeVarRef = parentVarRef;
 					}
-					
-					//TODO ziheng generate a random method call and replace the corresponding parameter/object
-					List<VariableReference> refs = new ArrayList<>();
-					for (int i = 0; i < potentialSetter.getParameterTypes().length; i++) {
-						refs.add(varRef);
-					}
-					stmt = new MethodStatement(test, genericMethod, calleeVarRef, refs);
-					
-					test.addStatement(stmt, calleeVarRef.getStPosition()+1);
-				}
 
-				System.currentTimeMillis();
+					GenericMethod genericMethod = new GenericMethod(potentialSetter,
+							potentialSetter.getDeclaringClass());
+					stmt = new MethodStatement(test, genericMethod, calleeVarRef, paramRefs);
+
+					if (calleeVarRef == parentVarRef && paramRef != null) {
+						test.addStatement(stmt, paramRef.getStPosition() + 1);
+					} else {
+						test.addStatement(stmt, calleeVarRef.getStPosition() + 1);
+					}
+				}
 			}
 			return stmt.getReturnValue();
-//			return null;
 
 		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException
 				| NoSuchMethodException e) {
@@ -2769,7 +2846,7 @@ public class TestFactory {
 		return Randomness.choice(targetMethods);
 	}
 	
-	private VariableReference addConstructorForClass(TestCase test, int position, String desc, GenericField genericField) {
+	private VariableReference addConstructorForClass(TestCase test, int position, String desc) {
 		try {
 			String fieldType;
 			if (desc.contains("/")) {
@@ -2790,7 +2867,7 @@ public class TestFactory {
 	
 	private AbstractStatement addStatementToSetNonPrimitiveField(TestCase test, int position, String desc,
 			GenericField genericField, VariableReference parentVarRef) {
-		VariableReference constructorVarRef = addConstructorForClass(test, position, desc, genericField);
+		VariableReference constructorVarRef = addConstructorForClass(test, position, desc);
 		FieldReference fieldVar = null;
 		if(genericField.isStatic()) {
 			fieldVar = new FieldReference(test, genericField);			
@@ -2804,8 +2881,7 @@ public class TestFactory {
 		return stmt;
 	}
 	
-	private VariableReference addPrimitiveStatement(TestCase test, int position, String desc,
-			GenericField genericField) {
+	private VariableReference addPrimitiveStatement(TestCase test, int position, String desc) {
 		try {
 			NumericalPrimitiveStatement<?> primStatement = createNewPrimitiveStatement(test, desc);
 			VariableReference varRef = addPrimitive(test, primStatement, position);
@@ -2826,7 +2902,7 @@ public class TestFactory {
 			fieldVar = new FieldReference(test, genericField, parentVarRef);
 		}
 		
-		VariableReference primVarRef = addPrimitiveStatement(test, position, desc, genericField);
+		VariableReference primVarRef = addPrimitiveStatement(test, position, desc);
 		AbstractStatement stmt = new AssignmentStatement(test, fieldVar, primVarRef);
 		test.addStatement(stmt, position + 1);
 		return stmt;
@@ -2872,20 +2948,28 @@ public class TestFactory {
 	private NumericalPrimitiveStatement createNewPrimitiveStatement(TestCase test, String desc) {
 		switch (desc) {
 		case "Z":
+		case "boolean":
 			return new BooleanPrimitiveStatement(test);
 		case "B":
+		case "byte":
 			return new BytePrimitiveStatement(test);
 		case "C":
+		case "char":
 			return new CharPrimitiveStatement(test);
 		case "S":
+		case "short":
 			return new ShortPrimitiveStatement(test);
 		case "I":
+		case "int":
 			return new IntPrimitiveStatement(test);
 		case "J":
+		case "long":
 			return new LongPrimitiveStatement(test);
 		case "F":
+		case "float":
 			return new FloatPrimitiveStatement(test);
 		case "D":
+		case "double":
 			return new DoublePrimitiveStatement(test);
 		default:
 			return null;
