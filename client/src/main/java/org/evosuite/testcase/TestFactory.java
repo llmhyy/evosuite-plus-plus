@@ -2816,11 +2816,14 @@ public class TestFactory {
 						paramClasses[index++] = paramClass;
 					}
 					
-					//TODO fix construction
-					
-					Method targetMethod = fieldDeclaringClass
-							.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
-					targetMethods.add(targetMethod);
+					if(!fullName.contains("<init>")) {
+						Method targetMethod = fieldDeclaringClass
+								.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
+						targetMethods.add(targetMethod);						
+					}
+					else {
+						System.currentTimeMillis();
+					}
 				}
 			}
 		}
