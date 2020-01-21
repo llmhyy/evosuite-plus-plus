@@ -2712,10 +2712,9 @@ public class TestFactory {
 	}
 
 	private String[] extractParameter(String methodSig) {
-		//TODO ziheng
-		String[] args = new String[1];
-		for(int i=0; i<args.length; i++) {
-			args[i] = "Lcom/example/Student";
+		String parameters = methodSig.substring(methodSig.indexOf("(") + 1, methodSig.indexOf(")"));
+		String[] args = parameters.split(";");
+		for(int i=0; i< args.length; i++) {
 			args[i] = args[i].replace("/", ".").substring(1, args[i].length());
 		}
 		return args;
