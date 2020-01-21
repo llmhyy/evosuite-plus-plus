@@ -81,6 +81,10 @@ public class ConstructionPath {
 			return true;
 		}
 		
+		if(root.getInstruction().isStaticDefUse()) {
+			return true;
+		}
+		
 		return false;
 	}
 }
