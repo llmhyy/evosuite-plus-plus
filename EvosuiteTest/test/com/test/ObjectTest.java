@@ -11,10 +11,66 @@ import com.example.ObjectExample;
 
 public class ObjectTest extends TestUility{
 	@Test
-	public void test() {
+	public void testList() {
 		Class<?> clazz = ObjectExample.class;
 		String methodName = "test";
-		int parameterNum = 1;
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+//		Method method = clazz.getMethods()[0];
+		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes";
+
+		// Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.DEBUG = true;
+//		Properties.PORT = 8000;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 10000000;
+//		Properties.TIMELINE_INTERVAL = 3000;
+		
+		String fitnessApproach = "fbranch";
+		
+		int timeBudget = 30000;
+		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+	}
+	
+	@Test
+	public void testStudentInterface() {
+		Class<?> clazz = ObjectExample.class;
+		String methodName = "test1";
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+//		Method method = clazz.getMethods()[0];
+		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes";
+
+		// Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.DEBUG = true;
+//		Properties.PORT = 8000;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 10000000;
+//		Properties.TIMELINE_INTERVAL = 3000;
+		
+		String fitnessApproach = "fbranch";
+		
+		int timeBudget = 30000;
+		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+	}
+	
+	@Test
+	public void testStudentAbstract() {
+		Class<?> clazz = ObjectExample.class;
+		String methodName = "test2";
+		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];

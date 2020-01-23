@@ -34,7 +34,7 @@ public class ObjectExample {
 			return false;
 		}
 		
-		public boolean test1(List<Integer> list, StudentAbstract student) {
+		public boolean test2(List<Integer> list, StudentAbstract student) {
 			for (Integer age : list) {
 				if (student.getAge() == age) {
 					return true;
