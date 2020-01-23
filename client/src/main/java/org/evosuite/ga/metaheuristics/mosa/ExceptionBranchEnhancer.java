@@ -37,7 +37,6 @@ import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.EntityWithParametersStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
-import org.jgrapht.GraphPath;
 import org.jgrapht.alg.DijkstraShortestPath;
 
 public class ExceptionBranchEnhancer<T extends Chromosome> {
@@ -305,7 +304,8 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			}
 			
 			return bestCorresponder;
-		} else {
+		} 
+		else {
 			FitnessFunction<T> lastOutsider = findLastOutsider(allCorrespondingGoals);
 			return lastOutsider;
 		}
@@ -319,20 +319,32 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			 * it is possible to have multiple roots here. 
 			 */
 			FitnessFunction<T> rootBranch = rootBranches.iterator().next();
-			if (rootBranch instanceof ContextFitnessFunction) {
-				return trackLastOutsiderFromRoot(goalGraph, rootBranch);
-			} 
+			if (rootBranch instanceof BranchFitness) {
+				if(!((BranchFitness)rootBranch).isInTarget()) {
+					return trackLastOutsiderFromRoot(goalGraph, rootBranch);
+				}
+			}
 		}
 		return null;
 	}
 
+	/**
+	 * 
+	 * @param goalGraph
+	 * @param rootBranch
+	 * @return
+	 */
 	private FitnessFunction<T> trackLastOutsiderFromRoot(BranchFitnessGraph<T, FitnessFunction<T>> goalGraph,
 			FitnessFunction<T> rootBranch) {
-		while (!goalGraph.getStructuralChildren(rootBranch).isEmpty()) {
-			rootBranch = goalGraph.getStructuralChildren(rootBranch).iterator().next();
-			if (rootBranch instanceof BranchFitness) {
-				if(((BranchFitness)rootBranch).isInTarget()) {
-					return goalGraph.getStructuralParents(rootBranch).iterator().next();					
+		FitnessFunction<T> node = rootBranch;
+		while (!goalGraph.getStructuralChildren(node).isEmpty()) {
+			FitnessFunction<T> child = goalGraph.getStructuralChildren(node).iterator().next();
+			if (child instanceof BranchFitness) {
+				if(((BranchFitness)child).isInTarget()) {
+					return node;					
+				}
+				else {
+					node = child;
 				}
 			}
 		}
