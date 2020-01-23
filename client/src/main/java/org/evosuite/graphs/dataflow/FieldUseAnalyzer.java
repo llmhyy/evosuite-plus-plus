@@ -47,8 +47,11 @@ public class FieldUseAnalyzer {
 			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
 			try {
 				bytecodeAnalyzer.analyze(classLoader, className, methodName, innerNode);
-			} catch (AnalyzerException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				/**
+				 * the cfg (e.g., jdk/library class) is out of our consideration
+				 */
+				return new HashSet<DepVariable>();
 			}
 			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
