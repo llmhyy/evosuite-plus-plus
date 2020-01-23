@@ -22,7 +22,7 @@ public class TestDsachat extends DebugSetup{
 		int repeatTime = 1;
 		int budget = 10000;
 //		Long seed = 1556814527153L;
-		Long seed = null;
+		Long seed = 1579798336249L;
 		
 		String fitnessApproach = "fbranch";
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  

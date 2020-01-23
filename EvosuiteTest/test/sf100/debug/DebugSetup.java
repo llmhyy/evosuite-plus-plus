@@ -20,9 +20,10 @@ public class DebugSetup {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		
-		Properties.SEARCH_BUDGET = 60000;
-		Properties.GLOBAL_TIMEOUT = 60000;
-		Properties.TIMEOUT = 30000000;
+//		Properties.SEARCH_BUDGET = 60000;
+//		Properties.GLOBAL_TIMEOUT = 60000;
+//		Properties.TIMEOUT = 30000000;
+		
 //		Properties.CLIENT_ON_THREAD = true;
 //		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		FileUtils.deleteFolder(new File("/Users/lylytran/Projects/Evosuite/experiments/SF100_unittest/evoTest-reports"));
