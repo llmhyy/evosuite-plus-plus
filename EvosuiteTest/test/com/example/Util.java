@@ -13,6 +13,13 @@ public class Util {
 		return false;
 	}
 	
+	public static boolean isOk(String a, String b){
+		if (a.contains(b)) {
+			return true;
+		} 
+		return false;
+	}
+	
 	public static boolean isCornerCase(int a, int b){
 		return a+b >= 199;
 	}
