@@ -254,15 +254,13 @@ public class FieldUseAnalyzer {
 	 * @return
 	 */
 	private boolean shouldStop(BytecodeInstruction defIns) {
-		ActualControlFlowGraph graph = defIns.getCalledActualCFG();
-		if(graph != null) {
-			String className = graph.getClassName();
-			if(className.contains("evosuite")) {
-				return false;
-			}
+		
+		String className = defIns.getCalledMethodsClass();
+		if(className.contains("evosuite")) {
+			return true;
 		}
 		
-		return true;
+		return false;
 	}
 
 	/**
@@ -274,14 +272,6 @@ public class FieldUseAnalyzer {
 	 */
 	private String exploreInterproceduralInstruction(Set<DepVariable> allLeafDepVars, BytecodeInstruction defIns,
 			List<DepVariable>[] inputVarArray, String recommendedClass) {
-		
-		/**
-		 * is the method static?
-		 */
-		int parameterStartIndex = 1;
-		if(defIns.isCallToStaticMethod()) {
-			parameterStartIndex = 0;
-		}
 		
 		Map<String, Set<DepVariable>> relatedVariableMap = analyzeReturnValueFromMethod(defIns, recommendedClass);
 		if(relatedVariableMap.isEmpty()) {
@@ -304,7 +294,7 @@ public class FieldUseAnalyzer {
 						if(path != null) {
 							DepVariable secVar = path.getPath().get(1);
 							if(rootVar.getType() == DepVariable.PARAMETER) {
-								int index = parameterStartIndex + rootVar.getParamOrder() - 1;
+								int index = rootVar.getParamOrder() - 1;
 								List<DepVariable> params = inputVarArray[index];
 								
 								for(DepVariable param: params) {
