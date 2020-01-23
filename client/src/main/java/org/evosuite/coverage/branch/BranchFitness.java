@@ -6,4 +6,6 @@ public interface BranchFitness {
 	public BranchCoverageGoal getBranchGoal();
 	
 	public void setContext(CallContext callContext);
+
+	public boolean isInTarget();
 }

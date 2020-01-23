@@ -255,4 +255,9 @@ public class BranchCoverageTestFitness extends TestFitnessFunction implements Br
 		this.callContext = callContext;
 	}
 
+	@Override
+	public boolean isInTarget() {
+		return true;
+	}
+
 }
