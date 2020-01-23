@@ -20,6 +20,7 @@ import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.metaheuristics.mosa.structural.BranchFitnessGraph;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
@@ -304,8 +305,36 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			}
 			
 			return bestCorresponder;
+		} else {
+			FitnessFunction<T> lastOutsider = findLastOutsider(allCorrespondingGoals);
+			return lastOutsider;
 		}
+	}
 
+	private FitnessFunction<T> findLastOutsider(List<FitnessFunction<T>> allCorrespondingGoals) {
+		BranchFitnessGraph<T, FitnessFunction<T>> goalGraph = this.goalsManager.getBranchFitnessGraph();
+		Set<FitnessFunction<T>> rootBranches = goalGraph.getRootBranches();
+		if (!rootBranches.isEmpty()) {
+			/**
+			 * it is possible to have multiple roots here. 
+			 */
+			FitnessFunction<T> rootBranch = rootBranches.iterator().next();
+			return trackLastOutsiderFromRoot(goalGraph, rootBranch);
+		}
+		return null;
+	}
+
+	private FitnessFunction<T> trackLastOutsiderFromRoot(BranchFitnessGraph<T, FitnessFunction<T>> goalGraph,
+			FitnessFunction<T> rootBranch) {
+		while (!goalGraph.getStructuralChildren(rootBranch).isEmpty()) {
+			rootBranch = goalGraph.getStructuralChildren(rootBranch).iterator().next();
+			if (rootBranch instanceof BranchFitness) {
+				if(((BranchFitness)rootBranch).isInTarget()) {
+					return goalGraph.getStructuralParents(rootBranch).iterator().next();					
+				}
+			}
+		}
+		
 		return null;
 	}
 
