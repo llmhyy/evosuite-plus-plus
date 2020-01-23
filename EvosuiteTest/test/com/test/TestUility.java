@@ -29,6 +29,7 @@ public class TestUility {
 //				"-Dstrategy", "LEARNING_BASED_HYBRID",
 				"-Dapply_object_rule", "true",
 				"-Denable_branch_enhancement", "true",
+				"-Dadopt_smart_mutation", "true",
 				
 				"-generateMOSuite",
 				"-Dstrategy", "MOSUITE",
