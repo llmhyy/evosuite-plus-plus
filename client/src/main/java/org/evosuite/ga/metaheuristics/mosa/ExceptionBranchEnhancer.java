@@ -319,7 +319,9 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			 * it is possible to have multiple roots here. 
 			 */
 			FitnessFunction<T> rootBranch = rootBranches.iterator().next();
-			return trackLastOutsiderFromRoot(goalGraph, rootBranch);
+			if (rootBranch instanceof ContextFitnessFunction) {
+				return trackLastOutsiderFromRoot(goalGraph, rootBranch);
+			} 
 		}
 		return null;
 	}
