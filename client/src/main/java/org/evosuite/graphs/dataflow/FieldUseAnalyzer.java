@@ -296,6 +296,21 @@ public class FieldUseAnalyzer {
 					return n;
 				}
 			}
+			
+			// Can't find the method in current class
+			// Check its parent class
+			try {
+				Class<?> clazz = Class.forName(className);
+				if (clazz.getSuperclass() != null) {
+					Class<?> superClazz = clazz.getSuperclass();
+					return getMethodNode(classLoader, superClazz.getName(), methodName);
+//					System.currentTimeMillis();
+				}
+				System.currentTimeMillis();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 		} catch (IOException e) {
 			e.printStackTrace();
