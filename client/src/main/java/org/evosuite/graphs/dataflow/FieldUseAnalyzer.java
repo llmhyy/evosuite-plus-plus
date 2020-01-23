@@ -2,6 +2,7 @@ package org.evosuite.graphs.dataflow;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.coverage.dataflow.DefUseFactory;
@@ -22,7 +24,9 @@ import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
+import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.CollectionUtil;
+import org.evosuite.utils.Randomness;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -35,12 +39,38 @@ import org.objectweb.asm.tree.analysis.Value;
 public class FieldUseAnalyzer {
 	private Map<BytecodeInstruction, DepVariable> instructionPool = new HashMap<BytecodeInstruction, DepVariable>();
 	
-	@SuppressWarnings("rawtypes")
-	private Set<DepVariable> analyzeReturnValueFromMethod(BytecodeInstruction instruction){
+	
+	private String getRuleBasedSubclass(String className) {
+		if(className.equals("java.util.List")) {
+			return "java.util.ArrayList";
+		}
+		else if(className.equals("java.util.Set")) {
+			return "java.util.HashSet";
+		}
+		
+		Set<String> subclasses = DependencyAnalysis.getInheritanceTree().getSubclasses(className);
+		className = Randomness.choice(subclasses);
+		
+		return className;
+	}
+	
+	private Map<String, Set<DepVariable>> analyzeReturnValueFromMethod(BytecodeInstruction instruction, 
+			String recommendedClass){
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		
 		String className = instruction.getCalledMethodsClass();
 		String methodName = instruction.getCalledMethod();
+		
+//		try {
+//			Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
+//			if(clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
+//				className = recommendedClass==null ? getRuleBasedSubclass(className) : recommendedClass;
+//			}
+//		} catch (ClassNotFoundException e1) {
+//			return new HashMap<>();
+//		}
+		
+		
 		ActualControlFlowGraph calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		MethodNode innerNode = getMethodNode(classLoader, className, methodName);
 		if (calledCfg == null) {
@@ -51,29 +81,28 @@ public class FieldUseAnalyzer {
 				/**
 				 * the cfg (e.g., jdk/library class) is out of our consideration
 				 */
-				return new HashSet<DepVariable>();
+				return new HashMap<>();
 			}
+			Properties.ALWAYS_REGISTER_BRANCH = true;
 			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+			Properties.ALWAYS_REGISTER_BRANCH = false;
 		}
 		boolean canBeAnalyzed = FBranchDefUseAnalyzer.analyze(calledCfg.getRawGraph());
 		if(!canBeAnalyzed) {
-			return new HashSet<DepVariable>();
+			return new HashMap<>();
 		}
 		
 		Set<DepVariable> allDepVars = new HashSet<DepVariable>();
 		Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 		for (BytecodeInstruction exit : calledCfg.getExitPoints()) {
-			if (exit.getOperandNum() > 0) {
-				Frame frame = exit.getFrame();
-				for (int i = 0; i < exit.getOperandNum(); i++) {
-					Value val = frame.getStack(i);
-					searchDependantVariables(val, calledCfg, allDepVars, visitedIns);
-				}
-			}
+			BytecodeInstruction returnInput = exit.getPreviousInstruction();
+			searchDepedantVariables(returnInput, calledCfg, allDepVars, visitedIns);
 		}
 		
-		return allDepVars;
+		HashMap<String, Set<DepVariable>> map = new HashMap<String, Set<DepVariable>>();
+		map.put(className, allDepVars);
+		return map;
 	}
 	
 	
@@ -84,7 +113,7 @@ public class FieldUseAnalyzer {
 	 * @param defIns
 	 * @return
 	 */
-	private DepVariable parseVariable(SourceValue value, BytecodeInstruction defIns) {
+	public DepVariable parseVariable(BytecodeInstruction defIns) {
 		String className = defIns.getClassName();
 		String varName = "$unknown";
 		
@@ -114,84 +143,104 @@ public class FieldUseAnalyzer {
 	 * @param visitedIns
 	 * @return
 	 */
-	@SuppressWarnings("rawtypes")
 	public void searchDependantVariables(Value value, ActualControlFlowGraph cfg, Set<DepVariable> allLeafDepVars,
 			Set<BytecodeInstruction> visitedIns) {
+		
+		if (!(value instanceof SourceValue)) {
+			return;
+		}
+		
 		String className = cfg.getClassName();
 		String methodName = cfg.getMethodName();
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		MethodNode node = getMethodNode(classLoader, className, methodName);
 		
-		if (value instanceof SourceValue) {
-			SourceValue srcValue = (SourceValue) value;
-			for(AbstractInsnNode insNode: srcValue.insns) {
-				BytecodeInstruction defIns = convert2BytecodeInstruction(cfg, node, insNode);
-				if (visitedIns.contains(defIns)) {
-					continue;
+		SourceValue srcValue = (SourceValue) value;
+		/**
+		 * get all the instruction defining the value.
+		 */
+		for(AbstractInsnNode insNode: srcValue.insns) {
+			BytecodeInstruction defIns = convert2BytecodeInstruction(cfg, node, insNode);
+			searchDepedantVariables(defIns, cfg, allLeafDepVars, visitedIns);
+		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private void searchDepedantVariables(BytecodeInstruction defIns, ActualControlFlowGraph cfg, Set<DepVariable> allLeafDepVars,
+			Set<BytecodeInstruction> visitedIns) {
+		if (visitedIns.contains(defIns)) {
+			return;
+		}
+		visitedIns.add(defIns);
+		
+		String className = cfg.getClassName();
+		String methodName = cfg.getMethodName();
+		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		MethodNode node = getMethodNode(classLoader, className, methodName);
+		
+		DepVariable outputVar = parseVariable(defIns);
+		/**
+		 * the variable is computed by values on stack
+		 */
+		List<DepVariable>[] intputVarArray = buildInputOutputForInstruction(defIns, node,
+				outputVar, cfg, allLeafDepVars, visitedIns);
+		
+		/**
+		 * if defIns is a method call, we need to explore more potential variables (fields) inside the method.
+		 */
+		if(defIns.isMethodCall() || defIns.isConstructorInvocation()) {
+			String recommnedClass = outputVar.getRecommendedImplementation();
+			recommnedClass = exploreInterproceduralInstruction(allLeafDepVars, defIns, intputVarArray, recommnedClass);
+			outputVar.setRecommendedImplementation(recommnedClass);
+		}
+		
+		/**
+		 *  handle load/get static, need to put the variable into the return list
+		 */
+		if(outputVar.isStaticField() || outputVar.isInstaceField()) {
+			allLeafDepVars.add(outputVar);
+		}
+		
+		if(outputVar.referenceToThis() || outputVar.isParameter() || outputVar.isStaticField()) {
+			//return;
+		}
+		
+		/**
+		 * the variable is computed by local variables
+		 */
+		if (defIns.isLocalVariableUse()){
+			//keep traverse
+			DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
+			defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
+			Use use = DefUseFactory.makeUse(defIns);
+			// Ignore method parameter
+			List<Definition> defs = DefUsePool.getDefinitions(use);
+			for (Definition def : CollectionUtil.nullToEmpty(defs)) {
+				if (def != null) {
+					BytecodeInstruction defInstruction = convert2BytecodeInstruction(cfg, node, def.getASMNode());
+					buildInputOutputForInstruction(defInstruction, node,
+							outputVar, cfg, allLeafDepVars, visitedIns);
 				}
-				visitedIns.add(defIns);
-				
-				DepVariable outputVar = parseVariable(srcValue, defIns);
-				/**
-				 * the variable is computed by values on stack
-				 */
-				List<DepVariable>[] intputVarArray = buildInputOutputForInstruction(defIns, node,
-						outputVar, cfg, allLeafDepVars, visitedIns);
-				
-				/**
-				 * if defIns is a method call, we need to explore more potential variables (fields) inside the method.
-				 */
-				if(defIns.isMethodCall()) {
-					exploreInterproceduralInstruction(allLeafDepVars, defIns, intputVarArray);
-				}
-				
-				/**
-				 *  handle load/get static, need to put the variable into the return list
-				 */
-				if(outputVar.isStaticField() || outputVar.isInstaceField()) {
-					allLeafDepVars.add(outputVar);
-				}
-				
-				if(outputVar.referenceToThis() || outputVar.isParameter() || outputVar.isStaticField()) {
-					//return;
-				}
-				
-				/**
-				 * the variable is computed by local variables
-				 */
-				if (defIns.isLocalVariableUse()){
-					//keep traverse
-					DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
-					defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
-					Use use = DefUseFactory.makeUse(defIns);
-					// Ignore method parameter
-					List<Definition> defs = DefUsePool.getDefinitions(use);
-					for (Definition def : CollectionUtil.nullToEmpty(defs)) {
-						if (def != null) {
-							BytecodeInstruction defInstruction = convert2BytecodeInstruction(cfg, node, def.getASMNode());
-							buildInputOutputForInstruction(defInstruction, node,
-									outputVar, cfg, allLeafDepVars, visitedIns);
-						}
-					}
-				}
-				
-				/**
-				 * handle control flow, note that there is no need to build data flow
-				 */
-				for(ControlDependency control: defIns.getControlDependencies()) {
-					BytecodeInstruction controlIns = control.getBranch().getInstruction();
-					int operandNum = controlIns.getOperandNum();
-					for (int i = 0; i < operandNum; i++) {
-						Frame frame = controlIns.getFrame();
-						int index = frame.getStackSize() - operandNum + i ;
-						Value val = frame.getStack(index);
-						searchDependantVariables(val, cfg, allLeafDepVars, visitedIns);
-					}
-				}
-				
 			}
-			
-
+		}
+		
+		/**
+		 * handle control flow, note that there is no need to build data flow
+		 */
+		try {
+			for(ControlDependency control: defIns.getControlDependencies()) {
+				BytecodeInstruction controlIns = control.getBranch().getInstruction();
+				int operandNum = controlIns.getOperandNum();
+				for (int i = 0; i < operandNum; i++) {
+					Frame frame = controlIns.getFrame();
+					int index = frame.getStackSize() - operandNum + i ;
+					Value val = frame.getStack(index);
+					searchDependantVariables(val, cfg, allLeafDepVars, visitedIns);
+				}
+			}					
+		}
+		catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -202,8 +251,8 @@ public class FieldUseAnalyzer {
 	 * @param defIns
 	 * @param inputVarArray
 	 */
-	private void exploreInterproceduralInstruction(Set<DepVariable> allLeafDepVars, BytecodeInstruction defIns,
-			List<DepVariable>[] inputVarArray) {
+	private String exploreInterproceduralInstruction(Set<DepVariable> allLeafDepVars, BytecodeInstruction defIns,
+			List<DepVariable>[] inputVarArray, String recommendedClass) {
 		
 		/**
 		 * is the method static?
@@ -213,10 +262,18 @@ public class FieldUseAnalyzer {
 			parameterStartIndex = 0;
 		}
 		
-		Set<DepVariable> relatedVariables = analyzeReturnValueFromMethod(defIns);
+		Map<String, Set<DepVariable>> relatedVariableMap = analyzeReturnValueFromMethod(defIns, recommendedClass);
+		if(relatedVariableMap.isEmpty()) {
+			return null;
+		}
+		
+		String className = relatedVariableMap.keySet().iterator().next();
+		Set<DepVariable> relatedVariables = relatedVariableMap.get(className);
+		
 		for(DepVariable var: relatedVariables) {
 			for(DepVariable rootVar: var.getRootVars()) {
-				if(rootVar.getInstruction().getClassName().equals(defIns.getCalledCFG().getClassName()) && 
+				if(rootVar.getInstruction().getClassName().
+						equals(defIns.getCalledCFG().getClassName()) && 
 						rootVar.getInstruction().getMethodName().equals(defIns.getCalledCFG().getMethodName())) {
 					if(var.getType() == DepVariable.STATIC_FIELD) {
 						allLeafDepVars.add(var);					
@@ -246,6 +303,8 @@ public class FieldUseAnalyzer {
 			
 			allLeafDepVars.add(var);
 		}
+		
+		return className;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -263,7 +322,7 @@ public class FieldUseAnalyzer {
 			SourceValue inputVal = (SourceValue)val;
 			for(AbstractInsnNode newDefInsNode: inputVal.insns) {
 				BytecodeInstruction newDefIns = convert2BytecodeInstruction(cfg, node, newDefInsNode);
-				DepVariable inputVar = parseVariable((SourceValue)val, newDefIns);
+				DepVariable inputVar = parseVariable(newDefIns);
 				inputVar.buildRelation(outputVar, i);
 				
 				searchDependantVariables(val, cfg, allDepVars, visitedIns);
@@ -274,11 +333,10 @@ public class FieldUseAnalyzer {
 			intputVarArray[i] = inputVars;
 		}
 		
-		//TODO infer the position for each input variables
 		return intputVarArray;
 	}
 
-	private BytecodeInstruction convert2BytecodeInstruction(ActualControlFlowGraph cfg, MethodNode node,
+	public BytecodeInstruction convert2BytecodeInstruction(ActualControlFlowGraph cfg, MethodNode node,
 			AbstractInsnNode ins) {
 		AbstractInsnNode condDefinition = (AbstractInsnNode)ins;
 		BytecodeInstruction defIns = cfg.getInstruction(node.instructions.indexOf(condDefinition));
