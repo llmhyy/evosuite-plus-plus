@@ -19,7 +19,10 @@
  */
 package org.evosuite.testcase;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -46,12 +49,16 @@ import org.apache.commons.lang3.ClassUtils;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.TimeController;
+import org.evosuite.classpath.ResourceList;
 import org.evosuite.ga.ConstructionFailedException;
+import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.annotation.Constraints;
 import org.evosuite.runtime.javaee.injection.Injector;
 import org.evosuite.runtime.javaee.javax.servlet.EvoServletState;
@@ -101,6 +108,7 @@ import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.NullReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.CollectionUtil;
+import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericAccessibleObject;
 import org.evosuite.utils.generic.GenericClass;
@@ -108,8 +116,12 @@ import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericField;
 import org.evosuite.utils.generic.GenericMethod;
 import org.evosuite.utils.generic.GenericUtils;
+import org.hibernate.bytecode.spi.InstrumentedClassLoader;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2580,6 +2592,10 @@ public class TestFactory {
 					int methodPos = findTargetMethodCallStatement(test).getPosition();
 					parentVarRef = generateOtherStatement(test, methodPos, var, parentVarRef);
 				}
+				else if(var.getType() == DepVariable.THIS) {
+					MethodStatement mStat = findTargetMethodCallStatement(test);
+					parentVarRef = mStat.getCallee();
+				}
 				
 				if(parentVarRef != null) {
 					position = parentVarRef.getStPosition()+1;
@@ -2589,6 +2605,7 @@ public class TestFactory {
 		}
 		
 	}
+
 
 	private VariableReference generateOtherStatement(TestCase test, int position, DepVariable var,
 			VariableReference parentVarRef) {
@@ -2659,6 +2676,7 @@ public class TestFactory {
 	}
 
 	
+	@SuppressWarnings("rawtypes")
 	private VariableReference generateFieldStatement(TestCase test, int position, DepVariable var,
 			VariableReference parentVarRef, boolean isStatic) {
 		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
@@ -2676,15 +2694,15 @@ public class TestFactory {
 			GenericField genericField = new GenericField(field, fieldDeclaringClass);
 			int fieldModifiers = field.getModifiers();
 
-			if (Modifier.isPublic(fieldModifiers) || Modifier.isProtected(fieldModifiers) || fieldModifiers == 8) {
+			if (Modifier.isPublic(fieldModifiers)) {
 				if (CollectionUtil.existIn(desc, "Z", "B", "C", "S", "I", "J", "F", "D")) {
 					stmt = addStatementToSetPrimitiveField(test, position, desc, genericField, parentVarRef);
 				} else {
 					stmt = addStatementToSetNonPrimitiveField(test, position, desc, genericField, parentVarRef);
 				}
 			}
-
-			else if (genericField.isPrivate()) {
+			else {
+				registerAllMethods(fieldDeclaringClass);
 				List<BytecodeInstruction> insList = BytecodeInstructionPool
 						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 						.getInstructionsIn(fieldDeclaringClass.getName());
@@ -2694,52 +2712,26 @@ public class TestFactory {
 						fieldWriteOpcode = "PUTFIELD";
 					}
 
-					Method potentialSetter = searchForPotentialSetter(owner, fieldName, fieldDeclaringClass, insList,
+					
+					Executable potentialSetter = searchForPotentialSetter(owner, fieldName, fieldDeclaringClass, insList,
 							fieldWriteOpcode);
 					
 					if (potentialSetter == null) {
 						return null;
 					}
 					
-					VariableReference paramRef = null;
-					List<VariableReference> paramRefs = new ArrayList<>();
-					for (int i = 0; i < potentialSetter.getParameterTypes().length; i++) {
-						Class<?> paramClass = potentialSetter.getParameterTypes()[i];
-						if (paramClass.isPrimitive()) {
-							if (paramRef != null) {
-								paramRef = addPrimitiveStatement(test, paramRef.getStPosition() + 1,
-										paramClass.getName());
-							} else {
-								paramRef = addPrimitiveStatement(test, position, paramClass.getName());
-							}
-						} else {
-							if (paramRef != null) {
-								paramRef = addConstructorForClass(test, paramRef.getStPosition() + 1,
-										paramClass.getName());
-							} else {
-								paramRef = addConstructorForClass(test, position, paramClass.getName());
-							}
-						}
-						paramRefs.add(paramRef);
+					if(potentialSetter instanceof Method) {
+						Method method = (Method)potentialSetter;
+						GenericMethod gMethod = new GenericMethod(method, potentialSetter.getDeclaringClass());
+						parentVarRef = addMethodFor(test, parentVarRef, gMethod, position + 1);
 					}
-
-					VariableReference calleeVarRef;
-					if (parentVarRef == null) {
-						calleeVarRef = addConstructorForClass(test, paramRef.getStPosition() + 1,
-								fieldDeclaringClass.getName());
-					} else {
-						calleeVarRef = parentVarRef;
+					else if(potentialSetter instanceof Constructor) {
+						Constructor constructor = (Constructor)potentialSetter;
+						GenericConstructor gConstructor = new GenericConstructor(constructor, potentialSetter.getDeclaringClass());
+						parentVarRef = addConstructor(test, gConstructor, position+1, 2);
 					}
-
-					GenericMethod genericMethod = new GenericMethod(potentialSetter,
-							potentialSetter.getDeclaringClass());
-					stmt = new MethodStatement(test, genericMethod, calleeVarRef, paramRefs);
-
-					if (calleeVarRef == parentVarRef && paramRef != null) {
-						test.addStatement(stmt, paramRef.getStPosition() + 1);
-					} else {
-						test.addStatement(stmt, calleeVarRef.getStPosition() + 1);
-					}
+					
+					
 				}
 			}
 			return stmt == null ? null : stmt.getReturnValue();
@@ -2752,6 +2744,84 @@ public class TestFactory {
 		return null;
 	}
 	
+	
+	@SuppressWarnings("rawtypes")
+	private void registerAllMethods(Class<?> fieldDeclaringClass) {
+		try {
+			for(Method method: fieldDeclaringClass.getDeclaredMethods()) {
+				String methodName = method.getName() + MethodUtil.getSignature(method);
+				registerMethod(fieldDeclaringClass, methodName);
+			}
+			
+			for(Constructor constructor: fieldDeclaringClass.getDeclaredConstructors()) {
+//				String constructorName = constructor.getName() + MethodUtil.getSignature(constructor);
+//				registerMethod(fieldDeclaringClass, constructorName);
+			}
+		}
+		catch(Exception e) {
+			
+		}
+		
+	}
+
+	private void registerMethod(Class<?> fieldDeclaringClass, String methodName) {
+		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		String className = fieldDeclaringClass.getCanonicalName();
+		ActualControlFlowGraph calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+		MethodNode innerNode = getMethodNode(classLoader, className, methodName);
+		if (calledCfg == null && innerNode != null) {
+			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+			try {
+				bytecodeAnalyzer.analyze(classLoader, className, methodName, innerNode);
+			} catch (Exception e) {
+				/**
+				 * the cfg (e.g., jdk/library class) is out of our consideration
+				 */
+				return;
+			}
+			Properties.ALWAYS_REGISTER_BRANCH = true;
+			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+			calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+			Properties.ALWAYS_REGISTER_BRANCH = false;
+		}
+		
+	}
+
+	public MethodNode getMethodNode(InstrumentingClassLoader classLoader, String className, String methodName) {
+		InputStream is = ResourceList.getInstance(classLoader).getClassAsStream(className);
+		try {
+			ClassReader reader = new ClassReader(is);
+			ClassNode cn = new ClassNode();
+			reader.accept(cn, ClassReader.SKIP_FRAMES);
+			List<MethodNode> l = cn.methods;
+
+			for (MethodNode n : l) {
+				String methodSig = n.name + n.desc;
+				if (methodSig.equals(methodName)) {
+					return n;
+				}
+			}
+			
+			// Can't find the method in current class
+			// Check its parent class
+			try {
+				Class<?> clazz = Class.forName(className);
+				if (clazz.getSuperclass() != null) {
+					Class<?> superClazz = clazz.getSuperclass();
+					return getMethodNode(classLoader, superClazz.getName(), methodName);
+				}
+				System.currentTimeMillis();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
 	
 	private Field searchForField(Class<?> fieldDeclaringClass, String fieldName) {
 		try {
@@ -2838,8 +2908,8 @@ public class TestFactory {
 		return args;
 	}
 
-	private Method searchForPotentialSetter(String owner, String fieldName, Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList, String operation) throws NoSuchMethodException {
-		Set<Method> targetMethods = new HashSet<Method>();
+	private Executable searchForPotentialSetter(String owner, String fieldName, Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList, String operation) throws NoSuchMethodException {
+		Set<Executable> targetMethods = new HashSet<>();
 		for (BytecodeInstruction ins : insList) {
 			if (ins.getASMNodeString().contains(operation)) {
 				FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
@@ -2861,12 +2931,14 @@ public class TestFactory {
 						targetMethods.add(targetMethod);						
 					}
 					else {
-						
-//						ConstructorStatement constructorStatement = new ConstructorStatement(tc, constructor, parameters)
+						Constructor constructor = fieldDeclaringClass.getDeclaredConstructor(paramClasses);
+						targetMethods.add(constructor);
 					}
 				}
 			}
 		}
+		
+//		System.currentTimeMillis();
 		return Randomness.choice(targetMethods);
 	}
 	
