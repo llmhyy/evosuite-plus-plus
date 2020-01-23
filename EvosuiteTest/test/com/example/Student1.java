@@ -1,11 +1,11 @@
 package com.example;
 
-public class Student1 {
+public class Student1 extends StudentAbstract implements StudentInterface {
+
 	private int age;
 	private int height;
 	
-	private Student friend;
-	private static Student friend1;
+	private Student1 friend;
 
 //	public Student(int age, int height) {
 //		super();
@@ -26,7 +26,7 @@ public class Student1 {
 		return 0;
 	}
 	
-	public void setAge(int age) {
+	public void setAge(int age, int b, Student c) {
 		this.age = age;
 	}
 
@@ -38,20 +38,12 @@ public class Student1 {
 		this.height = height;
 	}
 
-	public Student getFriend() {
+	public Student1 getFriend() {
 		return friend;
 	}
 
-	public void setFriend(Student friend) {
+	public void setFriend(Student1 friend) {
 		this.friend = friend;
 	}
 	
-	public static Student getFriend1() {
-		return friend1;
-	}
-	
-	public void setFriend1(Student friend1) {
-		this.friend1 = friend1;
-	}
-
 }
