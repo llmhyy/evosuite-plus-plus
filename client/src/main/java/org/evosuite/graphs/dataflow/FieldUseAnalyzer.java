@@ -189,9 +189,13 @@ public class FieldUseAnalyzer {
 		 * if defIns is a method call, we need to explore more potential variables (fields) inside the method.
 		 */
 		if(defIns.isMethodCall() || defIns.isConstructorInvocation()) {
-			String recommnedClass = outputVar.getRecommendedImplementation();
-			recommnedClass = exploreInterproceduralInstruction(allLeafDepVars, defIns, intputVarArray, recommnedClass);
-			outputVar.setRecommendedImplementation(recommnedClass);
+			
+			if(!shouldStop(defIns)) {
+				String recommnedClass = outputVar.getRecommendedImplementation();
+				recommnedClass = exploreInterproceduralInstruction(allLeafDepVars, defIns, intputVarArray, recommnedClass);
+				outputVar.setRecommendedImplementation(recommnedClass);				
+			}
+			
 		}
 		
 		/**
@@ -242,6 +246,23 @@ public class FieldUseAnalyzer {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * some method could stop, e.g., the call in evosuite
+	 * @param defIns
+	 * @return
+	 */
+	private boolean shouldStop(BytecodeInstruction defIns) {
+		ActualControlFlowGraph graph = defIns.getCalledActualCFG();
+		if(graph != null) {
+			String className = graph.getClassName();
+			if(className.contains("evosuite")) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 
 	/**
