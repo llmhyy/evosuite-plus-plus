@@ -13,7 +13,7 @@ import evosuite.shell.EvoTestResult;
  * TODO: ziheng
  * need to specify the expected results 
  */
-public class BasicTest {
+public class BranchEnhancementTest {
 	@Test
 	public void testColtExample() {
 //		Class<?> clazz = com.example.TestV1.class;
