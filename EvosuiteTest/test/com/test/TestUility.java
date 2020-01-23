@@ -84,7 +84,7 @@ public class TestUility {
 //				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
-				"-seed", "1579088026377" 
+				"-seed", "1578927395578" 
 				};
 
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evo.parseCommandLine(command);
