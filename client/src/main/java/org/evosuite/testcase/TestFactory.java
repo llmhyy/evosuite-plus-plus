@@ -2868,6 +2868,13 @@ public class TestFactory {
 				fieldType = desc;
 			}
 			Class<?> fieldClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
+			
+			if(fieldClass.isInterface() || Modifier.isAbstract(fieldClass.getModifiers())) {
+				Set<String> subclasses = DependencyAnalysis.getInheritanceTree().getSubclasses(fieldClass.getCanonicalName());
+				String subclass = Randomness.choice(subclasses);
+				fieldClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(subclass);
+			}
+			
 			Constructor<?> constructor = Randomness.choice(fieldClass.getConstructors());
 			if (constructor != null) {
 				GenericConstructor genericConstructor = new GenericConstructor(constructor, fieldClass);
