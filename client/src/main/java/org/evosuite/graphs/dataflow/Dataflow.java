@@ -17,7 +17,10 @@ import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.Frame;
+import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 
 public class Dataflow {
@@ -72,6 +75,18 @@ public class Dataflow {
 				for (int i = 0; i < b.getInstruction().getOperandNum(); i++) {
 					int index = frame.getStackSize() - i - 1;
 					Value val = frame.getStack(index);
+					
+//					if(val instanceof SourceValue) {
+//						SourceValue sValue = (SourceValue)val;
+//						
+//						MethodNode node = fAnalyzer.getMethodNode(classLoader, className, methodName);
+//						AbstractInsnNode insNode = sValue.insns.iterator().next();
+//						fAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
+//						BytecodeInstruction defIns = fAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
+//						DepVariable operand = fAnalyzer.parseVariable(defIns);
+//						allDepVars.add(operand);
+//					}
+					
 					fAnalyzer.searchDependantVariables(val, cfg, allDepVars, visitedIns);
 				}
 			}
