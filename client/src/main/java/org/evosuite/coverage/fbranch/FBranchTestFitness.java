@@ -10,6 +10,7 @@ import java.util.Set;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
@@ -82,23 +83,30 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 
 	private Double getContextSensitiveBranchDistance(ExecutionResult result, boolean expressionValue) {
 		Double value = null;
-		if (this.callContext != null) {
-			Map<CallContext, Double> contextDistanceMap = expressionValue
-					? result.getTrace().getTrueDistancesContext().get(this.goal.getBranch().getActualBranchId())
-					: result.getTrace().getFalseDistancesContext().get(this.goal.getBranch().getActualBranchId());
-			if (contextDistanceMap != null) {
-				for (Entry<CallContext, Double> contextMap : contextDistanceMap.entrySet()) {
-					if (isSameContextVisited(contextMap.getKey())) {
-						value = contextMap.getValue();
-						break;
-					}
+		if (this.callContext == null) {
+			Call call = new Call(this.goal.getClassName(), this.goal.getMethodName(), this.goal.getLineNumber());
+			List<Call> callList = new ArrayList<Call>();
+			callList.add(call);
+			CallContext context = new CallContext(callList);
+			this.callContext = context;
+		}
+			
+		Map<CallContext, Double> contextDistanceMap = expressionValue
+				? result.getTrace().getTrueDistancesContext().get(this.goal.getBranch().getActualBranchId())
+				: result.getTrace().getFalseDistancesContext().get(this.goal.getBranch().getActualBranchId());
+		if (contextDistanceMap != null) {
+			for (Entry<CallContext, Double> contextMap : contextDistanceMap.entrySet()) {
+				if (isSameContextVisited(contextMap.getKey())) {
+					value = contextMap.getValue();
+					break;
 				}
 			}
-		} else {
-			value = expressionValue
-					? result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId())
-					: result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
 		}
+//		} else {
+//			value = expressionValue
+//					? result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId())
+//							: result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
+//		}
 
 		return value;
 	}
