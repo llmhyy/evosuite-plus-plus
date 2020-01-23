@@ -2876,7 +2876,7 @@ public class TestFactory {
 		try {
 			String fieldType;
 			if (desc.contains("/")) {
-				fieldType = desc.replace("/", ".").substring(1, desc.length() - 1);
+				fieldType = desc.replace("/", ".").substring(desc.indexOf("L") + 1, desc.length() - 1);
 			} else {
 				fieldType = desc;
 			}
