@@ -9,8 +9,11 @@ import org.junit.Test;
 
 import evosuite.shell.EvoTestResult;
 
+/**
+ * TODO: ziheng
+ * need to specify the expected results 
+ */
 public class BasicTest {
-	
 	@Test
 	public void testColtExample() {
 //		Class<?> clazz = com.example.TestV1.class;
