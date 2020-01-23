@@ -2601,6 +2601,9 @@ public class TestFactory {
 				String fullName = methodNode.name + methodNode.desc;
 				Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 						.loadClass(fieldOwner);
+				if (fieldDeclaringClass.isInterface() || Modifier.isAbstract(fieldDeclaringClass.getModifiers()) ) {
+					return null;
+				}
 				org.objectweb.asm.Type[] types = org.objectweb.asm.Type
 						.getArgumentTypes(fullName.substring(fullName.indexOf("("), fullName.length()));
 				Class<?>[] paramClasses = new Class<?>[types.length];
@@ -2652,7 +2655,7 @@ public class TestFactory {
 				e.printStackTrace();
 			}
 		}
-		return stmt.getReturnValue();
+		return stmt == null ? null : stmt.getReturnValue();
 	}
 
 	
@@ -2693,7 +2696,11 @@ public class TestFactory {
 
 					Method potentialSetter = searchForPotentialSetter(owner, fieldName, fieldDeclaringClass, insList,
 							fieldWriteOpcode);
-
+					
+					if (potentialSetter == null) {
+						return null;
+					}
+					
 					VariableReference paramRef = null;
 					List<VariableReference> paramRefs = new ArrayList<>();
 					for (int i = 0; i < potentialSetter.getParameterTypes().length; i++) {
@@ -2772,6 +2779,10 @@ public class TestFactory {
 			throws ConstructionFailedException, ClassNotFoundException {
 		VariableReference paramRef = generateParameter(test, position, var);
 		
+		if (paramRef == null) {
+			return null;
+		}
+		
 		MethodStatement targetStatement = findTargetMethodCallStatement(test);
 		if(targetStatement != null) {
 			VariableReference oldParamRef = targetStatement.getParameterReferences().get(var.getParamOrder()-1);
@@ -2808,11 +2819,13 @@ public class TestFactory {
 		
 		Class<?> paramClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(paramType);
 		GenericClass paramDeclaringClazz = new GenericClass(paramClass);
-		
+		VariableReference paramRef = null;
 		Constructor<?> constructor = Randomness.choice(paramDeclaringClazz.getRawClass().getConstructors());
-		GenericConstructor gc = new GenericConstructor(constructor, paramDeclaringClazz);
+		if (constructor != null) {
+			GenericConstructor gc = new GenericConstructor(constructor, paramDeclaringClazz);
+			paramRef = this.addConstructor(test, gc, position, 2);
+		} 
 
-		VariableReference paramRef = this.addConstructor(test, gc, position, 2);
 		return paramRef;
 	}
 
