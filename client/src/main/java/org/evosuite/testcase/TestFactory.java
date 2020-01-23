@@ -2668,7 +2668,8 @@ public class TestFactory {
 		try {
 			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 					.loadClass(fieldOwner);
-			Field field = fieldDeclaringClass.getDeclaredField(fieldName);
+			// Ignore "this" check
+			Field field = searchForField(fieldDeclaringClass, fieldName);
 			GenericField genericField = new GenericField(field, fieldDeclaringClass);
 			int fieldModifiers = field.getModifiers();
 
@@ -2734,9 +2735,9 @@ public class TestFactory {
 					}
 				}
 			}
-			return stmt.getReturnValue();
+			return stmt == null ? null : stmt.getReturnValue();
 
-		} catch (ClassNotFoundException | NoSuchFieldException | SecurityException | ConstructionFailedException
+		} catch (ClassNotFoundException | SecurityException | ConstructionFailedException
 				| NoSuchMethodException e) {
 			e.printStackTrace();
 		}
@@ -2745,6 +2746,18 @@ public class TestFactory {
 	}
 	
 	
+	private Field searchForField(Class<?> fieldDeclaringClass, String fieldName) {
+		try {
+			Field field = fieldDeclaringClass.getDeclaredField(fieldName);
+			return field;
+		} catch (NoSuchFieldException e) {
+			if (fieldDeclaringClass.getSuperclass() != null) {
+				return searchForField(fieldDeclaringClass.getSuperclass(), fieldName);
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * parameter statement is supposed to be used only in the target method invocation
 	 * @param test
@@ -2856,9 +2869,12 @@ public class TestFactory {
 			}
 			Class<?> fieldClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
 			Constructor<?> constructor = Randomness.choice(fieldClass.getConstructors());
-			GenericConstructor genericConstructor = new GenericConstructor(constructor, fieldClass);
-			VariableReference varRef = addConstructor(test, genericConstructor, position, 0);
-			return varRef;
+			if (constructor != null) {
+				GenericConstructor genericConstructor = new GenericConstructor(constructor, fieldClass);
+				VariableReference varRef = addConstructor(test, genericConstructor, position, 0);
+				return varRef;
+			}
+			return null;
 		} catch (ClassNotFoundException | ConstructionFailedException e) {
 			e.printStackTrace();
 		}
@@ -2868,16 +2884,24 @@ public class TestFactory {
 	private AbstractStatement addStatementToSetNonPrimitiveField(TestCase test, int position, String desc,
 			GenericField genericField, VariableReference parentVarRef) {
 		VariableReference constructorVarRef = addConstructorForClass(test, position, desc);
+		if (constructorVarRef == null) {
+			return null;
+		}
 		FieldReference fieldVar = null;
-		if(genericField.isStatic()) {
-			fieldVar = new FieldReference(test, genericField);			
+		if (genericField.isStatic()) {
+			fieldVar = new FieldReference(test, genericField);
+		} else {
+			if (parentVarRef != null) {
+				fieldVar = new FieldReference(test, genericField, parentVarRef);
+			} else {
+				VariableReference var = addConstructorForClass(test, position,
+						genericField.getDeclaringClass().getName());
+				fieldVar = new FieldReference(test, genericField, var);
+			}
 		}
-		else {
-			fieldVar = new FieldReference(test, genericField, parentVarRef);
-		}
-		
+
 		AbstractStatement stmt = new AssignmentStatement(test, fieldVar, constructorVarRef);
-		test.addStatement(stmt, position + 1);
+		test.addStatement(stmt, fieldVar.getStPosition() + 1);
 		return stmt;
 	}
 	
@@ -2895,16 +2919,21 @@ public class TestFactory {
 	private AbstractStatement addStatementToSetPrimitiveField(TestCase test, int position, String desc,
 			GenericField genericField, VariableReference parentVarRef) throws ConstructionFailedException {
 		FieldReference fieldVar = null;
-		if(genericField.isStatic()) {
-			fieldVar = new FieldReference(test, genericField);			
+		if (genericField.isStatic()) {
+			fieldVar = new FieldReference(test, genericField);
+		} else {
+			if (parentVarRef != null) {
+				fieldVar = new FieldReference(test, genericField, parentVarRef);
+			} else {
+				VariableReference var = addConstructorForClass(test, position,
+						genericField.getDeclaringClass().getName());
+				fieldVar = new FieldReference(test, genericField, var);
+			}
 		}
-		else {
-			fieldVar = new FieldReference(test, genericField, parentVarRef);
-		}
-		
-		VariableReference primVarRef = addPrimitiveStatement(test, position, desc);
+
+		VariableReference primVarRef = addPrimitiveStatement(test, fieldVar.getStPosition() + 1, desc);
 		AbstractStatement stmt = new AssignmentStatement(test, fieldVar, primVarRef);
-		test.addStatement(stmt, position + 1);
+		test.addStatement(stmt, primVarRef.getStPosition() + 1);
 		return stmt;
 	}
 
