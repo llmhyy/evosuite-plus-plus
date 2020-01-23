@@ -22,6 +22,7 @@ package org.evosuite.testcase.factories;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -94,17 +95,17 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			 * the first call must be the target method, we add difficult branch support after the target method
 			 * is called in test case.
 			 */
-			if(num == 1 && Properties.APPLY_OBJECT_RULE) {
+			if(num == 1 && targetMethodCallPosition != -1 && Properties.APPLY_OBJECT_RULE) {
 				Map<Branch, List<ConstructionPath>> difficulties = Dataflow.checkObjectDifficultPath();
 				Branch b = Randomness.choice(difficulties.keySet());
 				List<ConstructionPath> paths = difficulties.get(b);
-				
-				try {
-					testFactory.constructDifficultObjectStatement(test, paths, position);
-				} catch (Exception e) {
-					e.printStackTrace();
+				if (paths != null) {
+					try {
+						testFactory.constructDifficultObjectStatement(test, paths, position);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-				
 			}
 			else {
 				testFactory.insertRandomStatement(test, position);						
