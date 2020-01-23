@@ -2838,8 +2838,6 @@ public class TestFactory {
 		return args;
 	}
 
-	
-
 	private Method searchForPotentialSetter(String owner, String fieldName, Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList, String operation) throws NoSuchMethodException {
 		Set<Method> targetMethods = new HashSet<Method>();
 		for (BytecodeInstruction ins : insList) {
@@ -2859,12 +2857,12 @@ public class TestFactory {
 					}
 					
 					if(!fullName.contains("<init>")) {
-						Method targetMethod = fieldDeclaringClass
-								.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
+						Method targetMethod = fieldDeclaringClass.getDeclaredMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
 						targetMethods.add(targetMethod);						
 					}
 					else {
-						System.currentTimeMillis();
+						
+//						ConstructorStatement constructorStatement = new ConstructorStatement(tc, constructor, parameters)
 					}
 				}
 			}
@@ -2872,7 +2870,7 @@ public class TestFactory {
 		return Randomness.choice(targetMethods);
 	}
 	
-	private VariableReference addConstructorForClass(TestCase test, int position, String desc) {
+	private VariableReference addConstructorForClass(TestCase test, int position, String desc) throws ConstructionFailedException {
 		try {
 			String fieldType;
 			if (desc.contains("/")) {
@@ -2891,18 +2889,31 @@ public class TestFactory {
 			Constructor<?> constructor = Randomness.choice(fieldClass.getConstructors());
 			if (constructor != null) {
 				GenericConstructor genericConstructor = new GenericConstructor(constructor, fieldClass);
-				VariableReference varRef = addConstructor(test, genericConstructor, position, 0);
-				return varRef;
+				VariableReference variableReference = addConstructor(test, genericConstructor, position+1, 2);
+				return variableReference;
 			}
 			return null;
-		} catch (ClassNotFoundException | ConstructionFailedException e) {
+		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 	
+	private VariableReference addNullStatement(TestCase test, int position, Type type) {	
+		NullStatement nullStatement = new NullStatement(test, type);
+		VariableReference reference = null;
+		try {
+			reference = addPrimitive(test, nullStatement, position);
+		} catch (ConstructionFailedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		test.addStatement(nullStatement, position);	
+		return reference;
+	}
+
 	private AbstractStatement addStatementToSetNonPrimitiveField(TestCase test, int position, String desc,
-			GenericField genericField, VariableReference parentVarRef) {
+			GenericField genericField, VariableReference parentVarRef) throws ConstructionFailedException {
 		VariableReference constructorVarRef = addConstructorForClass(test, position, desc);
 		if (constructorVarRef == null) {
 			return null;
