@@ -242,10 +242,65 @@ public class TestSingleMethod {
 	public void runDsachat() {
 		String projectId = "12_dsachat";
 		String[] targetMethods = new String[]{
-//				"dsachat.Main#main([Ljava/lang/String;)V"
-//				"dsachat.gm.gui.InternalGmChatFrame#addText(Ljava/lang/String;)V"
-//				"dsachat.gm.gui.MultiHeroTreeModel#getChild(Ljava/lang/Object;I)Ljava/lang/Object;"
 				"dsachat.gm.gui.InternalGmHeroFrame#valueChanged(Ljavax/swing/event/TreeSelectionEvent;)V"
+				};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 10000;
+//		Long seed = 1556814527153L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+//		String fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+//		System.out.println("branch" + ":");
+//		printResult(results1);
+	}
+	
+	@Test
+	public void runJwbf() {
+		String projectId = "23_jwbf";
+		String[] targetMethods = new String[]{
+				"net.sourceforge.jwbf.core.contentRep.Article#getRevisionId()Ljava/lang/String;"
+				};
+		
+		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 10000;
+//		Long seed = 1556814527153L;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		TempGlobalVariables.seeds = checkRandomSeeds(results0);
+		
+//		String fitnessApproach = "branch";
+//		results1 = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		System.out.println("fbranch" + ":");
+		printResult(results0);
+//		System.out.println("branch" + ":");
+//		printResult(results1);
+	}
+	
+	@Test
+	public void runGangup() {
+		String projectId = "27_gangup";
+		String[] targetMethods = new String[]{
+				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
