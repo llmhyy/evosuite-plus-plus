@@ -318,8 +318,15 @@ public class DepVariable {
 
 	public int getParamOrder() {
 		if(varName.contains("LV_")) {
-			String order = varName.substring(varName.indexOf("LV_")+3, varName.length());
-			return Integer.valueOf(order);
+			String orderString = varName.substring(varName.indexOf("LV_")+3, varName.length());
+			int order = Integer.valueOf(orderString);
+			
+			if(this.instruction.getActualCFG().isStaticMethod()) {
+				return order + 1;
+			}
+			else {
+				return order;
+			}
 		}
 		
 		return -1;
