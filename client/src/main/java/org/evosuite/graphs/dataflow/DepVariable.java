@@ -23,6 +23,8 @@ public class DepVariable {
 	private String varName;
 	private BytecodeInstruction instruction;
 	
+	private String recommendedImplementation;
+	
 	private int type;
 	
 	public static final int PARAMETER = 1;
@@ -382,6 +384,14 @@ public class DepVariable {
 		}
 		
 		return foundPath;
+	}
+
+	public String getRecommendedImplementation() {
+		return recommendedImplementation;
+	}
+
+	public void setRecommendedImplementation(String recommendedImplementation) {
+		this.recommendedImplementation = recommendedImplementation;
 	}
 
 }
