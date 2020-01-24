@@ -2729,6 +2729,10 @@ public class TestFactory {
 						Constructor constructor = (Constructor)potentialSetter;
 						GenericConstructor gConstructor = new GenericConstructor(constructor, potentialSetter.getDeclaringClass());
 						parentVarRef = addConstructor(test, gConstructor, position+1, 2);
+						
+						MethodStatement mStat = findTargetMethodCallStatement(test);
+						VariableReference callee = mStat.getCallee();
+						mStat.replace(callee, parentVarRef);
 					}
 					
 					
@@ -2906,7 +2910,9 @@ public class TestFactory {
 		return args;
 	}
 
-	private Executable searchForPotentialSetter(String owner, String fieldName, Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList, String operation) throws NoSuchMethodException {
+	@SuppressWarnings("rawtypes")
+	private Executable searchForPotentialSetter(String owner, String fieldName, Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList, String operation) 
+			throws NoSuchMethodException, ClassNotFoundException {
 		Set<Executable> targetMethods = new HashSet<>();
 		for (BytecodeInstruction ins : insList) {
 			if (ins.getASMNodeString().contains(operation)) {
@@ -2920,6 +2926,7 @@ public class TestFactory {
 					Class<?>[] paramClasses = new Class<?>[types.length];
 					int index = 0;
 					for (org.objectweb.asm.Type type : types) {
+						
 						Class<?> paramClass = getClassForType(type);
 						paramClasses[index++] = paramClass;
 					}
@@ -3038,6 +3045,7 @@ public class TestFactory {
 		return stmt;
 	}
 
+	
 	private Class<?> getClassForType(org.objectweb.asm.Type type) {
 		if (type == org.objectweb.asm.Type.BOOLEAN_TYPE) {
 			return boolean.class;
@@ -3065,13 +3073,46 @@ public class TestFactory {
 		}
 		else {
 			try {
-				return TestGenerationContext.getInstance().getClassLoaderForSUT()
-						.loadClass(type.getClassName());
+				String className = type.getClassName();
+				if(type.getSort() != org.objectweb.asm.Type.ARRAY) {
+					Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT()
+							.loadClass(className);					
+					return clazz;
+				}
+				else {
+					StringBuffer buffer = new StringBuffer();
+					org.objectweb.asm.Type elementType = type.getElementType();
+					String arrayString = extractedArrayString(type);
+					if(elementType.getSort() <= 8) {
+						className = transfer(elementType.getClassName());
+						buffer.append(arrayString);
+						buffer.append(className);
+					}
+					else {
+						className = elementType.getClassName();	
+						buffer.append(arrayString);
+						buffer.append("L");
+						buffer.append(className);
+						buffer.append(";");
+					}
+					String fullName = buffer.toString();
+					Class<?> clazzArray = Class.forName(fullName, true, TestGenerationContext.getInstance().getClassLoaderForSUT());
+					return clazzArray;
+				}
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			}
 		}
 		return null;
+	}
+
+	private String extractedArrayString(org.objectweb.asm.Type type) {
+		int arrayLength = type.getDimensions();
+		StringBuffer buffer = new StringBuffer();
+		for(int i=0; i<arrayLength; i++) {
+			buffer.append("[");
+		}
+		return buffer.toString();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -3105,6 +3146,32 @@ public class TestFactory {
 			return null;
 		}
 	}
+	
+	@SuppressWarnings("rawtypes")
+	private String transfer(String desc) {
+		switch (desc) {
+		case "boolean":
+			return "Z";
+		case "byte":
+			return "B";
+		case "char":
+			return "C";
+		case "short":
+			return "S";
+		case "int":
+			return "I";
+		case "long":
+			return "J";
+		case "float":
+			return "F";
+		case "double":
+			return "D";
+		default:
+			return null;
+		}
+	}
+	
+	
 
 	private Class<?> convertSigToPrimitiveClass(String desc) {
 		switch (desc) {
