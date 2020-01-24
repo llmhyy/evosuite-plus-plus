@@ -2754,8 +2754,8 @@ public class TestFactory {
 			}
 			
 			for(Constructor constructor: fieldDeclaringClass.getDeclaredConstructors()) {
-//				String constructorName = constructor.getName() + MethodUtil.getSignature(constructor);
-//				registerMethod(fieldDeclaringClass, constructorName);
+				String constructorName = "<init>" + MethodUtil.getSignature(constructor);
+				registerMethod(fieldDeclaringClass, constructorName);
 			}
 		}
 		catch(Exception e) {
@@ -2810,9 +2810,7 @@ public class TestFactory {
 					Class<?> superClazz = clazz.getSuperclass();
 					return getMethodNode(classLoader, superClazz.getName(), methodName);
 				}
-				System.currentTimeMillis();
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
