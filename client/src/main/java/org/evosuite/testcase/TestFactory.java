@@ -22,7 +22,6 @@ package org.evosuite.testcase;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -116,8 +115,8 @@ import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericField;
 import org.evosuite.utils.generic.GenericMethod;
 import org.evosuite.utils.generic.GenericUtils;
-import org.hibernate.bytecode.spi.InstrumentedClassLoader;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
@@ -2573,17 +2572,10 @@ public class TestFactory {
 				}
 				else if(var.getType() == DepVariable.PARAMETER) {
 					parentVarRef = generateParameterStatement(test, position, var, parentVarRef);
-					if(i==0) {
-						//TODO
-						System.currentTimeMillis();
-					}
+					
 				}
 				else if(var.getType() == DepVariable.INSTANCE_FIELD) {
 					parentVarRef = generateFieldStatement(test, position, var, parentVarRef, false);
-					if(i==0) {
-						//TODO
-						System.currentTimeMillis();
-					}
 				}
 				else if(var.getType() == DepVariable.OTHER) {
 					/** For "OTHER" statement, we only care for method invocation for now
@@ -2601,6 +2593,9 @@ public class TestFactory {
 					position = parentVarRef.getStPosition()+1;
 					map.put(var, parentVarRef);
 				}
+				else{
+					break;
+				}
 			}
 		}
 		
@@ -2609,7 +2604,6 @@ public class TestFactory {
 
 	private VariableReference generateOtherStatement(TestCase test, int position, DepVariable var,
 			VariableReference parentVarRef) {
-		AbstractStatement stmt = null;
 		if (var.getInstruction().getASMNode() instanceof MethodInsnNode) {
 			try {
 				MethodInsnNode methodNode = ((MethodInsnNode) var.getInstruction().getASMNode());
@@ -2631,52 +2625,39 @@ public class TestFactory {
 				}
 				
 				if(!fullName.contains("<init>")) {
-					Method targetMethod = fieldDeclaringClass
+					Method call = fieldDeclaringClass
 							.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);		
-					VariableReference paramRef = null;
-					List<VariableReference> paramRefs = new ArrayList<>();
-					for (int i = 0; i < targetMethod.getParameterTypes().length; i++) {
-						Class<?> paramClass = targetMethod.getParameterTypes()[i];
-						if (paramClass.isPrimitive()) {
-							if (paramRef != null) {
-								paramRef = addPrimitiveStatement(test, paramRef.getStPosition() + 1,
-										paramClass.getName());
-							} else {
-								paramRef = addPrimitiveStatement(test, position, paramClass.getName());
-							}
-						} else {
-							if (paramRef != null) {
-								paramRef = addConstructorForClass(test, paramRef.getStPosition() + 1,
-										paramClass.getName());
-							} else {
-								paramRef = addConstructorForClass(test, position, paramClass.getName());
-							}
-						}
-						paramRefs.add(paramRef);
-					}
 
 					VariableReference calleeVarRef;
 					if (parentVarRef == null) {
-						calleeVarRef = addConstructorForClass(test, paramRef.getStPosition() + 1,
-								fieldDeclaringClass.getName());
+						calleeVarRef = addConstructorForClass(test, position + 1, fieldDeclaringClass.getName());
 					} else {
 						calleeVarRef = parentVarRef;
 					}
 
-					GenericMethod genericMethod = new GenericMethod(targetMethod,
-							targetMethod.getDeclaringClass());
-					stmt = new MethodStatement(test, genericMethod, calleeVarRef, paramRefs);
-					test.addStatement(stmt, position);
+					GenericMethod genericMethod = new GenericMethod(call, call.getDeclaringClass());
+					VariableReference varRef = addMethodFor(test, calleeVarRef, genericMethod, calleeVarRef.getStPosition() + 1);
+					return varRef;
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		return stmt == null ? null : stmt.getReturnValue();
+		
+		return null;
 	}
 
 	
 	@SuppressWarnings("rawtypes")
+	/**
+	 * set the field into the parentVarRef
+	 * @param test
+	 * @param position
+	 * @param var
+	 * @param parentVarRef
+	 * @param isStatic
+	 * @return
+	 */
 	private VariableReference generateFieldStatement(TestCase test, int position, DepVariable var,
 			VariableReference parentVarRef, boolean isStatic) {
 		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
@@ -2711,31 +2692,49 @@ public class TestFactory {
 					if (!isStatic) {
 						fieldWriteOpcode = "PUTFIELD";
 					}
-
 					
-					Executable potentialSetter = searchForPotentialSetter(owner, fieldName, fieldDeclaringClass, insList,
+					Method potentialSetter = searchForRelevantMethod(owner, fieldName, fieldDeclaringClass, insList,
 							fieldWriteOpcode);
+					System.currentTimeMillis();
 					
-					if (potentialSetter == null) {
-						return null;
+					if (potentialSetter != null) {
+						GenericMethod gMethod = new GenericMethod(potentialSetter, potentialSetter.getDeclaringClass());
+						VariableReference newParentVarRef = addMethodFor(test, parentVarRef, gMethod, parentVarRef.getStPosition()+1);
+						return newParentVarRef;
 					}
 					
-					if(potentialSetter instanceof Method) {
-						Method method = (Method)potentialSetter;
-						GenericMethod gMethod = new GenericMethod(method, potentialSetter.getDeclaringClass());
-						parentVarRef = addMethodFor(test, parentVarRef, gMethod, position + 1);
-					}
-					else if(potentialSetter instanceof Constructor) {
-						Constructor constructor = (Constructor)potentialSetter;
-						GenericConstructor gConstructor = new GenericConstructor(constructor, potentialSetter.getDeclaringClass());
-						parentVarRef = addConstructor(test, gConstructor, position+1, 2);
-						
-						MethodStatement mStat = findTargetMethodCallStatement(test);
-						VariableReference callee = mStat.getCallee();
-						mStat.replace(callee, parentVarRef);
+					if(!isPrimitiveType(var.getInstruction().getFieldType())) {
+						Method potentialGetter = searchForPotentialGetter(owner, var.getInstruction(), fieldDeclaringClass);
+						if (potentialGetter != null) {
+							GenericMethod gMethod = new GenericMethod(potentialGetter, potentialGetter.getDeclaringClass());
+							VariableReference newParentVarRef = addMethodFor(test, parentVarRef, gMethod, parentVarRef.getStPosition()+1);
+//							createOrReuseObjectVariable(test, position+1, 2, newParentVarRef, false, false);
+							return newParentVarRef;
+						}
 					}
 					
+					Constructor constructor = searchForPotentialConstructor(owner, fieldName, fieldDeclaringClass, insList,
+							fieldWriteOpcode);
+					/**
+					 * the constructor cannot return the field, so we stop here.
+					 */
+					if(constructor != null) {
+						if(!isCalledConstructor(test, parentVarRef, constructor)) {
+							GenericConstructor gConstructor = new GenericConstructor(constructor, constructor.getDeclaringClass());
+							VariableReference newParentVarRef = addConstructor(test, gConstructor, parentVarRef.getStPosition()+1, 2);
+							
+							for(int i=0; i<test.size(); i++) {
+								Statement stat = test.getStatement(i);
+								if(newParentVarRef.getStPosition() < stat.getPosition()) {
+									if(stat.references(parentVarRef)) {
+										stat.replace(parentVarRef, newParentVarRef);
+									}
+								}
+							}
+						}
+					}
 					
+					return null;
 				}
 			}
 			return stmt == null ? null : stmt.getReturnValue();
@@ -2748,7 +2747,67 @@ public class TestFactory {
 		return null;
 	}
 	
+	private String getFieldName(BytecodeInstruction ins) {
+		if(ins.getASMNode().getType() == AbstractInsnNode.FIELD_INSN) {
+			FieldInsnNode fNode = (FieldInsnNode)ins.getASMNode();
+			return fNode.name;
+		}
+		
+		return null;
+	}
 	
+	private Method searchForPotentialGetter(String owner, BytecodeInstruction bytecodeInstruction, Class<?> fieldDeclaringClass) {
+		Set<Method> targetMethods = new HashSet<>();
+		
+		for(Method method: fieldDeclaringClass.getMethods()) {
+			org.objectweb.asm.Type className = org.objectweb.asm.Type.getType(bytecodeInstruction.getFieldType());
+			if(method.getReturnType().getCanonicalName().equals(className.getClassName())) {
+				
+				List<BytecodeInstruction> insList = BytecodeInstructionPool
+						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
+						getInstructionsIn(fieldDeclaringClass.getCanonicalName(), method.getName()+MethodUtil.getSignature(method));
+				
+				if(insList == null) {
+					continue;
+				}
+				
+				for(BytecodeInstruction ins: insList) {
+					String f = getFieldName(ins);
+					String fieldName = getFieldName(bytecodeInstruction);
+					if(f != null && fieldName != null && f.equals(fieldName)) {
+						targetMethods.add(method);
+						break;
+					}
+				}
+				
+			}
+		}
+		
+		return Randomness.choice(targetMethods);
+	}
+
+	private boolean isPrimitiveType(String fieldType) {
+		boolean flag = !fieldType.contains("L") && !fieldType.contains(";");
+		return flag;
+	}
+
+	@SuppressWarnings("rawtypes")
+	private boolean isCalledConstructor(TestCase test, VariableReference parentVarRef, Constructor constructor) {
+		
+		if(parentVarRef == null) {
+			return false;
+		}
+		
+		Statement stat = test.getStatement(parentVarRef.getStPosition());
+		if(stat instanceof ConstructorStatement) {
+			ConstructorStatement s = (ConstructorStatement)stat;
+			Constructor calledConstructor = s.getConstructor().getConstructor();
+			
+			return calledConstructor.equals(constructor);
+		}
+		return false;
+	}
+
 	@SuppressWarnings("rawtypes")
 	private void registerAllMethods(Class<?> fieldDeclaringClass) {
 		try {
@@ -2910,10 +2969,44 @@ public class TestFactory {
 		return args;
 	}
 
-	@SuppressWarnings("rawtypes")
-	private Executable searchForPotentialSetter(String owner, String fieldName, Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList, String operation) 
+	private Method searchForRelevantMethod(String owner, String fieldName, Class<?> fieldDeclaringClass, 
+			List<BytecodeInstruction> insList, String operation) 
 			throws NoSuchMethodException, ClassNotFoundException {
-		Set<Executable> targetMethods = new HashSet<>();
+		Set<Method> targetMethods = new HashSet<>();
+		for (BytecodeInstruction ins : insList) {
+			if (ins.getASMNodeString().contains(operation)) {
+				FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
+				String tmpName = insnNode.name;
+				String tmpOwner = insnNode.owner;
+				if (tmpName.equals(fieldName) && tmpOwner.equals(owner)) {
+					String methodName = ins.getMethodName();
+					org.objectweb.asm.Type[] types = org.objectweb.asm.Type
+							.getArgumentTypes(methodName.substring(methodName.indexOf("("), methodName.length()));
+					Class<?>[] paramClasses = new Class<?>[types.length];
+					int index = 0;
+					for (org.objectweb.asm.Type type : types) {
+						
+						Class<?> paramClass = getClassForType(type);
+						paramClasses[index++] = paramClass;
+					}
+					
+					if(!methodName.contains("<init>") && 
+							!(methodName.equals(Properties.TARGET_METHOD) && ins.getClassName().equals(Properties.TARGET_CLASS))) {
+						Method targetMethod = fieldDeclaringClass.getDeclaredMethod(methodName.substring(0, methodName.indexOf("(")), paramClasses);
+						targetMethods.add(targetMethod);						
+					}
+				}
+			}
+		}
+		
+		return Randomness.choice(targetMethods);
+	}
+	
+	
+	@SuppressWarnings("rawtypes")
+	private Constructor searchForPotentialConstructor(String owner, String fieldName, Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList, String operation) 
+			throws NoSuchMethodException, ClassNotFoundException {
+		Set<Constructor> targetConstructors = new HashSet<>();
 		for (BytecodeInstruction ins : insList) {
 			if (ins.getASMNodeString().contains(operation)) {
 				FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
@@ -2931,20 +3024,15 @@ public class TestFactory {
 						paramClasses[index++] = paramClass;
 					}
 					
-					if(!fullName.contains("<init>")) {
-						Method targetMethod = fieldDeclaringClass.getDeclaredMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
-						targetMethods.add(targetMethod);						
-					}
-					else {
+					if(fullName.contains("<init>")) {
 						Constructor constructor = fieldDeclaringClass.getDeclaredConstructor(paramClasses);
-						targetMethods.add(constructor);
+						targetConstructors.add(constructor);					
 					}
 				}
 			}
 		}
 		
-//		System.currentTimeMillis();
-		return Randomness.choice(targetMethods);
+		return Randomness.choice(targetConstructors);
 	}
 	
 	private VariableReference addConstructorForClass(TestCase test, int position, String desc) throws ConstructionFailedException {
