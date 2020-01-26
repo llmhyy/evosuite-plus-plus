@@ -1,28 +1,37 @@
-package regression.example;
+package regression.objectconstruction.example;
 
-public class ConstructorAndCallExample {
+/**
+ * This example involves calling constructor inside target method
+ *
+ */
+public class InevitableConstructorExample {
 
     private int field1;
     private int field2;
     private int field3;
     
-    public ConstructorAndCallExample(int f1, int f2, int f3) throws Exception {
-        if (f1 + f2 + f3 < 16000) {
+    public InevitableConstructorExample(int f1, int f2, int f3) throws Exception {
+        if (f1 + f2 + f3 < 15000) {
             throw new Exception("Constructor1 exception");
         }
         this.field1 = f1;
         this.field2 = f2;
         this.field3 = f3;
     }
+    public InevitableConstructorExample(int f1, int f2) throws Exception {
+        if (f1 + f2 < 6000) {
+            throw new Exception("Constructor1 exception");
+        }
+        this.field1 = f1;
+        this.field2 = f2;
+    }
     
     public int targetM(int f1, int f2, int f3) throws Exception {
         
-    	ConstructorAndCallExample test = new ConstructorAndCallExample(f1, f2, f3);
+        InevitableConstructorExample testV2 = new InevitableConstructorExample(f1, f2);
         
-        m20(f2, f3);
-        
-        if (test.getF2() - f1 < 5) {
-            if (f2 == test.getF1()) {
+        if (testV2.getF2() - f1 < 5) {
+            if (f2 == testV2.getF1()) {
                 return 1;
             }
         }
@@ -51,15 +60,5 @@ public class ConstructorAndCallExample {
 
     public void setF3(int f3) {
         this.field3 = f3;
-    }
-
-    private void m20(int f2, int f3) throws Exception {
-        m21(f2, f3);
-    }
-
-    private void m21(int f2, int f3) throws Exception {
-        if (Math.abs(f3 - f2) > 20) {
-            throw new Exception("m21 exception");
-        }
     }
 }

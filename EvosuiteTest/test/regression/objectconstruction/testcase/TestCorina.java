@@ -1,4 +1,4 @@
-package regression.testcase;
+package regression.objectconstruction.testcase;
 
 import java.util.ArrayList;
 import java.util.List;

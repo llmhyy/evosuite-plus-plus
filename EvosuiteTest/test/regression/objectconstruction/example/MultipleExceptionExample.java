@@ -1,4 +1,4 @@
-package regression.example;
+package regression.objectconstruction.example;
 
 /**
  * This example requires a very large number and multiple exceptions

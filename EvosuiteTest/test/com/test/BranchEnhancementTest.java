@@ -22,7 +22,7 @@ public class BranchEnhancementTest {
 //		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
 //		Class<?> clazz = com.example.passedExamples.ConstructorAndCallExample.class;
 //		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
-		Class<?> clazz = regression.example.ColtExample.class;
+		Class<?> clazz = regression.objectconstruction.example.ColtExample.class;
 //		Class<?> clazz = com.example.PassedExampleColt.class;
 
 		String methodName = "mergeSortInPlace";
@@ -58,7 +58,7 @@ public class BranchEnhancementTest {
 //		Class<?> clazz = com.example.PassedExample1.class;
 //		Class<?> clazz = com.example.PassedExample2.class;
 //		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
-		Class<?> clazz = regression.example.InevitableConstructorExample.class;
+		Class<?> clazz = regression.objectconstruction.example.InevitableConstructorExample.class;
 //		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
 //		Class<?> clazz = com.example.passedExamples.ColtExample.class;
 //		Class<?> clazz = com.example.PassedExampleColt.class;
@@ -98,7 +98,7 @@ public class BranchEnhancementTest {
 //		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
 //		Class<?> clazz = com.example.passedExamples.ConstructorAndCallExample.class;
 //		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
-		Class<?> clazz = regression.example.LayeredCallExample.class;
+		Class<?> clazz = regression.objectconstruction.example.LayeredCallExample.class;
 //		Class<?> clazz = com.example.PassedExampleColt.class;
 
 		String methodName = "targetM";
@@ -174,7 +174,7 @@ public class BranchEnhancementTest {
 //		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
 //		Class<?> clazz = com.example.passedExamples.ConstructorAndCallExample.class;
 //		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
-		Class<?> clazz = regression.example.MultipleConstructorsExample.class;
+		Class<?> clazz = regression.objectconstruction.example.MultipleConstructorsExample.class;
 //		Class<?> clazz = com.example.PassedExampleColt.class;
 
 		String methodName = "targetM";
@@ -212,7 +212,7 @@ public class BranchEnhancementTest {
 //		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
 //		Class<?> clazz = com.example.passedExamples.ConstructorAndCallExample.class;
 //		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
-		Class<?> clazz = regression.example.MultipleExceptionExample.class;
+		Class<?> clazz = regression.objectconstruction.example.MultipleExceptionExample.class;
 //		Class<?> clazz = com.example.PassedExampleColt.class;
 
 		String methodName = "test";

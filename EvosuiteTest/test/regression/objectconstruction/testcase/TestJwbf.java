@@ -1,4 +1,4 @@
-package regression.testcase;
+package regression.objectconstruction.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestOpenjms extends DebugSetup{
+public class TestJwbf extends DebugSetup{
 	@Test
-	public void runOpenjms() {
-		String projectId = "66_openjms";
+	public void runJwbf() {
+		String projectId = "23_jwbf";
 		String[] targetMethods = new String[]{
-				"org.exolab.jms.net.rmi.RMIManagedConnectionAcceptor#close()V"
+				"net.sourceforge.jwbf.core.contentRep.Article#getRevisionId()Ljava/lang/String;"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

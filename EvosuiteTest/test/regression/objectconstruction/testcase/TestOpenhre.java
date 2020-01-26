@@ -1,4 +1,4 @@
-package regression.testcase;
+package regression.objectconstruction.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestSumma extends DebugSetup{
+public class TestOpenhre extends DebugSetup{
 	@Test
-	public void runSumma() {
-		String projectId = "44_summa";
+	public void runOpenhre() {
+		String projectId = "75_openhre";
 		String[] targetMethods = new String[]{
-				"dk.statsbiblioteket.summa.common.filter.object.MUXFilter#pump()Z"
+				"com.browsersoft.openhre.hl7.impl.regular.ExpressionNodeList#addExpressionList(Lcom/browsersoft/openhre/hl7/impl/regular/ExpressionNodeList;)V"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

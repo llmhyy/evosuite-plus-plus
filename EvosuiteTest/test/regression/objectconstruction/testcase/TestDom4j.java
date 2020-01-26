@@ -1,4 +1,4 @@
-package regression.testcase;
+package regression.objectconstruction.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestJwbf extends DebugSetup{
+public class TestDom4j extends DebugSetup{
 	@Test
-	public void runJwbf() {
-		String projectId = "23_jwbf";
+	public void runDom4j() {
+		String projectId = "62_dom4j";
 		String[] targetMethods = new String[]{
-				"net.sourceforge.jwbf.core.contentRep.Article#getRevisionId()Ljava/lang/String;"
+				"org.dom4j.tree.DefaultElement#attribute(Lorg/dom4j/QName;)Lorg/dom4j/Attribute;"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

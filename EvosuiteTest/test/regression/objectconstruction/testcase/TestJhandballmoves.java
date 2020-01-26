@@ -1,4 +1,4 @@
-package regression.testcase;
+package regression.objectconstruction.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestOpenhre extends DebugSetup{
+public class TestJhandballmoves extends DebugSetup{
 	@Test
-	public void runOpenhre() {
-		String projectId = "75_openhre";
+	public void runJhandballmoves() {
+		String projectId = "56_jhandballmoves";
 		String[] targetMethods = new String[]{
-				"com.browsersoft.openhre.hl7.impl.regular.ExpressionNodeList#addExpressionList(Lcom/browsersoft/openhre/hl7/impl/regular/ExpressionNodeList;)V"
+				"visu.handball.moves.model.HandballModel#setMoveName(Ljava/lang/String;)V"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

@@ -1,4 +1,4 @@
-package regression.example;
+package regression.objectconstruction.example;
 
 /**
  * This example involves multi-layered method call

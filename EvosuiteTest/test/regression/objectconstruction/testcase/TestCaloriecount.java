@@ -1,4 +1,4 @@
-package regression.testcase;
+package regression.objectconstruction.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestGangup extends DebugSetup{
+public class TestCaloriecount extends DebugSetup{
 	@Test
-	public void runGangup() {
-		String projectId = "27_gangup";
+	public void runCorina() {
+		String projectId = "78_caloriecount";
 		String[] targetMethods = new String[]{
-				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
+				"com.lts.util.system.SystemUtils#appendNativeLibrarySearchPath(Ljava/lang/String;)V"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

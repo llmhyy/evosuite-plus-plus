@@ -1,4 +1,4 @@
-package regression.testcase;
+package regression.objectconstruction.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestCaloriecount extends DebugSetup{
+public class TestOpenjms extends DebugSetup{
 	@Test
-	public void runCorina() {
-		String projectId = "78_caloriecount";
+	public void runOpenjms() {
+		String projectId = "66_openjms";
 		String[] targetMethods = new String[]{
-				"com.lts.util.system.SystemUtils#appendNativeLibrarySearchPath(Ljava/lang/String;)V"
+				"org.exolab.jms.net.rmi.RMIManagedConnectionAcceptor#close()V"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

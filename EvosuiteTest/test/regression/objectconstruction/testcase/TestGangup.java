@@ -1,4 +1,4 @@
-package regression.testcase;
+package regression.objectconstruction.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestJhandballmoves extends DebugSetup{
+public class TestGangup extends DebugSetup{
 	@Test
-	public void runJhandballmoves() {
-		String projectId = "56_jhandballmoves";
+	public void runGangup() {
+		String projectId = "27_gangup";
 		String[] targetMethods = new String[]{
-				"visu.handball.moves.model.HandballModel#setMoveName(Ljava/lang/String;)V"
+				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
