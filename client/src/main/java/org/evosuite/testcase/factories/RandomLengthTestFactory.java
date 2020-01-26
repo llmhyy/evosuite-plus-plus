@@ -22,16 +22,15 @@ package org.evosuite.testcase.factories;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.ChromosomeFactory;
-import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
+import org.evosuite.testcase.ConstructionPathSynthesizer;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -101,7 +100,8 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				List<ConstructionPath> paths = difficulties.get(b);
 				if (paths != null) {
 					try {
-						testFactory.constructDifficultObjectStatement(test, paths, position);
+						ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+						cpSynthesizer.constructDifficultObjectStatement(test, paths, position);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
