@@ -22,6 +22,8 @@ import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.mosa.structural.BranchFitnessGraph;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
+import org.evosuite.graphs.GraphPool;
+import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
@@ -37,6 +39,7 @@ import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.EntityWithParametersStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.utils.MethodUtil;
 import org.jgrapht.alg.DijkstraShortestPath;
 
 public class ExceptionBranchEnhancer<T extends Chromosome> {
@@ -138,7 +141,6 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			}
 
 			/**
-			 * TODO (high) linyun, the branch coverage is not context sensitive.
 			 * 
 			 * we collect the number of coverage of each goal (i.e., branch) so that we can
 			 * detect how many "bombs" between each goal.
@@ -245,7 +247,23 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 				
 				if(ins == null) return null;
 				
-				cds = ins.getControlDependencies();
+				cds = null;
+				try {
+					cds = ins.getControlDependencies();					
+				}
+				catch(Exception e) {
+					if(e instanceof IllegalStateException) {
+						String methodName = ins.getMethodName();
+						ActualControlFlowGraph cfg = MethodUtil.registerMethod(className, methodName);
+						if(cfg != null) {
+							GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
+							alwaysRegisterActualCFG(cfg);
+							cds = ins.getControlDependencies();							
+						}
+						
+					}
+				}
+				
 				if (cds != null && cds.size() > 0) {
 					for (ControlDependency cd : cds) {
 						FitnessFunction<T> fitness = createOppFitnessFunction(cd);

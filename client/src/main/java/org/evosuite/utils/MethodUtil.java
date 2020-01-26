@@ -1,5 +1,6 @@
 package org.evosuite.utils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -8,8 +9,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.graphs.GraphPool;
+import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BytecodeAnalyzer;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -20,6 +26,77 @@ import org.slf4j.LoggerFactory;
 
 public class MethodUtil {
 	private static Logger log = LoggerFactory.getLogger(MethodUtil.class);
+	
+	public static MethodNode getMethodNode(InstrumentingClassLoader classLoader, String className, String methodName) {
+		InputStream is = ResourceList.getInstance(classLoader).getClassAsStream(className);
+		try {
+			ClassReader reader = new ClassReader(is);
+			ClassNode cn = new ClassNode();
+			reader.accept(cn, ClassReader.SKIP_FRAMES);
+			List<MethodNode> l = cn.methods;
+
+			for (MethodNode n : l) {
+				String methodSig = n.name + n.desc;
+				if (methodSig.equals(methodName)) {
+					return n;
+				}
+			}
+			
+			// Can't find the method in current class
+			// Check its parent class
+			try {
+				Class<?> clazz = Class.forName(className);
+				if (clazz.getSuperclass() != null) {
+					Class<?> superClazz = clazz.getSuperclass();
+					return getMethodNode(classLoader, superClazz.getName(), methodName);
+				}
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+	
+	public static ActualControlFlowGraph registerMethod(String className, String methodName) {
+		Class<?> clazz;
+		try {
+			clazz = TestGenerationContext.getInstance().getClassLoaderForSUT()
+					.loadClass(className);
+			return registerMethod(clazz, methodName);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	public static ActualControlFlowGraph registerMethod(Class<?> fieldDeclaringClass, String methodName) {
+		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		String className = fieldDeclaringClass.getCanonicalName();
+		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+		MethodNode innerNode = MethodUtil.getMethodNode(classLoader, className, methodName);
+		BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+		if (cfg == null && innerNode != null) {
+			try {
+				bytecodeAnalyzer.analyze(classLoader, className, methodName, innerNode);
+				Properties.ALWAYS_REGISTER_BRANCH = true;
+				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+				cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+				Properties.ALWAYS_REGISTER_BRANCH = false;
+			} catch (Exception e) {
+				/**
+				 * the cfg (e.g., jdk/library class) is out of our consideration
+				 */
+				return null;
+			}
+		}
+		
+		return cfg;
+	}
 	
 	public static List<String> getInvokedMethods(String targetClass, String methodName) {
 		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
