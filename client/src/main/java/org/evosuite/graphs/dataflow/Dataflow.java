@@ -76,17 +76,6 @@ public class Dataflow {
 					int index = frame.getStackSize() - i - 1;
 					Value val = frame.getStack(index);
 					
-//					if(val instanceof SourceValue) {
-//						SourceValue sValue = (SourceValue)val;
-//						
-//						MethodNode node = fAnalyzer.getMethodNode(classLoader, className, methodName);
-//						AbstractInsnNode insNode = sValue.insns.iterator().next();
-//						fAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
-//						BytecodeInstruction defIns = fAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
-//						DepVariable operand = fAnalyzer.parseVariable(defIns);
-//						allDepVars.add(operand);
-//					}
-					
 					fAnalyzer.searchDependantVariables(val, cfg, allDepVars, visitedIns);
 				}
 			}
