@@ -1,4 +1,4 @@
-package sf100.debug;
+package regression.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestJwbf extends DebugSetup{
+public class TestOpenhre extends DebugSetup{
 	@Test
-	public void runJwbf() {
-		String projectId = "23_jwbf";
+	public void runOpenhre() {
+		String projectId = "75_openhre";
 		String[] targetMethods = new String[]{
-				"net.sourceforge.jwbf.core.contentRep.Article#getRevisionId()Ljava/lang/String;"
+				"com.browsersoft.openhre.hl7.impl.regular.ExpressionNodeList#addExpressionList(Lcom/browsersoft/openhre/hl7/impl/regular/ExpressionNodeList;)V"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

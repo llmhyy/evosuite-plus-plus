@@ -1,4 +1,4 @@
-package sf100.debug;
+package regression.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestSumma extends DebugSetup{
+public class TestJwbf extends DebugSetup{
 	@Test
-	public void runSumma() {
-		String projectId = "44_summa";
+	public void runJwbf() {
+		String projectId = "23_jwbf";
 		String[] targetMethods = new String[]{
-				"dk.statsbiblioteket.summa.common.filter.object.MUXFilter#pump()Z"
+				"net.sourceforge.jwbf.core.contentRep.Article#getRevisionId()Ljava/lang/String;"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

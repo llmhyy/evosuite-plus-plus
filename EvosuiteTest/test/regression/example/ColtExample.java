@@ -1,4 +1,4 @@
-package com.example.passedExamples;
+package regression.example;
 
 /**
  * Adapted from 102_colt cern.colt.Soring.mergeSortInPlace

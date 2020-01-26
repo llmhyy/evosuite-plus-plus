@@ -1,4 +1,4 @@
-package com.example.passedExamples;
+package regression.example;
 
 /**
  * This example involves multi-layered method call

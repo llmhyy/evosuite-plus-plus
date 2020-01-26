@@ -1,4 +1,4 @@
-package sf100.debug;
+package regression.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestOpenjms extends DebugSetup{
+public class TestXbus extends DebugSetup{
 	@Test
-	public void runOpenjms() {
-		String projectId = "66_openjms";
+	public void runXbus() {
+		String projectId = "83_xbus";
 		String[] targetMethods = new String[]{
-				"org.exolab.jms.net.rmi.RMIManagedConnectionAcceptor#close()V"
+				"net.sf.xbus.technical.ftp.FTPSender#execute(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

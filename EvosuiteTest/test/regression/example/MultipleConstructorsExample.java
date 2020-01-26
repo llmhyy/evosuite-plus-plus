@@ -1,16 +1,17 @@
-package com.example.passedExamples;
+package regression.example;
 
 /**
- * This example involves calling constructor inside target method
+ * This example involves constructor from two classes
  *
  */
-public class InevitableConstructorExample {
+public class MultipleConstructorsExample {
 
     private int field1;
     private int field2;
     private int field3;
+    private static InevitableConstructorExample test;
     
-    public InevitableConstructorExample(int f1, int f2, int f3) throws Exception {
+    public MultipleConstructorsExample(int f1, int f2, int f3) throws Exception {
         if (f1 + f2 + f3 < 15000) {
             throw new Exception("Constructor1 exception");
         }
@@ -18,19 +19,21 @@ public class InevitableConstructorExample {
         this.field2 = f2;
         this.field3 = f3;
     }
-    public InevitableConstructorExample(int f1, int f2) throws Exception {
-        if (f1 + f2 < 6000) {
-            throw new Exception("Constructor1 exception");
+    
+    public MultipleConstructorsExample(int f1, int f2) throws Exception {
+        if (f1 + f2 < 14000) {
+            throw new Exception("Constructor2 exception");
         }
         this.field1 = f1;
         this.field2 = f2;
     }
     
-    public int targetM(int f1, int f2, int f3) throws Exception {
+    public static int targetM(int f1, int f2, int f3) throws Exception {
         
-        InevitableConstructorExample testV2 = new InevitableConstructorExample(f1, f2);
+        test = new InevitableConstructorExample(f1, f2, f3);
+        MultipleConstructorsExample testV2 = new MultipleConstructorsExample(f1, f2);
         
-        if (testV2.getF2() - f1 < 5) {
+        if (test.getF2() - testV2.getF1() < 5) {
             if (f2 == testV2.getF1()) {
                 return 1;
             }

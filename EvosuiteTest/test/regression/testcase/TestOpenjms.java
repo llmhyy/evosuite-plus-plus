@@ -1,4 +1,4 @@
-package sf100.debug;
+package regression.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestOpenhre extends DebugSetup{
+public class TestOpenjms extends DebugSetup{
 	@Test
-	public void runOpenhre() {
-		String projectId = "75_openhre";
+	public void runOpenjms() {
+		String projectId = "66_openjms";
 		String[] targetMethods = new String[]{
-				"com.browsersoft.openhre.hl7.impl.regular.ExpressionNodeList#addExpressionList(Lcom/browsersoft/openhre/hl7/impl/regular/ExpressionNodeList;)V"
+				"org.exolab.jms.net.rmi.RMIManagedConnectionAcceptor#close()V"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

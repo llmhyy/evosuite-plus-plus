@@ -1,6 +1,6 @@
 package com.example;
 
-import com.example.passedExamples.ColtExample;
+import regression.example.ColtExample;
 
 public class A {
 	public static void main(String[] args) {

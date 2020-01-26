@@ -1,4 +1,4 @@
-package sf100.debug;
+package regression.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestDom4j extends DebugSetup{
+public class TestCaloriecount extends DebugSetup{
 	@Test
-	public void runDom4j() {
-		String projectId = "62_dom4j";
+	public void runCorina() {
+		String projectId = "78_caloriecount";
 		String[] targetMethods = new String[]{
-				"org.dom4j.tree.DefaultElement#attribute(Lorg/dom4j/QName;)Lorg/dom4j/Attribute;"
+				"com.lts.util.system.SystemUtils#appendNativeLibrarySearchPath(Ljava/lang/String;)V"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

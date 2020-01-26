@@ -1,4 +1,4 @@
-package com.example.passedExamples;
+package regression.example;
 
 /**
  * This example requires a very large number and multiple exceptions

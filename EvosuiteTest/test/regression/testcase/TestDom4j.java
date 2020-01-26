@@ -1,4 +1,4 @@
-package sf100.debug;
+package regression.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestCorina extends DebugSetup{
+public class TestDom4j extends DebugSetup{
 	@Test
-	public void runCorina() {
-		String projectId = "35_corina";
+	public void runDom4j() {
+		String projectId = "62_dom4j";
 		String[] targetMethods = new String[]{
-				"corina.map.PngEncoderB#pngEncode(Z)[B"
+				"org.dom4j.tree.DefaultElement#attribute(Lorg/dom4j/QName;)Lorg/dom4j/Attribute;"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

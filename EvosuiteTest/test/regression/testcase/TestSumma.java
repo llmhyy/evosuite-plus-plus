@@ -1,4 +1,4 @@
-package sf100.debug;
+package regression.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestXbus extends DebugSetup{
+public class TestSumma extends DebugSetup{
 	@Test
-	public void runXbus() {
-		String projectId = "83_xbus";
+	public void runSumma() {
+		String projectId = "44_summa";
 		String[] targetMethods = new String[]{
-				"net.sf.xbus.technical.ftp.FTPSender#execute(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
+				"dk.statsbiblioteket.summa.common.filter.object.MUXFilter#pump()Z"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
