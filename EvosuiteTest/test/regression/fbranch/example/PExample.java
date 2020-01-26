@@ -1,4 +1,6 @@
-package com.example;
+package regression.fbranch.example;
+
+import com.example.Util;
 
 public class PExample {
 	public Integer get(int[] hashValues, int value) {

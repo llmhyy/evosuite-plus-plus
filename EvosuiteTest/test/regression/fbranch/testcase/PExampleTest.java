@@ -1,4 +1,4 @@
-package com.test;
+package regression.fbranch.testcase;
 
 import java.lang.reflect.Method;
 
@@ -7,10 +7,12 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
+import com.test.TestUility;
+
 public class PExampleTest{
 	@Test
 	public void test() {
-		Class<?> clazz = com.example.PExample.class;
+		Class<?> clazz = regression.fbranch.example.PExample.class;
 		String methodName = "get";
 		int parameterNum = 2;
 		
