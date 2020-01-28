@@ -1,4 +1,4 @@
-package com.test;
+package regression.branchenhancement.testcase;
 
 import java.lang.reflect.Method;
 
@@ -7,13 +7,15 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.example.ObjectExample;
+import com.test.TestUility;
+
+import regression.branchenhancement.example.ObjectExample;
 
 public class ObjectTest extends TestUility{
 	@Test
 	public void testList() {
 		Class<?> clazz = ObjectExample.class;
-		String methodName = "test";
+		String methodName = "test2";
 		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();

@@ -6,12 +6,6 @@ public class Student {
 	
 	private Student friend;
 
-//	public Student(int age, int height) {
-//		super();
-//		this.age = age;
-//		this.height = height;
-//	}
-
 	@Override
 	public String toString() {
 		return "Student [age=" + age + ", height=" + height + "]";
@@ -45,4 +39,9 @@ public class Student {
 		this.friend = friend;
 	}
 
+//	public Student(int age, int height) {
+//	super();
+//	this.age = age;
+//	this.height = height;
+//}
 }
