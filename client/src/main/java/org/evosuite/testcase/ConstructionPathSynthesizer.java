@@ -262,8 +262,13 @@ public class ConstructionPathSynthesizer {
 
 					if (potentialSetter != null) {
 						GenericMethod gMethod = new GenericMethod(potentialSetter, potentialSetter.getDeclaringClass());
-						VariableReference newParentVarRef = testFactory.addMethodFor(test, parentVarRef, gMethod,
-								parentVarRef.getStPosition() + 1);
+						VariableReference newParentVarRef = null;
+						if (parentVarRef == null) {
+							newParentVarRef = testFactory.addMethod(test, gMethod, position, 2);
+						}
+						else {
+							newParentVarRef = testFactory.addMethodFor(test, parentVarRef, gMethod, parentVarRef.getStPosition() + 1);
+						}
 						return newParentVarRef;
 					}
 
@@ -273,8 +278,13 @@ public class ConstructionPathSynthesizer {
 						if (potentialGetter != null) {
 							GenericMethod gMethod = new GenericMethod(potentialGetter,
 									potentialGetter.getDeclaringClass());
-							VariableReference newParentVarRef = testFactory.addMethodFor(test, parentVarRef, gMethod,
-									parentVarRef.getStPosition() + 1);
+							VariableReference newParentVarRef = null;
+							if (parentVarRef == null) {
+								newParentVarRef = testFactory.addMethod(test, gMethod, position, 2);
+							}
+							else {
+								newParentVarRef = testFactory.addMethodFor(test, parentVarRef, gMethod, parentVarRef.getStPosition() + 1);
+							}
 //							createOrReuseObjectVariable(test, position+1, 2, newParentVarRef, false, false);
 							return newParentVarRef;
 						}
