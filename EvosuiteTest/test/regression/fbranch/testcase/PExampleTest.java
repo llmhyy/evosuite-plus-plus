@@ -9,6 +9,8 @@ import org.junit.Test;
 
 import com.test.TestUility;
 
+import evosuite.shell.EvoTestResult;
+
 public class PExampleTest{
 	@Test
 	public void test() {
@@ -34,16 +36,13 @@ public class PExampleTest{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 1000000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		
-//		List<Tuple> l = new ArrayList<>();
-//		for(int i=0; i<7; i++){
-//			Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
-//			l.add(tu);
-//		}
-//		
-//		for(Tuple lu: l){
-//			System.out.println(lu.time + ", " + lu.age);
-//		}
+		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		int age = result.getAge();
+		int time = result.getTime();
+		double coverage = result.getCoverage();
+		assert age == 269;
+		assert time <= 50;
+		assert coverage == 1.0;
+		System.currentTimeMillis();
 	}
 }

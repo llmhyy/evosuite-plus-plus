@@ -109,7 +109,7 @@ public class TestUility {
 				System.out.println("Available calls: " + getAvailableCalls());
 				System.out.println("Unavailable calls: " + getUnavailableCalls());
 
-				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), age, r.getAvailabilityRatio(),
+				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), r.getAge(), r.getAvailabilityRatio(),
 						r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
 						r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed(), r.getMethodCallAvailabilityMap());
 			}

@@ -12,20 +12,13 @@ import com.test.TestUility;
 import evosuite.shell.EvoTestResult;
 
 /**
- * TODO: ziheng
- * need to specify the expected results 
+ * This is used for regression test for branch enhancement (i.e., exception handling)
+ * Current test cases inside this class all use same seed 1578927395578
  */
 public class BranchEnhancementTest {
 	@Test
 	public void testColtExample() {
-//		Class<?> clazz = com.example.TestV1.class;
-//		Class<?> clazz = com.example.PassedExample1.class;
-//		Class<?> clazz = com.example.PassedExample2.class;
-//		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
-//		Class<?> clazz = com.example.passedExamples.ConstructorAndCallExample.class;
-//		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
 		Class<?> clazz = regression.objectconstruction.example.ColtExample.class;
-//		Class<?> clazz = com.example.PassedExampleColt.class;
 
 		String methodName = "mergeSortInPlace";
 //		String methodName = "test";
@@ -50,24 +43,21 @@ public class BranchEnhancementTest {
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 100000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		int age = result.getAge();
+		int time = result.getTime();
+		double coverage = result.getCoverage();
+		assert age == 56;
+		assert time <= 10;
+		assert coverage == 1.0;
 		System.currentTimeMillis();
 	}
 	
 	@Test
 	public void testInevitableConstructorExample() {
-//		Class<?> clazz = com.example.TestV1.class;
-//		Class<?> clazz = com.example.PassedExample1.class;
-//		Class<?> clazz = com.example.PassedExample2.class;
-//		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
 		Class<?> clazz = regression.objectconstruction.example.InevitableConstructorExample.class;
-//		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
-//		Class<?> clazz = com.example.passedExamples.ColtExample.class;
-//		Class<?> clazz = com.example.PassedExampleColt.class;
 
 		String methodName = "targetM";
-//		String methodName = "test";
-//		String methodName = "mergeSortInPlace";
 		int parameterNum = 3;
 		
 		String targetClass = clazz.getCanonicalName();
@@ -88,24 +78,21 @@ public class BranchEnhancementTest {
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 100000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		int age = result.getAge();
+		int time = result.getTime();
+		double coverage = result.getCoverage();
+		assert age == 35;
+		assert time <= 15;
+		assert coverage == 1.0;
 		System.currentTimeMillis();
 	}
 	
 	@Test
 	public void testLayeredCallExample() {
-//		Class<?> clazz = com.example.TestV1.class;
-//		Class<?> clazz = com.example.PassedExample1.class;
-//		Class<?> clazz = com.example.PassedExample2.class;
-//		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
-//		Class<?> clazz = com.example.passedExamples.ConstructorAndCallExample.class;
-//		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
 		Class<?> clazz = regression.objectconstruction.example.LayeredCallExample.class;
-//		Class<?> clazz = com.example.PassedExampleColt.class;
 
 		String methodName = "targetM";
-//		String methodName = "test";
-//		String methodName = "mergeSortInPlace";
 		int parameterNum = 3;
 		
 		String targetClass = clazz.getCanonicalName();
@@ -126,7 +113,13 @@ public class BranchEnhancementTest {
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 100000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		int age = result.getAge();
+		int time = result.getTime();
+		double coverage = result.getCoverage();
+		assert age == 17;
+		assert time <= 5;
+		assert coverage == 1.0;
 		System.currentTimeMillis();
 	}
 	
@@ -170,18 +163,9 @@ public class BranchEnhancementTest {
 	
 	@Test
 	public void testMultipleConstructorsExample() {
-//		Class<?> clazz = com.example.TestV1.class;
-//		Class<?> clazz = com.example.PassedExample1.class;
-//		Class<?> clazz = com.example.PassedExample2.class;
-//		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
-//		Class<?> clazz = com.example.passedExamples.ConstructorAndCallExample.class;
-//		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
 		Class<?> clazz = regression.objectconstruction.example.MultipleConstructorsExample.class;
-//		Class<?> clazz = com.example.PassedExampleColt.class;
 
 		String methodName = "targetM";
-//		String methodName = "test";
-//		String methodName = "mergeSortInPlace";
 		int parameterNum = 3;
 		
 		String targetClass = clazz.getCanonicalName();
@@ -202,24 +186,21 @@ public class BranchEnhancementTest {
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 100000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		int age = result.getAge();
+		int time = result.getTime();
+		double coverage = result.getCoverage();
+		assert age == 132;
+		assert time <= 20;
+		assert coverage == 1.0;
 		System.currentTimeMillis();
 	}
 	
 	@Test
 	public void testMultipleExceptionExample() {
-//		Class<?> clazz = com.example.TestV1.class;
-//		Class<?> clazz = com.example.PassedExample1.class;
-//		Class<?> clazz = com.example.PassedExample2.class;
-//		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
-//		Class<?> clazz = com.example.passedExamples.ConstructorAndCallExample.class;
-//		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
 		Class<?> clazz = regression.objectconstruction.example.MultipleExceptionExample.class;
-//		Class<?> clazz = com.example.PassedExampleColt.class;
 
 		String methodName = "test";
-//		String methodName = "test";
-//		String methodName = "mergeSortInPlace";
 		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
@@ -240,7 +221,13 @@ public class BranchEnhancementTest {
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 100000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		int age = result.getAge();
+		int time = result.getTime();
+		double coverage = result.getCoverage();
+		assert age == 972;
+		assert time <= 80;
+		assert coverage == 1.0;
 		System.currentTimeMillis();
 	}
 }
