@@ -44,7 +44,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException {
+	public List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException, AnalyzerException {
 		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 				.getClassAsStream(targetClass.getName());
 		List<String> validMethods = new ArrayList<String>();
@@ -65,6 +65,24 @@ public class MethodFlagCondFilter implements IMethodFilter {
 						|| (m.access & Opcodes.ACC_PROTECTED) == Opcodes.ACC_PROTECTED
 						|| (m.access & Opcodes.ACC_PRIVATE) == 0 /* default */ ) {
 					
+                    if (methodName.contains("<init>")) {
+                        continue;
+                    }
+
+                    String className = targetClass.getName();
+                    ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className,
+                            methodName);
+                    if (cfg == null) {
+                        BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+                        bytecodeAnalyzer.analyze(classLoader, className, methodName, m);
+                        bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+                        cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+                    }
+
+                    if (CollectionUtil.isNullOrEmpty(cfg.getBranches())) {
+                        continue;
+                    }
+
 					try {
 						if (checkMethod(classLoader, targetClass.getName(), methodName, m, cn)) {
 							validMethods.add(methodName);
