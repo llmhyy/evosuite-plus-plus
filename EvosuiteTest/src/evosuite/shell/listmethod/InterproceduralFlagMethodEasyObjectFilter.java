@@ -57,14 +57,14 @@ import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.OpcodeUtils;
 
 /**
- * InterproceduralFlagMethodEasyObjectFilter applies to IPF methods satisfying the following rules:
- * 1.Target has at least one primitive parameter
- * 2.Target cannot contain parameter of interface or abstract class
+ * InterproceduralFlagMethodEasyObjectFilter applies to IPF methods also satisfying the following rules:
+ * 1.Target method has at least one primitive parameter
+ * 2.Target method cannot contain parameter of interface or abstract class
  * 3.IPF has at least one primitive parameter
  * 4.IPF cannot contain parameter of interface or abstract class
  * 5.IPF cannot contain un-instrumentable parameter
  * 
- * This class is used for ISSTA 2020 target filtering
+ * P.S. This class is used for ISSTA 2020 target filtering
  *
  */
 public class InterproceduralFlagMethodEasyObjectFilter extends MethodFlagCondFilter {
@@ -101,26 +101,9 @@ public class InterproceduralFlagMethodEasyObjectFilter extends MethodFlagCondFil
 			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		}
-
-		Type[] argTypes = Type.getArgumentTypes(node.desc);
-		Class<?> clazz = null;
-		if (argTypes.length != 0) {
-			for (Type type : argTypes) {
-				if (!FilterHelper.considerAsPrimitiveType(type)) {
-					try {
-						if (type.getSort() == Type.ARRAY) {
-							clazz = classLoader.loadClass((type.getElementType().getClassName()));
-						} else {
-							clazz = classLoader.loadClass((type.getClassName()));
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
-						return false;
-					}
-				}
-			}
+		
+		if (FilterHelper.parameterIsInterfaceOrAbstract(node.desc, classLoader)) {
+			return false;
 		}
 
 		MethodContent mc = new MethodContent();
@@ -254,26 +237,9 @@ public class InterproceduralFlagMethodEasyObjectFilter extends MethodFlagCondFil
 			flagMethod.valid = visitMethods.get(flagMethod.methodName);
 			return flagMethod.valid;
 		}
-
-		Type[] argTypes = Type.getArgumentTypes(methodDescString);
-		Class<?> clazz = null;
-		if (argTypes.length != 0) {
-			for (Type type : argTypes) {
-				if (!FilterHelper.considerAsPrimitiveType(type)) {
-					try {
-						if (type.getSort() == Type.ARRAY) {
-							clazz = classLoader.loadClass((type.getElementType().getClassName()));
-						} else {
-							clazz = classLoader.loadClass((type.getClassName()));
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
-						return false;
-					}
-				}
-			}
+		
+		if (FilterHelper.parameterIsInterfaceOrAbstract(methodDescString, classLoader)) {
+			return false;
 		}
 		
 		mc.flagMethods.add(flagMethod);

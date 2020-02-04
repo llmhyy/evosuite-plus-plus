@@ -1,5 +1,7 @@
 package evosuite.shell.listmethod;
 
+import java.lang.reflect.Modifier;
+
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
@@ -139,6 +141,30 @@ public class FilterHelper {
 				}
 			}
 			
+		return false;
+	}
+	
+	public static boolean parameterIsInterfaceOrAbstract(String desc, ClassLoader classLoader) {
+		Type[] argTypes = Type.getArgumentTypes(desc);
+		Class<?> clazz = null;
+		if (argTypes.length != 0) {
+			for (Type type : argTypes) {
+				if (!FilterHelper.considerAsPrimitiveType(type)) {
+					try {
+						if (type.getSort() == Type.ARRAY) {
+							clazz = classLoader.loadClass((type.getElementType().getClassName()));
+						} else {
+							clazz = classLoader.loadClass((type.getClassName()));
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
+						return true;
+					}
+				}
+			}
+		}
 		return false;
 	}
 }
