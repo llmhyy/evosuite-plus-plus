@@ -8,6 +8,7 @@ public enum MethodFilterOption {
 	RELEVANT_JDK_CLASSES ("relJdkClasses"),
 	FLAG_METHOD_PROFILES("flagMethodProf"),
 	FLAG_PRIMITIVE_PARAMETER_FIELD("primitiveParamFieldMethod"),
+	IPF_EASY_OBJECT("ipfEasyObject"),
 	NO_FLAG_METHOD("noFlag"),
 	PRIMITIVE_PARAMETER("primParam"),
 	AT_LEAST_FOUR_BRANCHES("atLeastFourBranches");
@@ -35,6 +36,8 @@ public enum MethodFilterOption {
 			return new MethodPrimitiveFilter();
 		case FLAG_PRIMITIVE_PARAMETER_FIELD:
 			return new PrimitiveBasedFlagMethodFilter();
+		case IPF_EASY_OBJECT:
+			return new InterproceduralFlagMethodEasyObjectFilter();
 		case AT_LEAST_FOUR_BRANCHES:
 			return new MethodAtleastFourBranchesFilter();
 		}

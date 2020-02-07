@@ -31,6 +31,7 @@ public class ListMethodsBatch {
 		org.evosuite.Properties.ALWAYS_REGISTER_BRANCH = true;
 		
 //		runListMethod(MethodFilterOption.FLAG_PRIMITIVE_PARAMETER_FIELD);
+//		runListMethod(MethodFilterOption.IPF_EASY_OBJECT);
 //		runListMethod(MethodFilterOption.FLAG_METHOD_PROFILES);
 //		runListMethod(MethodFilterOption.HAS_BRANCH);
 //		runListMethod(MethodFilterOption.FLAG_PROCEDURE_METHOD);
