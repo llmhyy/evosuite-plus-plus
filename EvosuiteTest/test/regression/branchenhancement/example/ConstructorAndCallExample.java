@@ -1,4 +1,4 @@
-package regression.objectconstruction.example;
+package regression.branchenhancement.example;
 
 public class ConstructorAndCallExample {
 

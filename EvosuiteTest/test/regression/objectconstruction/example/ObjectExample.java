@@ -1,4 +1,4 @@
-package regression.branchenhancement.example;
+package regression.objectconstruction.example;
 
 import java.util.List;
 

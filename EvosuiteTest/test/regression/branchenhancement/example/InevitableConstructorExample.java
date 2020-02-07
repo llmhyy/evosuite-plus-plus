@@ -1,4 +1,4 @@
-package regression.objectconstruction.example;
+package regression.branchenhancement.example;
 
 /**
  * This example involves calling constructor inside target method

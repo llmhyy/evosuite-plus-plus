@@ -1,4 +1,4 @@
-package regression.objectconstruction.example;
+package regression.branchenhancement.example;
 
 /**
  * Adapted from 102_colt cern.colt.Soring.mergeSortInPlace

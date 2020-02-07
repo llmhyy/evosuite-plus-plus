@@ -18,7 +18,7 @@ import evosuite.shell.EvoTestResult;
 public class BranchEnhancementTest {
 	@Test
 	public void testColtExample() {
-		Class<?> clazz = regression.objectconstruction.example.ColtExample.class;
+		Class<?> clazz = regression.branchenhancement.example.ColtExample.class;
 
 		String methodName = "mergeSortInPlace";
 //		String methodName = "test";
@@ -55,7 +55,7 @@ public class BranchEnhancementTest {
 	
 	@Test
 	public void testInevitableConstructorExample() {
-		Class<?> clazz = regression.objectconstruction.example.InevitableConstructorExample.class;
+		Class<?> clazz = regression.branchenhancement.example.InevitableConstructorExample.class;
 
 		String methodName = "targetM";
 		int parameterNum = 3;
@@ -90,7 +90,7 @@ public class BranchEnhancementTest {
 	
 	@Test
 	public void testLayeredCallExample() {
-		Class<?> clazz = regression.objectconstruction.example.LayeredCallExample.class;
+		Class<?> clazz = regression.branchenhancement.example.LayeredCallExample.class;
 
 		String methodName = "targetM";
 		int parameterNum = 3;
@@ -163,7 +163,7 @@ public class BranchEnhancementTest {
 	
 	@Test
 	public void testMultipleConstructorsExample() {
-		Class<?> clazz = regression.objectconstruction.example.MultipleConstructorsExample.class;
+		Class<?> clazz = regression.branchenhancement.example.MultipleConstructorsExample.class;
 
 		String methodName = "targetM";
 		int parameterNum = 3;
@@ -198,7 +198,7 @@ public class BranchEnhancementTest {
 	
 	@Test
 	public void testMultipleExceptionExample() {
-		Class<?> clazz = regression.objectconstruction.example.MultipleExceptionExample.class;
+		Class<?> clazz = regression.branchenhancement.example.MultipleExceptionExample.class;
 
 		String methodName = "test";
 		int parameterNum = 2;

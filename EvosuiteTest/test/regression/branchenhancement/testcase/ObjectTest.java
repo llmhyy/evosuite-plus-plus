@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import com.test.TestUility;
 
-import regression.branchenhancement.example.ObjectExample;
+import regression.objectconstruction.example.ObjectExample;
 
 public class ObjectTest extends TestUility{
 	@Test
