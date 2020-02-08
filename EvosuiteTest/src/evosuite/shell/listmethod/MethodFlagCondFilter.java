@@ -65,7 +65,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 						|| (m.access & Opcodes.ACC_PROTECTED) == Opcodes.ACC_PROTECTED
 						|| (m.access & Opcodes.ACC_PRIVATE) == 0 /* default */ ) {
 					
-                    if (methodName.contains("<init>")) {
+                    if (methodName.contains("<init>") || methodName.contains("<clinit>")) {
                         continue;
                     }
 
