@@ -33,7 +33,9 @@ import org.evosuite.graphs.ccg.ClassCallGraph;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
+import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
+import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
@@ -287,6 +289,7 @@ public class GraphPool {
 				if (fullName.equals(methodName)) {
 					RawControlFlowGraph cfg = GraphPool.getInstance(classLoader).getRawCFG(className, methodName);
 					if (cfg == null) {
+						BytecodeInstructionPool.getInstance(classLoader).registerMethodNode(m, className, m.name + m.desc);
 						BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
 						bytecodeAnalyzer.analyze(classLoader, className, methodName, m);
 						bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();

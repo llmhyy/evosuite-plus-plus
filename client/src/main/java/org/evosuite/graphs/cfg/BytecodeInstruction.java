@@ -31,6 +31,7 @@ import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
+import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.utils.CollectionUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -1026,13 +1027,15 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	 * @return a {@link org.evosuite.graphs.cfg.RawControlFlowGraph} object.
 	 */
 	public RawControlFlowGraph getCalledCFG() {
+		String calledClass = getCalledMethodsClass();
+		String calledMethod = getCalledMethod();
+		
 		if (!isMethodCall())
 			return null;
 		
-		RawControlFlowGraph rawcfg = GraphPool.getInstance(classLoader).getRawCFG(getCalledMethodsClass(),
-                getCalledMethod());
+		RawControlFlowGraph rawcfg = GraphPool.getInstance(classLoader).getRawCFG(calledClass, calledMethod);
 		if (rawcfg == null) {
-			rawcfg = GraphPool.getInstance(classLoader).retrieveRawCFG(getCalledMethodsClass(), getCalledMethod());
+			rawcfg = GraphPool.getInstance(classLoader).retrieveRawCFG(calledClass, calledMethod);
 		}
 		return rawcfg;
 	}
@@ -1408,6 +1411,9 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 			}
 		}
 		else if(this.asmNode.getType() == AbstractInsnNode.METHOD_INSN) {
+			if (this.asmNode.getOpcode() == Opcodes.INVOKEINTERFACE) {
+				return 0;
+			}
 			if(this.isCallToStaticMethod()) {
 				return this.getCalledMethodsArgumentCount();
 			}
