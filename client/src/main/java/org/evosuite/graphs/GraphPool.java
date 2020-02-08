@@ -19,17 +19,25 @@
  */
 package org.evosuite.graphs;
 
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
+import org.evosuite.classpath.ResourceList;
 import org.evosuite.graphs.ccfg.ClassControlFlowGraph;
 import org.evosuite.graphs.ccg.ClassCallGraph;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.setup.DependencyAnalysis;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -263,6 +271,34 @@ public class GraphPool {
 				DependencyAnalysis.shouldInstrument(cfg.getClassName(), cfg.getMethodName())) {
 			createAndRegisterControlDependence(cfg);
 		}
+	}
+	
+	public RawControlFlowGraph retrieveRawCFG(String className, String methodName) {
+		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+				.getClassAsStream(className);
+		try {
+			ClassReader reader = new ClassReader(is);
+			ClassNode cn = new ClassNode();
+			reader.accept(cn, ClassReader.SKIP_FRAMES);
+			List<MethodNode> l = cn.methods;
+
+			for (MethodNode m : l) {
+				String fullName = m.name + m.desc;
+				if (fullName.equals(methodName)) {
+					RawControlFlowGraph cfg = GraphPool.getInstance(classLoader).getRawCFG(className, methodName);
+					if (cfg == null) {
+						BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+						bytecodeAnalyzer.analyze(classLoader, className, methodName, m);
+						bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+						cfg = GraphPool.getInstance(classLoader).getRawCFG(className, methodName);
+						return cfg;
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public void alwaysRegisterActualCFG(ActualControlFlowGraph cfg) {

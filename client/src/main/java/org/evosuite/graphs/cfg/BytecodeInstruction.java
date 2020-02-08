@@ -51,8 +51,6 @@ import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.SourceValue;
 
-import javassist.bytecode.Opcode;
-
 /**
  * Internal representation of a BytecodeInstruction
  * 
@@ -1030,9 +1028,13 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	public RawControlFlowGraph getCalledCFG() {
 		if (!isMethodCall())
 			return null;
-
-		return GraphPool.getInstance(classLoader).getRawCFG(getCalledMethodsClass(),
-		                                                    getCalledMethod());
+		
+		RawControlFlowGraph rawcfg = GraphPool.getInstance(classLoader).getRawCFG(getCalledMethodsClass(),
+                getCalledMethod());
+		if (rawcfg == null) {
+			rawcfg = GraphPool.getInstance(classLoader).retrieveRawCFG(getCalledMethodsClass(), getCalledMethod());
+		}
+		return rawcfg;
 	}
 
 	public ActualControlFlowGraph getCalledActualCFG() {
@@ -1314,6 +1316,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		if (getCalledCFG() == null) {
 			// TODO not sure if I am supposed to throw an Exception at this
 			// point
+			
 			return false;
 		}
 
@@ -1451,21 +1454,6 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		else if (this.asmNode.getOpcode() == Opcodes.DCMPG || this.asmNode.getOpcode() == Opcodes.DCMPL
 				|| this.asmNode.getOpcode() == Opcodes.FCMPG || this.asmNode.getOpcode() == Opcodes.FCMPL) {
 			return 2;
-		}
-		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
-			return 1;
-		}
-		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
-			return 1;
-		}
-		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
-			return 1;
-		}
-		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
-			return 1;
-		}
-		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
-			return 1;
 		}
 		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
 			return 1;
