@@ -234,14 +234,14 @@ public class CommandLineParameters {
 		
 		if (line.hasOption("target")) {
 			String target = line.getOptionValue("target");
-
+			String realTarget = target.split(";")[0];
 			/* 
 			 * let's just add the target automatically to the classpath.
 			 * This is useful for when we do not want to specify the classpath,
 			 * and so just typing '-target' on command line
 			 * 
 			 */ 
-			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(target);
+			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(realTarget);
 		} 
 
 		if (line.hasOption("evosuiteCP")) {

@@ -50,14 +50,40 @@ public class ListMethodsBatch {
 	
 	public void runListMethod(MethodFilterOption opt) throws IOException {
 		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
+		File dependentLibFolder = null;
+		File[] dependentLibJars = null;
 		for (String projectName : projectFolders.keySet()) {
 			File projectFolder = projectFolders.get(projectName);
+			if (projectFolder.isDirectory()) {
+				File[] files = projectFolder.listFiles();
+				for (File file : files) {
+					if (file.getAbsolutePath().equals(projectFolder + "\\" + "lib")) {
+						dependentLibFolder = file;
+						if (dependentLibFolder.isDirectory()) {
+							dependentLibJars = dependentLibFolder.listFiles();
+							break;
+						}
+					}
+				}
+			}
 			String[] name = projectFolder.getName().split("_");
 			if (NumberUtils.isCreatable(name[0]) && checkProject(name[0])) {
 				SFBenchmarkUtils.setupProjectProperties(projectFolder);
+				List<String> libJarPaths = new ArrayList<>();
+				if (dependentLibJars != null) {
+					for (int i = 1; i <= dependentLibJars.length; i++) {
+						String jarPath = dependentLibJars[i - 1].getAbsolutePath();
+						libJarPaths.add(jarPath);
+					}
+				}
+				StringBuilder argJar = new StringBuilder(projectFolder.getAbsolutePath() + "/" + name[1] + ".jar");
+				for (String libPath : libJarPaths) {
+					argJar.append(";");
+					argJar.append(libPath);
+				}
 				String[] args = new String[] {
 						"-target",
-						projectFolder.getAbsolutePath() + "/" + name[1] + ".jar",
+						argJar.toString(),
 						"-listMethods",
 						"-mFilterOpt", opt.getText()
 				};

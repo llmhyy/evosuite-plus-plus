@@ -20,8 +20,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.evosuite.CommandLineParameters;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
+import org.evosuite.classpath.ResourceList;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.ProgramArgumentUtils;
@@ -166,7 +168,9 @@ public class EvosuiteForMethod {
 			 */
 			if (Settings.isListMethods()) {
 				args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.getListMethodsOptions());
-				String[] targetClasses = evoTest.listAllTargetClasses(args);
+				String[] allClasses = evoTest.listAllTargetClasses(args);
+				Set<String> targetClassSet = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getAllClasses(args[1].split(";")[0], false);
+				String[] targetClasses = targetClassSet.toArray(new String[0]);
 				ListMethods.execute(targetClasses, evoTest.evoTestClassLoader, Settings.getmFilterOpt(),
 						Settings.getTargetMethodFilePath(), Settings.getTargetClassFilePath());
 			}
