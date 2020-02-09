@@ -97,7 +97,7 @@ public class FieldUseAnalyzer {
 		Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 		for (BytecodeInstruction exit : calledCfg.getExitPoints()) {
 			BytecodeInstruction returnInput = exit.getPreviousInstruction();
-			searchDepedantVariables(returnInput, calledCfg, allDepVars, visitedIns);
+			searchDefDependentVariables(returnInput, calledCfg, allDepVars, visitedIns);
 		}
 		
 		HashMap<String, Set<DepVariable>> map = new HashMap<String, Set<DepVariable>>();
@@ -161,12 +161,12 @@ public class FieldUseAnalyzer {
 		 */
 		for(AbstractInsnNode insNode: srcValue.insns) {
 			BytecodeInstruction defIns = convert2BytecodeInstruction(cfg, node, insNode);
-			searchDepedantVariables(defIns, cfg, allLeafDepVars, visitedIns);
+			searchDefDependentVariables(defIns, cfg, allLeafDepVars, visitedIns);
 		}
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private void searchDepedantVariables(BytecodeInstruction defIns, ActualControlFlowGraph cfg, Set<DepVariable> allLeafDepVars,
+	private void searchDefDependentVariables(BytecodeInstruction defIns, ActualControlFlowGraph cfg, Set<DepVariable> allLeafDepVars,
 			Set<BytecodeInstruction> visitedIns) {
 		if (visitedIns.contains(defIns)) {
 			return;
