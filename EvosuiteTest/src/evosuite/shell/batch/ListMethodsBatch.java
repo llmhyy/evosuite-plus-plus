@@ -37,7 +37,8 @@ public class ListMethodsBatch {
 //		runListMethod(MethodFilterOption.FLAG_PROCEDURE_METHOD);
 //		runListMethod(MethodFilterOption.NO_FLAG_METHOD);
 //		runListMethod(MethodFilterOption.PRIMITIVE_PARAMETER);
-		runListMethod(MethodFilterOption.AT_LEAST_FOUR_BRANCHES);
+//		runListMethod(MethodFilterOption.AT_LEAST_FOUR_BRANCHES);
+		runListMethod(MethodFilterOption.PRIMITIVE_BASED_METHOD);
 //	}
 	}
 

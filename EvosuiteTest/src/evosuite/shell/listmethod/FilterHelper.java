@@ -167,4 +167,19 @@ public class FilterHelper {
 		}
 		return false;
 	}
+	public static boolean containNonPrimitiveParameter(String desc) {
+		try {
+			Type[] argTypes = Type.getArgumentTypes(desc);
+
+			for (Type type : argTypes) {
+				if (!FilterHelper.considerAsPrimitiveType(type)) {
+					return true;
+				}
+			}
+			return false;
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }

@@ -11,7 +11,8 @@ public enum MethodFilterOption {
 	IPF_EASY_OBJECT("ipfEasyObject"),
 	NO_FLAG_METHOD("noFlag"),
 	PRIMITIVE_PARAMETER("primParam"),
-	AT_LEAST_FOUR_BRANCHES("atLeastFourBranches");
+	AT_LEAST_FOUR_BRANCHES("atLeastFourBranches"),
+	PRIMITIVE_BASED_METHOD("primitiveBasedMethod");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -40,6 +41,8 @@ public enum MethodFilterOption {
 			return new InterproceduralFlagMethodEasyObjectFilter();
 		case AT_LEAST_FOUR_BRANCHES:
 			return new MethodAtleastFourBranchesFilter();
+		case PRIMITIVE_BASED_METHOD:
+			return new PrimitiveBasedFilter();
 		}
 		return null;
 	}
