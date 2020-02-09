@@ -7,14 +7,21 @@ import java.util.Set;
 
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
+import org.evosuite.coverage.dataflow.DefUseFactory;
+import org.evosuite.coverage.dataflow.DefUsePool;
+import org.evosuite.coverage.dataflow.Definition;
+import org.evosuite.coverage.dataflow.Use;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.ControlDependency;
+import org.evosuite.graphs.dataflow.DefUseAnalyzer;
+import org.evosuite.utils.CollectionUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
@@ -84,7 +91,7 @@ public class PrimitiveBasedFilter extends MethodFlagCondFilter {
 
 			if (!b.isInstrumented()) {
 				hasIfBranch = true;
-				if (!checkInsnUseAllPrimitiveOperands(b.getInstruction())) {
+				if (!checkInsnUseAllPrimitiveOperands(b.getInstruction(), classLoader, node)) {
 					return false;
 				}
 			}
@@ -93,7 +100,7 @@ public class PrimitiveBasedFilter extends MethodFlagCondFilter {
 
 	}
 
-	private boolean checkInsnUseAllPrimitiveOperands(BytecodeInstruction insn) {
+	private boolean checkInsnUseAllPrimitiveOperands(BytecodeInstruction insn, ClassLoader classLoader, MethodNode node) {
 		int numberOfOperands = insn.getOperandNum();
 
 		// IF condition
@@ -101,7 +108,7 @@ public class PrimitiveBasedFilter extends MethodFlagCondFilter {
 		if (numberOfOperands == 1) {
 			List<BytecodeInstruction> list = insn.getSourceOfStackInstructionList(0);
 
-			boolean noUseOfObject = checkNoUseOfObject(list, insn);
+			boolean noUseOfObject = checkNoUseOfObject(list, classLoader, node);
 			if (noUseOfObject) {
 				return true;
 			}
@@ -109,21 +116,21 @@ public class PrimitiveBasedFilter extends MethodFlagCondFilter {
 		// 2 values on the stack will be used
 		else if (numberOfOperands == 2) {
 			List<BytecodeInstruction> list0 = insn.getSourceOfStackInstructionList(0);
-			boolean noUseOfObject1 = checkNoUseOfObject(list0, insn);
+			boolean noUseOfObject1 = checkNoUseOfObject(list0, classLoader, node);
 
 			List<BytecodeInstruction> list1 = insn.getSourceOfStackInstructionList(1);
-			boolean noUseOfObject2 = checkNoUseOfObject(list1, insn);
+			boolean noUseOfObject2 = checkNoUseOfObject(list1, classLoader, node);
 
 			if (noUseOfObject1 && noUseOfObject2) {
 				return true;
 			}
 		} else {
-			System.currentTimeMillis();
+			return true;
 		}
 		return false;
 	}
 
-	private boolean checkNoUseOfObject(List<BytecodeInstruction> list, BytecodeInstruction stackParent) {
+	private boolean checkNoUseOfObject(List<BytecodeInstruction> list, ClassLoader classLoader, MethodNode node) {
 		boolean valid = true;
 
 		for (BytecodeInstruction defIns : list) {
@@ -183,13 +190,33 @@ public class PrimitiveBasedFilter extends MethodFlagCondFilter {
 				if (methodInsnNode.owner.equals("java/lang/String")) {
 					continue;
 				}
-				if (!checkReturnDependOnBranchUsingAllPrimitiveOperands(defIns.getCalledCFG().getClassName(), defIns.getCalledCFG().determineExitPoints())) {
+				if (!checkReturnDependOnBranchUsingAllPrimitiveOperands(defIns.getCalledCFG().getClassName(), defIns.getCalledCFG().determineExitPoints(), classLoader, node)) {
 					return false;
 				};
 			}
 
+			/**
+			 * the variable is computed by local variables
+			 */
+			if (defIns.isLocalVariableUse()){
+				//keep traverse
+				DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
+				defUseAnalyzer.analyze(classLoader, node, defIns.getClassName(), defIns.getMethodName(), node.access);
+				Use use = DefUseFactory.makeUse(defIns);
+				List<Definition> defs = DefUsePool.getDefinitions(use);
+				for (Definition def : CollectionUtil.nullToEmpty(defs)) {
+					if (def != null) {
+						BytecodeInstruction defInstruction = convert2BytecodeInstruction(def.getActualCFG(), node, def.getASMNode());
+						if (!checkInsnUseAllPrimitiveOperands(defInstruction, classLoader, node)) {
+							return false;
+						};
+						System.currentTimeMillis();
+					}
+				}
+			}
+			
 			if (defIns.getOperandNum() > 0) {
-				valid = checkInsnUseAllPrimitiveOperands(defIns);
+				valid = checkInsnUseAllPrimitiveOperands(defIns, classLoader, node);
 				if (!valid) {
 					return false;
 				}
@@ -230,14 +257,14 @@ public class PrimitiveBasedFilter extends MethodFlagCondFilter {
 	}
 	
 	private boolean checkReturnDependOnBranchUsingAllPrimitiveOperands(String className,
-			Set<BytecodeInstruction> exitPoints) {
+			Set<BytecodeInstruction> exitPoints, ClassLoader classLoader, MethodNode node) {
 		for (BytecodeInstruction exit : exitPoints) {
 			if (exit.isReturn()) {
 				List<BytecodeInstruction> sourceList = exit.getSourceOfStackInstructionList(0);
 				for (BytecodeInstruction source : sourceList) {
 					for (ControlDependency cd : source.getControlDependencies()) {
 						Branch b = cd.getBranch();
-						if (!checkInsnUseAllPrimitiveOperands(b.getInstruction())) {
+						if (!checkInsnUseAllPrimitiveOperands(b.getInstruction(), classLoader, node)) {
 							return false;
 						}
 					};
@@ -246,5 +273,12 @@ public class PrimitiveBasedFilter extends MethodFlagCondFilter {
 		}
 
 		return false;
+	}
+	
+	private BytecodeInstruction convert2BytecodeInstruction(ActualControlFlowGraph cfg, MethodNode node,
+			AbstractInsnNode ins) {
+		AbstractInsnNode condDefinition = (AbstractInsnNode)ins;
+		BytecodeInstruction defIns = cfg.getInstruction(node.instructions.indexOf(condDefinition));
+		return defIns;
 	}
 }
