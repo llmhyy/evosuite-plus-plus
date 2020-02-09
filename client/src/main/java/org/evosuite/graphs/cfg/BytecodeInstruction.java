@@ -51,6 +51,7 @@ import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.SourceValue;
+import org.objectweb.asm.tree.analysis.Value;
 
 /**
  * Internal representation of a BytecodeInstruction
@@ -1030,6 +1031,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		String calledClass = getCalledMethodsClass();
 		String calledMethod = getCalledMethod();
 		
+		//TODO what if interface or abstract
 		if (!isMethodCall())
 			return null;
 		
@@ -1413,6 +1415,12 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		else if(this.asmNode.getType() == AbstractInsnNode.METHOD_INSN) {
 			if (this.asmNode.getOpcode() == Opcodes.INVOKEINTERFACE) {
 				return 0;
+			}
+			if (this.asmNode.getOpcode() == Opcodes.INVOKEVIRTUAL) {
+				return this.getCalledMethodsArgumentCount() + 1;
+			}
+			if (this.asmNode.getOpcode() == Opcodes.INVOKESPECIAL) {
+				System.currentTimeMillis();
 			}
 			if(this.isCallToStaticMethod()) {
 				return this.getCalledMethodsArgumentCount();
