@@ -630,7 +630,7 @@ public class BytecodeInstructionPool {
 		return insList;
 	}
 	
-	public List<BytecodeInstruction> getAllInstructionsAtClass(String className, int lineNumber) {
+	public List<BytecodeInstruction> getAllInstructionsAtLineNumber(String className, int lineNumber) {
 		List<BytecodeInstruction> insList = new ArrayList<BytecodeInstruction>();
 		if (instructionMap.get(className) == null)
 			return null;

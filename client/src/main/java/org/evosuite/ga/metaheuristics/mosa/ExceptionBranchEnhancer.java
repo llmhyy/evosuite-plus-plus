@@ -235,13 +235,13 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 
 			List<BytecodeInstruction> insList = BytecodeInstructionPool
 					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-					.getAllInstructionsAtClass(className, lineNum);
+					.getAllInstructionsAtLineNumber(className, lineNum);
 
 			if (insList == null && RuntimeInstrumentation.checkIfCanInstrument(className)) {
 				GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
 				insList = BytecodeInstructionPool
 						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-						.getAllInstructionsAtClass(className, lineNum);			
+						.getAllInstructionsAtLineNumber(className, lineNum);			
 			}
 			
 			if(insList != null && !insList.isEmpty()) {

@@ -120,13 +120,13 @@ public class CallContext implements Serializable {
 		
 		List<BytecodeInstruction> insList = 
 				BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
-				getAllInstructionsAtClass(className, lineNumber);
+				getAllInstructionsAtLineNumber(className, lineNumber);
 		
 		if(insList == null && RuntimeInstrumentation.checkIfCanInstrument(className)) {
 			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
 			insList = BytecodeInstructionPool
 					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-					.getAllInstructionsAtClass(className, lineNumber);
+					.getAllInstructionsAtLineNumber(className, lineNumber);
 			
 			if(insList == null) {
 				return null;				

@@ -14,7 +14,7 @@ public class BranchEnhancementUtil {
 		
 		List<BytecodeInstruction> insList = 
 				BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
-				getAllInstructionsAtClass(className, lineNumber);
+				getAllInstructionsAtLineNumber(className, lineNumber);
 		
 		if(insList == null) {
 			return null;
@@ -39,7 +39,7 @@ public class BranchEnhancementUtil {
 		
 		List<BytecodeInstruction> insList = 
 				BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
-				getAllInstructionsAtClass(className, lineNumber);
+				getAllInstructionsAtLineNumber(className, lineNumber);
 		
 		if(insList == null) {
 			System.currentTimeMillis();
