@@ -32,7 +32,7 @@ public class MethodAtleastFourBranchesFilter extends MethodFlagCondFilter {
 		}
 
 		/* Has at least 4 branches */
-		if (cfg.getBranches().size() >= 4) {
+		if (getIfBranchesInMethod(cfg).size() >= 4) {
 			return true;
 		}
 

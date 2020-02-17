@@ -46,7 +46,7 @@ public class NoFlagMethodFilter extends FlagMethodProfilesFilter {
 			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		}
 //		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-		if (CollectionUtil.isNullOrEmpty(cfg.getBranches())) {
+		if (CollectionUtil.isNullOrEmpty(getIfBranchesInMethod(cfg))) {
 			return false;
 		} 
 		boolean defuseAnalyzed = false;
@@ -57,7 +57,7 @@ public class NoFlagMethodFilter extends FlagMethodProfilesFilter {
 		
 		boolean valid = true;
 		Map<String, Boolean> methodValidityMap = new HashMap<>();
-		for (BytecodeInstruction insn : cfg.getBranches()) {
+		for (BytecodeInstruction insn : getIfBranchesInMethod(cfg)) {
 			AbstractInsnNode insnNode = insn.getASMNode();
 			/* check whether it is a flag condition */
 			if (CollectionUtil.existIn(insnNode .getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {

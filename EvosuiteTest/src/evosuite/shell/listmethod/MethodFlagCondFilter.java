@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.dataflow.DefUseFactory;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.dataflow.Definition;
@@ -78,9 +81,9 @@ public class MethodFlagCondFilter implements IMethodFilter {
                         bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
                         cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
                     }
-
-                    if (CollectionUtil.isNullOrEmpty(cfg.getBranches())) {
-                        continue;
+                    
+                    if (getIfBranchesInMethod(cfg).isEmpty()) {
+                    	continue;
                     }
 
 					try {
@@ -98,6 +101,19 @@ public class MethodFlagCondFilter implements IMethodFilter {
 		return validMethods;
 	}
 	
+	protected Set<BytecodeInstruction> getIfBranchesInMethod(ActualControlFlowGraph cfg) {
+		Set<BytecodeInstruction> ifBranches = new HashSet<BytecodeInstruction>();
+		for (BytecodeInstruction b : cfg.getBranches()) {
+			if (b.isBranch()) {
+				if (b.getASMNode().getOpcode() == Opcodes.JSR || b.getASMNode().getOpcode() == Opcodes.GOTO) {
+					continue;
+				}
+				ifBranches.add(b);
+			}
+		}
+		return ifBranches;
+	}
+
 	/**
 	 * @throws ClassNotFoundException 
 	 * 
@@ -113,13 +129,10 @@ public class MethodFlagCondFilter implements IMethodFilter {
 			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		}
-//		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-		if (CollectionUtil.isNullOrEmpty(cfg.getBranches())) {
-			return false;
-		} 
+		
 		boolean defuseAnalyzed = false;
 		Map<String, Boolean> methodValidityMap = new HashMap<String, Boolean>();
-		for (BytecodeInstruction insn : cfg.getBranches()) {
+		for (BytecodeInstruction insn : getIfBranchesInMethod(cfg)) {
 			AbstractInsnNode insnNode = insn.getASMNode();
 			if (CollectionUtil.existIn(insnNode .getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
 				StringBuilder sb = new StringBuilder()

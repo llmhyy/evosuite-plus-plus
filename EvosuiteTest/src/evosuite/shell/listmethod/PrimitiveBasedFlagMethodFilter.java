@@ -3,7 +3,6 @@ package evosuite.shell.listmethod;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -122,7 +121,7 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 		boolean defuseAnalyzed = false;
 		boolean valid = false;
 		Map<String, Boolean> methodValidityMap = new HashMap<>();
-		for (BytecodeInstruction insn : cfg.getBranches()) {
+		for (BytecodeInstruction insn : getIfBranchesInMethod(cfg)) {
 
 			AbstractInsnNode insnNode = insn.getASMNode();
 
@@ -281,12 +280,12 @@ public class PrimitiveBasedFlagMethodFilter extends MethodFlagCondFilter {
 				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 				cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			}
-			if (CollectionUtil.getSize(cfg.getBranches()) < 1) {
+			if (CollectionUtil.getSize(getIfBranchesInMethod(cfg)) < 1) {
 				flagMethod.notes.add(Remarks.NOBRANCH.text);
 				visitMethods.put(flagMethod.methodName, false);
 				return false;
 			}
-			flagMethod.branch = cfg.getBranches().size();
+			flagMethod.branch = getIfBranchesInMethod(cfg).size();
 			Set<BytecodeInstruction> exitPoints = cfg.getExitPoints();
 			boolean valid = checkReturnDependOnBranchUsingAllPrimitiveOperands(className, exitPoints);
 			visitMethods.put(flagMethod.methodName, valid);

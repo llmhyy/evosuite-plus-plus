@@ -81,10 +81,6 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		}
-//		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-		if (CollectionUtil.isNullOrEmpty(cfg.getBranches())) {
-			return false;
-		} 
 		
 		if(methodName.contains("<init>")) {
 			return false;
@@ -102,7 +98,7 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 		
 		boolean valid = false;
 		Map<String, Boolean> methodValidityMap = new HashMap<>();
-		for (BytecodeInstruction insn : cfg.getBranches()) {
+		for (BytecodeInstruction insn : getIfBranchesInMethod(cfg)) {
 			AbstractInsnNode insnNode = insn.getASMNode();
 			/* check whether it is a flag condition */
 			if (CollectionUtil.existIn(insnNode .getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
@@ -248,12 +244,12 @@ public class FlagMethodProfilesFilter extends MethodFlagCondFilter {
 				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 				cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			}
-			if (CollectionUtil.getSize(cfg.getBranches()) <= 1) {
+			if (CollectionUtil.getSize(getIfBranchesInMethod(cfg)) <= 1) {
 				flagMethod.notes.add(Remarks.NOBRANCH.text);
 				visitMethods.put(flagMethod.methodName, false);
 				return false;
 			}
-			flagMethod.branch = cfg.getBranches().size();
+			flagMethod.branch = getIfBranchesInMethod(cfg).size();
 			Set<BytecodeInstruction> exitPoints = cfg.getExitPoints();
 			boolean valid = false;
 			DominatorTree<BasicBlock> dominatorTree = new DominatorTree<BasicBlock>(cfg);

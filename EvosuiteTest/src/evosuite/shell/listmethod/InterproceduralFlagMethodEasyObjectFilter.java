@@ -117,7 +117,7 @@ public class InterproceduralFlagMethodEasyObjectFilter extends MethodFlagCondFil
 		boolean defuseAnalyzed = false;
 		boolean valid = false;
 		Map<String, Boolean> methodValidityMap = new HashMap<>();
-		for (BytecodeInstruction insn : cfg.getBranches()) {
+		for (BytecodeInstruction insn : getIfBranchesInMethod(cfg)) {
 
 			AbstractInsnNode insnNode = insn.getASMNode();
 
@@ -276,12 +276,12 @@ public class InterproceduralFlagMethodEasyObjectFilter extends MethodFlagCondFil
 				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 				cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			}
-			if (CollectionUtil.getSize(cfg.getBranches()) < 1) {
+			if (CollectionUtil.getSize(getIfBranchesInMethod(cfg)) < 1) {
 				flagMethod.notes.add(Remarks.NOBRANCH.text);
 				visitMethods.put(flagMethod.methodName, false);
 				return false;
 			}
-			flagMethod.branch = cfg.getBranches().size();
+			flagMethod.branch = getIfBranchesInMethod(cfg).size();
 			boolean valid = true;
 			visitMethods.put(flagMethod.methodName, valid);
 			flagMethod.valid = valid;

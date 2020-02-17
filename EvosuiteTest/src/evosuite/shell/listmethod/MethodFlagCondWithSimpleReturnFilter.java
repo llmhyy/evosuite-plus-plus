@@ -70,7 +70,7 @@ public class MethodFlagCondWithSimpleReturnFilter extends MethodFlagCondFilter {
 //			ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			}
 			
-			if (CollectionUtil.getSize(cfg.getBranches()) <= 1) {
+			if (CollectionUtil.getSize(getIfBranchesInMethod(cfg)) <= 1) {
 				return false;
 			}
 			Set<BytecodeInstruction> exitPoints = cfg.getExitPoints();
