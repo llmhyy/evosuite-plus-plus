@@ -12,7 +12,9 @@ public enum MethodFilterOption {
 	NO_FLAG_METHOD("noFlag"),
 	PRIMITIVE_PARAMETER("primParam"),
 	AT_LEAST_FOUR_BRANCHES("atLeastFourBranches"),
-	PRIMITIVE_BASED_METHOD("primitiveBasedMethod");
+	PRIMITIVE_BASED_METHOD_WITH_CONSTRAINT("primitiveBasedMethodWithConstraint"),
+	PRIMITIVE_BASED_METHOD("primitiveBasedMethod"),
+	BRANCHED_METHOD("branchedMethod");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -41,8 +43,12 @@ public enum MethodFilterOption {
 			return new InterproceduralFlagMethodEasyObjectFilter();
 		case AT_LEAST_FOUR_BRANCHES:
 			return new MethodAtleastFourBranchesFilter();
+		case PRIMITIVE_BASED_METHOD_WITH_CONSTRAINT:
+			return new PrimitiveBasedWithMethodConstraintFilter();
 		case PRIMITIVE_BASED_METHOD:
 			return new PrimitiveBasedFilter();
+		case BRANCHED_METHOD:
+			return new BranchedMethodFilter();
 		}
 		return null;
 	}

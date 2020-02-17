@@ -11,7 +11,6 @@ import java.util.Set;
 
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
-import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.dataflow.DefUseFactory;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.dataflow.Definition;
@@ -45,7 +44,6 @@ import evosuite.shell.utils.OpcodeUtils;
 public class MethodFlagCondFilter implements IMethodFilter {
 	private static Logger log = LoggerUtils.getLogger(MethodFlagCondFilter.class);
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException, AnalyzerException {
 		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
