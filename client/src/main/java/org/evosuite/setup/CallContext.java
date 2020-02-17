@@ -22,15 +22,21 @@
  */
 package org.evosuite.setup;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.evosuite.PackageInfo;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.testcase.execution.MethodCall;
-
-import java.io.Serializable;
-import java.util.*;
 						
 							
 					  
@@ -116,8 +122,16 @@ public class CallContext implements Serializable {
 				BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
 				getAllInstructionsAtClass(className, lineNumber);
 		
-		if(insList == null) {
-			return null;
+		if(insList == null && RuntimeInstrumentation.checkIfCanInstrument(className)) {
+			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+			insList = BytecodeInstructionPool
+					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+					.getAllInstructionsAtClass(className, lineNumber);
+			
+			if(insList == null) {
+				return null;				
+			}
+			
 		}
 		
 		if(!insList.isEmpty()) {

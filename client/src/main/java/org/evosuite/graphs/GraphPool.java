@@ -275,6 +275,30 @@ public class GraphPool {
 		}
 	}
 	
+	public void registerClass(String className) {
+		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+				.getClassAsStream(className);
+		try {
+			ClassReader reader = new ClassReader(is);
+			ClassNode cn = new ClassNode();
+			reader.accept(cn, ClassReader.SKIP_FRAMES);
+			List<MethodNode> l = cn.methods;
+
+			for (MethodNode m : l) {
+				String fullName = m.name + m.desc;
+					RawControlFlowGraph cfg = GraphPool.getInstance(classLoader).getRawCFG(className, fullName);
+					if (cfg == null) {
+						BytecodeInstructionPool.getInstance(classLoader).registerMethodNode(m, className, m.name + m.desc);
+						BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+						bytecodeAnalyzer.analyze(classLoader, className, fullName, m);
+						bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+					}
+				}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}		
+	
 	public RawControlFlowGraph retrieveRawCFG(String className, String methodName) {
 		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 				.getClassAsStream(className);
