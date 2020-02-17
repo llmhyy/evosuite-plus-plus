@@ -95,6 +95,10 @@ public class ConstructionPathSynthesizer {
 					parentVarRef = generateParameterStatement(test, position, var, parentVarRef, castSubClass);
 
 				} else if (var.getType() == DepVariable.INSTANCE_FIELD) {
+					if(parentVarRef == null) {
+						break;
+					}
+					
 					parentVarRef = generateFieldStatement(test, position, var, parentVarRef, false);
 				} else if (var.getType() == DepVariable.OTHER) {
 					/**
@@ -478,7 +482,7 @@ public class ConstructionPathSynthesizer {
 	}
 
 	private VariableReference generateParameter(TestCase test, int position, DepVariable var, String castSubClass)
-			throws ClassNotFoundException, ConstructionFailedException {
+			throws ConstructionFailedException {
 		
 		String paramType = castSubClass;
 		if(paramType == null) {
@@ -490,7 +494,12 @@ public class ConstructionPathSynthesizer {
 			paramType = parameters[paramOrder-1];
 		}
 		
-		Class<?> paramClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(paramType);
+		Class<?> paramClass;
+		try {
+			paramClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(paramType);
+		} catch (ClassNotFoundException e) {
+			return null;
+		}
 		GenericClass paramDeclaringClazz = new GenericClass(paramClass);
 		VariableReference paramRef = null;
 		Constructor<?> constructor = Randomness.choice(paramDeclaringClazz.getRawClass().getConstructors());
@@ -785,7 +794,6 @@ public class ConstructionPathSynthesizer {
 		}
 	}
 	
-	@SuppressWarnings("rawtypes")
 	private String transfer(String desc) {
 		switch (desc) {
 		case "boolean":
@@ -809,26 +817,5 @@ public class ConstructionPathSynthesizer {
 		}
 	}
 	
-	private Class<?> convertSigToPrimitiveClass(String desc) {
-		switch (desc) {
-		case "Z":
-			return BooleanPrimitiveStatement.class;
-		case "B":
-			return BytePrimitiveStatement.class;
-		case "C":
-			return CharPrimitiveStatement.class;
-		case "S":
-			return ShortPrimitiveStatement.class;
-		case "I":
-			return IntPrimitiveStatement.class;
-		case "J":
-			return LongPrimitiveStatement.class;
-		case "F":
-			return FloatPrimitiveStatement.class;
-		case "D":
-			return DoublePrimitiveStatement.class;
-		default:
-			return null;
-		}
-	}
+	
 }
