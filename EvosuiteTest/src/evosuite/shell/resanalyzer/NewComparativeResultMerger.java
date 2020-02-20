@@ -2,20 +2,16 @@ package evosuite.shell.resanalyzer;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import evosuite.shell.ComparativeRecorder;
 import evosuite.shell.excel.ExcelReader;
 import evosuite.shell.excel.ExcelWriter;
-import evosuite.shell.experiment.SFConfiguration;
-import evosuite.shell.resanalyzer.ComparativeResultMerger.Record;
 
 public class NewComparativeResultMerger {
 //	public static String folderName = "new-result3";
@@ -205,13 +201,30 @@ public class NewComparativeResultMerger {
 	 * @param projID
 	 */
 	private void aggregateRecord(File file, Map<String, Map<String, RecordItem>> branchRecord) {
+		String[] paths = file.getAbsolutePath().split("/");
+		String last = paths[paths.length - 1];
+		String index = last.split("-")[0];
+		String strategy = last.split("-")[1];
+		File combinedFile = new File(folderName + "/" + index + "_" + "combined.xlsx");
+		ExcelWriter eWriter = new ExcelWriter(combinedFile);
 		for(File subFile: file.listFiles()) {
 			String subFileName = subFile.getName();
 			if(subFileName.endsWith("_evotest.xlsx") && !subFileName.contains("~")) {
 				String projectName = subFileName.substring(0, subFileName.indexOf("_evotest.xlsx"));
-				ExcelReader reader = new ExcelReader(subFile, 0);
+				ExcelReader reader;
+				try {
+					reader = new ExcelReader(subFile, 0);
+				} catch (Exception e) {
+					continue;
+				}
 				List<List<Object>> bc = reader.listData("data");
-				
+				try {
+					eWriter.getSheet("data_" + strategy, reader.listHeader("data").toArray(new String[0]), 0);
+					eWriter.writeSheet("data_" + strategy, bc);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				RecordItem prevItem = null;
 				List<RecordItem> list = new ArrayList<RecordItem>();
 				for(List<Object> obj: bc) {
@@ -258,15 +271,19 @@ public class NewComparativeResultMerger {
 	}
 	
 	private RecordItem deriveAverage(List<RecordItem> list) {
+		BigDecimal coverageSum = new BigDecimal(0.0);
 		if(list.isEmpty()) {
 			return null;
 		}
 		
 		RecordItem average = list.get(0).clone();
+		coverageSum = coverageSum.add(BigDecimal.valueOf(average.coverage));
 		for(int i=0; i<list.size(); i++) {
 			if(i != 0) {
 				RecordItem item = list.get(i);
 				average.time += item.time;
+				BigDecimal preciseCov = BigDecimal.valueOf(item.coverage);
+				coverageSum = coverageSum.add(preciseCov);
 				average.coverage += item.coverage;
 				average.age += item.age;
 				average.IPFlag += item.IPFlag;
@@ -274,10 +291,10 @@ public class NewComparativeResultMerger {
 		}
 		
 		System.currentTimeMillis();
-		
 		double size = list.size();
+		BigDecimal aveCov = coverageSum.divide(new BigDecimal(size), 10, RoundingMode.HALF_UP);
 		average.time /= size;
-		average.coverage /= size;
+		average.coverage = aveCov.doubleValue();
 		average.age /= size;
 		average.IPFlag /= size;
 		
@@ -293,7 +310,7 @@ public class NewComparativeResultMerger {
 		RecordItem item = null;
 		
 		try {
-			if (data.get(6) == null) {
+			if (data.size() > 6 && data.get(6) == null) {
 				data.set(6, 0.0);
 			}
 			item = new RecordItem(
