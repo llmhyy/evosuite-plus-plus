@@ -130,7 +130,7 @@ public class MOSuiteStrategy extends TestGenerationStrategy {
 
 //		long endTime = System.currentTimeMillis() / 1000;
 		long endTime = Archive.getArchiveInstance().getFeasibleTime() == 0l ? startTime : Archive.getArchiveInstance().getFeasibleTime();
-
+		Archive.getArchiveInstance().setFeasibleTime(0);
 //		goals = getGoals(false); //recalculated now after the search, eg to handle exception fitness
 //        ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Total_Goals, goals.size());
         

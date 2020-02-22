@@ -209,6 +209,8 @@ public abstract class Archive<F extends TestFitnessFunction, T extends TestChrom
 
   public abstract long getFeasibleTime();
   
+  public abstract void setFeasibleTime(long time);
+  
   /**
    * Returns false if there is not any solution in the archive, true otherwise.
    * 

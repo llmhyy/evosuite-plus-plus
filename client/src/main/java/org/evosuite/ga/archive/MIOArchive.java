@@ -605,4 +605,10 @@ public class MIOArchive<F extends TestFitnessFunction, T extends TestChromosome>
       return this.solutions.equals(p.solutions);
     }
   }
+
+@Override
+public void setFeasibleTime(long time) {
+	// TODO Auto-generated method stub
+	
+}
 }

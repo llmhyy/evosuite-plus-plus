@@ -354,4 +354,9 @@ public class CoverageArchive<F extends TestFitnessFunction, T extends TestChromo
     this.covered.clear();
     this.uncovered.clear();
   }
+
+@Override
+public void setFeasibleTime(long time) {
+	this.feasibleTime = time;
+}
 }
