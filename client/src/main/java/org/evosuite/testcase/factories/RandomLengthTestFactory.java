@@ -52,7 +52,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 	private static final long serialVersionUID = -5202578461625984100L;
 
 	/** Constant <code>logger</code> */
-	protected static final Logger logger = LoggerFactory.getLogger(FixedLengthTestChromosomeFactory.class);
+	protected static final Logger logger = LoggerFactory.getLogger(RandomLengthTestFactory.class);
 
 	/**
 	 * Create a random individual
