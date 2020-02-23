@@ -239,7 +239,7 @@ public class ConstructionPathSynthesizer {
 			GenericField genericField = new GenericField(field, fieldDeclaringClass);
 			int fieldModifiers = field.getModifiers();
 
-			if (Modifier.isPublic(fieldModifiers)) {
+			if (Modifier.isPublic(fieldModifiers) || fieldModifiers == 0) {
 				if (CollectionUtil.existIn(desc, "Z", "B", "C", "S", "I", "J", "F", "D")) {
 					stmt = addStatementToSetPrimitiveField(test, position + 1, desc, genericField, parentVarRef);
 				} else {
@@ -634,7 +634,8 @@ public class ConstructionPathSynthesizer {
 	
 	private VariableReference addPrimitiveStatement(TestCase test, int position, String desc) {
 		try {
-			NumericalPrimitiveStatement<?> primStatement = createNewPrimitiveStatement(test, desc);
+			PrimitiveStatement<?> primStatement = createNewPrimitiveStatement(test, desc);
+			primStatement.randomize();
 			VariableReference varRef = testFactory.addPrimitive(test, primStatement, position);
 			return varRef;
 		} catch (ConstructionFailedException e) {
