@@ -1,6 +1,7 @@
 package org.evosuite.ga.operators.ranking;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -10,6 +11,8 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.comparators.PreferenceSortingComparator;
+import org.evosuite.testcase.TestChromosome;
 
 /**
  * for each goal, we keep its at most Properties.LOCAL_OPTIMAL_NUMBER individuals at each front.
@@ -35,8 +38,7 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 			List<T> rankedSolutions = rank(solutions, ff);
 			map.put(ff, rankedSolutions);
 		}
-		
-		
+			
 		List<T> solutionsCopy = new ArrayList<>(solutions);
 		Map<FitnessFunction<T>, Double> bestValues = new HashMap<FitnessFunction<T>, Double>();
 		while(!solutionsCopy.isEmpty()) {
@@ -78,8 +80,8 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 	}
 
 	private List<T> rank(List<T> solutions, FitnessFunction<T> ff) {
-		//FIXME ziheng, please rank the solution according to ff.
-		return null;
+		Collections.sort(solutions, new PreferenceSortingComparator<T>(ff));
+		return solutions;
 	}
 
 	@Override

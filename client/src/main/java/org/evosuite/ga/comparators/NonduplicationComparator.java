@@ -27,9 +27,8 @@ public class NonduplicationComparator<T extends Chromosome> implements Comparato
 
 	@Override
 	public int compare(Chromosome c1, Chromosome c2) {
-		//FIXME FOR ZIHENG, check duplication
 		if(population.contains(c1) && !population.contains(c2)) {
-			return +1;
+			return 1;
 		}
 		
 		if(population.contains(c2) && !population.contains(c1)) {
