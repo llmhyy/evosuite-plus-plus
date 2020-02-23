@@ -111,6 +111,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	protected double localSearchProbability = Properties.LOCAL_SEARCH_PROBABILITY;
 
 	/** Selected ranking strategy **/
+	//FIXME ziheng replace it with IndividualGoalBasedSorting<T>
 	protected RankingFunction<T> rankingFunction = new RankBasedPreferenceSorting<T>();
 
 //	protected transient Archive<T> archive = null;
