@@ -31,6 +31,7 @@ import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.comparators.NonduplicationComparator;
 import org.evosuite.ga.comparators.OnlyCrowdingComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
@@ -146,7 +147,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		// Remain is less than front(index).size, insert only the best one
 		if (remain > 0 && !front.isEmpty()) { // front contains individuals to insert
 			this.distance.fastEpsilonDominanceAssignment(front, this.goalsManager.getCurrentGoals());
-			Collections.sort(front, new OnlyCrowdingComparator());
+			Collections.sort(front, new NonduplicationComparator<T>(this.population));
 			for (int k = 0; k < remain; k++) {
 				this.population.add(front.get(k));
 			}

@@ -20,9 +20,9 @@ public class NonduplicationComparator<T extends Chromosome> implements Comparato
 
 	private List<T> population;
 	
-	public NonduplicationComparator(List<T> population) {
+	public NonduplicationComparator(List<T> population2) {
 		super();
-		this.population = population;
+		this.population = population2;
 	}
 
 	@Override
