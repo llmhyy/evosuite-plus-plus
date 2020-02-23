@@ -355,6 +355,9 @@ public class Properties {
 
 	@Parameter(key = "neighborhood_model", group = "Search Algorithm", description = "The model of neighborhood used in case of CGA. L5 is default")
 	public static CGA_Models MODEL = CGA_Models.LINEAR_FIVE;
+	
+	@Parameter(key = "local_optimal_number", group = "Search Algorithm", description = "the number of best individual during evolution")
+	public static int LOCAL_OPTIMAL_NUMBER = 5;
 
 	@Parameter(key = "random_seed", group = "Search Algorithm", description = "Seed used for random generator. If left empty, use current time")
 	public static Long RANDOM_SEED = null;
