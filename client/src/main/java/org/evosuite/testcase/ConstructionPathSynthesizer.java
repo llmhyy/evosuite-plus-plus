@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Comparator;
@@ -237,6 +238,12 @@ public class ConstructionPathSynthesizer {
 					.loadClass(fieldOwner);
 			// Ignore "this" check
 			Field field = searchForField(fieldDeclaringClass, fieldName);
+			
+			VariableReference usedField = searchUsedField(test, field);
+			if(usedField != null) {
+				return usedField;						
+			}
+			
 			GenericField genericField = new GenericField(field, fieldDeclaringClass);
 			int fieldModifiers = field.getModifiers();
 
@@ -277,6 +284,9 @@ public class ConstructionPathSynthesizer {
 						return newParentVarRef;
 					}
 
+					/**
+					 * if the field is not primitive, we can get the object-typed field and return it.
+					 */
 					if (!isPrimitiveType(var.getInstruction().getFieldType())) {
 						Method potentialGetter = searchForPotentialGetter(owner, var.getInstruction(),
 								fieldDeclaringClass);
@@ -295,6 +305,10 @@ public class ConstructionPathSynthesizer {
 						}
 					}
 
+					/**
+					 * deal with the case when the class has neither getter nor setter.
+					 */
+					
 					Constructor constructor = searchForPotentialConstructor(owner, fieldName, fieldDeclaringClass,
 							insList, fieldWriteOpcode);
 					/**
@@ -315,9 +329,13 @@ public class ConstructionPathSynthesizer {
 									}
 								}
 							}
+							
+							VariableReference justCreatedUsedField = searchUsedField(test, field);
+							return justCreatedUsedField;
 						}
+						
 					}
-
+					
 					return parentVarRef;
 				}
 			}
@@ -327,6 +345,28 @@ public class ConstructionPathSynthesizer {
 		}
 
 		return parentVarRef;
+	}
+
+	private VariableReference searchUsedField(TestCase test, Field field) {
+		MethodStatement targetMethodCall = findTargetMethodCallStatement(test);
+		VariableReference callee = targetMethodCall.getCallee();
+		if(callee != null) {
+			Statement s = test.getStatement(callee.getStPosition());
+			if(s instanceof ConstructorStatement) {
+				ConstructorStatement constructorStat = (ConstructorStatement)s;
+				List<VariableReference> params = constructorStat.getParameterReferences();
+				for(VariableReference param: params) {
+					// FIXME ziheng have a more detailed analysis to check with parameter 
+					if (param.getClassName().equals(field.getType().getCanonicalName())) {
+						return param;
+					}
+					System.currentTimeMillis();
+				}
+			} else if (s instanceof MethodStatement) {
+				System.currentTimeMillis();
+			}
+		}
+		return null;
 	}
 
 	private boolean isCompatible(String parentType, String subType) {
@@ -578,15 +618,32 @@ public class ConstructionPathSynthesizer {
 					
 					if(fullName.contains("<init>")) {
 						Constructor constructor = fieldDeclaringClass.getDeclaredConstructor(paramClasses);
-						targetConstructors.add(constructor);					
+						Parameter[] paramList = constructor.getParameters();
+						Parameter param = lookForSettingParam(paramList, ins);
+						if(param != null) {
+							targetConstructors.add(constructor);												
+						}
 					}
 				}
 			}
 		}
-		
 		return Randomness.choice(targetConstructors);
 	}
 	
+	private Parameter lookForSettingParam(Parameter[] paramList, BytecodeInstruction ins) {
+		// FIXME ziheng to finding the corresponding parameter
+		String fieldType = ins.getFieldType();
+		for(Parameter p: paramList) {
+			String normalizedType = fieldType.replace("/", ".");
+			normalizedType = normalizedType.substring(1, normalizedType.length()-1);
+			if(p.getType().getTypeName().equals(normalizedType)) {
+				return p;
+			}
+		}
+		System.currentTimeMillis();
+		return null;
+	}
+
 	private VariableReference addNullStatement(TestCase test, int position, Type type) {	
 		NullStatement nullStatement = new NullStatement(test, type);
 		VariableReference reference = null;
