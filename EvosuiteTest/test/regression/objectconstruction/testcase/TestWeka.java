@@ -6,7 +6,6 @@ import java.util.List;
 import org.junit.Test;
 
 import evosuite.shell.EvoTestResult;
-import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
 public class TestWeka extends DebugSetup {
