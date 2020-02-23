@@ -11,7 +11,7 @@ import sf100.CommonTestUtil;
 public class TestWeka extends DebugSetup {
 
 	@Test
-	public void runCorina() {
+	public void runWeka() {
 		String projectId = "101_weka";
 		String[] targetMethods = new String[]{
 				"org.apache.commons.compress.archivers.arj.ArjArchiveEntry#isDirectory()Z"
