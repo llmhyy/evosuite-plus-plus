@@ -12,6 +12,7 @@ import java.util.Map;
 import evosuite.shell.ComparativeRecorder;
 import evosuite.shell.excel.ExcelReader;
 import evosuite.shell.excel.ExcelWriter;
+import evosuite.shell.experiment.SFConfiguration;
 
 public class NewComparativeResultMerger {
 //	public static String folderName = "new-result3";
