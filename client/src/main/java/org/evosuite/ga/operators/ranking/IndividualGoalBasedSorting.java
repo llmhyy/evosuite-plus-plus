@@ -12,7 +12,6 @@ import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.comparators.PreferenceSortingComparator;
-import org.evosuite.testcase.TestChromosome;
 
 /**
  * for each goal, we keep its at most Properties.LOCAL_OPTIMAL_NUMBER individuals at each front.
@@ -45,18 +44,23 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 			List<T> front = new ArrayList<>();
 			
 			for(FitnessFunction<T> ff: map.keySet()) {
+				List<T> partialFront = new ArrayList<>();
 				List<T> rankedSolutions = map.get(ff);
 				Double bestValue = bestValues.get(ff);
 				
 				Iterator<T> iter = rankedSolutions.iterator();
-				int count = 0;
-				while(iter.hasNext() && count < Properties.LOCAL_OPTIMAL_NUMBER) {
-					T individual = iter.next();
-					Double value = individual.getFitness(ff);
+				while(iter.hasNext() && partialFront.size() <= Properties.LOCAL_OPTIMAL_NUMBER) {
 					
+					T individual = iter.next();
+					if(!solutionsCopy.contains(individual)) {
+						iter.remove();
+						continue;
+					}
+					
+					Double value = individual.getFitness(ff);
 					if(bestValue == null || value > bestValue) {
-						if(!solutionsCopy.contains(individual)) {
-							front.add(individual);
+						if(!front.contains(individual)) {
+							partialFront.add(individual);
 							solutionsCopy.remove(individual);
 							iter.remove();
 						}
@@ -64,9 +68,11 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 					}
 					
 					bestValues.put(ff, value);
-					count++;
 				}
+				
+				front.addAll(partialFront);
 			}
+			
 			
 			if(!front.isEmpty()) {
 				fronts.add(front);
