@@ -644,4 +644,16 @@ public class BytecodeInstructionPool {
 		}
 		return insList;
 	}
+	
+	public List<BytecodeInstruction> getAllInstructionsAtMethod(String className, String methodName) {
+		List<BytecodeInstruction> insList = new ArrayList<BytecodeInstruction>();
+		if (instructionMap.get(className) == null)
+			return null;
+		if (instructionMap.get(className).get(methodName) == null)
+			return null;
+		if (instructionMap.get(className).get(methodName).isEmpty())
+			return null;
+
+		return instructionMap.get(className).get(methodName);
+	}
 }
