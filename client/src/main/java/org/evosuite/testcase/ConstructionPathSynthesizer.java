@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -224,7 +225,10 @@ public class ConstructionPathSynthesizer {
 		String owner = fieldNode.owner;
 		String fieldName = fieldNode.name;
 		String fieldOwner = owner.replace("/", ".");
+		String fieldWriteOpcode = isStatic ? "PUTSTATIC" : "PUTFIELD";
 
+		AbstractStatement stmt = null;
+		
 		if (parentVarRef != null) {
 			String parentType = parentVarRef.getType().getTypeName();
 			if (!parentType.equals(fieldOwner)) {
@@ -232,14 +236,16 @@ public class ConstructionPathSynthesizer {
 			}
 		}
 
-		AbstractStatement stmt = null;
 		try {
 			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 					.loadClass(fieldOwner);
-			// Ignore "this" check
+
+			/** 
+			 * If field is not found in declaring class, we search recursively for its superclass
+			 */
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 			
-			VariableReference usedField = searchUsedField(test, field);
+			VariableReference usedField = searchUsedField(test, field, fieldWriteOpcode);
 			if(usedField != null) {
 				return usedField;						
 			}
@@ -263,14 +269,9 @@ public class ConstructionPathSynthesizer {
 						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 						.getInstructionsIn(fieldDeclaringClass.getName());
 				if (insList != null) {
-					String fieldWriteOpcode = "PUTSTATIC";
-					if (!isStatic) {
-						fieldWriteOpcode = "PUTFIELD";
-					}
 
-					Method potentialSetter = searchForRelevantMethod(owner, fieldName, fieldDeclaringClass, insList,
+					Method potentialSetter = searchForPotentialSetter(owner, fieldName, fieldDeclaringClass, insList,
 							fieldWriteOpcode);
-					System.currentTimeMillis();
 
 					if (potentialSetter != null) {
 						GenericMethod gMethod = new GenericMethod(potentialSetter, potentialSetter.getDeclaringClass());
@@ -330,7 +331,7 @@ public class ConstructionPathSynthesizer {
 								}
 							}
 							
-							VariableReference justCreatedUsedField = searchUsedField(test, field);
+							VariableReference justCreatedUsedField = searchUsedField(test, field, fieldWriteOpcode);
 							return justCreatedUsedField;
 						}
 						
@@ -347,23 +348,45 @@ public class ConstructionPathSynthesizer {
 		return parentVarRef;
 	}
 
-	private VariableReference searchUsedField(TestCase test, Field field) {
+	private VariableReference searchUsedField(TestCase test, Field field, String opcode) {
+		List<VariableReference> qualifiedParams = new ArrayList<>();
 		MethodStatement targetMethodCall = findTargetMethodCallStatement(test);
 		VariableReference callee = targetMethodCall.getCallee();
-		if(callee != null) {
+		if (callee != null) {
 			Statement s = test.getStatement(callee.getStPosition());
-			if(s instanceof ConstructorStatement) {
-				ConstructorStatement constructorStat = (ConstructorStatement)s;
+			if (s instanceof ConstructorStatement) {
+				ConstructorStatement constructorStat = (ConstructorStatement) s;
 				List<VariableReference> params = constructorStat.getParameterReferences();
-				for(VariableReference param: params) {
-					// FIXME ziheng have a more detailed analysis to check with parameter 
+				for (VariableReference param : params) {
 					if (param.getClassName().equals(field.getType().getCanonicalName())) {
-						return param;
+						qualifiedParams.add(param);
 					}
-					System.currentTimeMillis();
+					if (!qualifiedParams.isEmpty()) {
+						return searchForQualifiedParameter(constructorStat, qualifiedParams, opcode);
+					}
+					return null;
 				}
-			} else if (s instanceof MethodStatement) {
-				System.currentTimeMillis();
+			}
+		}
+		return null;
+	}
+	
+	private VariableReference searchForQualifiedParameter(ConstructorStatement constructorStat,
+			List<VariableReference> qualifiedParams, String opcode) {
+//		if (qualifiedParams.size() == 1) {
+//			return qualifiedParams.get(0);
+//		}
+		GenericConstructor gConstructor = constructorStat.getConstructor();
+		List<BytecodeInstruction> insList = BytecodeInstructionPool
+				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getAllInstructionsAtMethod(
+						gConstructor.getDeclaringClass().getCanonicalName(), gConstructor.getNameWithDescriptor());
+		for (BytecodeInstruction ins : insList) {
+			if (ins.getASMNodeString().contains(opcode)) {
+				int pos = ins.getSourceOfStackInstruction(0).getLocalVariableSlot();
+				if (pos == 0) {
+					return null;
+				}
+				return qualifiedParams.get(pos - 1);
 			}
 		}
 		return null;
@@ -561,7 +584,7 @@ public class ConstructionPathSynthesizer {
 		return args;
 	}
 
-	private Method searchForRelevantMethod(String owner, String fieldName, Class<?> fieldDeclaringClass, 
+	private Method searchForPotentialSetter(String owner, String fieldName, Class<?> fieldDeclaringClass, 
 			List<BytecodeInstruction> insList, String operation) 
 			throws NoSuchMethodException, ClassNotFoundException {
 		Set<Method> targetMethods = new HashSet<>();
@@ -585,7 +608,11 @@ public class ConstructionPathSynthesizer {
 					if(!methodName.contains("<init>") && 
 							!(methodName.equals(Properties.TARGET_METHOD) && ins.getClassName().equals(Properties.TARGET_CLASS))) {
 						Method targetMethod = fieldDeclaringClass.getDeclaredMethod(methodName.substring(0, methodName.indexOf("(")), paramClasses);
-						targetMethods.add(targetMethod);						
+						Parameter[] paramList = targetMethod.getParameters();
+						Parameter param = lookForSettingParam(paramList, ins);
+						if (param != null) {
+							targetMethods.add(targetMethod);					
+						}
 					}
 				}
 			}
@@ -610,8 +637,7 @@ public class ConstructionPathSynthesizer {
 							.getArgumentTypes(fullName.substring(fullName.indexOf("("), fullName.length()));
 					Class<?>[] paramClasses = new Class<?>[types.length];
 					int index = 0;
-					for (org.objectweb.asm.Type type : types) {
-						
+					for (org.objectweb.asm.Type type : types) {		
 						Class<?> paramClass = getClassForType(type);
 						paramClasses[index++] = paramClass;
 					}
@@ -631,7 +657,6 @@ public class ConstructionPathSynthesizer {
 	}
 	
 	private Parameter lookForSettingParam(Parameter[] paramList, BytecodeInstruction ins) {
-		// FIXME ziheng to finding the corresponding parameter
 		String fieldType = ins.getFieldType();
 		for(Parameter p: paramList) {
 			String normalizedType = fieldType.replace("/", ".");
@@ -875,6 +900,4 @@ public class ConstructionPathSynthesizer {
 			return null;
 		}
 	}
-	
-	
 }
