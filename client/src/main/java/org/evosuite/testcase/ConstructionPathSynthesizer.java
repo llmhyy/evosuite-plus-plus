@@ -361,11 +361,13 @@ public class ConstructionPathSynthesizer {
 					if (param.getClassName().equals(field.getType().getCanonicalName())) {
 						qualifiedParams.add(param);
 					}
-					if (!qualifiedParams.isEmpty()) {
-						return searchForQualifiedParameter(constructorStat, qualifiedParams, opcode);
-					}
-					return null;
 				}
+				
+				if (!qualifiedParams.isEmpty()) {
+					return searchForQualifiedParameter(constructorStat, qualifiedParams, opcode);
+				}
+				
+				return null;
 			}
 		}
 		return null;
@@ -382,6 +384,8 @@ public class ConstructionPathSynthesizer {
 						gConstructor.getDeclaringClass().getCanonicalName(), gConstructor.getNameWithDescriptor());
 		for (BytecodeInstruction ins : insList) {
 			if (ins.getASMNodeString().contains(opcode)) {
+				//FIXME Ziheng, parameters can be (int, int, String) (assuming that the field is of type String)
+				//thus, ths pos here should be 2, but the size of qualifiedParams is only 1. 
 				int pos = ins.getSourceOfStackInstruction(0).getLocalVariableSlot();
 				if (pos == 0) {
 					return null;
