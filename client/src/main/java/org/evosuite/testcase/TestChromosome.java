@@ -47,6 +47,7 @@ import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.localsearch.TestCaseLocalSearch;
 import org.evosuite.testcase.statements.FunctionalMockStatement;
 import org.evosuite.testcase.statements.MethodStatement;
+import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.variable.VariableReference;
@@ -582,7 +583,17 @@ public class TestChromosome extends ExecutableChromosome {
 						int oldDistance = statement.getReturnValue().getDistance();
 
 						//constraints are handled directly in the statement mutations
-						if (statement.mutate(test, testFactory)) {
+						if (statement instanceof NullStatement) {
+							int pos = statement.getPosition();
+							if (testFactory.changeNullStatement(test, statement)) {
+								changed = true;
+								statementChanged = true;
+								mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
+										TestMutationHistoryEntry.TestMutation.CHANGE, test.getStatement(pos)));
+								assert ConstraintVerifier.verifyTest(test);		
+							}
+						}
+						else if (statement.mutate(test, testFactory)) {
 							changed = true;
 							statementChanged = true;
 							mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
@@ -597,10 +608,8 @@ public class TestChromosome extends ExecutableChromosome {
 							//if a statement should not be deleted, then it cannot be either replaced by another one
 							int pos = statement.getPosition();
 							boolean isToReplaceTargetMethod = isToReplaceTargetMethod(statement);
-							if (!isToReplaceTargetMethod) {
-								
-								if(testFactory.changeRandomCall(test, statement) ||
-										testFactory.changeNullStatement(test, statement)) {
+							if (!isToReplaceTargetMethod) {				
+								if(testFactory.changeRandomCall(test, statement)) {
 									changed = true;
 									statementChanged = true;
 									mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
