@@ -31,7 +31,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
@@ -54,25 +53,25 @@ public class FieldUseAnalyzer {
 		return className;
 	}
 	
-	private Map<String, Set<DepVariable>> analyzeReturnValueFromMethod(BytecodeInstruction instruction, 
-			String recommendedClass){
+	private Map<String, Set<DepVariable>> analyzeReturnValueFromMethod(BytecodeInstruction instruction){
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		
 		String className = instruction.getCalledMethodsClass();
 		String methodName = instruction.getCalledMethod();
 		
-//		try {
-//			Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
-//			if(clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
-//				className = recommendedClass==null ? getRuleBasedSubclass(className) : recommendedClass;
-//			}
-//		} catch (ClassNotFoundException e1) {
-//			return new HashMap<>();
-//		}
-		
+		//TODO more in-depth analysis here
+		try {
+			Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
+			if(clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
+				return new HashMap<>();
+			}
+		} catch (ClassNotFoundException e1) {
+			return new HashMap<>();
+		}
 		
 		ActualControlFlowGraph calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		MethodNode innerNode = getMethodNode(classLoader, className, methodName);
+		
 		if (calledCfg == null) {
 			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
 			try {
@@ -88,6 +87,8 @@ public class FieldUseAnalyzer {
 			calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			Properties.ALWAYS_REGISTER_BRANCH = false;
 		}
+		
+		GraphPool.getInstance(classLoader).alwaysRegisterActualCFG(calledCfg);
 		boolean canBeAnalyzed = FBranchDefUseAnalyzer.analyze(calledCfg.getRawGraph());
 		if(!canBeAnalyzed) {
 			return new HashMap<>();
@@ -96,8 +97,9 @@ public class FieldUseAnalyzer {
 		Set<DepVariable> allDepVars = new HashSet<DepVariable>();
 		Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 		for (BytecodeInstruction exit : calledCfg.getExitPoints()) {
-			BytecodeInstruction returnInput = exit.getPreviousInstruction();
-			searchDefDependentVariables(returnInput, calledCfg, allDepVars, visitedIns);
+			for (BytecodeInstruction returnInstruction : exit.getSourceListOfStackInstruction(0)) {
+				searchDefDependentVariables(returnInstruction, calledCfg, allDepVars, visitedIns);
+			}
 		}
 		
 		HashMap<String, Set<DepVariable>> map = new HashMap<String, Set<DepVariable>>();
@@ -273,7 +275,7 @@ public class FieldUseAnalyzer {
 	private String exploreInterproceduralInstruction(Set<DepVariable> allLeafDepVars, BytecodeInstruction defIns,
 			List<DepVariable>[] inputVarArray, String recommendedClass) {
 		
-		Map<String, Set<DepVariable>> relatedVariableMap = analyzeReturnValueFromMethod(defIns, recommendedClass);
+		Map<String, Set<DepVariable>> relatedVariableMap = analyzeReturnValueFromMethod(defIns);
 		if(relatedVariableMap.isEmpty()) {
 			return null;
 		}
