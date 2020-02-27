@@ -100,7 +100,7 @@ public class DepVariable {
 		}
 		else {
 			this.setType(DepVariable.OTHER);
-			this.setName("$unknwon");
+			this.setName("$unknown");
 		}
 	}
 	
