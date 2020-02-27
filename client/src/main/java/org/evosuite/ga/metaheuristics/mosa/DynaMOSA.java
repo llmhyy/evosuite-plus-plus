@@ -131,16 +131,16 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			// Assign crowding distance to individuals
 			this.distance.fastEpsilonDominanceAssignment(front, this.goalsManager.getCurrentGoals());
 
+			// Obtain the next front
+			if (remain > 0) {
+				front = this.rankingFunction.getSubfront(index);
+			}
+			
 			// Add the individuals of this front
 			this.population.addAll(front);
 
 			// Decrement remain
 			remain = remain - front.size();
-
-			// Obtain the next front
-			if (remain > 0) {
-				front = this.rankingFunction.getSubfront(index);
-			}
 			index++;
 		}
 
