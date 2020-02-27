@@ -1221,6 +1221,31 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		return src;
 	}
 	
+	public List<BytecodeInstruction> getSourceListOfStackInstruction(int positionFromTop) {
+		List<BytecodeInstruction> insList = new ArrayList<>();
+		if (frame == null)
+			throw new IllegalStateException(
+					"expect each BytecodeInstruction to have its CFGFrame set");
+
+		int stackPos = frame.getStackSize() - (1 + positionFromTop);
+		if (stackPos < 0){
+			StackTraceElement[] se = new Throwable().getStackTrace();
+			int t=0;
+			System.out.println("Stack trace: ");
+			while(t<se.length){
+				System.out.println(se[t]);
+				t++;
+			}
+			return null;
+		}
+		SourceValue source = (SourceValue) frame.getStack(stackPos);
+		for (AbstractInsnNode insnNode : source.insns) {
+			BytecodeInstruction src = BytecodeInstructionPool.getInstance(classLoader).getInstruction(className, methodName, insnNode);
+			insList.add(src);		
+		}
+		return insList;
+	}
+	
 	public List<BytecodeInstruction> getSourceOfStackInstructions(int positionFromTop) {
 		List<BytecodeInstruction> list = new ArrayList<>();
 		if (frame == null)
