@@ -32,12 +32,14 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 	
 	@Override
 	public void computeRankingAssignment(List<T> solutions, Set<FitnessFunction<T>> uncovered_goals) {
+		fronts = new ArrayList<List<T>>(solutions.size());
+		
 		map.clear();
 		for(FitnessFunction<T> ff: uncovered_goals) {
 			List<T> rankedSolutions = rank(solutions, ff);
 			map.put(ff, rankedSolutions);
 		}
-			
+
 		List<T> solutionsCopy = new ArrayList<>(solutions);
 		Map<FitnessFunction<T>, Double> bestValues = new HashMap<FitnessFunction<T>, Double>();
 		while(!solutionsCopy.isEmpty()) {
@@ -45,11 +47,11 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 			
 			for(FitnessFunction<T> ff: map.keySet()) {
 				List<T> partialFront = new ArrayList<>();
-				List<T> rankedSolutions = map.get(ff);
+				List<T> rankedSolutionsCopy = new ArrayList<>(map.get(ff));
 				Double bestValue = bestValues.get(ff);
 				
-				Iterator<T> iter = rankedSolutions.iterator();
-				while(iter.hasNext() && partialFront.size() <= Properties.LOCAL_OPTIMAL_NUMBER) {
+				Iterator<T> iter = rankedSolutionsCopy.iterator();
+				while(iter.hasNext() && partialFront.size() < Properties.LOCAL_OPTIMAL_NUMBER) {
 					
 					T individual = iter.next();
 					if(!solutionsCopy.contains(individual)) {
@@ -58,6 +60,11 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 					}
 					
 					Double value = individual.getFitness(ff);
+					
+					if (value == Double.MAX_VALUE) {
+						continue;
+					}
+					
 					if(bestValue == null || value > bestValue) {
 						if(!front.contains(individual)) {
 							partialFront.add(individual);
@@ -65,15 +72,12 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 							iter.remove();
 						}
 						
-					}
-					
+					}		
 					bestValues.put(ff, value);
-				}
-				
+				}		
 				front.addAll(partialFront);
 			}
-			
-			
+				
 			if(!front.isEmpty()) {
 				fronts.add(front);
 			}
@@ -82,7 +86,6 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 				solutionsCopy.clear();
 			}
 		}
-		
 	}
 
 	private List<T> rank(List<T> solutions, FitnessFunction<T> ff) {
