@@ -560,8 +560,10 @@ public class EvosuiteForMethod {
 		Collections.sort(methodIDList);
 		
 		System.out.println("enter runAllMethods");
-		
 		for(String methodID: methodIDList) {
+			if (methodID.isEmpty()) {
+				continue;
+			}
 			System.out.println("working on " + methodID);
 			String className = methodID.substring(0, methodID.indexOf("#"));
 			String methodName = methodID.substring(methodID.indexOf("#")+1, methodID.length());
@@ -663,7 +665,6 @@ public class EvosuiteForMethod {
 			List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
 			for (List<TestGenerationResult> l : list) {
 				for (TestGenerationResult r : l) {
-
 					System.out.println("Used time: " + r.getElapseTime());
 					System.out.println("Used generations: " + r.getAge());
 					System.out.println("Method call availability: " + r.getAvailabilityRatio());
