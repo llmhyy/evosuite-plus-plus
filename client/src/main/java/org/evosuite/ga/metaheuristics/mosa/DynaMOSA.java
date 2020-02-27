@@ -154,6 +154,27 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 			remain = 0;
 		}
+		
+		// Add new randomly generate tests
+		for (int i = 0; i < remain; i++) {
+			T tch = null;
+			if (this.getCoveredGoals().size() == 0 || Randomness.nextBoolean()) {
+				tch = this.chromosomeFactory.getChromosome();
+				tch.setChanged(true);
+			} else {
+				tch = (T) Randomness.choice(this.getSolutions()).clone();
+				tch.mutate(); tch.mutate(); // TODO why is it mutated twice?
+			}
+			if (tch.isChanged()) {
+				tch.updateAge(this.currentIteration);
+				this.calculateFitness(tch);
+				if (this.getNumberOfCoveredGoals() > prevCoveredGoals) {
+					situation = Situation.RANDOM;
+					prevCoveredGoals = this.getNumberOfCoveredGoals();
+				}
+				this.population.add(tch);
+			}
+		}
 
 		// Get 50 populations based on ranking
 		MutationPositionDiscriminator.discriminator.decreaseFrozenIteration();
