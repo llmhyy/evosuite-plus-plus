@@ -38,6 +38,7 @@ import org.evosuite.ga.operators.ranking.CrowdingDistance;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.utils.LoggingUtils;
+import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,10 +169,10 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			if (tch.isChanged()) {
 				tch.updateAge(this.currentIteration);
 				this.calculateFitness(tch);
-				if (this.getNumberOfCoveredGoals() > prevCoveredGoals) {
-					situation = Situation.RANDOM;
-					prevCoveredGoals = this.getNumberOfCoveredGoals();
-				}
+//				if (this.getNumberOfCoveredGoals() > prevCoveredGoals) {
+//					situation = Situation.RANDOM;
+//					prevCoveredGoals = this.getNumberOfCoveredGoals();
+//				}
 				this.population.add(tch);
 			}
 		}
