@@ -240,7 +240,9 @@ public class ConstructionPathSynthesizer {
 					.loadClass(fieldOwner);
 
 			/** 
-			 * If field is not found in declaring class, we search recursively for its superclass
+			 * If field is not found in current declaring class, we search recursively for its superclass
+			 * However, for simplicity, we only search for setter, getter, constructor in current class instead of the real
+			 * declaring class of this field
 			 */
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 			
@@ -249,7 +251,7 @@ public class ConstructionPathSynthesizer {
 				return usedField;						
 			}
 			
-			GenericField genericField = new GenericField(field, fieldDeclaringClass);
+			GenericField genericField = new GenericField(field, field.getDeclaringClass());
 			int fieldModifiers = field.getModifiers();
 
 			if (Modifier.isPublic(fieldModifiers) || fieldModifiers == 0) {
@@ -420,7 +422,9 @@ public class ConstructionPathSynthesizer {
 							count++;
 						}
 					}
-					return qualifiedParams.get(count - 1);
+					if (count >= 1) {
+						return qualifiedParams.get(count - 1);
+					}
 				}
 			}
 		}
@@ -461,7 +465,9 @@ public class ConstructionPathSynthesizer {
 								count++;
 							}
 						}
-						return qualifiedParams.get(count - 1);
+						if (count >= 1) {
+							return qualifiedParams.get(count - 1);
+						}
 					}
 				}
 			}
