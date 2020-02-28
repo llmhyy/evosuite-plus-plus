@@ -231,6 +231,17 @@ public class Randomness implements Serializable {
 	public static long getSeed() {
 		return seed;
 	}
+	
+	/**
+	 * <p>
+	 * Getter for the field <code>seed</code>.
+	 * </p>
+	 * 
+	 * @return a long.
+	 */
+	public static void resetSeed() {
+		instance = new Randomness();
+	}
 
 	/**
 	 * <p>

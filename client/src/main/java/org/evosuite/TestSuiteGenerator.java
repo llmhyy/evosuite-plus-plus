@@ -84,6 +84,7 @@ import org.evosuite.testsuite.TestSuiteMinimizer;
 import org.evosuite.testsuite.TestSuiteSerialization;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.LoggingUtils;
+import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -298,6 +299,11 @@ public class TestSuiteGenerator {
 		LoggingUtils.getEvoLogger().info("* " + ClientProcess.getPrettyPrintIdentifier() + "Done!");
 		LoggingUtils.getEvoLogger().info("");
 
+		/**
+		 * This is used to create a new seed for next iteration
+		 */
+		Randomness.resetSeed();
+		
 		return result != null ? result : TestGenerationResultBuilder.buildSuccessResult(testCases);
 	}
 
