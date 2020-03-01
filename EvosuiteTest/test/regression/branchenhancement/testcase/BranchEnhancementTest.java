@@ -242,7 +242,7 @@ public class BranchEnhancementTest {
 
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 100000;
 		Long seed = 1581833614927L;
 
 		Properties.CLIENT_ON_THREAD = true;

@@ -1096,6 +1096,15 @@ public class TestCluster {
 		} else {
 			cacheGenerators(clazz);
 			Set<GenericAccessibleObject<?>> candidates = new LinkedHashSet<>(generatorCache.get(clazz));
+			
+			Iterator<GenericAccessibleObject<?>> canIter = candidates.iterator();
+			while(canIter.hasNext()) {
+				GenericAccessibleObject<?> obj = canIter.next();
+				if(!(obj instanceof GenericConstructor)) {
+					canIter.remove();
+				}
+			}
+			
 			candidates.removeAll(excluded);
 
 			if(Properties.JEE) {
@@ -1477,11 +1486,11 @@ public class TestCluster {
 		if(clazz.getRawClass().equals(Properties.getInitializedTargetClass()))
 			return false;
 
-		if (clazz.isAssignableTo(Collection.class))
-			return true;
-
-		if (clazz.isAssignableTo(Map.class))
-			return true;
+//		if (clazz.isAssignableTo(Collection.class))
+//			return true;
+//
+//		if (clazz.isAssignableTo(Map.class))
+//			return true;
 
 		if (clazz.isAssignableTo(Number.class))
 			return true;

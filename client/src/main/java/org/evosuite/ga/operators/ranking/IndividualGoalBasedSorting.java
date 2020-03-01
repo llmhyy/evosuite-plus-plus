@@ -12,6 +12,13 @@ import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.comparators.PreferenceSortingComparator;
+import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.statements.ArrayStatement;
+import org.evosuite.testcase.statements.PrimitiveStatement;
+import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.statements.StringPrimitiveStatement;
+import org.evosuite.testcase.variable.VariableReference;
 
 /**
  * for each goal, we keep its at most Properties.LOCAL_OPTIMAL_NUMBER individuals at each front.
@@ -32,6 +39,12 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 	
 	@Override
 	public void computeRankingAssignment(List<T> solutions, Set<FitnessFunction<T>> uncovered_goals) {
+		
+		for(T t: solutions) {
+			removeUnusedVariables(t);
+			System.currentTimeMillis();
+		}
+		
 		fronts = new ArrayList<List<T>>(solutions.size());
 		
 		map.clear();
@@ -66,7 +79,7 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 					}
 					
 					if(bestValue == null || value > bestValue) {
-						if(!front.contains(individual)) {
+						if(!front.contains(individual) && checkDuplication(front, individual) < Properties.DUPLICATED_TESTCASE_LIMIT) {
 							partialFront.add(individual);
 							solutionsCopy.remove(individual);
 							iter.remove();
@@ -86,6 +99,54 @@ public class IndividualGoalBasedSorting <T extends Chromosome> implements Rankin
 				solutionsCopy.clear();
 			}
 		}
+	}
+
+	private int checkDuplication(List<T> front, T individual) {
+		int count = 0;
+		
+		for(T t: front) {
+			
+			if(t.toString().equals(individual.toString())) {
+				count ++;
+			}
+		}
+		
+		return count;
+	}
+	
+	/**
+	 * When a test case is changed via crossover and/or mutation, it can contains some
+	 * primitive variables that are not used as input (or to store the output) of method calls.
+	 * Thus, this method removes all these "trash" statements.
+	 * 
+	 * @param chromosome
+	 * @return true or false depending on whether "unused variables" are removed
+	 */
+	private boolean removeUnusedVariables(T chromosome) {
+		int sizeBefore = chromosome.size();
+		TestCase t = ((TestChromosome) chromosome).getTestCase();
+		List<Integer> to_delete = new ArrayList<Integer>(chromosome.size());
+		boolean has_deleted = false;
+
+		int num = 0;
+		for (Statement s : t) {
+			VariableReference var = s.getReturnValue();
+			boolean delete = false;
+			delete = delete || s instanceof PrimitiveStatement;
+			delete = delete || s instanceof ArrayStatement;
+			delete = delete || s instanceof StringPrimitiveStatement;
+			if (!t.hasReferences(var) && delete) {
+				to_delete.add(num);
+				has_deleted = true;
+			}
+			num++;
+		}
+		Collections.sort(to_delete, Collections.reverseOrder());
+		for (Integer position : to_delete) {
+			t.remove(position);
+		}
+		int sizeAfter = chromosome.size();
+		return has_deleted;
 	}
 
 	private List<T> rank(List<T> solutions, FitnessFunction<T> ff) {

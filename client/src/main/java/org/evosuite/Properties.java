@@ -358,6 +358,9 @@ public class Properties {
 	
 	@Parameter(key = "local_optimal_number", group = "Search Algorithm", description = "the number of best individual during evolution")
 	public static int LOCAL_OPTIMAL_NUMBER = 5;
+	
+	@Parameter(key = "duplicated_testcase_limit", group = "Search Algorithm", description = "maximum number of duplicates in a single iteration")
+	public static int DUPLICATED_TESTCASE_LIMIT = 5;
 
 	@Parameter(key = "random_seed", group = "Search Algorithm", description = "Seed used for random generator. If left empty, use current time")
 	public static Long RANDOM_SEED = null;
@@ -2524,6 +2527,8 @@ public class Properties {
 	
 	
 	public static final int OBJECT_CONSTRUCTION_DEPTH = 2;
+
+	
 
 	/*
 	 * whether or not the regression mode is running
