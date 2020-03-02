@@ -41,6 +41,7 @@ import org.evosuite.testcase.statements.EntityWithParametersStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.utils.MethodUtil;
+import org.evosuite.utils.Randomness;
 import org.jgrapht.alg.DijkstraShortestPath;
 
 public class ExceptionBranchEnhancer<T extends Chromosome> {
@@ -532,7 +533,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 			}
 			
 			cds = cd.getBranch().getInstruction().getControlDependencies();
-			cd = cds.isEmpty() ? null : cds.iterator().next();
+			cd = cds.isEmpty() ? null : Randomness.choice(cds);
 			count++;
 		}
 		
