@@ -40,6 +40,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServlet;
@@ -2482,7 +2483,11 @@ public class TestFactory {
 			
 			try {
 				VariableReference obj = null;
-				if(type.getTypeName().contains("[")) {
+				
+				/**
+				 * check real array
+				 */
+				if(type.getTypeName().contains("[") && checkRealArray(type.getTypeName())) {
 					GenericClass clazz = new GenericClass(type);
 					obj = createArray(test, clazz, nullStat.getPosition(), 0);
 				}
@@ -2541,6 +2546,13 @@ public class TestFactory {
 		}
 		
 		return false;
+	}
+
+	private boolean checkRealArray(String typeName) {
+		int index = typeName.indexOf("[");
+		String elementType = typeName.substring(0, index);
+		boolean ifMatch = Pattern.matches("[a-zA-Z.]*", elementType);
+		return ifMatch;
 	}
 	
 	
