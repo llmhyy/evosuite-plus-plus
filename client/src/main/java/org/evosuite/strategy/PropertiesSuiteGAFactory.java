@@ -56,6 +56,7 @@ import org.evosuite.ga.operators.crossover.SinglePointRelativeCrossOver;
 import org.evosuite.ga.operators.crossover.UniformCrossOver;
 import org.evosuite.ga.operators.ranking.FastNonDominatedSorting;
 import org.evosuite.ga.operators.ranking.IndividualGoalBasedSorting;
+import org.evosuite.ga.operators.ranking.RankBasedPreferenceSorting;
 import org.evosuite.ga.operators.ranking.RankingFunction;
 import org.evosuite.ga.operators.selection.BestKSelection;
 import org.evosuite.ga.operators.selection.BinaryTournamentSelectionCrowdedComparison;
@@ -287,13 +288,17 @@ public class PropertiesSuiteGAFactory extends PropertiesSearchAlgorithmFactory<T
 	}
 
 	private RankingFunction<TestSuiteChromosome> getRankingFunction() {
-	  switch (Properties.RANKING_TYPE) {
-	    case FAST_NON_DOMINATED_SORTING:
-	      return new FastNonDominatedSorting<>();
-	    case PREFERENCE_SORTING:
-	    default:
-	      return new IndividualGoalBasedSorting<>();
-	  }
+		switch (Properties.RANKING_TYPE) {
+		case FAST_NON_DOMINATED_SORTING:
+			return new FastNonDominatedSorting<>();
+		case PREFERENCE_SORTING:
+		default:
+			if (Properties.INDIVIDUAL_GOAL_BASED_SORTING) {
+				return new IndividualGoalBasedSorting<>();
+			} else {
+				return new RankBasedPreferenceSorting<>();
+			}
+		}
 	}
 
 	@Override

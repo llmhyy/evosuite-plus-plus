@@ -359,6 +359,9 @@ public class Properties {
 	@Parameter(key = "local_optimal_number", group = "Search Algorithm", description = "the number of best individual during evolution")
 	public static int LOCAL_OPTIMAL_NUMBER = 5;
 	
+	@Parameter(key = "individual_goal_based_sorting", group = "Search Algorithm", description = "Whether to apply our own advanced sorting algorithm")
+	public static boolean INDIVIDUAL_GOAL_BASED_SORTING = false;
+	
 	@Parameter(key = "duplicated_testcase_limit", group = "Search Algorithm", description = "maximum number of duplicates in a single iteration")
 	public static int DUPLICATED_TESTCASE_LIMIT = 5;
 
@@ -559,7 +562,7 @@ public class Properties {
 
 	@Parameter(key = "chromosome_length", group = "Search Algorithm", description = "Maximum length of chromosomes during search")
 	@IntValue(min = 1, max = 100000)
-	public static int CHROMOSOME_LENGTH = 40;
+	public static int CHROMOSOME_LENGTH = 60;
 
 	@Parameter(key = "number_of_tests_per_target", group = "Search Algorithm", description = "Number of test cases for each target goal to keep in an archive")
 	public static int NUMBER_OF_TESTS_PER_TARGET = 10;

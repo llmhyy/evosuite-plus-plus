@@ -47,6 +47,7 @@ import org.evosuite.ga.localsearch.LocalSearchObjective;
 import org.evosuite.ga.operators.crossover.CrossOverFunction;
 import org.evosuite.ga.operators.crossover.SinglePointCrossOver;
 import org.evosuite.ga.operators.ranking.IndividualGoalBasedSorting;
+import org.evosuite.ga.operators.ranking.RankBasedPreferenceSorting;
 import org.evosuite.ga.operators.ranking.RankingFunction;
 import org.evosuite.ga.operators.selection.RankSelection;
 import org.evosuite.ga.operators.selection.SelectionFunction;
@@ -111,7 +112,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	protected double localSearchProbability = Properties.LOCAL_SEARCH_PROBABILITY;
 
 	/** Selected ranking strategy **/
-	protected RankingFunction<T> rankingFunction = new IndividualGoalBasedSorting<T>();
+	protected RankingFunction<T> rankingFunction = new RankBasedPreferenceSorting<>();
 
 //	protected transient Archive<T> archive = null;
 	
