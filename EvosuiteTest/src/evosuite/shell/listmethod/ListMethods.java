@@ -35,7 +35,7 @@ public class ListMethods {
 			String targetMethodFilePath, String targetClassFilePath)
 			throws ClassNotFoundException, IOException {
 		StringBuilder headerSb = new StringBuilder();
-		headerSb.append("\n");
+//		headerSb.append("\n");
 		headerSb.append("#------------------------------------------------------------------------\n")
 			.append("#Project=").append(EvosuiteForMethod.projectName).append("  -   ").append(EvosuiteForMethod.projectId).append("\n")
 			.append("#------------------------------------------------------------------------\n");

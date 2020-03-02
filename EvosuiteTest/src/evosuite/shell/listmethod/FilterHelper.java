@@ -182,4 +182,21 @@ public class FilterHelper {
 		}
 		return false;
 	}
+	
+	public static boolean containStringArrayParameter(String desc) {
+		try {
+			Type[] argsTypes = Type.getArgumentTypes(desc);
+
+			for (Type type : argsTypes) {
+				if (type.getSort() == Type.ARRAY) {
+					if (type.getElementType().getClassName().equals("java.lang.String")) {
+						return true;
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }

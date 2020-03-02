@@ -14,7 +14,11 @@ public enum MethodFilterOption {
 	AT_LEAST_FOUR_BRANCHES("atLeastFourBranches"),
 	PRIMITIVE_BASED_METHOD_WITH_CONSTRAINT("primitiveBasedMethodWithConstraint"),
 	PRIMITIVE_BASED_METHOD("primitiveBasedMethod"),
-	BRANCHED_METHOD("branchedMethod");
+	BRANCHED_METHOD("branchedMethod"),
+	STRING_ARRAY_INPUT_METHOD("stringArrayInputMethod"),
+	STRING_ARRAY_CONDITION_RELATED_METHOD("stringArrayConditionRelatedMethod"),
+	PRIMITIVE_ARRAY_CONDITION_RELATED_METHOD("primitiveArrayConditionRelatedMethod"),
+	MAIN_METHOD("mainMethod");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -49,6 +53,14 @@ public enum MethodFilterOption {
 			return new PrimitiveBasedFilter();
 		case BRANCHED_METHOD:
 			return new BranchedMethodFilter();
+		case STRING_ARRAY_INPUT_METHOD:
+			return new StringArrayInputFilter();
+		case STRING_ARRAY_CONDITION_RELATED_METHOD:
+			return new StringArrayConditionRelatedFilter();
+		case PRIMITIVE_ARRAY_CONDITION_RELATED_METHOD:
+			return new PrimitiveArrayConditionRelatedFilter();
+		case MAIN_METHOD:
+			return new MainMethodFilter();
 		}
 		return null;
 	}

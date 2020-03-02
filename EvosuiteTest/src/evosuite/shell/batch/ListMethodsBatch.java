@@ -40,7 +40,11 @@ public class ListMethodsBatch {
 //		runListMethod(MethodFilterOption.AT_LEAST_FOUR_BRANCHES);
 //		runListMethod(MethodFilterOption.PRIMITIVE_BASED_METHOD_WITH_CONSTRAINT);
 //		runListMethod(MethodFilterOption.PRIMITIVE_BASED_METHOD);
-		runListMethod(MethodFilterOption.BRANCHED_METHOD);
+//		runListMethod(MethodFilterOption.BRANCHED_METHOD);
+//		runListMethod(MethodFilterOption.STRING_ARRAY_INPUT_METHOD);
+//		runListMethod(MethodFilterOption.STRING_ARRAY_CONDITION_RELATED_METHOD);
+//		runListMethod(MethodFilterOption.PRIMITIVE_ARRAY_CONDITION_RELATED_METHOD);
+		runListMethod(MethodFilterOption.MAIN_METHOD);
 
 //	}
 	}
