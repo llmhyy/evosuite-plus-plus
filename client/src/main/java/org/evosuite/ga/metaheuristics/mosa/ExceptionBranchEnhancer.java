@@ -278,6 +278,9 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 						FitnessFunction<T> fitness = createOppFitnessFunction(cd);
 						StackTraceElement[] newStack = Arrays.copyOfRange(stack, level, stack.length);
 						CallContext context = new CallContext(newStack, true);
+						if (context.getContext() == null) {
+							return null;
+						}
 						return new ContextFitnessFunction<T>(context, fitness);
 					}
 				} 

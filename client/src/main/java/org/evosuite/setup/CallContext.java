@@ -168,6 +168,11 @@ public class CallContext implements Serializable {
 		for (int i = startPos; i >= endPos; i--) {
 			StackTraceElement element = stackTrace[i];
 			String methodSig = covert2Sig(element);
+			if (methodSig == null) {
+				this.hcode = 0;
+				this.context = null;
+				return;
+			}
 			Call newCall = new Call(element.getClassName(), methodSig, element.getLineNumber());
 			newCall.setLineNumber(element.getLineNumber());
 			boolean skip = false;
