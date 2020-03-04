@@ -22,6 +22,50 @@ public class DefUseAnalyzer {
 		analizedList.clear();
 	}
 	
+	public static BytecodeInstruction convert2BytecodeInstruction(ActualControlFlowGraph cfg, MethodNode node,
+			AbstractInsnNode ins) {
+		AbstractInsnNode condDefinition = (AbstractInsnNode)ins;
+		BytecodeInstruction defIns = cfg.getInstruction(node.instructions.indexOf(condDefinition));
+		return defIns;
+	}
+	
+	public static MethodNode getMethodNode(InstrumentingClassLoader classLoader, String className, String methodName) {
+		InputStream is = ResourceList.getInstance(classLoader).getClassAsStream(className);
+		try {
+			ClassReader reader = new ClassReader(is);
+			ClassNode cn = new ClassNode();
+			reader.accept(cn, ClassReader.SKIP_FRAMES);
+			List<MethodNode> l = cn.methods;
+
+			for (MethodNode n : l) {
+				String methodSig = n.name + n.desc;
+				if (methodSig.equals(methodName)) {
+					return n;
+				}
+			}
+			
+			// Can't find the method in current class
+			// Check its parent class
+			try {
+				Class<?> clazz = Class.forName(className);
+				if (clazz.getSuperclass() != null) {
+					Class<?> superClazz = clazz.getSuperclass();
+					return getMethodNode(classLoader, superClazz.getName(), methodName);
+//					System.currentTimeMillis();
+				}
+				System.currentTimeMillis();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+	
 	public void analyze(ClassLoader classLoader, MethodNode mn, String className,
 	        String methodName, int access) {
 		String methodId = String.format("%s#%s%s", className, methodName, mn.desc);

@@ -1,7 +1,5 @@
 package org.evosuite.graphs.dataflow;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,7 +10,6 @@ import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
-import org.evosuite.classpath.ResourceList;
 import org.evosuite.coverage.dataflow.DefUseFactory;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.dataflow.Definition;
@@ -27,9 +24,7 @@ import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.Randomness;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
@@ -70,7 +65,7 @@ public class FieldUseAnalyzer {
 		}
 		
 		ActualControlFlowGraph calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-		MethodNode innerNode = getMethodNode(classLoader, className, methodName);
+		MethodNode innerNode = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
 		
 		if (calledCfg == null) {
 			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
@@ -155,14 +150,14 @@ public class FieldUseAnalyzer {
 		String className = cfg.getClassName();
 		String methodName = cfg.getMethodName();
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-		MethodNode node = getMethodNode(classLoader, className, methodName);
+		MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
 		
 		SourceValue srcValue = (SourceValue) value;
 		/**
 		 * get all the instruction defining the value.
 		 */
 		for(AbstractInsnNode insNode: srcValue.insns) {
-			BytecodeInstruction defIns = convert2BytecodeInstruction(cfg, node, insNode);
+			BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
 			searchDefDependentVariables(defIns, cfg, allLeafDepVars, visitedIns);
 		}
 	}
@@ -178,7 +173,7 @@ public class FieldUseAnalyzer {
 		String className = cfg.getClassName();
 		String methodName = cfg.getMethodName();
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-		MethodNode node = getMethodNode(classLoader, className, methodName);
+		MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
 		
 		DepVariable outputVar = parseVariable(defIns);
 		/**
@@ -223,7 +218,7 @@ public class FieldUseAnalyzer {
 			List<Definition> defs = DefUsePool.getDefinitions(use);
 			for (Definition def : CollectionUtil.nullToEmpty(defs)) {
 				if (def != null) {
-					BytecodeInstruction defInstruction = convert2BytecodeInstruction(cfg, node, def.getASMNode());
+					BytecodeInstruction defInstruction = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, def.getASMNode());
 					buildInputOutputForInstruction(defInstruction, node,
 							outputVar, cfg, allLeafDepVars, visitedIns);
 				}
@@ -334,7 +329,7 @@ public class FieldUseAnalyzer {
 			
 			SourceValue inputVal = (SourceValue)val;
 			for(AbstractInsnNode newDefInsNode: inputVal.insns) {
-				BytecodeInstruction newDefIns = convert2BytecodeInstruction(cfg, node, newDefInsNode);
+				BytecodeInstruction newDefIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, newDefInsNode);
 				DepVariable inputVar = parseVariable(newDefIns);
 				inputVar.buildRelation(outputVar, i);
 				
@@ -349,47 +344,7 @@ public class FieldUseAnalyzer {
 		return intputVarArray;
 	}
 
-	public BytecodeInstruction convert2BytecodeInstruction(ActualControlFlowGraph cfg, MethodNode node,
-			AbstractInsnNode ins) {
-		AbstractInsnNode condDefinition = (AbstractInsnNode)ins;
-		BytecodeInstruction defIns = cfg.getInstruction(node.instructions.indexOf(condDefinition));
-		return defIns;
-	}
+	
 
-	public MethodNode getMethodNode(InstrumentingClassLoader classLoader, String className, String methodName) {
-		InputStream is = ResourceList.getInstance(classLoader).getClassAsStream(className);
-		try {
-			ClassReader reader = new ClassReader(is);
-			ClassNode cn = new ClassNode();
-			reader.accept(cn, ClassReader.SKIP_FRAMES);
-			List<MethodNode> l = cn.methods;
-
-			for (MethodNode n : l) {
-				String methodSig = n.name + n.desc;
-				if (methodSig.equals(methodName)) {
-					return n;
-				}
-			}
-			
-			// Can't find the method in current class
-			// Check its parent class
-			try {
-				Class<?> clazz = Class.forName(className);
-				if (clazz.getSuperclass() != null) {
-					Class<?> superClazz = clazz.getSuperclass();
-					return getMethodNode(classLoader, superClazz.getName(), methodName);
-//					System.currentTimeMillis();
-				}
-				System.currentTimeMillis();
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	}
+	
 }
