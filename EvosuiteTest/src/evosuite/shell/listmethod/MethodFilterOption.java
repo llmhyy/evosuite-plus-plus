@@ -18,7 +18,8 @@ public enum MethodFilterOption {
 	STRING_ARRAY_INPUT_METHOD("stringArrayInputMethod"),
 	STRING_ARRAY_CONDITION_RELATED_METHOD("stringArrayConditionRelatedMethod"),
 	PRIMITIVE_ARRAY_CONDITION_RELATED_METHOD("primitiveArrayConditionRelatedMethod"),
-	MAIN_METHOD("mainMethod");
+	MAIN_METHOD("mainMethod"),
+	SMART_MUTATION_METHOD("smartMutationMethod");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -61,6 +62,8 @@ public enum MethodFilterOption {
 			return new PrimitiveArrayConditionRelatedFilter();
 		case MAIN_METHOD:
 			return new MainMethodFilter();
+		case SMART_MUTATION_METHOD:
+			return new SmartMutationFilter();
 		}
 		return null;
 	}
