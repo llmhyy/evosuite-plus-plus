@@ -1,5 +1,7 @@
 package org.evosuite.coverage.fbranch;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -8,8 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.classpath.ResourceList;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
+import org.evosuite.coverage.dataflow.DefUseFactory;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.dataflow.Definition;
 import org.evosuite.coverage.dataflow.Use;
@@ -17,12 +21,17 @@ import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
+import org.evosuite.graphs.dataflow.DefUseAnalyzer;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 
 import javassist.bytecode.Opcode;
 
@@ -260,6 +269,23 @@ public class FlagEffectEvaluator {
 		return null;
 	}
 	
+	public static BytecodeInstruction getCalleeDefinition(BytecodeInstruction stringDef) {
+		if(stringDef.isMethodCall()) {
+			return stringDef;
+		}
+		else if(stringDef.isLocalVariableUse()) {
+			List<BytecodeInstruction> defs = DefUseAnalyzer.getDefFromUse(stringDef);
+			if(defs != null && defs.size() > 0) {
+				return defs.get(0);				
+			}
+			
+		}
+		
+		return null;
+	}
+	
+	
+	
 	public static FlagEffectResult checkFlagEffect(BranchCoverageGoal goal) {
 		Branch branch = goal.getBranch();
 		BytecodeInstruction ins = branch.getInstruction();
@@ -271,7 +297,21 @@ public class FlagEffectEvaluator {
 			FlagEffectResult flag = null;
 			for(BytecodeInstruction defIns: defInsList) {
 				if(defIns.isMethodCall()) {
-					flag = checkFlagEffect(defIns);
+					if(defIns.getCalledMethodsClass().equals("java.lang.String")) {
+						BytecodeInstruction stringDef = defIns.getSourceOfMethodInvocationInstruction();
+						BytecodeInstruction store = getCalleeDefinition(stringDef);
+						if(store != null) {
+							BytecodeInstruction calleeDef = store.getSourceOfStackInstruction(0);
+							if(calleeDef!=null && calleeDef.isMethodCall()) {
+								flag = checkFlagEffect(calleeDef);								
+							}
+							
+						}
+					}
+					else {
+						flag = checkFlagEffect(defIns);						
+					}
+					
 				}
 				else {
 					BytecodeInstruction methodCall = traceBackToMethodCall(defIns);
@@ -351,6 +391,9 @@ public class FlagEffectEvaluator {
 				callInfo.setLineNumber(defIns.getLineNumber());
 				FlagEffectResult result = new FlagEffectResult(defIns, true, callInfo);
 				return result;
+			}
+			else if (returnDef.isMethodCall()) {
+				return checkFlagEffect(returnDef);
 			}
 		}
 		
