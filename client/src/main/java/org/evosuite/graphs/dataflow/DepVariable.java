@@ -203,6 +203,10 @@ public class DepVariable {
 		this.reverseRelations[position] = list;
 	}
 
+	@Override
+	public int hashCode() {
+		return type;
+	}
 	
 	public boolean equals(Object obj) {
 		if(obj instanceof DepVariable) {
