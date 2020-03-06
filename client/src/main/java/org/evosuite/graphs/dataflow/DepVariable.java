@@ -213,14 +213,18 @@ public class DepVariable {
 			else {
 				if(var.getType() == this.getType()) {
 					if(var.getType() == DepVariable.INSTANCE_FIELD) {
-						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName()) &&
-								var.getInstruction().getName().equals(this.getInstruction().getName()) &&
-								var.getInstruction().getClassName().equals(Properties.TARGET_CLASS) &&
-								var.getInstruction().getMethodName().equals(Properties.TARGET_METHOD);
+						FieldInsnNode thatField = (FieldInsnNode)(var.getInstruction().getASMNode());
+						FieldInsnNode thisField = (FieldInsnNode)(this.getInstruction().getASMNode());
+						return thisField.desc.equals(thatField.desc) &&
+								thisField.owner.equals(thatField.owner) &&
+								thisField.name.equals(thatField.name);
 					}
 					else if(var.getType() == DepVariable.STATIC_FIELD) {
-						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName()) &&
-								var.getInstruction().getName().equals(this.getInstruction().getName());
+						FieldInsnNode thatField = (FieldInsnNode)(var.getInstruction().getASMNode());
+						FieldInsnNode thisField = (FieldInsnNode)(this.getInstruction().getASMNode());
+						return thisField.desc.equals(thatField.desc) &&
+								thisField.owner.equals(thatField.owner) &&
+								thisField.name.equals(thatField.name);
 					}
 					else if(var.getType() == DepVariable.PARAMETER) {
 						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName()) &&
@@ -228,7 +232,13 @@ public class DepVariable {
 								var.getParamOrder() == this.getParamOrder();
 					}
 					else if(var.getType() == DepVariable.THIS) {
-						
+						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName());
+					}
+					else if(var.getType() == DepVariable.OTHER) {
+						//FIXME ziheng
+						/**
+						 * we need to come up with how to define the equivalence of two instruction like method call, etc.
+						 */
 					}
 				}
 				
