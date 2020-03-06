@@ -703,9 +703,9 @@ public class ConstructionPathSynthesizer {
 								.getDeclaredMethod(methodName.substring(0, methodName.indexOf("(")), paramClasses);
 						Parameter[] paramList = targetMethod.getParameters();
 						Parameter param = searchForQualifiedParameter(targetMethod, field, paramList, operation);
-						if (param != null) {
-							targetMethods.put(targetMethod, param);
-						}
+						targetMethods.put(targetMethod, param);
+//						if (param != null) {
+//						}
 					}
 				}
 			}
@@ -740,9 +740,9 @@ public class ConstructionPathSynthesizer {
 						Constructor constructor = fieldDeclaringClass.getDeclaredConstructor(paramClasses);
 						Parameter[] paramList = constructor.getParameters();
 						Parameter param = searchForQualifiedParameter(constructor, field, paramList, operation);
-						if(param != null) {
-							targetConstructors.put(constructor, param);												
-						}
+						targetConstructors.put(constructor, param);												
+//						if(param != null) {
+//						}
 					}
 				}
 			}
