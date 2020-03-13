@@ -107,7 +107,7 @@ public class ConstructionPathSynthesizer {
 					parentVarRef = generateFieldStatement(test, position, var, parentVarRef);
 				} else if (var.getType() == DepVariable.OTHER) {
 					/**
-					 * TODO: need to handle other cases than method call in the future.
+					 * FIXME: need to handle other cases than method call in the future.
 					 */
 					int methodPos = findTargetMethodCallStatement(test).getPosition();
 					parentVarRef = generateOtherStatement(test, methodPos, var, parentVarRef);
@@ -469,7 +469,7 @@ public class ConstructionPathSynthesizer {
 		}
 		
 		/**
-		 * TODO: we need to provide some priority for those parameters here.
+		 * FIXME: we need to provide some priority for those parameters here.
 		 */
 		if(relevantRefs.isEmpty())
 			return null;
@@ -512,7 +512,7 @@ public class ConstructionPathSynthesizer {
 	}
 	
 	private boolean checkExistDataFlow(BytecodeInstruction ins, int paramPosition) {
-		//TODO ziheng, need to track data flow here, not that the instruction here can be inteprocedural.
+		//FIXME ziheng, need to track data flow here, not that the instruction here can be inteprocedural.
 		BytecodeInstruction defIns = ins.getSourceOfStackInstruction(0);
 		if (checkDataDependency(defIns, paramPosition)) {
 			return true;
@@ -525,7 +525,7 @@ public class ConstructionPathSynthesizer {
 			int slot = instruction.getLocalVariableSlot();
 			return slot == paramPosition;
 		}
-		//TODO, ziheng, fix it to false when data dependency is ready
+		//FIXME, ziheng, fix it to false when data dependency is ready
 		return true;
 	}
 
@@ -535,7 +535,7 @@ public class ConstructionPathSynthesizer {
 						className, methodName);
 		List<BytecodeInstruction> list = new ArrayList<BytecodeInstruction>();
 		if(insList == null) {
-			//TODO ziheng, why sometimes here insList is null?
+			//FIXME ziheng, why sometimes here insList is null?
 			return list;
 		}
 		
@@ -558,7 +558,7 @@ public class ConstructionPathSynthesizer {
 					String calledClass = mNode.owner;
 					calledClass = calledClass.replace("/", ".");
 					/**
-					 * TODO: 
+					 * FIXME, ziheng: 
 					 * we only analyze the callee method in the same class, but we need to consider
 					 * the invocation in other class.
 					 */
@@ -937,19 +937,6 @@ public class ConstructionPathSynthesizer {
 		
 		Map.Entry<Constructor, Parameter> entry = Randomness.choice(targetConstructors.entrySet());
 		return entry;
-	}
-
-	private VariableReference addNullStatement(TestCase test, int position, Type type) {	
-		NullStatement nullStatement = new NullStatement(test, type);
-		VariableReference reference = null;
-		try {
-			reference = testFactory.addPrimitive(test, nullStatement, position);
-		} catch (ConstructionFailedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-//		test.addStatement(nullStatement, position);	
-		return reference;
 	}
 
 	private AbstractStatement addStatementToSetNonPrimitiveField(TestCase test, int position, String desc,
