@@ -1,4 +1,4 @@
-package regression.objectconstruction.testcase;
+package regression.fbranch.testcase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
+import regression.objectconstruction.testcase.DebugSetup;
 import sf100.CommonTestUtil;
 
 public class TestCaloriecount extends DebugSetup{
