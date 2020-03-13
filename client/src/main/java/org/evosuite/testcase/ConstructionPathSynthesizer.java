@@ -94,7 +94,7 @@ public class ConstructionPathSynthesizer {
 				}
 
 				if (var.getType() == DepVariable.STATIC_FIELD) {
-					parentVarRef = generateFieldStatement(test, position, var, parentVarRef, true);
+					parentVarRef = generateFieldStatement(test, position, var, parentVarRef);
 				} else if (var.getType() == DepVariable.PARAMETER) {
 					String castSubClass = checkClass(var, path);
 					parentVarRef = generateParameterStatement(test, position, var, parentVarRef, castSubClass);
@@ -102,7 +102,7 @@ public class ConstructionPathSynthesizer {
 					if(parentVarRef == null) {
 						break;
 					}
-					parentVarRef = generateFieldStatement(test, position, var, parentVarRef, false);
+					parentVarRef = generateFieldStatement(test, position, var, parentVarRef);
 				} else if (var.getType() == DepVariable.OTHER) {
 					/**
 					 * TODO: need to handle other cases than method call in the future.
@@ -219,12 +219,11 @@ public class ConstructionPathSynthesizer {
 	 * @return
 	 */
 	private VariableReference generateFieldStatement(TestCase test, int position, DepVariable var,
-			VariableReference parentVarRef, boolean isStatic) {
+			VariableReference parentVarRef) {
 		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
 		String desc = fieldNode.desc;
 		String fieldOwner = fieldNode.owner.replace("/", ".");
 		String fieldName = fieldNode.name;
-		String fieldWriteOpcode = isStatic ? "PUTSTATIC" : "PUTFIELD";
 
 		AbstractStatement stmt = null;
 		
@@ -246,10 +245,11 @@ public class ConstructionPathSynthesizer {
 			 */
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 			
-			VariableReference usedField = searchUsedField(test, field, fieldWriteOpcode);
+			VariableReference usedField = searchRelevantReferenceInTest(test, field);
 			if(usedField != null) {
 				return usedField;						
 			}
+			System.currentTimeMillis();
 			
 			GenericField genericField = new GenericField(field, field.getDeclaringClass());
 			int fieldModifiers = field.getModifiers();
@@ -270,22 +270,26 @@ public class ConstructionPathSynthesizer {
 						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 						.getInstructionsIn(fieldDeclaringClass.getName());
 				if (insList != null) {
-					Map.Entry<Method, Parameter> entry = searchForPotentialSetter(field, fieldNode.owner, fieldDeclaringClass, insList,
-							fieldWriteOpcode);
+					Map.Entry<Method, Parameter> entry = searchForPotentialSetter(field, fieldNode.owner, fieldDeclaringClass, insList);
 					if (entry != null) {
 						Method setter = entry.getKey();
-						Parameter param = entry.getValue();
-						GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
+						
 						VariableReference returnedVar = null;
-						if (parentVarRef == null) {
-							returnedVar = testFactory.addMethod(test, gMethod, position, 2);
-						}
-						else {
-							returnedVar = testFactory.addMethodFor(test, parentVarRef, gMethod, parentVarRef.getStPosition() + 1);
+						Statement setterStatement = checkCallInTest(parentVarRef, setter, test);
+						if(setterStatement == null) {
+							GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
+							if (parentVarRef == null) {
+								returnedVar = testFactory.addMethod(test, gMethod, position, 2);
+							}
+							else {
+								returnedVar = testFactory.addMethodFor(test, parentVarRef, gMethod, parentVarRef.getStPosition() + 1);
+							}
+							
+							setterStatement = test.getStatement(returnedVar.getStPosition());
 						}
 						
-						Statement stat = test.getStatement(returnedVar.getStPosition());
-						return retrieveParamReference4Field(test, param, setter, stat);
+						Parameter param = entry.getValue();
+						return retrieveParamReference4Field(test, param, setter, setterStatement);
 					}
 
 					/**
@@ -294,16 +298,23 @@ public class ConstructionPathSynthesizer {
 					if (!isPrimitiveType(var.getInstruction().getFieldType())) {
 						Method getter = searchForPotentialGetter(var.getInstruction(), fieldDeclaringClass);
 						if (getter != null) {
-							GenericMethod gMethod = new GenericMethod(getter,
-									getter.getDeclaringClass());
+							
+							MethodStatement getterStatement = checkCallInTest(parentVarRef, getter, test);
 							VariableReference newParentVarRef = null;
-							if (parentVarRef == null) {
-								newParentVarRef = testFactory.addMethod(test, gMethod, position, 2);
+							if(getterStatement == null) {
+								GenericMethod gMethod = new GenericMethod(getter,
+										getter.getDeclaringClass());
+								if (parentVarRef == null) {
+									newParentVarRef = testFactory.addMethod(test, gMethod, position, 2);
+								}
+								else {
+									newParentVarRef = testFactory.addMethodFor(test, parentVarRef, gMethod, parentVarRef.getStPosition() + 1);
+								}
 							}
 							else {
-								newParentVarRef = testFactory.addMethodFor(test, parentVarRef, gMethod, parentVarRef.getStPosition() + 1);
+								newParentVarRef = getterStatement.getReturnValue();
 							}
-//							createOrReuseObjectVariable(test, position+1, 2, newParentVarRef, false, false);
+							
 							return newParentVarRef;
 						}
 					}
@@ -312,7 +323,7 @@ public class ConstructionPathSynthesizer {
 					 * deal with the case when the class has neither getter nor setter.
 					 */
 					Map.Entry<Constructor, Parameter> constructorEntry = searchForPotentialConstructor(field, fieldNode.owner, fieldDeclaringClass,
-							insList, fieldWriteOpcode);
+							insList);
 					/**
 					 * the constructor cannot set the field, so we stop here.
 					 */
@@ -350,6 +361,30 @@ public class ConstructionPathSynthesizer {
 		return parentVarRef;
 	}
 
+	private MethodStatement checkCallInTest(VariableReference calleeVar, Method setter, TestCase test) {
+		for(int i=0; i<test.size(); i++) {
+			Statement statement = test.getStatement(i);
+			if(statement instanceof MethodStatement) {
+				MethodStatement mStat = (MethodStatement)statement;
+				Method calledMethod = mStat.getMethod().getMethod();
+				
+				if(calledMethod.equals(setter)) {
+					if(mStat.getMethod().isStatic()) {
+						return mStat;
+					}
+					/**
+					 * otherwise, we check the preference
+					 */
+					else if(mStat.getCallee().equals(calleeVar)){
+						return mStat;
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
+
 	private VariableReference retrieveParamReference4Field(TestCase test, Parameter parameter, Executable executable,
 			Statement statement) {
 		
@@ -375,62 +410,149 @@ public class ConstructionPathSynthesizer {
 	}
 
 	/**
-	 * Check if this field has been referenced before in the test
+	 * @author linyun: Given a field, we should check the cascade call to write such a method.
+	 * The more controllable a variable, the more likely we return the variable.
+	 * 
 	 * @param test
 	 * @param field
 	 * @param opcode
 	 * @return
 	 */
-	private VariableReference searchUsedField(TestCase test, Field field, String opcode) {
-		List<VariableReference> qualifiedParams = new ArrayList<>();
+	private VariableReference searchRelevantReferenceInTest(TestCase test, Field field) {
 		MethodStatement targetMethodCall = findTargetMethodCallStatement(test);
 		VariableReference callee = targetMethodCall.getCallee();
+		
+		List<VariableReference> relevantRefs = new ArrayList<VariableReference>();
+		
 		if (callee != null) {
+			/**
+			 * check the variables passed as parameters to the constructor of callee, which are 
+			 * data-flow relevant to writing the field @{code field} 
+			 */
 			Statement s = test.getStatement(callee.getStPosition());
 			if (s instanceof ConstructorStatement) {
 				ConstructorStatement constructorStat = (ConstructorStatement) s;
 				List<VariableReference> params = constructorStat.getParameterReferences();
-				for (VariableReference param : params) {
-					if (param.getClassName().equals(field.getType().getCanonicalName())) {
-						qualifiedParams.add(param);
-					}
-				}
-				
-				if (!qualifiedParams.isEmpty()) {
-					return searchForQualifiedParameter(constructorStat, qualifiedParams, opcode);
-				}			
-				return null;
+				String className = constructorStat.getDeclaringClassName();
+				String methodName = constructorStat.getMethodName() + constructorStat.getDescriptor();
+				if (!params.isEmpty()) {
+					List<VariableReference> paramRefs = searchRelevantParameterInTest(params, className, methodName, field);
+					relevantRefs.addAll(paramRefs);
+				}		
 			}
-		}
-		return null;
-	}
-	
-	private VariableReference searchForQualifiedParameter(ConstructorStatement constructorStat,
-			List<VariableReference> qualifiedParams, String opcode) {
-		GenericConstructor gConstructor = constructorStat.getConstructor();
-		List<BytecodeInstruction> insList = BytecodeInstructionPool
-				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getAllInstructionsAtMethod(
-						gConstructor.getDeclaringClass().getCanonicalName(), gConstructor.getNameWithDescriptor());
-		for (BytecodeInstruction ins : insList) {
-			if (ins.getASMNodeString().contains(opcode)) {
-				BytecodeInstruction defIns = ins.getSourceOfStackInstruction(0);
-				int count = 0;
-				if (isParameter(defIns)) {
-					for (int i = 0; i < defIns.getLocalVariableSlot(); i++) {
-						String typeName = gConstructor.getParameterTypes()[i].getTypeName();
-						if (typeName.equals(qualifiedParams.get(0).getClassName())) {
-							count++;
+			
+			/**
+			 * check the variables passed as parameters to the method invocation from callee, which are 
+			 * data-flow relevant to writing the field @{code field} 
+			 */
+			for(int i=0; i<test.size(); i++) {
+				Statement stat = test.getStatement(i);
+				if(stat instanceof MethodStatement) {
+					MethodStatement mStat = (MethodStatement)stat;
+					VariableReference ref = mStat.getCallee();
+					if(ref != null && ref.equals(callee)) {
+						List<VariableReference> params = mStat.getParameterReferences();
+						String className = mStat.getDeclaringClassName();
+						String methodName = mStat.getMethodName() + mStat.getDescriptor();
+						List<VariableReference> paramRefs = searchRelevantParameterInTest(params, className, methodName, field);
+						
+						for(VariableReference pRef: paramRefs) {
+							if(!relevantRefs.contains(pRef)) {
+								relevantRefs.add(pRef);
+							}
 						}
 					}
-					if (count >= 1) {
-						return qualifiedParams.get(count - 1);
-					}
 				}
 			}
 		}
-		return null;
+		
+		/**
+		 * TODO: we need to provide some priority for those parameters here.
+		 */
+		if(relevantRefs.isEmpty())
+			return null;
+		
+		VariableReference ref = Randomness.choice(relevantRefs);
+		return ref;
 	}
 	
+	/**
+	 * opcode should always be "getfield"
+	 * @param statement
+	 * @param params
+	 * @param opcode
+	 * @return
+	 */
+	private List<VariableReference> searchRelevantParameterInTest(List<VariableReference> params, 
+			String className, String methodName, Field field) {
+		/**
+		 * TODO need to check cascade call
+		 * 
+		 * get all the field setter bytecode instructions in the method.
+		 */
+		List<BytecodeInstruction> fieldSetters = checkFieldSetter(className, methodName, field);
+		List<VariableReference> validParams = new ArrayList<VariableReference>();
+		if(fieldSetters.isEmpty()) {
+			return validParams; 
+		}
+		
+		for(int i=0; i<params.size(); i++) {
+			VariableReference param = params.get(i);
+			for (BytecodeInstruction ins : fieldSetters) {
+				
+				boolean existDataFlow = checkExistDataFlow(ins, i);
+				if(existDataFlow) {
+					validParams.add(param);
+					break;
+				}
+			}
+			
+		}
+		
+		return validParams;
+	}
+	
+	private boolean checkExistDataFlow(BytecodeInstruction ins, int paramPosition) {
+		//TODO ziheng, need to track data flow here
+		BytecodeInstruction defIns = ins.getSourceOfStackInstruction(0);
+		if (checkDataDependency(defIns, paramPosition)) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean checkDataDependency(BytecodeInstruction instruction, int paramPosition) {
+		if(instruction.isLocalVariableUse()) {
+			int slot = instruction.getLocalVariableSlot();
+			return slot == paramPosition;
+		}
+		return false;
+	}
+
+	private List<BytecodeInstruction> checkFieldSetter(String className, String methodName, Field field) {
+		List<BytecodeInstruction> insList = BytecodeInstructionPool
+				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getAllInstructionsAtMethod(
+						className, methodName);
+		
+		String opcode = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
+		
+		List<BytecodeInstruction> list = new ArrayList<BytecodeInstruction>();
+		for(BytecodeInstruction ins: insList) {
+			if (ins.getASMNodeString().contains(opcode) ) {
+				AbstractInsnNode node = ins.getASMNode();
+				if(node instanceof FieldInsnNode) {
+					FieldInsnNode fNode = (FieldInsnNode)node;
+					if(fNode.name.equals(field.getName())) {
+						list.add(ins);
+					}					
+				}
+				
+			}
+		}
+		
+		return list;
+	}
+
 	@SuppressWarnings("rawtypes")
 	private Parameter searchForQualifiedParameter(Executable executable, Field field, Parameter[] parameters,
 			String opcode) {
@@ -679,10 +801,13 @@ public class ConstructionPathSynthesizer {
 	 * @throws ClassNotFoundException
 	 */
 	private Map.Entry<Method, Parameter> searchForPotentialSetter(Field field, String fieldOwner, Class<?> fieldDeclaringClass,
-			List<BytecodeInstruction> insList, String operation) throws NoSuchMethodException, ClassNotFoundException {
+			List<BytecodeInstruction> insList) throws NoSuchMethodException, ClassNotFoundException {
+		
+		String opcode = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
+		
 		Map<Method, Parameter> targetMethods = new HashMap<>();
 		for (BytecodeInstruction ins : insList) {
-			if (ins.getASMNodeString().contains(operation)) {
+			if (ins.getASMNodeString().contains(opcode)) {
 				FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
 				String tmpName = insnNode.name;
 				String tmpOwner = insnNode.owner;
@@ -702,7 +827,7 @@ public class ConstructionPathSynthesizer {
 						Method targetMethod = fieldDeclaringClass
 								.getDeclaredMethod(methodName.substring(0, methodName.indexOf("(")), paramClasses);
 						Parameter[] paramList = targetMethod.getParameters();
-						Parameter param = searchForQualifiedParameter(targetMethod, field, paramList, operation);
+						Parameter param = searchForQualifiedParameter(targetMethod, field, paramList, opcode);
 						targetMethods.put(targetMethod, param);
 //						if (param != null) {
 //						}
@@ -717,11 +842,14 @@ public class ConstructionPathSynthesizer {
 	
 	@SuppressWarnings("rawtypes")
 	private Map.Entry<Constructor, Parameter> searchForPotentialConstructor(Field field, String fieldOwner, 
-			Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList, String operation) 
+			Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList) 
 			throws NoSuchMethodException, ClassNotFoundException {
+		
+		String opcode = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
+		
 		Map<Constructor, Parameter> targetConstructors = new HashMap<>();
 		for (BytecodeInstruction ins : insList) {
-			if (ins.getASMNodeString().contains(operation)) {
+			if (ins.getASMNodeString().contains(opcode)) {
 				FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
 				String tmpName = insnNode.name;
 				String tmpOwner = insnNode.owner;
@@ -739,7 +867,7 @@ public class ConstructionPathSynthesizer {
 					if(fullName.contains("<init>")) {
 						Constructor constructor = fieldDeclaringClass.getDeclaredConstructor(paramClasses);
 						Parameter[] paramList = constructor.getParameters();
-						Parameter param = searchForQualifiedParameter(constructor, field, paramList, operation);
+						Parameter param = searchForQualifiedParameter(constructor, field, paramList, opcode);
 						targetConstructors.put(constructor, param);												
 //						if(param != null) {
 //						}
