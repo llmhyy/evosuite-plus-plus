@@ -133,9 +133,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			this.distance.fastEpsilonDominanceAssignment(front, this.goalsManager.getCurrentGoals());
 
 			// Obtain the next front
-			if (remain > 0) {
-				front = this.rankingFunction.getSubfront(index);
-			}
+			front = this.rankingFunction.getSubfront(index);
 			
 			// Add the individuals of this front
 			this.population.addAll(front);
@@ -143,6 +141,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			// Decrement remain
 			remain = remain - front.size();
 			index++;
+			front = this.rankingFunction.getSubfront(index);
 		}
 
 		// Remain is less than front(index).size, insert only the best one
