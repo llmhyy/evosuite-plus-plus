@@ -53,8 +53,10 @@ import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericField;
 import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
 public class ConstructionPathSynthesizer {
@@ -486,11 +488,9 @@ public class ConstructionPathSynthesizer {
 	private List<VariableReference> searchRelevantParameterInTest(List<VariableReference> params, 
 			String className, String methodName, Field field) {
 		/**
-		 * TODO need to check cascade call
-		 * 
 		 * get all the field setter bytecode instructions in the method.
 		 */
-		List<BytecodeInstruction> fieldSetters = checkFieldSetter(className, methodName, field);
+		List<BytecodeInstruction> fieldSetters = checkFieldSetter(className, methodName, field, 2);
 		List<VariableReference> validParams = new ArrayList<VariableReference>();
 		if(fieldSetters.isEmpty()) {
 			return validParams; 
@@ -499,7 +499,6 @@ public class ConstructionPathSynthesizer {
 		for(int i=0; i<params.size(); i++) {
 			VariableReference param = params.get(i);
 			for (BytecodeInstruction ins : fieldSetters) {
-				
 				boolean existDataFlow = checkExistDataFlow(ins, i);
 				if(existDataFlow) {
 					validParams.add(param);
@@ -513,7 +512,7 @@ public class ConstructionPathSynthesizer {
 	}
 	
 	private boolean checkExistDataFlow(BytecodeInstruction ins, int paramPosition) {
-		//TODO ziheng, need to track data flow here
+		//TODO ziheng, need to track data flow here, not that the instruction here can be inteprocedural.
 		BytecodeInstruction defIns = ins.getSourceOfStackInstruction(0);
 		if (checkDataDependency(defIns, paramPosition)) {
 			return true;
@@ -526,17 +525,22 @@ public class ConstructionPathSynthesizer {
 			int slot = instruction.getLocalVariableSlot();
 			return slot == paramPosition;
 		}
-		return false;
+		//TODO, ziheng, fix it to false when data dependency is ready
+		return true;
 	}
 
-	private List<BytecodeInstruction> checkFieldSetter(String className, String methodName, Field field) {
+	private List<BytecodeInstruction> checkFieldSetter(String className, String methodName, Field field, int depth) {
 		List<BytecodeInstruction> insList = BytecodeInstructionPool
 				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getAllInstructionsAtMethod(
 						className, methodName);
+		List<BytecodeInstruction> list = new ArrayList<BytecodeInstruction>();
+		if(insList == null) {
+			//TODO ziheng, why sometimes here insList is null?
+			return list;
+		}
 		
 		String opcode = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
 		
-		List<BytecodeInstruction> list = new ArrayList<BytecodeInstruction>();
 		for(BytecodeInstruction ins: insList) {
 			if (ins.getASMNodeString().contains(opcode) ) {
 				AbstractInsnNode node = ins.getASMNode();
@@ -546,11 +550,66 @@ public class ConstructionPathSynthesizer {
 						list.add(ins);
 					}					
 				}
+			}
+			else if(ins.getASMNode() instanceof MethodInsnNode) {
+				if(depth > 0) {
+					MethodInsnNode mNode = (MethodInsnNode)(ins.getASMNode());
+					
+					String calledClass = mNode.owner;
+					calledClass = calledClass.replace("/", ".");
+					/**
+					 * TODO: 
+					 * we only analyze the callee method in the same class, but we need to consider
+					 * the invocation in other class.
+					 */
+					if(calledClass.equals(className)) {
+						String calledMethodName = mNode.name + mNode.desc;
+						
+						calledClass = confirmClassNameInParentClass(calledClass, mNode);
+						if(calledMethodName != null) {
+							List<BytecodeInstruction> calledInsList = checkFieldSetter(calledClass, calledMethodName, field, depth-1);
+							list.addAll(calledInsList);							
+						}
+						
+					}
+				}
 				
 			}
 		}
 		
 		return list;
+	}
+
+	private boolean containMethod(ClassNode classNode, MethodInsnNode mNode) {
+		
+//		if(!mNode.owner.equals(classNode.name)) {
+//			return false;
+//		}
+		
+		for(MethodNode methodNode: classNode.methods) {
+			String methodNodeName = methodNode.name + methodNode.desc;
+			String methodInsName = mNode.name + mNode.desc;
+			if(methodNodeName.equals(methodInsName)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private String confirmClassNameInParentClass(String calledClass, MethodInsnNode mNode) {
+		
+		List<String> superClassList = DependencyAnalysis.getInheritanceTree().getOrderedSuperclasses(calledClass);
+		for(String superClass: superClassList) {
+			ClassNode parentClassNode = DependencyAnalysis.getClassNode(superClass);
+			if(containMethod(parentClassNode, mNode)) {
+				return superClass;
+			}
+		}
+		
+		System.currentTimeMillis();
+		
+		return null;
 	}
 
 	@SuppressWarnings("rawtypes")
