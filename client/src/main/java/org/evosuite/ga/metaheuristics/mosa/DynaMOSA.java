@@ -196,18 +196,16 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		for (T t : this.population) {
 			if (t instanceof TestChromosome) {
 				for (FitnessFunction<T> ff : this.goalsManager.getCurrentGoals()) {
-					if (t instanceof TestChromosome) {
-						Double fitness = ff.getFitness(t);
-						Double bestSoFar = bestMap.get(ff);
-						if (bestSoFar == null) {
-							bestSoFar = fitness;
-							bestTestMap.put(ff, t);
-						} else if (bestSoFar > fitness) {
-							bestSoFar = fitness;
-							bestTestMap.put(ff, t);
-						}
-						bestMap.put(ff, bestSoFar);
+					Double fitness = ff.getFitness(t);
+					Double bestSoFar = bestMap.get(ff);
+					if (bestSoFar == null) {
+						bestSoFar = fitness;
+						bestTestMap.put(ff, t);
+					} else if (bestSoFar > fitness) {
+						bestSoFar = fitness;
+						bestTestMap.put(ff, t);
 					}
+					bestMap.put(ff, bestSoFar);
 				}
 			}
 		}
