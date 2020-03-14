@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,19 +18,20 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.ga.ConstructionFailedException;
+import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.runtime.System;
+import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.statements.AbstractStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.EntityWithParametersStatement;
 import org.evosuite.testcase.statements.MethodStatement;
-import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.numeric.BooleanPrimitiveStatement;
@@ -449,7 +449,7 @@ public class ConstructionPathSynthesizer {
 			 */
 			for(int i=0; i<test.size(); i++) {
 				Statement stat = test.getStatement(i);
-				if(stat instanceof MethodStatement) {
+				if(stat instanceof MethodStatement && !stat.equals(targetMethodCall)) {
 					MethodStatement mStat = (MethodStatement)stat;
 					VariableReference ref = mStat.getCallee();
 					if(ref != null && ref.equals(callee)) {
@@ -535,12 +535,13 @@ public class ConstructionPathSynthesizer {
 				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getAllInstructionsAtMethod(
 						className, methodName);
 		List<BytecodeInstruction> list = new ArrayList<BytecodeInstruction>();
-		if(insList == null) {
-			//FIXME ziheng, why sometimes here insList is null?
-			return list;
+		if (insList == null && RuntimeInstrumentation.checkIfCanInstrument(className)) {
+			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+			insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+					.getAllInstructionsAtMethod(className, methodName);
 		}
 		
-		String opcode = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
+		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
 		
 		for(BytecodeInstruction ins: insList) {
 			if (ins.getASMNodeString().contains(opcode) ) {
@@ -572,6 +573,8 @@ public class ConstructionPathSynthesizer {
 							list.addAll(calledInsList);							
 						}
 						
+					} else {
+						System.currentTimeMillis();
 					}
 				}
 				
