@@ -469,7 +469,7 @@ public class ConstructionPathSynthesizer {
 		}
 		
 		/**
-		 * FIXME: we need to provide some priority for those parameters here.
+		 * FIXME, ziheng: we need to provide some priority for those parameters here.
 		 */
 		if(relevantRefs.isEmpty())
 			return null;
@@ -489,6 +489,7 @@ public class ConstructionPathSynthesizer {
 			String className, String methodName, Field field) {
 		/**
 		 * get all the field setter bytecode instructions in the method.
+		 * TODO: the field setter can be taken from callee method of @code{methodName}.
 		 */
 		List<BytecodeInstruction> fieldSetters = checkFieldSetter(className, methodName, field, 2);
 		List<VariableReference> validParams = new ArrayList<VariableReference>();
@@ -499,7 +500,7 @@ public class ConstructionPathSynthesizer {
 		for(int i=0; i<params.size(); i++) {
 			VariableReference param = params.get(i);
 			for (BytecodeInstruction ins : fieldSetters) {
-				boolean existDataFlow = checkExistDataFlow(ins, i);
+				boolean existDataFlow = checkExistDataFlow(ins, i, className, methodName);
 				if(existDataFlow) {
 					validParams.add(param);
 					break;
@@ -511,7 +512,7 @@ public class ConstructionPathSynthesizer {
 		return validParams;
 	}
 	
-	private boolean checkExistDataFlow(BytecodeInstruction ins, int paramPosition) {
+	private boolean checkExistDataFlow(BytecodeInstruction ins, int paramPosition, String className, String methodName) {
 		//FIXME ziheng, need to track data flow here, not that the instruction here can be inteprocedural.
 		BytecodeInstruction defIns = ins.getSourceOfStackInstruction(0);
 		if (checkDataDependency(defIns, paramPosition)) {
