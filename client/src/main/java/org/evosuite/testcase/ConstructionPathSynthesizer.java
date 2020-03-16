@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -247,7 +246,7 @@ public class ConstructionPathSynthesizer {
 			 */
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 			
-			VariableReference usedField = searchRelevantReferenceInTest(test, field);
+			VariableReference usedField = searchRelevantReferenceInTest(test, field, parentVarRef);
 			if(usedField != null) {
 				return usedField;						
 			}
@@ -420,18 +419,26 @@ public class ConstructionPathSynthesizer {
 	 * @param opcode
 	 * @return
 	 */
-	private VariableReference searchRelevantReferenceInTest(TestCase test, Field field) {
-		MethodStatement targetMethodCall = findTargetMethodCallStatement(test);
-		VariableReference callee = targetMethodCall.getCallee();
+	private VariableReference searchRelevantReferenceInTest(TestCase test, Field field, VariableReference targetObject) {
 		
 		List<VariableReference> relevantRefs = new ArrayList<VariableReference>();
 		
-		if (callee != null) {
+		if (targetObject != null) {
 			/**
 			 * check the variables passed as parameters to the constructor of callee, which are 
 			 * data-flow relevant to writing the field @{code field} 
 			 */
-			Statement s = test.getStatement(callee.getStPosition());
+			Statement s = test.getStatement(targetObject.getStPosition());
+			
+			/**
+			 * TODO: if it is a null statement, change a random constructor here.
+			 */
+			if(s instanceof NullStatement) {
+				TestFactory testFactory = TestFactory.getInstance();
+				testFactory.changeNullStatement(test, s);
+				System.currentTimeMillis();
+			}
+			
 			if (s instanceof ConstructorStatement) {
 				ConstructorStatement constructorStat = (ConstructorStatement) s;
 				List<VariableReference> params = constructorStat.getParameterReferences();
@@ -452,7 +459,7 @@ public class ConstructionPathSynthesizer {
 				if(stat instanceof MethodStatement) {
 					MethodStatement mStat = (MethodStatement)stat;
 					VariableReference ref = mStat.getCallee();
-					if(ref != null && ref.equals(callee)) {
+					if(ref != null && ref.equals(targetObject)) {
 						List<VariableReference> params = mStat.getParameterReferences();
 						String className = mStat.getDeclaringClassName();
 						String methodName = mStat.getMethodName() + mStat.getDescriptor();
@@ -780,6 +787,17 @@ public class ConstructionPathSynthesizer {
 	 */
 	private VariableReference generateParameterStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef, String castSubClass) 
 			throws ConstructionFailedException, ClassNotFoundException {
+		/**
+		 * find the existing parameters
+		 */
+		if(parentVarRef == null) {
+			MethodStatement mStat = findTargetMethodCallStatement(test);
+			int paramPosition = var.getParamOrder();
+			VariableReference paramRef = mStat.getParameterReferences().get(paramPosition-1);
+			return paramRef;
+		}
+		
+		
 		VariableReference paramRef = generateParameter(test, position, var, castSubClass);
 		
 		if (paramRef == null) {
