@@ -710,18 +710,6 @@ public class ConstructionPathSynthesizer {
 		return paramPositions;
 	}
 
-	private boolean checkDataDependency(BytecodeInstruction instruction, int paramPosition) {
-		if (isParameter(instruction)) {
-			System.currentTimeMillis();
-		}
-		if(instruction.isLocalVariableUse()) {
-			int slot = instruction.getLocalVariableSlot();
-			return slot == paramPosition;
-		}
-		//FIXME, ziheng, fix it to false when data dependency is ready
-		return true;
-	}
-
 	private Map<BytecodeInstruction, List<BytecodeInstruction>> checkFieldSetter(String className, String methodName,
 			Field field, int depth, List<BytecodeInstruction> cascadingCallRelations,
 			Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap) {

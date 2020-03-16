@@ -50,7 +50,7 @@ public class SmartMutationFilter extends MethodFlagCondFilter {
 		Set<BytecodeInstruction> insList = cfg.getRawGraph().vertexSet();
 
 		if (FilterHelper.parameterIsInterfaceOrAbstract(node.desc, classLoader)) {
-			ListMethodsBatch.interfaceCount++;
+//			ListMethodsBatch.interfaceCount++;
 			return false;
 		}
 
@@ -111,41 +111,41 @@ public class SmartMutationFilter extends MethodFlagCondFilter {
 			}
 		}
 
-		if (binaryGoalCount > 1) {
-			ListMethodsBatch.twoOperandIf1++;
-		}
-
-		if (binaryGoalCount > 2) {
-			ListMethodsBatch.twoOperandIf2++;
-		}
-
-		if (binaryGoalCount > 3) {
-			ListMethodsBatch.twoOperandIf3++;
-		}
-
-		if (binaryGoalCount > 4) {
-			ListMethodsBatch.twoOperandIf4++;
-		}
-
-		if (binaryGoalCount > 5) {
-			ListMethodsBatch.twoOperandIf5++;
-		}
-
-		if (inputCount > 1) {
-			ListMethodsBatch.inputCount1++;
-		}
-		if (inputCount > 2) {
-			ListMethodsBatch.inputCount2++;
-		}
-		if (inputCount > 3) {
-			ListMethodsBatch.inputCount3++;
-		}
-		if (inputCount > 4) {
-			ListMethodsBatch.inputCount4++;
-		}
-		if (inputCount > 5) {
-			ListMethodsBatch.inputCount5++;
-		}
+//		if (binaryGoalCount > 1) {
+//			ListMethodsBatch.twoOperandIf1++;
+//		}
+//
+//		if (binaryGoalCount > 2) {
+//			ListMethodsBatch.twoOperandIf2++;
+//		}
+//
+//		if (binaryGoalCount > 3) {
+//			ListMethodsBatch.twoOperandIf3++;
+//		}
+//
+//		if (binaryGoalCount > 4) {
+//			ListMethodsBatch.twoOperandIf4++;
+//		}
+//
+//		if (binaryGoalCount > 5) {
+//			ListMethodsBatch.twoOperandIf5++;
+//		}
+//
+//		if (inputCount > 1) {
+//			ListMethodsBatch.inputCount1++;
+//		}
+//		if (inputCount > 2) {
+//			ListMethodsBatch.inputCount2++;
+//		}
+//		if (inputCount > 3) {
+//			ListMethodsBatch.inputCount3++;
+//		}
+//		if (inputCount > 4) {
+//			ListMethodsBatch.inputCount4++;
+//		}
+//		if (inputCount > 5) {
+//			ListMethodsBatch.inputCount5++;
+//		}
 
 		if (binaryGoalCount == 1 && containsString) {
 			return true;
