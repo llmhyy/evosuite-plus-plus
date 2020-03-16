@@ -1,4 +1,4 @@
-package regression.objectconstruction.testcase;
+package regression.abclass.test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +9,12 @@ import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
 
-public class TestCaloriecount extends DebugSetup{
+public class TestCorina extends DebugSetup{
 	@Test
 	public void runCorina() {
-		String projectId = "78_caloriecount";
+		String projectId = "35_corina";
 		String[] targetMethods = new String[]{
-				"com.lts.util.system.SystemUtils#appendNativeLibrarySearchPath(Ljava/lang/String;)V"
+				"corina.map.PngEncoderB#pngEncode(Z)[B"
 				};
 		
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();

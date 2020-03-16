@@ -76,7 +76,7 @@ public class Dataflow {
 					int index = frame.getStackSize() - i - 1;
 					Value val = frame.getStack(index);
 					
-					fAnalyzer.searchDependantVariables(val, cfg, allDepVars, visitedIns);
+					fAnalyzer.searchDependantVariables(val, cfg, allDepVars, visitedIns, Properties.COMPUTATION_GRAPH_METHOD_CALL_DEPTH);
 				}
 			}
 			

@@ -63,6 +63,7 @@ public class RankBasedPreferenceSorting<T extends Chromosome> implements Ranking
 
 		// first apply the "preference sorting" to the first front only
 		// then compute the ranks according to the non-dominate sorting algorithm
+		// this will pick one front for each uncovered_goals
 		List<T> zero_front = this.getZeroFront(solutions, uncovered_goals);
 		this.fronts.add(zero_front);
 		int frontIndex = 1;
