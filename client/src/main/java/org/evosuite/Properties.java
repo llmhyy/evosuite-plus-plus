@@ -150,6 +150,9 @@ public class Properties {
 	@Parameter(key = "apply_object_rule", group = "Test Creation", description = "Ask the tool to analyze the branch-dependant variables")
 	public static boolean APPLY_OBJECT_RULE = false;
 	
+	@Parameter(key = "computation_graph_call_depth", group = "Test Creation", description = "how depth the call hierarchy to analyze when constructing computation graph")
+	public static int COMPUTATION_GRAPH_METHOD_CALL_DEPTH = 5;
+	
 	@Parameter(key = "chop_carved_exceptions", group = "Test Creation", description = "If a carved test throws an exception, either chop it off, or drop it")
 	public static boolean CHOP_CARVED_EXCEPTIONS = true;
 
