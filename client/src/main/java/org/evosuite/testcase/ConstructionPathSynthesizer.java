@@ -7,23 +7,32 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.dataflow.DefUsePool;
+import org.evosuite.coverage.dataflow.Definition;
+import org.evosuite.coverage.dataflow.Use;
+import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.ga.ConstructionFailedException;
+import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.runtime.System;
+import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.statements.AbstractStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
@@ -51,6 +60,7 @@ import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericField;
 import org.evosuite.utils.generic.GenericMethod;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -245,7 +255,7 @@ public class ConstructionPathSynthesizer {
 			 * declaring class of this field
 			 */
 			Field field = searchForField(fieldDeclaringClass, fieldName);
-			
+
 			VariableReference usedField = searchRelevantReferenceInTest(test, field, parentVarRef);
 			if(usedField != null) {
 				return usedField;						
@@ -290,6 +300,9 @@ public class ConstructionPathSynthesizer {
 						}
 						
 						Parameter param = entry.getValue();
+						if (param == null) {
+							return null;
+						}
 						return retrieveParamReference4Field(test, param, setter, setterStatement);
 					}
 
@@ -425,11 +438,10 @@ public class ConstructionPathSynthesizer {
 		
 		if (targetObject != null) {
 			/**
-			 * check the variables passed as parameters to the constructor of callee, which are 
+			 * check the variables passed as parameters to the constructor of targetObject, which are 
 			 * data-flow relevant to writing the field @{code field} 
 			 */
 			Statement s = test.getStatement(targetObject.getStPosition());
-			
 			/**
 			 * TODO: if it is a null statement, change a random constructor here.
 			 */
@@ -438,6 +450,7 @@ public class ConstructionPathSynthesizer {
 				testFactory.changeNullStatement(test, s);
 				System.currentTimeMillis();
 			}
+			
 			
 			if (s instanceof ConstructorStatement) {
 				ConstructorStatement constructorStat = (ConstructorStatement) s;
@@ -451,7 +464,7 @@ public class ConstructionPathSynthesizer {
 			}
 			
 			/**
-			 * check the variables passed as parameters to the method invocation from callee, which are 
+			 * check the variables passed as parameters to the method invocation from targetObject, which are 
 			 * data-flow relevant to writing the field @{code field} 
 			 */
 			for(int i=0; i<test.size(); i++) {
@@ -464,7 +477,7 @@ public class ConstructionPathSynthesizer {
 						String className = mStat.getDeclaringClassName();
 						String methodName = mStat.getMethodName() + mStat.getDescriptor();
 						List<VariableReference> paramRefs = searchRelevantParameterInTest(params, className, methodName, field);
-						
+	
 						for(VariableReference pRef: paramRefs) {
 							if(!relevantRefs.contains(pRef)) {
 								relevantRefs.add(pRef);
@@ -492,43 +505,215 @@ public class ConstructionPathSynthesizer {
 	 * @param opcode
 	 * @return
 	 */
-	private List<VariableReference> searchRelevantParameterInTest(List<VariableReference> params, 
-			String className, String methodName, Field field) {
+	private List<VariableReference> searchRelevantParameterInTest(List<VariableReference> params, String className,
+			String methodName, Field field) {
 		/**
-		 * get all the field setter bytecode instructions in the method.
-		 * TODO: the field setter can be taken from callee method of @code{methodName}.
+		 * get all the field setter bytecode instructions in the method. TODO: the field
+		 * setter can be taken from callee method of @code{methodName}.
 		 */
-		List<BytecodeInstruction> fieldSetters = checkFieldSetter(className, methodName, field, 2);
+		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
+		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<BytecodeInstruction, List<BytecodeInstruction>>();
+		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = checkFieldSetter(className, methodName,
+				field, 5, cascadingCallRelations, setterMap);
 		List<VariableReference> validParams = new ArrayList<VariableReference>();
-		if(fieldSetters.isEmpty()) {
-			return validParams; 
+		if (fieldSetterMap.isEmpty()) {
+			return validParams;
 		}
-		
-		for(int i=0; i<params.size(); i++) {
-			VariableReference param = params.get(i);
-			for (BytecodeInstruction ins : fieldSetters) {
-				boolean existDataFlow = checkExistDataFlow(ins, i, className, methodName);
-				if(existDataFlow) {
-					validParams.add(param);
-					break;
+
+		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
+			BytecodeInstruction setterIns = entry.getKey();
+			List<BytecodeInstruction> callList = entry.getValue();
+			Set<Integer> validParamPos = checkValidParameterPositions(setterIns, className, methodName, callList);
+			for (Integer val : validParamPos) {
+				if (val >= 0) {
+					validParams.add(params.get(val));
 				}
 			}
-			
+			System.currentTimeMillis();
 		}
-		
 		return validParams;
 	}
 	
-	private boolean checkExistDataFlow(BytecodeInstruction ins, int paramPosition, String className, String methodName) {
-		//FIXME ziheng, need to track data flow here, not that the instruction here can be inteprocedural.
-		BytecodeInstruction defIns = ins.getSourceOfStackInstruction(0);
-		if (checkDataDependency(defIns, paramPosition)) {
-			return true;
+	/**
+	 * Output is the valid parameter position of most top method call
+	 * @param setterInstruction
+	 * @param className
+	 * @param methodName
+	 * @param callList
+	 * @return
+	 */
+	private Set<Integer> checkValidParameterPositions(BytecodeInstruction setterInstruction, String className,
+			String methodName, List<BytecodeInstruction> callList) {
+		Collections.reverse(callList);
+
+		// only check for current method
+		if (callList.isEmpty()) {
+			Set<BytecodeInstruction> paramInstructions = checkCurrentParamInstructions(setterInstruction,
+					new HashSet<>());
+			Set<Integer> paramPositions = checkSetterParamPositions(paramInstructions);
+			return paramPositions;
 		}
-		return false;
+
+		Set<BytecodeInstruction> paramInstructions = analyzingCascadingCall(new HashSet<>(Arrays.asList(setterInstruction)), callList, 0, new HashSet<>());
+		Set<Integer> paramPositions = checkSetterParamPositions(paramInstructions);
+		return paramPositions;
+	}
+
+	private Set<BytecodeInstruction> analyzingCascadingCall(Set<BytecodeInstruction> insns,
+			List<BytecodeInstruction> callList, int index, Set<BytecodeInstruction> topParamInsns) {
+		BytecodeInstruction call = callList.get(index);
+		for (BytecodeInstruction ins : insns) {
+			Set<BytecodeInstruction> paramInsns = checkCurrentParamInstructions(ins, new HashSet<>());
+			if (paramInsns.isEmpty()) {
+				return paramInsns;
+			}
+			boolean isValidParameter = checkParamValidation(call, paramInsns, ins);
+			if (!isValidParameter) {
+				return new HashSet<>();
+			}
+			Set<BytecodeInstruction> newParamInsns = searchForNewParameterInstruction(call, paramInsns);
+			if (index == callList.size() - 1) {
+				topParamInsns.addAll(newParamInsns);
+			} else {
+				analyzingCascadingCall(newParamInsns, callList, index + 1, topParamInsns);
+			}
+		}
+		return topParamInsns;
+	}
+
+	/**
+	 * search for new load instruction when analyzing next layer of method invocation
+	 * @param call
+	 * @param paramPos
+	 * @return
+	 */
+	private Set<BytecodeInstruction> searchForNewParameterInstruction(BytecodeInstruction call, Set<BytecodeInstruction> paramInsns) {
+		Set<BytecodeInstruction> newParamInsns = new HashSet<>();
+		Set<Integer> paramPosSet = checkSetterParamPositions(paramInsns);
+		Set<BytecodeInstruction> newParams = new HashSet<>();
+		for (Integer pos : paramPosSet) {
+			if (call.getASMNode().getOpcode() == Opcodes.INVOKESTATIC) {
+				BytecodeInstruction defIns = call.getSourceOfStackInstruction(call.getOperandNum() - pos - 1);
+				newParams = checkCurrentParamInstructions(defIns, new HashSet<>());
+			} else {
+				BytecodeInstruction defIns = call.getSourceOfStackInstruction(call.getOperandNum() - pos - 2);
+				newParams = checkCurrentParamInstructions(defIns, new HashSet<>());			}
+			if (newParams != null) {
+				newParamInsns.addAll(newParams);
+			}
+		}
+		return newParamInsns;
+	}
+
+	/**
+	 * return localVariableUse instruction for parameter 
+	 * @param descIns
+	 * @param paramInstructionSet
+	 * @return
+	 */
+	private Set<BytecodeInstruction> checkCurrentParamInstructions(BytecodeInstruction descIns, Set<BytecodeInstruction> paramInstructionSet) {
+		if (descIns.isLocalVariableUse()) {
+			if (isParameter(descIns)) {
+				// position here similar to list index (i.e., starts from 0)
+//				int pos = checkSetterParamPos(defIns);
+//				paramInstructionSet.add(new Integer(pos));
+				paramInstructionSet.add(descIns);
+			}
+		}
+		for (int i = 0;i < descIns.getOperandNum(); i ++) {
+			BytecodeInstruction defIns = descIns.getSourceOfStackInstruction(i);
+			if (defIns == null) {
+				return paramInstructionSet;
+			}
+			if (defIns.isLocalVariableUse()) {
+				if (isParameter(defIns)) {
+					// position here similar to list index (i.e., starts from 0)
+//					int pos = checkSetterParamPos(defIns);
+//					paramInstructionSet.add(new Integer(pos));
+					paramInstructionSet.add(defIns);
+				}
+			}
+			checkCurrentParamInstructions(defIns, paramInstructionSet);
+		}
+		return paramInstructionSet;
 	}
 	
+	public static BytecodeInstruction traceBackToMethodCall(BytecodeInstruction ins) {
+		
+		if(ins.isUse()) {
+			FBranchDefUseAnalyzer.analyze(ins.getRawCFG());
+			
+			Use use = DefUsePool.getUseByInstruction(ins);
+			List<Definition> defs = DefUsePool.getDefinitions(use);
+			
+			if(defs==null) {
+				return null;
+			}
+			
+			if(!defs.isEmpty()) {
+				Definition def = defs.get(0);
+				if(def.getFrame().getStackSize() > 0) {
+					BytecodeInstruction call = def.getSourceOfStackInstruction(0);
+					
+					if(call != null && call.isMethodCall()) {
+						return call;
+					}					
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	private boolean checkParamValidation(BytecodeInstruction call, Set<BytecodeInstruction> paramInsns, BytecodeInstruction ins) {
+		if (call.getCalledMethodsArgumentCount() == 0) {
+			return false;
+		}
+		if (!call.getCalledMethod().equals(ins.getMethodName()) || !call.getCalledMethodsClass().equals(ins.getClassName())) {
+			return false;
+		}
+		
+		Set<Integer> paramPositions = checkSetterParamPositions(paramInsns);
+		for (Integer pos : paramPositions) {
+			if (pos > call.getCalledMethodsArgumentCount() - 1) {
+				return false;
+			}
+		}
+		return true;
+	}
+//			//keep traverse
+//			DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
+//			defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
+//			Use use = DefUseFactory.makeUse(defIns);
+//			// Ignore method parameter
+//			List<Definition> defs = DefUsePool.getDefinitions(use);
+//			for (Definition def : CollectionUtil.nullToEmpty(defs)) {
+//				if (def != null) {
+//					BytecodeInstruction defInstruction = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, def.getASMNode());
+//					buildInputOutputForInstruction(defInstruction, node,
+//							outputVar, cfg, allLeafDepVars, visitedIns);
+//				}
+//			}
+
+	private Set<Integer> checkSetterParamPositions(Set<BytecodeInstruction> paramInsns) {
+		Set<Integer> paramPositions = new HashSet<>();
+		for (BytecodeInstruction paramInstruction : paramInsns) {
+
+			int slot = paramInstruction.getLocalVariableSlot();
+
+			if (paramInstruction.getRawCFG().isStaticMethod()) {
+				paramPositions.add(new Integer(slot));
+			} else {
+				paramPositions.add(new Integer(slot - 1));
+			}
+		}
+		return paramPositions;
+	}
+
 	private boolean checkDataDependency(BytecodeInstruction instruction, int paramPosition) {
+		if (isParameter(instruction)) {
+			System.currentTimeMillis();
+		}
 		if(instruction.isLocalVariableUse()) {
 			int slot = instruction.getLocalVariableSlot();
 			return slot == paramPosition;
@@ -537,55 +722,59 @@ public class ConstructionPathSynthesizer {
 		return true;
 	}
 
-	private List<BytecodeInstruction> checkFieldSetter(String className, String methodName, Field field, int depth) {
+	private Map<BytecodeInstruction, List<BytecodeInstruction>> checkFieldSetter(String className, String methodName,
+			Field field, int depth, List<BytecodeInstruction> cascadingCallRelations,
+			Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap) {
 		List<BytecodeInstruction> insList = BytecodeInstructionPool
-				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getAllInstructionsAtMethod(
-						className, methodName);
-		List<BytecodeInstruction> list = new ArrayList<BytecodeInstruction>();
-		if(insList == null) {
-			//FIXME ziheng, why sometimes here insList is null?
-			return list;
+				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+				.getAllInstructionsAtMethod(className, methodName);
+		if (insList == null && RuntimeInstrumentation.checkIfCanInstrument(className)) {
+			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+			insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+					.getAllInstructionsAtMethod(className, methodName);
 		}
-		
-		String opcode = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
-		
-		for(BytecodeInstruction ins: insList) {
-			if (ins.getASMNodeString().contains(opcode) ) {
+
+		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
+
+		for (BytecodeInstruction ins : insList) {
+			if (ins.getASMNodeString().contains(opcode)) {
 				AbstractInsnNode node = ins.getASMNode();
-				if(node instanceof FieldInsnNode) {
-					FieldInsnNode fNode = (FieldInsnNode)node;
-					if(fNode.name.equals(field.getName())) {
-						list.add(ins);
-					}					
+				if (node instanceof FieldInsnNode) {
+					FieldInsnNode fNode = (FieldInsnNode) node;
+					if (fNode.name.equals(field.getName())) {
+						setterMap.put(ins, new ArrayList<>(cascadingCallRelations));
+					}
 				}
-			}
-			else if(ins.getASMNode() instanceof MethodInsnNode) {
-				if(depth > 0) {
-					MethodInsnNode mNode = (MethodInsnNode)(ins.getASMNode());
-					
+			} else if (ins.getASMNode() instanceof MethodInsnNode) {
+				if (depth > 0) {
+					MethodInsnNode mNode = (MethodInsnNode) (ins.getASMNode());
+
 					String calledClass = mNode.owner;
 					calledClass = calledClass.replace("/", ".");
 					/**
-					 * FIXME, ziheng: 
-					 * we only analyze the callee method in the same class, but we need to consider
-					 * the invocation in other class.
+					 * FIXME, ziheng: we only analyze the callee method in the same class, but we
+					 * need to consider the invocation in other class.
 					 */
-					if(calledClass.equals(className)) {
+					if (calledClass.equals(className)) {
 						String calledMethodName = mNode.name + mNode.desc;
-						
+
 						calledClass = confirmClassNameInParentClass(calledClass, mNode);
-						if(calledMethodName != null) {
-							List<BytecodeInstruction> calledInsList = checkFieldSetter(calledClass, calledMethodName, field, depth-1);
-							list.addAll(calledInsList);							
+						if (calledMethodName != null) {
+							cascadingCallRelations.add(ins);
+							checkFieldSetter(calledClass, calledMethodName, field, depth - 1, cascadingCallRelations, setterMap);
 						}
-						
 					}
+
+				} else {
+					System.currentTimeMillis();
 				}
-				
 			}
+
 		}
-		
-		return list;
+		cascadingCallRelations.clear();;
+
+		return setterMap;
+
 	}
 
 	private boolean containMethod(ClassNode classNode, MethodInsnNode mNode) {
@@ -787,6 +976,7 @@ public class ConstructionPathSynthesizer {
 	 */
 	private VariableReference generateParameterStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef, String castSubClass) 
 			throws ConstructionFailedException, ClassNotFoundException {
+				
 		/**
 		 * find the existing parameters
 		 */
@@ -796,8 +986,7 @@ public class ConstructionPathSynthesizer {
 			VariableReference paramRef = mStat.getParameterReferences().get(paramPosition-1);
 			return paramRef;
 		}
-		
-		
+				
 		VariableReference paramRef = generateParameter(test, position, var, castSubClass);
 		
 		if (paramRef == null) {
@@ -881,7 +1070,7 @@ public class ConstructionPathSynthesizer {
 	private Map.Entry<Method, Parameter> searchForPotentialSetter(Field field, String fieldOwner, Class<?> fieldDeclaringClass,
 			List<BytecodeInstruction> insList) throws NoSuchMethodException, ClassNotFoundException {
 		
-		String opcode = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
+		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
 		
 		Map<Method, Parameter> targetMethods = new HashMap<>();
 		for (BytecodeInstruction ins : insList) {
