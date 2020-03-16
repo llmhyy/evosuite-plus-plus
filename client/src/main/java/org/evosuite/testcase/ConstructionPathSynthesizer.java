@@ -69,9 +69,9 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
 public class ConstructionPathSynthesizer {
-	
+
 	private TestFactory testFactory;
-	
+
 	public ConstructionPathSynthesizer(TestFactory testFactory) {
 		super();
 		this.testFactory = testFactory;
@@ -110,7 +110,7 @@ public class ConstructionPathSynthesizer {
 					String castSubClass = checkClass(var, path);
 					parentVarRef = generateParameterStatement(test, position, var, parentVarRef, castSubClass);
 				} else if (var.getType() == DepVariable.INSTANCE_FIELD) {
-					if(parentVarRef == null) {
+					if (parentVarRef == null) {
 						break;
 					}
 					parentVarRef = generateFieldStatement(test, position, var, parentVarRef);
@@ -237,7 +237,7 @@ public class ConstructionPathSynthesizer {
 		String fieldName = fieldNode.name;
 
 		AbstractStatement stmt = null;
-		
+
 		if (parentVarRef != null) {
 			String parentType = parentVarRef.getType().getTypeName();
 			if (!parentType.equals(fieldOwner)) {
@@ -249,19 +249,20 @@ public class ConstructionPathSynthesizer {
 			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 					.loadClass(fieldOwner);
 
-			/** 
-			 * If field is not found in current declaring class, we search recursively for its superclass
-			 * However, for simplicity, we only search for setter, getter, constructor in current class instead of the real
-			 * declaring class of this field
+			/**
+			 * If field is not found in current declaring class, we search recursively for
+			 * its superclass However, for simplicity, we only search for setter, getter,
+			 * constructor in current class instead of the real declaring class of this
+			 * field
 			 */
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 
 			VariableReference usedField = searchRelevantReferenceInTest(test, field, parentVarRef);
-			if(usedField != null) {
-				return usedField;						
+			if (usedField != null) {
+				return usedField;
 			}
 			System.currentTimeMillis();
-			
+
 			GenericField genericField = new GenericField(field, field.getDeclaringClass());
 			int fieldModifiers = field.getModifiers();
 
@@ -281,24 +282,25 @@ public class ConstructionPathSynthesizer {
 						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 						.getInstructionsIn(fieldDeclaringClass.getName());
 				if (insList != null) {
-					Map.Entry<Method, Parameter> entry = searchForPotentialSetter(field, fieldNode.owner, fieldDeclaringClass, insList);
+					Map.Entry<Method, Parameter> entry = searchForPotentialSetter(field, fieldNode.owner,
+							fieldDeclaringClass, insList);
 					if (entry != null) {
 						Method setter = entry.getKey();
-						
+
 						VariableReference returnedVar = null;
 						Statement setterStatement = checkCallInTest(parentVarRef, setter, test);
-						if(setterStatement == null) {
+						if (setterStatement == null) {
 							GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
 							if (parentVarRef == null) {
 								returnedVar = testFactory.addMethod(test, gMethod, position, 2);
+							} else {
+								returnedVar = testFactory.addMethodFor(test, parentVarRef, gMethod,
+										parentVarRef.getStPosition() + 1);
 							}
-							else {
-								returnedVar = testFactory.addMethodFor(test, parentVarRef, gMethod, parentVarRef.getStPosition() + 1);
-							}
-							
+
 							setterStatement = test.getStatement(returnedVar.getStPosition());
 						}
-						
+
 						Parameter param = entry.getValue();
 						if (param == null) {
 							return null;
@@ -307,28 +309,27 @@ public class ConstructionPathSynthesizer {
 					}
 
 					/**
-					 * if the field is not primitive, we can get the object-typed field and return it.
+					 * if the field is not primitive, we can get the object-typed field and return
+					 * it.
 					 */
 					if (!isPrimitiveType(var.getInstruction().getFieldType())) {
 						Method getter = searchForPotentialGetter(var.getInstruction(), fieldDeclaringClass);
 						if (getter != null) {
-							
+
 							MethodStatement getterStatement = checkCallInTest(parentVarRef, getter, test);
 							VariableReference newParentVarRef = null;
-							if(getterStatement == null) {
-								GenericMethod gMethod = new GenericMethod(getter,
-										getter.getDeclaringClass());
+							if (getterStatement == null) {
+								GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
 								if (parentVarRef == null) {
 									newParentVarRef = testFactory.addMethod(test, gMethod, position, 2);
+								} else {
+									newParentVarRef = testFactory.addMethodFor(test, parentVarRef, gMethod,
+											parentVarRef.getStPosition() + 1);
 								}
-								else {
-									newParentVarRef = testFactory.addMethodFor(test, parentVarRef, gMethod, parentVarRef.getStPosition() + 1);
-								}
-							}
-							else {
+							} else {
 								newParentVarRef = getterStatement.getReturnValue();
 							}
-							
+
 							return newParentVarRef;
 						}
 					}
@@ -336,8 +337,8 @@ public class ConstructionPathSynthesizer {
 					/**
 					 * deal with the case when the class has neither getter nor setter.
 					 */
-					Map.Entry<Constructor, Parameter> constructorEntry = searchForPotentialConstructor(field, fieldNode.owner, fieldDeclaringClass,
-							insList);
+					Map.Entry<Constructor, Parameter> constructorEntry = searchForPotentialConstructor(field,
+							fieldNode.owner, fieldDeclaringClass, insList);
 					/**
 					 * the constructor cannot set the field, so we stop here.
 					 */
@@ -358,11 +359,12 @@ public class ConstructionPathSynthesizer {
 									}
 								}
 							}
-							
+
 							Statement methodStatement = test.getStatement(returnedVar.getStPosition());
-							VariableReference paramRef4Field = retrieveParamReference4Field(test, constructorParam, constructor, methodStatement);
+							VariableReference paramRef4Field = retrieveParamReference4Field(test, constructorParam,
+									constructor, methodStatement);
 							return paramRef4Field;
-						}	
+						}
 					}
 					return parentVarRef;
 				}
@@ -376,36 +378,36 @@ public class ConstructionPathSynthesizer {
 	}
 
 	private MethodStatement checkCallInTest(VariableReference calleeVar, Method setter, TestCase test) {
-		for(int i=0; i<test.size(); i++) {
+		for (int i = 0; i < test.size(); i++) {
 			Statement statement = test.getStatement(i);
-			if(statement instanceof MethodStatement) {
-				MethodStatement mStat = (MethodStatement)statement;
+			if (statement instanceof MethodStatement) {
+				MethodStatement mStat = (MethodStatement) statement;
 				Method calledMethod = mStat.getMethod().getMethod();
-				
-				if(calledMethod.equals(setter)) {
-					if(mStat.getMethod().isStatic()) {
+
+				if (calledMethod.equals(setter)) {
+					if (mStat.getMethod().isStatic()) {
 						return mStat;
 					}
 					/**
 					 * otherwise, we check the preference
 					 */
-					else if(mStat.getCallee().equals(calleeVar)){
+					else if (mStat.getCallee().equals(calleeVar)) {
 						return mStat;
 					}
 				}
 			}
 		}
-		
+
 		return null;
 	}
 
 	private VariableReference retrieveParamReference4Field(TestCase test, Parameter parameter, Executable executable,
 			Statement statement) {
-		
-		if(!(statement instanceof EntityWithParametersStatement)) {
+
+		if (!(statement instanceof EntityWithParametersStatement)) {
 			return null;
 		}
-		
+
 		EntityWithParametersStatement newStatement = (EntityWithParametersStatement) statement;
 		for (int i = 0; i < executable.getParameters().length; i++) {
 			Parameter setterParam = executable.getParameters()[i];
@@ -414,72 +416,75 @@ public class ConstructionPathSynthesizer {
 				return paramRefs.get(i);
 			}
 		}
-		
+
 		/**
 		 * FIXME Ziheng, see whether here is reachable
 		 */
 		// assert false;
-		
+
 		return null;
 	}
 
 	/**
-	 * @author linyun: Given a field, we should check the cascade call to write such a method.
-	 * The more controllable a variable, the more likely we return the variable.
+	 * @author linyun: Given a field, we should check the cascade call to write such
+	 *         a method. The more controllable a variable, the more likely we return
+	 *         the variable.
 	 * 
 	 * @param test
 	 * @param field
 	 * @param opcode
 	 * @return
 	 */
-	private VariableReference searchRelevantReferenceInTest(TestCase test, Field field, VariableReference targetObject) {
-		
+	private VariableReference searchRelevantReferenceInTest(TestCase test, Field field,
+			VariableReference targetObject) {
+
 		List<VariableReference> relevantRefs = new ArrayList<VariableReference>();
-		
+
 		if (targetObject != null) {
 			/**
-			 * check the variables passed as parameters to the constructor of targetObject, which are 
-			 * data-flow relevant to writing the field @{code field} 
+			 * check the variables passed as parameters to the constructor of targetObject,
+			 * which are data-flow relevant to writing the field @{code field}
 			 */
 			Statement s = test.getStatement(targetObject.getStPosition());
 			/**
 			 * TODO: if it is a null statement, change a random constructor here.
 			 */
-			if(s instanceof NullStatement) {
+			if (s instanceof NullStatement) {
 				TestFactory testFactory = TestFactory.getInstance();
 				testFactory.changeNullStatement(test, s);
 				System.currentTimeMillis();
 			}
-			
-			
+
 			if (s instanceof ConstructorStatement) {
 				ConstructorStatement constructorStat = (ConstructorStatement) s;
 				List<VariableReference> params = constructorStat.getParameterReferences();
 				String className = constructorStat.getDeclaringClassName();
 				String methodName = constructorStat.getMethodName() + constructorStat.getDescriptor();
 				if (!params.isEmpty()) {
-					List<VariableReference> paramRefs = searchRelevantParameterInTest(params, className, methodName, field);
+					List<VariableReference> paramRefs = searchRelevantParameterInTest(params, className, methodName,
+							field);
 					relevantRefs.addAll(paramRefs);
-				}		
+				}
 			}
-			
+
 			/**
-			 * check the variables passed as parameters to the method invocation from targetObject, which are 
-			 * data-flow relevant to writing the field @{code field} 
+			 * check the variables passed as parameters to the method invocation from
+			 * targetObject, which are data-flow relevant to writing the field @{code field}
 			 */
-			for(int i=0; i<test.size(); i++) {
+			for (int i = 0; i < test.size(); i++) {
 				Statement stat = test.getStatement(i);
-				if(stat instanceof MethodStatement) {
-					MethodStatement mStat = (MethodStatement)stat;
+				if (stat instanceof MethodStatement) {
+					MethodStatement mStat = (MethodStatement) stat;
 					VariableReference ref = mStat.getCallee();
-					if(ref != null && ref.equals(targetObject)) {
+					if (ref != null && ref.equals(targetObject)) {
 						List<VariableReference> params = mStat.getParameterReferences();
 						String className = mStat.getDeclaringClassName();
 						String methodName = mStat.getMethodName() + mStat.getDescriptor();
-						List<VariableReference> paramRefs = searchRelevantParameterInTest(params, className, methodName, field);
-	
-						for(VariableReference pRef: paramRefs) {
-							if(!relevantRefs.contains(pRef)) {
+						List<VariableReference> paramRefs = searchRelevantParameterInTest(params, className, methodName,
+								field);
+
+						for (VariableReference pRef : paramRefs) {
+							if (!relevantRefs.contains(pRef)) {
 								relevantRefs.add(pRef);
 							}
 						}
@@ -487,19 +492,20 @@ public class ConstructionPathSynthesizer {
 				}
 			}
 		}
-		
+
 		/**
 		 * FIXME, ziheng: we need to provide some priority for those parameters here.
 		 */
-		if(relevantRefs.isEmpty())
+		if (relevantRefs.isEmpty())
 			return null;
-		
+
 		VariableReference ref = Randomness.choice(relevantRefs);
 		return ref;
 	}
-	
+
 	/**
 	 * opcode should always be "getfield"
+	 * 
 	 * @param statement
 	 * @param params
 	 * @param opcode
@@ -533,9 +539,10 @@ public class ConstructionPathSynthesizer {
 		}
 		return validParams;
 	}
-	
+
 	/**
 	 * Output is the valid parameter position of most top method call
+	 * 
 	 * @param setterInstruction
 	 * @param className
 	 * @param methodName
@@ -554,7 +561,8 @@ public class ConstructionPathSynthesizer {
 			return paramPositions;
 		}
 
-		Set<BytecodeInstruction> paramInstructions = analyzingCascadingCall(new HashSet<>(Arrays.asList(setterInstruction)), callList, 0, new HashSet<>());
+		Set<BytecodeInstruction> paramInstructions = analyzingCascadingCall(
+				new HashSet<>(Arrays.asList(setterInstruction)), callList, 0, new HashSet<>());
 		Set<Integer> paramPositions = checkSetterParamPositions(paramInstructions);
 		return paramPositions;
 	}
@@ -582,12 +590,15 @@ public class ConstructionPathSynthesizer {
 	}
 
 	/**
-	 * search for new load instruction when analyzing next layer of method invocation
+	 * search for new load instruction when analyzing next layer of method
+	 * invocation
+	 * 
 	 * @param call
 	 * @param paramPos
 	 * @return
 	 */
-	private Set<BytecodeInstruction> searchForNewParameterInstruction(BytecodeInstruction call, Set<BytecodeInstruction> paramInsns) {
+	private Set<BytecodeInstruction> searchForNewParameterInstruction(BytecodeInstruction call,
+			Set<BytecodeInstruction> paramInsns) {
 		Set<BytecodeInstruction> newParamInsns = new HashSet<>();
 		Set<Integer> paramPosSet = checkSetterParamPositions(paramInsns);
 		Set<BytecodeInstruction> newParams = new HashSet<>();
@@ -597,7 +608,8 @@ public class ConstructionPathSynthesizer {
 				newParams = checkCurrentParamInstructions(defIns, new HashSet<>());
 			} else {
 				BytecodeInstruction defIns = call.getSourceOfStackInstruction(call.getOperandNum() - pos - 2);
-				newParams = checkCurrentParamInstructions(defIns, new HashSet<>());			}
+				newParams = checkCurrentParamInstructions(defIns, new HashSet<>());
+			}
 			if (newParams != null) {
 				newParamInsns.addAll(newParams);
 			}
@@ -606,12 +618,14 @@ public class ConstructionPathSynthesizer {
 	}
 
 	/**
-	 * return localVariableUse instruction for parameter 
+	 * return localVariableUse instruction for parameter
+	 * 
 	 * @param descIns
 	 * @param paramInstructionSet
 	 * @return
 	 */
-	private Set<BytecodeInstruction> checkCurrentParamInstructions(BytecodeInstruction descIns, Set<BytecodeInstruction> paramInstructionSet) {
+	private Set<BytecodeInstruction> checkCurrentParamInstructions(BytecodeInstruction descIns,
+			Set<BytecodeInstruction> paramInstructionSet) {
 		if (descIns.isLocalVariableUse()) {
 			if (isParameter(descIns)) {
 				// position here similar to list index (i.e., starts from 0)
@@ -620,7 +634,7 @@ public class ConstructionPathSynthesizer {
 				paramInstructionSet.add(descIns);
 			}
 		}
-		for (int i = 0;i < descIns.getOperandNum(); i ++) {
+		for (int i = 0; i < descIns.getOperandNum(); i++) {
 			BytecodeInstruction defIns = descIns.getSourceOfStackInstruction(i);
 			if (defIns == null) {
 				return paramInstructionSet;
@@ -637,42 +651,44 @@ public class ConstructionPathSynthesizer {
 		}
 		return paramInstructionSet;
 	}
-	
+
 	public static BytecodeInstruction traceBackToMethodCall(BytecodeInstruction ins) {
-		
-		if(ins.isUse()) {
+
+		if (ins.isUse()) {
 			FBranchDefUseAnalyzer.analyze(ins.getRawCFG());
-			
+
 			Use use = DefUsePool.getUseByInstruction(ins);
 			List<Definition> defs = DefUsePool.getDefinitions(use);
-			
-			if(defs==null) {
+
+			if (defs == null) {
 				return null;
 			}
-			
-			if(!defs.isEmpty()) {
+
+			if (!defs.isEmpty()) {
 				Definition def = defs.get(0);
-				if(def.getFrame().getStackSize() > 0) {
+				if (def.getFrame().getStackSize() > 0) {
 					BytecodeInstruction call = def.getSourceOfStackInstruction(0);
-					
-					if(call != null && call.isMethodCall()) {
+
+					if (call != null && call.isMethodCall()) {
 						return call;
-					}					
+					}
 				}
 			}
 		}
-		
+
 		return null;
 	}
-	
-	private boolean checkParamValidation(BytecodeInstruction call, Set<BytecodeInstruction> paramInsns, BytecodeInstruction ins) {
+
+	private boolean checkParamValidation(BytecodeInstruction call, Set<BytecodeInstruction> paramInsns,
+			BytecodeInstruction ins) {
 		if (call.getCalledMethodsArgumentCount() == 0) {
 			return false;
 		}
-		if (!call.getCalledMethod().equals(ins.getMethodName()) || !call.getCalledMethodsClass().equals(ins.getClassName())) {
+		if (!call.getCalledMethod().equals(ins.getMethodName())
+				|| !call.getCalledMethodsClass().equals(ins.getClassName())) {
 			return false;
 		}
-		
+
 		Set<Integer> paramPositions = checkSetterParamPositions(paramInsns);
 		for (Integer pos : paramPositions) {
 			if (pos > call.getCalledMethodsArgumentCount() - 1) {
@@ -749,7 +765,8 @@ public class ConstructionPathSynthesizer {
 						calledClass = confirmClassNameInParentClass(calledClass, mNode);
 						if (calledMethodName != null) {
 							cascadingCallRelations.add(ins);
-							checkFieldSetter(calledClass, calledMethodName, field, depth - 1, cascadingCallRelations, setterMap);
+							checkFieldSetter(calledClass, calledMethodName, field, depth - 1, cascadingCallRelations,
+									setterMap);
 						}
 					}
 
@@ -759,41 +776,42 @@ public class ConstructionPathSynthesizer {
 			}
 
 		}
-		cascadingCallRelations.clear();;
+		cascadingCallRelations.clear();
+		;
 
 		return setterMap;
 
 	}
 
 	private boolean containMethod(ClassNode classNode, MethodInsnNode mNode) {
-		
+
 //		if(!mNode.owner.equals(classNode.name)) {
 //			return false;
 //		}
-		
-		for(MethodNode methodNode: classNode.methods) {
+
+		for (MethodNode methodNode : classNode.methods) {
 			String methodNodeName = methodNode.name + methodNode.desc;
 			String methodInsName = mNode.name + mNode.desc;
-			if(methodNodeName.equals(methodInsName)) {
+			if (methodNodeName.equals(methodInsName)) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	private String confirmClassNameInParentClass(String calledClass, MethodInsnNode mNode) {
-		
+
 		List<String> superClassList = DependencyAnalysis.getInheritanceTree().getOrderedSuperclasses(calledClass);
-		for(String superClass: superClassList) {
+		for (String superClass : superClassList) {
 			ClassNode parentClassNode = DependencyAnalysis.getClassNode(superClass);
-			if(containMethod(parentClassNode, mNode)) {
+			if (containMethod(parentClassNode, mNode)) {
 				return superClass;
 			}
 		}
-		
+
 		System.currentTimeMillis();
-		
+
 		return null;
 	}
 
@@ -900,20 +918,19 @@ public class ConstructionPathSynthesizer {
 		boolean flag = !fieldType.contains("L") && !fieldType.contains(";");
 		return flag;
 	}
-	
 
 	@SuppressWarnings("rawtypes")
 	private boolean isCalledConstructor(TestCase test, VariableReference parentVarRef, Constructor constructor) {
-		
-		if(parentVarRef == null) {
+
+		if (parentVarRef == null) {
 			return false;
 		}
-		
+
 		Statement stat = test.getStatement(parentVarRef.getStPosition());
-		if(stat instanceof ConstructorStatement) {
-			ConstructorStatement s = (ConstructorStatement)stat;
+		if (stat instanceof ConstructorStatement) {
+			ConstructorStatement s = (ConstructorStatement) stat;
 			Constructor calledConstructor = s.getConstructor().getConstructor();
-			
+
 			return calledConstructor.equals(constructor);
 		}
 		return false;
@@ -922,23 +939,21 @@ public class ConstructionPathSynthesizer {
 	@SuppressWarnings("rawtypes")
 	private void registerAllMethods(Class<?> fieldDeclaringClass) {
 		try {
-			for(Method method: fieldDeclaringClass.getDeclaredMethods()) {
+			for (Method method : fieldDeclaringClass.getDeclaredMethods()) {
 				String methodName = method.getName() + MethodUtil.getSignature(method);
 				MethodUtil.registerMethod(fieldDeclaringClass, methodName);
 			}
-			
-			for(Constructor constructor: fieldDeclaringClass.getDeclaredConstructors()) {
+
+			for (Constructor constructor : fieldDeclaringClass.getDeclaredConstructors()) {
 				String constructorName = "<init>" + MethodUtil.getSignature(constructor);
 				MethodUtil.registerMethod(fieldDeclaringClass, constructorName);
 			}
+		} catch (Exception e) {
+
 		}
-		catch(Exception e) {
-			
-		}
-		
+
 	}
 
-	
 	private Field searchForField(Class<?> fieldDeclaringClass, String fieldName) {
 		try {
 			Field field = fieldDeclaringClass.getDeclaredField(fieldName);
@@ -952,71 +967,74 @@ public class ConstructionPathSynthesizer {
 	}
 
 	/**
-	 * parameter statement is supposed to be used only in the target method invocation
+	 * parameter statement is supposed to be used only in the target method
+	 * invocation
+	 * 
 	 * @param test
 	 * @param position
 	 * @param var
 	 * @param parentVarRef
-	 * @param castSubClass 
+	 * @param castSubClass
 	 * @return
 	 * @throws ConstructionFailedException
-	 * @throws ClassNotFoundException 
+	 * @throws ClassNotFoundException
 	 */
-	private VariableReference generateParameterStatement(TestCase test, int position, DepVariable var, VariableReference parentVarRef, String castSubClass) 
+	private VariableReference generateParameterStatement(TestCase test, int position, DepVariable var,
+			VariableReference parentVarRef, String castSubClass)
 			throws ConstructionFailedException, ClassNotFoundException {
-				
+
 		/**
 		 * find the existing parameters
 		 */
-		if(parentVarRef == null) {
+		if (parentVarRef == null) {
 			MethodStatement mStat = findTargetMethodCallStatement(test);
 			int paramPosition = var.getParamOrder();
-			VariableReference paramRef = mStat.getParameterReferences().get(paramPosition-1);
+			VariableReference paramRef = mStat.getParameterReferences().get(paramPosition - 1);
 			return paramRef;
 		}
-				
+
 		VariableReference paramRef = generateParameter(test, position, var, castSubClass);
-		
+
 		if (paramRef == null) {
 			return parentVarRef;
 		}
-		
+
 		MethodStatement targetStatement = findTargetMethodCallStatement(test);
-		if(targetStatement != null) {
-			VariableReference oldParamRef = targetStatement.getParameterReferences().get(var.getParamOrder()-1);
-			targetStatement.replace(oldParamRef, paramRef);			
+		if (targetStatement != null) {
+			VariableReference oldParamRef = targetStatement.getParameterReferences().get(var.getParamOrder() - 1);
+			targetStatement.replace(oldParamRef, paramRef);
 		}
-		
+
 		return paramRef;
 	}
 
 	private MethodStatement findTargetMethodCallStatement(TestCase test) {
-		for(int i=0; i<test.size(); i++) {
+		for (int i = 0; i < test.size(); i++) {
 			Statement stat = test.getStatement(i);
-			if(stat instanceof MethodStatement) {
-				MethodStatement methodStat = (MethodStatement)stat;
-				if(methodStat.getMethod().getNameWithDescriptor().equals(Properties.TARGET_METHOD)) {
+			if (stat instanceof MethodStatement) {
+				MethodStatement methodStat = (MethodStatement) stat;
+				if (methodStat.getMethod().getNameWithDescriptor().equals(Properties.TARGET_METHOD)) {
 					return methodStat;
 				}
 			}
 		}
-		
+
 		return null;
 	}
 
 	private VariableReference generateParameter(TestCase test, int position, DepVariable var, String castSubClass)
 			throws ConstructionFailedException {
-		
+
 		String paramType = castSubClass;
-		if(paramType == null) {
+		if (paramType == null) {
 			ActualControlFlowGraph actualControlFlowGraph = var.getInstruction().getActualCFG();
 			int paramOrder = var.getParamOrder();
-			
+
 			String methodSig = actualControlFlowGraph.getMethodName();
 			String[] parameters = extractParameter(methodSig);
-			paramType = parameters[paramOrder-1];
+			paramType = parameters[paramOrder - 1];
 		}
-		
+
 		Class<?> paramClass;
 		try {
 			paramClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(paramType);
@@ -1029,7 +1047,7 @@ public class ConstructionPathSynthesizer {
 		if (constructor != null) {
 			GenericConstructor gc = new GenericConstructor(constructor, paramDeclaringClazz);
 			paramRef = testFactory.addConstructor(test, gc, position, 2);
-		} 
+		}
 
 		return paramRef;
 	}
@@ -1037,7 +1055,7 @@ public class ConstructionPathSynthesizer {
 	private String[] extractParameter(String methodSig) {
 		String parameters = methodSig.substring(methodSig.indexOf("(") + 1, methodSig.indexOf(")"));
 		String[] args = parameters.split(";");
-		for(int i=0; i< args.length; i++) {
+		for (int i = 0; i < args.length; i++) {
 			args[i] = args[i].replace("/", ".").substring(1, args[i].length());
 		}
 		return args;
@@ -1055,11 +1073,12 @@ public class ConstructionPathSynthesizer {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotFoundException
 	 */
-	private Map.Entry<Method, Parameter> searchForPotentialSetter(Field field, String fieldOwner, Class<?> fieldDeclaringClass,
-			List<BytecodeInstruction> insList) throws NoSuchMethodException, ClassNotFoundException {
-		
+	private Map.Entry<Method, Parameter> searchForPotentialSetter(Field field, String fieldOwner,
+			Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList)
+			throws NoSuchMethodException, ClassNotFoundException {
+
 		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
-		
+
 		Map<Method, Parameter> targetMethods = new HashMap<>();
 		for (BytecodeInstruction ins : insList) {
 			if (ins.getASMNodeString().contains(opcode)) {
@@ -1094,14 +1113,14 @@ public class ConstructionPathSynthesizer {
 		Map.Entry<Method, Parameter> entry = Randomness.choice(targetMethods.entrySet());
 		return entry;
 	}
-	
+
 	@SuppressWarnings("rawtypes")
-	private Map.Entry<Constructor, Parameter> searchForPotentialConstructor(Field field, String fieldOwner, 
-			Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList) 
+	private Map.Entry<Constructor, Parameter> searchForPotentialConstructor(Field field, String fieldOwner,
+			Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList)
 			throws NoSuchMethodException, ClassNotFoundException {
-		
+
 		String opcode = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
-		
+
 		Map<Constructor, Parameter> targetConstructors = new HashMap<>();
 		for (BytecodeInstruction ins : insList) {
 			if (ins.getASMNodeString().contains(opcode)) {
@@ -1114,23 +1133,23 @@ public class ConstructionPathSynthesizer {
 							.getArgumentTypes(fullName.substring(fullName.indexOf("("), fullName.length()));
 					Class<?>[] paramClasses = new Class<?>[types.length];
 					int index = 0;
-					for (org.objectweb.asm.Type type : types) {		
+					for (org.objectweb.asm.Type type : types) {
 						Class<?> paramClass = getClassForType(type);
 						paramClasses[index++] = paramClass;
 					}
-					
-					if(fullName.contains("<init>")) {
+
+					if (fullName.contains("<init>")) {
 						Constructor constructor = fieldDeclaringClass.getDeclaredConstructor(paramClasses);
 						Parameter[] paramList = constructor.getParameters();
 						Parameter param = searchForQualifiedParameter(constructor, field, paramList, opcode);
-						targetConstructors.put(constructor, param);												
+						targetConstructors.put(constructor, param);
 //						if(param != null) {
 //						}
 					}
 				}
 			}
 		}
-		
+
 		Map.Entry<Constructor, Parameter> entry = Randomness.choice(targetConstructors.entrySet());
 		return entry;
 	}
@@ -1141,16 +1160,16 @@ public class ConstructionPathSynthesizer {
 		if (constructorVarRef == null) {
 			return null;
 		}
-		
-		if(genericField.isFinal()) {
+
+		if (genericField.isFinal()) {
 			return null;
 		}
-		
+
 		FieldReference fieldVar = null;
 		if (genericField.isStatic()) {
 			fieldVar = new FieldReference(test, genericField);
 			AbstractStatement stmt = new AssignmentStatement(test, fieldVar, constructorVarRef);
-			test.addStatement(stmt, 0);			
+			test.addStatement(stmt, 0);
 			return stmt;
 		} else {
 			if (parentVarRef != null) {
@@ -1161,13 +1180,13 @@ public class ConstructionPathSynthesizer {
 				fieldVar = new FieldReference(test, genericField, var);
 			}
 			AbstractStatement stmt = new AssignmentStatement(test, fieldVar, constructorVarRef);
-			test.addStatement(stmt, fieldVar.getStPosition() + 1);		
-			
+			test.addStatement(stmt, fieldVar.getStPosition() + 1);
+
 			return stmt;
 		}
-		
+
 	}
-	
+
 	private VariableReference addPrimitiveStatement(TestCase test, int position, String desc) {
 		try {
 			PrimitiveStatement<?> primStatement = createNewPrimitiveStatement(test, desc);
@@ -1201,7 +1220,8 @@ public class ConstructionPathSynthesizer {
 		return stmt;
 	}
 
-	private VariableReference addConstructorForClass(TestCase test, int position, String desc) throws ConstructionFailedException {
+	private VariableReference addConstructorForClass(TestCase test, int position, String desc)
+			throws ConstructionFailedException {
 		try {
 			String fieldType;
 			if (desc.contains("/")) {
@@ -1210,17 +1230,19 @@ public class ConstructionPathSynthesizer {
 				fieldType = desc;
 			}
 			Class<?> fieldClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
-			
-			if(fieldClass.isInterface() || Modifier.isAbstract(fieldClass.getModifiers())) {
-				Set<String> subclasses = DependencyAnalysis.getInheritanceTree().getSubclasses(fieldClass.getCanonicalName());
+
+			if (fieldClass.isInterface() || Modifier.isAbstract(fieldClass.getModifiers())) {
+				Set<String> subclasses = DependencyAnalysis.getInheritanceTree()
+						.getSubclasses(fieldClass.getCanonicalName());
 				String subclass = Randomness.choice(subclasses);
 				fieldClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(subclass);
 			}
-			
+
 			Constructor<?> constructor = Randomness.choice(fieldClass.getConstructors());
 			if (constructor != null) {
 				GenericConstructor genericConstructor = new GenericConstructor(constructor, fieldClass);
-				VariableReference variableReference = testFactory.addConstructor(test, genericConstructor, position+1, 2);
+				VariableReference variableReference = testFactory.addConstructor(test, genericConstructor, position + 1,
+						2);
 				return variableReference;
 			}
 			return null;
@@ -1229,58 +1251,48 @@ public class ConstructionPathSynthesizer {
 		}
 		return null;
 	}
-	
+
 	private Class<?> getClassForType(org.objectweb.asm.Type type) {
 		if (type == org.objectweb.asm.Type.BOOLEAN_TYPE) {
 			return boolean.class;
-		}
-		else if (type == org.objectweb.asm.Type.BYTE_TYPE) {
+		} else if (type == org.objectweb.asm.Type.BYTE_TYPE) {
 			return byte.class;
-		}
-		else if (type == org.objectweb.asm.Type.CHAR_TYPE) {
+		} else if (type == org.objectweb.asm.Type.CHAR_TYPE) {
 			return char.class;
-		}
-		else if (type == org.objectweb.asm.Type.SHORT_TYPE) {
+		} else if (type == org.objectweb.asm.Type.SHORT_TYPE) {
 			return short.class;
-		}
-		else if (type == org.objectweb.asm.Type.INT_TYPE) {
+		} else if (type == org.objectweb.asm.Type.INT_TYPE) {
 			return int.class;
-		}
-		else if (type == org.objectweb.asm.Type.LONG_TYPE) {
+		} else if (type == org.objectweb.asm.Type.LONG_TYPE) {
 			return long.class;
-		}
-		else if (type == org.objectweb.asm.Type.FLOAT_TYPE) {
+		} else if (type == org.objectweb.asm.Type.FLOAT_TYPE) {
 			return float.class;
-		}
-		else if (type == org.objectweb.asm.Type.DOUBLE_TYPE) {
+		} else if (type == org.objectweb.asm.Type.DOUBLE_TYPE) {
 			return double.class;
-		}
-		else {
+		} else {
 			try {
 				String className = type.getClassName();
-				if(type.getSort() != org.objectweb.asm.Type.ARRAY) {
-					Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT()
-							.loadClass(className);					
+				if (type.getSort() != org.objectweb.asm.Type.ARRAY) {
+					Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
 					return clazz;
-				}
-				else {
+				} else {
 					StringBuffer buffer = new StringBuffer();
 					org.objectweb.asm.Type elementType = type.getElementType();
 					String arrayString = extractedArrayString(type);
-					if(elementType.getSort() <= 8) {
+					if (elementType.getSort() <= 8) {
 						className = convertToShortName(elementType.getClassName());
 						buffer.append(arrayString);
 						buffer.append(className);
-					}
-					else {
-						className = elementType.getClassName();	
+					} else {
+						className = elementType.getClassName();
 						buffer.append(arrayString);
 						buffer.append("L");
 						buffer.append(className);
 						buffer.append(";");
 					}
 					String fullName = buffer.toString();
-					Class<?> clazzArray = Class.forName(fullName, true, TestGenerationContext.getInstance().getClassLoaderForSUT());
+					Class<?> clazzArray = Class.forName(fullName, true,
+							TestGenerationContext.getInstance().getClassLoaderForSUT());
 					return clazzArray;
 				}
 			} catch (ClassNotFoundException e) {
@@ -1293,7 +1305,7 @@ public class ConstructionPathSynthesizer {
 	private String extractedArrayString(org.objectweb.asm.Type type) {
 		int arrayLength = type.getDimensions();
 		StringBuffer buffer = new StringBuffer();
-		for(int i=0; i<arrayLength; i++) {
+		for (int i = 0; i < arrayLength; i++) {
 			buffer.append("[");
 		}
 		return buffer.toString();
@@ -1330,7 +1342,7 @@ public class ConstructionPathSynthesizer {
 			return null;
 		}
 	}
-	
+
 	private String convertToShortName(String desc) {
 		switch (desc) {
 		case "boolean":
@@ -1353,7 +1365,7 @@ public class ConstructionPathSynthesizer {
 			return null;
 		}
 	}
-	
+
 	private String convertToLongName(String desc) {
 		switch (desc) {
 		case "Z":
@@ -1376,21 +1388,20 @@ public class ConstructionPathSynthesizer {
 			return null;
 		}
 	}
-	
+
 	private boolean isParameter(BytecodeInstruction instruction) {
-		if(instruction.isLocalVariableUse()) {
+		if (instruction.isLocalVariableUse()) {
 			String methodName = instruction.getRawCFG().getMethodName();
 			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
 			org.objectweb.asm.Type[] typeArgs = org.objectweb.asm.Type.getArgumentTypes(methodDesc);
 			int paramNum = typeArgs.length;
-			
+
 			int slot = instruction.getLocalVariableSlot();
-			
-			if(instruction.getRawCFG().isStaticMethod()) {
+
+			if (instruction.getRawCFG().isStaticMethod()) {
 				return slot < paramNum;
-			}
-			else {
-				return slot < paramNum+1 && slot != 0;				
+			} else {
+				return slot < paramNum + 1 && slot != 0;
 			}
 		}
 		return false;
