@@ -48,7 +48,12 @@ public class FieldUseAnalyzer {
 		return className;
 	}
 	
-	private Map<String, Set<DepVariable>> analyzeReturnValueFromMethod(BytecodeInstruction instruction){
+	private Map<String, Set<DepVariable>> analyzeReturnValueFromMethod(BytecodeInstruction instruction, int callGraphDepth){
+		
+		if(callGraphDepth <=0) {
+			return new HashMap<>();
+		}
+		
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		
 		String className = instruction.getCalledMethodsClass();
@@ -93,7 +98,7 @@ public class FieldUseAnalyzer {
 		Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 		for (BytecodeInstruction exit : calledCfg.getExitPoints()) {
 			for (BytecodeInstruction returnInstruction : exit.getSourceListOfStackInstruction(0)) {
-				searchDefDependentVariables(returnInstruction, calledCfg, allDepVars, visitedIns);
+				searchDefDependentVariables(returnInstruction, calledCfg, allDepVars, visitedIns, callGraphDepth-1);
 			}
 		}
 		
@@ -141,7 +146,7 @@ public class FieldUseAnalyzer {
 	 * @return
 	 */
 	public void searchDependantVariables(Value value, ActualControlFlowGraph cfg, Set<DepVariable> allLeafDepVars,
-			Set<BytecodeInstruction> visitedIns) {
+			Set<BytecodeInstruction> visitedIns, int callGraphDepth) {
 		
 		if (!(value instanceof SourceValue)) {
 			return;
@@ -158,13 +163,13 @@ public class FieldUseAnalyzer {
 		 */
 		for(AbstractInsnNode insNode: srcValue.insns) {
 			BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
-			searchDefDependentVariables(defIns, cfg, allLeafDepVars, visitedIns);
+			searchDefDependentVariables(defIns, cfg, allLeafDepVars, visitedIns, callGraphDepth);
 		}
 	}
 	
 	@SuppressWarnings("rawtypes")
 	private void searchDefDependentVariables(BytecodeInstruction defIns, ActualControlFlowGraph cfg, Set<DepVariable> allLeafDepVars,
-			Set<BytecodeInstruction> visitedIns) {
+			Set<BytecodeInstruction> visitedIns, int callGraphDepth) {
 		if (visitedIns.contains(defIns)) {
 			return;
 		}
@@ -180,7 +185,7 @@ public class FieldUseAnalyzer {
 		 * the variable is computed by values on stack
 		 */
 		List<DepVariable>[] intputVarArray = buildInputOutputForInstruction(defIns, node,
-				outputVar, cfg, allLeafDepVars, visitedIns);
+				outputVar, cfg, allLeafDepVars, visitedIns, callGraphDepth);
 		
 		/**
 		 * if defIns is a method call, we need to explore more potential variables (fields) inside the method.
@@ -189,7 +194,7 @@ public class FieldUseAnalyzer {
 			
 			if(!shouldStop(defIns)) {
 				String recommnedClass = outputVar.getRecommendedImplementation();
-				recommnedClass = exploreInterproceduralInstruction(allLeafDepVars, defIns, intputVarArray, recommnedClass);
+				recommnedClass = exploreInterproceduralInstruction(allLeafDepVars, defIns, intputVarArray, recommnedClass, callGraphDepth);
 				outputVar.setRecommendedImplementation(recommnedClass);				
 			}
 			
@@ -220,7 +225,7 @@ public class FieldUseAnalyzer {
 				if (def != null) {
 					BytecodeInstruction defInstruction = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, def.getASMNode());
 					buildInputOutputForInstruction(defInstruction, node,
-							outputVar, cfg, allLeafDepVars, visitedIns);
+							outputVar, cfg, allLeafDepVars, visitedIns, callGraphDepth);
 				}
 			}
 		}
@@ -236,7 +241,7 @@ public class FieldUseAnalyzer {
 					Frame frame = controlIns.getFrame();
 					int index = frame.getStackSize() - operandNum + i ;
 					Value val = frame.getStack(index);
-					searchDependantVariables(val, cfg, allLeafDepVars, visitedIns);
+					searchDependantVariables(val, cfg, allLeafDepVars, visitedIns, callGraphDepth);
 				}
 			}					
 		}
@@ -268,9 +273,9 @@ public class FieldUseAnalyzer {
 	 * @param inputVarArray
 	 */
 	private String exploreInterproceduralInstruction(Set<DepVariable> allLeafDepVars, BytecodeInstruction defIns,
-			List<DepVariable>[] inputVarArray, String recommendedClass) {
+			List<DepVariable>[] inputVarArray, String recommendedClass, int callGraphDepth) {
 		
-		Map<String, Set<DepVariable>> relatedVariableMap = analyzeReturnValueFromMethod(defIns);
+		Map<String, Set<DepVariable>> relatedVariableMap = analyzeReturnValueFromMethod(defIns, callGraphDepth);
 		if(relatedVariableMap.isEmpty()) {
 			return null;
 		}
@@ -317,7 +322,7 @@ public class FieldUseAnalyzer {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private List<DepVariable>[] buildInputOutputForInstruction(BytecodeInstruction defInstruction, MethodNode node, 
-			DepVariable outputVar, ActualControlFlowGraph cfg, Set<DepVariable> allDepVars, Set<BytecodeInstruction> visitedIns) {
+			DepVariable outputVar, ActualControlFlowGraph cfg, Set<DepVariable> allDepVars, Set<BytecodeInstruction> visitedIns, int callGraphDepth) {
 		List<DepVariable>[] intputVarArray = new ArrayList[DepVariable.OPERAND_NUM_LIMIT];
 		int operandNum = defInstruction.getOperandNum();
 		for (int i = 0; i < operandNum; i++) {
@@ -333,7 +338,7 @@ public class FieldUseAnalyzer {
 				DepVariable inputVar = parseVariable(newDefIns);
 				inputVar.buildRelation(outputVar, i);
 				
-				searchDependantVariables(val, cfg, allDepVars, visitedIns);
+				searchDependantVariables(val, cfg, allDepVars, visitedIns, callGraphDepth);
 				
 				inputVars.add(inputVar);
 			}
