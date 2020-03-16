@@ -31,7 +31,6 @@ import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
-import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.utils.CollectionUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -51,7 +50,6 @@ import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.SourceValue;
-import org.objectweb.asm.tree.analysis.Value;
 
 /**
  * Internal representation of a BytecodeInstruction
@@ -1420,11 +1418,14 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 
 	public int getOperandNum() {
 		if(this.asmNode.getType() == AbstractInsnNode.FIELD_INSN) {
-			if(this.asmNode.getOpcode() == Opcodes.GETSTATIC || this.asmNode.getOpcode() == Opcodes.PUTSTATIC) {
+			if(this.asmNode.getOpcode() == Opcodes.GETSTATIC) {
 				return 0;
 			}
-			else if (this.asmNode.getOpcode() == Opcodes.GETFIELD || this.asmNode.getOpcode() == Opcodes.PUTFIELD) {
+			else if (this.asmNode.getOpcode() == Opcodes.GETFIELD || this.asmNode.getOpcode() == Opcodes.PUTSTATIC) {
 				return 1;
+			}
+			else if (this.asmNode.getOpcode() == Opcodes.PUTFIELD) {
+				return 2;
 			}
 		}
 		else if (this.asmNode.getType() == AbstractInsnNode.JUMP_INSN) {
@@ -1439,13 +1440,13 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		}
 		else if(this.asmNode.getType() == AbstractInsnNode.METHOD_INSN) {
 			if (this.asmNode.getOpcode() == Opcodes.INVOKEINTERFACE) {
-				return 0;
+				return this.getCalledMethodsArgumentCount() + 1;
 			}
 			if (this.asmNode.getOpcode() == Opcodes.INVOKEVIRTUAL) {
 				return this.getCalledMethodsArgumentCount() + 1;
 			}
 			if (this.asmNode.getOpcode() == Opcodes.INVOKESPECIAL) {
-				System.currentTimeMillis();
+				return this.getCalledMethodsArgumentCount() + 1;
 			}
 			if(this.isCallToStaticMethod()) {
 				return this.getCalledMethodsArgumentCount();
@@ -1487,15 +1488,16 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		else if(this.asmNode.getOpcode() == Opcodes.ACONST_NULL) {
 			return 0;
 		}
-		else if(this.asmNode.getOpcode() == Opcodes.CHECKCAST) {
-			return 1;
-		}
 		else if (this.asmNode.getOpcode() == Opcodes.DCMPG || this.asmNode.getOpcode() == Opcodes.DCMPL
-				|| this.asmNode.getOpcode() == Opcodes.FCMPG || this.asmNode.getOpcode() == Opcodes.FCMPL) {
+				|| this.asmNode.getOpcode() == Opcodes.FCMPG || this.asmNode.getOpcode() == Opcodes.FCMPL || this.asmNode.getOpcode() == Opcodes.LCMP) {
 			return 2;
 		}
-		else if(this.asmNode.getOpcode() == Opcodes.NEWARRAY) {
-			return 1;
+		else if (this.asmNode.getOpcode() == Opcodes.MULTIANEWARRAY) {
+			int count = 0;
+			while (this.getSourceOfStackInstruction(count) != null) {
+				count ++;
+			}
+			return count;
 		}
 		else if(this.asmNode.getOpcode() == Opcodes.ARRAYLENGTH) {
 			return 1;
@@ -1504,7 +1506,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 			return 1;
 		}
 		else if(this.asmNode.getOpcode() == Opcodes.IADD || this.asmNode.getOpcode() == Opcodes.FADD
-				|| this.asmNode.getOpcode() == Opcodes.IADD
+				|| this.asmNode.getOpcode() == Opcodes.DADD || this.asmNode.getOpcode() == Opcodes.LADD
 				|| this.asmNode.getOpcode() == Opcodes.IDIV || this.asmNode.getOpcode() == Opcodes.DDIV
 				|| this.asmNode.getOpcode() == Opcodes.FDIV || this.asmNode.getOpcode() == Opcodes.LDIV
 				|| this.asmNode.getOpcode() == Opcodes.IMUL || this.asmNode.getOpcode() == Opcodes.DMUL
@@ -1537,6 +1539,26 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		else if(this.asmNode.getOpcode() == Opcodes.DUP2_X2) {
 			return 4;
 		}
+		else if (this.asmNode.getOpcode() == Opcodes.BALOAD || this.asmNode.getOpcode() == Opcodes.BASTORE || 
+				this.asmNode.getOpcode() == Opcodes.CALOAD || this.asmNode.getOpcode() == Opcodes.CASTORE ||
+				this.asmNode.getOpcode() == Opcodes.SALOAD || this.asmNode.getOpcode() == Opcodes.SASTORE) {
+			return 2;
+		}
+		else if (this.asmNode.getOpcode() == Opcodes.LOOKUPSWITCH || this.asmNode.getOpcode() == Opcodes.TABLESWITCH) {
+			return 1;
+		}
+		else if (this.asmNode.getOpcode() == Opcodes.MONITORENTER || this.asmNode.getOpcode() == Opcodes.MONITOREXIT) {
+			return 1;
+		}
+		else if (this.asmNode.getOpcode() == Opcodes.POP) {
+			return 1;
+		}
+		else if (this.asmNode.getOpcode() == Opcodes.POP2) {
+			return 2;
+		}
+		else if (this.asmNode.getOpcode() == Opcodes.SWAP) {
+			return 2;
+		}
 		return 0;
 	}
 
@@ -1544,6 +1566,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		switch (this.asmNode.getOpcode()) {
 		case Opcodes.ISHL:
 		case Opcodes.ISHR:
+		case Opcodes.IAND:
 		case Opcodes.IUSHR:
 		case Opcodes.LSHL:
 		case Opcodes.LSHR:
