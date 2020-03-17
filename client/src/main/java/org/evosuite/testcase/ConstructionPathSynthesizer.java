@@ -739,45 +739,44 @@ public class ConstructionPathSynthesizer {
 		}
 
 		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
-
-		for (BytecodeInstruction ins : insList) {
-			if (ins.getASMNodeString().contains(opcode)) {
-				AbstractInsnNode node = ins.getASMNode();
-				if (node instanceof FieldInsnNode) {
-					FieldInsnNode fNode = (FieldInsnNode) node;
-					if (fNode.name.equals(field.getName())) {
-						setterMap.put(ins, new ArrayList<>(cascadingCallRelations));
-					}
-				}
-			} else if (ins.getASMNode() instanceof MethodInsnNode) {
-				if (depth > 0) {
-					MethodInsnNode mNode = (MethodInsnNode) (ins.getASMNode());
-
-					String calledClass = mNode.owner;
-					calledClass = calledClass.replace("/", ".");
-					/**
-					 * FIXME, ziheng: we only analyze the callee method in the same class, but we
-					 * need to consider the invocation in other class.
-					 */
-					if (calledClass.equals(className)) {
-						String calledMethodName = mNode.name + mNode.desc;
-
-						calledClass = confirmClassNameInParentClass(calledClass, mNode);
-						if (calledMethodName != null) {
-							cascadingCallRelations.add(ins);
-							checkFieldSetter(calledClass, calledMethodName, field, depth - 1, cascadingCallRelations,
-									setterMap);
+		if (insList != null) {
+			for (BytecodeInstruction ins : insList) {
+				if (ins.getASMNodeString().contains(opcode)) {
+					AbstractInsnNode node = ins.getASMNode();
+					if (node instanceof FieldInsnNode) {
+						FieldInsnNode fNode = (FieldInsnNode) node;
+						if (fNode.name.equals(field.getName())) {
+							setterMap.put(ins, new ArrayList<>(cascadingCallRelations));
 						}
 					}
+				} else if (ins.getASMNode() instanceof MethodInsnNode) {
+					if (depth > 0) {
+						MethodInsnNode mNode = (MethodInsnNode) (ins.getASMNode());
 
-				} else {
-					System.currentTimeMillis();
+						String calledClass = mNode.owner;
+						calledClass = calledClass.replace("/", ".");
+						/**
+						 * FIXME, ziheng: we only analyze the callee method in the same class, but we
+						 * need to consider the invocation in other class.
+						 */
+						if (calledClass.equals(className)) {
+							String calledMethodName = mNode.name + mNode.desc;
+
+							calledClass = confirmClassNameInParentClass(calledClass, mNode);
+							if (calledMethodName != null) {
+								cascadingCallRelations.add(ins);
+								checkFieldSetter(calledClass, calledMethodName, field, depth - 1,
+										cascadingCallRelations, setterMap);
+							}
+						}
+
+					} else {
+						System.currentTimeMillis();
+					}
 				}
 			}
-
 		}
 		cascadingCallRelations.clear();
-		;
 
 		return setterMap;
 
