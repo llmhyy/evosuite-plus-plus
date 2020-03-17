@@ -239,8 +239,8 @@ public class ConstructionPathSynthesizer {
 		AbstractStatement stmt = null;
 
 		if (parentVarRef != null) {
-			String parentType = parentVarRef.getType().getTypeName();
-			if (!parentType.equals(fieldOwner)) {
+			String parentType = parentVarRef.getClassName();
+			if (!isCompatible(fieldOwner, parentType)) {
 				return parentVarRef;
 			}
 		}
@@ -268,9 +268,9 @@ public class ConstructionPathSynthesizer {
 
 			if (Modifier.isPublic(fieldModifiers) || fieldModifiers == 0) {
 				if (CollectionUtil.existIn(desc, "Z", "B", "C", "S", "I", "J", "F", "D")) {
-					stmt = addStatementToSetPrimitiveField(test, position + 1, desc, genericField, parentVarRef);
+					stmt = addStatementToSetPrimitiveField(test, parentVarRef.getStPosition() + 1, desc, genericField, parentVarRef);
 				} else {
-					stmt = addStatementToSetNonPrimitiveField(test, position + 1, desc, genericField, parentVarRef);
+					stmt = addStatementToSetNonPrimitiveField(test, parentVarRef.getStPosition() + 1, desc, genericField, parentVarRef);
 				}
 
 				if (stmt != null && stmt.getReturnValue() != null) {
@@ -1179,7 +1179,7 @@ public class ConstructionPathSynthesizer {
 				fieldVar = new FieldReference(test, genericField, var);
 			}
 			AbstractStatement stmt = new AssignmentStatement(test, fieldVar, constructorVarRef);
-			test.addStatement(stmt, fieldVar.getStPosition() + 1);
+			test.addStatement(stmt, constructorVarRef.getStPosition() + 1);
 
 			return stmt;
 		}
