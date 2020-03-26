@@ -12,6 +12,7 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.ClassReader;
@@ -63,7 +64,9 @@ public class CallsIntMethodFilter implements IMethodFilter {
                         cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
                     }
                     
-                    Set<BytecodeInstruction> instructions = cfg.getBranches();
+                    BytecodeInstructionPool insPool = BytecodeInstructionPool.getInstance(classLoader);
+                    List<BytecodeInstruction> instructions = insPool.getAllInstructionsAtMethod(className, methodName);
+                    
                     for (BytecodeInstruction ins : instructions) {
                     	if (ins.isMethodCall()) {                    
                             // Check if instruction calls methods that returns INT
