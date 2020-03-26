@@ -44,7 +44,9 @@ public class ListMethodsBatch {
 //		runListMethod(MethodFilterOption.STRING_ARRAY_INPUT_METHOD);
 //		runListMethod(MethodFilterOption.STRING_ARRAY_CONDITION_RELATED_METHOD);
 //		runListMethod(MethodFilterOption.PRIMITIVE_ARRAY_CONDITION_RELATED_METHOD);
-		runListMethod(MethodFilterOption.MAIN_METHOD);
+//		runListMethod(MethodFilterOption.MAIN_METHOD);
+//		runListMethod(MethodFilterOption.CALLS_INT_METHOD);
+		runListMethod(MethodFilterOption.CALLS_RECURSIVE_METHOD);
 
 //	}
 	}
