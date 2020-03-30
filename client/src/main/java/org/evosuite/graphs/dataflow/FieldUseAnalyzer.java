@@ -203,7 +203,7 @@ public class FieldUseAnalyzer {
 		/**
 		 *  handle load/get static, need to put the variable into the return list
 		 */
-		if(outputVar.isStaticField() || outputVar.isInstaceField()) {
+		if(outputVar.isStaticField() || outputVar.isInstaceField() || outputVar.isLoadArrayElement()) {
 			allLeafDepVars.add(outputVar);
 		}
 		
@@ -284,6 +284,7 @@ public class FieldUseAnalyzer {
 		Set<DepVariable> relatedVariables = relatedVariableMap.get(className);
 		
 		for(DepVariable var: relatedVariables) {
+			var.getRootVars();
 			for(DepVariable rootVar: var.getRootVars()) {
 				if(rootVar.getInstruction().getClassName().
 						equals(defIns.getCalledCFG().getClassName()) && 
@@ -294,6 +295,10 @@ public class FieldUseAnalyzer {
 					else {
 						ConstructionPath path = rootVar.findPath(var);
 						if(path != null) {
+							if(path.getPath().size() < 2) {
+								System.currentTimeMillis();
+							}
+							
 							DepVariable secVar = path.getPath().get(1);
 							if(rootVar.getType() == DepVariable.PARAMETER) {
 								int index = rootVar.getParamOrder() - 1;

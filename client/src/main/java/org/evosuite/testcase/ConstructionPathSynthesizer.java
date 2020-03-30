@@ -37,6 +37,7 @@ import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.statements.AbstractStatement;
+import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.EntityWithParametersStatement;
@@ -53,6 +54,8 @@ import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
 import org.evosuite.testcase.statements.numeric.LongPrimitiveStatement;
 import org.evosuite.testcase.statements.numeric.NumericalPrimitiveStatement;
 import org.evosuite.testcase.statements.numeric.ShortPrimitiveStatement;
+import org.evosuite.testcase.variable.ArrayIndex;
+import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.CollectionUtil;
@@ -127,6 +130,9 @@ public class ConstructionPathSynthesizer {
 				} else if (var.getType() == DepVariable.THIS) {
 					MethodStatement mStat = findTargetMethodCallStatement(test);
 					parentVarRef = mStat.getCallee();
+				} else if (var.getType() == DepVariable.ARRAY_ELEMENT) {
+					parentVarRef = generateArrayElementStatement(test, statementPosition, var, isLeaf, parentVarRef);
+					System.currentTimeMillis();
 				}
 
 				if (parentVarRef != null) {
@@ -138,6 +144,58 @@ public class ConstructionPathSynthesizer {
 			}
 		}
 
+	}
+
+	private VariableReference generateArrayElementStatement(TestCase test, int statementPosition, DepVariable var,
+			boolean isLeaf, VariableReference parentVarRef) {
+		// FIXME ziheng, we need to (1) handle primitive type and (2) search for method call which can set the array element.
+		
+		if(parentVarRef instanceof ArrayReference) {
+			ArrayReference arrayRef = (ArrayReference)parentVarRef;
+			int index = Randomness.nextInt(10);
+			ArrayIndex arrayIndex = new ArrayIndex(test, arrayRef, index);
+			
+			
+			VariableReference varRef = createVariable(test, arrayRef);
+			AssignmentStatement assign = new AssignmentStatement(test, arrayIndex, varRef);
+			test.addStatement(assign, varRef.getStPosition()+1);
+			System.currentTimeMillis();
+			
+			return assign.getReturnValue();
+			
+//			if(isLeaf) {
+//				//generate setter method. 
+//			}
+//			else {
+//				//generate getter method.
+//			}
+		}
+		
+		
+		return null;
+	}
+
+	private VariableReference createVariable(TestCase test, ArrayReference arrayRef) {
+		Class<?> clazz = arrayRef.getComponentClass();
+		Constructor<?> constructor = clazz.getConstructors()[0];
+		GenericConstructor gConstructor = new GenericConstructor(constructor,
+				constructor.getDeclaringClass());
+		try {
+			VariableReference returnedVar = testFactory.addConstructor(test, gConstructor,
+					arrayRef.getStPosition() + 1, 2);
+			return returnedVar;
+			
+		} catch (ConstructionFailedException e) {
+			e.printStackTrace();
+		}
+		
+		
+		return null;
+	}
+
+	private VariableReference createVariable(GenericClass clazz) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	private String checkClass(DepVariable var, ConstructionPath path) throws ClassNotFoundException {

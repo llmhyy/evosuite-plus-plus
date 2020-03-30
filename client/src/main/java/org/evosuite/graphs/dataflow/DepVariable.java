@@ -31,7 +31,8 @@ public class DepVariable {
 	public static final int STATIC_FIELD = 2;
 	public static final int INSTANCE_FIELD = 3;
 	public static final int THIS = 4;
-	public static final int OTHER = 5;
+	public static final int ARRAY_ELEMENT = 5;
+	public static final int OTHER = 6;
 	
 	public static int OPERAND_NUM_LIMIT = 30;
 	
@@ -54,8 +55,8 @@ public class DepVariable {
 		this.setType();
 	}
 	
-	public String inferRelation(DepVariable var) {
-		BytecodeInstruction instruction = var.getInstruction();
+	public String inferRelationWithChild(DepVariable childVar, int operandPosition) {
+		BytecodeInstruction instruction = childVar.getInstruction();
 		AbstractInsnNode insNode = instruction.getASMNode();
 		
 		int type = insNode.getType();
@@ -64,7 +65,12 @@ public class DepVariable {
 			relation = Relation.FIELD;
 		}
 		else {
-			relation = Relation.OTHER;
+			if(instruction.getASMNode().getOpcode() == Opcodes.AALOAD && operandPosition == 0) {
+				relation = Relation.ARRAY_ELEMENT;
+			}
+			else {
+				relation = Relation.OTHER;				
+			}
 		}
 		
 		return relation;
@@ -98,6 +104,10 @@ public class DepVariable {
 			this.setType(DepVariable.INSTANCE_FIELD);
 			this.setName(((FieldInsnNode)ins.getASMNode()).name);
 		}
+		else if(this.isLoadArrayElement()) {
+			this.setType(DepVariable.ARRAY_ELEMENT);
+			this.setName("array index");
+		}
 		else {
 			this.setType(DepVariable.OTHER);
 			this.setName("$unknown");
@@ -116,6 +126,9 @@ public class DepVariable {
 		}
 		else if(type == DepVariable.THIS) {
 			return "this";
+		}
+		else if(type == DepVariable.ARRAY_ELEMENT) {
+			return "array element";
 		}
 		else {
 			return "other";			
@@ -158,6 +171,10 @@ public class DepVariable {
 
 	public boolean isInstaceField() {
 		return this.instruction.getASMNode().getOpcode() == Opcodes.GETFIELD;
+	}
+	
+	public boolean isLoadArrayElement() {
+		return this.instruction.getASMNode().getOpcode() == Opcodes.AALOAD;
 	}
 
 
@@ -271,10 +288,9 @@ public class DepVariable {
 		visited.add(parent);
 		
 		
-		if(parent.getType() == DepVariable.THIS) {
-			roots.add(parent);
-		}
-		else if(parent.getType() == DepVariable.PARAMETER) {
+		if(parent.getType() == DepVariable.THIS ||
+				parent.getType() == DepVariable.PARAMETER ||
+				parent.getType() == DepVariable.STATIC_FIELD) {
 			roots.add(parent);
 		}
 		else {
@@ -308,8 +324,8 @@ public class DepVariable {
 			List<DepVariable> directParents = this.reverseRelations[i];
 			if(directParents != null && !directParents.isEmpty()) {
 				DepVariable p = directParents.get(0);
-				String relation = p.inferRelation(this);
-				if(relation.equals(Relation.FIELD)) {
+				String relation = p.inferRelationWithChild(this, i);
+				if(relation.equals(Relation.FIELD) || relation.equals(Relation.ARRAY_ELEMENT)) {
 					for (DepVariable parent : directParents) {
 						getRootVar(roots, parent, visited);
 					}
