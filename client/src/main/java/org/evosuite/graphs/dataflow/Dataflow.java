@@ -2,7 +2,6 @@ package org.evosuite.graphs.dataflow;
 
 import static guru.nidi.graphviz.model.Factory.graph;
 import static guru.nidi.graphviz.model.Factory.node;
-import static guru.nidi.graphviz.model.Factory.to;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,10 +25,8 @@ import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.Value;
 
-import guru.nidi.graphviz.attribute.Color;
 import guru.nidi.graphviz.attribute.Rank;
 import guru.nidi.graphviz.attribute.Rank.RankDir;
-import guru.nidi.graphviz.attribute.Style;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.Graph;
@@ -67,43 +64,39 @@ public class Dataflow {
 			}
 		}
 
-		visualizeComputationGraph();
+//		visualizeComputationGraph();
 	}
 	
-	public static void visualizeComputationGraph() {
+	public static void visualizeComputationGraph(Branch b) {
 		for(String methodName: branchDepVarsMap.keySet()) {
 			Map<Branch, Set<DepVariable>> map = branchDepVarsMap.get(methodName);
 			
-			for(Branch b: map.keySet()) {
-				Set<DepVariable> variables = map.get(b);
-				
-				List<LinkSource> links = new ArrayList<LinkSource>();
-				HashSet<DepVariable> roots = new HashSet<DepVariable>();
-				for(DepVariable source: variables) {
-					for(DepVariable root: source.getRootVars()) {
-						
-						if(!roots.contains(root)) {
-							roots.add(root);
-							collectLinks(root, links);
-						}
-						
+			Set<DepVariable> variables = map.get(b);
+			
+			if(variables == null) continue;
+			
+			List<LinkSource> links = new ArrayList<LinkSource>();
+			HashSet<DepVariable> roots = new HashSet<DepVariable>();
+			for(DepVariable source: variables) {
+				for(DepVariable root: source.getRootVars()) {
+					
+					if(!roots.contains(root)) {
+						roots.add(root);
+						collectLinks(root, links);
 					}
 					
 				}
 				
-				Graph g = graph("example1").directed()
-				        .graphAttr().with(Rank.dir(RankDir.LEFT_TO_RIGHT))
-				        .with(links);
-				try {
-					File f = new File("D://linyun/ex1.png");
-					Graphviz.fromGraph(g).height(1000).render(Format.PNG).toFile(f);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-				System.currentTimeMillis();
-				
-				
+			}
+			
+			Graph g = graph("example1").directed()
+			        .graphAttr().with(Rank.dir(RankDir.LEFT_TO_RIGHT))
+			        .with(links);
+			try {
+				File f = new File("D://linyun/ex1.png");
+				Graphviz.fromGraph(g).height(1000).render(Format.PNG).toFile(f);
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
