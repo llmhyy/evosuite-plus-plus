@@ -188,7 +188,7 @@ public class DepVariable {
 //			System.currentTimeMillis();
 //		}
 		
-		List<DepVariable> list = this.relations[position];
+		List<DepVariable> list = this.getRelations()[position];
 		if(list == null) {
 			list = new ArrayList<DepVariable>();
 		}
@@ -197,7 +197,7 @@ public class DepVariable {
 			list.add(outputVar);
 		}
 		
-		this.relations[position] = list;
+		this.getRelations()[position] = list;
 		
 		if(this.getInstruction().getInstructionId()==20 && outputVar.getInstruction().getInstructionId()==25) {
 			System.currentTimeMillis();
@@ -223,6 +223,35 @@ public class DepVariable {
 	@Override
 	public int hashCode() {
 		return type;
+	}
+	
+	public String getUniqueLabel() {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(getTypeString() + "\n");
+		
+		if(this.getType() == DepVariable.INSTANCE_FIELD || this.getType() == DepVariable.STATIC_FIELD) {
+			FieldInsnNode thisField = (FieldInsnNode)(this.getInstruction().getASMNode());
+			buffer.append(thisField.owner + "\n");
+			buffer.append(thisField.desc + "\n");
+			buffer.append(thisField.name + "\n");
+			
+		}
+		else if(this.getType() == DepVariable.PARAMETER) {
+			buffer.append(this.getInstruction().getClassName() + "\n");
+			buffer.append(this.getInstruction().getMethodName() + "\n");
+			buffer.append(this.getParamOrder() + "\n");
+		}
+		else if(this.getType() == DepVariable.THIS) {
+			buffer.append(this.getInstruction().getClassName() + "\n");
+		}
+		else if(this.getType() == DepVariable.ARRAY_ELEMENT) {
+			buffer.append(this.getInstruction() + "\n");
+		}
+		else if(this.getType() == DepVariable.OTHER) {
+			buffer.append(this.getInstruction() + "\n");
+		}
+		
+		return buffer.toString();
 	}
 	
 	public boolean equals(Object obj) {
@@ -254,6 +283,9 @@ public class DepVariable {
 					}
 					else if(var.getType() == DepVariable.THIS) {
 						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName());
+					}
+					else if(var.getType() == DepVariable.ARRAY_ELEMENT) {
+						//FIXME ziheng
 					}
 					else if(var.getType() == DepVariable.OTHER) {
 						//FIXME ziheng
@@ -390,8 +422,8 @@ public class DepVariable {
 		}
 		
 		ConstructionPath foundPath = null;
-		for(int i=0; i<lastNode.relations.length; i++) {
-			List<DepVariable> children = lastNode.relations[i];
+		for(int i=0; i<lastNode.getRelations().length; i++) {
+			List<DepVariable> children = lastNode.getRelations()[i];
 			if (children != null) {
 				for(DepVariable child: children) {
 					if(path.contains(child)) continue;
@@ -429,6 +461,10 @@ public class DepVariable {
 
 	public void setRecommendedImplementation(String recommendedImplementation) {
 		this.recommendedImplementation = recommendedImplementation;
+	}
+
+	public List<DepVariable>[] getRelations() {
+		return relations;
 	}
 
 }

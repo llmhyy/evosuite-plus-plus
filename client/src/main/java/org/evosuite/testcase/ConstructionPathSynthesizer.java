@@ -148,7 +148,12 @@ public class ConstructionPathSynthesizer {
 
 	private VariableReference generateArrayElementStatement(TestCase test, int statementPosition, DepVariable var,
 			boolean isLeaf, VariableReference parentVarRef) {
-		// FIXME ziheng, we need to (1) handle primitive type and (2) search for method call which can set the array element.
+		/**
+		 *  FIXME ziheng, we need to 
+		 *  (1) handle primitive type, 
+		 *  (2) search for method call which can set the array element,
+		 *  (3) reuse*.
+		 */
 		
 		if(parentVarRef instanceof ArrayReference) {
 			ArrayReference arrayRef = (ArrayReference)parentVarRef;
