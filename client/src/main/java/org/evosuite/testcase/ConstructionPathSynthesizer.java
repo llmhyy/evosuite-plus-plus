@@ -1,5 +1,7 @@
 package org.evosuite.testcase;
 
+import static guru.nidi.graphviz.model.Factory.node;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
@@ -9,7 +11,6 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -20,6 +21,7 @@ import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.dataflow.Definition;
 import org.evosuite.coverage.dataflow.Use;
@@ -27,17 +29,15 @@ import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
-import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.graphs.dataflow.ConstructionPath;
+import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.statements.AbstractStatement;
-import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.EntityWithParametersStatement;
@@ -73,6 +73,8 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
+import guru.nidi.graphviz.model.LinkSource;
+
 public class ConstructionPathSynthesizer {
 
 	private TestFactory testFactory;
@@ -82,21 +84,129 @@ public class ConstructionPathSynthesizer {
 		this.testFactory = testFactory;
 	}
 
-	public void constructDifficultObjectStatement(TestCase test, List<ConstructionPath> paths, int statementPosition)
+	private static void collectLinks(DepVariable source, List<LinkSource> links) {
+		
+		List<DepVariable>[] relations = source.getRelations();
+		for(int i=0; i<relations.length; i++) {
+			List<DepVariable> child = relations[i];
+			
+			if(child == null) continue;
+			
+			for(DepVariable target: child) {
+				
+				guru.nidi.graphviz.model.Node n  = node(source.getUniqueLabel()).link(node(target.getUniqueLabel()));
+				
+				if(!links.contains(n)) {
+					links.add(n);
+					collectLinks(target, links);					
+				}
+			}
+		}
+		
+	}
+	
+	class PartialGraph {
+		Map<DepVariable, DepVariableWrapper> allRelevantNodes = new HashMap<DepVariable, DepVariableWrapper>();
+		
+		public DepVariableWrapper fetch(DepVariable var) {
+			DepVariableWrapper wrapper = allRelevantNodes.get(var);
+			if(wrapper == null) {
+				wrapper = new DepVariableWrapper(var);
+				allRelevantNodes.put(var, wrapper);
+			}
+			
+			return wrapper;
+		}
+		
+		public List<DepVariableWrapper> getTopLayer(){
+			List<DepVariableWrapper> list = new ArrayList<ConstructionPathSynthesizer.DepVariableWrapper>();
+			for(DepVariableWrapper node: allRelevantNodes.values()) {
+				if(node.parents.isEmpty()) {
+					list.add(node);
+				}
+			}
+			
+			return list;
+		}
+	}
+	
+	class DepVariableWrapper{
+		DepVariable var;
+		private List<DepVariableWrapper> children = new ArrayList<>();
+		private List<DepVariableWrapper> parents = new ArrayList<>();
+		
+		public DepVariableWrapper(DepVariable var) {
+			this.var = var;
+		}
+		
+		public boolean equals(Object obj) {
+			if(obj instanceof DepVariableWrapper) {
+				DepVariableWrapper varWrapper = (DepVariableWrapper)obj;
+				return varWrapper.var.equals(this.var);
+			}
+			
+			return false;
+		}
+		
+		public void addParent(DepVariableWrapper parent) {
+			if(!this.parents.contains(parent)) {
+				this.parents.add(parent);
+			}
+		}
+		
+		public void addChild(DepVariableWrapper child) {
+			if(!this.children.contains(child)) {
+				this.children.add(child);
+			}
+		}
+	}
+	
+	private PartialGraph constructPartialComputationGraph(Branch b) {
+		PartialGraph graph = new PartialGraph();
+		
+		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+		Set<DepVariable> variables = map.get(b);
+		
+		HashSet<DepVariable> roots = new HashSet<DepVariable>();
+		for(DepVariable source: variables) {
+			Map<DepVariable, ArrayList<DepVariable>> rootInfo = source.getRootVars();
+			for(DepVariable root: rootInfo.keySet()) {
+				
+				if(!roots.contains(root)) {
+					if(root.referenceToThis() && root.getInstruction().getClassName().equals(Properties.TARGET_METHOD)) {
+						roots.add(root);
+						
+						ArrayList<DepVariable> path = rootInfo.get(root);
+						for(int i=0; i<path.size()-1; i++) {
+							DepVariableWrapper child = graph.fetch(path.get(i));
+							DepVariableWrapper parent = graph.fetch(path.get(i+1));
+							
+							child.addParent(parent);
+							parent.addChild(child);
+						}
+					}
+				}
+			}
+		}
+		
+		return graph;
+	}
+	
+	public void constructDifficultObjectStatement(TestCase test, Branch b, int statementPosition)
 			throws ConstructionFailedException, ClassNotFoundException {
 
-		Collections.sort(paths, new Comparator<ConstructionPath>() {
-			@Override
-			public int compare(ConstructionPath o1, ConstructionPath o2) {
-				return o1.size() - o2.size();
-			}
-		});
-
+		
+		PartialGraph partialGraph = constructPartialComputationGraph(b);
+		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+		
 		/**
 		 * track what variable reference can be reused.
 		 */
 		Map<DepVariable, VariableReference> map = new HashMap<>();
 
+		/**
+		 * TODO: linyun use BFS on partial graph to generate test code.
+		 */
 		for (ConstructionPath path : paths) {
 			VariableReference parentVarRef = null;
 
@@ -143,6 +253,8 @@ public class ConstructionPathSynthesizer {
 				statementPosition = mStat.getPosition() - 1;
 			}
 		}
+		
+		System.currentTimeMillis();
 
 	}
 

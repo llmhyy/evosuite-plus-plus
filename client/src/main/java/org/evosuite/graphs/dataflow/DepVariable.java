@@ -1,11 +1,12 @@
 package org.evosuite.graphs.dataflow;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import org.evosuite.Properties;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -313,23 +314,26 @@ public class DepVariable {
 	}
 
 
-	private void getRootVar(List<DepVariable> roots, DepVariable parent, Set<DepVariable> visited) {
+	@SuppressWarnings("unchecked")
+	private void getRootVar(Map<DepVariable, ArrayList<DepVariable>> roots, DepVariable parent, 
+			Set<DepVariable> visited, ArrayList<DepVariable> partialPath) {
 		if(visited.contains(parent)) {
 			return;
 		}
 		visited.add(parent);
 		
-		
 		if(parent.getType() == DepVariable.THIS ||
 				parent.getType() == DepVariable.PARAMETER ||
 				parent.getType() == DepVariable.STATIC_FIELD) {
-			roots.add(parent);
+			roots.put(parent, partialPath);
 		}
 		else {
 			List<DepVariable> parents = parent.getAllParents();
 			if(parents != null && !parents.isEmpty()) {
 				for(DepVariable par: parents) {
-					getRootVar(roots, par, visited);					
+					ArrayList<DepVariable> newParialPath = (ArrayList<DepVariable>) partialPath.clone();
+					newParialPath.add(par);
+					getRootVar(roots, par, visited, newParialPath);					
 				}
 			}
 		}
@@ -348,9 +352,17 @@ public class DepVariable {
 		return parents;
 	}
 
-	public List<DepVariable> getRootVars() {
-		List<DepVariable> roots = new ArrayList<DepVariable>();
+	/**
+	 * return a root along with the path from root variable to the variable
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public Map<DepVariable, ArrayList<DepVariable>> getRootVars() {
+		Map<DepVariable, ArrayList<DepVariable>> roots = new HashMap<>();
 		Set<DepVariable> visited = new HashSet<DepVariable>();
+		
+		ArrayList<DepVariable> vars = new ArrayList<DepVariable>();
+		vars.add(this);
 		
 		for(int i=0; i<this.reverseRelations.length; i++) {
 			List<DepVariable> directParents = this.reverseRelations[i];
@@ -359,14 +371,17 @@ public class DepVariable {
 				String relation = p.inferRelationWithChild(this, i);
 				if(relation.equals(Relation.FIELD) || relation.equals(Relation.ARRAY_ELEMENT)) {
 					for (DepVariable parent : directParents) {
-						getRootVar(roots, parent, visited);
+						ArrayList<DepVariable> partialPath = (ArrayList<DepVariable>) vars.clone();
+						partialPath.add(parent);
+						getRootVar(roots, parent, visited, partialPath);
+						
 					}
 				}
 			}
 		}
 		
 		if(roots.isEmpty()) {
-			roots.add(this);
+			roots.put(this, new ArrayList<DepVariable>());
 		}
 		
 		return roots;

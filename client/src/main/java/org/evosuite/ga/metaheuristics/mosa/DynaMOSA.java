@@ -212,6 +212,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		System.out.println(this.currentIteration + "th iteration ========================");
 		for (FitnessFunction<T> ff : bestMap.keySet()) {
 			Double fitness = bestMap.get(ff);
+			bestTestMap.get(ff);
 			System.out.print(ff + ":");
 			System.out.println(fitness);
 			System.currentTimeMillis();

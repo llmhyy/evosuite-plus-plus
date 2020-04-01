@@ -24,12 +24,14 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
+import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.testcase.ConstructionPathSynthesizer;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
@@ -94,17 +96,19 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			 * the first call must be the target method, we add difficult branch support after the target method
 			 * is called in test case.
 			 */
+//			Properties.APPLY_OBJECT_RULE = false;
 			if(num == 1 && targetMethodCallPosition != -1 && Properties.APPLY_OBJECT_RULE) {
-				Map<Branch, List<ConstructionPath>> difficulties = Dataflow.checkObjectDifficultPath();
-				Branch b = Randomness.choice(difficulties.keySet());
-				List<ConstructionPath> paths = difficulties.get(b);
-				if (paths != null) {
-					try {
-						ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-						cpSynthesizer.constructDifficultObjectStatement(test, paths, position);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+//				Map<Branch, List<ConstructionPath>> difficulties = Dataflow.checkObjectDifficultPath();
+				
+				Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+				Branch b = Randomness.choice(interestedBranches.keySet());
+				
+//				List<ConstructionPath> paths = difficulties.get(b);
+				try {
+					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+					cpSynthesizer.constructDifficultObjectStatement(test, b, position);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 			else {
