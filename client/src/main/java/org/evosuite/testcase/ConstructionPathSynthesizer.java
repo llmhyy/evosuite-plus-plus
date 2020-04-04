@@ -192,7 +192,7 @@ public class ConstructionPathSynthesizer {
 		return graph;
 	}
 	
-	public void constructDifficultObjectStatement(TestCase test, Branch b, int statementPosition)
+	public void constructDifficultObjectStatement(TestCase test, Branch b)
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		
@@ -207,58 +207,55 @@ public class ConstructionPathSynthesizer {
 		/**
 		 * TODO: linyun use BFS on partial graph to generate test code.
 		 */
-		for (ConstructionPath path : paths) {
-			VariableReference parentVarRef = null;
+		VariableReference parentVarRef = null;
+		for(DepVariableWrapper node: topLayer) {
 
-			List<DepVariable> vars = path.getPath();
-			for (int i = 0; i < vars.size(); i++) {
-				DepVariable var = vars.get(i);
-				VariableReference codeVar = map.get(var);
-				if (codeVar != null) {
-					parentVarRef = codeVar;
-					continue;
-				}
-
-				boolean isLeaf = i == vars.size() - 1;
-
-				if (var.getType() == DepVariable.STATIC_FIELD) {
-					parentVarRef = generateFieldStatement(test, statementPosition, var, isLeaf, parentVarRef);
-				} else if (var.getType() == DepVariable.PARAMETER) {
-					String castSubClass = checkClass(var, path);
-					parentVarRef = generateParameterStatement(test, statementPosition, var, parentVarRef, castSubClass);
-				} else if (var.getType() == DepVariable.INSTANCE_FIELD) {
-					if (parentVarRef == null) {
-						break;
-					}
-					parentVarRef = generateFieldStatement(test, statementPosition, var, isLeaf, parentVarRef);
-				} else if (var.getType() == DepVariable.OTHER) {
-					/**
-					 * FIXME: need to handle other cases than method call in the future.
-					 */
-					int methodPos = findTargetMethodCallStatement(test).getPosition();
-					parentVarRef = generateOtherStatement(test, methodPos, var, parentVarRef);
-				} else if (var.getType() == DepVariable.THIS) {
-					MethodStatement mStat = findTargetMethodCallStatement(test);
-					parentVarRef = mStat.getCallee();
-				} else if (var.getType() == DepVariable.ARRAY_ELEMENT) {
-					parentVarRef = generateArrayElementStatement(test, statementPosition, var, isLeaf, parentVarRef);
-					System.currentTimeMillis();
-				}
-
-				if (parentVarRef != null) {
-					map.put(var, parentVarRef);
-				}
-
-				MethodStatement mStat = findTargetMethodCallStatement(test);
-				statementPosition = mStat.getPosition() - 1;
+			
+			
+			
+			DepVariable var = node.var;
+			VariableReference codeVar = map.get(var);
+			if (codeVar != null) {
+				parentVarRef = codeVar;
+				continue;
 			}
+
+			boolean isLeaf = node.children.isEmpty();
+
+			if (var.getType() == DepVariable.STATIC_FIELD) {
+				parentVarRef = generateFieldStatement(test, var, isLeaf, parentVarRef);
+			} else if (var.getType() == DepVariable.PARAMETER) {
+				String castSubClass = checkClass(node);
+				parentVarRef = generateParameterStatement(test, var, parentVarRef, castSubClass);
+			} else if (var.getType() == DepVariable.INSTANCE_FIELD) {
+				if (parentVarRef == null) {
+					break;
+				}
+				parentVarRef = generateFieldStatement(test, var, isLeaf, parentVarRef);
+			} else if (var.getType() == DepVariable.OTHER) {
+				/**
+				 * FIXME: need to handle other cases than method call in the future.
+				 */
+				int methodPos = findTargetMethodCallStatement(test).getPosition();
+				parentVarRef = generateOtherStatement(test, methodPos, var, parentVarRef);
+			} else if (var.getType() == DepVariable.THIS) {
+				MethodStatement mStat = findTargetMethodCallStatement(test);
+				parentVarRef = mStat.getCallee();
+			} else if (var.getType() == DepVariable.ARRAY_ELEMENT) {
+				parentVarRef = generateArrayElementStatement(test, var, isLeaf, parentVarRef);
+				System.currentTimeMillis();
+			}
+
+			if (parentVarRef != null) {
+				map.put(var, parentVarRef);
+			}
+
+			MethodStatement mStat = findTargetMethodCallStatement(test);
 		}
-		
-		System.currentTimeMillis();
 
 	}
 
-	private VariableReference generateArrayElementStatement(TestCase test, int statementPosition, DepVariable var,
+	private VariableReference generateArrayElementStatement(TestCase test, DepVariable var,
 			boolean isLeaf, VariableReference parentVarRef) {
 		/**
 		 *  FIXME ziheng, we need to 
@@ -315,9 +312,14 @@ public class ConstructionPathSynthesizer {
 		return null;
 	}
 
-	private String checkClass(DepVariable var, ConstructionPath path) throws ClassNotFoundException {
+	private String checkClass(DepVariableWrapper node) throws ClassNotFoundException {
+		DepVariable var = node.var;
+		
 		String potentialCastType = null;
-		for (DepVariable v : path.getPath()) {
+		
+		DepVariableWrapper parent = node.parents.iterator().next();
+		while (parent != null) {
+			DepVariable v = parent.var;
 			if (v.getInstruction().toString().contains("CHECKCAST")) {
 				BytecodeInstruction ins = v.getInstruction();
 				AbstractInsnNode insNode = ins.getASMNode();
@@ -338,8 +340,9 @@ public class ConstructionPathSynthesizer {
 					}
 				}
 			}
+			
+			parent = parent.parents.iterator().next();
 		}
-		System.currentTimeMillis();
 
 		return null;
 	}
@@ -408,7 +411,7 @@ public class ConstructionPathSynthesizer {
 	 * @param isStatic
 	 * @return
 	 */
-	private VariableReference generateFieldStatement(TestCase test, int position, DepVariable var, boolean isLeaf,
+	private VariableReference generateFieldStatement(TestCase test, DepVariable var, boolean isLeaf,
 			VariableReference targetObjectReference) {
 		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
 		String desc = fieldNode.desc;
@@ -487,7 +490,7 @@ public class ConstructionPathSynthesizer {
 					VariableReference newParentVarRef = null;
 					GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
 					if (targetObjectReference == null) {
-						newParentVarRef = testFactory.addMethod(test, gMethod, position, 2);
+						newParentVarRef = testFactory.addMethod(test, gMethod, test.size()-2, 2);
 					} else {
 						newParentVarRef = testFactory.addMethodFor(test, targetObjectReference, gMethod,
 								targetObjectReference.getStPosition() + 1);
@@ -515,7 +518,7 @@ public class ConstructionPathSynthesizer {
 					Method setter = entry.getKey();
 					GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
 					if (targetObjectReference == null) {
-						testFactory.addMethod(test, gMethod, position, 2);
+						testFactory.addMethod(test, gMethod, test.size()-2, 2);
 					} else {
 						testFactory.addMethodFor(test, targetObjectReference, gMethod,
 								targetObjectReference.getStPosition() + 1);
@@ -1213,7 +1216,7 @@ public class ConstructionPathSynthesizer {
 	 * @throws ConstructionFailedException
 	 * @throws ClassNotFoundException
 	 */
-	private VariableReference generateParameterStatement(TestCase test, int position, DepVariable var,
+	private VariableReference generateParameterStatement(TestCase test, DepVariable var,
 			VariableReference parentVarRef, String castSubClass)
 			throws ConstructionFailedException, ClassNotFoundException {
 
@@ -1231,7 +1234,7 @@ public class ConstructionPathSynthesizer {
 			return paramRef;
 		}
 
-		VariableReference paramRef = generateParameter(test, position, var, castSubClass);
+		VariableReference paramRef = generateParameter(test, var, castSubClass);
 
 		if (paramRef == null) {
 			return parentVarRef;
@@ -1260,7 +1263,7 @@ public class ConstructionPathSynthesizer {
 		return null;
 	}
 
-	private VariableReference generateParameter(TestCase test, int position, DepVariable var, String castSubClass)
+	private VariableReference generateParameter(TestCase test, DepVariable var, String castSubClass)
 			throws ConstructionFailedException {
 
 		String paramType = castSubClass;
@@ -1284,7 +1287,7 @@ public class ConstructionPathSynthesizer {
 		Constructor<?> constructor = Randomness.choice(paramDeclaringClazz.getRawClass().getConstructors());
 		if (constructor != null) {
 			GenericConstructor gc = new GenericConstructor(constructor, paramDeclaringClazz);
-			paramRef = testFactory.addConstructor(test, gc, position, 2);
+			paramRef = testFactory.addConstructor(test, gc, test.size()-2, 2);
 		}
 
 		return paramRef;

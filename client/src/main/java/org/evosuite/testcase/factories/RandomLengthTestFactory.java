@@ -106,7 +106,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 //				List<ConstructionPath> paths = difficulties.get(b);
 				try {
 					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-					cpSynthesizer.constructDifficultObjectStatement(test, b, position);
+					cpSynthesizer.constructDifficultObjectStatement(test, b);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
