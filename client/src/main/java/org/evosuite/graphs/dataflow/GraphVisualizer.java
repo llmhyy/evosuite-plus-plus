@@ -33,25 +33,19 @@ public class GraphVisualizer {
 		 * use BFS on partial graph to generate test code.
 		 */
 		Queue<DepVariableWrapper> queue = new ArrayDeque<>(topLayer);
-		
-		Set<DepVariableWrapper> visited = new HashSet<>();
 		List<LinkSource> links = new ArrayList<LinkSource>();
 		
 		while(!queue.isEmpty()) {
 			DepVariableWrapper source = queue.remove();
-			visited.add(source);
 			
 			for(DepVariableWrapper target: source.children) {
-				if(!visited.contains(target)) {
-					
-					guru.nidi.graphviz.model.Node n = node(source.var.getUniqueLabel()).link(node(target.var.getUniqueLabel()));
+				guru.nidi.graphviz.model.Node n = node(source.var.getUniqueLabel()).link(node(target.var.getUniqueLabel()));
 
-					if (!links.contains(n)) {
-						links.add(n);
-					}
-
-					queue.add(target);					
+				if (!links.contains(n)) {
+					links.add(n);
 				}
+
+				queue.add(target);	
 			}
 		}
 		

@@ -128,6 +128,7 @@ public class ConstructionPathSynthesizer {
 		
 		GraphVisualizer.visualizeComputationGraph(b);
 		GraphVisualizer.visualizeComputationGraph(partialGraph);
+		System.currentTimeMillis();
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -137,17 +138,35 @@ public class ConstructionPathSynthesizer {
 		Map<DepVariable, VariableReference> map = new HashMap<>();
 
 		/**
-		 * use BFS on partial graph to generate test code.
+		 * use BFS on partial graph to generate test code, but we need to check the dependency, making
+		 * sure that we have generated the code of its dependency.
 		 */
 		Queue<DepVariableWrapper> queue = new ArrayDeque<>(topLayer);
 		
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-			enhanceTestStatement(test, map, node);
-			for(DepVariableWrapper child: node.children) {
-				queue.add(child);
+			
+			boolean isValid = checkDependency(node, map);
+			if(isValid) {
+				enhanceTestStatement(test, map, node);
+				for(DepVariableWrapper child: node.children) {
+					queue.add(child);
+				}				
+			}
+			else {
+				queue.add(node);
 			}
 		}
+	}
+
+	private boolean checkDependency(DepVariableWrapper node, Map<DepVariable, VariableReference> map) {
+		
+		/**
+		 * TODO ziheng, check the dependency, making
+		 * sure that we have generated the code of its dependency.
+		 */
+		
+		return true;
 	}
 
 	private boolean enhanceTestStatement(TestCase test, Map<DepVariable, VariableReference> map,
