@@ -1,4 +1,4 @@
-package org.evosuite.testcase;
+package org.evosuite.testcase.synthesizer;
 
 import static guru.nidi.graphviz.model.Factory.node;
 
@@ -35,9 +35,12 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.graphs.dataflow.GraphVisualizer;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
+import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.AbstractStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
@@ -106,62 +109,6 @@ public class ConstructionPathSynthesizer {
 		
 	}
 	
-	class PartialGraph {
-		Map<DepVariable, DepVariableWrapper> allRelevantNodes = new HashMap<DepVariable, DepVariableWrapper>();
-		
-		public DepVariableWrapper fetch(DepVariable var) {
-			DepVariableWrapper wrapper = allRelevantNodes.get(var);
-			if(wrapper == null) {
-				wrapper = new DepVariableWrapper(var);
-				allRelevantNodes.put(var, wrapper);
-			}
-			
-			return wrapper;
-		}
-		
-		public List<DepVariableWrapper> getTopLayer(){
-			List<DepVariableWrapper> list = new ArrayList<ConstructionPathSynthesizer.DepVariableWrapper>();
-			for(DepVariableWrapper node: allRelevantNodes.values()) {
-				if(node.parents.isEmpty()) {
-					list.add(node);
-				}
-			}
-			
-			return list;
-		}
-	}
-	
-	class DepVariableWrapper{
-		DepVariable var;
-		private List<DepVariableWrapper> children = new ArrayList<>();
-		private List<DepVariableWrapper> parents = new ArrayList<>();
-		
-		public DepVariableWrapper(DepVariable var) {
-			this.var = var;
-		}
-		
-		public boolean equals(Object obj) {
-			if(obj instanceof DepVariableWrapper) {
-				DepVariableWrapper varWrapper = (DepVariableWrapper)obj;
-				return varWrapper.var.equals(this.var);
-			}
-			
-			return false;
-		}
-		
-		public void addParent(DepVariableWrapper parent) {
-			if(!this.parents.contains(parent)) {
-				this.parents.add(parent);
-			}
-		}
-		
-		public void addChild(DepVariableWrapper child) {
-			if(!this.children.contains(child)) {
-				this.children.add(child);
-			}
-		}
-	}
-	
 	private PartialGraph constructPartialComputationGraph(Branch b) {
 		PartialGraph graph = new PartialGraph();
 		
@@ -173,22 +120,25 @@ public class ConstructionPathSynthesizer {
 			Map<DepVariable, ArrayList<DepVariable>> rootInfo = source.getRootVars();
 			for(DepVariable root: rootInfo.keySet()) {
 				
-				if(!roots.contains(root)) {
-					if(root.referenceToThis() && root.getInstruction().getClassName().equals(Properties.TARGET_METHOD)) {
-						roots.add(root);
+				if((root.referenceToThis() || root.isParameter() || root.isStaticField()) 
+						&& root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) {
+					roots.add(root);
+					
+					ArrayList<DepVariable> path = rootInfo.get(root);
+					for(int i=0; i<path.size()-1; i++) {
+						DepVariableWrapper child = graph.fetch(path.get(i));
+						DepVariableWrapper parent = graph.fetch(path.get(i+1));
 						
-						ArrayList<DepVariable> path = rootInfo.get(root);
-						for(int i=0; i<path.size()-1; i++) {
-							DepVariableWrapper child = graph.fetch(path.get(i));
-							DepVariableWrapper parent = graph.fetch(path.get(i+1));
-							
-							child.addParent(parent);
-							parent.addChild(child);
-						}
+						child.addParent(parent);
+						parent.addChild(child);
 					}
 				}
+			
+					
 			}
 		}
+		
+		System.currentTimeMillis();
 		
 		return graph;
 	}
@@ -196,8 +146,12 @@ public class ConstructionPathSynthesizer {
 	public void constructDifficultObjectStatement(TestCase test, Branch b)
 			throws ConstructionFailedException, ClassNotFoundException {
 
-		
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
+		System.currentTimeMillis();
+		
+		GraphVisualizer.visualizeComputationGraph(b);
+		GraphVisualizer.visualizeComputationGraph(partialGraph);
+		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
 		/**
@@ -211,6 +165,7 @@ public class ConstructionPathSynthesizer {
 		Queue<DepVariableWrapper> queue = new ArrayDeque<>(topLayer);
 		
 		Set<DepVariableWrapper> visited = new HashSet<>();
+		System.currentTimeMillis();
 		
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
