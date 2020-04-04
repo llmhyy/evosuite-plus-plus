@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 
 import org.evosuite.Properties;
@@ -204,54 +206,65 @@ public class ConstructionPathSynthesizer {
 		Map<DepVariable, VariableReference> map = new HashMap<>();
 
 		/**
-		 * TODO: linyun use BFS on partial graph to generate test code.
+		 * use BFS on partial graph to generate test code.
 		 */
-		VariableReference parentVarRef = null;
-		for(DepVariableWrapper node: topLayer) {
-
+		Queue<DepVariableWrapper> queue = new ArrayDeque<>(topLayer);
+		
+		Set<DepVariableWrapper> visited = new HashSet<>();
+		
+		while(!queue.isEmpty()) {
+			DepVariableWrapper node = queue.remove();
+			visited.add(node);
 			
-			
-			
-			DepVariable var = node.var;
-			VariableReference codeVar = map.get(var);
-			if (codeVar != null) {
-				parentVarRef = codeVar;
-				continue;
-			}
-
-			boolean isLeaf = node.children.isEmpty();
-
-			if (var.getType() == DepVariable.STATIC_FIELD) {
-				parentVarRef = generateFieldStatement(test, var, isLeaf, parentVarRef);
-			} else if (var.getType() == DepVariable.PARAMETER) {
-				String castSubClass = checkClass(node);
-				parentVarRef = generateParameterStatement(test, var, parentVarRef, castSubClass);
-			} else if (var.getType() == DepVariable.INSTANCE_FIELD) {
-				if (parentVarRef == null) {
-					break;
+			enhanceTestStatement(test, map, node);
+			for(DepVariableWrapper child: node.children) {
+				if(!visited.contains(child)) {
+					queue.add(child);					
 				}
-				parentVarRef = generateFieldStatement(test, var, isLeaf, parentVarRef);
-			} else if (var.getType() == DepVariable.OTHER) {
-				/**
-				 * FIXME: need to handle other cases than method call in the future.
-				 */
-				int methodPos = findTargetMethodCallStatement(test).getPosition();
-				parentVarRef = generateOtherStatement(test, methodPos, var, parentVarRef);
-			} else if (var.getType() == DepVariable.THIS) {
-				MethodStatement mStat = findTargetMethodCallStatement(test);
-				parentVarRef = mStat.getCallee();
-			} else if (var.getType() == DepVariable.ARRAY_ELEMENT) {
-				parentVarRef = generateArrayElementStatement(test, var, isLeaf, parentVarRef);
-				System.currentTimeMillis();
 			}
+		}
+	}
 
-			if (parentVarRef != null) {
-				map.put(var, parentVarRef);
-			}
-
-			MethodStatement mStat = findTargetMethodCallStatement(test);
+	private boolean enhanceTestStatement(TestCase test, Map<DepVariable, VariableReference> map,
+			DepVariableWrapper node) throws ClassNotFoundException, ConstructionFailedException {
+		VariableReference targetObject = null;
+		DepVariable var = node.var;
+		VariableReference codeVar = map.get(var);
+		if (codeVar != null) {
+			targetObject = codeVar;
 		}
 
+		boolean isLeaf = node.children.isEmpty();
+
+		if (var.getType() == DepVariable.STATIC_FIELD) {
+			targetObject = generateFieldStatement(test, var, isLeaf, targetObject);
+		} else if (var.getType() == DepVariable.PARAMETER) {
+			String castSubClass = checkClass(node);
+			targetObject = generateParameterStatement(test, var, targetObject, castSubClass);
+		} else if (var.getType() == DepVariable.INSTANCE_FIELD) {
+			if (targetObject == null) {
+				return false;
+			}
+			targetObject = generateFieldStatement(test, var, isLeaf, targetObject);
+		} else if (var.getType() == DepVariable.OTHER) {
+			/**
+			 * FIXME: need to handle other cases than method call in the future.
+			 */
+			int methodPos = findTargetMethodCallStatement(test).getPosition();
+			targetObject = generateOtherStatement(test, methodPos, var, targetObject);
+		} else if (var.getType() == DepVariable.THIS) {
+			MethodStatement mStat = findTargetMethodCallStatement(test);
+			targetObject = mStat.getCallee();
+		} else if (var.getType() == DepVariable.ARRAY_ELEMENT) {
+			targetObject = generateArrayElementStatement(test, var, isLeaf, targetObject);
+			System.currentTimeMillis();
+		}
+
+		if (targetObject != null) {
+			map.put(var, targetObject);
+		}
+		
+		return true;
 	}
 
 	private VariableReference generateArrayElementStatement(TestCase test, DepVariable var,

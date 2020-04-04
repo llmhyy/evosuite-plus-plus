@@ -78,7 +78,7 @@ public class Dataflow {
 			List<LinkSource> links = new ArrayList<LinkSource>();
 			HashSet<DepVariable> roots = new HashSet<DepVariable>();
 			for(DepVariable source: variables) {
-				for(DepVariable root: source.getRootVars()) {
+				for(DepVariable root: source.getRootVars().keySet()) {
 					
 					if(!roots.contains(root)) {
 						roots.add(root);
@@ -167,7 +167,7 @@ public class Dataflow {
 			
 			List<ConstructionPath> paths = new ArrayList<ConstructionPath>();
 			for(DepVariable interestVar: interestedVariables) {
-				for(DepVariable root: interestVar.getRootVars()) {
+				for(DepVariable root: interestVar.getRootVars().keySet()) {
 					ConstructionPath path = root.findPath(interestVar);
 					if(path != null) {
 						if(path.hasValidRoot() 

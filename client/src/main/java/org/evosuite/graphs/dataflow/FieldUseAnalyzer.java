@@ -285,7 +285,7 @@ public class FieldUseAnalyzer {
 		
 		for(DepVariable var: relatedVariables) {
 			var.getRootVars();
-			for(DepVariable rootVar: var.getRootVars()) {
+			for(DepVariable rootVar: var.getRootVars().keySet()) {
 				if(rootVar.getInstruction().getClassName().
 						equals(defIns.getCalledCFG().getClassName()) && 
 						rootVar.getInstruction().getMethodName().equals(defIns.getCalledCFG().getMethodName())) {
