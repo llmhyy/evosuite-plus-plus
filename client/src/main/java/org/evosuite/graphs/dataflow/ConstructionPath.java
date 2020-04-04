@@ -39,7 +39,7 @@ public class ConstructionPath {
 						return false;
 					}
 				}
-				System.currentTimeMillis();
+				
 				return true;
 			}
 		}
@@ -86,5 +86,9 @@ public class ConstructionPath {
 		}
 		
 		return false;
+	}
+
+	public DepVariable get(int i) {
+		return this.path.get(i);
 	}
 }

@@ -1,7 +1,5 @@
 package org.evosuite.testcase.synthesizer;
 
-import static guru.nidi.graphviz.model.Factory.node;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
@@ -33,6 +31,7 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.graphs.dataflow.GraphVisualizer;
@@ -77,8 +76,6 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
-import guru.nidi.graphviz.model.LinkSource;
-
 public class ConstructionPathSynthesizer {
 
 	private TestFactory testFactory;
@@ -88,49 +85,30 @@ public class ConstructionPathSynthesizer {
 		this.testFactory = testFactory;
 	}
 
-	private static void collectLinks(DepVariable source, List<LinkSource> links) {
-		
-		List<DepVariable>[] relations = source.getRelations();
-		for(int i=0; i<relations.length; i++) {
-			List<DepVariable> child = relations[i];
-			
-			if(child == null) continue;
-			
-			for(DepVariable target: child) {
-				
-				guru.nidi.graphviz.model.Node n  = node(source.getUniqueLabel()).link(node(target.getUniqueLabel()));
-				
-				if(!links.contains(n)) {
-					links.add(n);
-					collectLinks(target, links);					
-				}
-			}
-		}
-		
-	}
-	
 	private PartialGraph constructPartialComputationGraph(Branch b) {
 		PartialGraph graph = new PartialGraph();
 		
 		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
 		Set<DepVariable> variables = map.get(b);
 		
-		HashSet<DepVariable> roots = new HashSet<DepVariable>();
 		for(DepVariable source: variables) {
-			Map<DepVariable, ArrayList<DepVariable>> rootInfo = source.getRootVars();
+			Map<DepVariable, ArrayList<ConstructionPath>> rootInfo = source.getRootVars();
+			
 			for(DepVariable root: rootInfo.keySet()) {
 				
 				if((root.referenceToThis() || root.isParameter() || root.isStaticField()) 
 						&& root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) {
-					roots.add(root);
 					
-					ArrayList<DepVariable> path = rootInfo.get(root);
-					for(int i=0; i<path.size()-1; i++) {
-						DepVariableWrapper child = graph.fetch(path.get(i));
-						DepVariableWrapper parent = graph.fetch(path.get(i+1));
-						
-						child.addParent(parent);
-						parent.addChild(child);
+					ArrayList<ConstructionPath> paths = rootInfo.get(root);
+					
+					for(ConstructionPath path: paths) {
+						for(int i=0; i<path.size()-1; i++) {
+							DepVariableWrapper child = graph.fetch(path.get(i));
+							DepVariableWrapper parent = graph.fetch(path.get(i+1));
+							
+							child.addParent(parent);
+							parent.addChild(child);
+						}						
 					}
 				}
 			
@@ -147,7 +125,6 @@ public class ConstructionPathSynthesizer {
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
-		System.currentTimeMillis();
 		
 		GraphVisualizer.visualizeComputationGraph(b);
 		GraphVisualizer.visualizeComputationGraph(partialGraph);
@@ -164,33 +141,32 @@ public class ConstructionPathSynthesizer {
 		 */
 		Queue<DepVariableWrapper> queue = new ArrayDeque<>(topLayer);
 		
-		Set<DepVariableWrapper> visited = new HashSet<>();
-		System.currentTimeMillis();
-		
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-			visited.add(node);
-			
 			enhanceTestStatement(test, map, node);
 			for(DepVariableWrapper child: node.children) {
-				if(!visited.contains(child)) {
-					queue.add(child);					
-				}
+				queue.add(child);
 			}
 		}
 	}
 
 	private boolean enhanceTestStatement(TestCase test, Map<DepVariable, VariableReference> map,
 			DepVariableWrapper node) throws ClassNotFoundException, ConstructionFailedException {
-		VariableReference targetObject = null;
 		DepVariable var = node.var;
-		VariableReference codeVar = map.get(var);
-		if (codeVar != null) {
-			targetObject = codeVar;
+		
+		VariableReference targetObject = null;
+		if(!node.parents.isEmpty()) {
+			targetObject = map.get(node.parents.get(0).var);
 		}
-
+		else {
+			VariableReference codeVar = map.get(var);
+			if (codeVar != null) {
+				targetObject = codeVar;
+			}
+		}
+		
 		boolean isLeaf = node.children.isEmpty();
-
+		
 		if (var.getType() == DepVariable.STATIC_FIELD) {
 			targetObject = generateFieldStatement(test, var, isLeaf, targetObject);
 		} else if (var.getType() == DepVariable.PARAMETER) {
@@ -278,6 +254,8 @@ public class ConstructionPathSynthesizer {
 		DepVariable var = node.var;
 		
 		String potentialCastType = null;
+		
+		if(node.parents.isEmpty()) return null;
 		
 		DepVariableWrapper parent = node.parents.iterator().next();
 		while (parent != null) {

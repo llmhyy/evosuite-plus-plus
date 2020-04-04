@@ -284,7 +284,6 @@ public class FieldUseAnalyzer {
 		Set<DepVariable> relatedVariables = relatedVariableMap.get(className);
 		
 		for(DepVariable var: relatedVariables) {
-			var.getRootVars();
 			for(DepVariable rootVar: var.getRootVars().keySet()) {
 				if(rootVar.getInstruction().getClassName().
 						equals(defIns.getCalledCFG().getClassName()) && 
@@ -293,25 +292,31 @@ public class FieldUseAnalyzer {
 						allLeafDepVars.add(var);					
 					}
 					else {
-						ConstructionPath path = rootVar.findPath(var);
+//						ConstructionPath path0 = rootVar.findPath(var);
+						ArrayList<ConstructionPath> paths = var.getRootVars().get(rootVar);
+						ConstructionPath path = paths.get(0);
+						
 						if(path != null) {
 							if(path.getPath().size() < 2) {
 								System.currentTimeMillis();
 							}
 							
-							DepVariable secVar = path.getPath().get(1);
+							DepVariable secondVar = path.getPath().get(path.size()-2);
 							if(rootVar.getType() == DepVariable.PARAMETER) {
 								int index = rootVar.getParamOrder() - 1;
 								List<DepVariable> params = inputVarArray[index];
 								
 								for(DepVariable param: params) {
-									param.buildRelation(secVar, path.getPosition().get(0));
+									param.buildRelation(secondVar, path.getPosition().get(path.size()-2));
 								}
 							}
 							else if(rootVar.getType() == DepVariable.THIS) {
 								List<DepVariable> objectVars = inputVarArray[0];
 								for(DepVariable objectVar: objectVars) {
-									objectVar.buildRelation(secVar, path.getPosition().get(0));									
+									if(path.getPosition().size() < path.size()-2) {
+										System.currentTimeMillis();
+									}
+									objectVar.buildRelation(secondVar, path.getPosition().get(path.size()-2));									
 								}
 							}
 						}

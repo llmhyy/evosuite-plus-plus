@@ -2,10 +2,8 @@ package org.evosuite.graphs.dataflow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.objectweb.asm.Opcodes;
@@ -315,41 +313,49 @@ public class DepVariable {
 
 
 	@SuppressWarnings("unchecked")
-	private void getRootVar(Map<DepVariable, ArrayList<DepVariable>> roots, DepVariable parent, 
-			Set<DepVariable> visited, ArrayList<DepVariable> partialPath) {
-		if(visited.contains(parent)) {
+	private void getRootVar(Map<DepVariable, ArrayList<ConstructionPath>> roots, DepVariable parent, DepVariable child,
+			Map<DepVariable, List<DepVariable>> visited, ArrayList<DepVariable> partialPath, ArrayList<Integer> operandPosList) {
+		List<DepVariable> visitedDirections = visited.get(parent);
+		if(visitedDirections == null) {
+			visitedDirections = new ArrayList<DepVariable>();
+		}
+		
+		if(visitedDirections.contains(child)) {
 			return;
 		}
-		visited.add(parent);
+		
+		visitedDirections.add(child);
+		visited.put(parent, visitedDirections);
 		
 		if(parent.getType() == DepVariable.THIS ||
 				parent.getType() == DepVariable.PARAMETER ||
 				parent.getType() == DepVariable.STATIC_FIELD) {
-			roots.put(parent, partialPath);
+			ArrayList<ConstructionPath> pathList = roots.get(parent);
+			if(pathList == null) {
+				pathList = new ArrayList<ConstructionPath>();
+			}
+			
+			ConstructionPath path = new ConstructionPath(partialPath, operandPosList);
+			if(!pathList.contains(path)) {
+				pathList.add(path);				
+				roots.put(parent, pathList);
+			}
+			
 		}
 		else {
-			List<DepVariable> parents = parent.getAllParents();
-			if(parents != null && !parents.isEmpty()) {
-				for(DepVariable par: parents) {
-					ArrayList<DepVariable> newParialPath = (ArrayList<DepVariable>) partialPath.clone();
-					newParialPath.add(par);
-					getRootVar(roots, par, visited, newParialPath);					
+			for(int i=0; i<parent.reverseRelations.length; i++) {
+				ArrayList<DepVariable> newParialPath = (ArrayList<DepVariable>) partialPath.clone();
+				ArrayList<Integer> newOperandPosList = (ArrayList<Integer>) operandPosList.clone();
+				
+				if(parent.reverseRelations[i]==null) continue;
+				
+				for(DepVariable grandPar: parent.reverseRelations[i]) {
+					newParialPath.add(grandPar);
+					newOperandPosList.add(i);
+					getRootVar(roots, grandPar, parent, visited, newParialPath, newOperandPosList);		
 				}
 			}
 		}
-		
-		
-	}
-
-	private List<DepVariable> getAllParents() {
-		List<DepVariable> parents = new ArrayList<DepVariable>();
-		for(int i=0; i<this.reverseRelations.length; i++) {
-			List<DepVariable> pars = this.reverseRelations[0];
-			if(pars != null) {
-				parents.addAll(pars);				
-			}
-		}
-		return parents;
 	}
 
 	/**
@@ -357,12 +363,15 @@ public class DepVariable {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public Map<DepVariable, ArrayList<DepVariable>> getRootVars() {
-		Map<DepVariable, ArrayList<DepVariable>> roots = new HashMap<>();
-		Set<DepVariable> visited = new HashSet<DepVariable>();
+	public Map<DepVariable, ArrayList<ConstructionPath>> getRootVars() {
+		Map<DepVariable, ArrayList<ConstructionPath>> roots = new HashMap<>();
+		/**
+		 * keep a map to avoid circle in the graph, <a node, its child>
+		 */
+		Map<DepVariable, List<DepVariable>> visited = new HashMap<>();
 		
-		ArrayList<DepVariable> vars = new ArrayList<DepVariable>();
-		vars.add(this);
+		ArrayList<DepVariable> path = new ArrayList<DepVariable>();
+		path.add(this);
 		
 		for(int i=0; i<this.reverseRelations.length; i++) {
 			List<DepVariable> directParents = this.reverseRelations[i];
@@ -371,17 +380,20 @@ public class DepVariable {
 				String relation = p.inferRelationWithChild(this, i);
 				if(relation.equals(Relation.FIELD) || relation.equals(Relation.ARRAY_ELEMENT)) {
 					for (DepVariable parent : directParents) {
-						ArrayList<DepVariable> partialPath = (ArrayList<DepVariable>) vars.clone();
+						ArrayList<DepVariable> partialPath = (ArrayList<DepVariable>) path.clone();
 						partialPath.add(parent);
-						getRootVar(roots, parent, visited, partialPath);
 						
+						ArrayList<Integer> operandPosList = new ArrayList<Integer>();
+						operandPosList.add(i);
+						
+						getRootVar(roots, parent, this, visited, partialPath, operandPosList);
 					}
 				}
 			}
 		}
 		
 		if(roots.isEmpty()) {
-			roots.put(this, new ArrayList<DepVariable>());
+			roots.put(this, new ArrayList<>());
 		}
 		
 		return roots;
