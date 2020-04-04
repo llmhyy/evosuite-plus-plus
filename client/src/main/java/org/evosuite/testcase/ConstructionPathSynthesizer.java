@@ -31,7 +31,6 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.runtime.System;
@@ -307,11 +306,6 @@ public class ConstructionPathSynthesizer {
 		return null;
 	}
 
-	private VariableReference createVariable(GenericClass clazz) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	private String checkClass(DepVariableWrapper node) throws ClassNotFoundException {
 		DepVariable var = node.var;
 		
@@ -490,7 +484,8 @@ public class ConstructionPathSynthesizer {
 					VariableReference newParentVarRef = null;
 					GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
 					if (targetObjectReference == null) {
-						newParentVarRef = testFactory.addMethod(test, gMethod, test.size()-2, 2);
+						MethodStatement mStat = findTargetMethodCallStatement(test);
+						newParentVarRef = testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2);
 					} else {
 						newParentVarRef = testFactory.addMethodFor(test, targetObjectReference, gMethod,
 								targetObjectReference.getStPosition() + 1);
@@ -518,7 +513,8 @@ public class ConstructionPathSynthesizer {
 					Method setter = entry.getKey();
 					GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
 					if (targetObjectReference == null) {
-						testFactory.addMethod(test, gMethod, test.size()-2, 2);
+						MethodStatement mStat = findTargetMethodCallStatement(test);
+						testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2);
 					} else {
 						testFactory.addMethodFor(test, targetObjectReference, gMethod,
 								targetObjectReference.getStPosition() + 1);
@@ -1287,7 +1283,8 @@ public class ConstructionPathSynthesizer {
 		Constructor<?> constructor = Randomness.choice(paramDeclaringClazz.getRawClass().getConstructors());
 		if (constructor != null) {
 			GenericConstructor gc = new GenericConstructor(constructor, paramDeclaringClazz);
-			paramRef = testFactory.addConstructor(test, gc, test.size()-2, 2);
+			MethodStatement mStat = findTargetMethodCallStatement(test);
+			paramRef = testFactory.addConstructor(test, gc, mStat.getPosition() - 1, 2);
 		}
 
 		return paramRef;
