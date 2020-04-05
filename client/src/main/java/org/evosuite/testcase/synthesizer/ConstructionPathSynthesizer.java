@@ -99,7 +99,7 @@ public class ConstructionPathSynthesizer {
 				if((root.referenceToThis() || root.isParameter() || root.isStaticField()) 
 						&& root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) {
 					
-					ArrayList<ConstructionPath> paths = rootInfo.get(root);
+					List<ConstructionPath> paths = rootInfo.get(root);
 					
 					for(ConstructionPath path: paths) {
 						for(int i=0; i<path.size()-1; i++) {
@@ -128,7 +128,6 @@ public class ConstructionPathSynthesizer {
 		
 		GraphVisualizer.visualizeComputationGraph(b);
 		GraphVisualizer.visualizeComputationGraph(partialGraph);
-		System.currentTimeMillis();
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -149,24 +148,38 @@ public class ConstructionPathSynthesizer {
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
 				enhanceTestStatement(test, map, node);
-				for(DepVariableWrapper child: node.children) {
-					queue.add(child);
-				}				
-			}
-			else {
+				for (DepVariableWrapper child : node.children) {
+					if (!queue.contains(child)) {
+						queue.add(child);
+					}
+				}
+			} else {
 				queue.add(node);
 			}
 		}
 	}
 
 	private boolean checkDependency(DepVariableWrapper node, Map<DepVariable, VariableReference> map) {
-		
+
 		/**
-		 * TODO ziheng, check the dependency, making
-		 * sure that we have generated the code of its dependency.
+		 * ensure every parent of current node is visited in the map
 		 */
-		
-		return true;
+		boolean ifFound = true;
+
+		for (DepVariableWrapper parent : node.parents) {
+			ifFound = false;
+			for (DepVariable visitedVar : map.keySet()) {
+				if (visitedVar.equals(parent.var)) {
+					ifFound = true;
+					break;
+				}
+			}
+			if (!ifFound) {
+				return false;
+			}
+		}
+
+		return ifFound;
 	}
 
 	private boolean enhanceTestStatement(TestCase test, Map<DepVariable, VariableReference> map,
