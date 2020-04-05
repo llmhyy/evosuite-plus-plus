@@ -31,6 +31,7 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
@@ -188,6 +189,7 @@ public class ConstructionPathSynthesizer {
 		
 		VariableReference targetObject = null;
 		if(!node.parents.isEmpty()) {
+			// wont be null
 			targetObject = map.get(node.parents.get(0).var);
 		}
 		else {
@@ -213,8 +215,11 @@ public class ConstructionPathSynthesizer {
 			/**
 			 * FIXME: need to handle other cases than method call in the future.
 			 */
-			int methodPos = findTargetMethodCallStatement(test).getPosition();
-			targetObject = generateOtherStatement(test, methodPos, var, targetObject);
+			if (targetObject == null) {
+				System.currentTimeMillis();
+				return false;
+			}
+			targetObject = generateOtherStatement(test, var, targetObject);
 		} else if (var.getType() == DepVariable.THIS) {
 			MethodStatement mStat = findTargetMethodCallStatement(test);
 			targetObject = mStat.getCallee();
@@ -319,18 +324,16 @@ public class ConstructionPathSynthesizer {
 		return null;
 	}
 
-	private VariableReference generateOtherStatement(TestCase test, int position, DepVariable var,
-			VariableReference parentVarRef) {
+	private VariableReference generateOtherStatement(TestCase test, DepVariable var, VariableReference parentVarRef) {
 		if (var.getInstruction().getASMNode() instanceof MethodInsnNode) {
-			VariableReference returnValue = generateMethodCall(test, position, var, parentVarRef);
+			VariableReference returnValue = generateMethodCall(test, var, parentVarRef);
 			return returnValue;
 		}
 
 		return parentVarRef;
 	}
 
-	private VariableReference generateMethodCall(TestCase test, int position, DepVariable var,
-			VariableReference parentVarRef) {
+	private VariableReference generateMethodCall(TestCase test, DepVariable var, VariableReference parentVarRef) {
 		try {
 			MethodInsnNode methodNode = ((MethodInsnNode) var.getInstruction().getASMNode());
 			String owner = methodNode.owner;
@@ -353,9 +356,10 @@ public class ConstructionPathSynthesizer {
 			if (!fullName.contains("<init>")) {
 				Method call = fieldDeclaringClass.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
 
-				VariableReference calleeVarRef;
+				VariableReference calleeVarRef = null;
 				if (parentVarRef == null) {
-					calleeVarRef = addConstructorForClass(test, position + 1, fieldDeclaringClass.getName());
+					System.currentTimeMillis();
+//					calleeVarRef = addConstructorForClass(test, parentVarRef.getStPosition() + 1, fieldDeclaringClass.getName());
 				} else {
 					calleeVarRef = parentVarRef;
 				}
