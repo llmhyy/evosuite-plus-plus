@@ -19,6 +19,9 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
+import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.LocalVariable;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
@@ -99,7 +102,7 @@ public class ConstructionPathSynthesizer {
 			
 			for(DepVariable root: rootInfo.keySet()) {
 				
-				if((root.referenceToThis() || root.isParameter() || root.isStaticField()) 
+				if((root.referenceToThis() || root.getInstruction().isParameter() || root.isStaticField()) 
 						&& root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) {
 					
 					List<ConstructionPath> paths = rootInfo.get(root);
@@ -874,7 +877,7 @@ public class ConstructionPathSynthesizer {
 	private Set<BytecodeInstruction> checkCurrentParamInstructions(BytecodeInstruction descIns,
 			Set<BytecodeInstruction> paramInstructionSet) {
 		if (descIns.isLocalVariableUse()) {
-			if (isParameter(descIns)) {
+			if (descIns.isParameter()) {
 				// position here similar to list index (i.e., starts from 0)
 //				int pos = checkSetterParamPos(defIns);
 //				paramInstructionSet.add(new Integer(pos));
@@ -887,7 +890,7 @@ public class ConstructionPathSynthesizer {
 				return paramInstructionSet;
 			}
 			if (defIns.isLocalVariableUse()) {
-				if (isParameter(defIns)) {
+				if (defIns.isParameter()) {
 					// position here similar to list index (i.e., starts from 0)
 //					int pos = checkSetterParamPos(defIns);
 //					paramInstructionSet.add(new Integer(pos));
@@ -1088,7 +1091,7 @@ public class ConstructionPathSynthesizer {
 				if (ins.getASMNodeString().contains(opcode)) {
 					BytecodeInstruction defIns = ins.getSourceOfStackInstruction(0);
 					int count = 0;
-					if (isParameter(defIns)) {
+					if (defIns.isParameter()) {
 						for (int i = 0; i < defIns.getLocalVariableSlot(); i++) {
 							String typeName = executable.getParameterTypes()[i].getTypeName();
 							if (typeName.equals(qualifiedParams.get(0).getType().getCanonicalName())) {
@@ -1633,21 +1636,5 @@ public class ConstructionPathSynthesizer {
 		}
 	}
 
-	private boolean isParameter(BytecodeInstruction instruction) {
-		if (instruction.isLocalVariableUse()) {
-			String methodName = instruction.getRawCFG().getMethodName();
-			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
-			org.objectweb.asm.Type[] typeArgs = org.objectweb.asm.Type.getArgumentTypes(methodDesc);
-			int paramNum = typeArgs.length;
 
-			int slot = instruction.getLocalVariableSlot();
-
-			if (instruction.getRawCFG().isStaticMethod()) {
-				return slot < paramNum;
-			} else {
-				return slot < paramNum + 1 && slot != 0;
-			}
-		}
-		return false;
-	}
 }

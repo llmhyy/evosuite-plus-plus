@@ -26,6 +26,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.LocalVariable;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
@@ -1291,6 +1294,53 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		}
 
 		return getCalledCFG().isStaticMethod();
+	}
+	
+	/**
+	 * <p>
+	 * isParameter
+	 * </p>
+	 * 
+	 * @return a boolean.
+	 */
+	public boolean isParameter() {
+		if (isLocalVariableUse()) {
+			int slot = getLocalVariableSlot();
+			String methodName = getRawCFG().getMethodName();
+			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
+			org.objectweb.asm.Type[] typeArgs = org.objectweb.asm.Type.getArgumentTypes(methodDesc);
+			int paramNum = typeArgs.length;
+			int argsSize;
+			if (getRawCFG().isStaticMethod()) {
+				argsSize = paramNum;
+			} else {
+				argsSize = paramNum + 1;
+			}
+
+			org.apache.bcel.classfile.Method realMethod = null;
+			JavaClass jc = null;
+			try {
+				jc = Repository.lookupClass(getClassName());
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+			if (jc != null) {
+			org.apache.bcel.classfile.Method[] methods = jc.getMethods();
+			for (org.apache.bcel.classfile.Method method : methods) {
+				if ((method.getName() + method.getSignature()).equals(getMethodName())) {
+					realMethod = method;
+					break;
+				}
+			}
+			LocalVariable[] lvt = realMethod.getLocalVariableTable().getLocalVariableTable();
+			for (int i = 0; i < lvt.length; i++) {
+				if (slot == lvt[i].getIndex()) {
+					return i < argsSize;
+				}
+			}
+		}
+		}
+		return false;
 	}
 
 	/**

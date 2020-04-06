@@ -130,7 +130,7 @@ public class StringArrayConditionRelatedFilter extends MethodFlagCondFilter {
 							return true;
 						}
 					} else if (src.isLocalVariableUse()) {
-						if (isParameter(src)) {
+						if (src.isParameter()) {
 							Type type = getParameterPosition(src);
 							String name = type.getClassName();
 							if (name.equals("java.lang.String[]")) {
@@ -146,24 +146,6 @@ public class StringArrayConditionRelatedFilter extends MethodFlagCondFilter {
 						return checkBranchDependentOnStringArray(classLoader, className, methodName, node, src);
 					}
 				}
-			}
-		}
-		return false;
-	}
-
-	public boolean isParameter(BytecodeInstruction insn) {
-		if (insn.isLocalVariableUse()) {
-			String methodName = insn.getRawCFG().getMethodName();
-			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
-			Type[] typeArgs = Type.getArgumentTypes(methodDesc);
-			int paramNum = typeArgs.length;
-
-			int slot = insn.getLocalVariableSlot();
-
-			if (insn.getRawCFG().isStaticMethod()) {
-				return slot < paramNum;
-			} else {
-				return slot < paramNum + 1 && slot != 0;
 			}
 		}
 		return false;

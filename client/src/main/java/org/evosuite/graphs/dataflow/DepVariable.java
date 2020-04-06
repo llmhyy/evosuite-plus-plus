@@ -91,7 +91,7 @@ public class DepVariable {
 			this.setType(DepVariable.THIS);
 			this.setName("this");
 		}
-		else if(this.isParameter()) {
+		else if(this.instruction.isParameter()) {
 			this.setType(DepVariable.PARAMETER);
 			this.setName(ins.getVariableName());
 		}
@@ -142,26 +142,6 @@ public class DepVariable {
 
 	public void setInstruction(BytecodeInstruction instruction) {
 		this.instruction = instruction;
-	}
-
-
-	public boolean isParameter() {
-		if(this.instruction.isLocalVariableUse()) {
-			String methodName = this.instruction.getRawCFG().getMethodName();
-			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
-			Type[] typeArgs = Type.getArgumentTypes(methodDesc);
-			int paramNum = typeArgs.length;
-			
-			int slot = this.instruction.getLocalVariableSlot();
-			
-			if(this.instruction.getRawCFG().isStaticMethod()) {
-				return slot < paramNum;
-			}
-			else {
-				return slot < paramNum+1 && slot != 0;				
-			}
-		}
-		return false;
 	}
 
 	public boolean isStaticField() {

@@ -162,7 +162,7 @@ public class PrimitiveBasedWithMethodConstraintFilter extends MethodFlagCondFilt
 				}
 			} else if (defIns.isArrayLoadInstruction()) {
 				return false;
-			} else if (defIns.getASMNode().getOpcode() == Opcodes.ALOAD && !isParameter(defIns)) {
+			} else if (defIns.getASMNode().getOpcode() == Opcodes.ALOAD && !defIns.isParameter()) {
 				return false;
 			} else if (defIns.isMethodCall()) {
 				if (defIns.getASMNode().getOpcode() == Opcodes.INVOKEINTERFACE) {
@@ -219,24 +219,6 @@ public class PrimitiveBasedWithMethodConstraintFilter extends MethodFlagCondFilt
 			}
 		}
 		return true;
-	}
-
-	public boolean isParameter(BytecodeInstruction insn) {
-		if (insn.isLocalVariableUse()) {
-			String methodName = insn.getRawCFG().getMethodName();
-			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
-			Type[] typeArgs = Type.getArgumentTypes(methodDesc);
-			int paramNum = typeArgs.length;
-
-			int slot = insn.getLocalVariableSlot();
-
-			if (insn.getRawCFG().isStaticMethod()) {
-				return slot < paramNum;
-			} else {
-				return slot < paramNum + 1 && slot != 0;
-			}
-		}
-		return false;
 	}
 
 	private boolean considerAsPrimitiveType(Type type) {

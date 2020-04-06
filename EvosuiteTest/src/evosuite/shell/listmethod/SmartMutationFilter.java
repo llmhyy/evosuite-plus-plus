@@ -153,22 +153,4 @@ public class SmartMutationFilter extends MethodFlagCondFilter {
 
 		return false;
 	}
-
-	public boolean isParameter(BytecodeInstruction insn) {
-		if (insn.isLocalVariableUse()) {
-			String methodName = insn.getRawCFG().getMethodName();
-			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
-			Type[] typeArgs = Type.getArgumentTypes(methodDesc);
-			int paramNum = typeArgs.length;
-
-			int slot = insn.getLocalVariableSlot();
-
-			if (insn.getRawCFG().isStaticMethod()) {
-				return slot < paramNum;
-			} else {
-				return slot < paramNum + 1 && slot != 0;
-			}
-		}
-		return false;
-	}
 }
