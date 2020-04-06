@@ -76,6 +76,8 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
+import javassist.bytecode.Opcode;
+
 public class ConstructionPathSynthesizer {
 
 	private TestFactory testFactory;
@@ -197,14 +199,39 @@ public class ConstructionPathSynthesizer {
 			}
 			targetObject = generateFieldStatement(test, var, isLeaf, targetObject);
 		} else if (var.getType() == DepVariable.OTHER) {
-			/**
-			 * FIXME: need to handle other cases than method call in the future.
-			 */
-			int methodPos = findTargetMethodCallStatement(test).getPosition();
-			targetObject = generateOtherStatement(test, methodPos, var, targetObject);
+			int opcode = node.var.getInstruction().getASMNode().getOpcode();
+			if(opcode == Opcode.ALOAD ||
+					opcode == Opcode.ALOAD_1||
+					opcode == Opcode.ALOAD_2||
+					opcode == Opcode.ALOAD_3) {
+				for(DepVariableWrapper parentNode: node.parents) {
+					if(map.get(parentNode.var) != null) {
+						targetObject = map.get(parentNode.var);
+						break;
+					}
+				}
+			}
+			else {
+				/**
+				 * FIXME: need to handle other cases than method call in the future.
+				 */
+				int methodPos = findTargetMethodCallStatement(test).getPosition();
+				targetObject = generateOtherStatement(test, methodPos, var, targetObject);				
+			}
 		} else if (var.getType() == DepVariable.THIS) {
-			MethodStatement mStat = findTargetMethodCallStatement(test);
-			targetObject = mStat.getCallee();
+			if(node.parents.isEmpty()) {
+				MethodStatement mStat = findTargetMethodCallStatement(test);
+				targetObject = mStat.getCallee();				
+			}
+			else {
+				for(DepVariableWrapper parentNode: node.parents) {
+					if(map.get(parentNode.var) != null) {
+						targetObject = map.get(parentNode.var);
+						break;
+					}
+				}
+			}
+			
 		} else if (var.getType() == DepVariable.ARRAY_ELEMENT) {
 			targetObject = generateArrayElementStatement(test, var, isLeaf, targetObject);
 			System.currentTimeMillis();
@@ -512,7 +539,7 @@ public class ConstructionPathSynthesizer {
 						return null;
 //					}
 				}
-
+				System.currentTimeMillis();
 				return null;
 
 			}
