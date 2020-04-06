@@ -77,6 +77,8 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
+import javassist.bytecode.Opcode;
+
 public class ConstructionPathSynthesizer {
 
 	private TestFactory testFactory;
@@ -150,9 +152,7 @@ public class ConstructionPathSynthesizer {
 			if(isValid) {
 				enhanceTestStatement(test, map, node);
 				for (DepVariableWrapper child : node.children) {
-					if (!queue.contains(child)) {
-						queue.add(child);
-					}
+					queue.add(child);
 				}
 			} else {
 				queue.add(node);
@@ -161,75 +161,83 @@ public class ConstructionPathSynthesizer {
 	}
 
 	private boolean checkDependency(DepVariableWrapper node, Map<DepVariable, VariableReference> map) {
-
 		/**
 		 * ensure every parent of current node is visited in the map
 		 */
-		boolean ifFound = true;
-
 		for (DepVariableWrapper parent : node.parents) {
-			ifFound = false;
-			for (DepVariable visitedVar : map.keySet()) {
-				if (visitedVar.equals(parent.var)) {
-					ifFound = true;
-					break;
-				}
-			}
-			if (!ifFound) {
+			if(map.get(parent.var) == null) {
 				return false;
 			}
 		}
 
-		return ifFound;
+		return true;
 	}
 
 	private boolean enhanceTestStatement(TestCase test, Map<DepVariable, VariableReference> map,
 			DepVariableWrapper node) throws ClassNotFoundException, ConstructionFailedException {
 		DepVariable var = node.var;
 		
-		VariableReference targetObject = null;
+		VariableReference inputObject = null;
 		if(!node.parents.isEmpty()) {
 			// wont be null
-			targetObject = map.get(node.parents.get(0).var);
+			inputObject = map.get(node.parents.get(0).var);
 		}
 		else {
 			VariableReference codeVar = map.get(var);
 			if (codeVar != null) {
-				targetObject = codeVar;
+				inputObject = codeVar;
 			}
 		}
 		
 		boolean isLeaf = node.children.isEmpty();
 		
 		if (var.getType() == DepVariable.STATIC_FIELD) {
-			targetObject = generateFieldStatement(test, var, isLeaf, targetObject);
+			inputObject = generateFieldStatement(test, var, isLeaf, inputObject);
 		} else if (var.getType() == DepVariable.PARAMETER) {
 			String castSubClass = checkClass(node);
-			targetObject = generateParameterStatement(test, var, targetObject, castSubClass);
+			inputObject = generateParameterStatement(test, var, inputObject, castSubClass);
 		} else if (var.getType() == DepVariable.INSTANCE_FIELD) {
-			if (targetObject == null) {
+			if (inputObject == null) {
 				return false;
 			}
-			targetObject = generateFieldStatement(test, var, isLeaf, targetObject);
+			inputObject = generateFieldStatement(test, var, isLeaf, inputObject);
 		} else if (var.getType() == DepVariable.OTHER) {
-			/**
-			 * FIXME: need to handle other cases than method call in the future.
-			 */
-			if (targetObject == null) {
-				System.currentTimeMillis();
-				return false;
+			int opcode = node.var.getInstruction().getASMNode().getOpcode();
+			if(opcode == Opcode.ALOAD ||
+					opcode == Opcode.ALOAD_1||
+					opcode == Opcode.ALOAD_2||
+					opcode == Opcode.ALOAD_3) {
+				for(DepVariableWrapper parentNode: node.parents) {
+					if(map.get(parentNode.var) != null) {
+						inputObject = map.get(parentNode.var);
+						break;
+					}
+				}
 			}
-			targetObject = generateOtherStatement(test, var, targetObject);
+			else {
+				inputObject = generateMethodCallStatement(test, node, map);				
+			}
 		} else if (var.getType() == DepVariable.THIS) {
-			MethodStatement mStat = findTargetMethodCallStatement(test);
-			targetObject = mStat.getCallee();
+			if(node.parents.isEmpty()) {
+				MethodStatement mStat = findTargetMethodCallStatement(test);
+				inputObject = mStat.getCallee();				
+			}
+			else {
+				for(DepVariableWrapper parentNode: node.parents) {
+					if(map.get(parentNode.var) != null) {
+						inputObject = map.get(parentNode.var);
+						break;
+					}
+				}
+			}
+			
 		} else if (var.getType() == DepVariable.ARRAY_ELEMENT) {
-			targetObject = generateArrayElementStatement(test, var, isLeaf, targetObject);
+			inputObject = generateArrayElementStatement(test, var, isLeaf, inputObject);
 			System.currentTimeMillis();
 		}
 
-		if (targetObject != null) {
-			map.put(var, targetObject);
+		if (inputObject != null) {
+			map.put(var, inputObject);
 		}
 		
 		return true;
@@ -324,16 +332,8 @@ public class ConstructionPathSynthesizer {
 		return null;
 	}
 
-	private VariableReference generateOtherStatement(TestCase test, DepVariable var, VariableReference parentVarRef) {
-		if (var.getInstruction().getASMNode() instanceof MethodInsnNode) {
-			VariableReference returnValue = generateMethodCall(test, var, parentVarRef);
-			return returnValue;
-		}
-
-		return parentVarRef;
-	}
-
-	private VariableReference generateMethodCall(TestCase test, DepVariable var, VariableReference parentVarRef) {
+	private VariableReference generateMethodCallStatement(TestCase test, DepVariableWrapper node, Map<DepVariable, VariableReference> map) {
+		DepVariable var = node.var;
 		try {
 			MethodInsnNode methodNode = ((MethodInsnNode) var.getInstruction().getASMNode());
 			String owner = methodNode.owner;
@@ -341,9 +341,9 @@ public class ConstructionPathSynthesizer {
 			String fullName = methodNode.name + methodNode.desc;
 			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 					.loadClass(fieldOwner);
-			if (fieldDeclaringClass.isInterface() || Modifier.isAbstract(fieldDeclaringClass.getModifiers())) {
-				return parentVarRef;
-			}
+//			if (fieldDeclaringClass.isInterface() || Modifier.isAbstract(fieldDeclaringClass.getModifiers())) {
+//				return targetObject;
+//			}
 			org.objectweb.asm.Type[] types = org.objectweb.asm.Type
 					.getArgumentTypes(fullName.substring(fullName.indexOf("("), fullName.length()));
 			Class<?>[] paramClasses = new Class<?>[types.length];
@@ -357,23 +357,39 @@ public class ConstructionPathSynthesizer {
 				Method call = fieldDeclaringClass.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
 
 				VariableReference calleeVarRef = null;
-				if (parentVarRef == null) {
-					System.currentTimeMillis();
-//					calleeVarRef = addConstructorForClass(test, parentVarRef.getStPosition() + 1, fieldDeclaringClass.getName());
-				} else {
-					calleeVarRef = parentVarRef;
+				Map<Integer, VariableReference> paramRefMap = new HashMap<>();
+				/**
+				 * TODO, ziheng construct a statement w.r.t. method's callee and parameters
+				 */
+				for(DepVariableWrapper par: node.parents) {
+					VariableReference parRef = map.get(par.var);
+					
+					int position = par.var.findRelationPosition(var);
+					
+					// TODO ziheng, need to check invoke virtual and invoke static
+					if(position == 0) {
+						calleeVarRef = parRef;
+					}
+					else {
+						paramRefMap.put(position, parRef);
+					}
 				}
-
+				
 				GenericMethod genericMethod = new GenericMethod(call, call.getDeclaringClass());
 				VariableReference varRef = testFactory.addMethodFor(test, calleeVarRef, genericMethod,
 						calleeVarRef.getStPosition() + 1);
+				
+				/**
+				 * TODO, ziheng replace the parameters with paramRefMap
+				 */
+				
 				return varRef;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		return parentVarRef;
+		
+		return null;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -529,7 +545,7 @@ public class ConstructionPathSynthesizer {
 						return null;
 //					}
 				}
-
+				System.currentTimeMillis();
 				return null;
 
 			}
