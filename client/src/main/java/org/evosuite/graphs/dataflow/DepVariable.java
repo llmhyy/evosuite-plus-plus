@@ -494,4 +494,19 @@ public class DepVariable {
 		return relations;
 	}
 
+	public int findRelationPosition(DepVariable var) {
+		for(int i=0; i<relations.length; i++) {
+			if(this.relations[i].isEmpty()) continue;
+			
+			for(DepVariable child: this.relations[i]) {
+				if (child.equals(var)) {
+					return i;
+				}				
+			}
+			
+		}
+		
+		return -1;
+	}
+
 }
