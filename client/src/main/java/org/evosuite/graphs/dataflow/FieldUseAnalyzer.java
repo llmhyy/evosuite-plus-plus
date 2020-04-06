@@ -97,7 +97,7 @@ public class FieldUseAnalyzer {
 		Set<DepVariable> allDepVars = new HashSet<DepVariable>();
 		Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 		for (BytecodeInstruction exit : calledCfg.getExitPoints()) {
-			for (BytecodeInstruction returnInstruction : exit.getSourceListOfStackInstruction(0)) {
+			for (BytecodeInstruction returnInstruction : exit.getSourceOfStackInstructionList(0)) {
 				searchDefDependentVariables(returnInstruction, calledCfg, allDepVars, visitedIns, callGraphDepth-1);
 			}
 		}

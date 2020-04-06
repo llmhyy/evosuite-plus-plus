@@ -378,7 +378,7 @@ public class FlagEffectEvaluator {
 		}
 		
 		for(BytecodeInstruction exit: calledGraph.determineExitPoints()) {
-			List<BytecodeInstruction> returnDefs = exit.getSourceListOfStackInstruction(0);
+			List<BytecodeInstruction> returnDefs = exit.getSourceOfStackInstructionList(0);
 			if(returnDefs.size()>1) {
 				System.currentTimeMillis();
 			}

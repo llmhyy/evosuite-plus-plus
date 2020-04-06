@@ -1218,39 +1218,6 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 				sourceInstruction);
 		return src;
 	}
-	
-	public List<BytecodeInstruction> getSourceListOfStackInstruction(int positionFromTop) {
-		List<BytecodeInstruction> list = new ArrayList<>();
-		if (frame == null)
-			throw new IllegalStateException(
-					"expect each BytecodeInstruction to have its CFGFrame set");
-
-		int stackPos = frame.getStackSize() - (1 + positionFromTop);
-		if (stackPos < 0){
-			StackTraceElement[] se = new Throwable().getStackTrace();
-			int t=0;
-			System.out.println("Stack trace: ");
-			while(t<se.length){
-				System.out.println(se[t]);
-				t++;
-			}
-			return list;
-		}
-		SourceValue source = (SourceValue) frame.getStack(stackPos);
-		
-		Iterator<AbstractInsnNode> iter = source.insns.iterator();
-		while(iter.hasNext()) {
-			Object sourceIns =iter.next();
-			AbstractInsnNode sourceInstruction = (AbstractInsnNode) sourceIns;
-			BytecodeInstruction src = BytecodeInstructionPool.getInstance(classLoader).getInstruction(className,
-					methodName,
-					sourceInstruction);
-			list.add(src);
-		}
-		
-		return list;
-	}
-	
 
 	public boolean isFieldMethodCallDefinition() {
 		if (!isMethodCallOfField())
