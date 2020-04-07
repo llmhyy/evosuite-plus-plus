@@ -1332,6 +1332,10 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 					break;
 				}
 			}
+			if (realMethod == null || realMethod.getLocalVariableTable() == null) {
+				return false;
+			}
+
 			LocalVariable[] lvt = realMethod.getLocalVariableTable().getLocalVariableTable();
 			for (int i = 0; i < lvt.length; i++) {
 				if (slot == lvt[i].getIndex()) {
