@@ -476,7 +476,7 @@ public class DepVariable {
 
 	public int findRelationPosition(DepVariable var) {
 		for(int i=0; i<relations.length; i++) {
-			if(this.relations[i].isEmpty()) continue;
+			if(this.relations[i] == null || this.relations[i].isEmpty()) continue;
 			
 			for(DepVariable child: this.relations[i]) {
 				if (child.equals(var)) {
