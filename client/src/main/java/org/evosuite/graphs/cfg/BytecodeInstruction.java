@@ -21,6 +21,8 @@ package org.evosuite.graphs.cfg;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1337,8 +1339,11 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 			}
 
 			LocalVariable[] lvt = realMethod.getLocalVariableTable().getLocalVariableTable();
-			for (int i = 0; i < lvt.length; i++) {
-				if (slot == lvt[i].getIndex()) {
+			LocalVariable[] lvtCopy = lvt.clone();
+			Arrays.sort(lvtCopy, Comparator.comparing(LocalVariable::getIndex));
+			
+			for (int i = 0; i < lvtCopy.length; i++) {
+				if (slot == lvtCopy[i].getIndex()) {
 					return i < argsSize;
 				}
 			}
