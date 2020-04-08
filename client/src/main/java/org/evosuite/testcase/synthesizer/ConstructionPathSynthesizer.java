@@ -218,7 +218,7 @@ public class ConstructionPathSynthesizer {
 				}
 			}
 			else {
-				inputObject = generateMethodCallStatement(test, node, map);				
+				inputObject = generateMethodCallStatement(test, node, map, inputObject);				
 			}
 		} else if (var.getType() == DepVariable.THIS) {
 			if(node.parents.isEmpty()) {
@@ -335,8 +335,10 @@ public class ConstructionPathSynthesizer {
 		return null;
 	}
 
-	private VariableReference generateMethodCallStatement(TestCase test, DepVariableWrapper node, Map<DepVariable, VariableReference> map) {
+	private VariableReference generateMethodCallStatement(TestCase test, DepVariableWrapper node,
+			Map<DepVariable, VariableReference> map, VariableReference inputObject) {
 		DepVariable var = node.var;
+		int opcode = var.getInstruction().getASMNode().getOpcode();
 		try {
 			MethodInsnNode methodNode = ((MethodInsnNode) var.getInstruction().getASMNode());
 			String owner = methodNode.owner;
@@ -361,37 +363,53 @@ public class ConstructionPathSynthesizer {
 
 				VariableReference calleeVarRef = null;
 				Map<Integer, VariableReference> paramRefMap = new HashMap<>();
-				/**
-				 * TODO, ziheng construct a statement w.r.t. method's callee and parameters
-				 */
-				for(DepVariableWrapper par: node.parents) {
+
+				for (DepVariableWrapper par : node.parents) {
 					VariableReference parRef = map.get(par.var);
-					
+
 					int position = par.var.findRelationPosition(var);
-					
-					// TODO ziheng, need to check invoke virtual and invoke static
-					if(position == 0) {
-						calleeVarRef = parRef;
-					}
-					else {
+					if (position > -1) {
 						paramRefMap.put(position, parRef);
 					}
 				}
-				
-				GenericMethod genericMethod = new GenericMethod(call, call.getDeclaringClass());
-				VariableReference varRef = testFactory.addMethodFor(test, calleeVarRef, genericMethod,
-						calleeVarRef.getStPosition() + 1);
-				
-				/**
-				 * TODO, ziheng replace the parameters with paramRefMap
-				 */
-				
-				return varRef;
+
+				if (opcode == Opcodes.INVOKESTATIC) {
+					calleeVarRef = null;
+					GenericMethod genericMethod = new GenericMethod(call, call.getDeclaringClass());
+					VariableReference varRef = testFactory.addMethod(test, genericMethod,
+							inputObject.getStPosition() + 1, 1);
+					MethodStatement statement = (MethodStatement) test.getStatement(varRef.getStPosition());
+					for (int i = 0; i < statement.getParameterReferences().size();i ++) {
+						VariableReference oldParam = statement.getParameterReferences().get(i);
+						VariableReference newParam = paramRefMap.get(i);
+						if (newParam != null) {
+							statement.replace(oldParam, newParam);
+						}
+					}
+					return varRef;
+				} else {
+					calleeVarRef = paramRefMap.get(0);
+					if (calleeVarRef != null) {
+						GenericMethod genericMethod = new GenericMethod(call, call.getDeclaringClass());
+						VariableReference varRef = testFactory.addMethodFor(test, calleeVarRef, genericMethod,
+								calleeVarRef.getStPosition() + 1);
+						MethodStatement statement = (MethodStatement) test.getStatement(varRef.getStPosition());
+						for (int i = 0; i < statement.getParameterReferences().size();i ++) {
+							VariableReference oldParam = statement.getParameterReferences().get(i);
+							VariableReference newParam = paramRefMap.get(i + 1);
+							if (newParam != null) {
+								statement.replace(oldParam, newParam);
+							}
+						}
+						return varRef;
+					}
+				}
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
 
