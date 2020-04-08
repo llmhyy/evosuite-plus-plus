@@ -235,8 +235,7 @@ public class ConstructionPathSynthesizer {
 			}
 			
 		} else if (var.getType() == DepVariable.ARRAY_ELEMENT) {
-			inputObject = generateArrayElementStatement(test, var, isLeaf, inputObject);
-			System.currentTimeMillis();
+			inputObject = generateArrayElementStatement(test, node, isLeaf, inputObject, map);
 		}
 
 		if (inputObject != null) {
@@ -246,37 +245,270 @@ public class ConstructionPathSynthesizer {
 		return true;
 	}
 
-	private VariableReference generateArrayElementStatement(TestCase test, DepVariable var,
-			boolean isLeaf, VariableReference parentVarRef) {
-		/**
-		 *  FIXME ziheng, we need to 
-		 *  (1) handle primitive type, 
-		 *  (2) search for method call which can set the array element,
-		 *  (3) reuse*.
-		 */
-		
-		if(parentVarRef instanceof ArrayReference) {
-			ArrayReference arrayRef = (ArrayReference)parentVarRef;
+	private VariableReference generateArrayElementStatement(TestCase test, DepVariableWrapper node, boolean isLeaf,
+			VariableReference parentVarRef, Map<DepVariable, VariableReference> map) throws ConstructionFailedException {
+
+		if (parentVarRef instanceof ArrayReference) {
+			int opcodeRead = node.var.getInstruction().getASMNode().getOpcode();
+			int opcodeWrite = getCorrespondingWriteOpcode(opcodeRead);
+			VariableReference realParentRef = null;
+			Statement statement = test.getStatement(parentVarRef.getStPosition());
+
+			if (statement instanceof MethodStatement) {
+				MethodStatement mStatement = (MethodStatement) statement;
+				realParentRef = mStatement.getCallee();
+			}
+			
+			if (realParentRef  != null) {
+				/**
+				 * check reused array element
+				 */
+				VariableReference usedArrayRef = isLeaf
+						? searchArrayElementWritingReference(test, node, parentVarRef, realParentRef, opcodeWrite)
+						: searchArrayElementReadingReference(test, node, parentVarRef, realParentRef, opcodeRead);
+				if (usedArrayRef != null) {
+					return isLeaf ? null : usedArrayRef;
+				}
+
+				if (isLeaf) {
+					/**
+					 * generate setter
+					 */
+					Method setter = searchSetterForArrayElement(test, node, realParentRef, opcodeWrite);
+					if (setter != null) {
+						GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
+						testFactory.addMethodFor(test, realParentRef, gMethod,
+								realParentRef.getStPosition() + 1);
+						return null;
+					}
+				} else {
+					/**
+					 * generate getter
+					 */
+					Method getter = searchGetterForArrayElement(test, node, realParentRef, opcodeRead);
+					if (getter != null) {
+						VariableReference newParentVarRef = null;
+						GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
+						newParentVarRef = testFactory.addMethodFor(test, realParentRef, gMethod,
+								realParentRef.getStPosition() + 1);
+						return newParentVarRef;
+					}
+					return null;
+				}
+			}
+
+			/**
+			 * direct set
+			 */
+			ArrayReference arrayRef = (ArrayReference) parentVarRef;
 			int index = Randomness.nextInt(10);
 			ArrayIndex arrayIndex = new ArrayIndex(test, arrayRef, index);
-			
-			
 			VariableReference varRef = createVariable(test, arrayRef);
-			AssignmentStatement assign = new AssignmentStatement(test, arrayIndex, varRef);
-			test.addStatement(assign, varRef.getStPosition()+1);
-			System.currentTimeMillis();
-			
-			return assign.getReturnValue();
-			
-//			if(isLeaf) {
-//				//generate setter method. 
-//			}
-//			else {
-//				//generate getter method.
-//			}
+			AssignmentStatement assignStat = new AssignmentStatement(test, arrayIndex, varRef);
+			test.addStatement(assignStat, varRef.getStPosition() + 1);
+			return assignStat.getReturnValue();
+		}
+		return null;
+	}
+
+	private Method searchGetterForArrayElement(TestCase test, DepVariableWrapper node, VariableReference realParentRef, int opcodeRead) {
+		Set<Method> targetMethods = new HashSet<>();
+		Class<?> clazz = realParentRef.getGenericClass().getRawClass();
+		for (Method method : clazz.getMethods()) {
+			boolean isValid = checkValidArrayElementGetter(method, node, opcodeRead);
+			if (isValid) {
+				targetMethods.add(method);
+			}
+		}
+
+		return Randomness.choice(targetMethods);
+	}
+
+	private Method searchSetterForArrayElement(TestCase test, DepVariableWrapper node, VariableReference realParentRef, int opcodeWrite) {
+		Set<Method> targetMethods = new HashSet<>();
+		Class<?> clazz = realParentRef.getGenericClass().getRawClass();
+		for (Method method : clazz.getMethods()) {
+			boolean isValid = checkValidArrayElementSetter(method, node, opcodeWrite);
+			if (isValid) {
+				targetMethods.add(method);
+			}
+		}
+
+		return Randomness.choice(targetMethods);
+	}
+
+	private VariableReference searchArrayElementWritingReference(TestCase test, DepVariableWrapper node, VariableReference parentVarRef, VariableReference realParentRef, int opcodeWrite) {
+		/*
+		 * AASTORE, BASTORE, CASTORE, DASTORE, FASTORE, IASTORE, LASTORE, SASTORE
+		 */
+		for (int i = 0;i < test.size(); i ++) {
+			Statement stat = test.getStatement(i);
+			// check directly writing
+			if (stat instanceof AssignmentStatement) {
+				AssignmentStatement assignStat = (AssignmentStatement) stat;
+				for (VariableReference varRef : assignStat.getVariableReferences()) {
+					if (varRef.equals(parentVarRef)) {
+						return assignStat.getReturnValue();
+					}
+				}
+			} 
+			// check writing through method call
+			else if (stat instanceof MethodStatement) {
+				MethodStatement mStat = (MethodStatement) stat;
+				VariableReference ref = mStat.getCallee();
+				if (ref != null && ref.equals(realParentRef)) {
+					boolean isValid = checkValidArrayElementSetter(mStat.getMethod().getMethod(), node, opcodeWrite);
+					if (isValid) {
+						return mStat.getReturnValue();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	private int getCorrespondingWriteOpcode(int opcodeRead) {
+		switch (opcodeRead) {
+		case Opcodes.AALOAD:
+			return Opcodes.AASTORE;
+		case Opcodes.BALOAD:
+			return Opcodes.BASTORE;
+		case Opcodes.CALOAD:
+			return Opcodes.CASTORE;
+		case Opcodes.DALOAD:
+			return Opcodes.DASTORE;
+		case Opcodes.FALOAD:
+			return Opcodes.FASTORE;
+		case Opcodes.IALOAD:
+			return Opcodes.IASTORE;
+		case Opcodes.LALOAD:
+			return Opcodes.LASTORE;
+		case Opcodes.SALOAD:
+			return Opcodes.SASTORE;
+		default:
+			throw new IllegalArgumentException("Illegal Opcode");
+		}
+	}
+
+	/**
+	 * check if current method is a valid setter for array element
+	 * 
+	 * @param className
+	 * @param methodName
+	 * @param node
+	 * @param opcodeWrite
+	 * @return
+	 */
+	private boolean checkValidArrayElementSetter(Method method, DepVariableWrapper node,
+			int opcodeWrite) {
+		boolean isValid = false;
+		DepVariable parentVar = node.parents.get(0).var;
+		if (parentVar.getType() != DepVariable.INSTANCE_FIELD && parentVar.getType() != DepVariable.STATIC_FIELD) {
+			return false;
+		}
+		String className = method.getDeclaringClass().getCanonicalName();
+		String methodName = method.getName() + MethodUtil.getSignature(method);
+		FieldInsnNode parentFNode = (FieldInsnNode) parentVar.getInstruction().getASMNode();
+		List<BytecodeInstruction> insList = BytecodeInstructionPool
+				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+				.getAllInstructionsAtMethod(className, methodName);
+		if (insList == null && RuntimeInstrumentation.checkIfCanInstrument(className)) {
+			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+			insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+					.getAllInstructionsAtMethod(className, methodName);
+		}
+		if (insList != null) {
+			for (BytecodeInstruction ins : insList) {
+				// *ASTORE
+				if (ins.getASMNode().getOpcode() == opcodeWrite) {
+					for (int i = 0; i < ins.getOperandNum(); i++) {
+						BytecodeInstruction defIns = ins.getSourceOfStackInstruction(i);
+						if (defIns.getASMNode().getOpcode() == Opcodes.ACONST_NULL) {
+							return false;
+						}
+						if (defIns.isFieldUse()) {
+							FieldInsnNode fnode = ((FieldInsnNode) defIns.getASMNode());
+							if (fnode.name.equals(parentFNode.name)) {
+								isValid = true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return isValid;
+	}
+	
+	/**
+	 * check if current method is a valid getter for array element
+	 * 
+	 * @param className
+	 * @param methodName
+	 * @param node
+	 * @param opcodeRead
+	 * @return
+	 */
+	private boolean checkValidArrayElementGetter(Method method, DepVariableWrapper node, int opcodeRead) {
+		DepVariable parentVar = node.parents.get(0).var;
+		if (parentVar.getType() != DepVariable.INSTANCE_FIELD && parentVar.getType() != DepVariable.STATIC_FIELD) {
+			return false;
+		}
+		FieldInsnNode parentFNode = (FieldInsnNode) parentVar.getInstruction().getASMNode();
+		if (!parentFNode.desc.contains("[")) {
+			return false;
 		}
 		
+		String parentDesc = parentFNode.desc;
+		String formalDesc = parentDesc.substring(2, parentDesc.length() - 1).replace("/", ".");
+		if (!method.getReturnType().getCanonicalName().equals(formalDesc)) {
+			return false;
+		}
 		
+		String className = method.getDeclaringClass().getCanonicalName();
+		String methodName = method.getName() + MethodUtil.getSignature(method);
+		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+				.getActualCFG(className, methodName);
+		if (cfg == null) {
+			return false;
+		}
+		for (BytecodeInstruction exit : cfg.getExitPoints()) {
+			if (exit.isReturn()) {
+				BytecodeInstruction returnInsn = exit.getSourceOfStackInstruction(0);
+				if (returnInsn.getASMNode().getOpcode() == opcodeRead) {
+					for (int i = 0;i < returnInsn.getOperandNum(); i ++) {
+						BytecodeInstruction defIns = returnInsn.getSourceOfStackInstruction(i);
+						if (defIns.isFieldUse()) {
+							FieldInsnNode fnode = ((FieldInsnNode) defIns.getASMNode());
+							if (fnode.name.equals(parentFNode.name)) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private VariableReference searchArrayElementReadingReference(TestCase test, DepVariableWrapper node, VariableReference parentVarRef, VariableReference realParentRef, int opcodeRead) {
+		/*
+		 * AALOAD, BALOAD, CALOAD, DALOAD, FALOAD, IALOAD, LALOAD, SALOAD
+		 */
+		for (int i = 0;i < test.size(); i ++) {
+			Statement stat = test.getStatement(i);
+			// check reading through method call
+			if (stat instanceof MethodStatement) {
+				MethodStatement mStat = (MethodStatement) stat;
+				Method method = mStat.getMethod().getMethod();
+				VariableReference ref = mStat.getCallee();
+				if (ref != null && ref.equals(realParentRef)) {
+					boolean isValid = checkValidArrayElementGetter(method, node, opcodeRead);
+					if (isValid) {
+						return mStat.getReturnValue();
+					}
+				}
+			}
+		}
 		return null;
 	}
 
