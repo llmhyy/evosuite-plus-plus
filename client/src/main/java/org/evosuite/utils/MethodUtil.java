@@ -76,9 +76,10 @@ public class MethodUtil {
 	
 	public static ActualControlFlowGraph registerMethod(Class<?> fieldDeclaringClass, String methodName) {
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-		String className = fieldDeclaringClass.getCanonicalName();
+		String className = fieldDeclaringClass.getName();
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		MethodNode innerNode = MethodUtil.getMethodNode(classLoader, className, methodName);
+		System.currentTimeMillis();
 		BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
 		if (cfg == null && innerNode != null) {
 			try {
