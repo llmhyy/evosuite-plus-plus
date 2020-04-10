@@ -43,9 +43,9 @@ public class GraphVisualizer {
 
 				if (!links.contains(n)) {
 					links.add(n);
+					queue.add(target);	
 				}
 
-				queue.add(target);	
 			}
 		}
 		
