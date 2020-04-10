@@ -207,7 +207,7 @@ public class FieldUseAnalyzer {
 			allLeafDepVars.add(outputVar);
 		}
 		
-		if(outputVar.referenceToThis() || outputVar.getInstruction().isParameter() || outputVar.isStaticField()) {
+		if(outputVar.referenceToThis() || outputVar.isParameter() || outputVar.isStaticField()) {
 			//return;
 		}
 		
@@ -293,6 +293,7 @@ public class FieldUseAnalyzer {
 					}
 					else {
 //						ConstructionPath path0 = rootVar.findPath(var);
+//						System.currentTimeMillis();
 						ArrayList<ConstructionPath> paths = var.getRootVars().get(rootVar);
 						ConstructionPath path = paths.get(0);
 						

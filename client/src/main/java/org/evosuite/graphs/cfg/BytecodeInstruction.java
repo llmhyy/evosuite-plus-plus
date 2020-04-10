@@ -1335,7 +1335,12 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 				}
 			}
 			if (realMethod == null || realMethod.getLocalVariableTable() == null) {
-				return false;
+				if(this.getRawCFG().isStaticMethod()) {
+					return slot < paramNum;
+				}
+				else {
+					return slot < paramNum+1 && slot != 0;				
+				}
 			}
 
 			LocalVariable[] lvt = realMethod.getLocalVariableTable().getLocalVariableTable();
@@ -1351,6 +1356,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		}
 		return false;
 	}
+	
 
 	/**
 	 * <p>

@@ -85,13 +85,17 @@ public class DepVariable {
 		this.type = type;
 	}
 	
+	public boolean isParameter(){
+		return this.instruction.isParameter();
+	}
+	
 	private void setType() {
 		BytecodeInstruction ins = this.getInstruction();
 		if(this.referenceToThis()) {
 			this.setType(DepVariable.THIS);
 			this.setName("this");
 		}
-		else if(this.instruction.isParameter()) {
+		else if(this.isParameter()) {
 			this.setType(DepVariable.PARAMETER);
 			this.setName(ins.getVariableName());
 		}

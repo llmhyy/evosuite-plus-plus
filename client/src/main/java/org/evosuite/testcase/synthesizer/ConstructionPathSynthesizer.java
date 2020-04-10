@@ -102,7 +102,7 @@ public class ConstructionPathSynthesizer {
 			
 			for(DepVariable root: rootInfo.keySet()) {
 				
-				if((root.referenceToThis() || root.getInstruction().isParameter() || root.isStaticField()) 
+				if((root.referenceToThis() || root.isParameter() || root.isStaticField()) 
 						&& root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) {
 					
 					List<ConstructionPath> paths = rootInfo.get(root);
