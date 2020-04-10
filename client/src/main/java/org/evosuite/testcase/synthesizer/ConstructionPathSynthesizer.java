@@ -147,7 +147,7 @@ public class ConstructionPathSynthesizer {
 		 * sure that we have generated the code of its dependency.
 		 */
 		Queue<DepVariableWrapper> queue = new ArrayDeque<>(topLayer);
-		
+		Map<DepVariable, Integer> counter = new HashMap<>();
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
 			
@@ -158,7 +158,13 @@ public class ConstructionPathSynthesizer {
 					queue.add(child);
 				}
 			} else {
-				queue.add(node);
+				Integer count = counter.get(node.var);
+				if(count == null) count = 0;
+				
+				if(count < 5){
+					queue.add(node);					
+					counter.put(node.var, ++count);
+				}
 			}
 		}
 	}
@@ -707,11 +713,12 @@ public class ConstructionPathSynthesizer {
 			 * deal with public field
 			 */
 			if (Modifier.isPublic(fieldModifiers) || fieldModifiers == 0) {
+				MethodStatement mStat = findTargetMethodCallStatement(test);
 				if (CollectionUtil.existIn(desc, "Z", "B", "C", "S", "I", "J", "F", "D")) {
-					stmt = addStatementToSetPrimitiveField(test, targetObjectReference.getStPosition() + 1, desc,
+					stmt = addStatementToSetPrimitiveField(test, mStat.getPosition() - 1, desc,
 							genericField, targetObjectReference);
 				} else {
-					stmt = addStatementToSetNonPrimitiveField(test, targetObjectReference.getStPosition() + 1, desc,
+					stmt = addStatementToSetNonPrimitiveField(test, mStat.getPosition() - 1, desc,
 							genericField, targetObjectReference);
 				}
 
