@@ -132,8 +132,8 @@ public class ConstructionPathSynthesizer {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
-		GraphVisualizer.visualizeComputationGraph(b);
-		GraphVisualizer.visualizeComputationGraph(partialGraph);
+//		GraphVisualizer.visualizeComputationGraph(b);
+//		GraphVisualizer.visualizeComputationGraph(partialGraph);
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -1001,6 +1001,7 @@ public class ConstructionPathSynthesizer {
 			BytecodeInstruction setterIns = entry.getKey();
 			List<BytecodeInstruction> callList = entry.getValue();
 			Set<Integer> validParamPos = checkValidParameterPositions(setterIns, className, methodName, callList);
+			System.currentTimeMillis();
 			if (!validParamPos.isEmpty()) {
 				validParams.addAll(validParamPos);
 			}
@@ -1064,6 +1065,7 @@ public class ConstructionPathSynthesizer {
 		if (callList.isEmpty()) {
 			Set<BytecodeInstruction> paramInstructions = checkCurrentParamInstructions(setterInstruction,
 					new HashSet<>());
+			System.currentTimeMillis();
 			Set<Integer> paramPositions = checkSetterParamPositions(paramInstructions);
 			return paramPositions;
 		}
@@ -1221,13 +1223,10 @@ public class ConstructionPathSynthesizer {
 	private Set<Integer> checkSetterParamPositions(Set<BytecodeInstruction> paramInsns) {
 		Set<Integer> paramPositions = new HashSet<>();
 		for (BytecodeInstruction paramInstruction : paramInsns) {
-
-			int slot = paramInstruction.getLocalVariableSlot();
-
-			if (paramInstruction.getRawCFG().isStaticMethod()) {
-				paramPositions.add(new Integer(slot));
-			} else {
-				paramPositions.add(new Integer(slot - 1));
+			int parameterPosition = paramInstruction.getParameterPosition();
+			System.currentTimeMillis();
+			if(parameterPosition != -1){
+				paramPositions.add(parameterPosition);				
 			}
 		}
 		return paramPositions;
@@ -1597,10 +1596,15 @@ public class ConstructionPathSynthesizer {
 						Method targetMethod = fieldDeclaringClass
 								.getMethod(methodName.substring(0, methodName.indexOf("(")), paramClasses);
 						
-						Set<Integer> validParamPositions = searchRelevantParameterOfSetterInMethod(fieldDeclaringClass.getCanonicalName(), methodName, field);
+						String className = fieldDeclaringClass.getName(); 
+						Set<Integer> validParamPositions = searchRelevantParameterOfSetterInMethod(className, methodName, field);
 						if (!validParamPositions.isEmpty()) {
 							//FIXME probability distribution
 							Integer validParamPos = Randomness.choice(validParamPositions);
+							if(validParamPos > targetMethod.getParameters().length-1){
+								System.currentTimeMillis();
+//								System.currentTimeMillis();
+							}
 							Parameter param = targetMethod.getParameters()[validParamPos];
 							targetMethods.put(targetMethod, param);
 						}

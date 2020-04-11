@@ -1299,6 +1299,56 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	}
 	
 	/**
+	 * The first parameter start with 0 index
+	 * @return
+	 */
+	public int getParameterPosition(){
+		if (isLocalVariableUse()) {
+			int slot = getLocalVariableSlot();
+			String methodName = getRawCFG().getMethodName();
+			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
+			org.objectweb.asm.Type[] typeArgs = org.objectweb.asm.Type.getArgumentTypes(methodDesc);
+			int paramNum = typeArgs.length;
+			org.apache.bcel.classfile.Method realMethod = null;
+			JavaClass clazz = null;
+			try {
+				clazz = Repository.lookupClass(getClassName());
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+				return -1;
+			}
+			
+			if (clazz != null) {
+				realMethod = findMethod(realMethod, clazz);
+				if (realMethod == null || realMethod.getLocalVariableTable() == null) {
+					if(this.getRawCFG().isStaticMethod()) {
+						return slot < paramNum ? slot : -1;
+					}
+					else {
+						return slot < paramNum+1 && slot != 0 ? slot : -1;				
+					}
+				}
+	
+				LocalVariable[] lvt = realMethod.getLocalVariableTable().getLocalVariableTable();
+				LocalVariable[] lvtCopy = lvt.clone();
+				Arrays.sort(lvtCopy, Comparator.comparing(LocalVariable::getIndex));
+				
+				int start = this.getRawCFG().isStaticMethod() ? 0 : 1;
+				int end = this.getRawCFG().isStaticMethod() ? paramNum - 1 : paramNum;
+				
+				for (int pos = start; pos <= end; pos++) {
+					if (slot == lvtCopy[pos].getIndex()) {
+						return this.getRawCFG().isStaticMethod() ? pos : pos - 1;
+					}
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	
+	/**
 	 * <p>
 	 * isParameter
 	 * </p>
@@ -1307,54 +1357,21 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	 */
 	public boolean isParameter() {
 		if (isLocalVariableUse()) {
-			int slot = getLocalVariableSlot();
-			String methodName = getRawCFG().getMethodName();
-			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
-			org.objectweb.asm.Type[] typeArgs = org.objectweb.asm.Type.getArgumentTypes(methodDesc);
-			int paramNum = typeArgs.length;
-			int argsSize;
-			if (getRawCFG().isStaticMethod()) {
-				argsSize = paramNum;
-			} else {
-				argsSize = paramNum + 1;
-			}
-
-			org.apache.bcel.classfile.Method realMethod = null;
-			JavaClass jc = null;
-			try {
-				jc = Repository.lookupClass(getClassName());
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			}
-			if (jc != null) {
-			org.apache.bcel.classfile.Method[] methods = jc.getMethods();
-			for (org.apache.bcel.classfile.Method method : methods) {
-				if ((method.getName() + method.getSignature()).equals(getMethodName())) {
-					realMethod = method;
-					break;
-				}
-			}
-			if (realMethod == null || realMethod.getLocalVariableTable() == null) {
-				if(this.getRawCFG().isStaticMethod()) {
-					return slot < paramNum;
-				}
-				else {
-					return slot < paramNum+1 && slot != 0;				
-				}
-			}
-
-			LocalVariable[] lvt = realMethod.getLocalVariableTable().getLocalVariableTable();
-			LocalVariable[] lvtCopy = lvt.clone();
-			Arrays.sort(lvtCopy, Comparator.comparing(LocalVariable::getIndex));
-			
-			for (int i = 0; i < lvtCopy.length; i++) {
-				if (slot == lvtCopy[i].getIndex()) {
-					return i < argsSize;
-				}
-			}
+			return this.getParameterPosition() != -1;
 		}
-		}
+		
 		return false;
+	}
+
+	private org.apache.bcel.classfile.Method findMethod(org.apache.bcel.classfile.Method realMethod, JavaClass jc) {
+		org.apache.bcel.classfile.Method[] methods = jc.getMethods();
+		for (org.apache.bcel.classfile.Method method : methods) {
+			if ((method.getName() + method.getSignature()).equals(getMethodName())) {
+				realMethod = method;
+				break;
+			}
+		}
+		return realMethod;
 	}
 	
 
