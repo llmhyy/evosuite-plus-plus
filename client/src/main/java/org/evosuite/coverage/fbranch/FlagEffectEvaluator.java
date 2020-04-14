@@ -365,8 +365,13 @@ public class FlagEffectEvaluator {
 		
 		return new FlagEffectResult(ins, false, null);
 	}
+	
+	public static FlagEffectResult checkFlagEffect(BytecodeInstruction defIns){
+		List<BytecodeInstruction> list = new ArrayList<>();
+		return checkFlagEffect(defIns, list);
+	}
 
-	public static FlagEffectResult checkFlagEffect(BytecodeInstruction defIns) {
+	public static FlagEffectResult checkFlagEffect(BytecodeInstruction defIns, List<BytecodeInstruction> parsedDefInsList) {
 		if(defIns == null) {
 			return new FlagEffectResult(defIns, false, null);
 		}
@@ -393,7 +398,10 @@ public class FlagEffectEvaluator {
 				return result;
 			}
 			else if (returnDef.isMethodCall()) {
-				return checkFlagEffect(returnDef);
+				if(!parsedDefInsList.contains(returnDef)){
+					parsedDefInsList.add(returnDef);
+					return checkFlagEffect(returnDef, parsedDefInsList);
+				}
 			}
 		}
 		
