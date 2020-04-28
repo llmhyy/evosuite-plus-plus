@@ -178,6 +178,10 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		// Get 50 populations based on ranking
 		MutationPositionDiscriminator.discriminator.decreaseFrozenIteration();
+		
+		/**
+		 * we can debug by setting break points here.
+		 */
 		printBestFitness();
 
 		this.currentIteration++;

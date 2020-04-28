@@ -19,9 +19,6 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
-import org.apache.bcel.Repository;
-import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.LocalVariable;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
@@ -34,11 +31,9 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
-import org.evosuite.graphs.dataflow.GraphVisualizer;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -79,12 +74,15 @@ import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javassist.bytecode.Opcode;
 
 public class ConstructionPathSynthesizer {
 
 	private TestFactory testFactory;
+	private static final Logger logger = LoggerFactory.getLogger(ConstructionPathSynthesizer.class);
 
 	public ConstructionPathSynthesizer(TestFactory testFactory) {
 		super();
@@ -150,6 +148,7 @@ public class ConstructionPathSynthesizer {
 		Map<DepVariable, Integer> counter = new HashMap<>();
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
+//			logger.warn(node.toString());
 			
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
@@ -767,6 +766,7 @@ public class ConstructionPathSynthesizer {
 				// TODO ziheng: we need to consider cascade method call.
 				Map.Entry<Method, Parameter> entry = searchForPotentialSetterInClass(field, fieldNode.owner,
 						fieldDeclaringClass, insList);
+				System.currentTimeMillis();
 				if (entry != null) {
 					Method setter = entry.getKey();
 					GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
@@ -891,10 +891,14 @@ public class ConstructionPathSynthesizer {
 			 * check the variables passed as parameters to the constructor of targetObject,
 			 * which are data-flow relevant to writing the field @{code field}
 			 */
-			Statement s = test.getStatement(targetObject.getStPosition());
+			int pos = targetObject.getStPosition();
+			Statement s = test.getStatement(pos);
 			if (s instanceof NullStatement) {
 				TestFactory testFactory = TestFactory.getInstance();
-				testFactory.changeNullStatement(test, s);
+				boolean isSuccess = testFactory.changeNullStatement(test, s);
+				if(isSuccess){
+					s = test.getStatement(pos);
+				}
 			}
 
 			if (s instanceof ConstructorStatement) {
@@ -1482,8 +1486,20 @@ public class ConstructionPathSynthesizer {
 			VariableReference paramRef = mStat.getParameterReferences().get(paramPosition - 1);
 
 			/**
-			 * what if the parameter is null?
+			 * make sure the parameter obj is not null
 			 */
+			int paramPosInTest = paramRef.getStPosition();
+			Statement paramDef = test.getStatement(paramPosInTest);
+			if(paramDef instanceof NullStatement){
+				TestFactory testFactory = TestFactory.getInstance();
+				boolean isSuccess = testFactory.changeNullStatement(test, paramDef);
+				if(isSuccess){
+					paramDef = test.getStatement(paramPosInTest);
+					paramRef = paramDef.getReturnValue();
+				}
+				
+			}
+			
 			return paramRef;
 		}
 
@@ -1606,7 +1622,10 @@ public class ConstructionPathSynthesizer {
 //								System.currentTimeMillis();
 							}
 							Parameter param = targetMethod.getParameters()[validParamPos];
-							targetMethods.put(targetMethod, param);
+							//FIXME: Lin Yun a patch to avoid JVM crash
+							if(!targetMethod.getName().contains("unpack")){
+								targetMethods.put(targetMethod, param);								
+							}
 						}
 					}
 				}

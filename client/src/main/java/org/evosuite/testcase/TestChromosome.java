@@ -529,6 +529,7 @@ public class TestChromosome extends ExecutableChromosome {
 			List<Integer> forceMutationPosition = checkForceMutationPosition(mutationProbability);
 			
 			for (int position = 0, oldPosition = 0; position < this.test.size(); position++, oldPosition++) {
+				
 				boolean statementChanged = false;
 				Statement statement = test.getStatement(position);
 				statement.setChanged(false);
@@ -572,6 +573,10 @@ public class TestChromosome extends ExecutableChromosome {
 					}
 					
 					if (ram <= pl) {
+						if(position == 1){
+							System.currentTimeMillis();
+						}
+						
 //					if (Randomness.nextDouble() <= pl) {
 						assert (test.isValid());
 
@@ -581,15 +586,21 @@ public class TestChromosome extends ExecutableChromosome {
 							continue;
 
 						int oldDistance = statement.getReturnValue().getDistance();
-
+//						logger.warn(statement.toString());
 						//constraints are handled directly in the statement mutations
 						if (statement instanceof NullStatement) {
+//							if(statement instanceof NullStatement){
+//								logger.warn("condition 1");
+//							}
 							int pos = statement.getPosition();
+							Statement nextStatement = test.getStatement(pos+1);
 							if (testFactory.changeNullStatement(test, statement)) {
+								statement = test.getStatement(nextStatement.getPosition()-1);
+								
 								changed = true;
 								statementChanged = true;
 								mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
-										TestMutationHistoryEntry.TestMutation.CHANGE, test.getStatement(pos)));
+										TestMutationHistoryEntry.TestMutation.CHANGE, statement));
 								assert ConstraintVerifier.verifyTest(test);		
 							}
 						}
@@ -622,7 +633,6 @@ public class TestChromosome extends ExecutableChromosome {
 							assert (test.isValid());
 						} 
 						
-
 						statement.getReturnValue().setDistance(oldDistance);
 						position = statement.getPosition(); // Might have changed due to mutation
 						statement.setChanged(statementChanged);

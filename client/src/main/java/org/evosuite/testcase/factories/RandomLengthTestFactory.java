@@ -19,17 +19,12 @@
  */
 package org.evosuite.testcase.factories;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.ChromosomeFactory;
-import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.testcase.DefaultTestCase;
@@ -102,6 +97,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				
 				Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
 				Branch b = Randomness.choice(interestedBranches.keySet());
+				logger.warn("Selected branch:" + b + "\n");
 				
 //				List<ConstructionPath> paths = difficulties.get(b);
 				try {
@@ -124,33 +120,6 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			ExecutionTracer.enable();
 
 		return test;
-	}
-
-	private void insertAllSetterMethods(List<Method> setterMethods, TestCase test, TestFactory testFactory,
-			int position) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private boolean isTargetMethodStatic() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	private List<Method> findSetterMethod(String targetClassName) {
-		List<Method> setters = new ArrayList<Method>();
-		try {
-			Class<?> targetClass = Class.forName(targetClassName);
-			for(Method method: targetClass.getDeclaredMethods()) {
-				if(method.getName().startsWith("set") && method.getModifiers() == Modifier.PUBLIC) {
-					setters.add(method);
-				}
-			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		
-		return setters;
 	}
 
 	/**

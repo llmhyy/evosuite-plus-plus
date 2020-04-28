@@ -2527,6 +2527,7 @@ public class TestFactory {
 				if(obj != null) {
 					VariableReference ref = nullStat.getVariableReferences().iterator().next();
 					test.replace(ref, obj);
+					test.remove(nullStat.getPosition());
 //					for(int i=nullStat.getPosition()+1; i<test.size(); i++) {
 //						Statement stat = test.getStatement(i);
 //						if(stat.references(ref)) {

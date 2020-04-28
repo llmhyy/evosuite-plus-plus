@@ -21,8 +21,8 @@ public class TestGangup extends DebugSetup{
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
 		int budget = 10000;
-//		Long seed = 1556814527153L;
-		Long seed = null;
+		Long seed = 1586889656481L;
+//		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
 		results0 = CommonTestUtil.evoTestSingleMethod(projectId,  
