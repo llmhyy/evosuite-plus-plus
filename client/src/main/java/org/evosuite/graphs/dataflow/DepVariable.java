@@ -328,12 +328,13 @@ public class DepVariable {
 		}
 		else {
 			for(int i=0; i<parent.reverseRelations.length; i++) {
-				ArrayList<DepVariable> newParialPath = (ArrayList<DepVariable>) partialPath.clone();
-				ArrayList<Integer> newOperandPosList = (ArrayList<Integer>) operandPosList.clone();
 				
 				if(parent.reverseRelations[i]==null) continue;
 				
 				for(DepVariable grandPar: parent.reverseRelations[i]) {
+					ArrayList<DepVariable> newParialPath = (ArrayList<DepVariable>) partialPath.clone();
+					ArrayList<Integer> newOperandPosList = (ArrayList<Integer>) operandPosList.clone();
+					
 					newParialPath.add(grandPar);
 					newOperandPosList.add(i);
 					getRootVar(roots, grandPar, parent, visited, newParialPath, newOperandPosList);		
