@@ -1,4 +1,4 @@
-package regression.smartmutation.testcase;
+package travisTest;
 
 import java.lang.reflect.Method;
 
@@ -10,7 +10,7 @@ import com.test.TestUility;
 
 import evosuite.shell.EvoTestResult;
 
-public class SmartMutationTest {
+public class TravisSmartMutationTest {
 	@Test
 	public void testStringArrayExample() {
 		Class<?> clazz = regression.smartmutation.example.StringArrayExample.class;
@@ -22,7 +22,7 @@ public class SmartMutationTest {
 		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
+		String cp = "target/test-classes";
 		
 		Properties.CLIENT_ON_THREAD = true;
 

@@ -148,7 +148,7 @@ public class Properties {
 	public static boolean TEST_CARVING = false;
 	
 	@Parameter(key = "apply_object_rule", group = "Test Creation", description = "Ask the tool to analyze the branch-dependant variables")
-	public static boolean APPLY_OBJECT_RULE = false;
+	public static boolean APPLY_OBJECT_RULE = true;
 	
 	@Parameter(key = "computation_graph_call_depth", group = "Test Creation", description = "how depth the call hierarchy to analyze when constructing computation graph")
 	public static int COMPUTATION_GRAPH_METHOD_CALL_DEPTH = 5;
