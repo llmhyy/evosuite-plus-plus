@@ -10,6 +10,8 @@ public class TestCaseLegitimizer {
 	public static void legitimize(TestCase test) {
 		ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
 		
+		
+		
 		System.currentTimeMillis();
 		
 	}
