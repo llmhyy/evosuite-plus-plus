@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.evosuite.Properties;
 import org.evosuite.assertion.Assertion;
 import org.evosuite.assertion.InspectorAssertion;
 import org.evosuite.assertion.PrimitiveFieldAssertion;
@@ -43,20 +44,28 @@ import org.evosuite.contracts.ContractViolation;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.runtime.util.Inputs;
 import org.evosuite.setup.TestClusterUtils;
-import org.evosuite.testcase.statements.*;
-import org.evosuite.testcase.statements.environment.AccessedEnvironment;
 import org.evosuite.testcase.execution.CodeUnderTestException;
 import org.evosuite.testcase.execution.Scope;
-import org.evosuite.testcase.variable.*;
-import org.evosuite.utils.generic.GenericClass;
-import org.evosuite.utils.generic.GenericField;
+import org.evosuite.testcase.statements.ConstructorStatement;
+import org.evosuite.testcase.statements.FieldStatement;
+import org.evosuite.testcase.statements.FunctionalMockForAbstractClassStatement;
+import org.evosuite.testcase.statements.FunctionalMockStatement;
+import org.evosuite.testcase.statements.MethodStatement;
+import org.evosuite.testcase.statements.PrimitiveStatement;
+import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.statements.environment.AccessedEnvironment;
+import org.evosuite.testcase.variable.ArrayIndex;
+import org.evosuite.testcase.variable.ArrayReference;
+import org.evosuite.testcase.variable.FieldReference;
+import org.evosuite.testcase.variable.NullReference;
+import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.ListenableList;
 import org.evosuite.utils.Listener;
 import org.evosuite.utils.Randomness;
+import org.evosuite.utils.generic.GenericClass;
+import org.evosuite.utils.generic.GenericField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.googlecode.gentyref.GenericTypeReflector;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -642,6 +651,23 @@ public class DefaultTestCase implements TestCase, Serializable {
 		return variables;
 	}
 
+	
+	@Override
+	public MethodStatement findTargetMethodCallStatement() {
+		for (int i = 0; i < this.size(); i++) {
+			Statement stat = this.getStatement(i);
+			if (stat instanceof MethodStatement) {
+				MethodStatement methodStat = (MethodStatement) stat;
+				if (methodStat.getMethod().getNameWithDescriptor().equals(Properties.TARGET_METHOD)) {
+					return methodStat;
+				}
+			}
+		}
+
+		return null;
+	}
+	
+	
 	/* (non-Javadoc)
 	 * @see org.evosuite.testcase.TestCase#getRandomObject(java.lang.reflect.Type, int)
 	 */

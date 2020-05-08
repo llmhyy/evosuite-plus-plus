@@ -34,6 +34,7 @@ import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.graphs.dataflow.GraphVisualizer;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -130,8 +131,8 @@ public class ConstructionPathSynthesizer {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
-//		GraphVisualizer.visualizeComputationGraph(b);
-//		GraphVisualizer.visualizeComputationGraph(partialGraph);
+		GraphVisualizer.visualizeComputationGraph(b);
+		GraphVisualizer.visualizeComputationGraph(partialGraph);
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -145,24 +146,33 @@ public class ConstructionPathSynthesizer {
 		 * sure that we have generated the code of its dependency.
 		 */
 		Queue<DepVariableWrapper> queue = new ArrayDeque<>(topLayer);
-		Map<DepVariable, Integer> counter = new HashMap<>();
+		/**
+		 * when constructing some instruction, its dependency may not be ready.
+		 */
+		Map<DepVariable, Integer> methodCounter = new HashMap<>();
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-//			logger.warn(node.toString());
+			logger.warn(node.toString());
+			/**
+			 * for each method callsite, we only generate once. 
+			 */
+			if(map.containsKey(node.var) && node.var.isMethodCall()){
+				continue;
+			}
 			
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
-				enhanceTestStatement(test, map, node);
+				enhanceTestStatement(test, map, node);					
 				for (DepVariableWrapper child : node.children) {
 					queue.add(child);
 				}
 			} else {
-				Integer count = counter.get(node.var);
+				Integer count = methodCounter.get(node.var);
 				if(count == null) count = 0;
 				
 				if(count < 5){
 					queue.add(node);					
-					counter.put(node.var, ++count);
+					methodCounter.put(node.var, ++count);
 				}
 			}
 		}
@@ -227,7 +237,7 @@ public class ConstructionPathSynthesizer {
 			}
 		} else if (var.getType() == DepVariable.THIS) {
 			if(node.parents.isEmpty()) {
-				MethodStatement mStat = findTargetMethodCallStatement(test);
+				MethodStatement mStat = test.findTargetMethodCallStatement();
 				inputObject = mStat.getCallee();				
 			}
 			else {
@@ -712,7 +722,7 @@ public class ConstructionPathSynthesizer {
 			 * deal with public field
 			 */
 			if (Modifier.isPublic(fieldModifiers) || fieldModifiers == 0) {
-				MethodStatement mStat = findTargetMethodCallStatement(test);
+				MethodStatement mStat = test.findTargetMethodCallStatement();
 				if (CollectionUtil.existIn(desc, "Z", "B", "C", "S", "I", "J", "F", "D")) {
 					stmt = addStatementToSetPrimitiveField(test, mStat.getPosition() - 1, desc,
 							genericField, targetObjectReference);
@@ -741,7 +751,7 @@ public class ConstructionPathSynthesizer {
 					VariableReference newParentVarRef = null;
 					GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
 					if (targetObjectReference == null) {
-						MethodStatement mStat = findTargetMethodCallStatement(test);
+						MethodStatement mStat = test.findTargetMethodCallStatement();
 						newParentVarRef = testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2);
 					} else {
 						newParentVarRef = testFactory.addMethodFor(test, targetObjectReference, gMethod,
@@ -771,7 +781,7 @@ public class ConstructionPathSynthesizer {
 					Method setter = entry.getKey();
 					GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
 					if (targetObjectReference == null) {
-						MethodStatement mStat = findTargetMethodCallStatement(test);
+						MethodStatement mStat = test.findTargetMethodCallStatement();
 						testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2);
 					} else {
 						testFactory.addMethodFor(test, targetObjectReference, gMethod,
@@ -1481,7 +1491,7 @@ public class ConstructionPathSynthesizer {
 		 * find the existing parameters
 		 */
 		if (parentVarRef == null) {
-			MethodStatement mStat = findTargetMethodCallStatement(test);
+			MethodStatement mStat = test.findTargetMethodCallStatement();
 			int paramPosition = var.getParamOrder();
 			VariableReference paramRef = mStat.getParameterReferences().get(paramPosition - 1);
 
@@ -1509,27 +1519,13 @@ public class ConstructionPathSynthesizer {
 			return parentVarRef;
 		}
 
-		MethodStatement targetStatement = findTargetMethodCallStatement(test);
+		MethodStatement targetStatement = test.findTargetMethodCallStatement();
 		if (targetStatement != null) {
 			VariableReference oldParamRef = targetStatement.getParameterReferences().get(var.getParamOrder() - 1);
 			targetStatement.replace(oldParamRef, paramRef);
 		}
 
 		return paramRef;
-	}
-
-	private MethodStatement findTargetMethodCallStatement(TestCase test) {
-		for (int i = 0; i < test.size(); i++) {
-			Statement stat = test.getStatement(i);
-			if (stat instanceof MethodStatement) {
-				MethodStatement methodStat = (MethodStatement) stat;
-				if (methodStat.getMethod().getNameWithDescriptor().equals(Properties.TARGET_METHOD)) {
-					return methodStat;
-				}
-			}
-		}
-
-		return null;
 	}
 
 	private VariableReference generateParameter(TestCase test, DepVariable var, String castSubClass)
@@ -1556,7 +1552,7 @@ public class ConstructionPathSynthesizer {
 		Constructor<?> constructor = Randomness.choice(paramDeclaringClazz.getRawClass().getConstructors());
 		if (constructor != null) {
 			GenericConstructor gc = new GenericConstructor(constructor, paramDeclaringClazz);
-			MethodStatement mStat = findTargetMethodCallStatement(test);
+			MethodStatement mStat = test.findTargetMethodCallStatement();
 			paramRef = testFactory.addConstructor(test, gc, mStat.getPosition() - 1, 2);
 		}
 

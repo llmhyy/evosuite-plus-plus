@@ -89,6 +89,10 @@ public class DepVariable {
 		return this.instruction.isParameter();
 	}
 	
+	public boolean isMethodCall(){
+		return this.instruction.isMethodCall();
+	}
+	
 	private void setType() {
 		BytecodeInstruction ins = this.getInstruction();
 		if(this.referenceToThis()) {

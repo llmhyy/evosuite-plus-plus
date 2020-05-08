@@ -33,6 +33,7 @@ import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
+import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,9 +104,14 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				try {
 					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 					cpSynthesizer.constructDifficultObjectStatement(test, b);
+					
+					TestCaseLegitimizer.legitimize(test);
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				
+				break;
 			}
 			else {
 				testFactory.insertRandomStatement(test, position);						
@@ -119,6 +125,8 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 		if (tracerEnabled)
 			ExecutionTracer.enable();
 
+		System.currentTimeMillis();
+		
 		return test;
 	}
 
