@@ -293,7 +293,7 @@ public class ConstructionPathSynthesizer {
 					if (setter != null) {
 						GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
 						testFactory.addMethodFor(test, realParentRef, gMethod,
-								realParentRef.getStPosition() + 1);
+								realParentRef.getStPosition() + 1, false);
 						return null;
 					}
 				} else {
@@ -305,23 +305,24 @@ public class ConstructionPathSynthesizer {
 						VariableReference newParentVarRef = null;
 						GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
 						newParentVarRef = testFactory.addMethodFor(test, realParentRef, gMethod,
-								realParentRef.getStPosition() + 1);
+								realParentRef.getStPosition() + 1, false);
 						return newParentVarRef;
 					}
 					return null;
 				}
 			}
-
 			/**
 			 * direct set
 			 */
-			ArrayReference arrayRef = (ArrayReference) parentVarRef;
-			int index = Randomness.nextInt(10);
-			ArrayIndex arrayIndex = new ArrayIndex(test, arrayRef, index);
-			VariableReference varRef = createVariable(test, arrayRef);
-			AssignmentStatement assignStat = new AssignmentStatement(test, arrayIndex, varRef);
-			test.addStatement(assignStat, varRef.getStPosition() + 1);
-			return assignStat.getReturnValue();
+			else{
+				ArrayReference arrayRef = (ArrayReference) parentVarRef;
+				int index = Randomness.nextInt(10);
+				ArrayIndex arrayIndex = new ArrayIndex(test, arrayRef, index);
+				VariableReference varRef = createVariable(test, arrayRef);
+				AssignmentStatement assignStat = new AssignmentStatement(test, arrayIndex, varRef);
+				test.addStatement(assignStat, varRef.getStPosition() + 1);
+				return assignStat.getReturnValue();				
+			}
 		}
 		return null;
 	}
@@ -624,7 +625,7 @@ public class ConstructionPathSynthesizer {
 					calleeVarRef = null;
 					GenericMethod genericMethod = new GenericMethod(call, call.getDeclaringClass());
 					VariableReference varRef = testFactory.addMethod(test, genericMethod,
-							inputObject.getStPosition() + 1, 1);
+							inputObject.getStPosition() + 1, 1, false);
 					MethodStatement statement = (MethodStatement) test.getStatement(varRef.getStPosition());
 					for (int i = 0; i < statement.getParameterReferences().size();i ++) {
 						VariableReference oldParam = statement.getParameterReferences().get(i);
@@ -639,7 +640,7 @@ public class ConstructionPathSynthesizer {
 					if (calleeVarRef != null) {
 						GenericMethod genericMethod = new GenericMethod(call, call.getDeclaringClass());
 						VariableReference varRef = testFactory.addMethodFor(test, calleeVarRef, genericMethod,
-								calleeVarRef.getStPosition() + 1);
+								calleeVarRef.getStPosition() + 1, false);
 						MethodStatement statement = (MethodStatement) test.getStatement(varRef.getStPosition());
 						for (int i = 0; i < statement.getParameterReferences().size();i ++) {
 							VariableReference oldParam = statement.getParameterReferences().get(i);
@@ -752,10 +753,10 @@ public class ConstructionPathSynthesizer {
 					GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
 					if (targetObjectReference == null) {
 						MethodStatement mStat = test.findTargetMethodCallStatement();
-						newParentVarRef = testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2);
+						newParentVarRef = testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2, false);
 					} else {
 						newParentVarRef = testFactory.addMethodFor(test, targetObjectReference, gMethod,
-								targetObjectReference.getStPosition() + 1);
+								targetObjectReference.getStPosition() + 1, false);
 					}
 					return newParentVarRef;
 				}
@@ -782,10 +783,10 @@ public class ConstructionPathSynthesizer {
 					GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
 					if (targetObjectReference == null) {
 						MethodStatement mStat = test.findTargetMethodCallStatement();
-						testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2);
+						testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2, false);
 					} else {
 						testFactory.addMethodFor(test, targetObjectReference, gMethod,
-								targetObjectReference.getStPosition() + 1);
+								targetObjectReference.getStPosition() + 1, false);
 					}
 					return null;
 				}
