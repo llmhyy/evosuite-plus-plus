@@ -10,6 +10,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -162,7 +163,18 @@ public class ConstructionPathSynthesizer {
 			
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
-				enhanceTestStatement(test, map, node);					
+				enhanceTestStatement(test, map, node);	
+				
+				/**
+				 *  the order of children size matters
+				 */
+				Collections.sort(node.children, new Comparator<DepVariableWrapper>() {
+					@Override
+					public int compare(DepVariableWrapper o1, DepVariableWrapper o2) {
+						return o2.children.size() - o1.children.size();
+					}
+				});
+				
 				for (DepVariableWrapper child : node.children) {
 					queue.add(child);
 				}
@@ -175,6 +187,8 @@ public class ConstructionPathSynthesizer {
 					methodCounter.put(node.var, ++count);
 				}
 			}
+			
+			System.currentTimeMillis();
 		}
 	}
 
@@ -1499,14 +1513,14 @@ public class ConstructionPathSynthesizer {
 			/**
 			 * make sure the parameter obj is not null
 			 */
+			
 			int paramPosInTest = paramRef.getStPosition();
 			Statement paramDef = test.getStatement(paramPosInTest);
 			if(paramDef instanceof NullStatement){
 				TestFactory testFactory = TestFactory.getInstance();
 				boolean isSuccess = testFactory.changeNullStatement(test, paramDef);
 				if(isSuccess){
-					paramDef = test.getStatement(paramPosInTest);
-					paramRef = paramDef.getReturnValue();
+					paramRef = mStat.getParameterReferences().get(paramPosition - 1);
 				}
 				
 			}
