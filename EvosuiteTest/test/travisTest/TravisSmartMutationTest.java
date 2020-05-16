@@ -1,7 +1,5 @@
 package travisTest;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-
 import java.lang.reflect.Method;
 
 import org.evosuite.Properties;
