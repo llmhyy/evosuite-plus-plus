@@ -1,5 +1,7 @@
 package travisTest;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+
 import java.lang.reflect.Method;
 
 import org.evosuite.Properties;
@@ -29,13 +31,24 @@ public class TravisSmartMutationTest {
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 100;
-		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		int age = result.getAge();
-		int time = result.getTime();
-		double coverage = result.getCoverage();
-		assert age <= 70;
-		assert time <= 35;
-		assert coverage == 1.0;
+		
+		Properties.ADOPT_SMART_MUTATION = false;
+		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		
+		Properties.ADOPT_SMART_MUTATION = true;
+		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		
+		int ageT = resultT.getAge();
+		int timeT = resultT.getTime();
+		double coverageT = resultT.getCoverage();
+		
+		assert ageF <= 70;
+		assert timeT < timeF;
+		assert timeF <= 35;
+		assert coverageT == 1.0;
 	}
 
 }
