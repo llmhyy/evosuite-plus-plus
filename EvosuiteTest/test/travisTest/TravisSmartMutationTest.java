@@ -43,9 +43,9 @@ public class TravisSmartMutationTest {
 		int timeT = resultT.getTime();
 		double coverageT = resultT.getCoverage();
 		
-		assert ageF <= 70;
+		assert ageT <= 70;
 		assert timeT < timeF;
-		assert timeF <= 35;
+		assert timeT <= 35;
 		assert coverageT == 1.0;
 	}
 
