@@ -1,18 +1,18 @@
 package regression.branchenhancement.testcase;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
+import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.MethodUtil;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.test.TestUility;
 
 import evosuite.shell.EvoTestResult;
-import sf100.CommonTestUtil;
 
 /**
  * This is used for regression test for branch enhancement (i.e., exception
@@ -20,6 +20,20 @@ import sf100.CommonTestUtil;
  * 1578927395578
  */
 public class BranchEnhancementTest {
+	@Before
+	public void beforeTest() {
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.BRANCH_COMPARISON_TYPES = true;
+		Properties.TIMEOUT = 10000000;
+
+		Properties.ENABLE_BRANCH_ENHANCEMENT = true;
+	}
+
+	@AfterClass
+	public static void cleanup() {
+		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
+	}
 
 	@Test
 	public void testColtExample() {
@@ -32,28 +46,19 @@ public class BranchEnhancementTest {
 		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
-
-		// Properties.LOCAL_SEARCH_RATE = 1;
-//		Properties.DEBUG = true;
-//		Properties.PORT = 8000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
-//		Properties.TIMELINE_INTERVAL = 3000;
+		String cp = "target/test-classes";
 
 		String fitnessApproach = "fbranch";
 
-		int timeBudget = 100000;
-		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		int timeBudget = 100;
+		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
+				"1589896747959");
 		int age = result.getAge();
 		int time = result.getTime();
 		double coverage = result.getCoverage();
-		assert age == 56;
-		assert time <= 10;
+		assert age <= 80;
+		assert time <= 40;
 		assert coverage == 1.0;
-		System.currentTimeMillis();
 	}
 
 	@Test
@@ -67,28 +72,19 @@ public class BranchEnhancementTest {
 		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
-
-		// Properties.LOCAL_SEARCH_RATE = 1;
-//		Properties.DEBUG = true;
-//		Properties.PORT = 8000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
-//		Properties.TIMELINE_INTERVAL = 3000;
+		String cp = "target/test-classes";
 
 		String fitnessApproach = "fbranch";
 
-		int timeBudget = 100000;
+		int timeBudget = 100;
 		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+
 		int age = result.getAge();
 		int time = result.getTime();
 		double coverage = result.getCoverage();
-		assert age == 35;
-		assert time <= 15;
+		assert age <= 55;
+		assert time <= 60;
 		assert coverage == 1.0;
-		System.currentTimeMillis();
 	}
 
 	@Test
@@ -102,67 +98,21 @@ public class BranchEnhancementTest {
 		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
-
-		// Properties.LOCAL_SEARCH_RATE = 1;
-//		Properties.DEBUG = true;
-//		Properties.PORT = 8000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
-//		Properties.TIMELINE_INTERVAL = 3000;
+		String cp = "target/test-classes";
 
 		String fitnessApproach = "fbranch";
 
-		int timeBudget = 100000;
-		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		int timeBudget = 100;
+		LoggingUtils.getEvoLogger().info(targetClass + targetMethod + cp + timeBudget + fitnessApproach);
+		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
+				"1589897812206");
 		int age = result.getAge();
 		int time = result.getTime();
 		double coverage = result.getCoverage();
-		assert age == 17;
+		assert age <= 35;
 		assert time <= 5;
 		assert coverage == 1.0;
-		System.currentTimeMillis();
 	}
-
-//	@Test
-//	public void testLayeredCallExample2() {
-////		Class<?> clazz = com.example.TestV1.class;
-////		Class<?> clazz = com.example.PassedExample1.class;
-////		Class<?> clazz = com.example.PassedExample2.class;
-////		Class<?> clazz = com.example.passedExamples.InevitableConstructorExample.class;
-////		Class<?> clazz = com.example.passedExamples.ConstructorAndCallExample.class;
-////		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
-//		Class<?> clazz = com.example.passedExamples.LayeredCallExample2.class;
-////		Class<?> clazz = com.example.PassedExampleColt.class;
-//
-//		String methodName = "targetM";
-////		String methodName = "test";
-////		String methodName = "mergeSortInPlace";
-//		int parameterNum = 3;
-//		
-//		String targetClass = clazz.getCanonicalName();
-//		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
-//
-//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-//		String cp = "target/classes";
-//
-//		// Properties.LOCAL_SEARCH_RATE = 1;
-////		Properties.DEBUG = true;
-////		Properties.PORT = 8000;
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-//		Properties.BRANCH_COMPARISON_TYPES = true;
-//		Properties.TIMEOUT = 10000000;
-////		Properties.TIMELINE_INTERVAL = 3000;
-//		
-//		String fitnessApproach = "fbranch";
-//		
-//		int timeBudget = 100000;
-//		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-//		System.currentTimeMillis();
-//	}
 
 	@Test
 	public void testMultipleConstructorsExample() {
@@ -175,28 +125,19 @@ public class BranchEnhancementTest {
 		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
-
-		// Properties.LOCAL_SEARCH_RATE = 1;
-//		Properties.DEBUG = true;
-//		Properties.PORT = 8000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
-//		Properties.TIMELINE_INTERVAL = 3000;
+		String cp = "target/test-classes";
 
 		String fitnessApproach = "fbranch";
 
-		int timeBudget = 100000;
+		int timeBudget = 100;
+		LoggingUtils.getEvoLogger().info(targetClass + ' ' + targetMethod + ' ' + cp + timeBudget + fitnessApproach);
 		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		int age = result.getAge();
 		int time = result.getTime();
 		double coverage = result.getCoverage();
-		assert age == 132;
-		assert time <= 20;
+		assert age <= 120;
+		assert time <= 15;
 		assert coverage == 1.0;
-		System.currentTimeMillis();
 	}
 
 	@Test
@@ -210,51 +151,18 @@ public class BranchEnhancementTest {
 		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
-
-		// Properties.LOCAL_SEARCH_RATE = 1;
-//		Properties.DEBUG = true;
-//		Properties.PORT = 8000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
-//		Properties.TIMELINE_INTERVAL = 3000;
+		String cp = "target/test-classes";
 
 		String fitnessApproach = "fbranch";
 
-		int timeBudget = 100000;
+		int timeBudget = 100;
+		LoggingUtils.getEvoLogger().info(targetClass + targetMethod + cp + timeBudget + fitnessApproach);
 		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		int age = result.getAge();
 		int time = result.getTime();
 		double coverage = result.getCoverage();
-		assert age == 972;
-		assert time <= 80;
+		assert age <= 1100;
+		assert time <= 100;
 		assert coverage == 1.0;
-		System.currentTimeMillis();
-	}
-
-	@Test
-	public void testWekaTabuSearch_Bug() {
-		String projectId = "101_weka";
-		String[] targetMethods = new String[] {
-				"weka.classifiers.bayes.net.search.local.TabuSearch#setOptions([Ljava/lang/String;)V" };
-
-		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
-		int repeatTime = 1;
-		int budget = 100000;
-		Long seed = 1581833614927L;
-
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
-
-		String fitnessApproach = "fbranch";
-		results0 = CommonTestUtil.evoTestSingleMethod(projectId, targetMethods, fitnessApproach, repeatTime, budget,
-				true, seed);
-//		
-		EvoTestResult result = results0.get(0);
-		System.currentTimeMillis();
 	}
 }

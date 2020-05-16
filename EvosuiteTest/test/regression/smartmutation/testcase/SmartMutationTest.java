@@ -22,7 +22,7 @@ public class SmartMutationTest {
 		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
+		String cp = "target/test-classes";
 		
 		Properties.CLIENT_ON_THREAD = true;
 

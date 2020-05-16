@@ -13,7 +13,7 @@ import evosuite.shell.EvoTestResult;
 
 public class PExampleTest{
 	@Test
-	public void test() {
+	public void testPExample() {
 		Class<?> clazz = regression.fbranch.example.PExample.class;
 		String methodName = "get";
 		int parameterNum = 2;
@@ -22,27 +22,22 @@ public class PExampleTest{
 		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
+		String cp = "target/test-classes";
 
-		// Properties.LOCAL_SEARCH_RATE = 1;
-//		Properties.DEBUG = true;
-//		Properties.PORT = 8000;
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-//		Properties.BRANCH_COMPARISON_TYPES = true;
+		Properties.BRANCH_COMPARISON_TYPES = true;
 		Properties.TIMEOUT = 1000000;
-//		Properties.TIMELINE_INTERVAL = 3000;
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 1000000;
+		int timeBudget = 100;
 		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		int age = result.getAge();
 		int time = result.getTime();
 		double coverage = result.getCoverage();
-		assert age == 269;
-		assert time <= 50;
+		assert age <= 290;
+		assert time <= 120;
 		assert coverage == 1.0;
-		System.currentTimeMillis();
 	}
 }

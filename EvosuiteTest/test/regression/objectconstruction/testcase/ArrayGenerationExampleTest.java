@@ -9,7 +9,7 @@ import com.test.TestUility;
 
 import evosuite.shell.EvoTestResult;
 
-public class TestArrayGenerationExample extends DebugSetup {
+public class ArrayGenerationExampleTest extends DebugSetup {
 
 	@Test
 	public void testArrayGenerationExample() {
@@ -22,13 +22,19 @@ public class TestArrayGenerationExample extends DebugSetup {
 		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
+		String cp = "target/test-classes";
 
 		String fitnessApproach = "fbranch";
 
-		int timeBudget = 100000;
+		int timeBudget = 100;
 		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		System.currentTimeMillis();
+		
+		int age = result.getAge();
+		int time = result.getTime();
+		double coverage = result.getCoverage();
+		assert age <= 10;
+		assert time <= 5;
+		assert coverage == 1.0;
 	}
 	
 }

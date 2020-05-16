@@ -218,7 +218,6 @@ public class TestGeneration {
 		    return Arrays.asList(Arrays.asList(new TestGenerationResult[]{TestGenerationResultBuilder.buildErrorResult("Could not find target class") }));
 		}
 
-
 		if (!BytecodeInstrumentation.checkIfCanInstrument(target)) {
 			throw new IllegalArgumentException(
 			        "Cannot consider "
