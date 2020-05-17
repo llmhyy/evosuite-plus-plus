@@ -34,6 +34,7 @@
 
 	<modules>
 		<module>master</module>
+		<module>EvosuiteTest</module>
 		<module>client</module>
 		<module>runtime</module>
 		<module>plugins</module>
@@ -511,7 +512,7 @@
 	</dependencyManagement>
 
 
-	<distributionManagement>
+<!-- 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -520,18 +521,18 @@
 			<id>ossrh</id>
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
-	</distributionManagement>
+	</distributionManagement> -->
 
 
 	<build>
 		<!-- this is needed for "deploy" with SSH -->
-		<extensions>
+<!-- 		<extensions>
 			<extension>
 				<groupId>org.apache.maven.wagon</groupId>
 				<artifactId>wagon-ssh-external</artifactId>
 				<version>2.7</version>
 			</extension>
-		</extensions>
+		</extensions> -->
 
 		<plugins>
 
@@ -805,7 +806,7 @@
 				<!-- Need to change packages of dependencies to avoid classpath conflicts 
 					with previous versions. This is done mainly due to ASM that is not backward 
 					compatible and for many packages used by in memory database -->
-				<plugin>
+				<!-- <plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-shade-plugin</artifactId>
 					<version>3.1.0</version>
@@ -818,8 +819,8 @@
 							<configuration>
 								<shadedArtifactAttached>false</shadedArtifactAttached>
 								<createDependencyReducedPom>true</createDependencyReducedPom>
-								<!-- do not change "org.evosuite.shaded." as it used in some of the 
-									java classes -->
+								do not change "org.evosuite.shaded." as it used in some of the 
+									java classes
 								<relocations>
 									<relocation>
 										<pattern>org.objectweb.asm</pattern>
@@ -857,9 +858,9 @@
 										<pattern>org.dom4j</pattern>
 										<shadedPattern>org.evosuite.shaded.org.dom4j</shadedPattern>
 									</relocation>
-									<!-- <relocation> <pattern>org.xml</pattern> <shadedPattern>org.evosuite.shaded.org.xml</shadedPattern> 
+									<relocation> <pattern>org.xml</pattern> <shadedPattern>org.evosuite.shaded.org.xml</shadedPattern> 
 										</relocation> <relocation> <pattern>org.w3c</pattern> <shadedPattern>org.evosuite.shaded.org.w3c</shadedPattern> 
-										</relocation> -->
+										</relocation>
 									<relocation>
 										<pattern>org.aopalliance</pattern>
 										<shadedPattern>org.evosuite.shaded.org.aopalliance</shadedPattern>
@@ -873,9 +874,9 @@
 										<shadedPattern>org.evosuite.shaded.net.bytebuddy</shadedPattern>
 									</relocation>
 									<relocation>
-										<!-- This is special. Originally we wanted to handle it directly, 
+										This is special. Originally we wanted to handle it directly, 
 											but did not turn out to be a good idea. However, too early to remove that 
-											code, so we just shade this package to avoid backward compatibility issues -->
+											code, so we just shade this package to avoid backward compatibility issues
 										<pattern>javax.servlet</pattern>
 										<shadedPattern>org.evosuite.shaded.javax.servlet</shadedPattern>
 									</relocation>
@@ -883,8 +884,8 @@
 										<pattern>org.apache</pattern>
 										<shadedPattern>org.evosuite.shaded.org.apache</shadedPattern>
 										<excludes>
-											<!-- Important, otherwise AntInitializingListener would not work 
-												in Ant -->
+											Important, otherwise AntInitializingListener would not work 
+												in Ant
 											<exclude>org.apache.tools.ant.taskdefs.optional.junit.JUnitResultFormatter</exclude>
 											<exclude>org.apache.tools.ant.taskdefs.optional.junit.JUnitTest</exclude>
 											<exclude>org.apache.tools.ant.BuildException</exclude>
@@ -898,19 +899,19 @@
 										<pattern>org.objenesis</pattern>
 										<shadedPattern>org.evosuite.shaded.org.objenesis</shadedPattern>
 									</relocation>
-									<!--<relocation> -->
-									<!--<pattern>org.slf4j</pattern> -->
-									<!--<shadedPattern>org.evosuite.shaded.org.slf4j</shadedPattern> -->
-									<!--</relocation> -->
-									<!-- <relocation>
+									<relocation>
+									<pattern>org.slf4j</pattern>
+									<shadedPattern>org.evosuite.shaded.org.slf4j</shadedPattern>
+									</relocation>
+									<relocation>
 										<pattern>ch.qos.logback</pattern>
 										<shadedPattern>org.evosuite.shaded.ch.qos.logback</shadedPattern>
-									</relocation> -->
+									</relocation>
 								</relocations>
 							</configuration>
 						</execution>
 					</executions>
-				</plugin>
+				</plugin> -->
 
 
 			</plugins>

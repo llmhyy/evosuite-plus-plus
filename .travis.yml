@@ -1,9 +1,10 @@
+
 language: java
 sudo: false
+dist: trusty
 
 jdk:
-  - oraclejdk8
+  - openjdk8
 
 script:
-  - mvn clean
-  - mvn --fail-never dependency:resolve -DskipITs  install
+   - mvn -Dtest=TravisSmartMutationTest test -DfailIfNoTests=false -pl EvosuiteTest -e

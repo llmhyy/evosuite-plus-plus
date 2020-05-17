@@ -1,4 +1,4 @@
-package regression.smartmutation.testcase;
+package travisTest;
 
 import java.lang.reflect.Method;
 
@@ -10,7 +10,7 @@ import com.test.TestUility;
 
 import evosuite.shell.EvoTestResult;
 
-public class SmartMutationTest {
+public class TravisSmartMutationTest {
 	@Test
 	public void testStringArrayExample() {
 		Class<?> clazz = regression.smartmutation.example.StringArrayExample.class;
@@ -22,20 +22,31 @@ public class SmartMutationTest {
 		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
+		String cp = "target/test-classes";
 		
 		Properties.CLIENT_ON_THREAD = true;
 
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 100;
-		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		int age = result.getAge();
-		int time = result.getTime();
-		double coverage = result.getCoverage();
-		assert age <= 70;
-		assert time <= 35;
-		assert coverage == 1.0;
+		
+		Properties.ADOPT_SMART_MUTATION = false;
+		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		
+		Properties.ADOPT_SMART_MUTATION = true;
+		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		
+		int ageT = resultT.getAge();
+		int timeT = resultT.getTime();
+		double coverageT = resultT.getCoverage();
+		
+		assert ageT <= 70;
+		assert timeT < timeF;
+		assert timeT <= 35;
+		assert coverageT == 1.0;
 	}
 
 }
