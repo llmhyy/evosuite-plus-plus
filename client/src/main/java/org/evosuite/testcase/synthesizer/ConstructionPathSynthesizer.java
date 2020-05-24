@@ -777,7 +777,7 @@ public class ConstructionPathSynthesizer {
 						testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2);
 					} else {
 						testFactory.addMethodFor(test, targetObjectReference, gMethod,
-								targetObjectReference.getStPosition() + 1, 2);
+								targetObjectReference.getStPosition() + 1);
 					}
 					return null;
 				}
