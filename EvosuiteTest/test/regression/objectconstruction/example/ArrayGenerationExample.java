@@ -4,7 +4,7 @@ public class ArrayGenerationExample {
 	
 	private ClassA[] arrayToTest;
 	
-	public void target() {
+	public void targetM() {
 		if (arrayToTest[4].c.e.field > 10) {
 			return;
 		}

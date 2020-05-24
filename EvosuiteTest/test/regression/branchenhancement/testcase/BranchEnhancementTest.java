@@ -4,9 +4,7 @@ import java.lang.reflect.Method;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.MethodUtil;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,12 +26,9 @@ public class BranchEnhancementTest {
 		Properties.TIMEOUT = 10000000;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = true;
-	}
-
-	@AfterClass
-	public static void cleanup() {
-		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
-	}
+		Properties.APPLY_OBJECT_RULE = false;
+		Properties.ADOPT_SMART_MUTATION = false;
+	} 
 
 	@Test
 	public void testColtExample() {
@@ -51,14 +46,24 @@ public class BranchEnhancementTest {
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 100;
-		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
+		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
 				"1589896747959");
-		int age = result.getAge();
-		int time = result.getTime();
-		double coverage = result.getCoverage();
-		assert age <= 80;
-		assert time <= 40;
-		assert coverage == 1.0;
+		
+		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
+		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
+				"1589896747959");
+				
+		int ageT = resultT.getAge();
+		int timeT = resultT.getTime();
+		double coverageT = resultT.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		
+		assert ageT <= 140;
+		assert timeT <= 20;
+		assert ageT < ageF;
+		assert timeT < timeF;
+		assert coverageT == 1.0;
 	}
 
 	@Test
@@ -77,14 +82,22 @@ public class BranchEnhancementTest {
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 100;
-		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 
-		int age = result.getAge();
-		int time = result.getTime();
-		double coverage = result.getCoverage();
-		assert age <= 55;
-		assert time <= 60;
-		assert coverage == 1.0;
+		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
+		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+
+		int ageT = resultT.getAge();
+		int timeT = resultT.getTime();
+		double coverageT = resultT.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		
+		assert ageT <= 13;
+		assert timeT <= 3;
+		assert ageT < ageF;
+		assert timeT < timeF;
+		assert coverageT == 1.0;
 	}
 
 	@Test
@@ -103,15 +116,24 @@ public class BranchEnhancementTest {
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 100;
-		LoggingUtils.getEvoLogger().info(targetClass + targetMethod + cp + timeBudget + fitnessApproach);
-		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
+		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
 				"1589897812206");
-		int age = result.getAge();
-		int time = result.getTime();
-		double coverage = result.getCoverage();
-		assert age <= 35;
-		assert time <= 5;
-		assert coverage == 1.0;
+		
+		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
+		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
+				"1589897812206");
+		
+		int ageT = resultT.getAge();
+		int timeT = resultT.getTime();
+		double coverageT = resultT.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		
+		assert ageT <= 55;
+		assert timeT <= 6;
+		assert ageT < ageF;
+		assert timeT < timeF;
+		assert coverageT == 1.0;
 	}
 
 	@Test
@@ -130,14 +152,20 @@ public class BranchEnhancementTest {
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 100;
-		LoggingUtils.getEvoLogger().info(targetClass + ' ' + targetMethod + ' ' + cp + timeBudget + fitnessApproach);
-		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		int age = result.getAge();
-		int time = result.getTime();
-		double coverage = result.getCoverage();
-		assert age <= 120;
-		assert time <= 15;
-		assert coverage == 1.0;
+		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		
+		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
+		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+
+		int ageT = resultT.getAge();
+		int timeT = resultT.getTime();
+		double coverageT = resultT.getCoverage();
+		double coverageF = resultF.getCoverage();
+
+		assert ageT <= 20;
+		assert timeT <= 3;
+		assert coverageT == 1.0;
+		assert coverageF == 0.0;
 	}
 
 	@Test
@@ -155,14 +183,20 @@ public class BranchEnhancementTest {
 
 		String fitnessApproach = "fbranch";
 
-		int timeBudget = 100;
-		LoggingUtils.getEvoLogger().info(targetClass + targetMethod + cp + timeBudget + fitnessApproach);
-		EvoTestResult result = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		int age = result.getAge();
-		int time = result.getTime();
-		double coverage = result.getCoverage();
-		assert age <= 1100;
-		assert time <= 100;
-		assert coverage == 1.0;
+		int timeBudget = 150;
+		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		
+		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
+		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		
+		int ageT = resultT.getAge();
+		int timeT = resultT.getTime();
+		double coverageT = resultT.getCoverage();
+		double coverageF = resultF.getCoverage();
+		
+		assert ageT <= 1700;
+		assert timeT <= 120;
+		assert coverageT == 1.0;
+		assert coverageF < 1.0;
 	}
 }
