@@ -318,7 +318,7 @@ public class FlagEffectEvaluator {
 					flag =  checkFlagEffect(methodCall);
 				}			
 				
-				if(flag.hasFlagEffect) {
+				if(flag != null && flag.hasFlagEffect) {
 					break;
 				}
 			}
