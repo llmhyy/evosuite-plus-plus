@@ -222,7 +222,7 @@ public class ConstructionPathSynthesizer {
 					}
 				}
 			}
-			else {
+			else if (opcode == Opcode.INVOKESPECIAL || opcode == Opcode.INVOKESTATIC || opcode == Opcode.INVOKEDYNAMIC){
 				inputObject = generateMethodCallStatement(test, node, map, inputObject);				
 			}
 		} else if (var.getType() == DepVariable.THIS) {
@@ -672,8 +672,10 @@ public class ConstructionPathSynthesizer {
 		
 		if (targetObjectReference != null) {
 			String parentType = targetObjectReference.getClassName();
-			if (!isCompatible(fieldOwner, parentType)) {
-				return targetObjectReference;
+			if (!isPrimitiveClass(parentType)) {
+				if (!isCompatible(fieldOwner, parentType)) {
+					return targetObjectReference;
+				}
 			}
 		}
 
@@ -775,7 +777,7 @@ public class ConstructionPathSynthesizer {
 						testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2);
 					} else {
 						testFactory.addMethodFor(test, targetObjectReference, gMethod,
-								targetObjectReference.getStPosition() + 1);
+								targetObjectReference.getStPosition() + 1, 2);
 					}
 					return null;
 				}
@@ -1410,6 +1412,12 @@ public class ConstructionPathSynthesizer {
 
 	private boolean isPrimitiveType(String fieldType) {
 		boolean flag = !fieldType.contains("L") && !fieldType.contains(";");
+		return flag;
+	}
+	
+	private boolean isPrimitiveClass(String fieldType) {
+		boolean flag = fieldType.equals("int") || fieldType.equals("double") || fieldType.equals("float")
+				|| fieldType.equals("long") || fieldType.equals("short") || fieldType.equals("char") || fieldType.equals("byte");
 		return flag;
 	}
 

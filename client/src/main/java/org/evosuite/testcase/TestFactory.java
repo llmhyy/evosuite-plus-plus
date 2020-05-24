@@ -674,6 +674,56 @@ public class TestFactory {
 		logger.debug("Success: Adding method {}", method);
 		return ret;
 	}
+	
+	/**
+	 * Add a call on the method for the given callee at position
+	 *
+	 * @param test
+	 * @param callee
+	 * @param method
+	 * @param position
+	 * @return
+	 * @throws ConstructionFailedException
+	 */
+	public VariableReference addMethodFor(TestCase test, VariableReference callee,
+	        GenericMethod method, int position, int recursionDepth) throws ConstructionFailedException {
+
+		logger.debug("Adding method {} for {} (Generating {})",method,callee,method.getGeneratedClass());
+
+		if (recursionDepth > Properties.MAX_RECURSION) {
+			logger.debug("Max recursion depth reached");
+			throw new ConstructionFailedException("Max recursion depth reached");
+		}
+		
+		if(position <= callee.getStPosition()) {
+			throw new ConstructionFailedException("Cannot insert call on object before the object is defined");
+		}
+
+		currentRecursion.clear();
+		int length = test.size();
+
+		boolean allowNull = true;
+		Constraints constraints = method.getMethod().getAnnotation(Constraints.class);
+		if(constraints!=null && constraints.noNullInputs()){
+			allowNull = false;
+		}
+
+		// Added 'null' as additional parameter - fix for @NotNull annotations issue on evo mailing list
+		List<VariableReference> parameters = satisfyParameters(
+				test, callee,
+				Arrays.asList(method.getParameterTypes()),
+				Arrays.asList(method.getMethod().getParameters()), position, recursionDepth, allowNull, false, true);
+
+		int newLength = test.size();
+		position += (newLength - length);
+
+		Statement st = new MethodStatement(test, method, callee, parameters);
+		VariableReference ret = test.addStatement(st, position);
+		ret.setDistance(callee.getDistance() + 1);
+
+		logger.debug("Success: Adding method {}", method);
+		return ret;
+	}
 
 	/**
 	 * Add primitive statement at position
