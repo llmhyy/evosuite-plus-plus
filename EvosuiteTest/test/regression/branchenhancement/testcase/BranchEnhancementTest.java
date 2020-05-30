@@ -183,7 +183,7 @@ public class BranchEnhancementTest {
 
 		String fitnessApproach = "fbranch";
 
-		int timeBudget = 150;
+		int timeBudget = 200;
 		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;

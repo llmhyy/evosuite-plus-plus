@@ -111,7 +111,7 @@ public class ObjectConstructionTest {
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
 		int budget = 100;
-		Long seed = null;
+		Long seed = 1590297701552L;
 		
 		String fitnessApproach = "fbranch";
 		
