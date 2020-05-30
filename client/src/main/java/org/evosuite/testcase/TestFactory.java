@@ -629,6 +629,62 @@ public class TestFactory {
 			ret.setDistance(callee.getDistance() + 1);
 		return ret;
 	}
+	
+	public VariableReference addMethod(TestCase test, GenericMethod method, int position,
+	        int recursionDepth, boolean allowNullParam) throws ConstructionFailedException {
+
+		logger.debug("Recursion depth: " + recursionDepth);
+		if (recursionDepth > Properties.MAX_RECURSION) {
+			logger.debug("Max recursion depth reached");
+			throw new ConstructionFailedException("Max recursion depth reached");
+		}
+
+		logger.debug("Adding method " + method);
+		int length = test.size();
+		VariableReference callee = null;
+		List<VariableReference> parameters = null;
+
+		try {
+			if (!method.isStatic()) {
+				callee = createOrReuseVariable(test, method.getOwnerType(), position,
+						recursionDepth, null, false, false, false);
+				//a functional mock can never be a callee
+				assert ! (test.getStatement(callee.getStPosition()) instanceof FunctionalMockStatement);
+
+				position += test.size() - length;
+				length = test.size();
+
+				logger.debug("Found callee of type " + method.getOwnerType() + ": "
+						+ callee.getName());
+				if (!TestUsageChecker.canUse(method.getMethod(),
+						callee.getVariableClass())) {
+					logger.debug("Cannot call method " + method
+							+ " with callee of type " + callee.getClassName());
+					throw new ConstructionFailedException("Cannot apply method to this callee");
+				}
+			}
+
+			// Added 'null' as additional parameter - fix for @NotNull annotations issue on evo mailing list
+			parameters = satisfyParameters(test, callee,
+					                       Arrays.asList(method.getParameterTypes()),
+					                       Arrays.asList(method.getMethod().getParameters()),
+					                       position, recursionDepth + 1, allowNullParam, false, true);
+
+		} catch (ConstructionFailedException e) {
+			// TODO: Re-insert in new test cluster
+			// TestCluster.getInstance().checkDependencies(method);
+			throw e;
+		}
+
+		int newLength = test.size();
+		position += (newLength - length);
+
+		Statement st = new MethodStatement(test, method, callee, parameters);
+		VariableReference ret = test.addStatement(st, position);
+		if (callee != null)
+			ret.setDistance(callee.getDistance() + 1);
+		return ret;
+	}
 
 	/**
 	 * Add a call on the method for the given callee at position
@@ -657,6 +713,53 @@ public class TestFactory {
 		if(constraints!=null && constraints.noNullInputs()){
 			allowNull = false;
 		}
+
+		// Added 'null' as additional parameter - fix for @NotNull annotations issue on evo mailing list
+		List<VariableReference> parameters = satisfyParameters(
+				test, callee,
+				Arrays.asList(method.getParameterTypes()),
+				Arrays.asList(method.getMethod().getParameters()), position, 1, allowNull, false, true);
+
+		int newLength = test.size();
+		position += (newLength - length);
+
+		Statement st = new MethodStatement(test, method, callee, parameters);
+		VariableReference ret = test.addStatement(st, position);
+		ret.setDistance(callee.getDistance() + 1);
+
+		logger.debug("Success: Adding method {}", method);
+		return ret;
+	}
+	
+	/**
+	 * Add a call on the method for the given callee at position
+	 *
+	 * @param test
+	 * @param callee
+	 * @param method
+	 * @param position
+	 * @return
+	 * @throws ConstructionFailedException
+	 */
+	public VariableReference addMethodFor(TestCase test, VariableReference callee,
+	        GenericMethod method, int position, boolean allowNullParameter) throws ConstructionFailedException {
+
+		logger.debug("Adding method {} for {} (Generating {})",method,callee,method.getGeneratedClass());
+
+		if(position <= callee.getStPosition()) {
+			throw new ConstructionFailedException("Cannot insert call on object before the object is defined");
+		}
+
+		currentRecursion.clear();
+		int length = test.size();
+
+		boolean allowNull = true;
+		Constraints constraints = method.getMethod().getAnnotation(Constraints.class);
+		if(constraints!=null && constraints.noNullInputs()){
+			allowNull = false;
+		}
+		
+		allowNull = allowNullParameter && allowNull;
 
 		// Added 'null' as additional parameter - fix for @NotNull annotations issue on evo mailing list
 		List<VariableReference> parameters = satisfyParameters(

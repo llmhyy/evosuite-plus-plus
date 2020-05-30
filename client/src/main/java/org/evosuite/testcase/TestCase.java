@@ -27,6 +27,7 @@ import java.util.Set;
 import org.evosuite.assertion.Assertion;
 import org.evosuite.contracts.ContractViolation;
 import org.evosuite.ga.ConstructionFailedException;
+import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.environment.AccessedEnvironment;
 import org.evosuite.testcase.execution.Scope;
@@ -58,6 +59,15 @@ public interface TestCase extends Iterable<Statement>, Cloneable, Listenable<Voi
 	 */
 	public void accept(TestVisitor visitor);
 
+	
+	/**
+	 * if a target method is specified, we find the statement invoking the target method in the test.
+	 * 
+	 * @param test
+	 * @return
+	 */
+	public MethodStatement findTargetMethodCallStatement();
+	
 	/**
 	 * Copy all the assertions from other test case
 	 *
