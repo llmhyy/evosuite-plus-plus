@@ -1,4 +1,4 @@
-package regression.branchenhancement.testcase;
+package regression.objectconstruction.testcase;
 
 import java.lang.reflect.Method;
 

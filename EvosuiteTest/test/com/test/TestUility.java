@@ -14,7 +14,7 @@ import evosuite.shell.EvoTestResult;
 public class TestUility {
 	@SuppressWarnings("unchecked")
 	public static EvoTestResult evosuite(String targetClass, String targetMethod, String cp, int seconds,
-			boolean instrumentContext, String fitnessAppraoch) {
+			boolean instrumentContext, String fitnessAppraoch, String... seed) {
 		EvoSuite evo = new EvoSuite();
 		Properties.TARGET_CLASS = targetClass;
 		Properties.TRACK_COVERED_GRADIENT_BRANCHES = true;
@@ -84,7 +84,7 @@ public class TestUility {
 //				"-Dstopping_condition", "maxgenerations",
 //				"-DTT", "true",
 //				"-Dtt_scope", "target",
-				"-seed", "1578927395578" 
+				"-seed", (seed == null || seed.length == 0) ? "1578927395578" : seed[0]
 				};
 
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evo.parseCommandLine(command);

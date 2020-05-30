@@ -5,10 +5,10 @@ public class CascadingCallExample {
 	private int fieldToSet;
 	
 	public CascadingCallExample(ClassA a, ClassB b) {
-		m1(a, b);
+//		m1(a, b);
 	}
 	
-	public void target() {
+	public void targetM() {
 		if (fieldToSet > 10) {
 			return;
 		}
@@ -22,7 +22,7 @@ public class CascadingCallExample {
 		this.m3(c.e, d.f);
 	}
 	
-	private void m3(ClassE e, ClassF f) {
+	public void m3(ClassE e, ClassF f) {
 		this.fieldToSet = e.field + f.field;
 	}
 }

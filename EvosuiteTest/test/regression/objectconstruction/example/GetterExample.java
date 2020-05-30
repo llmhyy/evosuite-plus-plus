@@ -7,7 +7,7 @@ public class GetterExample {
 		
 	}
 	
-	public boolean target() {
+	public boolean targetM() {
 		if (field.getField2().getValue() > 1) {
 			return true;
 		}

@@ -53,29 +53,27 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		}
 		
 		FlagEffectResult r = FlagEffectEvaluator.checkFlagEffect(goal);
-		if(!r.hasFlagEffect) {
-			if(value == null){
+		if (r == null || !r.hasFlagEffect) {
+			if (value == null) {
 				Set<BranchCoverageGoal> set = new HashSet<BranchCoverageGoal>();
 				set.add(this.goal);
 				Double branchDisntanceWithApproachLevel = getBranchDisntanceWithApproachLevel(result, this.goal, set);
-				if(branchDisntanceWithApproachLevel != null) {
-					return branchDisntanceWithApproachLevel;					
+				if (branchDisntanceWithApproachLevel != null) {
+					return branchDisntanceWithApproachLevel;
 				}
-				
+
 				return 1;
-			}
-			else {
+			} else {
 				return normalize(value);
 			}
-		}
-		else {
+		} else {
 			List<Call> callContext = new ArrayList<>();
 			callContext.add(r.call);
-			
-			double interproceduralFitness = FlagEffectEvaluator.calculateInterproceduralFitness(
-					r.interproceduralFlagCall, callContext, goal, result);
+
+			double interproceduralFitness = FlagEffectEvaluator
+					.calculateInterproceduralFitness(r.interproceduralFlagCall, callContext, goal, result);
 			double normalizedFitness = normalize(interproceduralFitness);
-			
+
 			System.currentTimeMillis();
 			return normalizedFitness;
 		}
