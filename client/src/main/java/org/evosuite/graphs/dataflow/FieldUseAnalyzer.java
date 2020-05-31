@@ -31,7 +31,7 @@ import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 
 public class FieldUseAnalyzer {
-	private Map<BytecodeInstruction, DepVariable> instructionPool = new HashMap<BytecodeInstruction, DepVariable>();
+	private static Map<DepVariable, DepVariable> variablePool = new HashMap<>();
 	
 	
 	private String getRuleBasedSubclass(String className) {
@@ -117,13 +117,21 @@ public class FieldUseAnalyzer {
 	 */
 	public DepVariable parseVariable(BytecodeInstruction defIns) {
 		String className = defIns.getClassName();
-		String varName = "$unknown";
-		
-		DepVariable var = instructionPool.get(defIns); 
+		DepVariable var0 = new DepVariable(className, defIns);
+		DepVariable var = variablePool.get(var0); 
 		if(var == null) {
-			var = new DepVariable(className, varName, defIns);
+			var = new DepVariable(className, defIns);
 			
-			instructionPool.put(defIns, var);
+			if(var.getName().equals("checkRules(Lstate/Action;Lstate/GameState;)Z_LV_1")){
+				System.currentTimeMillis();
+			}
+			
+			variablePool.put(var, var);
+		}
+		else{
+			if(var.getName().equals("checkRules(Lstate/Action;Lstate/GameState;)Z_LV_1")){
+				System.currentTimeMillis();
+			}
 		}
 		
 		return var;

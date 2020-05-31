@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 
@@ -47,9 +46,8 @@ public class DepVariable {
 	@SuppressWarnings("unchecked")
 	private List<DepVariable>[] reverseRelations = new ArrayList[OPERAND_NUM_LIMIT];
 	
-	public DepVariable(String className, String varName, BytecodeInstruction insn) {
+	public DepVariable(String className, BytecodeInstruction insn) {
 		this.className = className;
-		this.varName = varName;
 		this.setInstruction(insn);
 		this.setType();
 	}
@@ -186,7 +184,7 @@ public class DepVariable {
 		
 		this.getRelations()[position] = list;
 		
-		if(this.getInstruction().getInstructionId()==20 && outputVar.getInstruction().getInstructionId()==25) {
+		if(this.getInstruction().getInstructionId()==14 && this.varName.equals("checkRules(Lstate/Action;Lstate/GameState;)Z_LV_1")) {
 			System.currentTimeMillis();
 		}
 		
@@ -390,9 +388,11 @@ public class DepVariable {
 
 	public void setName(String name) {
 		this.varName = name;
-		
 	}
 
+	public String getName(){
+		return this.varName;
+	}
 
 	public int getParamOrder() {
 		if(varName.contains("LV_")) {
