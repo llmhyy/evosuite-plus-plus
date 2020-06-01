@@ -84,7 +84,7 @@ public class GraphVisualizer {
 			Graph g = graph("example1").directed().graphAttr().with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
 			try {
 				File f = new File("D://linyun/ex1.png");
-				Graphviz.fromGraph(g).height(1000).render(Format.PNG).toFile(f);
+				Graphviz.fromGraph(g).height(10000).render(Format.PNG).toFile(f);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

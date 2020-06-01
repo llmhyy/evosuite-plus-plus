@@ -35,13 +35,15 @@ public class DepVariable {
 	public static int OPERAND_NUM_LIMIT = 30;
 	
 	/**
-	 * this variable take a child in the ith operand (assume that no instruction takes over 30 operands)
+	 * storing children
+	 * given a child, this variable is its i-th operand (assume that no instruction takes over OPERAND_NUM_LIMIT operands).
 	 */
 	@SuppressWarnings("unchecked")
 	private List<DepVariable>[] relations = new ArrayList[OPERAND_NUM_LIMIT];
 	
 	/**
-	 * this variable is used for the ith position of the parent (assume that no instruction takes over 30 operands).
+	 * storing parents
+	 * given a parent, this variable takes it its i-th operand (assume that no instruction takes over OPERAND_NUM_LIMIT operands).
 	 */
 	@SuppressWarnings("unchecked")
 	private List<DepVariable>[] reverseRelations = new ArrayList[OPERAND_NUM_LIMIT];
@@ -482,6 +484,10 @@ public class DepVariable {
 	public List<DepVariable>[] getRelations() {
 		return relations;
 	}
+	
+	public List<DepVariable>[] getReverseRelations() {
+		return reverseRelations;
+	}
 
 	public int findRelationPosition(DepVariable var) {
 		for(int i=0; i<relations.length; i++) {
@@ -506,6 +512,11 @@ public class DepVariable {
 	 */
 	public boolean isSupportOperandFor(DepVariable childVar, int index) {
 		List<DepVariable> list = this.relations[index];
+		
+		if(list == null){
+			return false;
+		}
+		
 		for(DepVariable v: list){
 			if(v.equals(childVar)){
 				return true;

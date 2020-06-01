@@ -10,11 +10,54 @@ import org.evosuite.graphs.dataflow.DepVariable;
 public class PartialGraph {
 	Map<DepVariable, DepVariableWrapper> allRelevantNodes = new HashMap<DepVariable, DepVariableWrapper>();
 	
-	public DepVariableWrapper fetch(DepVariable var) {
+	/**
+	 * In the original computation graph, multiple node can represent the same variable.
+	 * Therefore, we need to merge those nodes when generating the partial graph.
+	 * 
+	 * @param var
+	 * @return
+	 */
+	public DepVariableWrapper fetchAndMerge(DepVariable var) {
 		DepVariableWrapper wrapper = allRelevantNodes.get(var);
 		if(wrapper == null) {
 			wrapper = new DepVariableWrapper(var);
 			allRelevantNodes.put(var, wrapper);
+		}
+		else{
+			for(int i=0; i<wrapper.var.getRelations().length; i++){
+				List<DepVariable> list = wrapper.var.getRelations()[i];
+				List<DepVariable> list0 = var.getRelations()[i];
+				
+				if(list0 != null){
+					if(list == null) list = new ArrayList<>();
+					
+					for(DepVariable v: list0){
+						if(!list.contains(v)){
+							list.add(v);
+						}
+					}
+				}
+				
+				wrapper.var.getRelations()[i] = list;
+			}
+			
+			for(int i=0; i<wrapper.var.getReverseRelations().length; i++){
+				List<DepVariable> list = wrapper.var.getReverseRelations()[i];
+				List<DepVariable> list0 = var.getReverseRelations()[i];
+				
+				if(list0 != null){
+					if(list == null) list = new ArrayList<>();
+					
+					for(DepVariable v: list0){
+						if(!list.contains(v)){
+							list.add(v);
+						}
+					}
+				}
+				
+				wrapper.var.getReverseRelations()[i] = list;
+			}
+			
 		}
 		
 		return wrapper;

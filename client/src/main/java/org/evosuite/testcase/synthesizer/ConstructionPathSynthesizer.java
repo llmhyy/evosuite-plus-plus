@@ -109,8 +109,8 @@ public class ConstructionPathSynthesizer {
 					
 					for(ConstructionPath path: paths) {
 						for(int i=0; i<path.size()-1; i++) {
-							DepVariableWrapper child = graph.fetch(path.get(i));
-							DepVariableWrapper parent = graph.fetch(path.get(i+1));
+							DepVariableWrapper child = graph.fetchAndMerge(path.get(i));
+							DepVariableWrapper parent = graph.fetchAndMerge(path.get(i+1));
 							
 							child.addParent(parent);
 							parent.addChild(child);
@@ -210,6 +210,7 @@ public class ConstructionPathSynthesizer {
 			DepVariableWrapper node) throws ClassNotFoundException, ConstructionFailedException {
 		
 		List<DepVariableWrapper> contextualNodes = node.checkContextualNode();
+		System.currentTimeMillis();
 		if(contextualNodes == null) {
 			contextualNodes = new ArrayList<>();
 			contextualNodes.add(node);
