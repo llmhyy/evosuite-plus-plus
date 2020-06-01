@@ -38,4 +38,29 @@ public class DepVariableWrapper {
 	public String toString() {
 		return var.toString();
 	}
+
+	public List<DepVariableWrapper> checkContextualNode() {
+		if(this.parents.isEmpty()){
+			return null;
+		}
+		
+		if(this.var.isMethodCall()){
+			for(DepVariableWrapper par: this.parents){
+				if(par.isSupportOperandFor(this.var, 0)){
+					List<DepVariableWrapper> list = new ArrayList<>();
+					list.add(par);
+					return list;
+				}
+			}
+		}
+		else{
+			return this.parents;
+		}
+		
+		return null;
+	}
+
+	private boolean isSupportOperandFor(DepVariable var2, int index) {
+		return this.var.isSupportOperandFor(var2, index);
+	}
 }

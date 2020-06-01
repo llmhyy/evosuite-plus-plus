@@ -498,4 +498,21 @@ public class DepVariable {
 		return -1;
 	}
 
+	/**
+	 * check whether this variable will be used as an index-th operand for a given node childVar.
+	 * @param childVar
+	 * @param index
+	 * @return
+	 */
+	public boolean isSupportOperandFor(DepVariable childVar, int index) {
+		List<DepVariable> list = this.relations[index];
+		for(DepVariable v: list){
+			if(v.equals(childVar)){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
 }

@@ -138,9 +138,9 @@ public class ConstructionPathSynthesizer {
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
 		/**
-		 * track what variable reference can be reused.
+		 * track what variable reference can be reused. Note that, one node can corresponding to muliple statements.
 		 */
-		Map<DepVariable, VariableReference> map = new HashMap<>();
+		Map<DepVariable, List<VariableReference>> map = new HashMap<>();
 
 		/**
 		 * use BFS on partial graph to generate test code, but we need to check the dependency, making
@@ -187,17 +187,18 @@ public class ConstructionPathSynthesizer {
 					methodCounter.put(node.var, ++count);
 				}
 			}
-			
-			System.currentTimeMillis();
 		}
+		
+		System.currentTimeMillis();
 	}
 
-	private boolean checkDependency(DepVariableWrapper node, Map<DepVariable, VariableReference> map) {
+	private boolean checkDependency(DepVariableWrapper node, Map<DepVariable, List<VariableReference>> map) {
 		/**
 		 * ensure every parent of current node is visited in the map
 		 */
 		for (DepVariableWrapper parent : node.parents) {
-			if(map.get(parent.var) == null) {
+			if(map.get(parent.var) == null 
+					|| map.get(parent.var).isEmpty()) {
 				return false;
 			}
 		}
@@ -205,24 +206,42 @@ public class ConstructionPathSynthesizer {
 		return true;
 	}
 
-	private boolean enhanceTestStatement(TestCase test, Map<DepVariable, VariableReference> map,
+	private boolean enhanceTestStatement(TestCase test, Map<DepVariable, List<VariableReference>> map,
 			DepVariableWrapper node) throws ClassNotFoundException, ConstructionFailedException {
-		DepVariable var = node.var;
 		
-		VariableReference inputObject = null;
-		if(!node.parents.isEmpty()) {
-			// wont be null
-			inputObject = map.get(node.parents.get(0).var);
+		List<DepVariableWrapper> contextualNodes = node.checkContextualNode();
+		if(contextualNodes == null) {
+			contextualNodes = new ArrayList<>();
+			contextualNodes.add(node);
 		}
-		else {
-			VariableReference codeVar = map.get(var);
-			if (codeVar != null) {
-				inputObject = codeVar;
+		
+		boolean success = true;
+		for(DepVariableWrapper contextualNode: contextualNodes){
+			List<VariableReference> inputObjects = map.get(contextualNode.var);
+			/**
+			 * for root nodes
+			 */
+			if(inputObjects == null){
+				boolean s = deriveCodeForTest(map, test, null, node);
+				success = success && s;				
 			}
+			else{
+				for(VariableReference inputObject: inputObjects){
+					boolean s = deriveCodeForTest(map, test, inputObject, node);
+					success = success && s;	
+				}
+			}
+			
 		}
 		
+		return success;
+	}
+
+	private boolean deriveCodeForTest(Map<DepVariable, List<VariableReference>> map, TestCase test, 
+			VariableReference inputObject, DepVariableWrapper node) 
+					throws ClassNotFoundException, ConstructionFailedException{
+		DepVariable var = node.var;
 		boolean isLeaf = node.children.isEmpty();
-		
 		if (var.getType() == DepVariable.STATIC_FIELD) {
 			inputObject = generateFieldStatement(test, var, isLeaf, inputObject);
 		} else if (var.getType() == DepVariable.PARAMETER) {
@@ -241,12 +260,16 @@ public class ConstructionPathSynthesizer {
 					opcode == Opcode.ALOAD_3) {
 				for(DepVariableWrapper parentNode: node.parents) {
 					if(map.get(parentNode.var) != null) {
-						inputObject = map.get(parentNode.var);
+						inputObject = map.get(parentNode.var).get(0);
 						break;
 					}
 				}
 			}
-			else if (opcode == Opcode.INVOKESPECIAL || opcode == Opcode.INVOKESTATIC || opcode == Opcode.INVOKEDYNAMIC){
+			else if (opcode == Opcode.INVOKEVIRTUAL || 
+					opcode == Opcode.INVOKESPECIAL ||
+					opcode == Opcode.INVOKESTATIC || 
+					opcode == Opcode.INVOKEDYNAMIC ||
+					opcode == Opcode.INVOKEINTERFACE){
 				inputObject = generateMethodCallStatement(test, node, map, inputObject);				
 			}
 		} else if (var.getType() == DepVariable.THIS) {
@@ -257,25 +280,32 @@ public class ConstructionPathSynthesizer {
 			else {
 				for(DepVariableWrapper parentNode: node.parents) {
 					if(map.get(parentNode.var) != null) {
-						inputObject = map.get(parentNode.var);
+						inputObject = map.get(parentNode.var).get(0);
 						break;
 					}
 				}
 			}
 			
 		} else if (var.getType() == DepVariable.ARRAY_ELEMENT) {
-			inputObject = generateArrayElementStatement(test, node, isLeaf, inputObject, map);
+			inputObject = generateArrayElementStatement(test, node, isLeaf, inputObject);
 		}
-
+		
 		if (inputObject != null) {
-			map.put(var, inputObject);
+			List<VariableReference> list = map.get(var);
+			if(list == null){
+				list = new ArrayList<>();
+			}
+			if(!list.contains(inputObject)){
+				list.add(inputObject);					
+			}
+			map.put(var, list);
 		}
 		
 		return true;
 	}
 
 	private VariableReference generateArrayElementStatement(TestCase test, DepVariableWrapper node, boolean isLeaf,
-			VariableReference parentVarRef, Map<DepVariable, VariableReference> map) throws ConstructionFailedException {
+			VariableReference parentVarRef) throws ConstructionFailedException {
 
 		if (parentVarRef instanceof ArrayReference) {
 			int opcodeRead = node.var.getInstruction().getASMNode().getOpcode();
@@ -598,7 +628,7 @@ public class ConstructionPathSynthesizer {
 	}
 
 	private VariableReference generateMethodCallStatement(TestCase test, DepVariableWrapper node,
-			Map<DepVariable, VariableReference> map, VariableReference inputObject) {
+			Map<DepVariable, List<VariableReference>> map, VariableReference inputObject) {
 		DepVariable var = node.var;
 		int opcode = var.getInstruction().getASMNode().getOpcode();
 		try {
@@ -627,8 +657,7 @@ public class ConstructionPathSynthesizer {
 				Map<Integer, VariableReference> paramRefMap = new HashMap<>();
 
 				for (DepVariableWrapper par : node.parents) {
-					VariableReference parRef = map.get(par.var);
-
+					VariableReference parRef = map.get(par.var).get(0);
 					int position = par.var.findRelationPosition(var);
 					if (position > -1) {
 						paramRefMap.put(position, parRef);
