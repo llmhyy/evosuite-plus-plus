@@ -1157,7 +1157,15 @@ public class TestCluster {
 				}
 			}
 
-			generator = Randomness.choice(candidates);
+			/**
+			 * TODO, provide a distribution
+			 */
+			if(Properties.APPLY_OBJECT_RULE){
+				generator = chooseByParamNumBias(candidates);
+			}
+			else{
+				generator = Randomness.choice(candidates);				
+			}
 			logger.debug("Chosen generator: " + generator);
 		}
 
@@ -1176,6 +1184,42 @@ public class TestCluster {
 
 		return generator;
 
+	}
+
+	private GenericAccessibleObject<?> chooseByParamNumBias(Set<GenericAccessibleObject<?>> candidates) {
+		List<GenericAccessibleObject<?>> cList = new ArrayList<>(candidates);
+		List<Double> pList = new ArrayList<>();
+		double sum = 0;
+		for(int i=0; i<cList.size(); i++){
+			GenericAccessibleObject<?> candidate = cList.get(i);
+			int n = candidate.getGenericParameterTypes().length+1;
+			sum += n;
+			pList.add(i, (double)n);
+		}
+		
+		double ac = 0;
+		for(int i=0; i<pList.size(); i++){
+			double n = pList.get(i);
+			double portion = n/sum;
+			pList.set(i, portion + ac);
+			ac += portion;
+		}
+		
+		double d = Randomness.nextDouble();
+		GenericAccessibleObject<?> generator = pickup(pList, cList, d);
+		
+		return generator;
+	}
+
+	private GenericAccessibleObject<?> pickup(List<Double> pList, List<GenericAccessibleObject<?>> cList, double d) {
+		for(int i=0; i<pList.size(); i++){
+			double n = pList.get(i);
+			if (d <= n){
+				return cList.get(i);
+			}
+		}
+		
+		return null;
 	}
 
 	/**
