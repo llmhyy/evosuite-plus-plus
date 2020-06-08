@@ -38,8 +38,20 @@ public class FBranchTest {
 		String cp = "target/test-classes";
 
 		int timeBudget = 200;
-		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
-		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
+		EvoTestResult resultT = null;
+		EvoTestResult resultF = null;
+		
+		try {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
+		} catch (NullPointerException e) {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
+		}
+		
+		try {
+			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
+		} catch (NullPointerException e) {
+			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
+		}
 
 		int ageT = resultT.getAge();
 		int timeT = resultT.getTime();

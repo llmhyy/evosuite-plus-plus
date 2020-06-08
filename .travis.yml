@@ -1,20 +1,26 @@
-
 language: java
 sudo: false
 dist: trusty
 
+os:
+   - linux
+  
 jdk:
-  - oraclejdk8
+   - openjdk8
 
 script:
+   # branch enhancement
    - mvn -Dtest=BranchEnhancementTest#testColtExample test -pl EvosuiteTest -e
    - mvn -Dtest=BranchEnhancementTest#testInevitableConstructorExample test -pl EvosuiteTest -e
    - mvn -Dtest=BranchEnhancementTest#testLayeredCallExample test -pl EvosuiteTest -e
    - mvn -Dtest=BranchEnhancementTest#testMultipleConstructorsExample test -pl EvosuiteTest -e
    - mvn -Dtest=BranchEnhancementTest#testMultipleExceptionExample test -pl EvosuiteTest -e
-   - mvn -Dtest=PExampleTest#testPExample test -pl EvosuiteTest -e
+   
+   # fbranch
+   - mvn -Dtest=FBranchTest#testValueRangeExample test -pl EvosuiteTest -e
+   
+   # smart mutation
    - mvn -Dtest=SmartMutationTest#testStringArrayExample test -pl EvosuiteTest -e
-   - mvn -Dtest=CascadingCallExampleTest#testCascadingCallExample test -pl EvosuiteTest -e
-   - mvn -Dtest=ArrayGenerationExampleTest#testArrayGenerationExample test -pl EvosuiteTest -e
    
-   
+   # object construction
+   - mvn -Dtest=ObjectConstructionTest#testCascadingCallExample test -pl EvosuiteTest -e
