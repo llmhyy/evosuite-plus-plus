@@ -167,7 +167,7 @@ public class BranchEnhancementTest {
 		int timeF = resultF.getTime();
 
 		assert ageT <= 55;
-		assert timeT <= 6;
+		assert timeT <= 7;
 		assert ageT < ageF;
 		assert timeT < timeF;
 		assert coverageT == 1.0;

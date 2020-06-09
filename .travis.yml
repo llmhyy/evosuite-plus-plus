@@ -24,4 +24,4 @@ script:
    
    # object construction
    - mvn -Dtest=ObjectConstructionTest#testCascadingCallExample test -pl EvosuiteTest -e
-   - mvn -Dtest=ObjectConstructionTest#testCorinaPngencoderExample test -pl EvosuiteTest -e
+   - mvn -Dtest=ObjectConstructionTest#testCorinaPngencoderExample test -projectCP target/classes -pl EvosuiteTest -e
