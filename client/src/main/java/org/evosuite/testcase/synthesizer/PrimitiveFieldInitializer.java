@@ -23,7 +23,7 @@ public class PrimitiveFieldInitializer extends FieldInitializer{
 		try {
 			PrimitiveStatement<?> primStatement = createNewPrimitiveStatement(test, fieldType);
 			primStatement.randomize();
-			VariableReference varRef = testFactory.addPrimitive(test, primStatement, insertionPosition);
+			VariableReference varRef = testFactory.addPrimitive(test, primStatement, insertionPosition + 1);
 			return varRef;
 		} catch (ConstructionFailedException e) {
 			e.printStackTrace();
