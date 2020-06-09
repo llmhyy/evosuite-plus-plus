@@ -1,6 +1,7 @@
 package org.evosuite.testcase.synthesizer;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -786,31 +787,24 @@ public class ConstructionPathSynthesizer {
 					return null;
 				}
 
-				Map.Entry<Method, Parameter> entry = searchForPotentialSetterInClass(field, fieldNode.owner,
+				Map.Entry<Executable, Parameter> entry = searchForPotentialSetterInClass(field, fieldNode.owner,
 						fieldDeclaringClass, insList);
 				if (entry != null) {
-					Method setter = entry.getKey();
-					GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
-					if (targetObjectReference == null) {
-						MethodStatement mStat = test.findTargetMethodCallStatement();
-						testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2, false);
-					} else {
-						testFactory.addMethodFor(test, targetObjectReference, gMethod,
-								targetObjectReference.getStPosition() + 1, false);
+					Executable setter = entry.getKey();
+					if(setter instanceof Method){
+						GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
+						if (targetObjectReference == null) {
+							MethodStatement mStat = test.findTargetMethodCallStatement();
+							testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2, false);
+						} else {
+							testFactory.addMethodFor(test, targetObjectReference, gMethod,
+									targetObjectReference.getStPosition() + 1, false);
+						}
+						return null;
 					}
-					return null;
-				}
-
-				/**
-				 * deal with the case when the class has neither getter nor setter.
-				 */
-				Map.Entry<Constructor, Parameter> constructorEntry = searchForPotentialConstructor(field,
-						fieldNode.owner, fieldDeclaringClass, insList);
-				if (constructorEntry != null) {
-					Constructor constructor = constructorEntry.getKey();
-//					if (!isCalledConstructor(test, targetObjectReference, constructor)) {
-						GenericConstructor gConstructor = new GenericConstructor(constructor,
-								constructor.getDeclaringClass());
+					else if(setter instanceof Constructor){
+						GenericConstructor gConstructor = new GenericConstructor((Constructor)setter,
+								setter.getDeclaringClass());
 						VariableReference returnedVar = testFactory.addConstructor(test, gConstructor,
 								targetObjectReference.getStPosition() + 1, 2);
 
@@ -823,7 +817,7 @@ public class ConstructionPathSynthesizer {
 							}
 						}
 						return null;
-//					}
+					}
 				}
 				
 				return null;
@@ -1169,6 +1163,31 @@ public class ConstructionPathSynthesizer {
 		return args;
 	}
 
+	private Set<Integer> searchRelevantParameterOfSetterInMethod(String className, String methodName, Field field) {
+		/**
+		 * get all the field setter bytecode instructions in the method. TODO: the field
+		 * setter can be taken from callee method of @code{methodName}.
+		 */
+		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
+		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<BytecodeInstruction, List<BytecodeInstruction>>();
+		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = DataDependencyUtil.analyzeFieldSetter(className, methodName,
+				field, 5, cascadingCallRelations, setterMap);
+		Set<Integer> validParams = new HashSet<>();
+		if (fieldSetterMap.isEmpty()) {
+			return validParams;
+		}
+
+		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
+			BytecodeInstruction setterIns = entry.getKey();
+			List<BytecodeInstruction> callList = entry.getValue();
+			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, className, methodName, callList);
+			if (!validParamPos.isEmpty()) {
+				validParams.addAll(validParamPos);
+			}
+		}
+		return validParams;
+	}
+	
 	/**
 	 * return a method along with one of its parameters to setter the field.
 	 * 
@@ -1181,13 +1200,14 @@ public class ConstructionPathSynthesizer {
 	 * @throws NoSuchMethodException
 	 * @throws ClassNotFoundException
 	 */
-	private Map.Entry<Method, Parameter> searchForPotentialSetterInClass(Field field, String fieldOwner,
+	@SuppressWarnings("rawtypes")
+	private Map.Entry<Executable, Parameter> searchForPotentialSetterInClass(Field field, String fieldOwner,
 			Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList)
 			throws NoSuchMethodException, ClassNotFoundException {
 
 		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
 
-		Map<Method, Parameter> targetMethods = new HashMap<>();
+		Map<Executable, Parameter> targetMethods = new HashMap<>();
 		for (BytecodeInstruction ins : insList) {
 			if (ins.getASMNodeString().contains(opcode)) {
 				FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
@@ -1225,6 +1245,16 @@ public class ConstructionPathSynthesizer {
 							}
 						}
 					}
+					else if (methodName.contains("<init>")) {
+						Constructor targetConstructor = fieldDeclaringClass.getDeclaredConstructor(paramClasses);
+						Set<Integer> validParamPositions = searchRelevantParameterOfSetterInMethod(fieldDeclaringClass.getCanonicalName(), methodName, field);
+						if (!validParamPositions.isEmpty()) {
+							//FIXME probability distribution
+							Integer validParamPos = Randomness.choice(validParamPositions);
+							Parameter param = targetConstructor.getParameters()[validParamPos];
+							targetMethods.put(targetConstructor, param);
+						}
+					}
 				}
 			}
 		}
@@ -1232,76 +1262,51 @@ public class ConstructionPathSynthesizer {
 		/**
 		 * FIXME, linyun probability distribution
 		 */
-		Map.Entry<Method, Parameter> entry = Randomness.choice(targetMethods.entrySet());
+		Map.Entry<Executable, Parameter> entry = Randomness.choice(targetMethods.entrySet());
 		return entry;
 	}
 	
-	private Set<Integer> searchRelevantParameterOfSetterInMethod(String className, String methodName, Field field) {
-		/**
-		 * get all the field setter bytecode instructions in the method. TODO: the field
-		 * setter can be taken from callee method of @code{methodName}.
-		 */
-		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<BytecodeInstruction, List<BytecodeInstruction>>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = DataDependencyUtil.analyzeFieldSetter(className, methodName,
-				field, 5, cascadingCallRelations, setterMap);
-		Set<Integer> validParams = new HashSet<>();
-		if (fieldSetterMap.isEmpty()) {
-			return validParams;
-		}
-
-		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
-			BytecodeInstruction setterIns = entry.getKey();
-			List<BytecodeInstruction> callList = entry.getValue();
-			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, className, methodName, callList);
-			if (!validParamPos.isEmpty()) {
-				validParams.addAll(validParamPos);
-			}
-		}
-		return validParams;
-	}
-
-	@SuppressWarnings("rawtypes")
-	private Map.Entry<Constructor, Parameter> searchForPotentialConstructor(Field field, String fieldOwner,
-			Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList)
-			throws NoSuchMethodException, ClassNotFoundException {
-
-		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
-
-		Map<Constructor, Parameter> targetConstructors = new HashMap<>();
-		for (BytecodeInstruction ins : insList) {
-			if (ins.getASMNodeString().contains(opcode)) {
-				FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
-				String tmpName = insnNode.name;
-				String tmpOwner = insnNode.owner;
-				if (tmpName.equals(field.getName()) && tmpOwner.equals(fieldOwner)) {
-					String methodName = ins.getMethodName();
-					org.objectweb.asm.Type[] types = org.objectweb.asm.Type
-							.getArgumentTypes(methodName.substring(methodName.indexOf("("), methodName.length()));
-					Class<?>[] paramClasses = new Class<?>[types.length];
-					int index = 0;
-					for (org.objectweb.asm.Type type : types) {
-						Class<?> paramClass = getClassForType(type);
-						paramClasses[index++] = paramClass;
-					}
-
-					if (methodName.contains("<init>")) {
-						Constructor targetConstructor = fieldDeclaringClass.getDeclaredConstructor(paramClasses);
-						Set<Integer> validParamPositions = searchRelevantParameterOfSetterInMethod(fieldDeclaringClass.getCanonicalName(), methodName, field);
-						if (!validParamPositions.isEmpty()) {
-							//FIXME probability distribution
-							Integer validParamPos = Randomness.choice(validParamPositions);
-							Parameter param = targetConstructor.getParameters()[validParamPos];
-							targetConstructors.put(targetConstructor, param);
-						}
-					}
-				}
-			}
-		}
-
-		Map.Entry<Constructor, Parameter> entry = Randomness.choice(targetConstructors.entrySet());
-		return entry;
-	}
+	
+//	private Map.Entry<Constructor, Parameter> searchForPotentialConstructor(Field field, String fieldOwner,
+//			Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList)
+//			throws NoSuchMethodException, ClassNotFoundException {
+//
+//		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
+//
+//		Map<Constructor, Parameter> targetConstructors = new HashMap<>();
+//		for (BytecodeInstruction ins : insList) {
+//			if (ins.getASMNodeString().contains(opcode)) {
+//				FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
+//				String tmpName = insnNode.name;
+//				String tmpOwner = insnNode.owner;
+//				if (tmpName.equals(field.getName()) && tmpOwner.equals(fieldOwner)) {
+//					String methodName = ins.getMethodName();
+//					org.objectweb.asm.Type[] types = org.objectweb.asm.Type
+//							.getArgumentTypes(methodName.substring(methodName.indexOf("("), methodName.length()));
+//					Class<?>[] paramClasses = new Class<?>[types.length];
+//					int index = 0;
+//					for (org.objectweb.asm.Type type : types) {
+//						Class<?> paramClass = getClassForType(type);
+//						paramClasses[index++] = paramClass;
+//					}
+//
+//					if (methodName.contains("<init>")) {
+//						Constructor targetConstructor = fieldDeclaringClass.getDeclaredConstructor(paramClasses);
+//						Set<Integer> validParamPositions = searchRelevantParameterOfSetterInMethod(fieldDeclaringClass.getCanonicalName(), methodName, field);
+//						if (!validParamPositions.isEmpty()) {
+//							//FIXME probability distribution
+//							Integer validParamPos = Randomness.choice(validParamPositions);
+//							Parameter param = targetConstructor.getParameters()[validParamPos];
+//							targetConstructors.put(targetConstructor, param);
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//		Map.Entry<Constructor, Parameter> entry = Randomness.choice(targetConstructors.entrySet());
+//		return entry;
+//	}
 	
 	public static VariableReference addConstructorForClass(TestFactory testFactory, TestCase test, int position, String desc)
 			throws ConstructionFailedException {
