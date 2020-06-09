@@ -103,15 +103,17 @@ public class ConstructionPathSynthesizer {
 							
 							child.addParent(parent);
 							parent.addChild(child);
-						}						
+						}
+						
+						if(path.size() == 1){
+							graph.fetchAndMerge(path.get(0));
+						}
 					}
 				}
 			
 					
 			}
 		}
-		
-		System.currentTimeMillis();
 		
 		return graph;
 	}
@@ -121,8 +123,8 @@ public class ConstructionPathSynthesizer {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
-		GraphVisualizer.visualizeComputationGraph(b);
-		GraphVisualizer.visualizeComputationGraph(partialGraph);
+//		GraphVisualizer.visualizeComputationGraph(b);
+//		GraphVisualizer.visualizeComputationGraph(partialGraph);
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		

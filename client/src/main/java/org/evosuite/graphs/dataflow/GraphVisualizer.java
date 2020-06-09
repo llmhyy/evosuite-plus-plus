@@ -47,6 +47,13 @@ public class GraphVisualizer {
 				}
 
 			}
+			
+			if(source.children.isEmpty()){
+				guru.nidi.graphviz.model.Node n = node(source.var.getUniqueLabel());
+				if (!links.contains(n)) {
+					links.add(n);
+				}
+			}
 		}
 		
 
@@ -84,7 +91,7 @@ public class GraphVisualizer {
 			Graph g = graph("example1").directed().graphAttr().with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
 			try {
 				File f = new File("D://linyun/ex1.png");
-				Graphviz.fromGraph(g).height(10000).render(Format.PNG).toFile(f);
+				Graphviz.fromGraph(g).height(1000).render(Format.PNG).toFile(f);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -92,7 +99,7 @@ public class GraphVisualizer {
 	}
 
 	private static void collectLinks(DepVariable source, List<LinkSource> links) {
-
+		boolean isolated = true;
 		List<DepVariable>[] relations = source.getRelations();
 		for (int i = 0; i < relations.length; i++) {
 			List<DepVariable> child = relations[i];
@@ -100,6 +107,7 @@ public class GraphVisualizer {
 			if (child == null)
 				continue;
 
+			isolated = false;
 			for (DepVariable target : child) {
 
 				guru.nidi.graphviz.model.Node n = node(source.getUniqueLabel()).link(node(target.getUniqueLabel()));
@@ -111,5 +119,11 @@ public class GraphVisualizer {
 			}
 		}
 
+		if(isolated){
+			guru.nidi.graphviz.model.Node n = node(source.getUniqueLabel());
+			if (!links.contains(n)) {
+				links.add(n);
+			}
+		}
 	}
 }

@@ -382,7 +382,12 @@ public class DepVariable {
 		}
 		
 		if(roots.isEmpty()) {
-			roots.put(this, new ArrayList<>());
+			ArrayList<ConstructionPath> list = new ArrayList<>();
+			ArrayList<DepVariable> partialPath = new ArrayList<>();
+			partialPath.add(this);
+			ConstructionPath p = new ConstructionPath(partialPath, new ArrayList<>());
+			list.add(p);
+			roots.put(this, list);
 		}
 		
 		return roots;
