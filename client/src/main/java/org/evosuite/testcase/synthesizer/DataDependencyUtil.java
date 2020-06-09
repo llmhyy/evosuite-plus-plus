@@ -27,7 +27,7 @@ import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
-public class Util {
+public class DataDependencyUtil {
 	/**
 	 * Output is the valid parameter position of most top method call
 	 * 

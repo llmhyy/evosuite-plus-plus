@@ -995,7 +995,7 @@ public class ConstructionPathSynthesizer {
 		Set<Method> targetMethods = new HashSet<>();
 
 		for (Method method : fieldDeclaringClass.getMethods()) {
-			boolean isValid = Util.isFieldGetter(method, field);
+			boolean isValid = DataDependencyUtil.isFieldGetter(method, field);
 			if (isValid) {
 				targetMethods.add(method);
 			}
@@ -1243,7 +1243,7 @@ public class ConstructionPathSynthesizer {
 		 */
 		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
 		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<BytecodeInstruction, List<BytecodeInstruction>>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = Util.analyzeFieldSetter(className, methodName,
+		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = DataDependencyUtil.analyzeFieldSetter(className, methodName,
 				field, 5, cascadingCallRelations, setterMap);
 		Set<Integer> validParams = new HashSet<>();
 		if (fieldSetterMap.isEmpty()) {
@@ -1253,7 +1253,7 @@ public class ConstructionPathSynthesizer {
 		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
 			BytecodeInstruction setterIns = entry.getKey();
 			List<BytecodeInstruction> callList = entry.getValue();
-			Set<Integer> validParamPos = Util.checkValidParameterPositions(setterIns, className, methodName, callList);
+			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, className, methodName, callList);
 			if (!validParamPos.isEmpty()) {
 				validParams.addAll(validParamPos);
 			}

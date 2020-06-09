@@ -32,7 +32,7 @@ public class UsedReferenceSearcher {
 					MethodStatement mStat = (MethodStatement) stat;
 					VariableReference ref = mStat.getCallee();
 					if (ref != null && ref.equals(targetObject)) {
-						boolean isValidGetter = Util.isFieldGetter(mStat.getMethod().getMethod(), field);
+						boolean isValidGetter = DataDependencyUtil.isFieldGetter(mStat.getMethod().getMethod(), field);
 						if (isValidGetter) {
 							relevantRefs.add(mStat.getReturnValue());
 						}
@@ -150,7 +150,7 @@ public class UsedReferenceSearcher {
 		 */
 		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
 		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<BytecodeInstruction, List<BytecodeInstruction>>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = Util.analyzeFieldSetter(className, methodName,
+		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = DataDependencyUtil.analyzeFieldSetter(className, methodName,
 				field, 5, cascadingCallRelations, setterMap);
 		List<VariableReference> validParams = new ArrayList<VariableReference>();
 		if (fieldSetterMap.isEmpty()) {
@@ -160,7 +160,7 @@ public class UsedReferenceSearcher {
 		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
 			BytecodeInstruction setterIns = entry.getKey();
 			List<BytecodeInstruction> callList = entry.getValue();
-			Set<Integer> validParamPos = Util.checkValidParameterPositions(setterIns, className, methodName, callList);
+			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, className, methodName, callList);
 			for (Integer val : validParamPos) {
 				if (val >= 0) {
 					validParams.add(params.get(val));
