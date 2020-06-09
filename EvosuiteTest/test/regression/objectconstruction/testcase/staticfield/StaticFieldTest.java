@@ -22,7 +22,7 @@ public class StaticFieldTest {
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = true;
-		Properties.ADOPT_SMART_MUTATION = false;
+		Properties.ADOPT_SMART_MUTATION = true;
 	}
 	
 	@Test

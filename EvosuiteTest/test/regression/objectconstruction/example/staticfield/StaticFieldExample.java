@@ -16,7 +16,7 @@ public class StaticFieldExample {
 
 	public void method(){
 		if(Config.num > 1000){
-			if(Config.object.getName().endsWith("test")){
+			if(Config.object.getName().equals("test")){
 				System.currentTimeMillis();
 			}
 		}
