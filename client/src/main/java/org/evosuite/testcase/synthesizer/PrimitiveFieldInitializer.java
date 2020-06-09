@@ -3,8 +3,6 @@ package org.evosuite.testcase.synthesizer;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.statements.AbstractStatement;
-import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.numeric.BooleanPrimitiveStatement;
 import org.evosuite.testcase.statements.numeric.BytePrimitiveStatement;
@@ -20,23 +18,18 @@ import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.generic.GenericField;
 
 public class PrimitiveFieldInitializer extends FieldInitializer{
-	public AbstractStatement assignField(TestFactory testFactory, TestCase test, String fieldType, GenericField genericField,
+	public VariableReference assignField(TestFactory testFactory, TestCase test, String fieldType, GenericField genericField,
 			int insertionPosition, FieldReference fieldVar) throws ConstructionFailedException {
-		VariableReference primVarRef = addPrimitiveStatement(testFactory, test, insertionPosition, fieldType);
-		AbstractStatement stmt = new AssignmentStatement(test, fieldVar, primVarRef);		
-		return stmt;
-	}
-	
-	private VariableReference addPrimitiveStatement(TestFactory testFactory, TestCase test, int position, String desc) {
 		try {
-			PrimitiveStatement<?> primStatement = createNewPrimitiveStatement(test, desc);
+			PrimitiveStatement<?> primStatement = createNewPrimitiveStatement(test, fieldType);
 			primStatement.randomize();
-			VariableReference varRef = testFactory.addPrimitive(test, primStatement, position);
+			VariableReference varRef = testFactory.addPrimitive(test, primStatement, insertionPosition);
 			return varRef;
 		} catch (ConstructionFailedException e) {
 			e.printStackTrace();
 		}
 		return null;
+		
 	}
 	
 	@SuppressWarnings("rawtypes")

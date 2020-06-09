@@ -51,7 +51,6 @@ import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.VariableReference;
-import org.evosuite.testcase.variable.VariableReferenceImpl;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
@@ -735,8 +734,8 @@ public class ConstructionPathSynthesizer {
 			 * if found, stop here
 			 */
 			VariableReference usedFieldInTest = isLeaf
-					? searchRelevantFieldWritingReference(test, field, targetObjectReference)
-					: searchRelevantFieldReadingReference(test, field, targetObjectReference);
+					? searchRelevantFieldWritingReferenceInTest(test, field, targetObjectReference)
+					: searchRelevantFieldReadingReferenceInTest(test, field, targetObjectReference);
 			if (usedFieldInTest != null) {
 				return usedFieldInTest;
 			}
@@ -748,11 +747,12 @@ public class ConstructionPathSynthesizer {
 			int fieldModifiers = field.getModifiers();
 
 			/**
-			 * deal with public field.
+			 * deal with public field, we handle the public field getter/setter in the same way, a.k.a., create
+			 * a new public field instance.
 			 */
 			if (Modifier.isPublic(fieldModifiers)) {
 				VariableReference obj = 
-					generatePublicFieldSetterOrGetter(test, targetObjectReference, fieldType, genericField, isLeaf);
+					generatePublicFieldSetterOrGetter(test, targetObjectReference, fieldType, genericField);
 				return obj;
 			}
 
@@ -787,7 +787,6 @@ public class ConstructionPathSynthesizer {
 					return null;
 				}
 
-				// TODO ziheng: we need to consider cascade method call.
 				Map.Entry<Method, Parameter> entry = searchForPotentialSetterInClass(field, fieldNode.owner,
 						fieldDeclaringClass, insList);
 				System.currentTimeMillis();
@@ -841,14 +840,14 @@ public class ConstructionPathSynthesizer {
 	}
 
 	private VariableReference generatePublicFieldSetterOrGetter(TestCase test, VariableReference targetObjectReference,
-			String fieldType, GenericField genericField, boolean isLeaf) throws ConstructionFailedException {
+			String fieldType, GenericField genericField) throws ConstructionFailedException {
 		AbstractStatement stmt;
 		if (CollectionUtil.existIn(fieldType, "Z", "B", "C", "S", "I", "J", "F", "D")) {
 			stmt = addStatementToSetOrGetPublicField(test, fieldType,
-					genericField, targetObjectReference, isLeaf, new PrimitiveFieldInitializer());
+					genericField, targetObjectReference, new PrimitiveFieldInitializer());
 		} else {
 			stmt = addStatementToSetOrGetPublicField(test, fieldType,
-					genericField, targetObjectReference, isLeaf, new NonPrimitiveFieldInitializer());
+					genericField, targetObjectReference, new NonPrimitiveFieldInitializer());
 		}
 
 		if (stmt != null && stmt.getReturnValue() != null) {
@@ -858,7 +857,7 @@ public class ConstructionPathSynthesizer {
 		return null;
 	}
 	
-	private VariableReference searchRelevantFieldReadingReference(TestCase test, Field field,
+	private VariableReference searchRelevantFieldReadingReferenceInTest(TestCase test, Field field,
 			VariableReference targetObject) {
 		List<VariableReference> relevantRefs = new ArrayList<VariableReference>();
 
@@ -869,7 +868,7 @@ public class ConstructionPathSynthesizer {
 					MethodStatement mStat = (MethodStatement) stat;
 					VariableReference ref = mStat.getCallee();
 					if (ref != null && ref.equals(targetObject)) {
-						boolean isValidGetter = checkValidGetterInTest(mStat.getMethod().getMethod(), field);
+						boolean isValidGetter = isFieldGetter(mStat.getMethod().getMethod(), field);
 						if (isValidGetter) {
 							relevantRefs.add(mStat.getReturnValue());
 						}
@@ -922,7 +921,7 @@ public class ConstructionPathSynthesizer {
 	 * @param targetObject
 	 * @return
 	 */
-	private VariableReference searchRelevantFieldWritingReference(TestCase test, Field field,
+	private VariableReference searchRelevantFieldWritingReferenceInTest(TestCase test, Field field,
 			VariableReference targetObject) {
 
 		List<VariableReference> relevantRefs = new ArrayList<VariableReference>();
@@ -1054,7 +1053,13 @@ public class ConstructionPathSynthesizer {
 		return validParams;
 	}
 	
-	private boolean checkValidGetterInTest(Method method, Field field) {
+	/**
+	 * check whether a method can return the field.
+	 * @param method
+	 * @param field
+	 * @return
+	 */
+	private boolean isFieldGetter(Method method, Field field) {
 		int opcode = Modifier.isStatic(field.getModifiers()) ? Opcodes.GETSTATIC : Opcodes.GETFIELD;
 
 		if (!method.getReturnType().getCanonicalName().equals(field.getType().getCanonicalName())) {
@@ -1450,7 +1455,7 @@ public class ConstructionPathSynthesizer {
 		Set<Method> targetMethods = new HashSet<>();
 
 		for (Method method : fieldDeclaringClass.getMethods()) {
-			boolean isValid = checkValidGetterInTest(method, field);
+			boolean isValid = isFieldGetter(method, field);
 			if (isValid) {
 				targetMethods.add(method);
 			}
@@ -1733,40 +1738,56 @@ public class ConstructionPathSynthesizer {
 		return entry;
 	}
 	
+	public static VariableReference addConstructorForClass(TestFactory testFactory, TestCase test, int position, String desc)
+			throws ConstructionFailedException {
+		try {
+			String fieldType;
+			if (desc.contains("/")) {
+				fieldType = desc.replace("/", ".").substring(desc.indexOf("L") + 1, desc.length() - 1);
+			} else {
+				fieldType = desc;
+			}
+			Class<?> fieldClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
+
+			if (fieldClass.isInterface() || Modifier.isAbstract(fieldClass.getModifiers())) {
+				Set<String> subclasses = DependencyAnalysis.getInheritanceTree()
+						.getSubclasses(fieldClass.getCanonicalName());
+				String subclass = Randomness.choice(subclasses);
+				fieldClass = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(subclass);
+			}
+
+			Constructor<?> constructor = Randomness.choice(fieldClass.getConstructors());
+			if (constructor != null) {
+				GenericConstructor genericConstructor = new GenericConstructor(constructor, fieldClass);
+				VariableReference variableReference = testFactory.addConstructor(test, genericConstructor, position + 1,
+						2);
+				return variableReference;
+			}
+			return null;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	private AbstractStatement addStatementToSetOrGetPublicField(TestCase test, String fieldType,
-			GenericField genericField, VariableReference parentVarRef, boolean isLeaf, FieldInitializer fieldInitializer) 
+			GenericField genericField, VariableReference parentVarRef, FieldInitializer fieldInitializer) 
 					throws ConstructionFailedException {
 		MethodStatement mStat = test.findTargetMethodCallStatement();
 		int insertionPosition = (parentVarRef != null) ? 
-				parentVarRef.getStPosition() + 1 : mStat.getPosition(); 
+				parentVarRef.getStPosition() + 1 : mStat.getPosition() - 1; 
 		
 		FieldReference fieldVar = null;
-		if (genericField.isStatic()) {
+		if (genericField.isStatic() || parentVarRef == null) {
 			fieldVar = new FieldReference(test, genericField);
 		} else {
-			if (parentVarRef != null) {
-				fieldVar = new FieldReference(test, genericField, parentVarRef);
-			} else {
-				fieldVar = new FieldReference(test, genericField);
-//				VariableReference var = addConstructorForClass(test, insertionPosition,
-//				genericField.getDeclaringClass().getName());
-//				fieldVar = new FieldReference(test, genericField, var);
-			}
+			fieldVar = new FieldReference(test, genericField, parentVarRef);
 		}
 
-		//TODO linyun: check whether the getter is fine
-		AbstractStatement stmt = null;
-		
-		if(isLeaf){
-			stmt = fieldInitializer.assignField(testFactory, test, fieldType, 
-					genericField, insertionPosition, fieldVar);			
-			test.addStatement(stmt, insertionPosition);
-		}
-		else{
-			VariableReference varRef = new VariableReferenceImpl(test, convertToType(fieldType));
-			stmt = new AssignmentStatement(test, varRef, fieldVar);		
-			test.addStatement(stmt, insertionPosition);
-		}
+		VariableReference objRef = fieldInitializer.assignField(testFactory, test, fieldType, 
+				genericField, insertionPosition, fieldVar);	
+		AbstractStatement stmt = new AssignmentStatement(test, fieldVar, objRef);		
+		test.addStatement(stmt, objRef.getStPosition()+1);
 		
 		return stmt;
 	}
@@ -1873,8 +1894,10 @@ public class ConstructionPathSynthesizer {
 			return Double.TYPE;
 		default:
 			Class<?> clazz;
+			String str = desc.substring(1, desc.length()-1);
+			String className = str.replace("/", ".");
 			try {
-				clazz = Class.forName(desc, true,
+				clazz = Class.forName(className, true,
 						TestGenerationContext.getInstance().getClassLoaderForSUT());
 			} catch (ClassNotFoundException e) {
 				clazz = null;
