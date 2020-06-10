@@ -494,6 +494,154 @@ public class TestChromosome extends ExecutableChromosome {
 	
 	private List<Integer> changedPositionsInOldTest = new ArrayList<Integer>();
 	
+	
+	/**
+	 * Each statement is replaced with probability 1/length
+	 *
+	 * @return
+	 */
+	@SuppressWarnings("deprecation")
+	public boolean mutationChangePrimitiveStatement() {
+		boolean changed = false;
+		int lastMutatableStatement = getLastMutatableStatement();
+		double originalPL = 1d / (lastMutatableStatement + 1);
+		
+		TestFactory testFactory = TestFactory.getInstance();
+		
+		int targetMethodPosition = -1;
+		if(!Properties.TARGET_METHOD.isEmpty()) {
+			targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, this.test.size()-1);
+		}
+
+
+		if (Randomness.nextDouble() < Properties.CONCOLIC_MUTATION) {
+			try {
+				changed = mutationConcolic();
+			} catch (Exception exc) {
+				logger.warn("Encountered exception when trying to use concolic mutation: {}", exc.getMessage());
+				logger.debug("Detailed exception trace: ", exc);
+			}
+		}
+		
+		if (!changed) {
+			getChangedPositionsInOldTest().clear();
+			
+			double[] mutationProbability = calculateMutationProbability(this.test.size()-1);
+			List<Integer> forceMutationPosition = checkForceMutationPosition(mutationProbability);
+			
+			for (int position = 0, oldPosition = 0; position < this.test.size(); position++, oldPosition++) {
+				
+				boolean statementChanged = false;
+				Statement statement = test.getStatement(position);
+				statement.setChanged(false);
+				
+				targetMethodPosition = TestGenerationUtil.getTargetMethodPosition(this.test, this.test.size()-1);
+				if(!Properties.TARGET_METHOD.isEmpty() && targetMethodPosition == -1) {
+					int oldDistance = statement.getReturnValue().getDistance();
+					statementChanged = testFactory.insertRandomCall(test, position);
+					statement.getReturnValue().setDistance(oldDistance);
+					statement.setChanged(statementChanged);
+					if(statementChanged) {
+						getChangedPositionsInOldTest().add(oldPosition);
+					}
+					
+					break;
+				}
+				else {
+					double ram = Randomness.nextDouble();
+					double pl = 0;
+					
+					// After 30 iterations
+					if(!MutationPositionDiscriminator.discriminator.isFrozen() && test.size()>0) {
+						if(oldPosition < mutationProbability.length) {
+							/**
+							 * we choose the two largest position as force mutation position
+							 */
+							if(forceMutationPosition.contains(oldPosition)) {
+								pl = 1;
+							}
+							else {
+								pl = mutationProbability[oldPosition] > originalPL ? mutationProbability[oldPosition] : originalPL;							
+							}
+						}
+					}
+					else {
+						pl = 0.5 > originalPL ? 0.5 : originalPL;
+					}
+					
+					if(!Properties.ADOPT_SMART_MUTATION) {
+						pl = originalPL;
+					}
+					
+					if (ram <= pl) {
+						if(position == 1){
+							System.currentTimeMillis();
+						}
+						
+						if (statement instanceof PrimitiveStatement) {
+							assert (test.isValid());
+	
+	//						Statement statement = test.getStatement(position);
+	
+							if(statement.isReflectionStatement())
+								continue;
+	
+							int oldDistance = statement.getReturnValue().getDistance();
+	//						logger.warn(statement.toString());
+							//constraints are handled directly in the statement mutations
+							if (statement instanceof NullStatement) {
+								int pos = statement.getPosition();
+								Statement nextStatement = test.getStatement(pos+1);
+								if (testFactory.changeNullStatement(test, statement)) {
+									statement = test.getStatement(nextStatement.getPosition()-1);
+									
+									changed = true;
+									statementChanged = true;
+									mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
+											TestMutationHistoryEntry.TestMutation.CHANGE, statement));
+									assert ConstraintVerifier.verifyTest(test);		
+								}
+							}
+							else if (statement.mutate(test, testFactory)) {
+								changed = true;
+								statementChanged = true;
+								mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
+								        TestMutationHistoryEntry.TestMutation.CHANGE, statement));
+								assert (test.isValid());
+								assert ConstraintVerifier.verifyTest(test);
+	
+							} 
+							
+							statement.getReturnValue().setDistance(oldDistance);
+							position = statement.getPosition(); // Might have changed due to mutation
+							statement.setChanged(statementChanged);
+							if(statementChanged) {
+								getChangedPositionsInOldTest().add(oldPosition);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if(changed){
+			assert ConstraintVerifier.verifyTest(test);
+		}
+
+		return changed;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * Each statement is replaced with probability 1/length
 	 *

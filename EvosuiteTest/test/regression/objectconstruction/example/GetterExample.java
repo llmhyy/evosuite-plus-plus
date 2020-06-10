@@ -1,5 +1,7 @@
 package regression.objectconstruction.example;
 
+import regression.objectconstruction.example.cascadecall.Field1;
+
 public class GetterExample {
 	private Field1 field;
 	
