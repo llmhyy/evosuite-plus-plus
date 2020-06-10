@@ -253,10 +253,16 @@ public class DataDependencyUtil {
 				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 				.getAllInstructionsAtMethod(className, methodName);
 //		MockFramework.disable();
+		System.currentTimeMillis();
 		if (insList == null && RuntimeInstrumentation.checkIfCanInstrument(className)) {
-			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
-			insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-					.getAllInstructionsAtMethod(className, methodName);
+			try{
+				GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+				insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+						.getAllInstructionsAtMethod(className, methodName);				
+			}
+			catch(Exception e){
+				e.printStackTrace();
+			}
 		}
 
 		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
@@ -283,10 +289,10 @@ public class DataDependencyUtil {
 						if (calledClass.equals(className)) {
 							String calledMethodName = mNode.name + mNode.desc;
 
-							calledClass = confirmClassNameInParentClass(calledClass, mNode);
+							String confirmedCalledClass = confirmClassNameInParentClass(calledClass, mNode);
 							if (calledMethodName != null) {
 								cascadingCallRelations.add(ins);
-								analyzeFieldSetter(calledClass, calledMethodName, field, depth - 1,
+								analyzeFieldSetter(confirmedCalledClass, calledMethodName, field, depth - 1,
 										cascadingCallRelations, setterMap);
 							}
 						} else {
@@ -303,18 +309,18 @@ public class DataDependencyUtil {
 	}
 	
 	private static String confirmClassNameInParentClass(String calledClass, MethodInsnNode mNode) {
-
+		ClassNode classNode = DependencyAnalysis.getClassNode(calledClass);
 		List<String> superClassList = DependencyAnalysis.getInheritanceTree().getOrderedSuperclasses(calledClass);
 		for (String superClass : superClassList) {
 			ClassNode parentClassNode = DependencyAnalysis.getClassNode(superClass);
-			if (containMethod(parentClassNode, mNode)) {
+			if (!containMethod(classNode, mNode) && containMethod(parentClassNode, mNode)) {
 				return superClass;
 			}
 		}
 
 		System.currentTimeMillis();
 
-		return null;
+		return calledClass;
 	}
 	
 	private static boolean containMethod(ClassNode classNode, MethodInsnNode mNode) {
