@@ -287,7 +287,7 @@ public class GraphPool {
 			for (MethodNode m : l) {
 				String fullName = m.name + m.desc;
 					RawControlFlowGraph cfg = GraphPool.getInstance(classLoader).getRawCFG(className, fullName);
-					if (cfg == null) {
+					if (cfg == null && m.instructions.size() != 0) {
 						BytecodeInstructionPool.getInstance(classLoader).registerMethodNode(m, className, m.name + m.desc);
 						BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
 						bytecodeAnalyzer.analyze(classLoader, className, fullName, m);
