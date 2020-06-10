@@ -5,11 +5,11 @@ package regression.objectconstruction.example.staticfield;
  * @author Yun Lin
  *
  */
-public class StaticFieldExample {
+public class PublicStaticFieldExample {
 	
 	private String name;
 	
-	public StaticFieldExample(String name) {
+	public PublicStaticFieldExample(String name) {
 		super();
 		this.setName(name);
 	}

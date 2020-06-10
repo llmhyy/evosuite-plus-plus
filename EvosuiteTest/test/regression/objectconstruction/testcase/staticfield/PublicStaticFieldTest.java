@@ -12,7 +12,7 @@ import com.test.TestUility;
 
 import evosuite.shell.EvoTestResult;
 
-public class StaticFieldTest {
+public class PublicStaticFieldTest {
 	@Before
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;
@@ -26,8 +26,8 @@ public class StaticFieldTest {
 	}
 	
 	@Test
-	public void testStaticFieldExample() {
-		Class<?> clazz = regression.objectconstruction.example.staticfield.StaticFieldExample.class;
+	public void testPublicStaticFieldExample() {
+		Class<?> clazz = regression.objectconstruction.example.staticfield.PublicStaticFieldExample.class;
 
 		String methodName = "method";
 		int parameterNum = 0;
@@ -57,5 +57,10 @@ public class StaticFieldTest {
 //		assert ageT < ageF;
 //		assert timeT <= timeF;
 		assert coverageT == 1.0;
+	}
+	
+	@Test
+	public void testPrivateStaticFieldExample() {
+		//TODO Ziheng
 	}
 }
