@@ -1,4 +1,4 @@
-package regression.objectconstruction.testcase.staticfield;
+package regression.objectconstruction.testcase;
 
 import java.lang.reflect.Method;
 
@@ -12,7 +12,7 @@ import com.test.TestUility;
 
 import evosuite.shell.EvoTestResult;
 
-public class PublicStaticFieldTest {
+public class UnitFunctionTest {
 	@Before
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;

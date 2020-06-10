@@ -1,4 +1,4 @@
-package regression.objectconstruction.example;
+package regression.objectconstruction.example.cascadecall;
 
 public class CascadingCallExample {
 

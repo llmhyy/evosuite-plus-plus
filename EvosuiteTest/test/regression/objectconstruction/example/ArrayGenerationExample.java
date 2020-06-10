@@ -1,5 +1,7 @@
 package regression.objectconstruction.example;
 
+import regression.objectconstruction.example.cascadecall.ClassA;
+
 public class ArrayGenerationExample {
 	
 	private ClassA[] arrayToTest;

@@ -1,0 +1,27 @@
+package regression.objectconstruction.example.arrayelement;
+
+public class ArrayElementExample {
+	
+	private int[] array = new int[10];
+	
+	public void method(int index){
+		if(array[index] < 2000){
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void addElement(int a, int i){
+		if(a > 1000){
+			this.getArray()[i] = a;
+		}
+	}
+
+	public int[] getArray() {
+		return array;
+	}
+
+	public void setArray(int[] array) {
+		this.array = array;
+	}
+	
+}
