@@ -30,7 +30,7 @@ public class ObjectConstructionTest {
 	
 	@Test
 	public void testCascadingCallExample() {
-		Class<?> clazz = regression.objectconstruction.example.CascadingCallExample.class;
+		Class<?> clazz = regression.objectconstruction.example.cascadecall.CascadingCallExample.class;
 
 		String methodName = "targetM";
 		int parameterNum = 0;
@@ -44,10 +44,22 @@ public class ObjectConstructionTest {
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 100;
-		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult resultT = null;
+		EvoTestResult resultF = null;
+
+		try {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		} catch (Exception e) {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		}
 
 		Properties.APPLY_OBJECT_RULE = false;
-		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		
+		try {
+			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		} catch (Exception e) {
+			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		}
 
 		int ageT = resultT.getAge();
 		int timeT = resultT.getTime();

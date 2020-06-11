@@ -22,8 +22,6 @@ public class BranchEnhancementTest {
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = true;
 		Properties.APPLY_OBJECT_RULE = false;
@@ -49,21 +47,35 @@ public class BranchEnhancementTest {
 		EvoTestResult resultT = null;
 		EvoTestResult resultF = null;
 
+		String seed = "1589896747959";
+
 		try {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
-					"1589896747959");
-		} catch (NullPointerException e) {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
-					"1589896747959");
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+		} catch (Exception e1) {
+			try {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			} catch (Exception e2) {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			}
 		}
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		try {
-			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
-					"1589896747959");
-		} catch (NullPointerException e) {
-			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
-					"1589896747959");
+			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+		} catch (Exception e1) {
+			try {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			} catch (Exception e2) {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			}
+		}
+
+		if (resultT == null) {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+		}
+
+		if (resultF == null) {
+			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
 		}
 
 		int ageT = resultT.getAge();
@@ -100,14 +112,30 @@ public class BranchEnhancementTest {
 
 		try {
 			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		} catch (NullPointerException e) {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		} catch (Exception e1) {
+			try {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			} catch (Exception e2) {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			}
 		}
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		try {
 			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		} catch (NullPointerException e) {
+		} catch (Exception e1) {
+			try {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			} catch (Exception e2) {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			}
+		}
+
+		if (resultT == null) {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		}
+
+		if (resultF == null) {
 			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		}
 
@@ -126,6 +154,15 @@ public class BranchEnhancementTest {
 
 	@Test
 	public void testLayeredCallExample() {
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.BRANCH_COMPARISON_TYPES = true;
+		Properties.TIMEOUT = 10000000;
+
+		Properties.ENABLE_BRANCH_ENHANCEMENT = true;
+		Properties.APPLY_OBJECT_RULE = false;
+		Properties.ADOPT_SMART_MUTATION = false;
+
 		Class<?> clazz = regression.branchenhancement.example.LayeredCallExample.class;
 
 		String methodName = "targetM";
@@ -143,21 +180,35 @@ public class BranchEnhancementTest {
 		EvoTestResult resultT = null;
 		EvoTestResult resultF = null;
 
+		String seed = "1589897812206";
+
 		try {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
-					"1589897812206");
-		} catch (NullPointerException e) {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
-					"1589897812206");
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+		} catch (Exception e1) {
+			try {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			} catch (Exception e2) {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			}
 		}
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		try {
-			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
-					"1589897812206");
-		} catch (NullPointerException e) {
-			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach,
-					"1589897812206");
+			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+		} catch (Exception e1) {
+			try {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			} catch (Exception e2) {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			}
+		}
+
+		if (resultT == null) {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+		}
+
+		if (resultF == null) {
+			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
 		}
 
 		int ageT = resultT.getAge();
@@ -175,6 +226,15 @@ public class BranchEnhancementTest {
 
 	@Test
 	public void testMultipleConstructorsExample() {
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.BRANCH_COMPARISON_TYPES = true;
+		Properties.TIMEOUT = 10000000;
+
+		Properties.ENABLE_BRANCH_ENHANCEMENT = true;
+		Properties.APPLY_OBJECT_RULE = false;
+		Properties.ADOPT_SMART_MUTATION = false;
+
 		Class<?> clazz = regression.branchenhancement.example.MultipleConstructorsExample.class;
 
 		String methodName = "targetM";
@@ -194,31 +254,58 @@ public class BranchEnhancementTest {
 
 		try {
 			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		} catch (NullPointerException e) {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		} catch (Exception e1) {
+			try {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			} catch (Exception e2) {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			}
 		}
-		
+
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		try {
 			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		} catch (NullPointerException e) {
+		} catch (Exception e1) {
+			try {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			} catch (Exception e2) {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			}
+		}
+
+		if (resultT == null) {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		}
+
+		if (resultF == null) {
 			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		}
 
 		int ageT = resultT.getAge();
 		int timeT = resultT.getTime();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
 		double coverageT = resultT.getCoverage();
-		double coverageF = resultF.getCoverage();
 
 		assert ageT <= 20;
 		assert timeT <= 3;
+		assert ageT < ageF;
+		assert timeT < timeF;
 		assert coverageT == 1.0;
-		assert coverageF == 0.0;
 	}
 
 	@Test
-	public void testMultipleExceptionExample() {
-		Class<?> clazz = regression.branchenhancement.example.MultipleExceptionExample.class;
+	public void testMultipleExceptionsExample() {
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.BRANCH_COMPARISON_TYPES = true;
+		Properties.TIMEOUT = 10000000;
+
+		Properties.ENABLE_BRANCH_ENHANCEMENT = true;
+		Properties.APPLY_OBJECT_RULE = false;
+		Properties.ADOPT_SMART_MUTATION = false;
+
+		Class<?> clazz = regression.branchenhancement.example.MultipleExceptionsExample.class;
 
 		String methodName = "test";
 		int parameterNum = 2;
@@ -237,14 +324,30 @@ public class BranchEnhancementTest {
 
 		try {
 			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		} catch (NullPointerException e) {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		} catch (Exception e1) {
+			try {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			} catch (Exception e2) {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			}
 		}
-		
+
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		try {
 			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-		} catch (NullPointerException e) {
+		} catch (Exception e1) {
+			try {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			} catch (Exception e2) {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			}
+		}
+
+		if (resultT == null) {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		}
+
+		if (resultF == null) {
 			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		}
 

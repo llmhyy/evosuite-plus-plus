@@ -4,7 +4,7 @@ package regression.branchenhancement.example;
  * This example requires a very large number and multiple exceptions
  *
  */
-public class MultipleExceptionExample {
+public class MultipleExceptionsExample {
 
 	public int test(int a, int b) throws Exception {
 		if (a < b) {

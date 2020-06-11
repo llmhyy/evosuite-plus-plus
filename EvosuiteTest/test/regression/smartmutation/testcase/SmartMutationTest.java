@@ -44,10 +44,37 @@ public class SmartMutationTest {
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 100;
-		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult resultT = null;
+		EvoTestResult resultF = null;
+		
+		try {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		} catch (Exception e1) {
+			try {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			} catch (Exception e2) {
+				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			}
+		}
 
 		Properties.ADOPT_SMART_MUTATION = false;
-		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		try {
+			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		} catch (Exception e1) {
+			try {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			} catch (Exception e2) {
+				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			}
+		}
+
+		if (resultT == null) {
+			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		}
+
+		if (resultF == null) {
+			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		}
 
 		int ageT = resultT.getAge();
 		int timeT = resultT.getTime();
