@@ -89,6 +89,7 @@ import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.statements.StringPrimitiveStatement;
 import org.evosuite.testcase.statements.environment.EnvironmentStatements;
 import org.evosuite.testcase.statements.numeric.BooleanPrimitiveStatement;
 import org.evosuite.testcase.statements.numeric.BytePrimitiveStatement;
@@ -2618,7 +2619,15 @@ public class TestFactory {
 							
 						}
 						else {
-							obj = createObject(test, type, nullStat.getPosition(), 0, null, false, false,true);							
+							GenericClass claz = new GenericClass(type);
+							if(claz.isString()){
+								StringPrimitiveStatement ss = new StringPrimitiveStatement(test, "");
+								ss.randomize();
+								obj = test.addStatement(ss, nullStat.getPosition());
+							}
+							else{
+								obj = createObject(test, type, nullStat.getPosition(), 0, null, false, false, false);															
+							}
 						}
 					} catch (Exception e) {
 						System.currentTimeMillis();
@@ -2631,12 +2640,6 @@ public class TestFactory {
 					VariableReference ref = nullStat.getVariableReferences().iterator().next();
 					test.replace(ref, obj);
 					test.remove(nullStat.getPosition());
-//					for(int i=nullStat.getPosition()+1; i<test.size(); i++) {
-//						Statement stat = test.getStatement(i);
-//						if(stat.references(ref)) {
-//							stat.replace(ref, obj);
-//						}
-//					}
 				}
 				else {
 					return false;
