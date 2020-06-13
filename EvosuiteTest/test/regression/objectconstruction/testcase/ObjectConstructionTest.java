@@ -20,8 +20,6 @@ public class ObjectConstructionTest {
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = true;

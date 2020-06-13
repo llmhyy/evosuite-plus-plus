@@ -19,8 +19,8 @@ script:
    - mvn -Dtest=MultipleConstructorsExampleTest test -pl EvosuiteTest -e
    - mvn -Dtest=MultipleExceptionsExampleTest test -pl EvosuiteTest -e
    # fbranch
-   - mvn -Dtest=FBranchTest#testValueRangeExample test -pl EvosuiteTest -e
+   - mvn -Dtest=ValueRangeExampleTest test -pl EvosuiteTest -e
    # smart mutation
-   - mvn -Dtest=SmartMutationTest#testStringArrayExample test -pl EvosuiteTest -e
+   - mvn -Dtest=StringArrayExampleTest test -pl EvosuiteTest -e
    # object construction
-   - mvn -Dtest=ObjectConstructionTest#testCascadingCallExample test -pl EvosuiteTest -e
+   - mvn -Dtest=CascadingCallExampleTest test -pl EvosuiteTest -e

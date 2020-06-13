@@ -2,27 +2,14 @@ package regression.fbranch.testcase;
 
 import java.lang.reflect.Method;
 
-import org.evosuite.Properties;
-import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.test.TestUility;
 
 import evosuite.shell.EvoTestResult;
 
-public class FBranchTest {
-	@Before
-	public void beforeTest() {
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-
-		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
-		Properties.APPLY_OBJECT_RULE = false;
-		Properties.ADOPT_SMART_MUTATION = false;
-	}
-
+public class ValueRangeExampleTest extends FBranchTestSetup {
 	@Test
 	public void testValueRangeExample() {
 		Class<?> clazz = regression.fbranch.example.ValueRangeExample.class;
@@ -38,13 +25,13 @@ public class FBranchTest {
 		int timeBudget = 200;
 		EvoTestResult resultT = null;
 		EvoTestResult resultF = null;
-		
+
 		try {
 			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
 		} catch (NullPointerException e) {
 			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
 		}
-		
+
 		try {
 			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
 		} catch (NullPointerException e) {
