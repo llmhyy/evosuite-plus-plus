@@ -541,10 +541,9 @@ public class VirtualNetwork {
 					"Evo_lo0", 1, null, 16384, true, MockInetAddress.getByName("127.0.0.1"));
 			networkInterfaces.add(loopback);
 
-	        String wifiAddress = InetAddress.getLocalHost().getHostAddress(); 
 			NetworkInterfaceState wifi = new NetworkInterfaceState(
 					"Evo_en0", 5, new byte[]{0, 42, 0, 42, 0, 42}, 
-					1500, false, MockInetAddress.getByName(wifiAddress));
+					1500, false, MockInetAddress.getByName("192.168.1.42"));
 			networkInterfaces.add(wifi);
 		} catch(Exception e) {
 			//this should never happen
