@@ -8,15 +8,19 @@ public class StringConstraintExample {
 		} else
 			return 0;
 		
+		if(!var0.contains(var1))
+			return 0;
+		
+		if (!var2.endsWith(var1))
+			return 0;
+		
 		String tmp  = var0.replace(var1, "abc");
 		if (var2.equals(tmp)) {
-			System.currentTimeMillis();
-		} else
-			return 0;
-		if (var2.endsWith(var1)) {
 			return 1;
 		} else
 			return 0;
+		
+		
 	}
 
 }
