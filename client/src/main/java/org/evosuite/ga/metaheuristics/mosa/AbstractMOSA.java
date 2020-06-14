@@ -208,6 +208,17 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		TestChromosome tch = (TestChromosome) offspring;
 		tch.clearMutationHistory();
 		offspring.mutate();
+		
+//		int size = tch.getTestCase().size();
+//		Statement s0 = tch.getTestCase().getStatement(size-1);
+//		MethodStatement ms = (MethodStatement)s0;
+//		List<VariableReference> vars = ms.getParameterReferences();
+//		for(int i=0; i<vars.size()-1; i++){
+//			if(vars.get(i).getStPosition() == vars.get(i+1).getStPosition()){
+//				System.currentTimeMillis();
+//			}
+//		}
+		
 		if (!offspring.isChanged()) {
 			// if offspring is not changed, we try to mutate it once again
 			offspring.mutate();
