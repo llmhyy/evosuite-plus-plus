@@ -7,11 +7,11 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.test.TestUility;
+import com.test.TestUtility;
 
 import regression.objectconstruction.example.ObjectExample;
 
-public class ObjectTest extends TestUility{
+public class ObjectTest extends TestUtility{
 	@Test
 	public void testList() {
 		Class<?> clazz = ObjectExample.class;
@@ -20,7 +20,7 @@ public class ObjectTest extends TestUility{
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -37,7 +37,7 @@ public class ObjectTest extends TestUility{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 30000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 	
 	@Test
@@ -48,7 +48,7 @@ public class ObjectTest extends TestUility{
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -65,7 +65,7 @@ public class ObjectTest extends TestUility{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 30000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 	
 	@Test
@@ -76,7 +76,7 @@ public class ObjectTest extends TestUility{
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -93,6 +93,6 @@ public class ObjectTest extends TestUility{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 30000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 }

@@ -7,11 +7,11 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.test.TestUility;
+import com.test.TestUtility;
 
 import regression.visibility.example.VsibilityExample;
 
-public class VisibilityTest extends TestUility{
+public class VisibilityTest extends TestUtility{
 	@Test
 	public void testVisibility() {
 		Class<?> clazz = VsibilityExample.class;
@@ -20,7 +20,7 @@ public class VisibilityTest extends TestUility{
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -37,6 +37,6 @@ public class VisibilityTest extends TestUility{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 100;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 }

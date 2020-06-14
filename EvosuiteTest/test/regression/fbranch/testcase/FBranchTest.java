@@ -8,7 +8,7 @@ import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.test.TestUility;
+import com.test.TestUtility;
 
 import evosuite.shell.EvoTestResult;
 
@@ -30,7 +30,7 @@ public class FBranchTest {
 		int parameterNum = 2;
 
 		String targetClass = clazz.getCanonicalName();
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/test-classes";
@@ -40,15 +40,15 @@ public class FBranchTest {
 		EvoTestResult resultF = null;
 		
 		try {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
+			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
 		} catch (NullPointerException e) {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
+			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
 		}
 		
 		try {
-			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
+			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
 		} catch (NullPointerException e) {
-			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
+			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
 		}
 
 		int ageT = resultT.getAge();

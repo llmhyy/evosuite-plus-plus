@@ -8,7 +8,7 @@ import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.test.TestUility;
+import com.test.TestUtility;
 
 import evosuite.shell.EvoTestResult;
 
@@ -33,7 +33,7 @@ public class UnitFunctionTest {
 		int parameterNum = 0;
 
 		String targetClass = clazz.getCanonicalName();
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/test-classes";
@@ -41,7 +41,7 @@ public class UnitFunctionTest {
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 1000000;
-		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 
 //		Properties.APPLY_OBJECT_RULE = false;
 //		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);

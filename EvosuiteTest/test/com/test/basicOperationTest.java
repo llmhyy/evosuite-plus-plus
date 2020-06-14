@@ -16,7 +16,7 @@ public class basicOperationTest {
 		int parameterNum = 10;
 		
 		String targetClass = clazz.getCanonicalName();
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -33,7 +33,7 @@ public class basicOperationTest {
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 100000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 	}
 

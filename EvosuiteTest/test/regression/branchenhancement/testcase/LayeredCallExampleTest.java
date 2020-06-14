@@ -6,7 +6,7 @@ import org.evosuite.Properties;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.test.TestUility;
+import com.test.TestUtility;
 
 import evosuite.shell.EvoTestResult;
 
@@ -19,7 +19,7 @@ public class LayeredCallExampleTest extends BranchEnhancementTestSetup {
 		int parameterNum = 3;
 
 		String targetClass = clazz.getCanonicalName();
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/test-classes";
@@ -33,32 +33,32 @@ public class LayeredCallExampleTest extends BranchEnhancementTestSetup {
 		String seed = "1589897812206";
 
 		try {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
 		} catch (Exception e1) {
 			try {
-				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+				resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
 			} catch (Exception e2) {
-				resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+				resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
 			}
 		}
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		try {
-			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
 		} catch (Exception e1) {
 			try {
-				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+				resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
 			} catch (Exception e2) {
-				resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+				resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
 			}
 		}
 
 		if (resultT == null) {
-			resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
 		}
 
 		if (resultF == null) {
-			resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
+			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, seed);
 		}
 
 		int ageT = resultT.getAge();
