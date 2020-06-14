@@ -35,8 +35,5 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="/EvosuiteTest/src" sourcepath="/EvosuiteTest/src"/>
-	<classpathentry exported="true" kind="lib" path="/EvosuiteTest/test" sourcepath="/EvosuiteTest/test"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/EvosuiteTest"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

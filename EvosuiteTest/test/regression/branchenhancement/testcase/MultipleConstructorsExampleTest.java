@@ -62,13 +62,11 @@ public class MultipleConstructorsExampleTest extends BranchEnhancementTestSetup 
 		int ageT = resultT.getAge();
 		int timeT = resultT.getTime();
 		int ageF = resultF.getAge();
-		int timeF = resultF.getTime();
 		double coverageT = resultT.getCoverage();
 
 		assert ageT <= 20;
 		assert timeT <= 3;
 		assert ageT < ageF;
-		assert timeT < timeF;
 		assert coverageT == 1.0;
 	}
 }

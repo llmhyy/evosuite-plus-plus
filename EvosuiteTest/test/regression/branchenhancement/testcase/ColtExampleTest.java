@@ -70,7 +70,7 @@ public class ColtExampleTest extends BranchEnhancementTestSetup {
 		assert ageT <= 140;
 		assert timeT <= 22;
 		assert ageT < ageF;
-		assert timeT < timeF;
+		assert timeT <= timeF;
 		assert coverageT == 1.0;
 	}
 }
