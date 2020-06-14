@@ -10,7 +10,7 @@ import com.test.TestUtility;
 
 import evosuite.shell.EvoTestResult;
 
-public class StringArrayExampleTest {
+public class StringArrayExampleTest extends SmartMutationTestSetup {
 	@Test
 	public void testStringArrayExample() {
 		Class<?> clazz = regression.smartmutation.example.StringArrayExample.class;
