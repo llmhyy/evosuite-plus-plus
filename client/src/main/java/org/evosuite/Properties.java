@@ -221,6 +221,9 @@ public class Properties {
 
 	@Parameter(key = "max_int", group = "Test Creation", description = "Maximum size of randomly generated integers (minimum range = -1 * max)")
 	public static int MAX_INT = 2048;
+	
+	@Parameter(key = "allow_mutating_parameters", group = "Test Creation", description = "Whether we allow parameters share the same variables, risk for local optima")
+	public static final boolean ALLOW_MUTATE_PARAMETER = false;
 
 	@Parameter(key = "restrict_pool", group = "Test Creation", description = "Prohibit integers in the pool greater than max_int")
 	public static boolean RESTRICT_POOL = false;
@@ -2533,8 +2536,6 @@ public class Properties {
 	
 	
 	public static final int OBJECT_CONSTRUCTION_DEPTH = 2;
-
-	
 
 	/*
 	 * whether or not the regression mode is running

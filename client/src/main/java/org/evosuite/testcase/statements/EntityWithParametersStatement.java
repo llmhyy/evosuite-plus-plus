@@ -233,7 +233,9 @@ public abstract class EntityWithParametersStatement extends AbstractStatement{
     }
 
     protected boolean mutateParameter(TestCase test, int numParameter) {
-
+    	if(!Properties.ALLOW_MUTATE_PARAMETER)
+    		return false;
+    	
         // replace a parameter
         VariableReference parameter = parameters.get(numParameter);
 
