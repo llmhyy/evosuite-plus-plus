@@ -1,5 +1,9 @@
 package regression.objectconstruction.example.cascadecall;
 
+/**
+ * Test the computation graph of cascading call to set field. 
+ *
+ */
 public class CascadingCallExample {
 
 	private int fieldToSet;

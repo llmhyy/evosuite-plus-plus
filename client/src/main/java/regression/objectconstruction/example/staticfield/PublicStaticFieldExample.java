@@ -1,7 +1,7 @@
 package regression.objectconstruction.example.staticfield;
 
 /**
- * this example is to test when the computation graph work well to generate static field. 
+ * this example is to test when the computation graph work well to generate public static field. 
  * @author Yun Lin
  *
  */
@@ -10,13 +10,12 @@ public class PublicStaticFieldExample {
 	private String name;
 	
 	public PublicStaticFieldExample(String name) {
-		super();
 		this.setName(name);
 	}
 
 	public void method(){
-		if(Config.num > 1000){
-			if(Config.object.getName().equals("test")){
+		if(Config.numPublic > 1000){
+			if(Config.objPublic.getName().equals("test")){
 				System.currentTimeMillis();
 			}
 		}

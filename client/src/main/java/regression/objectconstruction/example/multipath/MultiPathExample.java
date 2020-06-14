@@ -1,6 +1,6 @@
 package regression.objectconstruction.example.multipath;
 
-public class MutiPathExample {
+public class MultiPathExample {
 	public void checkRules(Param p1, Param p2){
 		State s1 = p1.getState();
 		State s2 = p2.getState();

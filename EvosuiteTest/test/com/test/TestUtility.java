@@ -11,7 +11,7 @@ import org.evosuite.result.TestGenerationResult;
 
 import evosuite.shell.EvoTestResult;
 
-public class TestUility {
+public class TestUtility {
 	@SuppressWarnings("unchecked")
 	public static EvoTestResult evosuite(String targetClass, String targetMethod, String cp, int seconds,
 			boolean instrumentContext, String fitnessAppraoch, String... seed) {

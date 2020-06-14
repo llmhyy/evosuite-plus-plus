@@ -1,5 +1,9 @@
 package regression.objectconstruction.example.arrayelement;
 
+/**
+ * Test the computation graph of array element generation. 
+ *
+ */
 public class ArrayElementExample {
 	
 	private int[] array = new int[10];
