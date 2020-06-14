@@ -8,7 +8,7 @@ import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.test.TestUility;
+import com.test.TestUtility;
 
 import evosuite.shell.EvoTestResult;
 
@@ -33,7 +33,7 @@ public class StringConstraintTest {
 		int parameterNum = 3;
 
 		String targetClass = clazz.getCanonicalName();
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/test-classes";
@@ -44,7 +44,7 @@ public class StringConstraintTest {
 		Properties.APPLY_OBJECT_RULE = false;
 		Properties.P_TEST_INSERT = 0;
 		Properties.CHROMOSOME_LENGTH = 10;
-		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, "");
+		EvoTestResult resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach, "");
 		System.currentTimeMillis();
 		
 //		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
