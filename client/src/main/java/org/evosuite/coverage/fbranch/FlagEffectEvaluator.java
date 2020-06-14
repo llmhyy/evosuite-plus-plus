@@ -274,7 +274,14 @@ public class FlagEffectEvaluator {
 			return stringDef;
 		}
 		else if(stringDef.isLocalVariableUse()) {
-			List<BytecodeInstruction> defs = DefUseAnalyzer.getDefFromUse(stringDef);
+			List<BytecodeInstruction> defs = null;
+			try{
+				defs = DefUseAnalyzer.getDefFromUse(stringDef);				
+			}
+			catch(Exception e){
+				
+			}
+			
 			if(defs != null && defs.size() > 0) {
 				return defs.get(0);				
 			}
