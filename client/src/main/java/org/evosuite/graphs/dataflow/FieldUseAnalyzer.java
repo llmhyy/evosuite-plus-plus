@@ -173,7 +173,9 @@ public class FieldUseAnalyzer {
 		 */
 		for(AbstractInsnNode insNode: srcValue.insns) {
 			BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
-			searchDefDependentVariables(defIns, cfg, allLeafDepVars, visitedIns, callGraphDepth);
+			if (defIns != null) {
+				searchDefDependentVariables(defIns, cfg, allLeafDepVars, visitedIns, callGraphDepth);
+			}
 		}
 	}
 	
