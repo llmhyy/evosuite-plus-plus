@@ -7,10 +7,9 @@ import org.junit.Test;
 
 import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
-import regression.objectconstruction.testcase.ObjectConstructionTestSetup;
 import sf100.CommonTestUtil;
 
-public class TestIssue138 extends ObjectConstructionTestSetup {
+public class TestIssue138 extends DebugSetup {
 
 	@Test
 	public void run138() {

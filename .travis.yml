@@ -10,7 +10,7 @@ jdk:
 
 install:
    - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B
-   
+
 script:
    # branch enhancement
    - mvn -Dtest=ColtExampleTest test -pl EvosuiteTest -e

@@ -8,13 +8,13 @@ import org.junit.Test;
 import evosuite.shell.EvoTestResult;
 import sf100.CommonTestUtil;
 
-public class TestIssue144 extends DebugSetup {
+public class TestIssue145 extends DebugSetup {
 
 	@Test
-	public void run144() {
+	public void run145() {
 		String projectId = "101_weka";
 		String[] targetMethods = new String[] {
-				"org.apache.commons.compress.archivers.tar.TarArchiveEntry#isGNULongNameEntry()Z" };
+				"weka.clusterers.Canopy#setOptions([Ljava/lang/String;)V" };
 
 		List<EvoTestResult> results0 = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> results1 = new ArrayList<EvoTestResult>();
