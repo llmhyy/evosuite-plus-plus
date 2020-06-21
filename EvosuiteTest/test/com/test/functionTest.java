@@ -16,7 +16,7 @@ public class functionTest {
 		int parameterNum = 6;
 		
 		String targetClass = clazz.getCanonicalName();
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -35,7 +35,7 @@ public class functionTest {
 		Properties.DSE_CONSTRAINT_SOLVER_TIMEOUT_MILLIS = 30000;
 		
 		int timeBudget = 100000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 	}
 

@@ -1,20 +1,26 @@
-
 language: java
-sudo: false
-dist: trusty
+sudo: true
+# dist: trusty
 
+os:
+   - linux
+  
 jdk:
-  - oraclejdk8
+   - openjdk8
+
+install:
+   - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B
 
 script:
-   - mvn -Dtest=BranchEnhancementTest#testColtExample test -pl EvosuiteTest -e
-   - mvn -Dtest=BranchEnhancementTest#testInevitableConstructorExample test -pl EvosuiteTest -e
-   - mvn -Dtest=BranchEnhancementTest#testLayeredCallExample test -pl EvosuiteTest -e
-   - mvn -Dtest=BranchEnhancementTest#testMultipleConstructorsExample test -pl EvosuiteTest -e
-   - mvn -Dtest=BranchEnhancementTest#testMultipleExceptionExample test -pl EvosuiteTest -e
-   - mvn -Dtest=PExampleTest#testPExample test -pl EvosuiteTest -e
-   - mvn -Dtest=SmartMutationTest#testStringArrayExample test -pl EvosuiteTest -e
-   - mvn -Dtest=CascadingCallExampleTest#testCascadingCallExample test -pl EvosuiteTest -e
-   - mvn -Dtest=ArrayGenerationExampleTest#testArrayGenerationExample test -pl EvosuiteTest -e
-   
-   
+   # branch enhancement
+   - mvn -Dtest=ColtExampleTest test -pl EvosuiteTest -e
+   - mvn -Dtest=InevitableConstructorExampleTest test -pl EvosuiteTest -e
+   - mvn -Dtest=LayeredCallExampleTest test -pl EvosuiteTest -e
+   - mvn -Dtest=MultipleConstructorsExampleTest test -pl EvosuiteTest -e
+   - mvn -Dtest=MultipleExceptionsExampleTest test -pl EvosuiteTest -e
+   # fbranch
+   - mvn -Dtest=ValueRangeExampleTest test -pl EvosuiteTest -e
+   # smart mutation
+   - mvn -Dtest=StringArrayExampleTest test -pl EvosuiteTest -e
+   # object construction
+   - mvn -Dtest=CascadingCallExampleTest test -pl EvosuiteTest -e

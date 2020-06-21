@@ -11,12 +11,8 @@ public class Student {
 		return "Student [age=" + age + ", height=" + height + "]";
 	}
 
-	public int getAge(int a) {
+	public int getAge() {
 		return age;
-	}
-
-	public int getfadfad() {
-		return 0;
 	}
 	
 	public void setAge(int age) {

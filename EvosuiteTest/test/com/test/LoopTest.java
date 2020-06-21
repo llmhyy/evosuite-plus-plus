@@ -7,7 +7,7 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-public class LoopTest extends TestUility{
+public class LoopTest extends TestUtility{
 	
 	@Test
 	public void test() {
@@ -17,7 +17,7 @@ public class LoopTest extends TestUility{
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes;lib/commons-math-2.2.jar";
@@ -38,7 +38,7 @@ public class LoopTest extends TestUility{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 30000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 //		List<Tuple> l = new ArrayList<>();
 //		for(int i=0; i<7; i++){

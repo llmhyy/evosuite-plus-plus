@@ -20,17 +20,17 @@ public class Example {
 //	}
 //
 	public void test2(int num1, Student s) {
-		int c = test1.getA() + s.getAge(0);
+		int c = test1.getA() + s.getAge();
 		if (x.test.isOk(num1, c)) {
 			return;
 		}
 	}
 	
 	public boolean test(Student student){
-		if(Util.isOk(student.getAge(0), 
-				student.getFriend().getAge(0))){
-			if(Util.isCornerCase(student.getAge(0), 
-					student.getFriend().getAge(0))){
+		if(Util.isOk(student.getAge(), 
+				student.getFriend().getAge())){
+			if(Util.isCornerCase(student.getAge(), 
+					student.getFriend().getAge())){
 				return true;
 			}	
 		}

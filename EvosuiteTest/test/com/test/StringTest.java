@@ -7,7 +7,7 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-public class StringTest extends TestUility{
+public class StringTest extends TestUtility{
 	
 	@Test
 	public void test() {
@@ -17,7 +17,7 @@ public class StringTest extends TestUility{
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -36,7 +36,7 @@ public class StringTest extends TestUility{
 		String fitnessApproach = "branch";
 		
 		int timeBudget = 200;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 
 	

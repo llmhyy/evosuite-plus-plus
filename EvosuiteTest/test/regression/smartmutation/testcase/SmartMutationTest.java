@@ -10,7 +10,7 @@ import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.test.TestUility;
+import com.test.TestUtility;
 
 import evosuite.shell.EvoTestResult;
 import sf100.CommonTestUtil;
@@ -20,8 +20,6 @@ public class SmartMutationTest {
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.BRANCH_COMPARISON_TYPES = true;
-		Properties.TIMEOUT = 10000000;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = false;
@@ -36,7 +34,7 @@ public class SmartMutationTest {
 		int parameterNum = 1;
 
 		String targetClass = clazz.getCanonicalName();
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/test-classes";
@@ -44,10 +42,37 @@ public class SmartMutationTest {
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 100;
-		EvoTestResult resultT = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult resultT = null;
+		EvoTestResult resultF = null;
+		
+		try {
+			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		} catch (Exception e1) {
+			try {
+				resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			} catch (Exception e2) {
+				resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			}
+		}
 
 		Properties.ADOPT_SMART_MUTATION = false;
-		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		try {
+			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		} catch (Exception e1) {
+			try {
+				resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			} catch (Exception e2) {
+				resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			}
+		}
+
+		if (resultT == null) {
+			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		}
+
+		if (resultF == null) {
+			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		}
 
 		int ageT = resultT.getAge();
 		int timeT = resultT.getTime();
