@@ -19,6 +19,9 @@
  */
 package org.evosuite.testcase.factories;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 
@@ -97,15 +100,24 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 //				Map<Branch, List<ConstructionPath>> difficulties = Dataflow.checkObjectDifficultPath();
 				
 				Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+				ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
+				Collections.sort(rankedList, new Comparator<Branch>() {
+					@Override
+					public int compare(Branch o1, Branch o2) {
+						return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
+					}
+				});
+				
 				Branch b = Randomness.choice(interestedBranches.keySet());
-				logger.warn("Selected branch:" + b + "\n");
+//				Branch b = rankedList.get(19);
+//				logger.warn("Selected branch:" + b + "\n");
 				
 //				List<ConstructionPath> paths = difficulties.get(b);
 				try {
 					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 					cpSynthesizer.constructDifficultObjectStatement(test, b);
 					
-					TestCaseLegitimizer.legitimize(test);
+					test = TestCaseLegitimizer.legitimize(test);
 					
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -125,8 +137,6 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 		if (tracerEnabled)
 			ExecutionTracer.enable();
 
-		System.currentTimeMillis();
-		
 		return test;
 	}
 

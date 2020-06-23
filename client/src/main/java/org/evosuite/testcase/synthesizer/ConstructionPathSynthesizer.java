@@ -1218,73 +1218,99 @@ public class ConstructionPathSynthesizer {
 		
 		List<Executable> fieldSettingMethods = new ArrayList<>();
 		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = new ArrayList<>();
+		List<Integer> numberOfValidParams = new ArrayList<>();
+		
 		for(Method m: targetClass.getMethods()){
 			String signature = m.getName() + ReflectionUtil.getSignature(m);
-			List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
-			Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<>();
-			Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = 
-					DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
-							field, 5, cascadingCallRelations, setterMap);
-			if(!fieldSetterMap.isEmpty()){
-				fieldSettingMethods.add(m);
-				difficultyList.add(fieldSetterMap);
-			}
+			findSetterInfo(field, targetClass, fieldSettingMethods, difficultyList, numberOfValidParams, m, signature);
 		}
 		
 		for(Constructor c: targetClass.getConstructors()){
 			String signature = "<init>" + ReflectionUtil.getSignature(c);
-			List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
-			Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<>();
-			Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = 
-					DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
-							field, 5, cascadingCallRelations, setterMap);
-			if(!fieldSetterMap.isEmpty()){
-				fieldSettingMethods.add(c);
-				difficultyList.add(fieldSetterMap);
+			findSetterInfo(field, targetClass, fieldSettingMethods, difficultyList, numberOfValidParams, c, signature);
+		}
+		
+		if(!fieldSettingMethods.isEmpty()){
+//			Executable entry = Randomness.choice(fieldSettingMethods);
+			double[] scores = new double[fieldSettingMethods.size()];
+			for(int i=0; i<scores.length; i++){
+				scores[i] = estimateCoverageLikelihood(difficultyList.get(i), numberOfValidParams.get(i));
+				System.currentTimeMillis();
+			}
+			
+			double[] probability = normalize(scores);
+			double p = Randomness.nextDouble();
+			int selected = select(p, probability);
+			return fieldSettingMethods.get(selected);
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * we have three factors to estimate how difficult a setter is to influence some branch in the 
+	 * target method, (1) call chain, (2) the control flow in the call chain, (3) the number of mutable 
+	 * variables.
+	 * 
+	 * @param map
+	 * @param integer
+	 * @return
+	 */
+	private double estimateCoverageLikelihood(Map<BytecodeInstruction, List<BytecodeInstruction>> map,
+			Integer integer) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	private int select(double p, double[] probability) {
+		for(int i=0; i<probability.length; i++){
+			if(p<=probability[i]){
+				return i;
 			}
 		}
 		
-//		System.currentTimeMillis();
-		Executable entry = Randomness.choice(fieldSettingMethods);
-		return entry;
+		return 0;
+	}
+
+	private double[] normalize(double[] scores) {
+		double sum = 0;
+		for(int i=0; i<scores.length; i++){
+			sum += scores[i];
+		}
 		
+		double[] prob = new double[scores.length];
+		for(int i=0; i<scores.length; i++){
+			prob[i] = scores[i]/sum;
+		}
 		
-//		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
-//
-//		
-//		Map<Executable, Double> targetMethods = new HashMap<>();
-//		for (BytecodeInstruction ins : insList) {
-//			if (ins.getASMNodeString().contains(opcode)) {
-//				FieldInsnNode insnNode = ((FieldInsnNode) ins.getASMNode());
-//				String tmpName = insnNode.name;
-//				String tmpOwner = insnNode.owner;
-//				if (tmpName.equals(field.getName()) && tmpOwner.equals(fieldOwner)) {
-//					String methodName = ins.getMethodName();
-//					org.objectweb.asm.Type[] types = org.objectweb.asm.Type
-//							.getArgumentTypes(methodName.substring(methodName.indexOf("("), methodName.length()));
-//					Class<?>[] paramClasses = new Class<?>[types.length];
-//					int index = 0;
-//					for (org.objectweb.asm.Type type : types) {
-//						Class<?> paramClass = getClassForType(type);
-//						paramClasses[index++] = paramClass;
-//					}
-//
-//					if (!methodName.contains("<init>") && !(methodName.equals(Properties.TARGET_METHOD)
-//							&& ins.getClassName().equals(Properties.TARGET_CLASS))) {
-//						Method targetMethod = fieldDeclaringClass
-//								.getMethod(methodName.substring(0, methodName.indexOf("(")), paramClasses);
-//						
-//						//TODO set a score
-//					}
-//					else if (methodName.contains("<init>")) {
-//						Constructor targetConstructor = fieldDeclaringClass.getDeclaredConstructor(paramClasses);
-//						//TODO set a score
-//					}
-//				}
-//			}
-//		}
-//		Map.Entry<Executable, Parameter> entry = Randomness.choice(targetMethods.entrySet());
-//		return entry;
+		return prob;
+	}
+
+	
+
+	private void findSetterInfo(Field field, Class<?> targetClass, List<Executable> fieldSettingMethods,
+			List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList, List<Integer> numberOfValidParams,
+			Executable m, String signature) {
+		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
+		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<>();
+		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = 
+				DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
+						field, 5, cascadingCallRelations, setterMap);
+		
+		Set<Integer> releventPrams = new HashSet<>();
+		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
+			BytecodeInstruction setterIns = entry.getKey();
+			List<BytecodeInstruction> callList = entry.getValue();
+			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, 
+					targetClass.getCanonicalName(), signature, callList);
+			releventPrams.addAll(validParamPos);
+		}
+		
+		if(!fieldSetterMap.isEmpty()){
+			fieldSettingMethods.add(m);
+			difficultyList.add(fieldSetterMap);
+			numberOfValidParams.add(releventPrams.size());
+		}
 	}
 	
 	
