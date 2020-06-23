@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import com.example.Example4;
 
-public class Example4Test extends TestUility{
+public class Example4Test extends TestUtility{
 	
 	@Test
 	public void test() {
@@ -19,7 +19,7 @@ public class Example4Test extends TestUility{
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
-		Method method = TestUility.getTargetMethod(methodName, clazz, parameterNum);
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes";
@@ -39,7 +39,7 @@ public class Example4Test extends TestUility{
 //		Properties.DSE_VARIABLE_RESETS = 100;
 		
 		int timeBudget = 3000;
-		TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 
 	
