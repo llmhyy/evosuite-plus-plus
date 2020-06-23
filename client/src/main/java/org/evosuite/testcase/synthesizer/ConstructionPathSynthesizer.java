@@ -1217,6 +1217,11 @@ public class ConstructionPathSynthesizer {
 				.loadClass(targetClassName);
 		
 		List<Executable> fieldSettingMethods = new ArrayList<>();
+		/**
+		 * map <field setter instruction, <m_1, ..., m_n>>, where 
+		 * m_n is the method to call field setter instruction
+		 * m_1 is the method called by test
+		 */
 		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = new ArrayList<>();
 		List<Integer> numberOfValidParams = new ArrayList<>();
 		
@@ -1257,9 +1262,9 @@ public class ConstructionPathSynthesizer {
 	 * @return
 	 */
 	private double estimateCoverageLikelihood(Map<BytecodeInstruction, List<BytecodeInstruction>> map,
-			Integer integer) {
-		// TODO Auto-generated method stub
-		return 0;
+			Integer validParamNum) {
+		//TODO too simple?
+		return (double)validParamNum /(map.size());
 	}
 
 	private int select(double p, double[] probability) {
