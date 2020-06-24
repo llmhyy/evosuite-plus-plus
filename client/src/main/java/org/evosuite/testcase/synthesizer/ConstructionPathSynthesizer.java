@@ -158,7 +158,14 @@ public class ConstructionPathSynthesizer {
 				Collections.sort(node.children, new Comparator<DepVariableWrapper>() {
 					@Override
 					public int compare(DepVariableWrapper o1, DepVariableWrapper o2) {
-						return o2.children.size() - o1.children.size();
+						if(o1.var.isMethodCall() && !o2.var.isMethodCall()){
+							return -1;
+						}
+						else if(!o1.var.isMethodCall() && o2.var.isMethodCall()){
+							return 1;
+						}
+						
+						return o1.children.size() - o2.children.size();
 					}
 				});
 				
@@ -306,7 +313,8 @@ public class ConstructionPathSynthesizer {
 				realParentRef = mStatement.getCallee();
 			}
 			
-			if (realParentRef  != null) {
+			double prob = Randomness.nextDouble();
+			if (realParentRef  != null && prob > 0.99) {
 				/**
 				 * check reused array element
 				 */
