@@ -14,13 +14,13 @@ install:
 script:
    # branch enhancement
    - mvn -Dtest=ColtExampleTest test -pl EvosuiteTest -e
-   - mvn -Dtest=InevitableConstructorExampleTest test -pl EvosuiteTest -e
-   - mvn -Dtest=LayeredCallExampleTest test -pl EvosuiteTest -e
-   - mvn -Dtest=MultipleConstructorsExampleTest test -pl EvosuiteTest -e
-   - mvn -Dtest=MultipleExceptionsExampleTest test -pl EvosuiteTest -e
+   #- mvn -Dtest=InevitableConstructorExampleTest test -pl EvosuiteTest -e
+   #- mvn -Dtest=LayeredCallExampleTest test -pl EvosuiteTest -e
+   #- mvn -Dtest=MultipleConstructorsExampleTest test -pl EvosuiteTest -e
+   #- mvn -Dtest=MultipleExceptionsExampleTest test -pl EvosuiteTest -e
    # fbranch
-   - mvn -Dtest=ValueRangeExampleTest test -pl EvosuiteTest -e
+   #- mvn -Dtest=ValueRangeExampleTest test -pl EvosuiteTest -e
    # smart mutation
-   - mvn -Dtest=StringArrayExampleTest test -pl EvosuiteTest -e
+   #- mvn -Dtest=StringArrayExampleTest test -pl EvosuiteTest -e
    # object construction
-   - mvn -Dtest=CascadingCallExampleTest test -pl EvosuiteTest -e
+   #- mvn -Dtest=CascadingCallExampleTest test -pl EvosuiteTest -e
