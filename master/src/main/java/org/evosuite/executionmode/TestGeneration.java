@@ -247,6 +247,7 @@ public class TestGeneration {
         LoggingUtils[] logServer = new LoggingUtils[Properties.NUM_PARALLEL_CLIENTS];
 		ExternalProcessGroupHandler handler = new ExternalProcessGroupHandler(Properties.NUM_PARALLEL_CLIENTS);
 		int port = handler.openServer();
+		logger.error("the port number is:" + port);
 		if (port <= 0) {
 			throw new RuntimeException("Not possible to start RMI service");
 		}
