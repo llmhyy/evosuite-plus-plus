@@ -806,7 +806,6 @@ public class ConstructionPathSynthesizer {
 				
 				String targetClassName = checkTargetClassName(field, targetObjectReference);
 				Executable setter = searchForPotentialSetterInClass(field, targetClassName);
-				
 				if (setter != null) {
 					if(setter instanceof Method){
 						GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
@@ -1263,6 +1262,7 @@ public class ConstructionPathSynthesizer {
 			
 			double[] probability = normalize(scores);
 			double p = Randomness.nextDouble();
+			System.currentTimeMillis();
 			int selected = select(p, probability);
 			return fieldSettingMethods.get(selected);
 		}
@@ -1287,9 +1287,17 @@ public class ConstructionPathSynthesizer {
 
 	private int select(double p, double[] probability) {
 		for(int i=0; i<probability.length; i++){
-			if(p<=probability[i]){
-				return i;
+			if(i==0){
+				if(p<=probability[i]){
+					return i;
+				}				
 			}
+			else{
+				if(probability[i-1]<p && p<=probability[i]){
+					return i;
+				}
+			}
+			
 		}
 		
 		return 0;
@@ -1304,6 +1312,10 @@ public class ConstructionPathSynthesizer {
 		double[] prob = new double[scores.length];
 		for(int i=0; i<scores.length; i++){
 			prob[i] = scores[i]/sum;
+		}
+		
+		for(int i=1; i<scores.length; i++){
+			prob[i] += prob[i-1];
 		}
 		
 		return prob;
