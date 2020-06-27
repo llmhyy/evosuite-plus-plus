@@ -45,6 +45,7 @@ import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.FieldReference;
@@ -357,8 +358,17 @@ public class ConstructionPathSynthesizer {
 			else{
 				ArrayReference arrayRef = (ArrayReference) parentVarRef;
 				int index = Randomness.nextInt(10);
+				
+//				GenericClass clazz = new GenericClass(int.class);
+//				VariableReference indexVariable = TestFactory.getInstance().
+//						createPrimitive(test, clazz, arrayRef.getStPosition()+1, 0);
+//				Statement stat = test.getStatement(indexVariable.getStPosition());
+//				IntPrimitiveStatement iStat = (IntPrimitiveStatement)stat;
+//				
+//				iStat.setValue(index);
+				
 				ArrayIndex arrayIndex = new ArrayIndex(test, arrayRef, index);
-				VariableReference varRef = createVariable(test, arrayRef);
+				VariableReference varRef = createArrayElementVariable(test, arrayRef);
 				AssignmentStatement assignStat = new AssignmentStatement(test, arrayIndex, varRef);
 				test.addStatement(assignStat, varRef.getStPosition() + 1);
 				return assignStat.getReturnValue();				
@@ -568,7 +578,7 @@ public class ConstructionPathSynthesizer {
 		return null;
 	}
 
-	private VariableReference createVariable(TestCase test, ArrayReference arrayRef) {
+	private VariableReference createArrayElementVariable(TestCase test, ArrayReference arrayRef) {
 		Class<?> clazz = arrayRef.getComponentClass();
 		Constructor<?> constructor = clazz.getConstructors()[0];
 		GenericConstructor gConstructor = new GenericConstructor(constructor,

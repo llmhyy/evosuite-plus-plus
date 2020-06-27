@@ -371,25 +371,35 @@ public class AssignmentStatement extends AbstractStatement {
 
 		// Either mutate parameter, or source
 		if (Randomness.nextDouble() < 0.5) {
-			Set<VariableReference> objects = getSourceReplacements();
-			objects.remove(retval);
-			objects.remove(parameter);
-
-			if (!objects.isEmpty()) {
-				VariableReference newRetVal = Randomness.choice(objects);
-				// Need to double check, because we might try to replace e.g.
-				// a long with an int, which is assignable
-				// but if the long is assigned to a Long field, then it is not!
-				if(parameter.isAssignableTo(newRetVal)) {
-					
-					// Need to check array status because commons lang
-					// is sometimes confused about what is assignable
-					if(parameter.isArray() == newRetVal.isArray()) {
-						retval = newRetVal;
-						assert (isValid());
-						return true;
+			if(this.retval instanceof ArrayIndex){
+				ArrayIndex arrayIndex = (ArrayIndex)this.retval;
+				int index = arrayIndex.getArrayIndices().get(0);
+				int delta = Randomness.nextDouble() < 0.5 ? 1 : -1;
+				int newIndex = index + delta;
+				arrayIndex.setArrayIndex(newIndex);
+			}
+			else{
+				Set<VariableReference> objects = getSourceReplacements();
+				objects.remove(retval);
+				objects.remove(parameter);
+				
+				if (!objects.isEmpty()) {
+					VariableReference newRetVal = Randomness.choice(objects);
+					// Need to double check, because we might try to replace e.g.
+					// a long with an int, which is assignable
+					// but if the long is assigned to a Long field, then it is not!
+					if(parameter.isAssignableTo(newRetVal)) {
+						
+						// Need to check array status because commons lang
+						// is sometimes confused about what is assignable
+						if(parameter.isArray() == newRetVal.isArray()) {
+							retval = newRetVal;
+							assert (isValid());
+							return true;
+						}
 					}
 				}
+				
 			}
 
 		} else {
