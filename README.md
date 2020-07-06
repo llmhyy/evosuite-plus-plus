@@ -4,7 +4,9 @@
 # This project is a forked version of Evosuite
 The original address of evosuite is here: https://github.com/EvoSuite/evosuite
 
-EvoSuite automatically generates JUnit test suites for Java classes, targeting code coverage criteria such as branch coverage. It uses an evolutionary approach based on a genetic algorithm to derive test suites. To improve readability, the generated unit tests are minimized, and regression assertions that capture the current behavior of the tested classes are added to the tests.
+In this project, we enhance Evosuite in term of branch distance graident recovering, object construction, smarter mutation, etc.
+Here is the relevant publication:
+- Yun Lin, Jun Sun, Gordon Fraser, Ziheng Xiu, Ting Liu, and Jin Song Dong. Recovering Fitness Gradients for Interprocedural Boolean Flags in Search-Based Testing (ISSTA 2020), to appear.
 
 
 ### EvoSuite plugin for Maven
