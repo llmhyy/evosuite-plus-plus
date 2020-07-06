@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/EvoSuite/evosuite.svg?branch=master)](https://travis-ci.org/EvoSuite/evosuite)
 [![CircleCI](https://circleci.com/gh/EvoSuite/evosuite.svg?style=svg&circle-token=f00c8d84b9dcf7dae4a82438441823f3be9df090)](https://circleci.com/gh/EvoSuite/evosuite)
 
-# This project is a forked version of Evosuite
-The original address of evosuite is here: https://github.com/EvoSuite/evosuite
+# Evosuite++
+This project is a forked version of Evosuite. The original address of evosuite is here: https://github.com/EvoSuite/evosuite
 
 In this project, we enhance Evosuite in term of branch distance graident recovering, object construction, smarter mutation, etc.
 Here is the relevant publication:
