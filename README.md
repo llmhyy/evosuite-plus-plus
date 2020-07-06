@@ -9,17 +9,6 @@ Here is the relevant publication:
 - Yun Lin, Jun Sun, Gordon Fraser, Ziheng Xiu, Ting Liu, and Jin Song Dong. Recovering Fitness Gradients for Interprocedural Boolean Flags in Search-Based Testing (ISSTA 2020), to appear.
 
 
-### EvoSuite plugin for Maven
-
-EvoSuite has a Maven Plugin that can be used to generate new test cases as part of the build. This has at least the following advantages:
-
-1. Can run EvoSuite from Continuous Integration servers (eg Jenkins) with minimal configuration overheads
-2. Generated tests can be put directly on the classpath of the system based on the pom.xml files
-3. No need to install EvoSuite on local machine (Maven will take care of it automatically)
-
-For more details, check the
-[documentation](http://www.evosuite.org/documentation/maven-plugin/)
-
 
 # Building EvoSuite
 
