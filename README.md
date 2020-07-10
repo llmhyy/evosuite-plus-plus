@@ -16,21 +16,22 @@ EvoSuite uses [Maven](https://maven.apache.org/).
 
 First, ensure you have maven installed, to check, run
 
-```mvn -v``
+```mvn -v```
 
 To build EvoSuite in Eclipse, make sure you have the [M2Eclipse](http://www.eclipse.org/m2e/) plugin installed, and import EvoSuite as Maven project. This will ensure that Eclipse correctly configure the Maven project.
 
 # Building EvoSuite in Eclipse
 
 In eclipse, we need to import Evosuite projects by **Import>>Maven>>Existing Maven Projects**. In general, we may import the following projects for compiling Evosuite:
-1. evosuite
-2. evosuite-client
-3. evosuite-master
-4. evosuite-runtime
-5. EvosuiteTest
+* evosuite
+* evosuite-client
+* evosuite-master
+* evosuite-runtime
+* EvosuiteTest
 
 After importing all the above projects, we need to modify pom.xml in evosuite project as follows:
-We find **tools-default** and replace its **exists** and **toolsjar** element with the file location inside project.
+We find ```<tools-default>``` and replace its ```<exists>``` and ```<toolsjar>``` element with the file location inside
+ project.
 For example:
 ```
 <id>tools-default</id>
@@ -45,9 +46,12 @@ For example:
     </properties>
 ```
 
-The "evosuite-master" project may have some compilation errors. In this case, we may include the target/generated-sources/jaxb folder as build path.
+The "evosuite-master" project may have some compilation errors. In this case, we may include the ```target/generated
+-sources/jaxb``` folder as build path.
 
-#FAQ
+# FAQ
 
 1. If you encounter **com.sun** dependency issue:
-Please replace the corresponding tools.jar with the absolute path of the jdk tools.jar and the error will go away. 
+
+    > Please replace the corresponding tools.jar with the absolute path of the jdk tools.jar and the error will go
+                                                      away. 
