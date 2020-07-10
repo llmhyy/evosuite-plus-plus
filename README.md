@@ -4,41 +4,33 @@
 # Evosuite++
 This project is a forked version of Evosuite. The original address of evosuite is here: https://github.com/EvoSuite/evosuite
 
-In this project, we enhance Evosuite in term of branch distance graident recovering, object construction, smarter mutation, etc.
+In this project, we enhance Evosuite in terms of branch distance gradient recovering, object construction, smarter mutation, etc.
 Here is the relevant publication:
 - Yun Lin, Jun Sun, Gordon Fraser, Ziheng Xiu, Ting Liu, and Jin Song Dong. Recovering Fitness Gradients for Interprocedural Boolean Flags in Search-Based Testing (ISSTA 2020), to appear.
 
-
+You may refer to our website for more information on this project and how to run the experiment demonstrated in our paper: https://sites.google.com/view/evoipf/home
 
 # Building EvoSuite
 
 EvoSuite uses [Maven](https://maven.apache.org/).
 
-To build EvoSuite on the command line, install maven and then call
+First, ensure you have maven installed, to check, run
 
-```mvn compile```
+```mvn -v``
 
-To create a binary distribution that includes all dependencies you can
-use Maven as well:
-
-```mvn package```
-
-To build EvoSuite in Eclipse, make sure you have the [M2Eclipse](http://www.eclipse.org/m2e/) plugin installed, and import EvoSuite as Maven project. This will ensure that Eclipse uses Maven to build the project.
+To build EvoSuite in Eclipse, make sure you have the [M2Eclipse](http://www.eclipse.org/m2e/) plugin installed, and import EvoSuite as Maven project. This will ensure that Eclipse correctly configure the Maven project.
 
 # Building EvoSuite in Eclipse
 
-In eclipse, we need to import Evosuite projects by "Import>>Maven>>Existing Maven Projects". In general, we may import the following projects for compiling Evosuite:
+In eclipse, we need to import Evosuite projects by **Import>>Maven>>Existing Maven Projects**. In general, we may import the following projects for compiling Evosuite:
 1. evosuite
 2. evosuite-client
 3. evosuite-master
 4. evosuite-runtime
-5. generated 
-6. shaded
-7. standalone-runtime
-8. EvsouiteTest
+5. EvosuiteTest
 
 After importing all the above projects, we need to modify pom.xml in evosuite project as follows:
-We find <id>tools-default</id> and replace its <exists> and <toolsjar> element into the file location inside project.
+We find **tools-default** and replace its **exists** and **toolsjar** element with the file location inside project.
 For example:
 ```
 <id>tools-default</id>
@@ -53,7 +45,9 @@ For example:
     </properties>
 ```
 
-It is fine that the "generated" project has some compilation errors. Nevertheless, the "evsouite-master" project may have some compilation error. In this case, we may include the target/generated-sources/jaxb folder as build path. Thus, we can close "generated" project.
+The "evosuite-master" project may have some compilation errors. In this case, we may include the target/generated-sources/jaxb folder as build path.
 
+#FAQ
 
-
+1. If you encounter **com.sun** dependency issue:
+Please replace the corresponding tools.jar with the absolute path of the jdk tools.jar and the error will go away. 
