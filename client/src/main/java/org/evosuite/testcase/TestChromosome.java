@@ -45,11 +45,13 @@ import org.evosuite.symbolic.ConcolicMutation;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.localsearch.TestCaseLocalSearch;
+import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.FunctionalMockStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.evosuite.utils.Randomness;
@@ -1291,6 +1293,91 @@ public class TestChromosome extends ExecutableChromosome {
 
 	public void setChangedPositionsInOldTest(List<Integer> changedPositionsInOldTest) {
 		this.changedPositionsInOldTest = changedPositionsInOldTest;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void mutate(List<Statement> influencingStatements) {
+		for(int i=0; i<influencingStatements.size(); i++){
+			Statement refStatement = influencingStatements.get(i);
+			Statement statement = this.getTestCase().getStatement(refStatement.getPosition());
+			
+			TestFactory testFactory = TestFactory.getInstance();
+			
+			statement.setChanged(false);
+			assert (test.isValid());
+
+			if(statement.isReflectionStatement())
+				continue;
+
+			boolean changed = false; 
+			int oldDistance = statement.getReturnValue().getDistance();
+			if (statement instanceof NullStatement) {
+				int pos = statement.getPosition();
+				Statement nextStatement = test.getStatement(pos+1);
+				if (testFactory.changeNullStatement(test, statement)) {
+					statement = test.getStatement(nextStatement.getPosition()-1);
+					
+					changed = true;
+					mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
+							TestMutationHistoryEntry.TestMutation.CHANGE, statement));
+					assert ConstraintVerifier.verifyTest(test);		
+				}
+			}
+			
+			boolean isMutated = false;
+			boolean reuse = Randomness.nextBoolean();
+			if(reuse){
+				if(statement instanceof PrimitiveStatement){
+					PrimitiveStatement pStatement = (PrimitiveStatement)statement;
+					List<Object> candidates = searchForReusableVariables(influencingStatements, pStatement.getReturnType());
+					if(!candidates.isEmpty()){
+						Object value = Randomness.choice(candidates);
+						pStatement.setValue(value);
+						System.currentTimeMillis();
+					}					
+				}
+			}
+			else{
+				isMutated = statement.mutate(test, testFactory);				
+			}
+			
+			if (isMutated) {
+				mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
+				        TestMutationHistoryEntry.TestMutation.CHANGE, statement));
+				assert (test.isValid());
+				assert ConstraintVerifier.verifyTest(test);
+
+			} 
+			
+			statement.getReturnValue().setDistance(oldDistance);
+			
+			if(changed){
+				assert ConstraintVerifier.verifyTest(test);
+			}
+
+		}
+		
+	}
+
+	@SuppressWarnings("rawtypes")
+	private List<Object> searchForReusableVariables(List<Statement> influencingStatements, Type returnType) {
+		List<Object> list = new ArrayList<>();
+		for(Statement stat: influencingStatements){
+			if(stat.getReturnType().equals(returnType)){
+				if(stat instanceof PrimitiveStatement){
+					list.add(((PrimitiveStatement) stat).getValue());					
+				}
+			}
+			else if(stat instanceof AssignmentStatement){
+				AssignmentStatement aStat = (AssignmentStatement)stat;
+				VariableReference varRef = aStat.getReturnValue();
+				if(varRef instanceof ArrayIndex && returnType.toString().equals("int")){
+					ArrayIndex index = (ArrayIndex)varRef;
+					list.add(index.getArrayIndex());
+				}
+			}
+		}
+		return list;
 	}
 
 }

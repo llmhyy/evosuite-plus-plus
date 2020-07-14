@@ -22,6 +22,7 @@ package org.evosuite.testcase.factories;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,7 +37,9 @@ import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
+import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
+import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,8 +111,8 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					}
 				});
 				
-				Branch b = Randomness.choice(interestedBranches.keySet());
-//				Branch b = rankedList.get(19);
+//				Branch b = Randomness.choice(interestedBranches.keySet());
+				Branch b = rankedList.get(19);
 //				logger.warn("Selected branch:" + b + "\n");
 				
 //				List<ConstructionPath> paths = difficulties.get(b);
@@ -117,7 +120,10 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 					cpSynthesizer.constructDifficultObjectStatement(test, b);
 					
-					test = TestCaseLegitimizer.legitimize(test);
+					PartialGraph graph = cpSynthesizer.getPartialGraph();
+					Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+					
+					test = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
 					
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -15,6 +15,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -22,19 +23,36 @@ import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.MethodStatement;
+import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.MethodUtil;
+import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.Opcodes;
 
 public class TestCaseLegitimizer {
 
 	public static int optimizionPopluationSize = 20;
+	public static int localFuzzBudget = 30;
+	
+	private PartialGraph graph;
+	private Map<DepVariable, List<VariableReference>> graph2CodeMap;
+	
+	private static TestCaseLegitimizer legitimizer = new TestCaseLegitimizer();
+	private TestCaseLegitimizer(){}
+	
+	public static TestCaseLegitimizer getInstance(){
+		return legitimizer;
+	}
 	
 	@SuppressWarnings("unchecked")
-	public static TestCase legitimize(TestCase test) {
+	public TestCase legitimize(TestCase test, PartialGraph graph, Map<DepVariable, 
+			List<VariableReference>> graph2CodeMap) {
+		this.graph = graph;
+		this.graph2CodeMap = graph2CodeMap;
+		
 		ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
 		MethodStatement targetCallStat = test.findTargetMethodCallStatement();
 		if(targetCallStat == null) return null;
@@ -43,13 +61,7 @@ public class TestCaseLegitimizer {
 		/**
 		 * initializing the population
 		 */
-		List<TestChromosome> population = new ArrayList<TestChromosome>();
-		for(int i=0; i<optimizionPopluationSize; i++){
-			TestCase copy = test.clone();
-			TestChromosome t = new TestChromosome();
-			t.setTestCase(copy);
-			population.add(t);
-		}
+		List<TestChromosome> population = initializePopulation(test);
 		
 		int counter = 0;
 		while (!isExecuteTargetMethod(test, result) && counter <= 5){
@@ -63,14 +75,9 @@ public class TestCaseLegitimizer {
 			}
 			
 			/**
-			 * locate the relevant branches 
+			 * locate the relevant branches from the method call return null value
 			 */
 			List<FBranchTestFitness> relevantBranches = locateRelevantBranches(statOfExp, excep, test, result);
-			
-//			boolean isBranchExecuted = isBranchExecuted(test, relevantBranches);
-//			if(isBranchExecuted){
-//				
-//			}
 			
 			MutationPositionDiscriminator.discriminator.setPurpose(relevantBranches);
 			for(FBranchTestFitness ftt: relevantBranches){
@@ -79,16 +86,114 @@ public class TestCaseLegitimizer {
 				}
 			}
 			
-			TestCase t = evolve(population, relevantBranches);
-			if(t != null){
-				test = t;
+			if(relevantBranches != null && !relevantBranches.isEmpty()){
+				TestChromosome t = evolve(population, relevantBranches);
+				if(t != null){
+					if(isExecuteTargetMethod(t.getTestCase(), t.getLastExecutionResult())){
+						return t.getTestCase();
+					}
+				}		
+				test = t.getTestCase();
+			}
+			
+			TestChromosome t = applyLocalFuzz(statOfExp, excep, test, result);
+			if(t!=null && isExecuteTargetMethod(t.getTestCase(), t.getLastExecutionResult())){
+				return t.getTestCase();
 			}
 		}
 		
 		return null;
 	}
+
+
+
+	private List<TestChromosome> initializePopulation(TestCase test) {
+		List<TestChromosome> population = new ArrayList<TestChromosome>();
+		for(int i=0; i<optimizionPopluationSize; i++){
+			TestCase copy = test.clone();
+			TestChromosome t = new TestChromosome();
+			t.setTestCase(copy);
+			population.add(t);
+		}
+		return population;
+	}
 	
-	private static TestCase evolve(List<TestChromosome> population, List<FBranchTestFitness> relevantBranches) {
+	/**
+	 * return null if we still cannot find them.
+	 * @param statOfExp
+	 * @param excep
+	 * @param test
+	 * @param result
+	 * @return
+	 */
+	private TestChromosome applyLocalFuzz(Statement statOfExp, Throwable excep, TestCase test,
+			ExecutionResult result) {
+		
+		List<Statement> influencingStatements = checkInfluencingStatements(test, statOfExp);
+		
+		long t1 = System.currentTimeMillis();
+		long t2 = t1;
+		List<TestChromosome> population = initializePopulation(test);
+		
+		while(t2 - t1 < localFuzzBudget*100000){
+			List<TestChromosome> newPop = new ArrayList<>();
+			for(TestChromosome individual: population){
+				TestChromosome offspring = (TestChromosome) individual.clone();
+				offspring.mutate(influencingStatements);
+				ExecutionResult origResult = TestCaseExecutor.runTest(offspring.getTestCase());
+				offspring.setLastExecutionResult(origResult);
+				
+				if(isExecuteTargetMethod(offspring.getTestCase(), offspring.getLastExecutionResult())){
+					return offspring;
+				}
+				else{
+					newPop.add(offspring);
+				}
+			}
+			
+			population.addAll(newPop);
+			population = randomSample(population);
+			
+			t2 = System.currentTimeMillis();
+		}
+		
+		
+		return null;
+	}
+
+
+	private List<Statement> checkInfluencingStatements(TestCase test, Statement statOfExp) {
+		//TODO need a perfect relevance check
+		List<Statement> influencingStatements = new ArrayList<>();
+		for(int i=0; i<test.size(); i++){
+			Statement statement = test.getStatement(i);
+			if((statement instanceof PrimitiveStatement || statement instanceof AssignmentStatement)  
+					&& statement.getPosition() <= statOfExp.getPosition()){
+				influencingStatements.add(statement);
+			}
+		}
+		
+		
+		return influencingStatements;
+	}
+
+
+
+	private List<TestChromosome> randomSample(List<TestChromosome> population) {
+		List<TestChromosome> p = new ArrayList<>();
+		
+		while(p.size() < population.size()/2){
+			int index = Randomness.nextInt(population.size());
+			TestChromosome t = population.remove(index);
+			p.add(t);			
+		}
+		
+		return p;
+	}
+
+
+
+	private TestChromosome evolve(List<TestChromosome> population, List<FBranchTestFitness> relevantBranches) {
 		int iteration = 0;
 		while(iteration < 100){
 			List<TestChromosome> newPopulation = breedOffSpring(population, relevantBranches);
@@ -99,7 +204,7 @@ public class TestCaseLegitimizer {
 			for(TestChromosome chromosome: population){
 				for(FitnessFunction<?> ftt: relevantBranches){
 					if(chromosome.getFitness(ftt) == 0.0){
-						return chromosome.getTestCase();
+						return chromosome;
 					}					
 				}
 			}
@@ -154,7 +259,7 @@ public class TestCaseLegitimizer {
 		population.addAll(newPop);
 	}
 
-	private static List<TestChromosome> breedOffSpring(List<TestChromosome> population, List<FBranchTestFitness> relevantBranches) {
+	private List<TestChromosome> breedOffSpring(List<TestChromosome> population, List<FBranchTestFitness> relevantBranches) {
 		List<TestChromosome> newPop = new ArrayList<>();
 		
 		for(TestChromosome parent: population){
@@ -165,16 +270,16 @@ public class TestCaseLegitimizer {
 			relevantBranches.forEach(fitnessFunction -> fitnessFunction.getFitness(offspring));
 			MutationPositionDiscriminator.identifyRelevantMutations(offspring, parent);
 			
-			System.currentTimeMillis();
-			
 			newPop.add(offspring);
 		}
-		System.currentTimeMillis();
 		return newPop;
 	}
 
-	private static List<FBranchTestFitness> locateRelevantBranches(Statement statOfExp, Throwable excep, 
+	private List<FBranchTestFitness> locateRelevantBranches(Statement statOfExp, Throwable excep, 
 			TestCase test, ExecutionResult result) {
+		/**
+		 * e.g., "a.m();" where a is null.
+		 */
 		if(isMethodCallIncurExplicitNullPointerException(statOfExp, excep, result)){
 			MethodStatement mStat = (MethodStatement)statOfExp;
 			VariableReference callee = mStat.getCallee();
@@ -188,6 +293,9 @@ public class TestCaseLegitimizer {
 				return nonNullBranches;
 			}
 		}
+		/**
+		 * e.g., "a[0] = b" or "a.f = b" where a is null.
+		 */
 		else if(isAssignmentIncurExplicitNullPointerException(statOfExp, excep, result)){
 			VariableReference ref = statOfExp.getReturnValue();
 			if(ref instanceof FieldReference){
@@ -217,13 +325,13 @@ public class TestCaseLegitimizer {
 		return null;
 	}
 
-	private static boolean isIncurInplicitNullPointerException(Statement statOfExp, Throwable excep,
+	private boolean isIncurInplicitNullPointerException(Statement statOfExp, Throwable excep,
 			ExecutionResult result) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	private static List<FBranchTestFitness> locateNonNullBranches(GenericMethod method) {
+	private List<FBranchTestFitness> locateNonNullBranches(GenericMethod method) {
 		String methodName = method.getName() + MethodUtil.getSignature(method.getMethod());
 		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 				.getActualCFG(method.getOwnerClass().getClassName(), methodName);
@@ -247,26 +355,26 @@ public class TestCaseLegitimizer {
 		return list;
 	}
 
-	private static boolean isMethodCallIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result) {
+	private boolean isMethodCallIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result) {
 		return statOfExp instanceof MethodStatement 
 				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
 				&& excep.getMessage().equals("java.lang.NullPointerException");
 	}
 	
-	private static boolean isAssignmentIncurExplicitNullPointerException(Statement statOfExp, Throwable excep,
+	private boolean isAssignmentIncurExplicitNullPointerException(Statement statOfExp, Throwable excep,
 			ExecutionResult result) {
 		return statOfExp instanceof AssignmentStatement 
 				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
 				&& excep.getMessage().equals("java.lang.NullPointerException");
 	}
 	
-	private static boolean isExecuteTargetMethod(TestCase test, ExecutionResult result){
+	private boolean isExecuteTargetMethod(TestCase test, ExecutionResult result){
 		MethodStatement targetCallStat = test.findTargetMethodCallStatement();
 		int numOfExecutedStatements = result.getExecutedStatements();
 		return numOfExecutedStatements >= targetCallStat.getPosition();
 	}
 
-	private static boolean isIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result){
+	private boolean isIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result){
 		return statOfExp instanceof MethodStatement 
 			&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
 			&& excep.getMessage().equals("java.lang.NullPointerException");

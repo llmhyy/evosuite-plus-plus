@@ -115,12 +115,15 @@ public class ConstructionPathSynthesizer {
 		return graph;
 	}
 	
+	private PartialGraph partialGraph;
+	private Map<DepVariable, List<VariableReference>> graph2CodeMap;
+	
 	public void constructDifficultObjectStatement(TestCase test, Branch b)
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
-		GraphVisualizer.visualizeComputationGraph(b);
+		GraphVisualizer.visualizeComputationGraph(b, 10000);
 		GraphVisualizer.visualizeComputationGraph(partialGraph);
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
@@ -184,7 +187,8 @@ public class ConstructionPathSynthesizer {
 			}
 		}
 		
-		System.currentTimeMillis();
+		this.setPartialGraph(partialGraph);
+		this.setGraph2CodeMap(map);
 	}
 
 	private boolean checkDependency(DepVariableWrapper node, Map<DepVariable, List<VariableReference>> map) {
@@ -1556,6 +1560,22 @@ public class ConstructionPathSynthesizer {
 			}
 			return clazz;
 		}
+	}
+
+	public PartialGraph getPartialGraph() {
+		return partialGraph;
+	}
+
+	public void setPartialGraph(PartialGraph partialGraph) {
+		this.partialGraph = partialGraph;
+	}
+
+	public Map<DepVariable, List<VariableReference>> getGraph2CodeMap() {
+		return graph2CodeMap;
+	}
+
+	public void setGraph2CodeMap(Map<DepVariable, List<VariableReference>> graph2CodeMap) {
+		this.graph2CodeMap = graph2CodeMap;
 	}
 
 
