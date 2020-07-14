@@ -1,108 +1,37 @@
 [![Build Status](https://travis-ci.org/EvoSuite/evosuite.svg?branch=master)](https://travis-ci.org/EvoSuite/evosuite)
 [![CircleCI](https://circleci.com/gh/EvoSuite/evosuite.svg?style=svg&circle-token=f00c8d84b9dcf7dae4a82438441823f3be9df090)](https://circleci.com/gh/EvoSuite/evosuite)
 
-# What is EvoSuite?
+# Evosuite++
+This project is a forked version of Evosuite. The original address of evosuite is here: https://github.com/EvoSuite/evosuite
 
-EvoSuite automatically generates JUnit test suites for Java classes, targeting code coverage criteria such as branch coverage. It uses an evolutionary approach based on a genetic algorithm to derive test suites. To improve readability, the generated unit tests are minimized, and regression assertions that capture the current behavior of the tested classes are added to the tests.
+In this project, we enhance Evosuite in terms of branch distance gradient recovering, object construction, smarter mutation, etc.
+Here is the relevant publication:
+- Yun Lin, Jun Sun, Gordon Fraser, Ziheng Xiu, Ting Liu, and Jin Song Dong. Recovering Fitness Gradients for Interprocedural Boolean Flags in Search-Based Testing (ISSTA 2020), to appear.
 
-# Using EvoSuite
-
-There are different ways to use EvoSuite:
-
-### EvoSuite on the command line
-
-EvoSuite comes as an executable jar file which you can call as follows:
-
-```java -jar evosuite.jar <options>```
-
-To generate a test suite using EvoSuite, use the following command:
-
-```java -jar evosuite.jar <target> [options]```
-
-The target can be a class:
-
-```-class <ClassName>```
-
-or a package prefix, in which case EvoSuite tries to generate a test
-suite for each class in the classpath that matches the prefix:
-
-```-prefix <PrefixName>```
-
-or a classpath entry, in which case EvoSuite tries to generate a test
-suite for each class in the given classpath entry:
-
-```-target <jar file or directory>```
-
-The most important option is to set the classpath, using standard Java
-classpath syntax:
-
-```-projectCP <classpath>```
-
-For more options, see the
-[Documentation](http://www.evosuite.org/documentation/commandline/)
-
-```java -jar evosuite.jar -help```
-
-### EvoSuite plugin for Eclipse
-
-There is an experimental Eclipse plugin available using the following
-update site: <http://www.evosuite.org/update>
-
-To see what the plugin does check out the [screencast](http://www.evosuite.org/documentation/eclipse-plugin/).
-
-### EvoSuite plugin for Maven
-
-EvoSuite has a Maven Plugin that can be used to generate new test cases as part of the build. This has at least the following advantages:
-
-1. Can run EvoSuite from Continuous Integration servers (eg Jenkins) with minimal configuration overheads
-2. Generated tests can be put directly on the classpath of the system based on the pom.xml files
-3. No need to install EvoSuite on local machine (Maven will take care of it automatically)
-
-For more details, check the
-[documentation](http://www.evosuite.org/documentation/maven-plugin/)
-
-### EvoSuite plugin for IntelliJ
-
-Check out the [documentation](http://www.evosuite.org/documentation/intellij-idea-plugin/).
-
-# Getting EvoSuite
-
-The current release of EvoSuite (main EvoSuite jar file and plugins) is available for download at <http://www.evosuite.org/downloads/>.
-
-To access the source code, use the github repository:
-
-```git clone https://github.com/EvoSuite/evosuite.git```
-
+You may refer to our website for more information on this project and how to run the experiment demonstrated in our paper: https://sites.google.com/view/evoipf/home
 
 # Building EvoSuite
 
 EvoSuite uses [Maven](https://maven.apache.org/).
 
-To build EvoSuite on the command line, install maven and then call
+First, ensure you have maven installed, to check, run
 
-```mvn compile```
+```mvn -v```
 
-To create a binary distribution that includes all dependencies you can
-use Maven as well:
-
-```mvn package```
-
-To build EvoSuite in Eclipse, make sure you have the [M2Eclipse](http://www.eclipse.org/m2e/) plugin installed, and import EvoSuite as Maven project. This will ensure that Eclipse uses Maven to build the project.
+To build EvoSuite in Eclipse, make sure you have the [M2Eclipse](http://www.eclipse.org/m2e/) plugin installed, and import EvoSuite as Maven project. This will ensure that Eclipse correctly configure the Maven project.
 
 # Building EvoSuite in Eclipse
 
-In eclipse, we need to import Evosuite projects by "Import>>Maven>>Existing Maven Projects". In general, we may import the following projects for compiling Evosuite:
-1. evosuite
-2. evosuite-client
-3. evosuite-master
-4. evosuite-runtime
-5. generated 
-6. shaded
-7. standalone-runtime
-8. EvsouiteTest
+In eclipse, we need to import Evosuite projects by **Import>>Maven>>Existing Maven Projects**. In general, we may import the following projects for compiling Evosuite:
+* evosuite
+* evosuite-client
+* evosuite-master
+* evosuite-runtime
+* EvosuiteTest
 
 After importing all the above projects, we need to modify pom.xml in evosuite project as follows:
-We find <id>tools-default</id> and replace its <exists> and <toolsjar> element into the file location inside project.
+We find ```<tools-default>``` and replace its ```<exists>``` and ```<toolsjar>``` element with the file location inside
+ project.
 For example:
 ```
 <id>tools-default</id>
@@ -117,14 +46,12 @@ For example:
     </properties>
 ```
 
-It is fine that the "generated" project has some compilation errors. Nevertheless, the "evsouite-master" project may have some compilation error. In this case, we may include the target/generated-sources/jaxb folder as build path. Thus, we can close "generated" project.
+The "evosuite-master" project may have some compilation errors. In this case, we may include the ```target/generated
+-sources/jaxb``` folder as build path.
 
-# More Information
+# FAQ
 
-Usage documentation can be found at <http://www.evosuite.org/documentation/>
+1. If you encounter **com.sun** dependency issue:
 
-The developers' mailing list is hosted at <https://groups.google.com/forum/#!forum/evosuite>
-
-EvoSuite has resulted in a number of publications, all of which are available at <http://www.evosuite.org/publications/>
-
-
+    > Please replace the corresponding tools.jar with the absolute path of the jdk tools.jar and the error will go
+                                                      away. 
