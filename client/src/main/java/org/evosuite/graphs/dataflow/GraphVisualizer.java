@@ -67,7 +67,7 @@ public class GraphVisualizer {
 	}
 	
 	
-	public static void visualizeComputationGraph(Branch b) {
+	public static void visualizeComputationGraph(Branch b, int resolution) {
 		for (String methodName : Dataflow.branchDepVarsMap.keySet()) {
 			Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(methodName);
 
@@ -91,7 +91,7 @@ public class GraphVisualizer {
 			Graph g = graph("example1").directed().graphAttr().with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
 			try {
 				File f = new File("D://linyun/ex1.png");
-				Graphviz.fromGraph(g).height(1000).render(Format.PNG).toFile(f);
+				Graphviz.fromGraph(g).height(resolution).render(Format.PNG).toFile(f);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
