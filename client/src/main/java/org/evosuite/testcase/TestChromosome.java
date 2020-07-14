@@ -28,6 +28,11 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationExecutionResult;
 import org.evosuite.ga.Chromosome;
@@ -36,6 +41,9 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.SecondaryObjective;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 import org.evosuite.ga.operators.mutation.MutationHistory;
+import org.evosuite.graphs.GraphPool;
+import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.runtime.javaee.injection.Injector;
 import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.setup.TestCluster;
@@ -43,6 +51,7 @@ import org.evosuite.symbolic.BranchCondition;
 import org.evosuite.symbolic.ConcolicExecution;
 import org.evosuite.symbolic.ConcolicMutation;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.localsearch.TestCaseLocalSearch;
 import org.evosuite.testcase.statements.AssignmentStatement;
@@ -52,10 +61,14 @@ import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.variable.ArrayIndex;
+import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
+import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericAccessibleObject;
+import org.evosuite.utils.generic.GenericMethod;
+import org.objectweb.asm.Opcodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,6 +97,160 @@ public class TestChromosome extends ExecutableChromosome {
 	 */
 	private static final double MAX_POWER = 100;
 
+	private double legitimacyDistance = 0;
+	
+	public Statement getStatementReportingException(){
+		ExecutionResult result = TestCaseExecutor.runTest(this.getTestCase());
+		this.setLastExecutionResult(result);
+		int numOfExecutedStatements = this.getLastExecutionResult().getExecutedStatements();
+		Statement statOfExp = test.getStatement(numOfExecutedStatements);
+		
+		if(statOfExp.getPosition() == this.test.size() - 1){
+			return null;
+		}
+		
+		return statOfExp;
+	}
+	
+	public void updateLegitimacyDistance(){
+		MethodStatement targetCallStat = test.findTargetMethodCallStatement();
+		ExecutionResult result = TestCaseExecutor.runTest(this.getTestCase());
+		this.setLastExecutionResult(result);
+		
+		int numOfExecutedStatements = this.getLastExecutionResult().getExecutedStatements();
+		this.legitimacyDistance = targetCallStat.getPosition() - numOfExecutedStatements + 1;
+		
+		if(this.legitimacyDistance != 0){
+			if(numOfExecutedStatements > test.size()-1){
+				System.currentTimeMillis();
+			}
+			
+			Statement statOfExp = test.getStatement(numOfExecutedStatements);
+			Throwable excep = this.getLastExecutionResult().getExceptionThrownAtPosition(statOfExp.getPosition());
+			
+			if(excep == null){
+				System.currentTimeMillis();
+			}
+			
+			/**
+			 * locate the relevant branches from the method call return null value
+			 */
+			List<FBranchTestFitness> relevantBranches = locateRelevantBranches(statOfExp, excep, test, this.getLastExecutionResult());
+			if(!relevantBranches.isEmpty()){
+				double average = 0;
+				for(FBranchTestFitness ftt: relevantBranches){
+					this.addFitness(ftt);	
+					double fit = ftt.getFitness(this);
+					average += fit;
+				}
+				
+				average /= relevantBranches.size();
+				this.legitimacyDistance += average;
+			}
+			
+		}
+		
+	}
+	
+	private List<FBranchTestFitness> locateRelevantBranches(Statement statOfExp, Throwable excep, 
+			TestCase test, ExecutionResult result) {
+		/**
+		 * e.g., "a.m();" where a is null.
+		 */
+		if(isMethodCallIncurExplicitNullPointerException(statOfExp, excep, result)){
+			MethodStatement mStat = (MethodStatement)statOfExp;
+			VariableReference callee = mStat.getCallee();
+			Statement defStat = test.getStatement(callee.getStPosition());
+			
+			if(defStat instanceof MethodStatement){
+				MethodStatement defMethodStat = (MethodStatement)defStat;
+				GenericMethod method = defMethodStat.getMethod();
+				
+				List<FBranchTestFitness> nonNullBranches = locateNonNullBranches(method);
+				return nonNullBranches;
+			}
+		}
+		/**
+		 * e.g., "a[0] = b" or "a.f = b" where a is null.
+		 */
+		else if(isAssignmentIncurExplicitNullPointerException(statOfExp, excep, result)){
+			VariableReference ref = statOfExp.getReturnValue();
+			if(ref instanceof FieldReference){
+				FieldReference fieldRef = (FieldReference)ref;
+				VariableReference source = fieldRef.getSource();
+				
+				Statement defStat = test.getStatement(source.getStPosition());
+				if(defStat instanceof MethodStatement){
+					MethodStatement defMethodStat = (MethodStatement)defStat;
+					GenericMethod method = defMethodStat.getMethod();
+					
+					List<FBranchTestFitness> nonNullBranches = locateNonNullBranches(method);
+					return nonNullBranches;
+				}
+			}
+			System.currentTimeMillis();
+		}
+		else if (isIncurInplicitNullPointerException(statOfExp, excep, result)){
+			// Fixme for ziheng
+		}
+		else {
+			
+		}
+		
+		System.currentTimeMillis();
+		
+		return null;
+	}
+
+	private boolean isIncurInplicitNullPointerException(Statement statOfExp, Throwable excep,
+			ExecutionResult result) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	private List<FBranchTestFitness> locateNonNullBranches(GenericMethod method) {
+		String methodName = method.getName() + MethodUtil.getSignature(method.getMethod());
+		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+				.getActualCFG(method.getOwnerClass().getClassName(), methodName);
+		
+		List<FBranchTestFitness> list = new ArrayList<>();
+		for(BytecodeInstruction exit: cfg.getExitPoints()){
+			
+			BytecodeInstruction ins = exit.getSourceOfStackInstruction(0);
+			
+			if(ins.getASMNode().getOpcode() == Opcodes.ACONST_NULL){
+				Branch b = exit.getControlDependentBranch();
+				boolean value = exit.getControlDependentBranchExpressionValue();
+				
+				BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
+				FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
+				list.add(fFit);
+			}
+			
+		}
+		
+		return list;
+	}
+
+	private boolean isMethodCallIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result) {
+		return statOfExp instanceof MethodStatement 
+				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
+				&& excep.getMessage().equals("java.lang.NullPointerException");
+	}
+	
+	private boolean isAssignmentIncurExplicitNullPointerException(Statement statOfExp, Throwable excep,
+			ExecutionResult result) {
+		return statOfExp instanceof AssignmentStatement 
+				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
+				&& excep.getMessage().equals("java.lang.NullPointerException");
+	}
+	
+	private boolean isIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result){
+		return statOfExp instanceof MethodStatement 
+			&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
+			&& excep.getMessage().equals("java.lang.NullPointerException");
+	}
+	
 	/**
 	 * <p>
 	 * setTestCase
@@ -1295,8 +1462,24 @@ public class TestChromosome extends ExecutableChromosome {
 		this.changedPositionsInOldTest = changedPositionsInOldTest;
 	}
 
+	private List<Statement> checkInfluencingStatements(TestCase test, Statement statOfExp) {
+		//TODO need a perfect relevance check
+		List<Statement> influencingStatements = new ArrayList<>();
+		for(int i=0; i<test.size(); i++){
+			Statement statement = test.getStatement(i);
+			if((statement instanceof PrimitiveStatement || statement instanceof AssignmentStatement)  
+					&& statement.getPosition() <= statOfExp.getPosition()){
+				influencingStatements.add(statement);
+			}
+		}
+		
+		return influencingStatements;
+	}
+	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void mutate(List<Statement> influencingStatements) {
+	public void mutateRelevantStatements() {
+		Statement statOfExp = getStatementReportingException();
+		List<Statement> influencingStatements = checkInfluencingStatements(test, statOfExp);
 		for(int i=0; i<influencingStatements.size(); i++){
 			Statement refStatement = influencingStatements.get(i);
 			Statement statement = this.getTestCase().getStatement(refStatement.getPosition());
@@ -1378,6 +1561,15 @@ public class TestChromosome extends ExecutableChromosome {
 			}
 		}
 		return list;
+	}
+
+	public double getLegitimacyDistance() {
+		updateLegitimacyDistance();
+		return legitimacyDistance;
+	}
+
+	public void setLegitimacyDistance(double legitimacyDistance) {
+		this.legitimacyDistance = legitimacyDistance;
 	}
 
 }
