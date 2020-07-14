@@ -821,6 +821,7 @@ public class DefaultTestCase implements TestCase, Serializable {
 					+position+", where total number of statements is "+statements.size());
 		}
 		return statements.get(position);
+		
 	}
 	
 	/* (non-Javadoc)
