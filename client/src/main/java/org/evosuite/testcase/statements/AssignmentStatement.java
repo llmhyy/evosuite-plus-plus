@@ -374,9 +374,11 @@ public class AssignmentStatement extends AbstractStatement {
 			if(this.retval instanceof ArrayIndex){
 				ArrayIndex arrayIndex = (ArrayIndex)this.retval;
 				int index = arrayIndex.getArrayIndices().get(0);
-				int delta = Randomness.nextDouble() < 0.5 ? 1 : -1;
+				int delta = Randomness.nextDouble() < 0.5 ? 0 : -1;
 				int newIndex = index + delta;
-				arrayIndex.setArrayIndex(newIndex);
+				if(newIndex >= 0) {
+					arrayIndex.setArrayIndex(newIndex);					
+				}
 			}
 			else{
 				Set<VariableReference> objects = getSourceReplacements();
