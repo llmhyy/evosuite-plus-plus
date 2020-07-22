@@ -38,11 +38,11 @@ For example:
   <activation>
     <activeByDefault>true</activeByDefault>
     <file>
-      <exists>C:\Users\linyun\Documents\git_space\evosuite\libs\tools.jar</exists>
+      <exists>C:\Program Files\Java\jdk1.8.0_261\libs\tools.jar</exists>
     </file>
     </activation>
     <properties>
-       <toolsjar>C:\Users\linyun\Documents\git_space\evosuite\libs\tools.jar</toolsjar>
+       <toolsjar>C:\Program Files\Java\jdk1.8.0_261\libs\tools.jar</toolsjar>
     </properties>
 ```
 
