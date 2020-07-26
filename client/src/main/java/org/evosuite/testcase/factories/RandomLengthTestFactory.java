@@ -22,6 +22,7 @@ package org.evosuite.testcase.factories;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +59,9 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 	/** Constant <code>logger</code> */
 	protected static final Logger logger = LoggerFactory.getLogger(RandomLengthTestFactory.class);
 
+	
+	protected Map<Branch, TestCase> templateTestMap = new HashMap<Branch, TestCase>();
+	
 	/**
 	 * Create a random individual
 	 * 
@@ -100,7 +104,6 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			 */
 //			Properties.APPLY_OBJECT_RULE = false;
 			if(num == 1 && targetMethodCallPosition != -1 && Properties.APPLY_OBJECT_RULE) {
-//				Map<Branch, List<ConstructionPath>> difficulties = Dataflow.checkObjectDifficultPath();
 				
 				Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
 				ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
@@ -113,20 +116,30 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				
 //				Branch b = Randomness.choice(interestedBranches.keySet());
 				Branch b = rankedList.get(19);
-//				logger.warn("Selected branch:" + b + "\n");
 				
-//				List<ConstructionPath> paths = difficulties.get(b);
-				try {
-					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-					cpSynthesizer.constructDifficultObjectStatement(test, b);
+				TestCase t = templateTestMap.get(b);
+				if(t == null) {
+//					logger.warn("Selected branch:" + b + "\n");
+//					List<ConstructionPath> paths = difficulties.get(b);
+					try {
+						ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+						cpSynthesizer.constructDifficultObjectStatement(test, b);
+						
+						PartialGraph graph = cpSynthesizer.getPartialGraph();
+						Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+						
+						TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
+						test = chromosome.getTestCase();
+						
+						templateTestMap.put(b, test);
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 					
-					PartialGraph graph = cpSynthesizer.getPartialGraph();
-					Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
-					
-					test = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
-					
-				} catch (Exception e) {
-					e.printStackTrace();
+				}
+				else {
+					test = t;
 				}
 				
 				break;

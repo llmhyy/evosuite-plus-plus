@@ -30,7 +30,7 @@ public class TestCaseLegitimizer {
 		return legitimizer;
 	}
 	
-	public TestCase legitimize(TestCase test, PartialGraph graph, Map<DepVariable, 
+	public TestChromosome legitimize(TestCase test, PartialGraph graph, Map<DepVariable, 
 			List<VariableReference>> graph2CodeMap) {
 		this.graph = graph;
 		this.graph2CodeMap = graph2CodeMap;
@@ -44,7 +44,7 @@ public class TestCaseLegitimizer {
 		if(targetCallStat == null) return null;
 		
 		double legitimacyDistance = testChromosome.getLegitimacyDistance();
-		if(legitimacyDistance == 0) return test;
+		if(legitimacyDistance == 0) return testChromosome;
 		/**
 		 * initializing the population
 		 */
@@ -60,7 +60,7 @@ public class TestCaseLegitimizer {
 			legitimacyDistance = population.get(0).getLegitimacyDistance();
 		}
 		
-		return population.get(0).getTestCase();
+		return population.get(0);
 	}
 
 
