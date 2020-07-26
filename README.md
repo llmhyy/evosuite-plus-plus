@@ -6,7 +6,7 @@ This project is a forked version of Evosuite. The original address of evosuite i
 
 In this project, we enhance Evosuite in terms of branch distance gradient recovering, object construction, smarter mutation, etc.
 Here is the relevant publication:
-- Yun Lin, Jun Sun, Gordon Fraser, Ziheng Xiu, Ting Liu, and Jin Song Dong. Recovering Fitness Gradients for Interprocedural Boolean Flags in Search-Based Testing (ISSTA 2020), to appear.
+- Yun Lin, Jun Sun, Gordon Fraser, Ziheng Xiu, Ting Liu, and Jin Song Dong. Recovering Fitness Gradients for Interprocedural Boolean Flags in Search-Based Testing (ISSTA 2020), 440--451. (Acknowledge*: Thanks Lyly Tran's contribution to set up our experiment despite her name is not list on the paper.)
 
 You may refer to our website for more information on this project and how to run the experiment demonstrated in our paper: https://sites.google.com/view/evoipf/home
 
