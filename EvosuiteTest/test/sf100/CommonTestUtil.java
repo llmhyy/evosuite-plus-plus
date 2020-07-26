@@ -21,6 +21,11 @@ public class CommonTestUtil {
 		
 		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
 		
+		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
+			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
+			return null;
+		}
+		
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
 		file.deleteOnExit();
 		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethods);
