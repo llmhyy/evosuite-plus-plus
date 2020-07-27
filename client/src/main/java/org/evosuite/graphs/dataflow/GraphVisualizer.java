@@ -25,7 +25,10 @@ import guru.nidi.graphviz.model.Graph;
 import guru.nidi.graphviz.model.LinkSource;
 
 public class GraphVisualizer {
-	public static void visualizeComputationGraph(PartialGraph partialGraph) {
+	
+	public static String path = "D://linyun/";
+	
+	public static void visualizeComputationGraph(PartialGraph partialGraph, int resolution) {
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -57,10 +60,10 @@ public class GraphVisualizer {
 		}
 		
 
-		Graph g = graph("example2").directed().graphAttr().with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
+		Graph g = graph(partialGraph.getBranch().toString()).directed().graphAttr().with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
 		try {
-			File f = new File("D://linyun/ex2.png");
-			Graphviz.fromGraph(g).height(1000).render(Format.PNG).toFile(f);
+			File f = new File(path + File.separator + partialGraph.getBranch().toString() + ".png");
+			Graphviz.fromGraph(g).height(resolution).render(Format.PNG).toFile(f);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -90,7 +93,7 @@ public class GraphVisualizer {
 
 			Graph g = graph("example1").directed().graphAttr().with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
 			try {
-				File f = new File("D://linyun/ex1.png");
+				File f = new File(path + File.separator + "overall.png");
 				Graphviz.fromGraph(g).height(resolution).render(Format.PNG).toFile(f);
 			} catch (IOException e) {
 				e.printStackTrace();

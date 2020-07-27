@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.dataflow.DepVariable;
 
 public class PartialGraph {
@@ -72,5 +73,15 @@ public class PartialGraph {
 		}
 		
 		return list;
+	}
+
+	private Branch targetBranch;
+	
+	public void setBranch(Branch b) {
+		this.targetBranch = b;
+	}
+	
+	public Branch getBranch() {
+		return this.targetBranch;
 	}
 }

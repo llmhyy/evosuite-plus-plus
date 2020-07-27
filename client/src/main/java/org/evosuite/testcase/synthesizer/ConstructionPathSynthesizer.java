@@ -77,11 +77,12 @@ public class ConstructionPathSynthesizer {
 		this.testFactory = testFactory;
 	}
 
-	private PartialGraph constructPartialComputationGraph(Branch b) {
+	public PartialGraph constructPartialComputationGraph(Branch b) {
 		PartialGraph graph = new PartialGraph();
 		
 		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
 		Set<DepVariable> variables = map.get(b);
+		graph.setBranch(b);
 		
 		for(DepVariable source: variables) {
 			Map<DepVariable, ArrayList<ConstructionPath>> rootInfo = source.getRootVars();
@@ -123,8 +124,8 @@ public class ConstructionPathSynthesizer {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
-		GraphVisualizer.visualizeComputationGraph(b, 10000);
-		GraphVisualizer.visualizeComputationGraph(partialGraph);
+//		GraphVisualizer.visualizeComputationGraph(b, 10000);
+//		GraphVisualizer.visualizeComputationGraph(partialGraph);
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
