@@ -20,11 +20,11 @@
 package org.evosuite.graphs.cfg;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -116,12 +116,42 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		this.instructionId = instructionId;
 		this.bytecodeOffset = bytecodeOffset;
 		this.asmNode = asmNode;
+		
+		
+//	    Class myClass = asmNode.getClass();
+//	    Field myField;
+//		try {
+//			myField = getField(myClass, "index");
+//			myField.setAccessible(true); //required if field is not normally accessible
+//			if(instructionId != myField.getInt(asmNode)) {
+//				if( myField.getInt(asmNode) > 200) {
+//					System.currentTimeMillis();
+//					
+//				}
+//			}
+//		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
+//			e.printStackTrace();
+//		}
 
 		this.classLoader = classLoader;
 
 		setClassName(className);
 		setMethodName(methodName);
 	}
+	
+//	private  Field getField(Class clazz, String fieldName)
+//	        throws NoSuchFieldException {
+//	    try {
+//	      return clazz.getDeclaredField(fieldName);
+//	    } catch (NoSuchFieldException e) {
+//	      Class superClass = clazz.getSuperclass();
+//	      if (superClass == null) {
+//	        throw e;
+//	      } else {
+//	        return getField(superClass, fieldName);
+//	      }
+//	    }
+//	 }
 
 	/**
 	 * Can represent any byteCode instruction
