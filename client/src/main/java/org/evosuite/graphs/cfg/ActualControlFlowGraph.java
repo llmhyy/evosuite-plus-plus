@@ -20,6 +20,7 @@
 package org.evosuite.graphs.cfg;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -800,6 +801,12 @@ public class ActualControlFlowGraph extends ControlFlowGraph<BasicBlock> {
 			return searchedFor;
 
 		return null;
+	}
+	
+	public List<BytecodeInstruction> getAllInstructions() {
+		BytecodeInstructionPool pool = BytecodeInstructionPool.getInstance(rawGraph.getClassLoader());
+		List<BytecodeInstruction> list = pool.getInstructionsIn(className, methodName);
+		return list;
 	}
 
 	// @Override
