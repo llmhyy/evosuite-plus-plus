@@ -42,7 +42,7 @@ public class ObjectOrientedTest {
 	
 	
 	@Test
-	public void testComputationGraphConstruction() throws ClassNotFoundException {
+	public void testComputationGraphConstruction1() throws ClassNotFoundException {
 		
 		setup();
 		
@@ -76,6 +76,51 @@ public class ObjectOrientedTest {
 //			GraphVisualizer.visualizeComputationGraph(b, 10000);
 			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000);
 		}
+	}
+	
+	@Test
+	public void testComputationGraphConstruction2() throws ClassNotFoundException {
+		
+	}
+	
+	@Test
+	public void testComputationGraphConstruction3() throws ClassNotFoundException {
+		
+	}
+	
+	@Test
+	public void testComputationGraphConstruction4() throws ClassNotFoundException {
+		
+	}
+	
+	@Test
+	public void testComputationGraphConstruction5() throws ClassNotFoundException {
+		
+	}
+	
+	@Test
+	public void testComputationGraphConstruction6() throws ClassNotFoundException {
+		
+	}
+	
+	@Test
+	public void testComputationGraphConstruction7() throws ClassNotFoundException {
+		
+	}
+	
+	@Test
+	public void testComputationGraphConstruction8() throws ClassNotFoundException {
+		
+	}
+	
+	@Test
+	public void testComputationGraphConstruction9() throws ClassNotFoundException {
+		
+	}
+	
+	@Test
+	public void testComputationGraphConstruction10() throws ClassNotFoundException {
+		
 	}
 	
 	@Test
