@@ -12,7 +12,7 @@ import com.test.TestUtility;
 public class HybridExampleTest {
 	@Test
 	public void test() {
-		Class<?> clazz = com.example.HybridExample.class;
+		Class<?> clazz = regression.hybrid.example.HybridExample.class;
 		String methodName = "test";
 		int parameterNum = 2;
 		

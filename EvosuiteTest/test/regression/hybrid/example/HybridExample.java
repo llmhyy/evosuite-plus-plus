@@ -1,4 +1,4 @@
-package com.example;
+package regression.hybrid.example;
 
 public class HybridExample {
 	public void test(int x, int y) {
