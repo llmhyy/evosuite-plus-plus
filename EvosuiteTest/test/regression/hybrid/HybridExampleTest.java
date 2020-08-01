@@ -1,4 +1,4 @@
-package com.test;
+package regression.hybrid;
 
 import java.lang.reflect.Method;
 
@@ -6,6 +6,8 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
+
+import com.test.TestUtility;
 
 public class HybridExampleTest {
 	@Test
@@ -37,7 +39,7 @@ public class HybridExampleTest {
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 30000;
-		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuiteHybrid(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 //		List<Tuple> l = new ArrayList<>();
 //		for(int i=0; i<7; i++){
