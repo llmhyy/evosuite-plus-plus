@@ -38,6 +38,8 @@ public class ObjectOrientedTest {
 	
 	public static void setup() {
 		Properties.CRITERION = new Criterion[] {Criterion.BRANCH};
+		Properties.ASSERTIONS = false;
+		Properties.INSTRUMENT_CONTEXT = true;
 	}
 	
 	
