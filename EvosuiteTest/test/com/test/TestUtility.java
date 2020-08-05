@@ -127,8 +127,8 @@ public class TestUtility {
 		// Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 		// Properties.STRATEGY = Strategy.RANDOM;
 		String[] command = new String[] {
-				"-generateTests",
-				"-Dstrategy", "ONEBRANCH",
+//				"-generateTests",
+//				"-Dstrategy", "ONEBRANCH",
 				
 				"-generateTests",
 				"-Dstrategy", "EMPIRICAL_HYBRID_COLLECTOR",
