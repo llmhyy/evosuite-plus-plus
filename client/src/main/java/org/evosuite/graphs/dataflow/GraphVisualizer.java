@@ -28,7 +28,7 @@ public class GraphVisualizer {
 	
 	public static String path = "D://linyun/";
 	
-	public static void visualizeComputationGraph(PartialGraph partialGraph, int resolution) {
+	public static void visualizeComputationGraph(PartialGraph partialGraph, int resolution, String folderName) {
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -62,7 +62,7 @@ public class GraphVisualizer {
 
 		Graph g = graph(partialGraph.getBranch().toString()).directed().graphAttr().with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
 		try {
-			File f = new File(path + File.separator + partialGraph.getBranch().toString() + ".png");
+			File f = new File(path + folderName + File.separator + partialGraph.getBranch().toString() + ".png");
 			Graphviz.fromGraph(g).height(resolution).render(Format.PNG).toFile(f);
 		} catch (IOException e) {
 			e.printStackTrace();

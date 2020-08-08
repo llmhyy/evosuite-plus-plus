@@ -930,4 +930,16 @@
 		<jars-destination>${project.basedir}/../generated-jars</jars-destination>
 	</properties>
 
+	<dependencies>
+		<dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+			<version>3.6</version>
+		</dependency>
+		<dependency>
+    		<groupId>com.google.protobuf</groupId>
+    		<artifactId>protobuf-java</artifactId>
+    		<version>4.0.0-rc-2</version>
+		</dependency>
+	</dependencies>
 </project>
