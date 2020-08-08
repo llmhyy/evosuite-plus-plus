@@ -1,4 +1,4 @@
-package regression.objectconstruction.testgeneration.example.graphcontruction;
+package regression.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules;
 
 public class BasicRules {
 	public boolean checkRules(Action action, GameState state) {
@@ -55,7 +55,7 @@ public class BasicRules {
 							return false;
 						}
 
-						if (target.gangBoss() == actor) {
+						if (target.gangBoss() == actor) { //here
 							return false;
 						}
 						break;
@@ -68,7 +68,7 @@ public class BasicRules {
 							return false;
 						}
 
-						if (actor.gangBoss() == target) {
+						if (actor.gangBoss() == target) { //here
 							return false;
 						}
 						break;
@@ -105,7 +105,7 @@ public class BasicRules {
 							return false;
 						}
 
-						if (actor != target.boss) {
+						if (actor != target.boss) { //here
 							return false;
 						}
 				}

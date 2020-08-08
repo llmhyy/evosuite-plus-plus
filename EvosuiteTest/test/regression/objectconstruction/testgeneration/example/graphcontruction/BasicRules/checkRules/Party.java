@@ -1,4 +1,4 @@
-package regression.objectconstruction.testgeneration.example.graphcontruction;
+package regression.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules;
 
 
 import java.util.LinkedList;
