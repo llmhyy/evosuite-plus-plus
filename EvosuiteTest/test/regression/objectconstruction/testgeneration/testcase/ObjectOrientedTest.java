@@ -50,7 +50,9 @@ import regression.objectconstruction.testgeneration.example.graphcontruction.Chk
 public class ObjectOrientedTest {
 
 	public static void setup() {
-		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
+		Properties.CRITERION = new Criterion[] {Criterion.BRANCH};
+		Properties.ASSERTIONS = false;
+		Properties.INSTRUMENT_CONTEXT = true;
 	}
 
 	@Test

@@ -216,16 +216,22 @@ public class TestChromosome extends ExecutableChromosome {
 		List<FBranchTestFitness> list = new ArrayList<>();
 		for(BytecodeInstruction exit: cfg.getExitPoints()){
 			
-			BytecodeInstruction ins = exit.getSourceOfStackInstruction(0);
-			
-			if(ins.getASMNode().getOpcode() == Opcodes.ACONST_NULL){
-				Branch b = exit.getControlDependentBranch();
-				boolean value = exit.getControlDependentBranchExpressionValue();
+			List<BytecodeInstruction> l = exit.getSourceListOfStackInstruction(0);
+			for(BytecodeInstruction ins: l) {
+				System.currentTimeMillis();
 				
-				BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
-				FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
-				list.add(fFit);
+				if(ins.getASMNode().getOpcode() == Opcodes.ACONST_NULL){
+					Branch b = ins.getControlDependentBranch();
+					boolean value = exit.getControlDependentBranchExpressionValue();
+					
+					BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
+					FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
+					list.add(fFit);
+				}
+				
 			}
+			
+			
 			
 		}
 		

@@ -45,7 +45,6 @@ import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.Statement;
-import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.FieldReference;
@@ -125,7 +124,7 @@ public class ConstructionPathSynthesizer {
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
-//		GraphVisualizer.visualizeComputationGraph(partialGraph);
+//		GraphVisualizer.visualizeComputationGraph(partialGraph, 5000);
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -156,7 +155,7 @@ public class ConstructionPathSynthesizer {
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
 				enhanceTestStatement(test, map, node);	
-				
+				System.currentTimeMillis();
 				/**
 				 *  the order of children size matters
 				 */

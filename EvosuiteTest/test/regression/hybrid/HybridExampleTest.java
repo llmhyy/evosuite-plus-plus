@@ -1,4 +1,4 @@
-package com.test;
+package regression.hybrid;
 
 import java.lang.reflect.Method;
 
@@ -7,10 +7,12 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
+import com.test.TestUtility;
+
 public class HybridExampleTest {
 	@Test
 	public void test() {
-		Class<?> clazz = com.example.HybridExample.class;
+		Class<?> clazz = regression.hybrid.example.HybridExample.class;
 		String methodName = "test";
 		int parameterNum = 2;
 		
@@ -19,7 +21,7 @@ public class HybridExampleTest {
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
+		String cp = "target/classes;target/test-classes";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
@@ -37,7 +39,7 @@ public class HybridExampleTest {
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 30000;
-		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuiteHybrid(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
 //		List<Tuple> l = new ArrayList<>();
 //		for(int i=0; i<7; i++){
