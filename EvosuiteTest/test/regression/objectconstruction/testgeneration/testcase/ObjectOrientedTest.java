@@ -940,7 +940,7 @@ public class ObjectOrientedTest {
 		}
 	}
 
-	// @Test
+	@Test
 	public void testComputationGraphConstruction3() throws ClassNotFoundException {
 		setup();
 
@@ -991,17 +991,25 @@ public class ObjectOrientedTest {
 				assert labelStrings.contains("this\n"
 						+ "regression.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame\n");
 
+				// this InternalGmHeroFrame -> model
+				// TODO: should not have instance field tree
+				assert topLayer.get(1).children.size() == 1;
+				
+				// model -> root
+				// TODO: should not have other getClass()
+				assert topLayer.get(1).children.get(0).children.size() == 1;
+								
 				break;
 			}
-			case "I29 Branch 8 IFEQ L20": {
+			case "I31 Branch 8 IFEQ L21": {
 				// TODO
 				break;
 			}
-			case "I36 Branch 9 IFLE L20": {
+			case "I40 Branch 9 IFLE L22": {
 				// TODO
 				break;
 			}
-			case "I74 Branch 10 IFGT L26": {
+			case "I78 Branch 10 IFGT L28": {
 				// Instance: InternalGmHeroFrame -> frameName
 				assert topLayer.size() == 1;
 				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
@@ -1013,12 +1021,12 @@ public class ObjectOrientedTest {
 						+ "regression/objectconstruction/testgeneration/example/graphcontruction/InternalGmHeroFrame/valueChanged/InternalGmHeroFrame\n"
 						+ "Ljava/lang/String;\n" + "frameName\n");
 			}
-			case "I92 Branch 11 IFEQ L28": {
+			case "I96 Branch 11 IFEQ L30": {
 				// TODO
 				break;
 			}
 			default: {
-				// assert false;
+				assert false;
 			}
 			}
 		}
@@ -1089,7 +1097,7 @@ public class ObjectOrientedTest {
 		}
 	}
 
-	// @Test
+	//@Test
 	public void testComputationGraphConstruction5() throws ClassNotFoundException {
 		setup();
 
