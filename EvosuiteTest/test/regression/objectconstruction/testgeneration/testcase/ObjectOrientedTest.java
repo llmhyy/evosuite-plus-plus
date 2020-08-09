@@ -1024,7 +1024,7 @@ public class ObjectOrientedTest {
 		}
 	}
 
-	// @Test
+	@Test
 	public void testComputationGraphConstruction4() throws ClassNotFoundException {
 		setup();
 
@@ -1057,24 +1057,29 @@ public class ObjectOrientedTest {
 			Set<String> labelStrings = new HashSet<String>();
 
 			switch (branchName) {
-			case "I10 Branch 29 IFNULL L131": {
+			case "I10 Branch 1 IFNULL L46": {
 				// TODO
+				// Static class/method not shown
 				// should be Static Main -> window
+				assert topLayer.size() > 0;
+				
 				break;
 			}
-			case "I31 Branch 30 IFNULL L134": {
+			case "I31 Branch 2 IFNULL L49": 
+			case "I37 Branch 3 IFLE L49": {
 				// TODO
+				// Static class/method not shown, primitive parameter not shown
 				// should be Static Main -> window, Parameter: paramString
+				assert topLayer.size() > 0;
+				
 				break;
 			}
-			case "I37 Branch 31 IFLE L134": {
+			case "I63 Branch 4 IFNE L54": {
 				// TODO
-				// should be Static Main -> window, Parameter: paramString
-				break;
-			}
-			case "I63 Branch 32 IFNE L139": {
-				// TODO
-				// should have isSaved() method
+				// Static class/method not shown, instance methods not shown
+				// should be Static Main -> window, this.isSaved() -> this.lastSavedModel
+				assert topLayer.size() > 0;
+				
 				break;
 			}
 			default: {

@@ -41,6 +41,22 @@ public class HandballModel implements Serializable {
 
 	private String moveName;
 
+	public void setMoveName(String paramString) {
+		this.moveName = paramString;
+		if (Main.getWindow() != null) {
+			StringBuffer stringBuffer = new StringBuffer("jHandballMoves");
+			stringBuffer.append(" - ");
+			if (paramString == null || paramString.equals("")) {
+				stringBuffer.append("Unbenannt");
+			} else {
+				stringBuffer.append(paramString);
+			}
+			if (!isSaved())
+				stringBuffer.append("*");
+			Main.getWindow().setTitle(stringBuffer.toString());
+		}
+	}
+
 	public List<Defender> getDefenders() {
 		return this.defenders;
 	}
@@ -124,22 +140,6 @@ public class HandballModel implements Serializable {
 
 	public String getMoveName() {
 		return this.moveName;
-	}
-
-	public void setMoveName(String paramString) {
-		this.moveName = paramString;
-		if (Main.getWindow() != null) {
-			StringBuffer stringBuffer = new StringBuffer("jHandballMoves");
-			stringBuffer.append(" - ");
-			if (paramString == null || paramString.equals("")) {
-				stringBuffer.append("Unbenannt");
-			} else {
-				stringBuffer.append(paramString);
-			}
-			if (!isSaved())
-				stringBuffer.append("*");
-			Main.getWindow().setTitle(stringBuffer.toString());
-		}
 	}
 
 //  public void test(String a, int x, String b, GameState state) {
