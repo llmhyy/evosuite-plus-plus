@@ -23,16 +23,6 @@ public class Article implements ArticleMeta, ContentSetable {
 
 	private static final int EDIT_DATE_RELOAD = 64;
 
-	private boolean isReload(int reloadVar) {
-		if (this.bot.hasCacheHandler())
-			return true;
-		return ((this.reload & reloadVar) == 0);
-	}
-
-	private void setReload(int reloadVar) {
-		this.reload |= reloadVar;
-	}
-
 	public String getRevisionId() {
 		if (isReload(4)) {
 			setReload(4);
@@ -43,6 +33,16 @@ public class Article implements ArticleMeta, ContentSetable {
 			}
 		}
 		return this.sa.getRevisionId();
+	}
+
+	private boolean isReload(int reloadVar) {
+		if (this.bot.hasCacheHandler())
+			return true;
+		return ((this.reload & reloadVar) == 0);
+	}
+
+	private void setReload(int reloadVar) {
+		this.reload |= reloadVar;
 	}
 
 	@Override
