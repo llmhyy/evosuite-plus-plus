@@ -55,7 +55,7 @@ public class BasicRules {
 							return false;
 						}
 
-						if (target.gangBoss() == actor) { //here
+						if (target.gangBoss() == actor) {
 							return false;
 						}
 						break;
@@ -68,7 +68,7 @@ public class BasicRules {
 							return false;
 						}
 
-						if (actor.gangBoss() == target) { //here
+						if (actor.gangBoss() == target) {
 							return false;
 						}
 						break;
@@ -105,7 +105,7 @@ public class BasicRules {
 							return false;
 						}
 
-						if (actor != target.boss) { //here
+						if (actor != target.boss) {
 							return false;
 						}
 				}
