@@ -23,7 +23,7 @@
 
     <contextName>ContextForDeterminismCheck</contextName>
 
-    <root level="TRACE" >
+    <root level="INFO" >
         <appender  class="ch.qos.logback.core.ConsoleAppender">
             <target>System.out</target>
             <encoder>
