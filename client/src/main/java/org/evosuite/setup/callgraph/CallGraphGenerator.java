@@ -93,7 +93,7 @@ public class CallGraphGenerator {
 		ClassNode superClass = DependencyAnalysis.getClassNode(superClassName);
 		List<MethodNode> methods = superClass.methods;
 		for (MethodNode mn : methods) {
-//			logger.debug("Method: " + mn.name);
+			logger.debug("Method: " + mn.name);
 
 			// Do not check super-constructors
 			if (mn.name.equals("<init>"))
@@ -119,7 +119,7 @@ public class CallGraphGenerator {
 	private static void handle(CallGraph callGraph, ClassNode targetClass, int depth) {
 		List<MethodNode> methods = targetClass.methods;
 		for (MethodNode mn : methods) {
-//			logger.debug("Method: " + mn.name);
+			logger.debug("Method: " + mn.name);
 			handleMethodNode(callGraph, targetClass, mn, depth);
 		}
 	}
@@ -182,7 +182,7 @@ public class CallGraphGenerator {
 
 		// Only build calltree for instrumentable classes
 		if (BytecodeInstrumentation.checkIfCanInstrument(methodCall.owner.replaceAll("/", "."))) {
-//			logger.debug("Handling method: " + methodCall.name);
+			logger.debug("Handling method: " + methodCall.name);
 			if (!callGraph.hasCall(cn.name, mn.name + mn.desc, methodCall.owner, methodCall.name
 					+ methodCall.desc)) {
 
