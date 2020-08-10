@@ -9,11 +9,11 @@ jdk:
    - openjdk8
 
 install:
-   - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B
+   - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B -Dorg.slf4j.simpleLogger.defaultLogLevel=warn
 
 script:
    # branch enhancement
-   - mvn -Dtest=ObjectOrientedTest test -pl EvosuiteTest -B -q
+   - mvn -Dtest=ObjectOrientedTest test -pl EvosuiteTest -B -q -Dorg.slf4j.simpleLogger.defaultLogLevel=warn
 #   - mvn -Dtest=InevitableConstructorExampleTest test -pl EvosuiteTest -e
    #- mvn -Dtest=LayeredCallExampleTest test -pl EvosuiteTest -e
    #- mvn -Dtest=MultipleConstructorsExampleTest test -pl EvosuiteTest -e
