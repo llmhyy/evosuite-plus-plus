@@ -3,24 +3,13 @@ sudo: true
 # dist: trusty
 
 os:
-   - linux
-  
+  - linux
+
 jdk:
-   - openjdk8
+  - openjdk8
 
 install:
-   - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B
+  - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B
 
 script:
-   # branch enhancement
-   - mvn -Dtest=ObjectOrientedTest test -pl EvosuiteTest -e
-#   - mvn -Dtest=InevitableConstructorExampleTest test -pl EvosuiteTest -e
-   #- mvn -Dtest=LayeredCallExampleTest test -pl EvosuiteTest -e
-   #- mvn -Dtest=MultipleConstructorsExampleTest test -pl EvosuiteTest -e
-   #- mvn -Dtest=MultipleExceptionsExampleTest test -pl EvosuiteTest -e
-   # fbranch
-   #- mvn -Dtest=ValueRangeExampleTest test -pl EvosuiteTest -e
-   # smart mutation
-   #- mvn -Dtest=StringArrayExampleTest test -pl EvosuiteTest -e
-   # object construction
-   #- mvn -Dtest=CascadingCallExampleTest test -pl EvosuiteTest -e
+  - mvn -Dtest=ObjectOrientedTest test -pl EvosuiteTest -e -Dorg.slf4j.simpleLogger.defaultLogLevel=warn
