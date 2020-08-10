@@ -13,8 +13,8 @@ install:
 
 script:
    # branch enhancement
-   - mvn -Dtest=ColtExampleTest test -pl EvosuiteTest -e
-   - mvn -Dtest=InevitableConstructorExampleTest test -pl EvosuiteTest -e
+   - mvn -Dtest=ObjectConstructionTest test -pl EvosuiteTest -e
+#   - mvn -Dtest=InevitableConstructorExampleTest test -pl EvosuiteTest -e
    #- mvn -Dtest=LayeredCallExampleTest test -pl EvosuiteTest -e
    #- mvn -Dtest=MultipleConstructorsExampleTest test -pl EvosuiteTest -e
    #- mvn -Dtest=MultipleExceptionsExampleTest test -pl EvosuiteTest -e
