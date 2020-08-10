@@ -121,7 +121,7 @@
 
 	<!-- main root logger. Note: it is turned OFF to avoid SUT using it-->
 
-	<root level="OFF">
+	<root level="WARN">
 	</root>
 
 
