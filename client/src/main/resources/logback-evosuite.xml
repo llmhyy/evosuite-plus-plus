@@ -55,27 +55,27 @@
 
 	<!-- appenders for client. -->
 
-	<appender name="STDOUT_CLIENT" class="ch.qos.logback.classic.net.SocketAppender">
-		<filter class="ch.qos.logback.classic.filter.LevelFilter">
-			<level>ERROR</level>
-			<onMatch>DENY</onMatch>
-			<onMismatch>ACCEPT</onMismatch>
-		</filter>
-		<remoteHost>${master_host:-localhost}</remoteHost>
-		<port>${master_log_port:-12345}</port>
-		<reconnectionDelay>10000</reconnectionDelay>
-	</appender>
+<!--	<appender name="STDOUT_CLIENT" class="ch.qos.logback.classic.net.SocketAppender">-->
+<!--		<filter class="ch.qos.logback.classic.filter.LevelFilter">-->
+<!--			<level>ERROR</level>-->
+<!--			<onMatch>DENY</onMatch>-->
+<!--			<onMismatch>ACCEPT</onMismatch>-->
+<!--		</filter>-->
+<!--		<remoteHost>${master_host:-localhost}</remoteHost>-->
+<!--		<port>${master_log_port:-12345}</port>-->
+<!--		<reconnectionDelay>10000</reconnectionDelay>-->
+<!--	</appender>-->
 
-	<appender name="STDERR_CLIENT" class="ch.qos.logback.classic.net.SocketAppender">
-		<filter class="ch.qos.logback.classic.filter.LevelFilter">
-			<level>ERROR</level>
-			<onMatch>ACCEPT</onMatch>
-			<onMismatch>DENY</onMismatch>
-		</filter>
-		<remoteHost>${master_host:-localhost}</remoteHost>
-		<port>${master_log_port:-12345}</port>
-		<reconnectionDelay>10000</reconnectionDelay>
-	</appender>
+<!--	<appender name="STDERR_CLIENT" class="ch.qos.logback.classic.net.SocketAppender">-->
+<!--		<filter class="ch.qos.logback.classic.filter.LevelFilter">-->
+<!--			<level>ERROR</level>-->
+<!--			<onMatch>ACCEPT</onMatch>-->
+<!--			<onMismatch>DENY</onMismatch>-->
+<!--		</filter>-->
+<!--		<remoteHost>${master_host:-localhost}</remoteHost>-->
+<!--		<port>${master_log_port:-12345}</port>-->
+<!--		<reconnectionDelay>10000</reconnectionDelay>-->
+<!--	</appender>-->
 
 
 	<!-- the "EVO" logger is used both by master and client. it is used for 
@@ -87,11 +87,11 @@
 		</encoder>
 	</appender>
 
-	<appender name="EVO_LOGGER_CLIENT" class="ch.qos.logback.classic.net.SocketAppender">
-		<remoteHost>${master_host:-localhost}</remoteHost>
-		<port>${master_log_port:-12345}</port>
-		<reconnectionDelay>10000</reconnectionDelay>
-	</appender>
+<!--	<appender name="EVO_LOGGER_CLIENT" class="ch.qos.logback.classic.net.SocketAppender">-->
+<!--		<remoteHost>${master_host:-localhost}</remoteHost>-->
+<!--		<port>${master_log_port:-12345}</port>-->
+<!--		<reconnectionDelay>10000</reconnectionDelay>-->
+<!--	</appender>-->
 
 
 
