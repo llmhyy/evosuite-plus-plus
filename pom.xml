@@ -129,11 +129,11 @@
 			<activation>
 				<activeByDefault>true</activeByDefault>
 				<file>
-					<exists>${java.home}/../lib/tools.jar</exists>
+					<exists>C:\Program Files\Java\jdk1.8.0_261\lib/tools.jar</exists>
 				</file>
 			</activation>
 			<properties>
-				<toolsjar>${java.home}/../lib/tools.jar</toolsjar>
+				<toolsjar>C:\Program Files\Java\jdk1.8.0_261\lib/tools.jar</toolsjar>
 			</properties>
 		</profile>
 		<profile>
