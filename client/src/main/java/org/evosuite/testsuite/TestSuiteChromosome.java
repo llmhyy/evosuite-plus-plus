@@ -55,6 +55,10 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	
 	private List<Double> progressInfomation = new ArrayList<>();
 	private int[] distribution; 
+	/**
+	 * it is the achieved coverage with initial population
+	 */
+	private double initialCoverage;
 
 	private GeneticAlgorithm<? extends Chromosome> geneticAlgorithm;
 //	private int age;
@@ -428,5 +432,13 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 
 	public void setMethodCallAvailabilityMap(Map<String, Boolean> methodCallAvailabilityMap) {
 		this.methodCallAvailabilityMap = methodCallAvailabilityMap;
+	}
+
+	public double getInitialCoverage() {
+		return initialCoverage;
+	}
+
+	public void setInitialCoverage(double initialCoverage) {
+		this.initialCoverage = initialCoverage;
 	}
 }

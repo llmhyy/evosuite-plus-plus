@@ -34,6 +34,8 @@ import org.evosuite.testcase.TestCase;
 
 class TestGenerationResultImpl implements TestGenerationResult {
 
+	private double initialCoverage = 0;
+	
 	private int elapseTime = 0;
 	
 	private double coverage = 0;
@@ -445,6 +447,14 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	public void setMethodCallAvailabilityMap(Map<String, Boolean> methodCallAvailabilityMap) {
 		this.methodCallAvailabilityMap = methodCallAvailabilityMap;
+	}
+
+	public double getInitialCoverage() {
+		return initialCoverage;
+	}
+
+	public void setInitialCoverage(double initialCoverage) {
+		this.initialCoverage = initialCoverage;
 	}
 
 }

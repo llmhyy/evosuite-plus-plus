@@ -132,5 +132,8 @@ public interface TestGenerationResult extends Serializable {
 	
 	public Map<String, Boolean> getMethodCallAvailabilityMap();
 	public void setMethodCallAvailabilityMap(Map<String, Boolean> methodCallAvailabilityMap);
+	
+	public double getInitialCoverage();
+	public void setInitialCoverage(double initialCoverage);
 
 }

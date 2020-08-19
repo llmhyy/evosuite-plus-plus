@@ -678,6 +678,7 @@ public class EvosuiteForMethod {
 					result.setAvailableCalls(r.getAvailableCalls());
 					result.setUnavailableCalls(r.getUnavailableCalls());
 					result.setBranchInformation(r.getBranchInformation());
+					result.setInitialCoverage(r.getInitialCoverage());
 
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);

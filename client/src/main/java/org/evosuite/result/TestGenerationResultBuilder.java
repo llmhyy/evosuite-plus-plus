@@ -87,6 +87,7 @@ public class TestGenerationResultBuilder {
 		result.setRandomSeed(Randomness.getSeed());
 		result.setBranchInformation(testSuite.getBranchInformation());
 		result.setMethodCallAvailabilityMap(testSuite.getMethodCallAvailabilityMap());
+		result.setInitialCoverage(testSuite.getInitialCoverage());
 		
 		return result;
 	}

@@ -8,6 +8,9 @@ import org.evosuite.BranchDistributionInformation;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 
 public class EvoTestResult {
+	
+	private double initialCoverage;
+	
 	private int time;
 	private double coverage;
 	private int age;
@@ -170,6 +173,14 @@ public class EvoTestResult {
 
 	public void setMethodCallAvailability(Map<String, Boolean> methodCallAvailability) {
 		this.methodCallAvailability = methodCallAvailability;
+	}
+
+	public double getInitialCoverage() {
+		return initialCoverage;
+	}
+
+	public void setInitialCoverage(double initialCoverage) {
+		this.initialCoverage = initialCoverage;
 	}
 
 }
