@@ -14,6 +14,108 @@ import evosuite.shell.experiment.SFConfiguration;
 public class CommonTestUtil {
 	public static List<EvoTestResult> evoTestSingleMethod(String projectId,
 			String[] targetMethods, String fitnessAppraoch, int iteration, 
+			long seconds, boolean context, Long seed, boolean applyObjectRule,
+			String option,
+			String strategy,
+			String algorithm
+			) {
+		/* configure */
+	
+		/* run */
+		
+		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
+		
+		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
+			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
+			return null;
+		}
+		
+		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
+		file.deleteOnExit();
+		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethods);
+
+//		boolean instrumentContext = true;
+		String[] args = new String[] {
+				"-Dapply_object_rule", String.valueOf(applyObjectRule),
+//				"-Denable_branch_enhancement", "true",
+				
+				"-"+option,
+				"-Dstrategy", strategy,
+				"-Dalgorithm", algorithm,
+				
+//				"-generateSuiteUsingDSE",
+//				"-Dstrategy", "DSE",
+				
+//				"-generateTests",
+//				"-Dstrategy", "EMPIRICAL_HYBRID_COLLECTOR",
+				
+//				"-generateMOSuite",
+//				"-Dstrategy", "MOSUITE",
+//				"-Dalgorithm", "DYNAMOSA",
+				
+				
+//				"-generateRandom",
+//				"-Dstrategy", "random",
+//				"-generateSuite",
+				"-criterion", fitnessAppraoch,
+				"-target", FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, projectName + ".jar"),
+				"-inclusiveFile", file.getAbsolutePath(),
+				"-iteration", String.valueOf(iteration),
+				"-Dadopt_smart_mutation", "true",
+//				"-Djunit_check", "false"
+////				"-generateSuiteUsingDSE",
+////				"-class", targetClass, 
+////				"-projectCP", cp, //;lib/commons-math-2.2.jar
+////				"-setup", "bin", "lib/commons-math-2.2.jar",
+////				"-Dtarget_method", targetMethod, 
+				"-Dsearch_budget", String.valueOf(seconds),
+				"-Dcriterion", fitnessAppraoch,
+				"-Dinstrument_context", String.valueOf(context), 
+//				"-Dinsertion_uut", "0.1",
+				"-Dp_test_delete", "0.0",
+				"-Dp_test_change", "0.9",
+				"-Dp_test_insert", "0.3",
+//				"-Dheadless_chicken_test", "true",
+				"-Dp_change_parameter", "0.6",
+//				"-Dlocal_search_rate", "30",
+				"-Dp_functional_mocking", "0",
+				"-Dmock_if_no_generator", "false",
+				"-Dfunctional_mocking_percent", "0",
+				"-Dprimitive_reuse_probability", "0",
+				"-Dmin_initial_tests", "10",
+				"-Dmax_initial_tests", "20",
+				"-Ddse_probability", "0",
+//				"-Dinstrument_method_calls", "true",
+				"-Dinstrument_libraries", "true",
+				"-Dinstrument_parent", "true",
+//				"-Dmax_length", "1",
+//				"-Dmax_size", "1",
+				"-Dmax_attempts", "100",
+				"-Dassertions", "false",
+				"-Delite", "10",
+				"-Dprimitive_pool", "0.5",
+				"-Ddynamic_pool", "0.5",
+				"-Dlocal_search_ensure_double_execution", "false",
+//				"-Dchromosome_length", "100",
+//				"-Dstopping_condition", "maxgenerations",
+//				"-DTT", "true",
+//				"-Dtt_scope", "target",
+//				"-seed", "1556035769590"
+				
+		};
+		
+		if(seed != null) {
+			args = ArrayUtils.add(args, "-seed");
+			args = ArrayUtils.add(args,  seed.toString());
+		}
+		
+		SFBenchmarkUtils.setupProjectProperties(projectId);
+		return EvosuiteForMethod.generateTests(args);
+	}
+	
+	
+	public static List<EvoTestResult> evoTestSingleMethod(String projectId,
+			String[] targetMethods, String fitnessAppraoch, int iteration, 
 			long seconds, boolean context, Long seed, boolean applyObjectRule) {
 		/* configure */
 	

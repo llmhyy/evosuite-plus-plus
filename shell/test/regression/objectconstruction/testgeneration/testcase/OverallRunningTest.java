@@ -60,10 +60,6 @@ public class OverallRunningTest {
 		double initCoverage = resultF.getInitialCoverage();
 		
 		System.currentTimeMillis();
-//		
-//		assert ageT < ageF;
-//		assert timeT < timeF;
-//		assert coverageT > coverageF;
 	}
 	
 	@Test

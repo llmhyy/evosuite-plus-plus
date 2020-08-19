@@ -161,6 +161,8 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 		testSuite.setUnavailableCalls(algorithm.getUnavailableCalls());
 		testSuite.setUncoveredBranchDistribution(algorithm.getUncoveredBranchDistribution());
 		testSuite.setDistributionMap(algorithm.getDistributionMap());
+		testSuite.setInitialCoverage(algorithm.getInitialCoverage());
+		testSuite.setInitializationOverhead(algorithm.getIntializationOverhead());
 		return testSuite;
 	}
 	

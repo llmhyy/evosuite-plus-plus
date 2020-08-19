@@ -253,6 +253,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 			disableFirstSecondaryCriterion();
 		}
 
+		long t1 = System.currentTimeMillis();
 		if (population.isEmpty()) {
 			initializePopulation();
 			assert !population.isEmpty() : "Could not create any test";
@@ -260,6 +261,11 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		else {
 			this.notifyIteration();
 		}
+		long t2 = System.currentTimeMillis();
+		long initializationOverhead = t2 - t1;
+		this.setIntializationOverhead(initializationOverhead);
+		double coverage = getBestIndividual().getCoverage();
+		this.setInitialCoverage(coverage);
 
 		logger.debug("Starting evolution");
 		int starvationCounter = 0;
@@ -271,16 +277,6 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		}
 
 		RuntimeRecord.methodCallAvailabilityMap.clear();
-
-//		StatisticChecker timer = new StatisticChecker(getProgressInformation(), new CoverageProgressGetter() {
-//			@Override
-//			public double getCoverage() {
-//				T bestIndividual = getBestIndividual();
-//				return bestIndividual.getCoverage();
-//			}
-//		});
-//		Thread timerThread = new Thread(timer);
-//		timerThread.start();
 
 		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
 		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
