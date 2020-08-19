@@ -47,7 +47,7 @@ For example:
 ```
 
 A more systematic way to resolve the problem can be referred here: 
-add the following configuration in your eclipse.ini file.
+add the following configuration in your eclipse.ini file before `-vmargs` option.
 ```
 -vm
 $YOUR_JDK_PATH$/jre/bin/server/jvm.dll
