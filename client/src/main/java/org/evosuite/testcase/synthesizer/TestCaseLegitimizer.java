@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.Properties;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestCase;
@@ -18,7 +19,7 @@ import org.evosuite.utils.Randomness;
 public class TestCaseLegitimizer {
 
 	public static int optimizionPopluationSize = 20;
-	public static int localFuzzBudget = 30;
+	public static int localFuzzBudget = Properties.LEGITIMIZATION_BUDGET;
 	
 	private PartialGraph graph;
 	private Map<DepVariable, List<VariableReference>> graph2CodeMap;
