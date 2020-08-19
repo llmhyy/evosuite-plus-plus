@@ -27,7 +27,7 @@ In eclipse, we need to import Evosuite projects by **Import>>Maven>>Existing Mav
 * evosuite-client
 * evosuite-master
 * evosuite-runtime
-* EvosuiteTest
+* evosuite-shell
 
 After importing all the above projects, we need to modify pom.xml in evosuite project as follows (here is an Eclipse bug, which makes the IDE fail to recognize correct Java home path even if we set the correct JDK path in Eclipse):
 We find ```<tools-default>``` and replace its ```<exists>``` and ```<toolsjar>``` element with the file location inside

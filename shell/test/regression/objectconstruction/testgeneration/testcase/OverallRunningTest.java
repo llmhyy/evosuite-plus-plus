@@ -27,6 +27,43 @@ public class OverallRunningTest {
 	}
 	
 	@Test
+	public void testGangupBasicRulesExample() {
+		String projectId = "27_gangup";
+		String[] targetMethods = new String[]{
+				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
+				};
+		
+		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		
+//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor);
+//		
+//		EvoTestResult resultT = resultsT.get(0);
+//		EvoTestResult resultF = resultsF.get(0);
+//		
+//		int ageT = resultT.getAge();
+//		int timeT = resultT.getTime();
+//		double coverageT = resultT.getCoverage();
+//		int ageF = resultF.getAge();
+//		int timeF = resultF.getTime();
+//		double coverageF = resultF.getCoverage();
+//		
+//		assert ageT < ageF;
+//		assert timeT < timeF;
+//		assert coverageT > coverageF;
+	}
+	
+	@Test
 	public void testCascadingCallExample() {
 		Class<?> clazz = regression.objectconstruction.testgeneration.example.cascadecall.CascadingCallExample.class;
 
@@ -147,42 +184,7 @@ public class OverallRunningTest {
 		assert coverageT > coverageF;
 	}
 	
-	@Test
-	public void testGangupBasicRulesExample() {
-		String projectId = "27_gangup";
-		String[] targetMethods = new String[]{
-				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
-				};
-		
-		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
-		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 1;
-		int budget = 100;
-		Long seed = null;
-		
-		String fitnessApproach = "fbranch";
-		
-//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
-//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-		
-		boolean aor = false;
-		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor);
-//		
-//		EvoTestResult resultT = resultsT.get(0);
-//		EvoTestResult resultF = resultsF.get(0);
-//		
-//		int ageT = resultT.getAge();
-//		int timeT = resultT.getTime();
-//		double coverageT = resultT.getCoverage();
-//		int ageF = resultF.getAge();
-//		int timeF = resultF.getTime();
-//		double coverageF = resultF.getCoverage();
-//		
-//		assert ageT < ageF;
-//		assert timeT < timeF;
-//		assert coverageT > coverageF;
-	}
+	
 	
 	@Test
 	public void testJfxExample() {
