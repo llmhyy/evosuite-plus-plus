@@ -29,7 +29,7 @@ In eclipse, we need to import Evosuite projects by **Import>>Maven>>Existing Mav
 * evosuite-runtime
 * evosuite-shell
 
-After importing all the above projects, we need to modify pom.xml in evosuite project as follows (here is an Eclipse bug, which makes the IDE fail to recognize correct Java home path even if we set the correct JDK path in Eclipse):
+After importing all the above projects, we need to modify pom.xml in evosuite project as follows (here is an Eclipse bug, which makes the IDE fail to recognize correct Java home path even if we set the correct JDK path in Eclipse, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=432992):
 We find ```<tools-default>``` and replace its ```<exists>``` and ```<toolsjar>``` element with the file location inside
  project.
 For example:
@@ -45,6 +45,15 @@ For example:
        <toolsjar>C:\Program Files\Java\jdk1.8.0_261\libs\tools.jar</toolsjar>
     </properties>
 ```
+
+A more systematic way to resolve the problem can be referred here: 
+add the following configuration in your eclipse.ini file before `-vmargs` option.
+```
+-vm
+$YOUR_JDK_PATH$/jre/bin/server/jvm.dll
+```
+Then, right click the project >> Maven >> Ipdate Project ...
+By this means, the problem can be fixed.
 
 The "evosuite-master" project may have some compilation errors. In this case, we may include the ```target/generated
 -sources/jaxb``` folder as build path.
