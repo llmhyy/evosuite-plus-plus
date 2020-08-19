@@ -164,9 +164,15 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		this.fitnessFunctions.forEach(this::addUncoveredGoal);
 
 		// initialize population
+		long t1 = System.currentTimeMillis();
 		if (this.population.isEmpty()) {
 			this.initializePopulation();
 		}
+		long t2 = System.currentTimeMillis();
+		this.initializationOverhead = t2 - t1;
+		
+		T suite = getBestIndividual();
+		this.initialCoverage = suite.getCoverage();
 
 		// Calculate dominance ranks and crowding distance
 		this.rankingFunction.computeRankingAssignment(this.population, this.getUncoveredGoals());

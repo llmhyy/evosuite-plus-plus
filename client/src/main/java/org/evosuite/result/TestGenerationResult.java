@@ -135,5 +135,8 @@ public interface TestGenerationResult extends Serializable {
 	
 	public double getInitialCoverage();
 	public void setInitialCoverage(double initialCoverage);
+	
+	public long getInitializationOverhead();
+	public void setInitializationOverhead(long initializationOverhead);
 
 }

@@ -225,6 +225,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 	}
 
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -244,12 +245,17 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		logger.debug("Initial Number of Goals = " + this.goalsManager.getCurrentGoals().size());
 
 		// initialize population
+		long t1 = System.currentTimeMillis();
 		if (this.population.isEmpty()) {
 			this.initializePopulation();
 		}
-
+		long t2 = System.currentTimeMillis();
+		this.initializationOverhead = t2 - t1;
+		
 		// update current goals
 		this.calculateFitness();
+		T suite = getBestIndividual();
+		this.initialCoverage = suite.getCoverage();
 
 		// Calculate dominance ranks and crowding distance
 		this.rankingFunction.computeRankingAssignment(this.population, this.goalsManager.getCurrentGoals());

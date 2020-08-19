@@ -59,6 +59,7 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	 * it is the achieved coverage with initial population
 	 */
 	private double initialCoverage;
+	private long initializationOverhead;
 
 	private GeneticAlgorithm<? extends Chromosome> geneticAlgorithm;
 //	private int age;
@@ -440,5 +441,13 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 
 	public void setInitialCoverage(double initialCoverage) {
 		this.initialCoverage = initialCoverage;
+	}
+
+	public long getInitializationOverhead() {
+		return initializationOverhead;
+	}
+
+	public void setInitializationOverhead(long initializationOverhead) {
+		this.initializationOverhead = initializationOverhead;
 	}
 }

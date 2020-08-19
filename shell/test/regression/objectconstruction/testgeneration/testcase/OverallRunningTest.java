@@ -36,7 +36,7 @@ public class OverallRunningTest {
 		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10;
 		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
@@ -44,19 +44,22 @@ public class OverallRunningTest {
 //		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
-		boolean aor = true;
+		boolean aor = false;
 		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor);
 //		
 //		EvoTestResult resultT = resultsT.get(0);
-//		EvoTestResult resultF = resultsF.get(0);
+		EvoTestResult resultF = resultsF.get(0);
 //		
 //		int ageT = resultT.getAge();
 //		int timeT = resultT.getTime();
 //		double coverageT = resultT.getCoverage();
-//		int ageF = resultF.getAge();
-//		int timeF = resultF.getTime();
-//		double coverageF = resultF.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		double coverageF = resultF.getCoverage();
+		double initCoverage = resultF.getInitialCoverage();
+		
+		System.currentTimeMillis();
 //		
 //		assert ageT < ageF;
 //		assert timeT < timeF;

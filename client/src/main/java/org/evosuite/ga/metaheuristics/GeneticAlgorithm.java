@@ -124,6 +124,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	private Map<Integer, Double> uncoveredBranchDistribution;
 	private Map<Integer, Integer> distributionMap;	
 	
+	protected double initialCoverage = 0; 
 	
 	/**
 	 * Constructor
@@ -1282,5 +1283,13 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	
 	public Map<Integer, Integer>getDistributionMap(){
 		return distributionMap;
+	}
+
+	public double getInitialCoverage() {
+		return initialCoverage;
+	}
+
+	public void setInitialCoverage(double initialCoverage) {
+		this.initialCoverage = initialCoverage;
 	}
 }

@@ -90,6 +90,16 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 
 	/** Object used to keep track of the execution time needed to reach the maximum coverage */
 	protected final BudgetConsumptionMonitor budgetMonitor;
+	
+	/**
+	 * the coverage after initializing the coverage
+	 */
+	protected double initialCoverage = 0; 
+	
+	/**
+	 * the time to initialization the population
+	 */
+	protected long initializationOverhead = 0;
 
 	/**
 	 * Constructor.
@@ -619,6 +629,8 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		
 		best.setUncoveredIPFlags(toIPFlagString(uncoveredIPFlags));
 		best.setMethodCallAvailabilityMap(RuntimeRecord.methodCallAvailabilityMap);
+		best.setInitialCoverage(this.initialCoverage);
+		best.setInitializationOverhead(this.initializationOverhead);
 
 		double IPFlagCoverage = 0;
 		if(IPFlags.size()!=0)

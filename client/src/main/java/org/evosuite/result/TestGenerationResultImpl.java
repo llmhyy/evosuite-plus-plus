@@ -36,6 +36,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	private double initialCoverage = 0;
 	
+	private long initializationOverhead = 0;
+	
 	private int elapseTime = 0;
 	
 	private double coverage = 0;
@@ -455,6 +457,14 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	public void setInitialCoverage(double initialCoverage) {
 		this.initialCoverage = initialCoverage;
+	}
+
+	public long getInitializationOverhead() {
+		return initializationOverhead;
+	}
+
+	public void setInitializationOverhead(long initializationOverhead) {
+		this.initializationOverhead = initializationOverhead;
 	}
 
 }

@@ -665,6 +665,10 @@ public class EvosuiteForMethod {
 			List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
 			for (List<TestGenerationResult> l : list) {
 				for (TestGenerationResult r : l) {
+					
+					System.out.println("Initial Coverage: " + r.getInitialCoverage());
+					System.out.println("Initialization Time: " + r.getInitializationOverhead());
+					
 					System.out.println("Used time: " + r.getElapseTime());
 					System.out.println("Used generations: " + r.getAge());
 					System.out.println("Method call availability: " + r.getAvailabilityRatio());
@@ -679,6 +683,7 @@ public class EvosuiteForMethod {
 					result.setUnavailableCalls(r.getUnavailableCalls());
 					result.setBranchInformation(r.getBranchInformation());
 					result.setInitialCoverage(r.getInitialCoverage());
+					result.setIntializationOverhead(r.getInitializationOverhead());
 
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
