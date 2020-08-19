@@ -12,8 +12,9 @@ install:
    - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B
 
 script:
-   # branch enhancement
+   # object construction
    - mvn -Dtest=ComputationGraphConstructionTest test -pl shell -e
+   # test legitimization
    - mvn -Dtest=TestLegitimizationTest test -pl shell -e
    #- mvn -Dtest=LayeredCallExampleTest test -pl EvosuiteTest -e
    #- mvn -Dtest=MultipleConstructorsExampleTest test -pl EvosuiteTest -e
