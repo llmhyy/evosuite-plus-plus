@@ -15,11 +15,11 @@ import com.test.TestUtility;
 import evosuite.shell.EvoTestResult;
 import sf100.CommonTestUtil;
 
-public class ObjectConstructionTest {
+public class OverallRunningTest {
 	@Before
 	public void beforeTest() {
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = true;
@@ -162,26 +162,26 @@ public class ObjectConstructionTest {
 		
 		String fitnessApproach = "fbranch";
 		
-		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
-		Properties.APPLY_OBJECT_RULE = false;
+		boolean aor = false;
 		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-		
-		EvoTestResult resultT = resultsT.get(0);
-		EvoTestResult resultF = resultsF.get(0);
-		
-		int ageT = resultT.getAge();
-		int timeT = resultT.getTime();
-		double coverageT = resultT.getCoverage();
-		int ageF = resultF.getAge();
-		int timeF = resultF.getTime();
-		double coverageF = resultF.getCoverage();
-		
-		assert ageT < ageF;
-		assert timeT < timeF;
-		assert coverageT > coverageF;
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor);
+//		
+//		EvoTestResult resultT = resultsT.get(0);
+//		EvoTestResult resultF = resultsF.get(0);
+//		
+//		int ageT = resultT.getAge();
+//		int timeT = resultT.getTime();
+//		double coverageT = resultT.getCoverage();
+//		int ageF = resultF.getAge();
+//		int timeF = resultF.getTime();
+//		double coverageF = resultF.getCoverage();
+//		
+//		assert ageT < ageF;
+//		assert timeT < timeF;
+//		assert coverageT > coverageF;
 	}
 	
 	@Test
