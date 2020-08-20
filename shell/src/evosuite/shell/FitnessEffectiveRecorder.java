@@ -35,7 +35,9 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 				"IP Flag Coverage",
 				"Uncovered IF Flag",
 				"Random Seed",
-				"Unavailable Call"
+				"Unavailable Call",
+				"Initial Coverage",
+				"Initialization Overhead"
 				}, 
 				0);
 	}
@@ -66,6 +68,8 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		rowData.add(r.getRandomSeed());
 		String unavailableString = getUnaviableCall(r.getMethodCallAvailability());
 		rowData.add(unavailableString);
+		rowData.add(r.getInitialCoverage());
+		rowData.add(r.getInitializationOverhead());
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 			logSuccessfulMethods(className, methodName);

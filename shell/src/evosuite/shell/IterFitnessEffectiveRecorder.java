@@ -32,12 +32,16 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 			header.add("Execution Time -r" + i);
 			header.add("Coverage -r" + i);
 			header.add("Age -r" + i);
+			header.add("Initial Coverage -r" + i);
+			header.add("Initialization Overhead -r" + i);
 		}
 		header.add("Method Availability");
 		header.add("Avg Execution Time");
 		header.add("Avg Coverage");
 		header.add("Best Coverage");
 		header.add("Age of Best Coverage");
+		header.add("Avg Initial Coverage");
+		header.add("Avg Initialization Overhead");
 		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
 	}
 	
@@ -76,12 +80,16 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		double bestCvg = 0.0;
 		double totalCvg = 0.0;
 		double totalTime = 0.0;
-		double ageOfBestCvg = 0;;
+		double ageOfBestCvg = 0;
+		double totalInitialCoverage = 0.0;
+		double totalInitializationOverhead = 0.0;
 		for (int i = 0; i < iterator; i++) {
 			EvoTestResult r = currentResult.get(i);
 			rowData.add(r.getTime());
 			rowData.add(r.getCoverage());
 			rowData.add(r.getAge());
+			rowData.add(r.getInitialCoverage());
+			rowData.add(r.getInitializationOverhead());
 			if (bestCvg < r.getCoverage()) {
 				bestCvg = r.getCoverage();
 				ageOfBestCvg = r.getAge();
@@ -90,12 +98,16 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 			}
 			totalCvg += r.getCoverage();
 			totalTime += r.getTime();
+			totalInitialCoverage += r.getInitialCoverage();
+			totalInitializationOverhead += r.getInitializationOverhead();
 		}
 		rowData.add(currentResult.get(0).getRatio());
 		rowData.add(totalTime / successR);
 		rowData.add(totalCvg / successR);
 		rowData.add(bestCvg);
 		rowData.add(ageOfBestCvg);
+		rowData.add(totalInitialCoverage / successR);
+		rowData.add(totalInitializationOverhead / successR);
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 		} catch (IOException e) {
