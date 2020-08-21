@@ -88,6 +88,7 @@ public class SFBenchmarkUtils {
 			List<String> newContents = new ArrayList<>(contents.size());
 			for (String line : contents) {
 				if (line.startsWith("CP")) {
+					line = line.replace(":lib/*", "");
 					System.out.println(line);
 					String[] cp = line.trim().split("=");
 					if (cp.length > 1) {
@@ -98,6 +99,9 @@ public class SFBenchmarkUtils {
 						}
 						List<String> entries = new ArrayList<>();
 						for (String path : cp) {
+							if (path.endsWith(".txt")) {
+								continue;
+							}
 							String newPath = projFolder.getAbsolutePath() + File.separator + path;
 							if (new File(newPath).exists()) {
 								entries.add(newPath.replace("\\", "/"));
@@ -121,7 +125,7 @@ public class SFBenchmarkUtils {
 				}
 				newContents.add(line);
 			}
-			
+
 			Properties.TEST_DIR = EvoSuite.base_dir_path + "/evosuite-tests";
 			org.apache.commons.io.FileUtils.writeLines(newFile, newContents);
 		} catch (IOException e) {

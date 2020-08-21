@@ -21,7 +21,8 @@ public enum MethodFilterOption {
 	MAIN_METHOD("mainMethod"),
 	SMART_MUTATION_METHOD("smartMutationMethod"),
 	CALLS_INT_METHOD("callsIntMethod"),
-	CALLS_RECURSIVE_METHOD("callsRecursiveMethod");
+	CALLS_RECURSIVE_METHOD("callsRecursiveMethod"),
+	OBJECT_CONSTRUCTION("objectConstruction");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -70,6 +71,8 @@ public enum MethodFilterOption {
 			return new CallsIntMethodFilter();
 		case CALLS_RECURSIVE_METHOD:
 			return new CallsRecursiveMethodFilter();
+		case OBJECT_CONSTRUCTION:
+			return new ObjectConstructionFilter();
 		}
 		return null;
 	}

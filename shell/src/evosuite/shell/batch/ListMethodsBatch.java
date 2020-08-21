@@ -46,7 +46,8 @@ public class ListMethodsBatch {
 //		runListMethod(MethodFilterOption.PRIMITIVE_ARRAY_CONDITION_RELATED_METHOD);
 //		runListMethod(MethodFilterOption.MAIN_METHOD);
 //		runListMethod(MethodFilterOption.CALLS_INT_METHOD);
-		runListMethod(MethodFilterOption.CALLS_RECURSIVE_METHOD);
+//		runListMethod(MethodFilterOption.CALLS_RECURSIVE_METHOD);
+		runListMethod(MethodFilterOption.OBJECT_CONSTRUCTION);
 
 //	}
 	}
@@ -76,6 +77,7 @@ public class ListMethodsBatch {
 					}
 				}
 			}
+
 			String[] name = projectFolder.getName().split("_");
 			if (NumberUtils.isCreatable(name[0]) && checkProject(name[0])) {
 				SFBenchmarkUtils.setupProjectProperties(projectFolder);
@@ -83,9 +85,13 @@ public class ListMethodsBatch {
 				if (dependentLibJars != null) {
 					for (int i = 1; i <= dependentLibJars.length; i++) {
 						String jarPath = dependentLibJars[i - 1].getAbsolutePath();
+						if (jarPath.endsWith(".txt")) {
+							continue;
+						}
 						libJarPaths.add(jarPath);
 					}
 				}
+
 				StringBuilder argJar = new StringBuilder(projectFolder.getAbsolutePath() + "/" + name[1] + ".jar");
 				for (String libPath : libJarPaths) {
 					argJar.append(";");

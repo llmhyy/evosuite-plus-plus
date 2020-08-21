@@ -10,7 +10,7 @@ import org.evosuite.ga.metaheuristics.RuntimeRecord;
 public class EvoTestResult {
 	
 	private double initialCoverage;
-	private long intializationOverhead;
+	private long initializationOverhead;
 	
 	private int time;
 	private double coverage;
@@ -184,12 +184,12 @@ public class EvoTestResult {
 		this.initialCoverage = initialCoverage;
 	}
 
-	public long getIntializationOverhead() {
-		return intializationOverhead;
+	public long getInitializationOverhead() {
+		return initializationOverhead;
 	}
 
-	public void setIntializationOverhead(long intializationOverhead) {
-		this.intializationOverhead = intializationOverhead;
+	public void setInitializationOverhead(long initializationOverhead) {
+		this.initializationOverhead = initializationOverhead;
 	}
 
 }
