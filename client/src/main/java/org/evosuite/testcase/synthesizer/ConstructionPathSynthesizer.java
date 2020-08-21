@@ -87,9 +87,12 @@ public class ConstructionPathSynthesizer {
 			Map<DepVariable, ArrayList<ConstructionPath>> rootInfo = source.getRootVars();
 			
 			for(DepVariable root: rootInfo.keySet()) {
-				
-				if((root.referenceToThis() || root.isParameter() || root.isStaticField()) 
-						&& root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) {
+				//TODO this=> class; parameter => method; static field=> whatever
+				if(
+					(root.referenceToThis() &&  root.getInstruction().getClassName().equals(Properties.TARGET_CLASS)) || 
+					(root.isParameter() && root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) || 
+					root.isStaticField() 
+						) {
 					
 					List<ConstructionPath> paths = rootInfo.get(root);
 					

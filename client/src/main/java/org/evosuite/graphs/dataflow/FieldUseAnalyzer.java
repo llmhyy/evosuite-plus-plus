@@ -10,10 +10,7 @@ import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
-import org.evosuite.coverage.dataflow.DefUseFactory;
-import org.evosuite.coverage.dataflow.DefUsePool;
-import org.evosuite.coverage.dataflow.Definition;
-import org.evosuite.coverage.dataflow.Use;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
@@ -22,7 +19,6 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
-import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.Randomness;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -34,6 +30,12 @@ public class FieldUseAnalyzer {
 	private static Map<DepVariable, DepVariable> variablePool = new HashMap<>();
 	private static Map<BytecodeInstruction, DepVariable> insPool = new HashMap<>();
 	
+	public Branch branchInProcess;
+	
+	public FieldUseAnalyzer(Branch b) {
+		this.branchInProcess = b;
+	}
+
 	private String getRuleBasedSubclass(String className) {
 		if(className.equals("java.util.List")) {
 			return "java.util.ArrayList";
@@ -177,11 +179,16 @@ public class FieldUseAnalyzer {
 				searchDefDependentVariables(defIns, cfg, allLeafDepVars, visitedIns, callGraphDepth);
 			}
 		}
+		System.currentTimeMillis();
 	}
 	
 	@SuppressWarnings("rawtypes")
 	private void searchDefDependentVariables(BytecodeInstruction defIns, ActualControlFlowGraph cfg, Set<DepVariable> allLeafDepVars,
 			Set<BytecodeInstruction> visitedIns, int callGraphDepth) {
+//		if(defIns.getInstructionId()==77 && this.branchInProcess.getInstruction().getInstructionId()==138) {
+//			System.currentTimeMillis();
+//		}
+		
 		if (visitedIns.contains(defIns)) {
 			return;
 		}
@@ -226,19 +233,21 @@ public class FieldUseAnalyzer {
 		/**
 		 * the variable is computed by local variables
 		 */
-		if (defIns.isLocalVariableUse()){
+		
+		if (defIns.isLocalVariableUse() || defIns.isFieldUse()){
+//			if(defIns.getInstructionId() == 4 || defIns.getInstructionId() == 7) {
+//				System.currentTimeMillis();
+//			}
 			//keep traverse
 			DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
 			defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
-			Use use = DefUseFactory.makeUse(defIns);
+//			Use use = DefUseFactory.makeUse(defIns);
 			// Ignore method parameter
-			List<Definition> defs = DefUsePool.getDefinitions(use);
-			for (Definition def : CollectionUtil.nullToEmpty(defs)) {
-				if (def != null) {
-					BytecodeInstruction defInstruction = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, def.getASMNode());
-					buildInputOutputForInstruction(defInstruction, node,
-							outputVar, cfg, allLeafDepVars, visitedIns, callGraphDepth);
-				}
+//			List<Definition> ds = DefUsePool.getDefinitions(use);
+			List<BytecodeInstruction> defs = DefUseAnalyzer.getDefFromUse(defIns);
+			for (BytecodeInstruction def : defs) {
+				buildInputOutputForInstruction(def, node,
+						outputVar, cfg, allLeafDepVars, visitedIns, callGraphDepth);
 			}
 		}
 		

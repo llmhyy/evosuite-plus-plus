@@ -5,7 +5,7 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 
 public class PngEncoderB extends PngEncoder {
-  protected BufferedImage image;
+  public BufferedImage image;
   protected WritableRaster wRaster;
   protected int tType;
 

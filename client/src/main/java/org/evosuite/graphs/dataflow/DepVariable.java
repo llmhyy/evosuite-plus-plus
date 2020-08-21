@@ -77,8 +77,8 @@ public class DepVariable {
 	
 	@Override
 	public String toString() {
-		return "DepVariable [className=" + getClassName()  + ", type=" + getTypeString() 
-				+ ", varName=" + varName + ", instruction=" + getInstruction() + "]";
+		return "DepVariable [\nclassName=" + getClassName()  + "\ntype=" + getTypeString() 
+				+ "\nvarName=" + varName + "\ninstruction=" + getInstruction() + "]";
 	}
 	
 	private void setType(int type) {

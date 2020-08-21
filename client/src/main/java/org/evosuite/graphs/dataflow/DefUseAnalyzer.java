@@ -16,6 +16,7 @@ import org.evosuite.coverage.dataflow.Definition;
 import org.evosuite.coverage.dataflow.Use;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
@@ -42,18 +43,41 @@ public class DefUseAnalyzer {
 		
 		DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
 		defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
-		Use use = DefUseFactory.makeUse(insOfuse);
+		Use use = null;
+		try {
+			use = DefUseFactory.makeUse(insOfuse);			
+		}
+		catch(Exception e) {
+			System.currentTimeMillis();
+		}
+		
+		if(use == null) {
+			return new ArrayList<BytecodeInstruction>();
+		}
+		
 		// Ignore method parameter
 		List<Definition> defs = DefUsePool.getDefinitions(use);
 		
-		if(defs == null) return null;
+		if(defs == null) return new ArrayList<BytecodeInstruction>();
 
+		BasicBlock useBlock = insOfuse.getBasicBlock();
 		List<BytecodeInstruction> list = new ArrayList<BytecodeInstruction>();
 		for(Definition def: defs) {
 			ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			BytecodeInstruction defInstruction = convert2BytecodeInstruction(cfg, node, def.getASMNode());
-			if(insOfuse.getInstructionId() > defInstruction.getInstructionId()) {
-				list.add(defInstruction);				
+			
+			BasicBlock defBlock = def.getBasicBlock();
+			
+			int distance = defBlock.getCDG().getDistance(defBlock, useBlock);
+			if(distance != Double.POSITIVE_INFINITY) {
+				if(distance == 0) {
+					if(defInstruction.getInstructionId() < insOfuse.getInstructionId()) {
+						list.add(defInstruction);								
+					}
+				}
+				else {
+					list.add(defInstruction);					
+				}
 			}
 			
 		}
