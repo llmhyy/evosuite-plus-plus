@@ -29,12 +29,12 @@ import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
-import org.evosuite.graphs.dataflow.GraphVisualizer;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -87,12 +87,20 @@ public class ConstructionPathSynthesizer {
 			Map<DepVariable, ArrayList<ConstructionPath>> rootInfo = source.getRootVars();
 			
 			for(DepVariable root: rootInfo.keySet()) {
-				//TODO this=> class; parameter => method; static field=> whatever
+				// this=> class; parameter => method; static field=> whatever
 				if(
 					(root.referenceToThis() &&  root.getInstruction().getClassName().equals(Properties.TARGET_CLASS)) || 
 					(root.isParameter() && root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) || 
 					root.isStaticField() 
 						) {
+					
+					/**
+					 * remove the noise from other branches
+					 */
+//					boolean isNoiseRoot = checkNoiseRoot(root, b);
+//					if(isNoiseRoot) {
+//						continue;
+//					}
 					
 					List<ConstructionPath> paths = rootInfo.get(root);
 					
@@ -110,7 +118,8 @@ public class ConstructionPathSynthesizer {
 						}
 					}
 				}
-			
+				
+//				System.currentTimeMillis();
 					
 			}
 		}
@@ -118,6 +127,25 @@ public class ConstructionPathSynthesizer {
 		return graph;
 	}
 	
+	private boolean checkNoiseRoot(DepVariable root, Branch b) {
+		
+		BasicBlock block1 = root.getInstruction().getBasicBlock();
+		BasicBlock block2 = b.getInstruction().getBasicBlock();
+		
+		int distance = block2.getCDG().getDistance(block1, block2);
+		if(distance >= 0) {
+			if(distance == 0) {
+				if(root.getInstruction().getInstructionId() < b.getInstruction().getInstructionId()) {
+					return false;							
+				}
+			}
+			else {
+				return false;			
+			}
+		}
+		return true;
+	}
+
 	private PartialGraph partialGraph;
 	private Map<DepVariable, List<VariableReference>> graph2CodeMap;
 	

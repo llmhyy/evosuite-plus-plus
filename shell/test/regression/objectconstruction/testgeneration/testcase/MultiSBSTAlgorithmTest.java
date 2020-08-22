@@ -104,7 +104,7 @@ public class MultiSBSTAlgorithmTest {
 		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 10;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
@@ -112,7 +112,7 @@ public class MultiSBSTAlgorithmTest {
 //		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
-		boolean aor = false;
+		boolean aor = true;
 		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor, "generateSuite", "Evosuite", "Monotonic_GA");
 //		

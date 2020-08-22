@@ -69,7 +69,7 @@ public class DefUseAnalyzer {
 			BasicBlock defBlock = def.getBasicBlock();
 			
 			int distance = defBlock.getCDG().getDistance(defBlock, useBlock);
-			if(distance != Double.POSITIVE_INFINITY) {
+			if(distance >= 0) {
 				if(distance == 0) {
 					if(defInstruction.getInstructionId() < insOfuse.getInstructionId()) {
 						list.add(defInstruction);								
