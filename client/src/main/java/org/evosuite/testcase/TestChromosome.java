@@ -320,16 +320,22 @@ public class TestChromosome extends ExecutableChromosome {
 	}
 
 	private boolean isMethodCallIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result) {
+		if(excep == null || excep.getMessage() == null) {
+			System.currentTimeMillis();
+			StackTraceElement[] a= excep.getStackTrace();
+			System.currentTimeMillis();
+		}
+		
 		return statOfExp instanceof MethodStatement 
 				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
-				&& excep.getMessage().equals("java.lang.NullPointerException");
+				&& excep instanceof NullPointerException;
 	}
 	
 	private boolean isAssignmentIncurExplicitNullPointerException(Statement statOfExp, Throwable excep,
 			ExecutionResult result) {
 		return statOfExp instanceof AssignmentStatement 
 				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
-				&& excep.getMessage().equals("java.lang.NullPointerException");
+				&& excep instanceof NullPointerException;
 	}
 	
 	private boolean isIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result){
