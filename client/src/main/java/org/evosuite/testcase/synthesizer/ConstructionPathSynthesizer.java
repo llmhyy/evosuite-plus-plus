@@ -761,9 +761,16 @@ public class ConstructionPathSynthesizer {
 			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 					.loadClass(fieldOwner);
 			registerAllMethods(fieldDeclaringClass);
-			Class<?> fieldTypeClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+			
+			Class<?> fieldTypeClass = null;
+			try {
+				fieldTypeClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 					.loadClass(fieldTypeName);
-			registerAllMethods(fieldTypeClass);
+				if(fieldTypeClass != null) {
+					registerAllMethods(fieldTypeClass);									
+				}
+			}
+			catch(Exception e) {}
 			
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 			
