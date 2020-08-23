@@ -742,6 +742,10 @@ public class ConstructionPathSynthesizer {
 		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
 		String fieldType = fieldNode.desc;
 		String fieldOwner = fieldNode.owner.replace("/", ".");
+		String fieldTypeName = fieldType.replace("/", ".");
+		if(fieldTypeName.startsWith("L")) {
+			fieldTypeName = fieldTypeName.substring(1, fieldTypeName.length()-1);
+		}
 		String fieldName = fieldNode.name;
 
 		if (targetObjectReference != null) {
@@ -757,6 +761,9 @@ public class ConstructionPathSynthesizer {
 			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 					.loadClass(fieldOwner);
 			registerAllMethods(fieldDeclaringClass);
+			Class<?> fieldTypeClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+					.loadClass(fieldTypeName);
+			registerAllMethods(fieldTypeClass);
 			
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 			
