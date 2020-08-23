@@ -245,6 +245,10 @@ public class ConstructionPathSynthesizer {
 			}
 			else{
 				for(VariableReference inputObject: inputObjects){
+					GenericClass t = inputObject.getGenericClass();
+					if(t.isPrimitive()) {
+						continue;
+					}
 					boolean s = deriveCodeForTest(map, test, inputObject, node);
 					success = success && s;	
 				}
@@ -770,10 +774,12 @@ public class ConstructionPathSynthesizer {
 			
 			Class<?> fieldTypeClass = null;
 			try {
-				fieldTypeClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
-					.loadClass(fieldTypeName);
-				if(fieldTypeClass != null) {
-					registerAllMethods(fieldTypeClass);									
+				if(fieldTypeName.length()>3) {
+					fieldTypeClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+							.loadClass(fieldTypeName);
+					if(fieldTypeClass != null) {
+						registerAllMethods(fieldTypeClass);									
+					}					
 				}
 			}
 			catch(Exception e) {}
@@ -1269,7 +1275,7 @@ public class ConstructionPathSynthesizer {
 	 */
 	@SuppressWarnings("rawtypes")
 	private Executable searchForPotentialSetterInClass(Field field, String targetClassName) throws ClassNotFoundException{
-
+		
 		Class<?> targetClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 				.loadClass(targetClassName);
 		
