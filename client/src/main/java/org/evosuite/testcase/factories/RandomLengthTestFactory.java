@@ -115,8 +115,8 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					}
 				});
 				
-//				Branch b = Randomness.choice(interestedBranches.keySet());
-				Branch b = rankedList.get(19);
+				Branch b = Randomness.choice(interestedBranches.keySet());
+//				Branch b = rankedList.get(19);
 				
 				TestCase t = templateTestMap.get(b);
 				if(t == null) {
