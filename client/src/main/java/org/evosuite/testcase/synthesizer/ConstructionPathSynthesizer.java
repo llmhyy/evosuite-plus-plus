@@ -29,12 +29,12 @@ import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
-import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.graphs.dataflow.GraphVisualizer;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -94,14 +94,6 @@ public class ConstructionPathSynthesizer {
 					root.isStaticField() 
 						) {
 					
-					/**
-					 * remove the noise from other branches
-					 */
-					boolean isNoiseRoot = !Dataflow.isReachableInClass(root.getInstruction(), b.getInstruction());
-					if(isNoiseRoot) {
-						continue;
-					}
-					
 					List<ConstructionPath> paths = rootInfo.get(root);
 					
 					for(ConstructionPath path: paths) {
@@ -127,6 +119,20 @@ public class ConstructionPathSynthesizer {
 		return graph;
 	}
 	
+	private BytecodeInstruction findEarlyInstruction(DepVariable root) {
+		List<BytecodeInstruction> list = root.getInstruction().getActualCFG().getAllInstructions();
+		for(int i=0; i<root.getInstruction().getInstructionId(); i++) {
+			BytecodeInstruction earlyIns = list.get(i);
+			DepVariable v = new DepVariable(earlyIns.getClassName(), earlyIns);
+			
+			if(root.equals(v)) {
+				return earlyIns;
+			}
+		}
+		
+		return root.getInstruction();
+	}
+
 	private PartialGraph partialGraph;
 	private Map<DepVariable, List<VariableReference>> graph2CodeMap;
 	
@@ -136,7 +142,7 @@ public class ConstructionPathSynthesizer {
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
-//		GraphVisualizer.visualizeComputationGraph(partialGraph, 5000);
+//		GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -156,7 +162,7 @@ public class ConstructionPathSynthesizer {
 		Map<DepVariable, Integer> methodCounter = new HashMap<>();
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-//			logger.warn(node.toString());
+			logger.warn(node.toString());
 			/**
 			 * for each method callsite, we only generate once. 
 			 */
@@ -798,6 +804,10 @@ public class ConstructionPathSynthesizer {
 			 * a new public field instance.
 			 */
 			if (Modifier.isPublic(fieldModifiers)) {
+				if (genericField.isFinal()) {
+					return null;
+				}
+				
 				VariableReference obj = 
 					generatePublicFieldSetterOrGetter(test, targetObjectReference, fieldType, genericField);
 				return obj;
@@ -1467,6 +1477,8 @@ public class ConstructionPathSynthesizer {
 
 		VariableReference objRef = fieldInitializer.assignField(testFactory, test, fieldType, 
 				genericField, insertionPosition, fieldVar);	
+		
+		
 		AbstractStatement stmt = new AssignmentStatement(test, fieldVar, objRef);		
 		test.addStatement(stmt, objRef.getStPosition()+1);
 		

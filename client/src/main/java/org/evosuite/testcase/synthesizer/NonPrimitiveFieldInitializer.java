@@ -11,12 +11,10 @@ public class NonPrimitiveFieldInitializer extends FieldInitializer{
 	
 	public VariableReference assignField(TestFactory testFactory, TestCase test, String fieldType, GenericField genericField,
 			int insertionPosition, FieldReference fieldVar) throws ConstructionFailedException {
+		
 		VariableReference constructorVarRef = 
 				ConstructionPathSynthesizer.addConstructorForClass(testFactory, test, insertionPosition, fieldType);
 		if (constructorVarRef == null) {
-			return null;
-		}
-		if (genericField.isFinal()) {
 			return null;
 		}
 		
