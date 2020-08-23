@@ -99,7 +99,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -155,7 +157,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -211,7 +215,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -267,7 +273,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -323,7 +331,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -379,7 +389,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -435,7 +447,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -491,7 +505,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -547,7 +563,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -603,7 +621,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -659,7 +679,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 	@Test
@@ -715,7 +737,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert legitimacyDistance == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
+			assert false;
 		}
+		
 	}
 
 }
