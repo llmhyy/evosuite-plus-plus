@@ -162,7 +162,7 @@ public class ConstructionPathSynthesizer {
 		Map<DepVariable, Integer> methodCounter = new HashMap<>();
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-			logger.warn(node.toString());
+//			logger.warn(node.toString());
 			/**
 			 * for each method callsite, we only generate once. 
 			 */
