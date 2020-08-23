@@ -40,6 +40,7 @@ import org.evosuite.ga.operators.selection.RankSelection;
 import org.evosuite.ga.operators.selection.SelectionFunction;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.statistics.RuntimeVariable;
+import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.utils.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,6 +166,7 @@ public class MOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		// initialize population
 		long t1 = System.currentTimeMillis();
+		TestCaseLegitimizer.startTime = t1;
 		if (this.population.isEmpty()) {
 			this.initializePopulation();
 		}

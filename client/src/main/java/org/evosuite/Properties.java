@@ -150,8 +150,11 @@ public class Properties {
 	@Parameter(key = "apply_object_rule", group = "Test Creation", description = "Ask the tool to analyze the branch-dependant variables")
 	public static boolean APPLY_OBJECT_RULE = false;
 	
-	@Parameter(key = "legitimization_budget", group = "Test Creation", description = "Ask the tool to analyze the branch-dependant variables")
-	public static int LEGITIMIZATION_BUDGET = 20;
+	@Parameter(key = "individual_legitimization_budget", group = "Test Creation", description = "individual legitimization budget")
+	public static int INDIVIDUAL_LEGITIMIZATION_BUDGET = 20;
+	
+	@Parameter(key = "total_legitimization_budget", group = "Test Creation", description = "total legitimization budget")
+	public static int TOTAL_LEGITIMIZATION_BUDGET = 50;
 	
 	@Parameter(key = "computation_graph_call_depth", group = "Test Creation", description = "how depth the call hierarchy to analyze when constructing computation graph")
 	public static int COMPUTATION_GRAPH_METHOD_CALL_DEPTH = 5;

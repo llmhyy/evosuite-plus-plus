@@ -102,8 +102,6 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			 * the first call must be the target method, we add difficult branch support after the target method
 			 * is called in test case.
 			 */
-//			Properties.APPLY_OBJECT_RULE = false;
-//			logger.error("apply object rule: " + Properties.APPLY_OBJECT_RULE);
 			if(num == 1 && targetMethodCallPosition != -1 && Properties.APPLY_OBJECT_RULE) {
 				
 				Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
@@ -129,8 +127,11 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 						PartialGraph graph = cpSynthesizer.getPartialGraph();
 						Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
 						
-						TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
-						test = chromosome.getTestCase();
+						long t0 = System.currentTimeMillis();
+						if(t0 - TestCaseLegitimizer.startTime <= Properties.TOTAL_LEGITIMIZATION_BUDGET * 1000) {
+							TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
+							test = chromosome.getTestCase();
+						}
 						
 						templateTestMap.put(b, test);
 						

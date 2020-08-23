@@ -37,6 +37,7 @@ import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
@@ -246,6 +247,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		// initialize population
 		long t1 = System.currentTimeMillis();
+		TestCaseLegitimizer.startTime = t1;
 		if (this.population.isEmpty()) {
 			this.initializePopulation();
 		}

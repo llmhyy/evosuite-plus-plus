@@ -42,6 +42,7 @@ import org.evosuite.ga.FitnessReplacementFunction;
 import org.evosuite.ga.ReplacementFunction;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.DistributionUtil;
 import org.evosuite.utils.Randomness;
@@ -254,6 +255,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		}
 
 		long t1 = System.currentTimeMillis();
+		TestCaseLegitimizer.startTime = t1;
 		if (population.isEmpty()) {
 			initializePopulation();
 			assert !population.isEmpty() : "Could not create any test";
