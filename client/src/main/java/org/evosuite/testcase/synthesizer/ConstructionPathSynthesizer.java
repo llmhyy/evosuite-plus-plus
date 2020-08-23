@@ -97,10 +97,10 @@ public class ConstructionPathSynthesizer {
 					/**
 					 * remove the noise from other branches
 					 */
-//					boolean isNoiseRoot = checkNoiseRoot(root, b);
-//					if(isNoiseRoot) {
-//						continue;
-//					}
+					boolean isNoiseRoot = checkNoiseRoot(root, b);
+					if(isNoiseRoot) {
+						continue;
+					}
 					
 					List<ConstructionPath> paths = rootInfo.get(root);
 					
