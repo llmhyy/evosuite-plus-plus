@@ -60,24 +60,13 @@ public class DefUseAnalyzer {
 		
 		if(defs == null) return new ArrayList<BytecodeInstruction>();
 
-		BasicBlock useBlock = insOfuse.getBasicBlock();
 		List<BytecodeInstruction> list = new ArrayList<BytecodeInstruction>();
 		for(Definition def: defs) {
 			ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			BytecodeInstruction defInstruction = convert2BytecodeInstruction(cfg, node, def.getASMNode());
 			
-			BasicBlock defBlock = def.getBasicBlock();
-			
-			int distance = defBlock.getCDG().getDistance(defBlock, useBlock);
-			if(distance >= 0) {
-				if(distance == 0) {
-					if(defInstruction.getInstructionId() < insOfuse.getInstructionId()) {
-						list.add(defInstruction);								
-					}
-				}
-				else {
-					list.add(defInstruction);					
-				}
+			if(Dataflow.isReachableInClass(def, use)) {
+				list.add(defInstruction);		
 			}
 			
 		}

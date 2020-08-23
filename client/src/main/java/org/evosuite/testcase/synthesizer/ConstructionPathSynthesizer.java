@@ -97,7 +97,7 @@ public class ConstructionPathSynthesizer {
 					/**
 					 * remove the noise from other branches
 					 */
-					boolean isNoiseRoot = checkNoiseRoot(root, b);
+					boolean isNoiseRoot = !Dataflow.isReachableInClass(root.getInstruction(), b.getInstruction());
 					if(isNoiseRoot) {
 						continue;
 					}
@@ -127,25 +127,6 @@ public class ConstructionPathSynthesizer {
 		return graph;
 	}
 	
-	private boolean checkNoiseRoot(DepVariable root, Branch b) {
-		
-		BasicBlock block1 = root.getInstruction().getBasicBlock();
-		BasicBlock block2 = b.getInstruction().getBasicBlock();
-		
-		int distance = block2.getCDG().getDistance(block1, block2);
-		if(distance >= 0) {
-			if(distance == 0) {
-				if(root.getInstruction().getInstructionId() < b.getInstruction().getInstructionId()) {
-					return false;							
-				}
-			}
-			else {
-				return false;			
-			}
-		}
-		return true;
-	}
-
 	private PartialGraph partialGraph;
 	private Map<DepVariable, List<VariableReference>> graph2CodeMap;
 	
@@ -175,7 +156,7 @@ public class ConstructionPathSynthesizer {
 		Map<DepVariable, Integer> methodCounter = new HashMap<>();
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-			logger.warn(node.toString());
+//			logger.warn(node.toString());
 			/**
 			 * for each method callsite, we only generate once. 
 			 */

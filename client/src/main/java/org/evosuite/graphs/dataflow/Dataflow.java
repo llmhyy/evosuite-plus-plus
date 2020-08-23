@@ -14,6 +14,7 @@ import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
@@ -27,6 +28,31 @@ public class Dataflow {
 	 */
 	public static Map<String, Map<Branch, Set<DepVariable>>> branchDepVarsMap = new HashMap<>();
 
+	public static boolean isReachableInClass(BytecodeInstruction b1, BytecodeInstruction b2) {
+		
+		BasicBlock block1 = b1.getBasicBlock();
+		BasicBlock block2 = b2.getBasicBlock();
+		int distance = 0;
+		try {
+			distance = block2.getCDG().getDistance(block1, block2);			
+		}
+		catch(Exception e) {
+			return false;
+		}
+		
+		if(distance >= 0) {
+			if(distance == 0) {
+				if(b1.getInstructionId() < b2.getInstructionId()) {
+					return true;							
+				}
+			}
+			else {
+				return true;			
+			}
+		}
+		return false;
+	}
+	
 	public static void initializeDataflow() {
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 
