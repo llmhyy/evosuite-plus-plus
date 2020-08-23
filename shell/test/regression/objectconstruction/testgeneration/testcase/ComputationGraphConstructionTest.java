@@ -1769,16 +1769,10 @@ public class ComputationGraphConstructionTest extends ObjectOrientedTest {
 				break;
 			}
 			case "I54 Branch 42 IFNE L21": {
-				// this RecCtrlOut, this ChkOrdAudRs_TypeSequence2 -> _recCtrlOut
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.size() == 2;
-				assert labelStrings.contains("this\n"
+				// this ChkOrdAudRs_TypeSequence2 -> _recCtrlOut
+				assert topLayer.size() == 1;
+				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
 						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
-				assert labelStrings.contains("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.RecCtrlOut\n");
 				assert topLayer.get(0).children.size() == 1;
 				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
 						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
@@ -1808,47 +1802,17 @@ public class ComputationGraphConstructionTest extends ObjectOrientedTest {
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
 						+ "_cursor\n");
 
-				// this RecCtrlOut
-				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
-				for (DepVariableWrapper v : topLayer.get(1).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(1).children.size() == 5;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
-						+ "_cursor\n");
-
 				break;
 			}
 			case "I72 Branch 44 IFNULL L26":
 			case "I77 Branch 45 IFNONNULL L27":
 			case "I100 Branch 47 IFNULL L31": {
-				// this RecCtrlOut, this ChkOrdAudRs_TypeSequence2
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.size() == 2;
-				assert labelStrings.contains("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
-				assert labelStrings.contains("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.RecCtrlOut\n");
-
 				// this ChkOrdAudRs_TypeSequence2
-				// -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence
+				assert topLayer.size() == 1;
+				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
+
+				// this -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence
 				labelStrings = new HashSet<String>();
 				for (DepVariableWrapper v : topLayer.get(0).children) {
 					labelStrings.add(v.var.getUniqueLabel());
@@ -1856,12 +1820,12 @@ public class ComputationGraphConstructionTest extends ObjectOrientedTest {
 				assert topLayer.get(0).children.size() == 2;
 				assert labelStrings.contains("instance field\n"
 						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
-						+ "_recCtrlOut\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
 						+ "_chkOrdAudRs_TypeSequence2Sequence\n");
+				assert labelStrings.contains("instance field\n"
+						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
+						+ "_recCtrlOut\n");
 
 				// _recCtrlOut
 				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
@@ -1886,66 +1850,32 @@ public class ComputationGraphConstructionTest extends ObjectOrientedTest {
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
 						+ "_cursor\n");
 
-				// this RecCtrlOut
-				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
-				for (DepVariableWrapper v : topLayer.get(1).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.get(0).children.size() == 5;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
-						+ "_cursor\n");
-
 				break;
 			}
 			case "I91 Branch 46 IFNE L29": {
-				// this RecCtrlOut, this ChkOrdAudRs_TypeSequence2
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.size() == 3;
-				assert labelStrings.contains("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
-				assert labelStrings.contains("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.RecCtrlOut\n");
-				assert labelStrings.contains("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2Sequence\n");
-
 				// this ChkOrdAudRs_TypeSequence2
-				// -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence
-				DepVariableWrapper chkOrdAudRs_TypeSequence2 = getChild(topLayer, "this\n"
+				assert topLayer.size() == 1;
+				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
 						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
+
+				// this -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence
 				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : chkOrdAudRs_TypeSequence2.children) {
+				for (DepVariableWrapper v : topLayer.get(0).children) {
 					labelStrings.add(v.var.getUniqueLabel());
 				}
-				assert chkOrdAudRs_TypeSequence2.children.size() == 2;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
-						+ "_recCtrlOut\n");
+				assert topLayer.get(0).children.size() == 2;
 				assert labelStrings.contains("instance field\n"
 						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
 						+ "_chkOrdAudRs_TypeSequence2Sequence\n");
+				assert labelStrings.contains("instance field\n"
+						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
+						+ "_recCtrlOut\n");
 
 				// _recCtrlOut
 				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
-				DepVariableWrapper _recCtrlOut = getChild(chkOrdAudRs_TypeSequence2.children, "instance field\n"
+				DepVariableWrapper _recCtrlOut = getChild(topLayer.get(0).children, "instance field\n"
 						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
 						+ "_recCtrlOut\n");
@@ -1970,34 +1900,9 @@ public class ComputationGraphConstructionTest extends ObjectOrientedTest {
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
 						+ "_cursor\n");
 
-				// this RecCtrlOut
-				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
-				DepVariableWrapper RecCtrlOut = getChild(topLayer, "this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.RecCtrlOut\n");
-				for (DepVariableWrapper v : RecCtrlOut.children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert RecCtrlOut.children.size() == 5;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
-						+ "_cursor\n");
-
 				// _chkOrdAudRs_TypeSequence2Sequence
 				// -> _selRangeDt, _methodList, _chkOrdIdList, _recChkOrdIdList
-				DepVariableWrapper _chkOrdAudRs_TypeSequence2Sequence = getChild(chkOrdAudRs_TypeSequence2.children,
+				DepVariableWrapper _chkOrdAudRs_TypeSequence2Sequence = getChild(topLayer.get(0).children,
 						"instance field\n"
 								+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
 								+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
@@ -2007,29 +1912,6 @@ public class ComputationGraphConstructionTest extends ObjectOrientedTest {
 					labelStrings.add(v.var.getUniqueLabel());
 				}
 				assert _chkOrdAudRs_TypeSequence2Sequence.children.size() == 4;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/SelRangeDt;\n"
-						+ "_selRangeDt\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_methodList\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_chkOrdIdList\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_recChkOrdIdList\n");
-
-				// this ChkOrdAudRs_TypeSequence2Sequence
-				// -> _selRangeDt, _methodList, _chkOrdIdList, _recChkOrdIdList
-				DepVariableWrapper chkOrdAudRs_TypeSequence2Sequence = getChild(topLayer, "this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2Sequence\n");
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : chkOrdAudRs_TypeSequence2Sequence.children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert chkOrdAudRs_TypeSequence2Sequence.children.size() == 4;
 				assert labelStrings.contains("instance field\n"
 						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/SelRangeDt;\n"
@@ -2050,43 +1932,32 @@ public class ComputationGraphConstructionTest extends ObjectOrientedTest {
 			case "I114 Branch 49 IFNONNULL L35":
 			case "I128 Branch 50 IFNE L37":
 			case "I137 Branch 51 IFNULL L39": {
-				// this RecCtrlOut, this ChkOrdAudRs_TypeSequence2
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.size() == 3;
-				assert labelStrings.contains("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
-				assert labelStrings.contains("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.RecCtrlOut\n");
-				assert labelStrings.contains("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2Sequence\n");
-
 				// this ChkOrdAudRs_TypeSequence2
-				// -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence, _chkOrdMsgRecList
-				DepVariableWrapper ChkOrdAudRs_TypeSequence2 = getChild(topLayer, "this\n"
+				assert topLayer.size() == 1;
+				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
 						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
+
+				// this -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence,
 				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : ChkOrdAudRs_TypeSequence2.children) {
+				for (DepVariableWrapper v : topLayer.get(0).children) {
 					labelStrings.add(v.var.getUniqueLabel());
 				}
-				assert ChkOrdAudRs_TypeSequence2.children.size() == 3;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
-						+ "_recCtrlOut\n");
+				assert topLayer.get(0).children.size() == 3;
 				assert labelStrings.contains("instance field\n"
 						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
 						+ "_chkOrdAudRs_TypeSequence2Sequence\n");
 				assert labelStrings.contains("instance field\n"
 						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
+						+ "_recCtrlOut\n");
+				assert labelStrings.contains("instance field\n"
+						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
 						+ "Ljava/util/ArrayList;\n" + "_chkOrdMsgRecList\n");
 
 				// _recCtrlOut
 				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
-				DepVariableWrapper _recCtrlOut = getChild(ChkOrdAudRs_TypeSequence2.children, "instance field\n"
+				DepVariableWrapper _recCtrlOut = getChild(topLayer.get(0).children, "instance field\n"
 						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
 						+ "_recCtrlOut\n");
@@ -2111,34 +1982,9 @@ public class ComputationGraphConstructionTest extends ObjectOrientedTest {
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
 						+ "_cursor\n");
 
-				// this RecCtrlOut
-				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
-				DepVariableWrapper RecCtrlOut = getChild(topLayer, "this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.RecCtrlOut\n");
-				for (DepVariableWrapper v : RecCtrlOut.children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert RecCtrlOut.children.size() == 5;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
-						+ "_cursor\n");
-
 				// _chkOrdAudRs_TypeSequence2Sequence
 				// -> _selRangeDt, _methodList, _chkOrdIdList, _recChkOrdIdList
-				DepVariableWrapper _chkOrdAudRs_TypeSequence2Sequence = getChild(ChkOrdAudRs_TypeSequence2.children,
+				DepVariableWrapper _chkOrdAudRs_TypeSequence2Sequence = getChild(topLayer.get(0).children,
 						"instance field\n"
 								+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
 								+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
@@ -2148,29 +1994,6 @@ public class ComputationGraphConstructionTest extends ObjectOrientedTest {
 					labelStrings.add(v.var.getUniqueLabel());
 				}
 				assert _chkOrdAudRs_TypeSequence2Sequence.children.size() == 4;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/SelRangeDt;\n"
-						+ "_selRangeDt\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_methodList\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_chkOrdIdList\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_recChkOrdIdList\n");
-
-				// this ChkOrdAudRs_TypeSequence2Sequence
-				// -> _selRangeDt, _methodList, _chkOrdIdList, _recChkOrdIdList
-				DepVariableWrapper chkOrdAudRs_TypeSequence2Sequence = getChild(topLayer, "this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2Sequence\n");
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : chkOrdAudRs_TypeSequence2Sequence.children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert chkOrdAudRs_TypeSequence2Sequence.children.size() == 4;
 				assert labelStrings.contains("instance field\n"
 						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
 						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/SelRangeDt;\n"
