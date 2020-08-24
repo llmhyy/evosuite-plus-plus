@@ -684,8 +684,16 @@ public class ConstructionPathSynthesizer {
 			}
 
 			if (!fullName.contains("<init>")) {
-				Method call = fieldDeclaringClass.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
-
+				Method call = null;
+				try {
+					call = fieldDeclaringClass.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses); 
+				}
+				catch(Exception e) {}
+						
+				if(call == null) {
+					return null;
+				}
+				
 				VariableReference calleeVarRef = null;
 				Map<Integer, VariableReference> paramRefMap = new HashMap<>();
 
