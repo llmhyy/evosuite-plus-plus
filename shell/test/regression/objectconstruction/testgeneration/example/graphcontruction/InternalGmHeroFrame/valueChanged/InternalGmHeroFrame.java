@@ -9,12 +9,12 @@ import javax.swing.event.TreeSelectionListener;
 
 public class InternalGmHeroFrame extends JInternalFrame implements TreeSelectionListener {
 	private static final long serialVersionUID = -8647088721012280920L;
-	private JTree tree;
-	private JButton btnExec;
-	private MultiHeroTreeModel model;
-	private JRadioButton radAttack;
-	private JRadioButton radDefense;
-	private String frameName;
+	public JTree tree;
+	public JButton btnExec;
+	public MultiHeroTreeModel model;
+	public JRadioButton radAttack;
+	public JRadioButton radDefense;
+	public String frameName;
 
 	public void valueChanged(TreeSelectionEvent e) {
 		if (!this.model.isLeaf(e.getPath().getLastPathComponent())
