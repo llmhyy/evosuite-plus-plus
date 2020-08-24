@@ -123,6 +123,11 @@ public class TestChromosome extends ExecutableChromosome {
 		int numOfExecutedStatements = this.getLastExecutionResult().getExecutedStatements();
 		this.legitimacyDistance = targetCallStat.getPosition() - numOfExecutedStatements + 1;
 		
+		int exceptionPosition = this.getLastExecutionResult().getFirstPositionOfThrownException();
+		if(exceptionPosition == targetCallStat.getPosition()) {
+			this.legitimacyDistance = 0;
+		}
+		
 		if(this.legitimacyDistance != 0){
 			if(numOfExecutedStatements > test.size()-1){
 				System.currentTimeMillis();
@@ -1572,6 +1577,10 @@ public class TestChromosome extends ExecutableChromosome {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void mutateRelevantStatements() {
 		Statement statOfExp = getStatementReportingException();
+		if(statOfExp == null) {
+			return;
+		}
+		
 		List<Statement> influencingStatements = checkInfluencingStatements(test, statOfExp);
 		for(int i=0; i<influencingStatements.size(); i++){
 			Statement refStatement = influencingStatements.get(i);
