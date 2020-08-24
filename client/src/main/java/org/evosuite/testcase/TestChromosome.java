@@ -123,8 +123,13 @@ public class TestChromosome extends ExecutableChromosome {
 		int numOfExecutedStatements = this.getLastExecutionResult().getExecutedStatements();
 		this.legitimacyDistance = targetCallStat.getPosition() - numOfExecutedStatements + 1;
 		
-		int exceptionPosition = this.getLastExecutionResult().getFirstPositionOfThrownException();
-		if(exceptionPosition == targetCallStat.getPosition()) {
+		if(this.getLastExecutionResult() == null) {
+			System.currentTimeMillis();
+		}
+		
+		Integer exceptionPosition = result.getFirstPositionOfThrownException();
+		if(exceptionPosition!=null 
+				&& exceptionPosition == targetCallStat.getPosition()) {
 			this.legitimacyDistance = 0;
 		}
 		
