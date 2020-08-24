@@ -37,6 +37,8 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.ExecutionTracer;
+import org.evosuite.testcase.statements.NullStatement;
+import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
@@ -123,6 +125,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					try {
 						ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 						cpSynthesizer.constructDifficultObjectStatement(test, b);
+						mutateNullStatements(test);
 						
 						PartialGraph graph = cpSynthesizer.getPartialGraph();
 						Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
@@ -147,7 +150,19 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				break;
 			}
 			else {
-				testFactory.insertRandomStatement(test, position);						
+				testFactory.insertRandomStatement(test, position);
+				int success = -1;
+				int count = 0;
+				while (test.size() == 0 || success == -1) {
+					test = new DefaultTestCase();
+					success = testFactory.insertRandomStatement(test, 0);
+					if(test.size() != 0 && success != -1) {
+						mutateNullStatements(test);
+					}
+					
+					count++;
+					if(count>20) break;
+				}
 			}
 			
 			num++;
@@ -159,6 +174,16 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			ExecutionTracer.enable();
 
 		return test;
+	}
+	
+	private void mutateNullStatements(TestCase test) {
+		for(int i=0; i<test.size(); i++) {
+			Statement s = test.getStatement(i);
+			if(s instanceof NullStatement) {
+				TestFactory.getInstance().changeNullStatement(test, s);
+				System.currentTimeMillis();
+			}
+		}
 	}
 
 	/**
