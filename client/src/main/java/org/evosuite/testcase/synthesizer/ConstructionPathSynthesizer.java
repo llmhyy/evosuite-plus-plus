@@ -42,6 +42,7 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.AbstractStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
+import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.Statement;
@@ -795,6 +796,7 @@ public class ConstructionPathSynthesizer {
 			VariableReference usedFieldInTest = isLeaf
 					? usedRefSearcher.searchRelevantFieldWritingReferenceInTest(test, field, targetObjectReference)
 					: usedRefSearcher.searchRelevantFieldReadingReferenceInTest(test, field, targetObjectReference);
+			System.currentTimeMillis();
 			if (usedFieldInTest != null) {
 				return usedFieldInTest;
 			}
@@ -852,7 +854,7 @@ public class ConstructionPathSynthesizer {
 				
 				String targetClassName = checkTargetClassName(field, targetObjectReference);
 				Executable setter = searchForPotentialSetterInClass(field, targetClassName);
-				if (setter != null) {
+				if (setter != null && hasNotInvoked(test, setter)) {
 					if(setter instanceof Method){
 						GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
 						if (targetObjectReference == null) {
@@ -892,6 +894,28 @@ public class ConstructionPathSynthesizer {
 			return null;
 		}
 
+	}
+
+	@SuppressWarnings("rawtypes")
+	private boolean hasNotInvoked(TestCase test, Executable setter) {
+		for(int i=0; i<test.size(); i++) {
+			Statement s = test.getStatement(i);
+			if(s instanceof MethodStatement && setter instanceof Method) {
+				Method m = ((MethodStatement)s).getMethod().getMethod();
+				if(m.equals(setter)) {
+					return false;
+				}
+			}
+			
+			if(s instanceof ConstructorStatement && setter instanceof Constructor) {
+				Constructor m = ((ConstructorStatement)s).getConstructor().getConstructor();
+				if(m.equals(setter)) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
 	}
 
 	private String checkTargetClassName(Field field, VariableReference targetObjectReference) {
