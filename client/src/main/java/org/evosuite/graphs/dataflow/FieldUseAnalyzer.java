@@ -202,7 +202,7 @@ public class FieldUseAnalyzer {
 		/**
 		 * the variable is computed by values on stack
 		 */
-		List<DepVariable>[] intputVarArray = buildInputOutputForInstruction(defIns, node,
+		List<DepVariable>[] inputVarArray = buildInputOutputForInstruction(defIns, node,
 				outputVar, cfg, allLeafDepVars, visitedIns, callGraphDepth);
 		
 		/**
@@ -212,7 +212,7 @@ public class FieldUseAnalyzer {
 			
 			if(!shouldStop(defIns)) {
 				String recommnedClass = outputVar.getRecommendedImplementation();
-				recommnedClass = exploreInterproceduralInstruction(allLeafDepVars, defIns, intputVarArray, recommnedClass, callGraphDepth);
+				recommnedClass = exploreInterproceduralInstruction(allLeafDepVars, defIns, inputVarArray, recommnedClass, callGraphDepth);
 				outputVar.setRecommendedImplementation(recommnedClass);				
 			}
 			
@@ -227,14 +227,6 @@ public class FieldUseAnalyzer {
 		
 		if(outputVar.referenceToThis() || outputVar.isParameter() || outputVar.isStaticField()) {
 			//return;
-		}
-		
-		/**
-		 * handle instanceof instruction, it is essential for test initialization with polymorphism
-		 */
-		if(defIns.checkInstanceOf()) {
-			
-			System.currentTimeMillis();
 		}
 		
 		/**

@@ -16,12 +16,10 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.setup.DependencyAnalysis;
-import org.evosuite.testcase.ConstraintVerifier;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.TestMutationHistoryEntry;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
@@ -43,10 +41,48 @@ import regression.objectconstruction.testgeneration.example.graphcontruction.Bas
 import regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2;
 import regression.objectconstruction.testgeneration.example.graphcontruction.ExpressionNodeList.addExpressionList.ExpressionNodeList;
 import regression.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame;
+import regression.objectconstruction.testgeneration.example.graphcontruction.JNFE.AddressData;
 import regression.objectconstruction.testgeneration.example.graphcontruction.MUXFilter.pump.MUXFilter;
 import regression.objectconstruction.testgeneration.example.graphcontruction.RMIManagedConnectionAcceptor.close.RMIManagedConnectionAcceptor;
 
 public class TestLegitimizationTest extends ObjectOrientedTest {
+	
+	@Test
+	public void testLegitimization4Equal1() throws ClassNotFoundException, RuntimeException {
+		
+		Properties.RANDOM_SEED = 1598376776401l;
+		
+		setup();
+
+		Properties.TARGET_CLASS = AddressData.class.getCanonicalName();
+
+		Method method = TestUtility.getTargetMethod("equals", AddressData.class, 1);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+
+		Properties.TARGET_METHOD = targetMethod;
+
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+
+		Properties.APPLY_OBJECT_RULE = true;
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+
+		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
+		Collections.sort(rankedList, new Comparator<Branch>() {
+			@Override
+			public int compare(Branch o1, Branch o2) {
+				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
+			}
+		});
+
+//			Branch b = Randomness.choice(interestedBranches.keySet());
+		Branch b = rankedList.get(10);
+
+		assertLegitimization(b);
+		
+	}
+	
 	@Test
 	public void testLegitimization1() throws ClassNotFoundException, RuntimeException {
 		setup();

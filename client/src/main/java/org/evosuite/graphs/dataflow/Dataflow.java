@@ -16,9 +16,13 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.Frame;
+import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 
 public class Dataflow {
@@ -27,6 +31,7 @@ public class Dataflow {
 	 * 
 	 */
 	public static Map<String, Map<Branch, Set<DepVariable>>> branchDepVarsMap = new HashMap<>();
+	public static Map<Integer, List<String>> recommendedClasses = new HashMap<>();
 
 	public static boolean isReachableInClass(BytecodeInstruction b1, BytecodeInstruction b2) {
 		
@@ -73,6 +78,8 @@ public class Dataflow {
 					FBranchDefUseAnalyzer.analyze(cfg.getRawGraph());
 					
 					Map<Branch, Set<DepVariable>> map = analyzeIndividualMethod(cfg);
+					recommendedClasses = analyzeRecommendationClasses(cfg);
+					System.currentTimeMillis();
 					branchDepVarsMap.put(methodName, map);					
 				}
 			}
@@ -82,12 +89,74 @@ public class Dataflow {
 	}
 	
 	@SuppressWarnings("rawtypes")
+	public static Map<Integer, List<String>> analyzeRecommendationClasses(ActualControlFlowGraph cfg){
+		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		String className = cfg.getClassName();
+		String methodName = cfg.getMethodName();
+		
+		Map<Integer, List<String>> recommendationClasses = new HashMap<Integer, List<String>>();
+		for(BytecodeInstruction ins: BytecodeInstructionPool.getInstance(classLoader).
+				getAllInstructionsAtMethod(className, methodName)) {
+			/**
+			 * handle instanceof instruction, it is essential for test initialization with polymorphism
+			 */
+			if(ins.checkInstanceOf()) {
+				String checkingClassName = ins.getInstanceOfCheckingType();
+				if(checkingClassName != null) {
+					int operandNum = ins.getOperandNum();
+					for (int i = 0; i < operandNum; i++) {
+						Frame frame = ins.getFrame();
+						int index = frame.getStackSize() - operandNum + i ;
+						Value val = frame.getStack(index);
+						if (!(val instanceof SourceValue)) {
+							continue;
+						}
+						
+						SourceValue srcValue = (SourceValue) val;
+						MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
+						/**
+						 * get all the instruction defining the value.
+						 */
+						for(AbstractInsnNode insNode: srcValue.insns) {
+							BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
+							if (defIns != null) {
+								System.currentTimeMillis();
+								DepVariable var = new DepVariable(defIns.getClassName(), defIns);
+								if(var.isParameter()) {
+									int position = var.getInstruction().getParameterPosition();
+									List<String> classes = recommendationClasses.get(position);
+									if(classes == null) {
+										classes = new ArrayList<String>();
+									}
+									if(!classes.contains(checkingClassName)) {
+										classes.add(checkingClassName);
+										recommendationClasses.put(position, classes);										
+									}
+									
+								}
+							}
+						}
+					}
+				}
+				
+			}
+		}
+		
+		return recommendationClasses;
+	}
+	
+	
+	@SuppressWarnings("rawtypes")
 	public static Map<Branch, Set<DepVariable>> analyzeIndividualMethod(ActualControlFlowGraph cfg) {
 		Map<Branch, Set<DepVariable>> map = new HashMap<>();
 		
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		String className = cfg.getClassName();
 		String methodName = cfg.getMethodName();
+		
+		for (Branch b : BranchPool.getInstance(classLoader).retrieveBranchesInMethod(className, methodName)) {
+			b.getInstruction().getActualCFG().getAllInstructions();
+		}
 		
 		for (Branch b : BranchPool.getInstance(classLoader).retrieveBranchesInMethod(className, methodName)) {
 			FieldUseAnalyzer fAnalyzer = new FieldUseAnalyzer(b);

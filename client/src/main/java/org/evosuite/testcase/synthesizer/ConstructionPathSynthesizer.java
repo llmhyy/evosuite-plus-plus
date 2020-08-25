@@ -90,8 +90,13 @@ public class ConstructionPathSynthesizer {
 			for(DepVariable root: rootInfo.keySet()) {
 				// this=> class; parameter => method; static field=> whatever
 				if(
-					(root.referenceToThis() &&  root.getInstruction().getClassName().equals(Properties.TARGET_CLASS)) || 
-					(root.isParameter() && root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) || 
+					(root.referenceToThis() 
+							&&  root.getInstruction().getClassName().equals(Properties.TARGET_CLASS)) 
+					|| 
+					(root.isParameter()
+							&& root.getInstruction().getClassName().equals(Properties.TARGET_CLASS)
+							&& root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) 
+					|| 
 					root.isStaticField() 
 						) {
 					
@@ -141,9 +146,9 @@ public class ConstructionPathSynthesizer {
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
-		
+		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
-//		GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "test");
+		GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "test");
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -163,7 +168,7 @@ public class ConstructionPathSynthesizer {
 		Map<DepVariable, Integer> methodCounter = new HashMap<>();
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-//			logger.warn(node.toString());
+			logger.warn(node.toString());
 			/**
 			 * for each method callsite, we only generate once. 
 			 */
@@ -269,6 +274,16 @@ public class ConstructionPathSynthesizer {
 			inputObject = generateFieldStatement(test, var, isLeaf, inputObject);
 		} else if (var.getType() == DepVariable.PARAMETER) {
 			String castSubClass = checkCastClassForParameter(node);
+			if(castSubClass == null) {
+				int paramPosition = var.getParamOrder() - 1;
+				List<String> recommendations = Dataflow.recommendedClasses.get(paramPosition);
+				if(!recommendations.isEmpty()) {
+					if(!recommendations.contains(null)) {
+						recommendations.add(null);						
+					}
+					castSubClass = Randomness.choice(recommendations);					
+				}
+			}
 			inputObject = generateParameterStatement(test, var, inputObject, castSubClass);
 		} else if (var.getType() == DepVariable.INSTANCE_FIELD) {
 			if (inputObject == null) {
@@ -862,7 +877,8 @@ public class ConstructionPathSynthesizer {
 				
 				String targetClassName = checkTargetClassName(field, targetObjectReference);
 				Executable setter = searchForPotentialSetterInClass(field, targetClassName);
-				if (setter != null && hasNotInvoked(test, setter)) {
+				
+				if (setter != null && !isTarget(setter)) {
 					if(setter instanceof Method){
 						GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
 						if (targetObjectReference == null) {
@@ -902,6 +918,23 @@ public class ConstructionPathSynthesizer {
 			return null;
 		}
 
+	}
+
+	private boolean isTarget(Executable setter) {
+		String className = setter.getDeclaringClass().getCanonicalName();
+		
+		String name = null;
+		if(setter instanceof Method) {
+			name = setter.getName();
+		}
+		else {
+			name = "<init>";
+		}
+		
+		String methodName = name + ReflectionUtil.getSignature(setter);
+		
+		return className.equals(Properties.TARGET_CLASS) 
+				&& methodName.equals(Properties.TARGET_METHOD);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -1183,18 +1216,33 @@ public class ConstructionPathSynthesizer {
 			VariableReference parentVarRef, String castSubClass)
 			throws ConstructionFailedException, ClassNotFoundException {
 
-		/**
-		 * find the existing parameters
-		 */
-		if (parentVarRef == null) {
+		
+		if(castSubClass != null) {
+			VariableReference newParameter = generateParameter(test, var, castSubClass);
+
+			if (newParameter == null) {
+				return parentVarRef;
+			}
+
+			MethodStatement targetStatement = test.findTargetMethodCallStatement();
+			if (targetStatement != null) {
+				VariableReference oldParamRef = targetStatement.getParameterReferences().get(var.getParamOrder() - 1);
+				targetStatement.replace(oldParamRef, newParameter);
+			}
+
+			return newParameter;
+		}
+		else {
+			/**
+			 * find the existing parameters
+			 */
 			MethodStatement mStat = test.findTargetMethodCallStatement();
 			int paramPosition = var.getParamOrder();
 			VariableReference paramRef = mStat.getParameterReferences().get(paramPosition - 1);
-
+			
 			/**
 			 * make sure the parameter obj is not null
 			 */
-			
 			int paramPosInTest = paramRef.getStPosition();
 			Statement paramDef = test.getStatement(paramPosInTest);
 			if(paramDef instanceof NullStatement){
@@ -1203,25 +1251,13 @@ public class ConstructionPathSynthesizer {
 				if(isSuccess){
 					paramRef = mStat.getParameterReferences().get(paramPosition - 1);
 				}
-				
 			}
 			
 			return paramRef;
 		}
-
-		VariableReference paramRef = generateParameter(test, var, castSubClass);
-
-		if (paramRef == null) {
-			return parentVarRef;
-		}
-
-		MethodStatement targetStatement = test.findTargetMethodCallStatement();
-		if (targetStatement != null) {
-			VariableReference oldParamRef = targetStatement.getParameterReferences().get(var.getParamOrder() - 1);
-			targetStatement.replace(oldParamRef, paramRef);
-		}
-
-		return paramRef;
+		
+		
+		
 	}
 
 	private VariableReference generateParameter(TestCase test, DepVariable var, String castSubClass)
@@ -1330,6 +1366,8 @@ public class ConstructionPathSynthesizer {
 			findSetterInfo(field, targetClass, fieldSettingMethods, difficultyList, numberOfValidParams, c, signature);
 		}
 		
+//		System.currentTimeMillis();
+		
 		if(!fieldSettingMethods.isEmpty()){
 //			Executable entry = Randomness.choice(fieldSettingMethods);
 			double[] scores = new double[fieldSettingMethods.size()];
@@ -1409,6 +1447,8 @@ public class ConstructionPathSynthesizer {
 		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = 
 				DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
 						field, 5, cascadingCallRelations, setterMap);
+		
+		System.currentTimeMillis();
 		
 		Set<Integer> releventPrams = new HashSet<>();
 		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {

@@ -38,10 +38,16 @@ public class AddressData extends AbstractPartialAddress {
 			return false;
 		} else {
 			AddressData castOther = (AddressData) other;
-			return (getOperator() == castOther.getOperator() || getOperator() != null && castOther.getOperator() != null
-					&& getOperator().equals(castOther.getOperator()))
-					&& (getProvince() == castOther.getProvince() || getProvince() != null
-							&& castOther.getProvince() != null && getProvince().equals(castOther.getProvince()));
+			return (getOperator() == castOther.getOperator() 
+					|| 
+					getOperator() != null 
+						&& castOther.getOperator() != null
+							&& getOperator().equals(castOther.getOperator()))
+								&& 
+								(getProvince() == castOther.getProvince() 
+									|| getProvince() != null
+										&& castOther.getProvince() != null 
+										&& getProvince().equals(castOther.getProvince()));
 		}
 	}
 

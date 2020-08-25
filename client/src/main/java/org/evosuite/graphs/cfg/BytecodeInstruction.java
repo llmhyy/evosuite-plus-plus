@@ -20,7 +20,6 @@
 package org.evosuite.graphs.cfg;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -55,7 +54,9 @@ import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
+import org.objectweb.asm.tree.analysis.Value;
 
 /**
  * Internal representation of a BytecodeInstruction
@@ -1680,5 +1681,35 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 			return true;
 		}
 		return false;
+	}
+
+	public boolean checkInstanceOf() {
+		return this.asmNode.getOpcode() == Opcodes.INSTANCEOF;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public Object getCheckInstanceType() {
+		if(this.checkInstanceOf()) {
+			int operandNum = this.getOperandNum();
+			for (int i = 0; i < operandNum; i++) {
+				Frame frame = this.getFrame();
+				int index = frame.getStackSize() - operandNum + i ;
+				Value val = frame.getStack(index);
+				
+				System.currentTimeMillis();
+			}
+		}
+		
+		return null;
+	}
+
+	public String getInstanceOfCheckingType() {
+		if(this.asmNode instanceof TypeInsnNode) {
+			TypeInsnNode node = (TypeInsnNode)this.asmNode;
+			String recommendedClass = node.desc;
+			return recommendedClass.replace("/", ".");
+			
+		}
+		return null;
 	}
 }
