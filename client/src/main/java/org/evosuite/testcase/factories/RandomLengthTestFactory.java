@@ -161,7 +161,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					}
 					
 					count++;
-					if(count>20) break;
+					if(count>10) break;
 				}
 			}
 			

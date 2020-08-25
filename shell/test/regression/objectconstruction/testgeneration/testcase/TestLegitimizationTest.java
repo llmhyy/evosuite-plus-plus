@@ -291,6 +291,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 	public void testLegitimization7() throws ClassNotFoundException, RuntimeException {
 		setup();
 
+//		Properties.RANDOM_SEED = 1598288297694l;
 		Properties.TARGET_CLASS = RMIManagedConnectionAcceptor.class.getCanonicalName();
 
 		Method method = TestUtility.getTargetMethod("close", RMIManagedConnectionAcceptor.class, 0);
@@ -324,6 +325,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 	public void testLegitimization8() throws ClassNotFoundException, RuntimeException {
 		setup();
 
+		Properties.RANDOM_SEED = 1598289457901l;
 		Properties.TARGET_CLASS = MUXFilter.class.getCanonicalName();
 
 		Method method = TestUtility.getTargetMethod("pump", MUXFilter.class, 0);

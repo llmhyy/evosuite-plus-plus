@@ -27,6 +27,80 @@ public class OverallRunningTest {
 	}
 	
 	@Test
+	public void testProtectedExample() {
+		String projectId = "10_water-simulator";
+		String[] targetMethods = new String[]{
+				"simulator.WSA.BehaviourQueryConsumers#handleInform(Ljade/lang/acl/ACLMessage;)V"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 1000000;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void test11Example() {
+		String projectId = "11_imsmart";
+		String[] targetMethods = new String[]{
+				"com.momed.cms.MContentManagerFileNet#checkInContent(Ljava/io/File;)Z"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void test20Example() {
+		String projectId = "20_nekomud";
+		String[] targetMethods = new String[]{
+				"net.sourceforge.nekomud.nio.Connection#handleRead(Ljava/nio/channels/SelectionKey;)V"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100000;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	
+	
+	@Test
 	public void testGangupBasicRulesExample() {
 		String projectId = "27_gangup";
 		String[] targetMethods = new String[]{
