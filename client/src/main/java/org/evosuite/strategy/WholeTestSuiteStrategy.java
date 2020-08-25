@@ -163,6 +163,7 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 		testSuite.setDistributionMap(algorithm.getDistributionMap());
 		testSuite.setInitialCoverage(algorithm.getInitialCoverage());
 		testSuite.setInitializationOverhead(algorithm.getIntializationOverhead());
+		testSuite.setMissingBranches(algorithm.getMissingBranches());
 		return testSuite;
 	}
 	

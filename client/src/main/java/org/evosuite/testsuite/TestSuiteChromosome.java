@@ -27,8 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.SecondaryObjective;
@@ -73,6 +75,8 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private List<BranchDistributionInformation> branchInformation;
 	
 	private Map<String, Boolean> methodCallAvailabilityMap = new HashMap<>();
+	
+	private List<Pair<Branch, Boolean>> missingBranches = new ArrayList<Pair<Branch, Boolean>>();
 
 	/**
 	 * Add an additional secondary objective to the end of the list of
@@ -450,4 +454,13 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	public void setInitializationOverhead(long initializationOverhead) {
 		this.initializationOverhead = initializationOverhead;
 	}
+
+	public List<Pair<Branch, Boolean>> getMissingBranches() {
+		return missingBranches;
+	}
+
+	public void setMissingBranches(List<Pair<Branch, Boolean>> missingBranches) {
+		this.missingBranches = missingBranches;
+	}
+
 }

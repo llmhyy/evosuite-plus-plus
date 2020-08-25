@@ -230,6 +230,14 @@ public class FieldUseAnalyzer {
 		}
 		
 		/**
+		 * handle instanceof instruction, it is essential for test initialization with polymorphism
+		 */
+		if(defIns.checkInstanceOf()) {
+			
+			System.currentTimeMillis();
+		}
+		
+		/**
 		 * the variable is computed by local variables
 		 */
 		

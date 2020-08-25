@@ -30,12 +30,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.ProgressMonitor;
 import org.evosuite.Properties;
 import org.evosuite.Properties.SelectionFunction;
 import org.evosuite.coverage.FitnessFunctions;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.coverage.exception.ExceptionCoverageSuiteFitness;
 import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.Chromosome;
@@ -632,6 +635,9 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		best.setInitialCoverage(this.initialCoverage);
 		best.setInitializationOverhead(this.initializationOverhead);
 
+		List<Pair<Branch, Boolean>> missingBranches = findMissingBranches();
+		best.setMissingBranches(missingBranches);
+		
 		double IPFlagCoverage = 0;
 		if(IPFlags.size()!=0)
 			IPFlagCoverage = (double)uncoveredIPFlags.size()/IPFlags.size();
@@ -641,7 +647,21 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
         return (T) best;
     }
     
-    protected void computeCoverageAndFitness(TestSuiteChromosome suite) {
+    private List<Pair<Branch, Boolean>> findMissingBranches() {
+    	List<Pair<Branch, Boolean>> list = new ArrayList<Pair<Branch,Boolean>>();
+    	for(FitnessFunction<T> ff: getUncoveredGoals()) {
+    		if(ff instanceof BranchFitness) {
+    			BranchFitness bf = (BranchFitness)ff;
+    			BranchCoverageGoal goal = bf.getBranchGoal();
+    			Pair<Branch, Boolean> pair = Pair.of(goal.getBranch(), goal.getValue());
+    			list.add(pair);
+    		}
+    		
+    	}
+		return list;
+	}
+
+	protected void computeCoverageAndFitness(TestSuiteChromosome suite) {
       for (Entry<TestSuiteFitnessFunction, Class<?>> entry : this.suiteFitnessFunctions
           .entrySet()) {
         TestSuiteFitnessFunction suiteFitnessFunction = entry.getKey();

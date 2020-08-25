@@ -34,8 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Algorithm;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
@@ -125,6 +127,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	private Map<Integer, Integer> distributionMap;	
 	
 	private long intializationOverhead;
+	private List<Pair<Branch, Boolean>> missingBranches = new ArrayList<Pair<Branch,Boolean>>();
 	
 	protected double initialCoverage = 0; 
 	
@@ -1302,4 +1305,13 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	public void setIntializationOverhead(long intializationOverhead) {
 		this.intializationOverhead = intializationOverhead;
 	}
+
+	public List<Pair<Branch, Boolean>> getMissingBranches() {
+		return missingBranches;
+	}
+
+	public void setMissingBranches(List<Pair<Branch, Boolean>> missingBranches) {
+		this.missingBranches = missingBranches;
+	}
+
 }

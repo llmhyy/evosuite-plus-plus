@@ -20,9 +20,16 @@
 package org.evosuite.ga;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
+import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 import org.evosuite.utils.PublicCloneable;
 import org.slf4j.Logger;
@@ -399,6 +406,23 @@ public abstract class Chromosome implements Comparable<Chromosome>, Serializable
         double cov = coverageValues.isEmpty() ? 0.0 : sum / coverageValues.size();
         assert (cov >= 0.0 && cov <= 1.0) : "Incorrect coverage value " + cov + ". Expected value between 0 and 1";
         return cov;
+    }
+	
+	public List<Pair<Branch, Boolean>> getMissingBranches() {
+		List<Pair<Branch, Boolean>> list = new ArrayList<Pair<Branch,Boolean>>();
+        for (FitnessFunction<?> fitnessFunction : coverageValues.keySet()) {
+            if(fitnessFunction instanceof BranchFitness) {
+            	if(coverageValues.get(fitnessFunction)>0) {
+            		BranchFitness bf = (BranchFitness)fitnessFunction;
+            		BranchCoverageGoal goal = bf.getBranchGoal();
+            		Pair<Branch, Boolean> pair = Pair.of(goal.getBranch(), goal.getValue());
+            		list.add(pair);
+            	}
+            }
+            
+        }
+        
+        return list;
     }
 
 	public int getNumOfCoveredGoals() {

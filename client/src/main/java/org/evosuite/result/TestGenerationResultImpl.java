@@ -27,13 +27,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.testcase.TestCase;
 
 class TestGenerationResultImpl implements TestGenerationResult {
 
+	private List<Pair<Branch, Boolean>> missingBranches = new ArrayList<Pair<Branch, Boolean>>();
+	
 	private double initialCoverage = 0;
 	
 	private long initializationOverhead = 0;
@@ -467,4 +471,11 @@ class TestGenerationResultImpl implements TestGenerationResult {
 		this.initializationOverhead = initializationOverhead;
 	}
 
+	public List<Pair<Branch, Boolean>> getMissingBranches() {
+		return missingBranches;
+	}
+
+	public void setMissingBranches(List<Pair<Branch, Boolean>> missingBranches) {
+		this.missingBranches = missingBranches;
+	}
 }

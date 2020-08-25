@@ -89,6 +89,7 @@ public class TestGenerationResultBuilder {
 		result.setMethodCallAvailabilityMap(testSuite.getMethodCallAvailabilityMap());
 		result.setInitialCoverage(testSuite.getInitialCoverage());
 		result.setInitializationOverhead(testSuite.getInitializationOverhead());
+		result.setMissingBranches(testSuite.getMissingBranches());
 		
 		return result;
 	}

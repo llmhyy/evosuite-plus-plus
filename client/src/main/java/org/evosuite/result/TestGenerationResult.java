@@ -24,7 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.testcase.TestCase;
@@ -138,5 +140,8 @@ public interface TestGenerationResult extends Serializable {
 	
 	public long getInitializationOverhead();
 	public void setInitializationOverhead(long initializationOverhead);
+
+	public List<Pair<Branch, Boolean>> getMissingBranches();
+	public void setMissingBranches(List<Pair<Branch, Boolean>> missingBranches);
 
 }
