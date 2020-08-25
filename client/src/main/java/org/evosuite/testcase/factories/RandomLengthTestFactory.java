@@ -37,6 +37,8 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.ExecutionTracer;
+import org.evosuite.testcase.statements.NullStatement;
+import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
@@ -102,8 +104,6 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			 * the first call must be the target method, we add difficult branch support after the target method
 			 * is called in test case.
 			 */
-//			Properties.APPLY_OBJECT_RULE = false;
-//			logger.error("apply object rule: " + Properties.APPLY_OBJECT_RULE);
 			if(num == 1 && targetMethodCallPosition != -1 && Properties.APPLY_OBJECT_RULE) {
 				
 				Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
@@ -125,12 +125,16 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					try {
 						ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 						cpSynthesizer.constructDifficultObjectStatement(test, b);
+						mutateNullStatements(test);
 						
 						PartialGraph graph = cpSynthesizer.getPartialGraph();
 						Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
 						
-						TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
-						test = chromosome.getTestCase();
+						long t0 = System.currentTimeMillis();
+						if(t0 - TestCaseLegitimizer.startTime <= Properties.TOTAL_LEGITIMIZATION_BUDGET * 1000) {
+							TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
+							test = chromosome.getTestCase();
+						}
 						
 						templateTestMap.put(b, test);
 						
@@ -146,7 +150,19 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				break;
 			}
 			else {
-				testFactory.insertRandomStatement(test, position);						
+				testFactory.insertRandomStatement(test, position);
+				int success = -1;
+				int count = 0;
+				while (test.size() == 0 || success == -1) {
+					test = new DefaultTestCase();
+					success = testFactory.insertRandomStatement(test, 0);
+					if(test.size() != 0 && success != -1) {
+						mutateNullStatements(test);
+					}
+					
+					count++;
+					if(count>10) break;
+				}
 			}
 			
 			num++;
@@ -158,6 +174,16 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			ExecutionTracer.enable();
 
 		return test;
+	}
+	
+	private void mutateNullStatements(TestCase test) {
+		for(int i=0; i<test.size(); i++) {
+			Statement s = test.getStatement(i);
+			if(s instanceof NullStatement) {
+				TestFactory.getInstance().changeNullStatement(test, s);
+				System.currentTimeMillis();
+			}
+		}
 	}
 
 	/**

@@ -44,6 +44,7 @@ import org.evosuite.ga.operators.mutation.MutationHistory;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.runtime.javaee.injection.Injector;
 import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.setup.TestCluster;
@@ -55,6 +56,7 @@ import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.localsearch.TestCaseLocalSearch;
 import org.evosuite.testcase.statements.AssignmentStatement;
+import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.FunctionalMockStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
@@ -67,6 +69,7 @@ import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericAccessibleObject;
+import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.Opcodes;
 import org.slf4j.Logger;
@@ -119,6 +122,16 @@ public class TestChromosome extends ExecutableChromosome {
 		
 		int numOfExecutedStatements = this.getLastExecutionResult().getExecutedStatements();
 		this.legitimacyDistance = targetCallStat.getPosition() - numOfExecutedStatements + 1;
+		
+		if(this.getLastExecutionResult() == null) {
+			System.currentTimeMillis();
+		}
+		
+		Integer exceptionPosition = result.getFirstPositionOfThrownException();
+		if(exceptionPosition!=null 
+				&& exceptionPosition == targetCallStat.getPosition()) {
+			this.legitimacyDistance = 0;
+		}
 		
 		if(this.legitimacyDistance != 0){
 			if(numOfExecutedStatements > test.size()-1){
@@ -190,24 +203,104 @@ public class TestChromosome extends ExecutableChromosome {
 			}
 			System.currentTimeMillis();
 		}
-		else if (isIncurInplicitNullPointerException(statOfExp, excep, result)){
-			// Fixme for ziheng
-		}
-		else {
+		
+		if(excep.getStackTrace().length != 0) {
+			// FIXME for Aaron (need to check more of the cascade stack element)
+			StackTraceElement element = excep.getStackTrace()[0];
+			List<FBranchTestFitness> branches = getBranches(element);
 			
+			return branches;
 		}
 		
-		System.currentTimeMillis();
+		if(excep.getStackTrace().length == 0) {
+			ActualControlFlowGraph graph = null;
+			if(statOfExp instanceof MethodStatement) {
+				MethodStatement mStat = (MethodStatement)statOfExp;
+				GenericMethod method = mStat.getMethod();
+				graph = getControlFlowGraph(method);
+			}
+			else if(statOfExp instanceof ConstructorStatement) {
+				ConstructorStatement cStat = (ConstructorStatement)statOfExp;
+				GenericConstructor constructor = cStat.getConstructor();
+				graph = getControlFlowGraph(constructor);
+			}
+			
+			if(graph != null) {
+				List<FBranchTestFitness> branches = locateBranches(graph, excep);
+				return branches;
+			}			
+		}
 		
-		return null;
+		
+		return new ArrayList<FBranchTestFitness>();
 	}
 
-	private boolean isIncurInplicitNullPointerException(Statement statOfExp, Throwable excep,
-			ExecutionResult result) {
-		// TODO Auto-generated method stub
-		return false;
+	private List<FBranchTestFitness> getBranches(StackTraceElement element) {
+		String className = element.getClassName();
+		
+		BytecodeInstructionPool pool = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT());
+		
+		List<BytecodeInstruction> insList = null;
+		if(element.getLineNumber()>0) {
+			insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());			
+		}
+		
+		List<FBranchTestFitness> fitnessList = new ArrayList<FBranchTestFitness>();
+		if(insList != null && insList.size() > 0) {
+			BytecodeInstruction ins = insList.get(0);
+			Branch b = ins.getControlDependentBranch();
+			
+			if(b != null) {
+				boolean value = ins.getControlDependentBranchExpressionValue();
+				
+				BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
+				FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
+				fitnessList.add(fFit);				
+			}
+		}
+		
+		return fitnessList;
+		
 	}
 
+	private ActualControlFlowGraph getControlFlowGraph(GenericMethod method) {
+		String methodName = method.getName() + MethodUtil.getSignature(method.getMethod());
+		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+				.getActualCFG(method.getOwnerClass().getClassName(), methodName);
+		
+		return cfg;
+	}
+
+	private ActualControlFlowGraph getControlFlowGraph(GenericConstructor constructor) {
+		String methodName = "<init>" + MethodUtil.getSignature(constructor.getConstructor());
+		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+				.getActualCFG(constructor.getOwnerClass().getClassName(), methodName);
+		
+		return cfg;
+	}
+	
+	
+	private List<FBranchTestFitness> locateBranches(ActualControlFlowGraph graph, Throwable excep){
+		List<FBranchTestFitness> list = new ArrayList<FBranchTestFitness>();
+		
+		for(BytecodeInstruction ins: graph.getAllInstructions()) {
+			if(ins.isThrow()) {
+				Branch b = ins.getControlDependentBranch();
+				
+				if(b != null) {
+					boolean value = ins.getControlDependentBranchExpressionValue();
+					
+					BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
+					FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
+					list.add(fFit);				
+				}
+			}
+		}	
+		
+		return list;
+		
+	}
+	
 	private List<FBranchTestFitness> locateNonNullBranches(GenericMethod method) {
 		String methodName = method.getName() + MethodUtil.getSignature(method.getMethod());
 		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
@@ -231,24 +324,28 @@ public class TestChromosome extends ExecutableChromosome {
 				
 			}
 			
-			
-			
 		}
 		
 		return list;
 	}
 
 	private boolean isMethodCallIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result) {
+		if(excep == null || excep.getMessage() == null) {
+			System.currentTimeMillis();
+			StackTraceElement[] a= excep.getStackTrace();
+			System.currentTimeMillis();
+		}
+		
 		return statOfExp instanceof MethodStatement 
 				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
-				&& excep.getMessage().equals("java.lang.NullPointerException");
+				&& excep instanceof NullPointerException;
 	}
 	
 	private boolean isAssignmentIncurExplicitNullPointerException(Statement statOfExp, Throwable excep,
 			ExecutionResult result) {
 		return statOfExp instanceof AssignmentStatement 
 				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
-				&& excep.getMessage().equals("java.lang.NullPointerException");
+				&& excep instanceof NullPointerException;
 	}
 	
 	private boolean isIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result){
@@ -1485,6 +1582,10 @@ public class TestChromosome extends ExecutableChromosome {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void mutateRelevantStatements() {
 		Statement statOfExp = getStatementReportingException();
+		if(statOfExp == null) {
+			return;
+		}
+		
 		List<Statement> influencingStatements = checkInfluencingStatements(test, statOfExp);
 		for(int i=0; i<influencingStatements.size(); i++){
 			Statement refStatement = influencingStatements.get(i);

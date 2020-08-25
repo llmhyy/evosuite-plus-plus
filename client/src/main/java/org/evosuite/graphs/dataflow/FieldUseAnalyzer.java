@@ -27,8 +27,7 @@ import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 
 public class FieldUseAnalyzer {
-	private static Map<DepVariable, DepVariable> variablePool = new HashMap<>();
-	private static Map<BytecodeInstruction, DepVariable> insPool = new HashMap<>();
+	private Map<BytecodeInstruction, DepVariable> insPool = new HashMap<>();
 	
 	public Branch branchInProcess;
 	
@@ -125,7 +124,7 @@ public class FieldUseAnalyzer {
 		if(var == null) {
 			var = new DepVariable(className, defIns);
 			
-			if(var.getName().equals("checkRules(Lstate/Action;Lstate/GameState;)Z_LV_1")){
+			if(var.getName().contains("drain")){
 				System.currentTimeMillis();
 			}
 			

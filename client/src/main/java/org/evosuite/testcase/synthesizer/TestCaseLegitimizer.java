@@ -18,8 +18,10 @@ import org.evosuite.utils.Randomness;
 
 public class TestCaseLegitimizer {
 
+	public static long startTime;
+	
 	public static int optimizionPopluationSize = 20;
-	public static int localFuzzBudget = Properties.LEGITIMIZATION_BUDGET;
+	public static int localFuzzBudget = Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET;
 	
 	private PartialGraph graph;
 	private Map<DepVariable, List<VariableReference>> graph2CodeMap;
@@ -51,14 +53,14 @@ public class TestCaseLegitimizer {
 		 */
 		List<TestChromosome> population = initializePopulation(test);
 		
-		int counter = 0;
-		while (legitimacyDistance != 0 && counter <= 1000){
-			counter ++;
-			
+		long t1 = System.currentTimeMillis();
+		long t2 = System.currentTimeMillis();
+		while (legitimacyDistance != 0 && (t2-t1)/1000 <= Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET){
 //			MutationPositionDiscriminator.discriminator.setPurpose(relevantBranches);
 			
 			evolve(population);
 			legitimacyDistance = population.get(0).getLegitimacyDistance();
+			t2 = System.currentTimeMillis();
 		}
 		
 		return population.get(0);

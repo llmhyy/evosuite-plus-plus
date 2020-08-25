@@ -29,12 +29,12 @@ import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
-import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.graphs.dataflow.GraphVisualizer;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -42,6 +42,7 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.AbstractStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
+import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.Statement;
@@ -94,14 +95,6 @@ public class ConstructionPathSynthesizer {
 					root.isStaticField() 
 						) {
 					
-					/**
-					 * remove the noise from other branches
-					 */
-					boolean isNoiseRoot = !Dataflow.isReachableInClass(root.getInstruction(), b.getInstruction());
-					if(isNoiseRoot) {
-						continue;
-					}
-					
 					List<ConstructionPath> paths = rootInfo.get(root);
 					
 					for(ConstructionPath path: paths) {
@@ -127,6 +120,20 @@ public class ConstructionPathSynthesizer {
 		return graph;
 	}
 	
+	private BytecodeInstruction findEarlyInstruction(DepVariable root) {
+		List<BytecodeInstruction> list = root.getInstruction().getActualCFG().getAllInstructions();
+		for(int i=0; i<root.getInstruction().getInstructionId(); i++) {
+			BytecodeInstruction earlyIns = list.get(i);
+			DepVariable v = new DepVariable(earlyIns.getClassName(), earlyIns);
+			
+			if(root.equals(v)) {
+				return earlyIns;
+			}
+		}
+		
+		return root.getInstruction();
+	}
+
 	private PartialGraph partialGraph;
 	private Map<DepVariable, List<VariableReference>> graph2CodeMap;
 	
@@ -136,7 +143,7 @@ public class ConstructionPathSynthesizer {
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
-//		GraphVisualizer.visualizeComputationGraph(partialGraph, 5000);
+//		GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "test");
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -239,6 +246,10 @@ public class ConstructionPathSynthesizer {
 			}
 			else{
 				for(VariableReference inputObject: inputObjects){
+					GenericClass t = inputObject.getGenericClass();
+					if(t.isPrimitive()) {
+						continue;
+					}
 					boolean s = deriveCodeForTest(map, test, inputObject, node);
 					success = success && s;	
 				}
@@ -673,8 +684,16 @@ public class ConstructionPathSynthesizer {
 			}
 
 			if (!fullName.contains("<init>")) {
-				Method call = fieldDeclaringClass.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses);
-
+				Method call = null;
+				try {
+					call = fieldDeclaringClass.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses); 
+				}
+				catch(Exception e) {}
+						
+				if(call == null) {
+					return null;
+				}
+				
 				VariableReference calleeVarRef = null;
 				Map<Integer, VariableReference> paramRefMap = new HashMap<>();
 
@@ -742,6 +761,10 @@ public class ConstructionPathSynthesizer {
 		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
 		String fieldType = fieldNode.desc;
 		String fieldOwner = fieldNode.owner.replace("/", ".");
+		String fieldTypeName = fieldType.replace("/", ".");
+		if(fieldTypeName.startsWith("L")) {
+			fieldTypeName = fieldTypeName.substring(1, fieldTypeName.length()-1);
+		}
 		String fieldName = fieldNode.name;
 
 		if (targetObjectReference != null) {
@@ -758,6 +781,18 @@ public class ConstructionPathSynthesizer {
 					.loadClass(fieldOwner);
 			registerAllMethods(fieldDeclaringClass);
 			
+			Class<?> fieldTypeClass = null;
+			try {
+				if(fieldTypeName.length()>3) {
+					fieldTypeClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+							.loadClass(fieldTypeName);
+					if(fieldTypeClass != null) {
+						registerAllMethods(fieldTypeClass);									
+					}					
+				}
+			}
+			catch(Exception e) {}
+			
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 			
 			/**
@@ -769,6 +804,7 @@ public class ConstructionPathSynthesizer {
 			VariableReference usedFieldInTest = isLeaf
 					? usedRefSearcher.searchRelevantFieldWritingReferenceInTest(test, field, targetObjectReference)
 					: usedRefSearcher.searchRelevantFieldReadingReferenceInTest(test, field, targetObjectReference);
+			System.currentTimeMillis();
 			if (usedFieldInTest != null) {
 				return usedFieldInTest;
 			}
@@ -784,6 +820,10 @@ public class ConstructionPathSynthesizer {
 			 * a new public field instance.
 			 */
 			if (Modifier.isPublic(fieldModifiers)) {
+				if (genericField.isFinal()) {
+					return null;
+				}
+				
 				VariableReference obj = 
 					generatePublicFieldSetterOrGetter(test, targetObjectReference, fieldType, genericField);
 				return obj;
@@ -822,7 +862,7 @@ public class ConstructionPathSynthesizer {
 				
 				String targetClassName = checkTargetClassName(field, targetObjectReference);
 				Executable setter = searchForPotentialSetterInClass(field, targetClassName);
-				if (setter != null) {
+				if (setter != null && hasNotInvoked(test, setter)) {
 					if(setter instanceof Method){
 						GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
 						if (targetObjectReference == null) {
@@ -862,6 +902,28 @@ public class ConstructionPathSynthesizer {
 			return null;
 		}
 
+	}
+
+	@SuppressWarnings("rawtypes")
+	private boolean hasNotInvoked(TestCase test, Executable setter) {
+		for(int i=0; i<test.size(); i++) {
+			Statement s = test.getStatement(i);
+			if(s instanceof MethodStatement && setter instanceof Method) {
+				Method m = ((MethodStatement)s).getMethod().getMethod();
+				if(m.equals(setter)) {
+					return false;
+				}
+			}
+			
+			if(s instanceof ConstructorStatement && setter instanceof Constructor) {
+				Constructor m = ((ConstructorStatement)s).getConstructor().getConstructor();
+				if(m.equals(setter)) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
 	}
 
 	private String checkTargetClassName(Field field, VariableReference targetObjectReference) {
@@ -1245,7 +1307,7 @@ public class ConstructionPathSynthesizer {
 	 */
 	@SuppressWarnings("rawtypes")
 	private Executable searchForPotentialSetterInClass(Field field, String targetClassName) throws ClassNotFoundException{
-
+		
 		Class<?> targetClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 				.loadClass(targetClassName);
 		
@@ -1453,6 +1515,8 @@ public class ConstructionPathSynthesizer {
 
 		VariableReference objRef = fieldInitializer.assignField(testFactory, test, fieldType, 
 				genericField, insertionPosition, fieldVar);	
+		
+		
 		AbstractStatement stmt = new AssignmentStatement(test, fieldVar, objRef);		
 		test.addStatement(stmt, objRef.getStPosition()+1);
 		
