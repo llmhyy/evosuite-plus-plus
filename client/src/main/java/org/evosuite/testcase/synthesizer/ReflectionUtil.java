@@ -23,6 +23,8 @@ public class ReflectionUtil {
 	    for(Class<?> c : m.getParameterTypes()) 
 	        sb.append((sig=Array.newInstance(c, 0).toString())
 	            .substring(1, sig.indexOf('@')));
+	    
+	    String signature = null;
 	    if(m instanceof Method){
 	    	Class<?> returnType = ((Method)m).getReturnType();
 	    	String typeName = returnType.getCanonicalName();
@@ -41,12 +43,16 @@ public class ReflectionUtil {
 	    			e.printStackTrace();
 	    		}
 	    	}
-	    	return sb.append(')')
-	    			.append(typeName).toString();	    	
+	    	signature = sb.append(')')
+	    			.append(typeName).toString();
+	    	
 	    }
 	    else{
-	    	return sb.append(')').append("V").toString();	
+	    	signature = sb.append(')').append("V").toString();	
 	    }
+	    
+	    signature = signature.replace(".", "/");
+	    return signature;
 	    
 	}
 }
