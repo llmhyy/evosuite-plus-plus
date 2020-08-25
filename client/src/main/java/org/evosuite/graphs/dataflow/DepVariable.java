@@ -163,6 +163,16 @@ public class DepVariable {
 	public boolean isLoadArrayElement() {
 		return this.instruction.getASMNode().getOpcode() == Opcodes.AALOAD;
 	}
+	
+	public boolean hasNoParent() {
+		for(int i=0; i<this.reverseRelations.length; i++) {
+			if(this.reverseRelations[i] != null) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
 
 
 	public boolean referenceToThis() {
@@ -378,6 +388,7 @@ public class DepVariable {
 						getRootVar(roots, parent, this, visited, partialPath, operandPosList);
 					}
 				}
+				
 			}
 		}
 		

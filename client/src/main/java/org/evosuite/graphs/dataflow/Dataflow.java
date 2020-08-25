@@ -155,10 +155,6 @@ public class Dataflow {
 		String methodName = cfg.getMethodName();
 		
 		for (Branch b : BranchPool.getInstance(classLoader).retrieveBranchesInMethod(className, methodName)) {
-			b.getInstruction().getActualCFG().getAllInstructions();
-		}
-		
-		for (Branch b : BranchPool.getInstance(classLoader).retrieveBranchesInMethod(className, methodName)) {
 			FieldUseAnalyzer fAnalyzer = new FieldUseAnalyzer(b);
 			Set<DepVariable> allDepVars = new HashSet<DepVariable>();
 			Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();

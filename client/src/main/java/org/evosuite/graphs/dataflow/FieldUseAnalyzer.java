@@ -306,11 +306,21 @@ public class FieldUseAnalyzer {
 		for(DepVariable var: relatedVariables) {
 			System.currentTimeMillis();
 			for(DepVariable rootVar: var.getRootVars().keySet()) {
-				if(!(rootVar.getInstruction().getClassName().
-						equals(defIns.getCalledCFG().getClassName()) && 
-						rootVar.getInstruction().getMethodName().equals(defIns.getCalledCFG().getMethodName()))) {
-					continue;
+				if(rootVar.getType() == DepVariable.PARAMETER) {
+					if(!(rootVar.getInstruction().getClassName().
+							equals(defIns.getCalledCFG().getClassName()) && 
+							rootVar.getInstruction().getMethodName().equals(defIns.getCalledCFG().getMethodName()))) {
+						continue;
+					}					
 				}
+				
+				if(rootVar.getType() == DepVariable.THIS) {
+					if(!(rootVar.getInstruction().getClassName().
+							equals(defIns.getCalledCFG().getClassName()))) {
+						continue;
+					}	
+				}
+				
 				
 				if(var.getType() == DepVariable.STATIC_FIELD) {
 					allLeafDepVars.add(var);					
@@ -327,7 +337,15 @@ public class FieldUseAnalyzer {
 						
 						DepVariable secondVar = path.getPath().get(path.size()-2);
 						if(rootVar.getType() == DepVariable.PARAMETER) {
-							int index = rootVar.getParamOrder() - 1;
+							int index = 0;
+							
+							if(defIns.getCalledCFG().isStaticMethod()) {
+								index = rootVar.getParamOrder() - 1;
+							}
+							else {
+								index = rootVar.getParamOrder();
+							}
+								
 							List<DepVariable> params = inputVarArray[index];
 							
 							for(DepVariable param: params) {

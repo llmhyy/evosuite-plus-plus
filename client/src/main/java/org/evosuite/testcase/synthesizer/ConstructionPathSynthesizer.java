@@ -148,7 +148,7 @@ public class ConstructionPathSynthesizer {
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
-		GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "test");
+//		GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "test");
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
