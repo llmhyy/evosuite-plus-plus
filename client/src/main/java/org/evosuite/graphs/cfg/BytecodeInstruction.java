@@ -1687,22 +1687,6 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		return this.asmNode.getOpcode() == Opcodes.INSTANCEOF;
 	}
 	
-	@SuppressWarnings("rawtypes")
-	public Object getCheckInstanceType() {
-		if(this.checkInstanceOf()) {
-			int operandNum = this.getOperandNum();
-			for (int i = 0; i < operandNum; i++) {
-				Frame frame = this.getFrame();
-				int index = frame.getStackSize() - operandNum + i ;
-				Value val = frame.getStack(index);
-				
-				System.currentTimeMillis();
-			}
-		}
-		
-		return null;
-	}
-
 	public String getInstanceOfCheckingType() {
 		if(this.asmNode instanceof TypeInsnNode) {
 			TypeInsnNode node = (TypeInsnNode)this.asmNode;

@@ -42,7 +42,7 @@ public class GraphVisualizer {
 			DepVariableWrapper source = queue.remove();
 			
 			for(DepVariableWrapper target: source.children) {
-				guru.nidi.graphviz.model.Node n = node(source.var.getUniqueLabel()).link(node(target.var.getUniqueLabel()));
+				guru.nidi.graphviz.model.Node n = node(source.var.getShortLabel()).link(node(target.var.getShortLabel()));
 
 				if (!links.contains(n)) {
 					links.add(n);
@@ -52,7 +52,7 @@ public class GraphVisualizer {
 			}
 			
 			if(source.children.isEmpty()){
-				guru.nidi.graphviz.model.Node n = node(source.var.getUniqueLabel());
+				guru.nidi.graphviz.model.Node n = node(source.var.getShortLabel());
 				if (!links.contains(n)) {
 					links.add(n);
 				}
