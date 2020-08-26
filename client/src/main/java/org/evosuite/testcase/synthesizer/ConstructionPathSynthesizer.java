@@ -282,7 +282,7 @@ public class ConstructionPathSynthesizer {
 			if(castSubClass == null) {
 				int paramPosition = var.getParamOrder() - 1;
 				List<String> recommendations = Dataflow.recommendedClasses.get(paramPosition);
-				if(!recommendations.isEmpty()) {
+				if(recommendations!=null && !recommendations.isEmpty()) {
 					if(!recommendations.contains(null)) {
 						recommendations.add(null);						
 					}
