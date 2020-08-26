@@ -2380,7 +2380,7 @@ public class TestFactory {
 					Type target = m.getOwnerType();
 
 					if (!test.hasObject(target, position)) {
-						callee = createObject(test, target, position, 0, null, false, false,true); //no FM for SUT
+						callee = createObject(test, target, position, 0, null, false, false, true); //no FM for SUT
 						position += test.size() - previousLength;
 						previousLength = test.size();
 					} else {
