@@ -166,9 +166,14 @@ public class ConstructionPathSynthesizer {
 		 * when constructing some instruction, its dependency may not be ready.
 		 */
 		Map<DepVariable, Integer> methodCounter = new HashMap<>();
+		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-			logger.warn(node.toString());
+//			logger.warn(String.valueOf(c) + ":" + node.toString());
+			if(c==24) {
+				System.currentTimeMillis();
+			}
+			c++;
 			/**
 			 * for each method callsite, we only generate once. 
 			 */
@@ -271,7 +276,7 @@ public class ConstructionPathSynthesizer {
 		DepVariable var = node.var;
 		boolean isLeaf = node.children.isEmpty();
 		if (var.getType() == DepVariable.STATIC_FIELD) {
-			inputObject = generateFieldStatement(test, var, isLeaf, inputObject);
+			inputObject = generateFieldStatement(test, var, isLeaf, inputObject, map);
 		} else if (var.getType() == DepVariable.PARAMETER) {
 			String castSubClass = checkCastClassForParameter(node);
 			if(castSubClass == null) {
@@ -284,12 +289,12 @@ public class ConstructionPathSynthesizer {
 					castSubClass = Randomness.choice(recommendations);					
 				}
 			}
-			inputObject = generateParameterStatement(test, var, inputObject, castSubClass);
+			inputObject = generateParameterStatement(test, var, inputObject, map, castSubClass);
 		} else if (var.getType() == DepVariable.INSTANCE_FIELD) {
 			if (inputObject == null) {
 				return false;
 			}
-			inputObject = generateFieldStatement(test, var, isLeaf, inputObject);
+			inputObject = generateFieldStatement(test, var, isLeaf, inputObject, map);
 		} else if (var.getType() == DepVariable.OTHER) {
 			int opcode = node.var.getInstruction().getASMNode().getOpcode();
 			if(opcode == Opcode.ALOAD ||
@@ -731,6 +736,7 @@ public class ConstructionPathSynthesizer {
 						VariableReference newParam = paramRefMap.get(i);
 						if (newParam != null) {
 							statement.replace(oldParam, newParam);
+							replaceMapFromNode2Code(map, var, oldParam, newParam);
 						}
 					}
 					return varRef;
@@ -746,6 +752,7 @@ public class ConstructionPathSynthesizer {
 							VariableReference newParam = paramRefMap.get(i + 1);
 							if (newParam != null) {
 								statement.replace(oldParam, newParam);
+								replaceMapFromNode2Code(map, var, oldParam, newParam);
 							}
 						}
 						return varRef;
@@ -772,7 +779,7 @@ public class ConstructionPathSynthesizer {
 	 * @return
 	 */
 	private VariableReference generateFieldStatement(TestCase test, DepVariable var, boolean isLeaf,
-			VariableReference targetObjectReference) {
+			VariableReference targetObjectReference, Map<DepVariable, List<VariableReference>> map) {
 		FieldInsnNode fieldNode = (FieldInsnNode) var.getInstruction().getASMNode();
 		String fieldType = fieldNode.desc;
 		String fieldOwner = fieldNode.owner.replace("/", ".");
@@ -898,11 +905,17 @@ public class ConstructionPathSynthesizer {
 
 						for (int i = 0; i < test.size(); i++) {
 							Statement stat = test.getStatement(i);
-							if (returnedVar.getStPosition() < stat.getPosition()) {
-								if (stat.references(targetObjectReference)) {
+							if (stat.references(targetObjectReference)) {
+								if (returnedVar.getStPosition() < stat.getPosition()) {
 									stat.replace(targetObjectReference, returnedVar);
+									replaceMapFromNode2Code(map, var, targetObjectReference, returnedVar);
+								}
+								else if (returnedVar.getStPosition() > stat.getPosition() 
+										&& stat.getPosition() != targetObjectReference.getStPosition()){
+									System.currentTimeMillis();
 								}
 							}
+							
 						}
 						return null;
 					}
@@ -918,6 +931,20 @@ public class ConstructionPathSynthesizer {
 			return null;
 		}
 
+	}
+
+	private void replaceMapFromNode2Code(Map<DepVariable, List<VariableReference>> map, DepVariable var,
+			VariableReference oldObject, VariableReference newObject) {
+		for(DepVariable key: map.keySet()) {
+			List<VariableReference> list = map.get(key);
+			
+			if(list.contains(oldObject)) {
+				list.remove(oldObject);
+				list.add(newObject);
+				
+			}
+		}
+		
 	}
 
 	private boolean isTarget(Executable setter) {
@@ -1207,13 +1234,14 @@ public class ConstructionPathSynthesizer {
 	 * @param position
 	 * @param var
 	 * @param parentVarRef
+	 * @param map 
 	 * @param castSubClass
 	 * @return
 	 * @throws ConstructionFailedException
 	 * @throws ClassNotFoundException
 	 */
 	private VariableReference generateParameterStatement(TestCase test, DepVariable var,
-			VariableReference parentVarRef, String castSubClass)
+			VariableReference parentVarRef, Map<DepVariable, List<VariableReference>> map, String castSubClass)
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		
@@ -1373,6 +1401,9 @@ public class ConstructionPathSynthesizer {
 			double[] scores = new double[fieldSettingMethods.size()];
 			for(int i=0; i<scores.length; i++){
 				scores[i] = estimateCoverageLikelihood(difficultyList.get(i), numberOfValidParams.get(i));
+				if(fieldSettingMethods.get(i) instanceof Method) {
+					scores[i] += 20;
+				}
 				System.currentTimeMillis();
 			}
 			
@@ -1448,7 +1479,7 @@ public class ConstructionPathSynthesizer {
 				DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
 						field, 5, cascadingCallRelations, setterMap);
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 		Set<Integer> releventPrams = new HashSet<>();
 		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
