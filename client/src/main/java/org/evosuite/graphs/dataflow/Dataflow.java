@@ -121,7 +121,7 @@ public class Dataflow {
 							BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
 							if (defIns != null) {
 								System.currentTimeMillis();
-								DepVariable var = new DepVariable(defIns.getClassName(), defIns);
+								DepVariable var = new DepVariable(defIns);
 								if(var.isParameter()) {
 									int position = var.getInstruction().getParameterPosition();
 									List<String> classes = recommendationClasses.get(position);
