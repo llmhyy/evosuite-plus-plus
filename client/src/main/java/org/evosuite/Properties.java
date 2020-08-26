@@ -151,7 +151,7 @@ public class Properties {
 	public static boolean APPLY_OBJECT_RULE = false;
 	
 	@Parameter(key = "individual_legitimization_budget", group = "Test Creation", description = "individual legitimization budget")
-	public static int INDIVIDUAL_LEGITIMIZATION_BUDGET = 20;
+	public static int INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 	
 	@Parameter(key = "total_legitimization_budget", group = "Test Creation", description = "total legitimization budget")
 	public static int TOTAL_LEGITIMIZATION_BUDGET = 50;
