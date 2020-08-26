@@ -129,6 +129,8 @@ public class DependencyAnalysis {
 	public static void analyzeClass(String className, List<String> classPath) throws RuntimeException,
 			ClassNotFoundException {
 
+		logger.info(className);
+		
 		initInheritanceTree(classPath);
 		analyze(className, classPath);
 		

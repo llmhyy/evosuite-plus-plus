@@ -34,7 +34,6 @@ import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
-import org.evosuite.graphs.dataflow.GraphVisualizer;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -64,6 +63,8 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.javadoc.Parameter;
 
 import javassist.bytecode.Opcode;
 
@@ -125,20 +126,6 @@ public class ConstructionPathSynthesizer {
 		return graph;
 	}
 	
-	private BytecodeInstruction findEarlyInstruction(DepVariable root) {
-		List<BytecodeInstruction> list = root.getInstruction().getActualCFG().getAllInstructions();
-		for(int i=0; i<root.getInstruction().getInstructionId(); i++) {
-			BytecodeInstruction earlyIns = list.get(i);
-			DepVariable v = new DepVariable(earlyIns.getClassName(), earlyIns);
-			
-			if(root.equals(v)) {
-				return earlyIns;
-			}
-		}
-		
-		return root.getInstruction();
-	}
-
 	private PartialGraph partialGraph;
 	private Map<DepVariable, List<VariableReference>> graph2CodeMap;
 	
@@ -148,7 +135,7 @@ public class ConstructionPathSynthesizer {
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
-//		GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "test");
+//		GraphVisualizer.visualizeComputationGraph(partialGraph, 3000, "test");
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -170,7 +157,7 @@ public class ConstructionPathSynthesizer {
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
 //			logger.warn(String.valueOf(c) + ":" + node.toString());
-			if(c==24) {
+			if(c==10) {
 				System.currentTimeMillis();
 			}
 			c++;
@@ -787,6 +774,9 @@ public class ConstructionPathSynthesizer {
 		if(fieldTypeName.startsWith("L")) {
 			fieldTypeName = fieldTypeName.substring(1, fieldTypeName.length()-1);
 		}
+		else if(fieldTypeName.startsWith("[L")) {
+			fieldTypeName = fieldTypeName.substring(2, fieldTypeName.length()-1);
+		}
 		String fieldName = fieldNode.name;
 
 		if (targetObjectReference != null) {
@@ -884,7 +874,6 @@ public class ConstructionPathSynthesizer {
 				
 				String targetClassName = checkTargetClassName(field, targetObjectReference);
 				Executable setter = searchForPotentialSetterInClass(field, targetClassName);
-				
 				if (setter != null && !isTarget(setter)) {
 					if(setter instanceof Method){
 						GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
@@ -1382,7 +1371,7 @@ public class ConstructionPathSynthesizer {
 		 * m_1 is the method called by test
 		 */
 		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = new ArrayList<>();
-		List<Integer> numberOfValidParams = new ArrayList<>();
+		List<Set<Integer>> numberOfValidParams = new ArrayList<>();
 		
 		for(Method m: targetClass.getMethods()){
 			String signature = m.getName() + ReflectionUtil.getSignature(m);
@@ -1400,11 +1389,28 @@ public class ConstructionPathSynthesizer {
 //			Executable entry = Randomness.choice(fieldSettingMethods);
 			double[] scores = new double[fieldSettingMethods.size()];
 			for(int i=0; i<scores.length; i++){
-				scores[i] = estimateCoverageLikelihood(difficultyList.get(i), numberOfValidParams.get(i));
-				if(fieldSettingMethods.get(i) instanceof Method) {
-					scores[i] += 20;
+				scores[i] = estimateCoverageLikelihood(difficultyList.get(i), numberOfValidParams.get(i).size());
+
+				java.lang.reflect.Parameter[] pList = fieldSettingMethods.get(i).getParameters();
+				boolean typeCompatible = false;
+				
+				for(Integer index: numberOfValidParams.get(i)) {
+					scores[i] += 1;
+					java.lang.reflect.Parameter p = pList[index];
+					Class<?> c = p.getType();
+					Class<?> c0 = field.getType();
+					
+					if(c0.isAssignableFrom(c)) {
+						scores[i] += 20;
+						typeCompatible = true;
+					}
 				}
-				System.currentTimeMillis();
+				
+				if(fieldSettingMethods.get(i) instanceof Method && typeCompatible) {
+					scores[i] += 10;
+				}
+				
+//				System.currentTimeMillis();
 			}
 			
 			double[] probability = normalize(scores);
@@ -1471,7 +1477,7 @@ public class ConstructionPathSynthesizer {
 	
 
 	private void findSetterInfo(Field field, Class<?> targetClass, List<Executable> fieldSettingMethods,
-			List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList, List<Integer> numberOfValidParams,
+			List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList, List<Set<Integer>> validParams,
 			Executable m, String signature) {
 		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
 		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<>();
@@ -1493,7 +1499,7 @@ public class ConstructionPathSynthesizer {
 		if(!fieldSetterMap.isEmpty()){
 			fieldSettingMethods.add(m);
 			difficultyList.add(fieldSetterMap);
-			numberOfValidParams.add(releventPrams.size());
+			validParams.add(releventPrams);
 		}
 	}
 	
@@ -1576,6 +1582,10 @@ public class ConstructionPathSynthesizer {
 		MethodStatement mStat = test.findTargetMethodCallStatement();
 		int insertionPosition = (parentVarRef != null) ? 
 				parentVarRef.getStPosition() + 1 : mStat.getPosition() - 1; 
+		
+		if(insertionPosition >= mStat.getPosition()) {
+			insertionPosition = mStat.getPosition() - 1;
+		}
 		
 		FieldReference fieldVar = null;
 		if (genericField.isStatic() || parentVarRef == null) {
