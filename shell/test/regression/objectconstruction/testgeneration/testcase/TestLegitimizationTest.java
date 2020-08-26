@@ -1,27 +1,16 @@
 package regression.objectconstruction.testgeneration.testcase;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.evosuite.Properties;
-import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
-import org.evosuite.setup.DependencyAnalysis;
-import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.statements.NullStatement;
-import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
@@ -41,47 +30,10 @@ import regression.objectconstruction.testgeneration.example.graphcontruction.Bas
 import regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2;
 import regression.objectconstruction.testgeneration.example.graphcontruction.ExpressionNodeList.addExpressionList.ExpressionNodeList;
 import regression.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame;
-import regression.objectconstruction.testgeneration.example.graphcontruction.JNFE.AddressData;
 import regression.objectconstruction.testgeneration.example.graphcontruction.MUXFilter.pump.MUXFilter;
 import regression.objectconstruction.testgeneration.example.graphcontruction.RMIManagedConnectionAcceptor.close.RMIManagedConnectionAcceptor;
 
 public class TestLegitimizationTest extends ObjectOrientedTest {
-	
-	@Test
-	public void testLegitimization4Equal1() throws ClassNotFoundException, RuntimeException {
-		
-		Properties.RANDOM_SEED = 1598376776401l;
-		
-		setup();
-
-		Properties.TARGET_CLASS = AddressData.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("equals", AddressData.class, 1);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
-
-//			Branch b = Randomness.choice(interestedBranches.keySet());
-		Branch b = rankedList.get(10);
-
-		assertLegitimization(b);
-		
-	}
 	
 	@Test
 	public void testLegitimization1() throws ClassNotFoundException, RuntimeException {
@@ -94,20 +46,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Properties.TARGET_METHOD = targetMethod;
 
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(19);
@@ -127,20 +66,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Properties.TARGET_METHOD = targetMethod;
 
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(2);
@@ -163,37 +89,37 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Properties.TARGET_METHOD = targetMethod;
 
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 		Branch b = rankedList.get(4);
 
 		assertLegitimization(b);
 	}
 
-	private void assertLegitimization(Branch b) {
+
+	@Test
+	public void testLegitimization4() throws ClassNotFoundException, RuntimeException {
+		setup();
+
+		Properties.TARGET_CLASS = HandballModel.class.getCanonicalName();
+
+		Method method = TestUtility.getTargetMethod("setMoveName", HandballModel.class, 1);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+
+		Properties.TARGET_METHOD = targetMethod;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+
+//			Branch b = Randomness.choice(interestedBranches.keySet());
+		Branch b = rankedList.get(0);
+
+		assertLegitimization(b);
+		
+	}
+	
+	protected void assertLegitimization(Branch b) {
 		TestFactory testFactory = TestFactory.getInstance();
-		TestCase test = new DefaultTestCase();
-		int success = -1;
-		while (test.size() == 0 || success == -1) {
-			test = new DefaultTestCase();
-			success = testFactory.insertRandomStatement(test, 0);
-			if(test.size() != 0 && success != -1) {
-				mutateNullStatements(test);
-			}
-		}
+		TestCase test = initializeTest(b, testFactory);
 		try {
 			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 			cpSynthesizer.constructDifficultObjectStatement(test, b);
@@ -213,49 +139,6 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert false;
 		}
 	}
-	
-	private void mutateNullStatements(TestCase test) {
-		for(int i=0; i<test.size(); i++) {
-			Statement s = test.getStatement(i);
-			if(s instanceof NullStatement) {
-				TestFactory.getInstance().changeNullStatement(test, s);
-				System.currentTimeMillis();
-			}
-		}
-	}
-
-	@Test
-	public void testLegitimization4() throws ClassNotFoundException, RuntimeException {
-		setup();
-
-		Properties.TARGET_CLASS = HandballModel.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("setMoveName", HandballModel.class, 1);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
-
-//			Branch b = Randomness.choice(interestedBranches.keySet());
-		Branch b = rankedList.get(0);
-
-		assertLegitimization(b);
-		
-	}
 
 	@Test
 	public void testLegitimization5() throws ClassNotFoundException, RuntimeException {
@@ -268,20 +151,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Properties.TARGET_METHOD = targetMethod;
 
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
@@ -301,20 +171,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Properties.TARGET_METHOD = targetMethod;
 
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(1);
@@ -335,20 +192,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Properties.TARGET_METHOD = targetMethod;
 
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(4);
@@ -369,20 +213,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Properties.TARGET_METHOD = targetMethod;
 
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
@@ -460,20 +291,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Properties.TARGET_METHOD = targetMethod;
 
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 //				Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
@@ -493,20 +311,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Properties.TARGET_METHOD = targetMethod;
 
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 //				Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
@@ -526,20 +331,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Properties.TARGET_METHOD = targetMethod;
 
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
-		Collections.sort(rankedList, new Comparator<Branch>() {
-			@Override
-			public int compare(Branch o1, Branch o2) {
-				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
-			}
-		});
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(14);
