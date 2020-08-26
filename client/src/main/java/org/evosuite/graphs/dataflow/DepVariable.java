@@ -49,8 +49,8 @@ public class DepVariable {
 	@SuppressWarnings("unchecked")
 	private List<DepVariable>[] reverseRelations = new ArrayList[OPERAND_NUM_LIMIT];
 	
-	public DepVariable(String className, BytecodeInstruction insn) {
-		this.className = className;
+	public DepVariable(BytecodeInstruction insn) {
+		this.className = insn.getClassName();
 		this.setInstruction(insn);
 		this.setType();
 	}
@@ -317,43 +317,43 @@ public class DepVariable {
 			if(var.getInstruction().equals(this.getInstruction())) {
 				return true;
 			}
-			else {
-				if(var.getType() == this.getType()) {
-					if(var.getType() == DepVariable.INSTANCE_FIELD) {
-						FieldInsnNode thatField = (FieldInsnNode)(var.getInstruction().getASMNode());
-						FieldInsnNode thisField = (FieldInsnNode)(this.getInstruction().getASMNode());
-						return thisField.desc.equals(thatField.desc) &&
-								thisField.owner.equals(thatField.owner) &&
-								thisField.name.equals(thatField.name);
-					}
-					else if(var.getType() == DepVariable.STATIC_FIELD) {
-						FieldInsnNode thatField = (FieldInsnNode)(var.getInstruction().getASMNode());
-						FieldInsnNode thisField = (FieldInsnNode)(this.getInstruction().getASMNode());
-						return thisField.desc.equals(thatField.desc) &&
-								thisField.owner.equals(thatField.owner) &&
-								thisField.name.equals(thatField.name);
-					}
-					else if(var.getType() == DepVariable.PARAMETER) {
-						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName()) &&
-								var.getInstruction().getMethodName().equals(this.getInstruction().getMethodName()) &&
-								var.getParamOrder() == this.getParamOrder();
-					}
-					else if(var.getType() == DepVariable.THIS) {
-						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName());
-					}
-					else if(var.getType() == DepVariable.ARRAY_ELEMENT) {
-						//FIXME ziheng
-					}
-					else if(var.getType() == DepVariable.OTHER) {
-						//FIXME ziheng
-						/**
-						 * we need to come up with how to define the equivalence of two instruction like method call, etc.
-						 */
-					}
-				}
-				
-				return false;
-			}
+//			else {
+//				if(var.getType() == this.getType()) {
+//					if(var.getType() == DepVariable.INSTANCE_FIELD) {
+//						FieldInsnNode thatField = (FieldInsnNode)(var.getInstruction().getASMNode());
+//						FieldInsnNode thisField = (FieldInsnNode)(this.getInstruction().getASMNode());
+//						return thisField.desc.equals(thatField.desc) &&
+//								thisField.owner.equals(thatField.owner) &&
+//								thisField.name.equals(thatField.name);
+//					}
+//					else if(var.getType() == DepVariable.STATIC_FIELD) {
+//						FieldInsnNode thatField = (FieldInsnNode)(var.getInstruction().getASMNode());
+//						FieldInsnNode thisField = (FieldInsnNode)(this.getInstruction().getASMNode());
+//						return thisField.desc.equals(thatField.desc) &&
+//								thisField.owner.equals(thatField.owner) &&
+//								thisField.name.equals(thatField.name);
+//					}
+//					else if(var.getType() == DepVariable.PARAMETER) {
+//						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName()) &&
+//								var.getInstruction().getMethodName().equals(this.getInstruction().getMethodName()) &&
+//								var.getParamOrder() == this.getParamOrder();
+//					}
+//					else if(var.getType() == DepVariable.THIS) {
+//						return var.getInstruction().getClassName().equals(this.getInstruction().getClassName());
+//					}
+//					else if(var.getType() == DepVariable.ARRAY_ELEMENT) {
+//						//FIXME ziheng
+//					}
+//					else if(var.getType() == DepVariable.OTHER) {
+//						//FIXME ziheng
+//						/**
+//						 * we need to come up with how to define the equivalence of two instruction like method call, etc.
+//						 */
+//					}
+//				}
+//				
+//				return false;
+//			}
 		}
 		
 		return false;
