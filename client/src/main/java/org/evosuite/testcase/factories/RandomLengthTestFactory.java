@@ -130,14 +130,16 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 						PartialGraph graph = cpSynthesizer.getPartialGraph();
 						Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
 						
+						TestChromosome chromosome = null;
 						long t0 = System.currentTimeMillis();
 						if(t0 - TestCaseLegitimizer.startTime <= Properties.TOTAL_LEGITIMIZATION_BUDGET * 1000) {
-							TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
+							chromosome = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
 							test = chromosome.getTestCase();
 						}
 						
-						templateTestMap.put(b, test);
-						
+						if(chromosome.getLegitimacyDistance() == 0) {
+							templateTestMap.put(b, test);							
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
