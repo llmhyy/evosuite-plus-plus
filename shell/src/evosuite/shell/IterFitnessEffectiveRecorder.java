@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
@@ -15,16 +16,16 @@ import evosuite.shell.utils.LoggerUtils;
 public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 	private String currentMethod;
 	private List<EvoTestResult> currentResult = new ArrayList<>();
-	
+
 	private Logger log = LoggerUtils.getLogger(FitnessEffectiveRecorder.class);
 	private ExcelWriter excelWriter;
 	private int iterator;
-	
+
 	public IterFitnessEffectiveRecorder(int iterator) {
 		super();
 		this.iterator = iterator;
-		excelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), 
-				new StringBuilder().append(projectId).append("_evotest_").append(iterator).append("times.xlsx").toString()));
+		excelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), new StringBuilder()
+				.append(projectId).append("_evotest_").append(iterator).append("times.xlsx").toString()));
 		List<String> header = new ArrayList<>();
 		header.add("Class");
 		header.add("Method");
@@ -34,6 +35,7 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 			header.add("Age -r" + i);
 			header.add("Initial Coverage -r" + i);
 			header.add("Initialization Overhead -r" + i);
+			header.add("Missing Branches -r" + i);
 		}
 		header.add("Method Availability");
 		header.add("Avg Execution Time");
@@ -44,23 +46,23 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		header.add("Avg Initialization Overhead");
 		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
 	}
-	
+
 	@Override
 	public void record(String className, String methodName, EvoTestResult r) {
 		super.record(className, methodName, r);
 		currentMethod = className + "#" + methodName;
 		currentResult.add(r);
 	}
-	
+
 	@Override
 	public void recordError(String className, String methodName, Exception e) {
 		super.recordError(className, methodName, e);
 	}
-	
+
 	@Override
 	public void recordEndIterations(String methodName, String className) {
 		iterator = currentResult.size();
-		
+
 		String methodId = className + "#" + methodName;
 		if (currentResult.isEmpty() || !methodId.equals(currentMethod)) {
 			currentMethod = null;
@@ -74,7 +76,7 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 			EvoTestResult r = currentResult.get(index);
 			currentResult.add(r);
 		}
-		
+
 		rowData.add(className);
 		rowData.add(methodName);
 		double bestCvg = 0.0;
@@ -90,6 +92,12 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 			rowData.add(r.getAge());
 			rowData.add(r.getInitialCoverage());
 			rowData.add(r.getInitializationOverhead());
+			String missingBranches = r.getMissingBranches().stream().map(Object::toString)
+					.collect(Collectors.joining(";"));
+			if (missingBranches.isEmpty()) {
+				missingBranches = "NA";
+			}
+			rowData.add(missingBranches);
 			if (bestCvg < r.getCoverage()) {
 				bestCvg = r.getCoverage();
 				ageOfBestCvg = r.getAge();
@@ -113,13 +121,13 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		} catch (IOException e) {
 			log.error("Error", e);
 		}
-		
+
 		currentMethod = null;
 		currentResult.clear();
 	}
-	
+
 	@Override
 	public String getFinalReportFilePath() {
 		return excelWriter.getFile().getAbsolutePath();
 	}
-}	
+}

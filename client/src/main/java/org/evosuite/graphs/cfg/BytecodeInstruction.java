@@ -76,7 +76,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	private static final long serialVersionUID = 3630449183355518857L;
 
 	// identification of a byteCode instruction inside EvoSuite
-	protected ClassLoader classLoader;
+	protected transient ClassLoader classLoader;
 	protected String className;
 	protected String methodName;
 	protected int instructionId;
@@ -88,7 +88,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	// experiment: also searching through all CFG nodes in order to determine an
 	// instruction BasicBlock might be a little to expensive too just to safe
 	// space for one reference
-	private BasicBlock basicBlock;
+	private transient BasicBlock basicBlock;
 
 	/**
 	 * Generates a ByteCodeInstruction instance that represents a byteCode

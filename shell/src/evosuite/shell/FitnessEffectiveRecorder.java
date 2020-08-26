@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
@@ -15,45 +16,34 @@ import evosuite.shell.utils.LoggerUtils;
 
 /**
  * 
- * @author lyly
- * Generate report with "Execution Time", "Coverage", "Age" information
+ * @author lyly Generate report with "Execution Time", "Coverage", "Age"
+ *         information
  */
 public class FitnessEffectiveRecorder extends ExperimentRecorder {
 	private Logger log = LoggerUtils.getLogger(FitnessEffectiveRecorder.class);
 	private ExcelWriter excelWriter;
-	
+
 	public FitnessEffectiveRecorder() {
 		super();
 		excelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), projectId + "_evotest.xlsx"));
-		excelWriter.getSheet("data", new String[]{
-				"Class", 
-				"Method", 
-				"Execution Time", 
-				"Coverage", 
-				"Age", 
-				"Call Availability", 
-				"IP Flag Coverage",
-				"Uncovered IF Flag",
-				"Random Seed",
-				"Unavailable Call",
-				"Initial Coverage",
-				"Initialization Overhead"
-				}, 
+		excelWriter.getSheet("data",
+				new String[] { "Class", "Method", "Execution Time", "Coverage", "Age", "Call Availability",
+						"IP Flag Coverage", "Uncovered IF Flag", "Random Seed", "Unavailable Call", "Initial Coverage",
+						"Initialization Overhead", "Missing Branches" },
 				0);
 	}
 
-	
 	public String getUnaviableCall(Map<String, Boolean> map) {
 		StringBuffer buffer = new StringBuffer();
-		for(String call: map.keySet()) {
-			if(!map.get(call)) {
-				buffer.append(call + "\n");				
+		for (String call : map.keySet()) {
+			if (!map.get(call)) {
+				buffer.append(call + "\n");
 			}
 		}
-		
+
 		return buffer.toString();
 	}
-	
+
 	@Override
 	public void record(String className, String methodName, EvoTestResult r) {
 		List<Object> rowData = new ArrayList<Object>();
@@ -70,6 +60,11 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		rowData.add(unavailableString);
 		rowData.add(r.getInitialCoverage());
 		rowData.add(r.getInitializationOverhead());
+		String missingBranches = r.getMissingBranches().stream().map(Object::toString).collect(Collectors.joining(";"));
+		if (missingBranches.isEmpty()) {
+			missingBranches = "NA";
+		}
+		rowData.add(missingBranches);
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 			logSuccessfulMethods(className, methodName);
@@ -77,7 +72,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 			log.error("Error", e);
 		}
 	}
-	
+
 	@Override
 	public void recordError(String className, String methodName, Exception e) {
 		List<Object> rowData = new ArrayList<Object>();
@@ -89,9 +84,9 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		} catch (IOException ex) {
 			log.error("Error", ex);
 		}
-		
+
 	}
-	
+
 	public String getFinalReportFilePath() {
 		return excelWriter.getFile().getAbsolutePath();
 	}
