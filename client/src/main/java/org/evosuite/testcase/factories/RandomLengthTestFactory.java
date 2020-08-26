@@ -88,6 +88,10 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 		
 		TestFactory testFactory = TestFactory.getInstance();
 
+		if(Properties.APPLY_OBJECT_RULE) {
+			Properties.PRIMITIVE_REUSE_PROBABILITY = 0;
+		}
+		
 		// Then add random stuff
 		while (test.size() < length && num < Properties.MAX_ATTEMPTS) {
 			int position = test.size() - 1;
@@ -169,6 +173,11 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			
 			num++;
 		}
+		
+		if(Properties.APPLY_OBJECT_RULE) {
+			Properties.PRIMITIVE_REUSE_PROBABILITY = 0.5;
+		}
+		
 		if (logger.isDebugEnabled())
 			logger.debug("Randomized test case:" + test.toCode());
 
