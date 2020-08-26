@@ -297,7 +297,7 @@ public class DepVariable {
 				buffer.append("checkcast " + desc + "\n");
 			}
 			else if(this.getInstruction().isMethodCall()) {
-				String methodName = this.instruction.getMethodName();
+				String methodName = this.instruction.getCalledMethod();
 				buffer.append("invoke " + methodName + "\n");
 			}
 			else {
