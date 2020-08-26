@@ -16,6 +16,7 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -66,6 +67,7 @@ public class DataDependencyUtil {
 				return paramInsns;
 			}
 			boolean isValidParameter = checkParamValidation(call, paramInsns, ins);
+			System.currentTimeMillis();
 			if (!isValidParameter) {
 				return new HashSet<>();
 			}
@@ -147,10 +149,35 @@ public class DataDependencyUtil {
 		if (call.getCalledMethodsArgumentCount() == 0) {
 			return false;
 		}
-		if (!call.getCalledMethod().equals(ins.getMethodName())
-				|| !call.getCalledMethodsClass().equals(ins.getClassName())) {
+		if (!call.getCalledMethod().equals(ins.getMethodName())){
 			return false;
 		}
+		
+		String class1 = call.getCalledMethodsClass();
+		String class2 = ins.getClassName();
+		
+		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		Class<?> c1 = null;
+		Class<?> c2 = null;
+		
+		try {
+			 c1 = classLoader.loadClass(class1);
+			 c2 = classLoader.loadClass(class2);
+		} catch (ClassNotFoundException e) {
+//			e.printStackTrace();
+		}
+		
+		if(c1 != null && c2 != null) {
+			if(!c2.isAssignableFrom(c1)) {
+				return false;
+			}
+		}
+		else {
+			if(!class1.equals(class2)) {
+				return false;
+			}
+		}
+		
 
 		Set<Integer> paramPositions = checkSetterParamPositions(paramInsns);
 		for (Integer pos : paramPositions) {
@@ -249,20 +276,37 @@ public class DataDependencyUtil {
 	public static Map<BytecodeInstruction, List<BytecodeInstruction>> analyzeFieldSetter(String className, String methodName,
 			Field field, int depth, List<BytecodeInstruction> cascadingCallRelations,
 			Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap) {
-		List<BytecodeInstruction> insList = BytecodeInstructionPool
-				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-				.getAllInstructionsAtMethod(className, methodName);
+		List<BytecodeInstruction> insList = null;
+		
 //		MockFramework.disable();
-		System.currentTimeMillis();
-		if (insList == null && RuntimeInstrumentation.checkIfCanInstrument(className)) {
-			try{
-				GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
-				insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-						.getAllInstructionsAtMethod(className, methodName);				
+//		System.currentTimeMillis();
+		try{
+			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+			insList = BytecodeInstructionPool
+					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+					.getAllInstructionsAtMethod(className, methodName);
+			
+			if(insList == null) {
+				Class<?> c = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
+				Class<?> superClass = c.getSuperclass();
+				
+				while(superClass != null) {
+					String superClassName = superClass.getCanonicalName();
+					GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(superClassName);
+					insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+							.getAllInstructionsAtMethod(superClassName, methodName);	
+					
+					if(insList != null) {
+						break;
+					}
+					else {
+						superClass = superClass.getSuperclass();
+					}
+				}
 			}
-			catch(Exception e){
-				e.printStackTrace();
-			}
+		}
+		catch(Exception e){
+			e.printStackTrace();
 		}
 
 		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";

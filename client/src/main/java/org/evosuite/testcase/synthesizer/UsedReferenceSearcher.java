@@ -92,9 +92,9 @@ public class UsedReferenceSearcher {
 				String className = constructorStat.getDeclaringClassName();
 				String methodName = constructorStat.getMethodName() + constructorStat.getDescriptor();
 				if (!params.isEmpty()) {
-					List<VariableReference> paramRefs = searchRelevantParameterOfSetterInTest(params, className, methodName,
-							field);
+					List<VariableReference> paramRefs = searchRelevantParameterOfSetterInTest(params, className, methodName, field);
 					relevantRefs.addAll(paramRefs);
+					System.currentTimeMillis();
 				}
 			}
 
