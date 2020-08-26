@@ -133,6 +133,42 @@ public class MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
+	public void testMOSA1() {
+		String projectId = "5_templateit";
+		String[] targetMethods = new String[]{
+				"org.templateit.Reference#equals(Ljava/lang/Object;)Z"
+				};
+		
+		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 10;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor, "generateMOSuite", "MOSUITE", "MOSA");
+//		
+//		EvoTestResult resultT = resultsT.get(0);
+		EvoTestResult resultF = resultsF.get(0);
+//		
+//		int ageT = resultT.getAge();
+//		int timeT = resultT.getTime();
+//		double coverageT = resultT.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		double coverageF = resultF.getCoverage();
+		double initCoverage = resultF.getInitialCoverage();
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
 	public void testMonotonicGA1() {
 		String projectId = "1_tullibee";
 		String[] targetMethods = new String[]{
@@ -142,7 +178,7 @@ public class MultiSBSTAlgorithmTest {
 		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 3;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
