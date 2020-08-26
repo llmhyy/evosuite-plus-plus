@@ -57,6 +57,8 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 	@Test
 	public void testLegitimization2() throws ClassNotFoundException, RuntimeException {
+		Properties.RANDOM_SEED = 1598472350678l;
+		
 		setup();
 
 		Properties.TARGET_CLASS = PngEncoderB.class.getCanonicalName();
@@ -132,12 +134,15 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			System.out.println(chromosome.getTestCase());
 
 			System.out.println("random seed is " + Randomness.getSeed());
+			System.out.println("legitimacy distance is " + chromosome.getLegitimacyDistance());
 			assert chromosome.getLegitimacyDistance() == 0;
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("random seed is " + Randomness.getSeed());
 			assert false;
 		}
+		
+		
 	}
 
 	@Test

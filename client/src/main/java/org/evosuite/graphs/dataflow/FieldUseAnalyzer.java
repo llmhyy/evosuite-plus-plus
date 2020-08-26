@@ -35,20 +35,6 @@ public class FieldUseAnalyzer {
 		this.branchInProcess = b;
 	}
 
-	private String getRuleBasedSubclass(String className) {
-		if(className.equals("java.util.List")) {
-			return "java.util.ArrayList";
-		}
-		else if(className.equals("java.util.Set")) {
-			return "java.util.HashSet";
-		}
-		
-		Set<String> subclasses = DependencyAnalysis.getInheritanceTree().getSubclasses(className);
-		className = Randomness.choice(subclasses);
-		
-		return className;
-	}
-	
 	private Map<String, Set<DepVariable>> analyzeReturnValueFromMethod(BytecodeInstruction instruction, int callGraphDepth){
 		
 		if(callGraphDepth <=0) {
@@ -117,12 +103,10 @@ public class FieldUseAnalyzer {
 	 * @return
 	 */
 	public DepVariable parseVariable(BytecodeInstruction defIns) {
-		String className = defIns.getClassName();
-//		DepVariable var0 = new DepVariable(className, defIns);
 //		DepVariable var = variablePool.get(var0); 
 		DepVariable var = insPool.get(defIns);
 		if(var == null) {
-			var = new DepVariable(className, defIns);
+			var = new DepVariable(defIns);
 			
 			if(var.getName().contains("drain")){
 				System.currentTimeMillis();
@@ -184,9 +168,9 @@ public class FieldUseAnalyzer {
 	@SuppressWarnings("rawtypes")
 	private void searchDefDependentVariables(BytecodeInstruction defIns, ActualControlFlowGraph cfg, Set<DepVariable> allLeafDepVars,
 			Set<BytecodeInstruction> visitedIns, int callGraphDepth) {
-//		if(defIns.getInstructionId()==77 && this.branchInProcess.getInstruction().getInstructionId()==138) {
-//			System.currentTimeMillis();
-//		}
+		if (/* defIns.getInstructionId()==77 && */this.branchInProcess.getInstruction().getInstructionId()==276) {
+			System.currentTimeMillis();
+		}
 		
 		if (visitedIns.contains(defIns)) {
 			return;
