@@ -31,10 +31,12 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.graphs.dataflow.GraphVisualizer;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -133,7 +135,7 @@ public class ConstructionPathSynthesizer {
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
-		GraphVisualizer.visualizeComputationGraph(partialGraph, 3000, "test");
+//		GraphVisualizer.visualizeComputationGraph(partialGraph, 3000, "test");
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -788,19 +790,8 @@ public class ConstructionPathSynthesizer {
 		try {
 			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 					.loadClass(fieldOwner);
-			registerAllMethods(fieldDeclaringClass);
+//			registerAllMethods(fieldDeclaringClass);				
 			
-			Class<?> fieldTypeClass = null;
-			try {
-				if(fieldTypeName.length()>3) {
-					fieldTypeClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
-							.loadClass(fieldTypeName);
-					if(fieldTypeClass != null) {
-						registerAllMethods(fieldTypeClass);									
-					}					
-				}
-			}
-			catch(Exception e) {}
 			
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 			
@@ -918,6 +909,17 @@ public class ConstructionPathSynthesizer {
 		}
 
 	}
+
+//	private boolean isLoadedClass(Class<?> fieldDeclaringClass) {
+//		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+//		String className = fieldDeclaringClass.getName();
+//		Map<String, RawControlFlowGraph> graphMap = GraphPool.getInstance(classLoader).getRawCFGs(className);
+//		if(graphMap != null && !graphMap.isEmpty()) {
+//			return true;
+//		}
+//		
+//		return false;
+//	}
 
 	private void replaceMapFromNode2Code(Map<DepVariableWrapper, List<VariableReference>> map,
 			VariableReference oldObject, VariableReference newObject) {

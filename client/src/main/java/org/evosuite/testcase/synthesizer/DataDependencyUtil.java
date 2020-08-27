@@ -279,9 +279,9 @@ public class DataDependencyUtil {
 		List<BytecodeInstruction> insList = null;
 		
 //		MockFramework.disable();
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		try{
-			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+//			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
 			insList = BytecodeInstructionPool
 					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 					.getAllInstructionsAtMethod(className, methodName);
@@ -292,7 +292,7 @@ public class DataDependencyUtil {
 				
 				while(superClass != null) {
 					String superClassName = superClass.getCanonicalName();
-					GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(superClassName);
+//					GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(superClassName);
 					insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 							.getAllInstructionsAtMethod(superClassName, methodName);	
 					

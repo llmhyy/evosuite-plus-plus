@@ -64,7 +64,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 	protected static final Logger logger = LoggerFactory.getLogger(RandomLengthTestFactory.class);
 
 	
-	protected Map<Branch, TestCase> templateTestMap = new HashMap<Branch, TestCase>();
+	protected static Map<Branch, TestCase> templateTestMap = new HashMap<Branch, TestCase>();
 	
 	/**
 	 * Create a random individual
