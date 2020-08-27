@@ -255,7 +255,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		this.initializationOverhead = t2 - t1;
 		
 		// update current goals
-		this.calculateFitness();
+		this.calculateFitness(true);
 		T suite = getBestIndividual();
 		this.initialCoverage = suite.getCoverage();
 		logger.warn("initial coverage: " + this.initialCoverage);
