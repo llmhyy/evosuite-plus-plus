@@ -753,7 +753,6 @@ public class ConstructionPathSynthesizer {
 		return null;
 	}
 
-	@SuppressWarnings("rawtypes")
 	/**
 	 * set the field into the parentVarRef
 	 * 
@@ -792,9 +791,7 @@ public class ConstructionPathSynthesizer {
 					.loadClass(fieldOwner);
 //			registerAllMethods(fieldDeclaringClass);				
 			
-			
 			Field field = searchForField(fieldDeclaringClass, fieldName);
-			
 			/**
 			 * if the field is leaf, check if there is setter in the testcase
 			 * if the field is not leaf, check if there is getter in the testcase
@@ -833,81 +830,125 @@ public class ConstructionPathSynthesizer {
 			 * deal with non-public field
 			 */
 			if (!isLeaf) {
-				Method getter = searchForPotentialGetterInClass(fieldDeclaringClass, field);
-				if (getter != null) {
-					VariableReference newParentVarRef = null;
-					GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
-					if (targetObjectReference == null) {
-						MethodStatement mStat = test.findTargetMethodCallStatement();
-						newParentVarRef = testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2, false);
-					} else {
-						newParentVarRef = testFactory.addMethodFor(test, targetObjectReference, gMethod,
-								targetObjectReference.getStPosition() + 1, false);
-					}
-					return newParentVarRef;
-				}
-				return null;
+				VariableReference getterObject = generateFieldGetterInTest(test, targetObjectReference, map, fieldDeclaringClass, field,
+						usedRefSearcher);
+				return getterObject;
 			} 
 			else {
-				/**
-				 * generate setter in current class
-				 */
-				List<BytecodeInstruction> insList = BytecodeInstructionPool
-						.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-						.getInstructionsIn(fieldDeclaringClass.getName());
-
-				if (insList == null) {
-					return null;
-				}
-				
-				String targetClassName = checkTargetClassName(field, targetObjectReference);
-				Executable setter = searchForPotentialSetterInClass(field, targetClassName);
-				if (setter != null && !isTarget(setter)) {
-					if(setter instanceof Method){
-						GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
-						if (targetObjectReference == null) {
-							MethodStatement mStat = test.findTargetMethodCallStatement();
-							testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2, false);
-						} else {
-							testFactory.addMethodFor(test, targetObjectReference, gMethod,
-									targetObjectReference.getStPosition() + 1, false);
-						}
-						return null;
-					}
-					else if(setter instanceof Constructor){
-						GenericConstructor gConstructor = new GenericConstructor((Constructor)setter,
-								setter.getDeclaringClass());
-						VariableReference returnedVar = testFactory.addConstructor(test, gConstructor,
-								targetObjectReference.getStPosition() + 1, 2);
-
-						for (int i = 0; i < test.size(); i++) {
-							Statement stat = test.getStatement(i);
-							if (stat.references(targetObjectReference)) {
-								if (returnedVar.getStPosition() < stat.getPosition()) {
-									stat.replace(targetObjectReference, returnedVar);
-									replaceMapFromNode2Code(map, targetObjectReference, returnedVar);
-								}
-								else if (returnedVar.getStPosition() > stat.getPosition() 
-										&& stat.getPosition() != targetObjectReference.getStPosition()){
-									System.currentTimeMillis();
-								}
-							}
-							
-						}
-						return null;
-					}
-				}
-				
+				generateFieldSetterInTest(test, targetObjectReference, map, fieldDeclaringClass, field);
 				return null;
-
 			}
 
-		} catch (ClassNotFoundException | SecurityException | 
-				ConstructionFailedException e) {
+		} catch (ClassNotFoundException | SecurityException | ConstructionFailedException e) {
 			e.printStackTrace();
 			return null;
 		}
 
+	}
+
+	private VariableReference generateFieldGetterInTest(TestCase test, VariableReference targetObjectReference,
+			Map<DepVariableWrapper, List<VariableReference>> map, Class<?> fieldDeclaringClass, Field field, 
+			UsedReferenceSearcher usedRefSearcher)
+			throws ConstructionFailedException {
+		/**
+		 * make sure this field has been set before get, 
+		 * otherwise we may have a null pointer exception after using the retrieved field.
+		 */
+		VariableReference fieldSetter = usedRefSearcher.searchRelevantFieldWritingReferenceInTest(test, field, targetObjectReference);
+		if(fieldSetter == null) {
+			try {
+				fieldSetter = generateFieldSetterInTest(test, targetObjectReference, map, fieldDeclaringClass, field);
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} catch (ConstructionFailedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		int insertionPostion = -1;
+		if(fieldSetter != null) {
+			insertionPostion = fieldSetter.getStPosition()+1;
+		}
+		else if (targetObjectReference == null) {
+			MethodStatement mStat = test.findTargetMethodCallStatement();
+			insertionPostion = mStat.getPosition() - 1;
+		}
+		else {
+			insertionPostion = targetObjectReference.getStPosition() + 1;
+		}
+		
+		Method getter = searchForPotentialGetterInClass(fieldDeclaringClass, field);
+		if (getter != null) {
+			VariableReference newParentVarRef = null;
+			GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
+			if (targetObjectReference == null) {
+				newParentVarRef = testFactory.addMethod(test, gMethod, insertionPostion, 2, false);
+			} else {
+				newParentVarRef = testFactory.addMethodFor(test, targetObjectReference, gMethod,
+						insertionPostion, false);
+			}
+			return newParentVarRef;
+		}
+		
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	/**
+	 * generate setter in current test
+	 */
+	private VariableReference generateFieldSetterInTest(TestCase test, VariableReference targetObjectReference,
+			Map<DepVariableWrapper, List<VariableReference>> map, Class<?> fieldDeclaringClass, Field field)
+			throws ClassNotFoundException, ConstructionFailedException {
+		List<BytecodeInstruction> insList = BytecodeInstructionPool
+				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+				.getInstructionsIn(fieldDeclaringClass.getName());
+
+		if (insList == null) {
+			return null;
+		}
+		
+		String targetClassName = checkTargetClassName(field, targetObjectReference);
+		Executable setter = searchForPotentialSetterInClass(field, targetClassName);
+		if (setter != null && !isTarget(setter)) {
+			if(setter instanceof Method){
+				GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
+				VariableReference generatedSetter = null;
+				if (targetObjectReference == null) {
+					MethodStatement mStat = test.findTargetMethodCallStatement();
+					generatedSetter = testFactory.addMethod(test, gMethod, mStat.getPosition() - 1, 2, false);
+				} else {
+					generatedSetter = testFactory.addMethodFor(test, targetObjectReference, gMethod,
+							targetObjectReference.getStPosition() + 1, false);
+				}
+				return generatedSetter;
+			}
+			else if(setter instanceof Constructor){
+				GenericConstructor gConstructor = new GenericConstructor((Constructor)setter,
+						setter.getDeclaringClass());
+				VariableReference returnedVar = testFactory.addConstructor(test, gConstructor,
+						targetObjectReference.getStPosition() + 1, 2);
+
+				for (int i = 0; i < test.size(); i++) {
+					Statement stat = test.getStatement(i);
+					if (stat.references(targetObjectReference)) {
+						if (returnedVar.getStPosition() < stat.getPosition()) {
+							stat.replace(targetObjectReference, returnedVar);
+							replaceMapFromNode2Code(map, targetObjectReference, returnedVar);
+						}
+						else if (returnedVar.getStPosition() > stat.getPosition() 
+								&& stat.getPosition() != targetObjectReference.getStPosition()){
+							System.currentTimeMillis();
+						}
+					}
+					
+				}
+				
+				return returnedVar;
+			}
+		}
+		
+		return null;
 	}
 
 //	private boolean isLoadedClass(Class<?> fieldDeclaringClass) {
@@ -956,7 +997,7 @@ public class ConstructionPathSynthesizer {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private boolean hasNotInvoked(TestCase test, Executable setter) {
+	protected boolean hasNotInvoked(TestCase test, Executable setter) {
 		for(int i=0; i<test.size(); i++) {
 			Statement s = test.getStatement(i);
 			if(s instanceof MethodStatement && setter instanceof Method) {
@@ -1182,7 +1223,7 @@ public class ConstructionPathSynthesizer {
 //	}
 
 	@SuppressWarnings("rawtypes")
-	private void registerAllMethods(Class<?> fieldDeclaringClass) {
+	protected void registerAllMethods(Class<?> fieldDeclaringClass) {
 		try {
 			for (Method method : fieldDeclaringClass.getDeclaredMethods()) {
 				String methodName = method.getName() + MethodUtil.getSignature(method);
@@ -1688,7 +1729,7 @@ public class ConstructionPathSynthesizer {
 		}
 	}
 
-	private Type convertToType(String desc) {
+	protected Type convertToType(String desc) {
 		switch (desc) {
 		case "Z":
 			return Boolean.TYPE;
