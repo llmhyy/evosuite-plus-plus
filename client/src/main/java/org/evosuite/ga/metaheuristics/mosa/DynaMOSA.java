@@ -258,6 +258,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		this.calculateFitness();
 		T suite = getBestIndividual();
 		this.initialCoverage = suite.getCoverage();
+		logger.warn("initial coverage: " + this.initialCoverage);
+		logger.warn("initialization overhead: " + this.initializationOverhead);
 
 		// Calculate dominance ranks and crowding distance
 		this.rankingFunction.computeRankingAssignment(this.population, this.goalsManager.getCurrentGoals());

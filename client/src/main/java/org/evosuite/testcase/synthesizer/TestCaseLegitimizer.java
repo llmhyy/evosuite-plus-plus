@@ -24,7 +24,7 @@ public class TestCaseLegitimizer {
 	public static int localFuzzBudget = Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET;
 	
 	private PartialGraph graph;
-	private Map<DepVariable, List<VariableReference>> graph2CodeMap;
+	private Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap;
 	
 	private static TestCaseLegitimizer legitimizer = new TestCaseLegitimizer();
 	private TestCaseLegitimizer(){}
@@ -33,16 +33,12 @@ public class TestCaseLegitimizer {
 		return legitimizer;
 	}
 	
-	public TestChromosome legitimize(TestCase test, PartialGraph graph, Map<DepVariable, 
+	public TestChromosome legitimize(TestChromosome testChromosome, PartialGraph graph, Map<DepVariableWrapper, 
 			List<VariableReference>> graph2CodeMap) {
 		this.graph = graph;
 		this.graph2CodeMap = graph2CodeMap;
 		
-		TestChromosome testChromosome = new TestChromosome();
-		testChromosome.setTestCase(test);
-		ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
-		testChromosome.setLastExecutionResult(result);
-		
+		TestCase test = testChromosome.getTestCase();
 		MethodStatement targetCallStat = test.findTargetMethodCallStatement();
 		if(targetCallStat == null) return null;
 		
@@ -55,7 +51,7 @@ public class TestCaseLegitimizer {
 		
 		long t1 = System.currentTimeMillis();
 		long t2 = System.currentTimeMillis();
-		while (legitimacyDistance != 0 && (t2-t1)/1000 <= Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET){
+		while (legitimacyDistance != 0 && (t2-t1) <= Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET * 1000){
 //			MutationPositionDiscriminator.discriminator.setPurpose(relevantBranches);
 			
 			evolve(population);

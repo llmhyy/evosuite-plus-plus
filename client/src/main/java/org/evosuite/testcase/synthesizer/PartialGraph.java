@@ -9,7 +9,11 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.dataflow.DepVariable;
 
 public class PartialGraph {
-	Map<DepVariable, DepVariableWrapper> allRelevantNodes = new HashMap<DepVariable, DepVariableWrapper>();
+	Map<DepVariableWrapper, DepVariableWrapper> allRelevantNodes = new HashMap<DepVariableWrapper, DepVariableWrapper>();
+	
+	public int getGraphSize() {
+		return allRelevantNodes.keySet().size();
+	}
 	
 	/**
 	 * In the original computation graph, multiple node can represent the same variable.
@@ -19,10 +23,17 @@ public class PartialGraph {
 	 * @return
 	 */
 	public DepVariableWrapper fetchAndMerge(DepVariable var) {
-		DepVariableWrapper wrapper = allRelevantNodes.get(var);
+		DepVariableWrapper tempWrapper = new DepVariableWrapper(var);
+		
+		if(var.toString().contains("ALOAD")) {
+			System.currentTimeMillis();
+//			System.currentTimeMillis();
+		}
+		
+		DepVariableWrapper wrapper = allRelevantNodes.get(tempWrapper);
 		if(wrapper == null) {
 			wrapper = new DepVariableWrapper(var);
-			allRelevantNodes.put(var, wrapper);
+			allRelevantNodes.put(wrapper, wrapper);
 		}
 		else{
 			for(int i=0; i<wrapper.var.getRelations().length; i++){

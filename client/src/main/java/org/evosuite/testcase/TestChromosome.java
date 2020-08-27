@@ -1012,17 +1012,22 @@ public class TestChromosome extends ExecutableChromosome {
 //							if(statement instanceof NullStatement){
 //								logger.warn("condition 1");
 //							}
-							int pos = statement.getPosition();
-							Statement nextStatement = test.getStatement(pos+1);
-							if (testFactory.changeNullStatement(test, statement)) {
-								statement = test.getStatement(nextStatement.getPosition()-1);
-								
-								changed = true;
-								statementChanged = true;
-								mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
-										TestMutationHistoryEntry.TestMutation.CHANGE, statement));
-								assert ConstraintVerifier.verifyTest(test);		
+							
+							boolean mutateNull = Randomness.nextBoolean();
+							if(mutateNull) {
+								int pos = statement.getPosition();
+								Statement nextStatement = test.getStatement(pos+1);
+								if (testFactory.changeNullStatement(test, statement)) {
+									statement = test.getStatement(nextStatement.getPosition()-1);
+									
+									changed = true;
+									statementChanged = true;
+									mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
+											TestMutationHistoryEntry.TestMutation.CHANGE, statement));
+									assert ConstraintVerifier.verifyTest(test);		
+								}								
 							}
+							
 						}
 						else if (statement.mutate(test, testFactory)) {
 							changed = true;

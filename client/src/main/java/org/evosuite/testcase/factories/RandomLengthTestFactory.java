@@ -36,12 +36,14 @@ import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
+import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.ExecutionTracer;
+import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
+import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.PartialGraph;
-import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
@@ -104,11 +106,16 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				}
 			}
 			
+			boolean applyObjectRule = false;
+			if(Properties.APPLY_OBJECT_RULE) {
+				applyObjectRule = Randomness.nextBoolean();
+			}
+			
 			/**
 			 * the first call must be the target method, we add difficult branch support after the target method
 			 * is called in test case.
 			 */
-			if(num == 1 && targetMethodCallPosition != -1 && Properties.APPLY_OBJECT_RULE) {
+			if(num == 1 && targetMethodCallPosition != -1 && applyObjectRule) {
 				
 				Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
 				ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
@@ -127,21 +134,42 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 //					logger.warn("Selected branch:" + b + "\n");
 //					List<ConstructionPath> paths = difficulties.get(b);
 					try {
+						long t0 = System.currentTimeMillis();
 						ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 						cpSynthesizer.constructDifficultObjectStatement(test, b);
 						mutateNullStatements(test);
+						long t1 = System.currentTimeMillis();
+						logger.warn("construction time: " + (t1-t0));
+						logger.warn("graph size: " + cpSynthesizer.getPartialGraph().getGraphSize());
 						
-						PartialGraph graph = cpSynthesizer.getPartialGraph();
-						Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
-						
-						TestChromosome chromosome = null;
-						long t0 = System.currentTimeMillis();
-						if(t0 - TestCaseLegitimizer.startTime <= Properties.TOTAL_LEGITIMIZATION_BUDGET * 1000) {
-							chromosome = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
-							test = chromosome.getTestCase();
+						if(t1-t0>10000) {
+							System.currentTimeMillis();
 						}
 						
-						if(chromosome.getLegitimacyDistance() == 0) {
+						PartialGraph graph = cpSynthesizer.getPartialGraph();
+						Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+						
+//						t0 = System.currentTimeMillis();
+						TestChromosome templateTestChromosome = new TestChromosome();
+						templateTestChromosome.setTestCase(test);
+						ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
+						templateTestChromosome.setLastExecutionResult(result);
+//						t1 = System.currentTimeMillis();
+//						logger.warn("execution time: " + (t1-t0));
+						
+						TestChromosome legitimizedChromosome = null;
+//						long t0 = System.currentTimeMillis();
+//						if(t0 - TestCaseLegitimizer.startTime <= Properties.TOTAL_LEGITIMIZATION_BUDGET * 1000) {
+//							legitimizedChromosome = TestCaseLegitimizer.getInstance().legitimize(templateTestChromosome, graph, graph2CodeMap);
+//							test = legitimizedChromosome.getTestCase();
+//						}
+//						else {
+//							legitimizedChromosome = templateTestChromosome;
+//						}
+						
+						legitimizedChromosome = templateTestChromosome;
+						
+						if(legitimizedChromosome.getLegitimacyDistance() == 0) {
 							templateTestMap.put(b, test);							
 						}
 					} catch (Exception e) {

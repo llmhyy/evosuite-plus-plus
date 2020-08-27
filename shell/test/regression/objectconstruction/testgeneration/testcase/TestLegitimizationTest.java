@@ -7,11 +7,13 @@ import java.util.Map;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
+import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
+import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.variable.VariableReference;
@@ -57,7 +59,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 	@Test
 	public void testLegitimization2() throws ClassNotFoundException, RuntimeException {
-		Properties.RANDOM_SEED = 1598472350678l;
+//		Properties.RANDOM_SEED = 1598472350678l;
 		
 		setup();
 
@@ -120,6 +122,11 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 	}
 	
 	protected void assertLegitimization(Branch b) {
+		
+		if(Properties.APPLY_OBJECT_RULE) {
+			Properties.PRIMITIVE_REUSE_PROBABILITY = 0;
+		}
+		
 		TestFactory testFactory = TestFactory.getInstance();
 		TestCase test = initializeTest(b, testFactory);
 		try {
@@ -128,9 +135,14 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			mutateNullStatements(test);
 			
 			PartialGraph graph = cpSynthesizer.getPartialGraph();
-			Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+			Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
 
-			TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(test, graph, graph2CodeMap);
+			TestChromosome templateTestChromosome = new TestChromosome();
+			templateTestChromosome.setTestCase(test);
+			ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
+			templateTestChromosome.setLastExecutionResult(result);
+			
+			TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(templateTestChromosome, graph, graph2CodeMap);
 			System.out.println(chromosome.getTestCase());
 
 			System.out.println("random seed is " + Randomness.getSeed());
@@ -142,6 +154,9 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 			assert false;
 		}
 		
+		if(Properties.APPLY_OBJECT_RULE) {
+			Properties.PRIMITIVE_REUSE_PROBABILITY = 0.5;
+		}
 		
 	}
 

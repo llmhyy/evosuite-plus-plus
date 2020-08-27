@@ -51,6 +51,30 @@ public class OverallRunningTest {
 	}
 	
 	@Test
+	public void testEqualExample() {
+		String projectId = "84_ifx-framework";
+		String[] targetMethods = new String[]{
+				"net.sourceforge.ifxfv3.beans.AcctInqRq#equals(Ljava/lang/Object;)Z"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
 	public void test11Example() {
 		String projectId = "11_imsmart";
 		String[] targetMethods = new String[]{

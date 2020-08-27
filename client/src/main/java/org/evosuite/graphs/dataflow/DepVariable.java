@@ -565,21 +565,6 @@ public class DepVariable {
 		return reverseRelations;
 	}
 
-	public int findRelationPosition(DepVariable var) {
-		for(int i=0; i<relations.length; i++) {
-			if(this.relations[i] == null || this.relations[i].isEmpty()) continue;
-			
-			for(DepVariable child: this.relations[i]) {
-				if (child.equals(var)) {
-					return i;
-				}				
-			}
-			
-		}
-		
-		return -1;
-	}
-
 	/**
 	 * check whether this variable will be used as an index-th operand for a given node childVar.
 	 * @param childVar
