@@ -26,9 +26,9 @@ public class MultiSBSTAlgorithmTest {
 
 	@Test
 	public void testDynaMOSA1() {
-		String projectId = "1_tullibee";
+		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
-				"com.ib.client.UnderComp#equals(Ljava/lang/Object;)Z"
+				"net.sourceforge.ifxfv3.beans.CustDiscRec#equals(Ljava/lang/Object;)Z"
 				};
 		
 		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
@@ -42,7 +42,7 @@ public class MultiSBSTAlgorithmTest {
 //		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
-		boolean aor = false;
+		boolean aor = true;
 		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
 //		
@@ -170,9 +170,9 @@ public class MultiSBSTAlgorithmTest {
 	
 	@Test
 	public void testMonotonicGA1() {
-		String projectId = "1_tullibee";
+		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
-				"com.ib.client.UnderComp#equals(Ljava/lang/Object;)Z"
+				"net.sourceforge.ifxfv3.beans.CreditAuthCanRsSequence2#equals(Ljava/lang/Object;)Z"
 				};
 		
 		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
