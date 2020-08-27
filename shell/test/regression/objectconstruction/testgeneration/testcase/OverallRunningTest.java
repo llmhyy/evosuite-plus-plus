@@ -59,7 +59,7 @@ public class OverallRunningTest {
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 100000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

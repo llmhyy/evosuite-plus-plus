@@ -44,6 +44,7 @@ import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.PartialGraph;
+import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
@@ -65,6 +66,9 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 
 	
 	protected static Map<Branch, TestCase> templateTestMap = new HashMap<Branch, TestCase>();
+	
+	public static Branch workingBranch = null;
+	
 	
 	/**
 	 * Create a random individual
@@ -94,6 +98,18 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			Properties.PRIMITIVE_REUSE_PROBABILITY = 0;
 		}
 		
+		boolean applyObjectRule = false;
+		if(Properties.APPLY_OBJECT_RULE) {
+			
+			if(workingBranch != null) {
+				double d = Randomness.nextDouble();
+				applyObjectRule = d>0.99? false : true;
+			}
+			else {
+				applyObjectRule = Randomness.nextBoolean();					
+			}
+		}
+		
 		// Then add random stuff
 		while (test.size() < length && num < Properties.MAX_ATTEMPTS) {
 			int position = test.size() - 1;
@@ -106,10 +122,6 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				}
 			}
 			
-			boolean applyObjectRule = false;
-			if(Properties.APPLY_OBJECT_RULE) {
-				applyObjectRule = Randomness.nextBoolean();
-			}
 			
 			/**
 			 * the first call must be the target method, we add difficult branch support after the target method
@@ -126,13 +138,16 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					}
 				});
 				
-				Branch b = Randomness.choice(interestedBranches.keySet());
+				
+				Branch b = workingBranch;
+				if(b == null) {
+					b = Randomness.choice(interestedBranches.keySet());					
+				}
 //				Branch b = rankedList.get(19);
 				
 				TestCase t = templateTestMap.get(b);
 				if(t == null) {
 //					logger.warn("Selected branch:" + b + "\n");
-//					List<ConstructionPath> paths = difficulties.get(b);
 					try {
 						long t0 = System.currentTimeMillis();
 						ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
@@ -158,14 +173,14 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 //						logger.warn("execution time: " + (t1-t0));
 						
 						TestChromosome legitimizedChromosome = null;
-//						long t0 = System.currentTimeMillis();
-//						if(t0 - TestCaseLegitimizer.startTime <= Properties.TOTAL_LEGITIMIZATION_BUDGET * 1000) {
-//							legitimizedChromosome = TestCaseLegitimizer.getInstance().legitimize(templateTestChromosome, graph, graph2CodeMap);
-//							test = legitimizedChromosome.getTestCase();
-//						}
-//						else {
-//							legitimizedChromosome = templateTestChromosome;
-//						}
+						t0 = System.currentTimeMillis();
+						if(t0 - TestCaseLegitimizer.startTime <= Properties.TOTAL_LEGITIMIZATION_BUDGET * 1000) {
+							legitimizedChromosome = TestCaseLegitimizer.getInstance().legitimize(templateTestChromosome, graph, graph2CodeMap);
+							test = legitimizedChromosome.getTestCase();
+						}
+						else {
+							legitimizedChromosome = templateTestChromosome;
+						}
 						
 						legitimizedChromosome = templateTestChromosome;
 						

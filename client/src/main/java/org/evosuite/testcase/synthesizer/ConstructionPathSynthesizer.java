@@ -86,6 +86,10 @@ public class ConstructionPathSynthesizer {
 		Set<DepVariable> variables = map.get(b);
 		graph.setBranch(b);
 		
+		if(variables == null) {
+			System.currentTimeMillis();
+		}
+		
 		for(DepVariable source: variables) {
 			Map<DepVariable, ArrayList<ConstructionPath>> rootInfo = source.getRootVars();
 			

@@ -57,6 +57,7 @@ import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.TestMutationHistoryEntry;
 import org.evosuite.testcase.TestMutationHistoryEntry.TestMutation;
+import org.evosuite.testcase.factories.RandomLengthTestFactory;
 import org.evosuite.testcase.secondaryobjectives.TestCaseSecondaryObjective;
 import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
@@ -191,10 +192,17 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				offspringPopulation.add(offspring2);
 			}
 		}
+		
 		// Add new randomly generate tests
 		for (int i = 0; i < Properties.POPULATION * Properties.P_TEST_INSERTION; i++) {
 			T tch = null;
 			if (this.getCoveredGoals().size() == 0 || Randomness.nextBoolean()) {
+				RandomLengthTestFactory.workingBranch = null;
+				FitnessFunction<?> ff = Randomness.choice(getUncoveredGoals());
+				if(ff instanceof BranchFitness) {
+					RandomLengthTestFactory.workingBranch = ((BranchFitness)ff).getBranchGoal().getBranch();
+				}
+				
 				tch = this.chromosomeFactory.getChromosome();
 				tch.setChanged(true);
 			} else {
