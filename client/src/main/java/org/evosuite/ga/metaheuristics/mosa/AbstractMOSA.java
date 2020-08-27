@@ -199,7 +199,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			if (this.getCoveredGoals().size() == 0 || Randomness.nextBoolean()) {
 				RandomLengthTestFactory.workingBranch = null;
 				FitnessFunction<?> ff = Randomness.choice(getUncoveredGoals());
-				if(ff instanceof BranchFitness) {
+				if(ff != null && ff instanceof BranchFitness) {
 					RandomLengthTestFactory.workingBranch = ((BranchFitness)ff).getBranchGoal().getBranch();
 				}
 				

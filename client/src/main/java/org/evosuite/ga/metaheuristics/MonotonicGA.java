@@ -42,6 +42,7 @@ import org.evosuite.ga.FitnessReplacementFunction;
 import org.evosuite.ga.ReplacementFunction;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.factories.RandomLengthTestFactory;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.DistributionUtil;
@@ -104,6 +105,16 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		newGeneratedIndividuals.clear();
 		List<T> newGeneration = new ArrayList<T>();
 
+		T bestIndividual = getBestIndividual();
+		BranchCoverageFactory branchFactory = new BranchCoverageFactory();
+		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
+		Set<BranchCoverageGoal> uncoveredGoals = getUncoveredBranches(bestIndividual, branchGoals);
+		
+		RandomLengthTestFactory.workingBranch = null; 
+		if(uncoveredGoals != null && !uncoveredGoals.isEmpty()) {
+			RandomLengthTestFactory.workingBranch = Randomness.choice(uncoveredGoals).getBranch();
+		}
+		
 		// Elitism
 		logger.debug("Elitism");
 		newGeneration.addAll(elitism());
@@ -287,6 +298,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 
 		while (!isFinished()) {
 
+			
+			
 			logger.info("Population size before: " + population.size());
 			// related to Properties.ENABLE_SECONDARY_OBJECTIVE_AFTER;
 			// check the budget progress and activate a secondary criterion
@@ -421,7 +434,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		notifySearchFinished();
 	}
 
-	private void printUncoveredBranches(T bestIndividual, List<BranchCoverageTestFitness> branchGoals) {
+	
+	private Set<BranchCoverageGoal> getUncoveredBranches(T bestIndividual, List<BranchCoverageTestFitness> branchGoals) {
 		if (bestIndividual instanceof TestSuiteChromosome) {
 
 			Set<BranchCoverageGoal> uncoveredGoals = new HashSet<>();
@@ -453,10 +467,14 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 				}
 			}
 
-			for (BranchCoverageGoal goal : uncoveredGoals) {
-				logger.error(goal.toString());
-			}
+//			for (BranchCoverageGoal goal : uncoveredGoals) {
+//				logger.error(goal.toString());
+//			}
+			
+			return uncoveredGoals;
 		}
+		
+		return null;
 
 	}
 
