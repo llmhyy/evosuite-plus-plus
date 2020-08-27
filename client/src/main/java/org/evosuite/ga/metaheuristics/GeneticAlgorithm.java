@@ -126,7 +126,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	private Map<Integer, Double> uncoveredBranchDistribution;
 	private Map<Integer, Integer> distributionMap;	
 	
-	private long intializationOverhead;
+	protected long intializationOverhead;
 	private List<Pair<Branch, Boolean>> missingBranches = new ArrayList<Pair<Branch,Boolean>>();
 	
 	protected double initialCoverage = 0; 

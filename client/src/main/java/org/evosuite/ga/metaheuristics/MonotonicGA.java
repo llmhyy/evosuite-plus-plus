@@ -134,9 +134,11 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 				parent2 = selectionFunction.select(population); // crossover
 																// with existing
 																// individual
-
+//			t00 = System.currentTimeMillis();
 			T offspring1 = (T) parent1.clone();
 			T offspring2 = (T) parent2.clone();
+//			t11 = System.currentTimeMillis();
+//			logger.warn("- clone time 1" + (t11-t00));
 
 //			try {
 //				// Crossover
@@ -150,6 +152,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 //			}
 
 			// Mutation
+//			t00 = System.currentTimeMillis();
 			notifyMutation(offspring1);
 			offspring1.mutate();
 			notifyMutation(offspring2);
@@ -161,10 +164,13 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 			if (offspring2.isChanged()) {
 				offspring2.updateAge(currentIteration);
 			}
+//			t11 = System.currentTimeMillis();
+//			logger.warn("- mutation time 1" + (t11-t00));
 
 			newGeneratedIndividuals.add(offspring1);
 			newGeneratedIndividuals.add(offspring2);
 
+//			t00 = System.currentTimeMillis();
 			// The two offspring replace the parents if and only if one of
 			// the offspring is not worse than the best parent.
 			for (FitnessFunction<T> fitnessFunction : fitnessFunctions) {
@@ -183,6 +189,8 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 
 				notifyEvaluation(offspring2);
 			}
+//			t11 = System.currentTimeMillis();
+//			logger.warn("- running time 1" + (t11-t00));
 
 			if (keepOffspring(parent1, parent2, offspring1, offspring2)) {
 				logger.debug("Keeping offspring");
@@ -279,6 +287,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		this.setIntializationOverhead(initializationOverhead);
 		double coverage = getBestIndividual().getCoverage();
 		this.setInitialCoverage(coverage);
+		
+		logger.warn("initial coverage: " + this.initialCoverage);
+		logger.warn("initialization overhead: " + this.intializationOverhead);
 
 		logger.debug("Starting evolution");
 		int starvationCounter = 0;
@@ -307,7 +318,10 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 
 			{
 //				double bestFitnessBeforeEvolution = getBestFitness();
+//				long t00 = System.currentTimeMillis();
 				evolve();
+//				long t11 = System.currentTimeMillis();
+//				logger.warn("evolving time " + (t11-t00));
 				sortPopulation();
 
 //				double bestFitnessAfterEvolution = getBestFitness();
