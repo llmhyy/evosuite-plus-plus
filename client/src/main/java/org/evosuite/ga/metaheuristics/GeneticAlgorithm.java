@@ -618,9 +618,26 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 					iterator.remove();
 			} else {
 				this.calculateFitness(c);
-				System.currentTimeMillis();
 			}
 		}
+	}
+	
+	/**
+	 * Calculate fitness for all individuals
+	 */
+	protected void calculateFitness(boolean isInitialization) {
+		logger.debug("Calculating fitness for " + population.size() + " individuals");
+
+		Iterator<T> iterator = this.population.iterator();
+		while (iterator.hasNext()) {
+			T c = iterator.next();
+			
+			this.calculateFitness(c);
+			if (isFinished()) {
+				break;
+			} 
+		}
+		
 		System.currentTimeMillis();
 	}
 
@@ -641,6 +658,15 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	 */
 	protected void calculateFitnessAndSortPopulation() {
 		this.calculateFitness();
+		// Sort population
+		this.sortPopulation();
+	}
+	
+	/**
+	 * Calculate fitness for all individuals and sort them
+	 */
+	protected void calculateFitnessAndSortPopulation(boolean isInitialization) {
+		this.calculateFitness(isInitialization);
 		// Sort population
 		this.sortPopulation();
 	}

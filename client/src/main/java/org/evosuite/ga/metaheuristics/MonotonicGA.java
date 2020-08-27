@@ -254,7 +254,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		// Set up initial population
 		generateInitialPopulation(Properties.POPULATION);
 		logger.debug("Calculating fitness of initial population");
-		calculateFitnessAndSortPopulation();
+		calculateFitnessAndSortPopulation(true);
 
 		this.notifyIteration();
 	}

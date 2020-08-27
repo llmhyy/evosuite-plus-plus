@@ -415,7 +415,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		this.generateInitialPopulation(Properties.POPULATION);
 
 		// Determine fitness
-		this.calculateFitness();
+		this.calculateFitness(true);
 		this.notifyIteration();
 	}
 
