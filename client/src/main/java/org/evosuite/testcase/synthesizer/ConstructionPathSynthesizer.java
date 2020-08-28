@@ -872,6 +872,10 @@ public class ConstructionPathSynthesizer {
 		int insertionPostion = -1;
 		if(fieldSetter != null) {
 			insertionPostion = fieldSetter.getStPosition()+1;
+			if(targetObjectReference != null && 
+					targetObjectReference.getStPosition() > fieldSetter.getStPosition()) {
+				insertionPostion = targetObjectReference.getStPosition() + 1;
+			}
 		}
 		else if (targetObjectReference == null) {
 			MethodStatement mStat = test.findTargetMethodCallStatement();
@@ -881,6 +885,7 @@ public class ConstructionPathSynthesizer {
 			insertionPostion = targetObjectReference.getStPosition() + 1;
 		}
 		
+		System.currentTimeMillis();
 		Method getter = searchForPotentialGetterInClass(fieldDeclaringClass, field);
 		if (getter != null) {
 			VariableReference newParentVarRef = null;
