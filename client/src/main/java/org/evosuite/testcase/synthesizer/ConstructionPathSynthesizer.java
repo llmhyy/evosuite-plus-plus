@@ -794,7 +794,6 @@ public class ConstructionPathSynthesizer {
 			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 					.loadClass(fieldOwner);
 //			registerAllMethods(fieldDeclaringClass);				
-			
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 			/**
 			 * if the field is leaf, check if there is setter in the testcase
@@ -867,6 +866,9 @@ public class ConstructionPathSynthesizer {
 			} catch (ConstructionFailedException e) {
 				e.printStackTrace();
 			}
+		}
+		else {
+			return fieldSetter;
 		}
 		
 		int insertionPostion = -1;
