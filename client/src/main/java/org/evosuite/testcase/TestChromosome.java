@@ -1679,7 +1679,13 @@ public class TestChromosome extends ExecutableChromosome {
 	}
 
 	public double getLegitimacyDistance() {
-		updateLegitimacyDistance();
+		try {
+			updateLegitimacyDistance();			
+		}
+		catch(Exception e) {
+			legitimacyDistance = 0;
+		}
+		
 		return legitimacyDistance;
 	}
 
