@@ -1399,6 +1399,10 @@ public class TestFactory {
 			currentRecursion.add(o);
 
 			if (o == null) {
+				if(test.size() == 0) {
+					canReuseVariables = false;
+				}
+				
 				if(canReuseVariables){
 //					throw new ConstructionFailedException("Cannot currently instantiate type "+type);
 
