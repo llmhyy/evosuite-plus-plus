@@ -149,6 +149,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				if(t == null) {
 //					logger.warn("Selected branch:" + b + "\n");
 					try {
+						System.currentTimeMillis();
 						long t0 = System.currentTimeMillis();
 						ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 						cpSynthesizer.constructDifficultObjectStatement(test, b);
