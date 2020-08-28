@@ -185,9 +185,9 @@ public class BranchCoverageTestFitness extends TestFitnessFunction implements Br
 				Archive.getArchiveInstance().updateArchive(this, individual, fitness);
 		}
 
-		if(Properties.APPLY_OBJECT_RULE) {
-			fitness += individual.getLegitimacyDistance();
-		}
+//		if(Properties.APPLY_OBJECT_RULE) {
+//			fitness += individual.getLegitimacyDistance();
+//		}
 		
 		return fitness;
 	}

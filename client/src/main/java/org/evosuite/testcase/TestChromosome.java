@@ -136,7 +136,7 @@ public class TestChromosome extends ExecutableChromosome {
 			this.legitimacyDistance = 0;
 		}
 		
-		if(this.legitimacyDistance != 0){
+		if(this.legitimacyDistance > 0){
 			if(numOfExecutedStatements > test.size()-1){
 				System.currentTimeMillis();
 			}
@@ -163,8 +163,13 @@ public class TestChromosome extends ExecutableChromosome {
 				average /= relevantBranches.size();
 				this.legitimacyDistance += average;
 			}
-			
 		}
+		else {
+			this.legitimacyDistance = 0;
+		}
+		
+		
+		System.currentTimeMillis();
 		
 	}
 	
