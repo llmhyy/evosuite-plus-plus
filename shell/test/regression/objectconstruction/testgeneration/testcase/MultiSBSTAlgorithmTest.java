@@ -62,9 +62,9 @@ public class MultiSBSTAlgorithmTest {
 	
 	@Test
 	public void testDynaMOSA2() {
-		String projectId = "4_rif";
+		String projectId = "13_jdbacl";
 		String[] targetMethods = new String[]{
-				"com.densebrain.rif.server.transport.WebServiceDescriptor#equals(Ljava/lang/Object;)Z"
+				"org.databene.jdbacl.model.DBDataType#equals(Ljava/lang/Object;)Z"
 				};
 		
 		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
@@ -78,7 +78,7 @@ public class MultiSBSTAlgorithmTest {
 //		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
 //				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
 		
-		boolean aor = false;
+		boolean aor = true;
 		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
 //		
@@ -134,9 +134,9 @@ public class MultiSBSTAlgorithmTest {
 	
 	@Test
 	public void testMOSA1() {
-		String projectId = "5_templateit";
+		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
-				"org.templateit.Reference#equals(Ljava/lang/Object;)Z"
+				"net.sourceforge.ifxfv3.beans.AcctInqRsSequence#equals(Ljava/lang/Object;)Z"
 				};
 		
 		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
