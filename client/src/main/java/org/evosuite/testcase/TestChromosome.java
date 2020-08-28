@@ -117,8 +117,11 @@ public class TestChromosome extends ExecutableChromosome {
 	
 	public void updateLegitimacyDistance(){
 		MethodStatement targetCallStat = test.findTargetMethodCallStatement();
-		ExecutionResult result = TestCaseExecutor.runTest(this.getTestCase());
-		this.setLastExecutionResult(result);
+		
+		if(this.getLastExecutionResult() == null) {
+			ExecutionResult result = TestCaseExecutor.runTest(this.getTestCase());
+			this.setLastExecutionResult(result);			
+		}
 		
 		int numOfExecutedStatements = this.getLastExecutionResult().getExecutedStatements();
 		this.legitimacyDistance = targetCallStat.getPosition() - numOfExecutedStatements + 1;
@@ -127,7 +130,7 @@ public class TestChromosome extends ExecutableChromosome {
 			System.currentTimeMillis();
 		}
 		
-		Integer exceptionPosition = result.getFirstPositionOfThrownException();
+		Integer exceptionPosition = this.getLastExecutionResult().getFirstPositionOfThrownException();
 		if(exceptionPosition!=null 
 				&& exceptionPosition == targetCallStat.getPosition()) {
 			this.legitimacyDistance = 0;
