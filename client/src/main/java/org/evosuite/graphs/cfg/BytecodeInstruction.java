@@ -19,6 +19,7 @@
  */
 package org.evosuite.graphs.cfg;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,9 +29,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LocalVariable;
+import org.apache.bcel.util.ClassPath;
+import org.apache.bcel.util.SyntheticRepository;
+import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
@@ -54,9 +57,7 @@ import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
-import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
-import org.objectweb.asm.tree.analysis.Value;
 
 /**
  * Internal representation of a BytecodeInstruction
@@ -1361,6 +1362,36 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 		return getCalledCFG().isStaticMethod();
 	}
 	
+	public static ClassPath cp = null;
+	
+	private JavaClass getBCELClass() {
+		if(cp == null) {
+			String defaultClassPath = System.getProperty("java.class.path");
+			StringBuffer buffer = new StringBuffer();
+			String cps = ClassPathHandler.getInstance().getTargetProjectClasspath();
+			String[] cpList = cps.split(File.pathSeparator);
+			for(String classPath: cpList) {			
+//				ClassPathHandler.getInstance().addElementToTargetProjectClassPath(classPath);
+				buffer.append(File.pathSeparator + classPath);
+			}
+			
+			String newPath = defaultClassPath + buffer.toString();
+			
+			cp = new ClassPath(newPath);
+		}
+		
+		SyntheticRepository repo = SyntheticRepository.getInstance(cp);
+		
+		JavaClass clazz = null;
+		try {
+			clazz = repo.loadClass(getClassName());
+			return clazz;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	/**
 	 * The first parameter start with 0 index
 	 * @return
@@ -1372,14 +1403,9 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
 			org.objectweb.asm.Type[] typeArgs = org.objectweb.asm.Type.getArgumentTypes(methodDesc);
 			int paramNum = typeArgs.length;
+			
 			org.apache.bcel.classfile.Method realMethod = null;
-			JavaClass clazz = null;
-			try {
-				clazz = Repository.lookupClass(getClassName());
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-				return -1;
-			}
+			JavaClass clazz = getBCELClass();
 			
 			if (clazz != null) {
 				realMethod = findMethod(realMethod, clazz);

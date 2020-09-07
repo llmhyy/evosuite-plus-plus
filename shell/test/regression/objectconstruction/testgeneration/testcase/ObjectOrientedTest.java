@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
 import org.evosuite.Properties.Criterion;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
@@ -21,14 +21,10 @@ import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
-import org.evosuite.testcase.synthesizer.PartialGraph;
-import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
-import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 
 public class ObjectOrientedTest {
@@ -49,6 +45,25 @@ public class ObjectOrientedTest {
 		// Clear all branches so that branch numbers do not change
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		BranchPool.getInstance(classLoader).reset();
+	}
+	
+	protected TestCase generateCode(Branch b) {
+		TestFactory testFactory = TestFactory.getInstance();
+		TestCase test = initializeTest(b, testFactory);
+		try {
+			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+			cpSynthesizer.constructDifficultObjectStatement(test, b);
+			mutateNullStatements(test);
+			
+			System.out.println(test);
+//			PartialGraph graph = cpSynthesizer.getPartialGraph();
+//			Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("random seed is " + Randomness.getSeed());
+		return test;
 	}
 	
 	protected void mutateNullStatements(TestCase test) {
@@ -81,6 +96,24 @@ public class ObjectOrientedTest {
 
 		Properties.APPLY_OBJECT_RULE = true;
 		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+
+		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
+		Collections.sort(rankedList, new Comparator<Branch>() {
+			@Override
+			public int compare(Branch o1, Branch o2) {
+				return o1.getInstruction().getLineNumber() - o2.getInstruction().getLineNumber();
+			}
+		});
+		return rankedList;
+	}
+	
+	protected ArrayList<Branch> buildObjectConstructionGraph4SF100(List<String> classPaths) throws ClassNotFoundException {
+		
+//		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+
+		Properties.APPLY_OBJECT_RULE = true;
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, classPaths);
 
 		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
 		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());

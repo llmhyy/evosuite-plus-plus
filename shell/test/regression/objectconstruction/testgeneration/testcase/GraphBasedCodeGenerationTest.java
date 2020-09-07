@@ -68,23 +68,4 @@ public class GraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		generateCode(b);
 	}
 
-	protected TestCase generateCode(Branch b) {
-		TestFactory testFactory = TestFactory.getInstance();
-		TestCase test = initializeTest(b, testFactory);
-		try {
-			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-			cpSynthesizer.constructDifficultObjectStatement(test, b);
-			mutateNullStatements(test);
-			
-			System.out.println(test);
-//			PartialGraph graph = cpSynthesizer.getPartialGraph();
-//			Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		System.out.println("random seed is " + Randomness.getSeed());
-		return test;
-	}
-	
 }

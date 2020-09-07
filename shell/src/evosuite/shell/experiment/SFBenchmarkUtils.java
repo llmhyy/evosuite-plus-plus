@@ -61,28 +61,32 @@ public class SFBenchmarkUtils {
 		return projectId;
 	}
 	
-	public static File setupProjectProperties(File projectFolder) {
+	public static List<String> setupProjectProperties(File projectFolder) {
 		ClassPathHandler.resetSingleton();
 		DefUseAnalyzer.resetSingleton();
 		System.setProperty("user.dir", projectFolder.getAbsolutePath());
 		EvoSuite.base_dir_path = System.getProperty("user.dir");
+		
+		List<String> classPaths = new ArrayList<String>();
 		
 		File propertiesFile = new File(EvoSuite.base_dir_path + "/evosuite-files/evosuite.properties");
 		File newPropertiesFile = null;
 		if (propertiesFile.exists()) {
 			newPropertiesFile = new File(propertiesFile.getAbsolutePath().replace("evosuite.properties", "evosuite-test.properties"));
 			newPropertiesFile.deleteOnExit();
-			replaceRelativeWithAbsolutePaths(projectFolder, propertiesFile, newPropertiesFile);
+			classPaths = replaceRelativeWithAbsolutePaths(projectFolder, propertiesFile, newPropertiesFile);
 		}
 		if (newPropertiesFile != null) {
 			Properties.PROPERTIES_FILE = "evosuite-files/evosuite-test.properties";
 			System.setProperty("PROPERTIES_FILE", "evosuite-files/evosuite-test.properties");
 		}
 		new EvoSuite().setupProperties();
-		return newPropertiesFile;
+		return classPaths;
 	}
 	
-	private static void replaceRelativeWithAbsolutePaths(File projFolder, File propertiesFile, File newFile) {
+	private static List<String> replaceRelativeWithAbsolutePaths(File projFolder, File propertiesFile, File newFile) {
+		List<String> classPaths = new ArrayList<String>();
+		
 		try {
 			List<String> contents = org.apache.commons.io.FileUtils.readLines(propertiesFile, "UTF-8");
 			List<String> newContents = new ArrayList<>(contents.size());
@@ -108,6 +112,7 @@ public class SFBenchmarkUtils {
 							}
 						}
 						line = "CP=" + StringUtils.join(entries, File.pathSeparator);
+						classPaths.addAll(entries);
 					}
 					System.out.println("new " + line);
 				} else if (line.startsWith("inheritance_file")) {
@@ -131,9 +136,11 @@ public class SFBenchmarkUtils {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+		
+		return classPaths;
 	}
 	
-	public static File setupProjectProperties(String projectId) {
+	public static List<String> setupProjectProperties(String projectId) {
 		File projectFolder = new File(SFConfiguration.sfBenchmarkFolder + "/" + projectId); 
 		return setupProjectProperties(projectFolder);
 	}
