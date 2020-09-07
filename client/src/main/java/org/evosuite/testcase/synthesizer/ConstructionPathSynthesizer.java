@@ -1,5 +1,11 @@
 package org.evosuite.testcase.synthesizer;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
@@ -31,12 +37,10 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.graphs.dataflow.ConstructionPath;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.graphs.dataflow.GraphVisualizer;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -73,6 +77,8 @@ public class ConstructionPathSynthesizer {
 
 	private TestFactory testFactory;
 	private static final Logger logger = LoggerFactory.getLogger(ConstructionPathSynthesizer.class);
+	
+	public static String debuggerFolder = "";
 
 	public ConstructionPathSynthesizer(TestFactory testFactory) {
 		super();
@@ -133,13 +139,17 @@ public class ConstructionPathSynthesizer {
 	private PartialGraph partialGraph;
 	private Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap;
 	
-	public void constructDifficultObjectStatement(TestCase test, Branch b)
+	public void constructDifficultObjectStatement(TestCase test, Branch b, boolean isDebugger)
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
-//		GraphVisualizer.visualizeComputationGraph(partialGraph, 3000, "test");
+		if(isDebugger) {
+			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");			
+		}
+		
+		logTest(test, b, isDebugger, 0, null);
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
 		
@@ -160,8 +170,8 @@ public class ConstructionPathSynthesizer {
 		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-//			logger.warn(String.valueOf(c) + ":" + node.toString());
-			if(c==10) {
+			logger.warn(String.valueOf(c) + ":" + node.toString());
+			if(c==11) {
 				System.currentTimeMillis();
 				System.currentTimeMillis();
 			}
@@ -176,6 +186,7 @@ public class ConstructionPathSynthesizer {
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
 				enhanceTestStatement(test, map, node);	
+				logTest(test, b, isDebugger, c, node);
 				System.currentTimeMillis();
 				/**
 				 *  the order of children size matters
@@ -211,6 +222,44 @@ public class ConstructionPathSynthesizer {
 //		System.currentTimeMillis();
 		this.setPartialGraph(partialGraph);
 		this.setGraph2CodeMap(map);
+	}
+
+	private void logTest(TestCase test, Branch b, boolean isDebugger, int iteration, DepVariableWrapper node) {
+		if(!isDebugger) {
+			return;
+		}
+		
+		String subfolder = debuggerFolder + File.separator + b.toString() + File.separator;
+		File f = new File(subfolder);
+		if(!f.exists()) {
+			f.mkdir();
+		}
+		
+		String nodeName = "initial";
+		if(node != null) {
+			nodeName = node.getShortName();
+		}
+		
+		String testScript = subfolder + iteration  + "-" + nodeName + ".txt";
+		testScript = testScript.replace("/", ".");
+		Writer writer = null;
+
+		try {
+			writer = new BufferedWriter(new OutputStreamWriter(
+			          new FileOutputStream(testScript), "utf-8"));
+			writer.write(test.toString());
+		}
+		catch (IOException ex) {
+		    System.currentTimeMillis();
+		} finally {
+		   try {writer.close();} 
+		   catch (Exception ex) {
+			   System.currentTimeMillis();
+		   }
+		}
+		
+		System.currentTimeMillis();
+		
 	}
 
 	private boolean checkDependency(DepVariableWrapper node, Map<DepVariableWrapper, List<VariableReference>> map) {
@@ -277,9 +326,10 @@ public class ConstructionPathSynthesizer {
 				int paramPosition = node.var.getParamOrder() - 1;
 				List<String> recommendations = Dataflow.recommendedClasses.get(paramPosition);
 				if(recommendations!=null && !recommendations.isEmpty()) {
-					if(!recommendations.contains(null)) {
-						recommendations.add(null);						
-					}
+//					if(!recommendations.contains(null)) {
+//						recommendations.add(null);						
+//					}
+					System.currentTimeMillis();
 					castSubClass = Randomness.choice(recommendations);					
 				}
 			}
@@ -784,7 +834,7 @@ public class ConstructionPathSynthesizer {
 		if (targetObjectReference != null) {
 			String parentType = targetObjectReference.getClassName();
 			if (!isPrimitiveClass(parentType)) {
-				if (!isCompatible(fieldOwner, parentType)) {
+				if (!isCompatible(parentType, fieldOwner)) {
 					return targetObjectReference;
 				}
 			}
@@ -959,6 +1009,7 @@ public class ConstructionPathSynthesizer {
 			}
 		}
 		
+		System.currentTimeMillis();
 		return null;
 	}
 
@@ -1437,7 +1488,7 @@ public class ConstructionPathSynthesizer {
 			findSetterInfo(field, targetClass, fieldSettingMethods, difficultyList, numberOfValidParams, c, signature);
 		}
 		
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		
 		if(!fieldSettingMethods.isEmpty()){
 //			Executable entry = Randomness.choice(fieldSettingMethods);

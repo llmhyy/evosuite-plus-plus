@@ -124,22 +124,22 @@ public class DepVariable {
 	
 	public String getTypeString() {
 		if(type == DepVariable.PARAMETER) {
-			return "parameter";
+			return "PARAMETER";
 		}
 		else if(type == DepVariable.INSTANCE_FIELD) {
-			return "instance field";
+			return "FIELD_i";
 		}
 		else if(type == DepVariable.STATIC_FIELD) {
-			return "static field";
+			return "FIELD_S";
 		}
 		else if(type == DepVariable.THIS) {
-			return "this";
+			return "THIS";
 		}
 		else if(type == DepVariable.ARRAY_ELEMENT) {
-			return "array element";
+			return "ARRAY_ELE";
 		}
 		else {
-			return "other";			
+			return "OTHER";			
 		}
 		
 	}
@@ -255,39 +255,38 @@ public class DepVariable {
 	public String getShortLabel() {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(getTypeString() + "\n");
+		String className = this.getInstruction().getClassName();
+		String owner = className.substring(className.lastIndexOf("."), className.length());
+		buffer.append("OWNER: " + owner + "\n");
 		
 		if(this.getType() == DepVariable.INSTANCE_FIELD || this.getType() == DepVariable.STATIC_FIELD) {
 			FieldInsnNode thisField = (FieldInsnNode)(this.getInstruction().getASMNode());
-			String owner = thisField.owner.substring(thisField.owner.lastIndexOf("/"), thisField.owner.length());
 			String desc = thisField.desc;
 			if(thisField.desc.contains(";")) {
 				desc = thisField.desc.substring(thisField.desc.lastIndexOf("/"), thisField.desc.length());
 			}
-			buffer.append(owner + "\n");
-			buffer.append(desc + "\n");
-			buffer.append(thisField.name + "\n");
+			buffer.append("TYPE_f: " + desc + "\n");
+			buffer.append("NAME: " + thisField.name + "\n");
 			
 		}
 		else if(this.getType() == DepVariable.PARAMETER) {
-			String className = this.getInstruction().getClassName();
-			String owner = className.substring(className.lastIndexOf("."), className.length());
-			buffer.append(owner + "\n");
-			buffer.append(this.getInstruction().getMethodName() + "\n");
-			buffer.append("parameter order: " + this.getParamOrder() + "\n");
+			
+			buffer.append("METHOD: " + this.getInstruction().getMethodName() + "\n");
+			buffer.append("ORDER: " + this.getParamOrder() + "\n");
 		}
 		else if(this.getType() == DepVariable.THIS) {
-			String className = this.getInstruction().getClassName();
-			String owner = className.substring(className.lastIndexOf("."), className.length());
-			buffer.append(owner + "\n");
+//			String className = this.getInstruction().getClassName();
+//			String owner = className.substring(className.lastIndexOf("."), className.length());
+//			buffer.append("OWNER: " + owner + "\n");
 		}
 		else if(this.getType() == DepVariable.ARRAY_ELEMENT) {
 			buffer.append(this.getInstruction() + "\n");
 		}
 		else if(this.getType() == DepVariable.OTHER) {
 			if(this.getInstruction().checkInstanceOf()) {
-				String className = this.getInstruction().getInstanceOfCheckingType();
-				String owner = className.substring(className.lastIndexOf("."), className.length());
-				buffer.append(owner + "\n");
+//				String className = this.getInstruction().getInstanceOfCheckingType();
+//				String owner = className.substring(className.lastIndexOf("."), className.length());
+//				buffer.append("OWNER: " + owner + "\n");
 			}
 			else if(this.getInstruction().toString().contains("CHECKCAST") 
 					&& this.getInstruction().getASMNode() instanceof TypeInsnNode) {
@@ -305,8 +304,8 @@ public class DepVariable {
 			}
 		}
 		
-		buffer.append("instruction id: " + this.getInstruction().getInstructionId() + "\n");
-		buffer.append("line number:" + this.getInstruction().getLineNumber() + "\n");
+		buffer.append("ID: " + this.getInstruction().getInstructionId() + "\n");
+		buffer.append("LINE:" + this.getInstruction().getLineNumber() + "\n");
 		
 		return buffer.toString();
 	}
@@ -585,6 +584,10 @@ public class DepVariable {
 		}
 		
 		return false;
+	}
+
+	public String getMethodName() {
+		return this.getClassName() + "#" + this.getInstruction().getMethodName();
 	}
 
 }

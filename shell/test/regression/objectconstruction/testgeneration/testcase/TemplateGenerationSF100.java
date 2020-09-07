@@ -4,12 +4,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.bcel.Repository;
-import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.util.ClassPath;
 import org.apache.bcel.util.SyntheticRepository;
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.junit.Test;
 
 import evosuite.shell.experiment.SFBenchmarkUtils;
@@ -18,7 +17,7 @@ public class TemplateGenerationSF100 extends ObjectOrientedTest {
 	@Test
 	public void testLongTest() throws ClassNotFoundException, RuntimeException {
 		
-//		Properties.RANDOM_SEED = 1598376776401l;
+		Properties.RANDOM_SEED = 1599466414837l;
 		
 		setup();
 		
@@ -35,14 +34,7 @@ public class TemplateGenerationSF100 extends ObjectOrientedTest {
 		}
 		
 		String newPath = defaultClassPath + buffer.toString();
-		ClassPath cp = new ClassPath(newPath);
-		SyntheticRepository repo = SyntheticRepository.getInstance(cp);
-		
 		System.setProperty("java.class.path", newPath);
-		ClassPath.getClassPath();
-		JavaClass jc = repo.loadClass(className);
-		
-		System.currentTimeMillis();
 		
 		Properties.TARGET_CLASS = className;
 		Properties.TARGET_METHOD = methodName;
@@ -52,7 +44,8 @@ public class TemplateGenerationSF100 extends ObjectOrientedTest {
 		//29
 		Branch b = rankedList.get(12);
 		System.out.println(b);
-		generateCode(b);
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		generateCode(b, true);
 	}
 	
 	

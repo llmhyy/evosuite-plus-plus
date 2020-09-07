@@ -15,19 +15,30 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
+import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
+import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.NullStatement;
+import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.statements.StringPrimitiveStatement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
+import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ObjectOrientedTest {
+	
+	private static final Logger logger = LoggerFactory.getLogger(ObjectOrientedTest.class);
+	
 	public static void setup() {
 		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 		Properties.ASSERTIONS = false;
@@ -47,15 +58,16 @@ public class ObjectOrientedTest {
 		BranchPool.getInstance(classLoader).reset();
 	}
 	
-	protected TestCase generateCode(Branch b) {
+	protected TestCase generateCode(Branch b, boolean isDebugger) {
 		TestFactory testFactory = TestFactory.getInstance();
 		TestCase test = initializeTest(b, testFactory);
 		try {
 			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-			cpSynthesizer.constructDifficultObjectStatement(test, b);
+			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebugger);
 			mutateNullStatements(test);
 			
 			System.out.println(test);
+			
 //			PartialGraph graph = cpSynthesizer.getPartialGraph();
 //			Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
 		} catch (Exception e) {
@@ -65,6 +77,7 @@ public class ObjectOrientedTest {
 		System.out.println("random seed is " + Randomness.getSeed());
 		return test;
 	}
+	
 	
 	protected void mutateNullStatements(TestCase test) {
 		for(int i=0; i<test.size(); i++) {

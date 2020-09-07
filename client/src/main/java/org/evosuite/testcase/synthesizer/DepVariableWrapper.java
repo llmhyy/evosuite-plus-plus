@@ -145,4 +145,10 @@ public class DepVariableWrapper {
 	private boolean isSupportOperandFor(DepVariable var2, int index) {
 		return this.var.isSupportOperandFor(var2, index);
 	}
+
+	public String getShortName() {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(var.getMethodName() + "#" + var.getInstruction().getInstructionId());
+		return buffer.toString();
+	}
 }

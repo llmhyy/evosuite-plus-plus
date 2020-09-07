@@ -131,7 +131,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 		TestCase test = initializeTest(b, testFactory);
 		try {
 			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-			cpSynthesizer.constructDifficultObjectStatement(test, b);
+			cpSynthesizer.constructDifficultObjectStatement(test, b, false);
 			mutateNullStatements(test);
 			
 			PartialGraph graph = cpSynthesizer.getPartialGraph();

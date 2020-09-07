@@ -152,7 +152,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 						System.currentTimeMillis();
 						long t0 = System.currentTimeMillis();
 						ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-						cpSynthesizer.constructDifficultObjectStatement(test, b);
+						cpSynthesizer.constructDifficultObjectStatement(test, b, false);
 						mutateNullStatements(test);
 						long t1 = System.currentTimeMillis();
 						logger.warn("construction time: " + (t1-t0));

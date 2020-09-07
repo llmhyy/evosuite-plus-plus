@@ -43,7 +43,7 @@ public class GraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 		Branch b = rankedList.get(10);
-		generateCode(b);
+		generateCode(b, false);
 	}
 	
 	@Test
@@ -65,7 +65,7 @@ public class GraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		//29
 		Branch b = rankedList.get(12);
 		System.out.println(b);
-		generateCode(b);
+		generateCode(b, false);
 	}
 
 }
