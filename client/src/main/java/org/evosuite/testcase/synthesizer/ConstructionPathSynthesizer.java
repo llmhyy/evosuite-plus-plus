@@ -170,8 +170,8 @@ public class ConstructionPathSynthesizer {
 		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-			logger.warn(String.valueOf(c) + ":" + node.toString());
-			if(c==11) {
+//			logger.warn(String.valueOf(c) + ":" + node.toString());
+			if(c==39) {
 				System.currentTimeMillis();
 				System.currentTimeMillis();
 			}

@@ -31,12 +31,14 @@ public class OverallRunningTest {
 	public void testBugExample() {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
-				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
+				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
+				
 				};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 1000000;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
