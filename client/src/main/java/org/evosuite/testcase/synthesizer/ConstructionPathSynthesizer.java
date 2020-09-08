@@ -217,6 +217,10 @@ public class ConstructionPathSynthesizer {
 					methodCounter.put(node, ++count);
 				}
 			}
+			
+			if(test.size() > Properties.CHROMOSOME_LENGTH) {
+				break;
+			}
 		}
 		
 //		System.currentTimeMillis();

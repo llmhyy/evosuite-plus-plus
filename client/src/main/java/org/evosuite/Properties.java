@@ -574,7 +574,7 @@ public class Properties {
 
 	@Parameter(key = "chromosome_length", group = "Search Algorithm", description = "Maximum length of chromosomes during search")
 	@IntValue(min = 1, max = 100000)
-	public static int CHROMOSOME_LENGTH = 60;
+	public static int CHROMOSOME_LENGTH = 200;
 
 	@Parameter(key = "number_of_tests_per_target", group = "Search Algorithm", description = "Number of test cases for each target goal to keep in an archive")
 	public static int NUMBER_OF_TESTS_PER_TARGET = 10;
