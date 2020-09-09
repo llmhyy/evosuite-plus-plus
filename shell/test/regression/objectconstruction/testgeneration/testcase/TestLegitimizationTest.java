@@ -19,6 +19,7 @@ import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.test.TestUtility;
@@ -36,6 +37,11 @@ import regression.objectconstruction.testgeneration.example.graphcontruction.MUX
 import regression.objectconstruction.testgeneration.example.graphcontruction.RMIManagedConnectionAcceptor.close.RMIManagedConnectionAcceptor;
 
 public class TestLegitimizationTest extends ObjectOrientedTest {
+	
+	@Before
+	public void init() {
+		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+	}
 	
 	@Test
 	public void testLegitimization1() throws ClassNotFoundException, RuntimeException {

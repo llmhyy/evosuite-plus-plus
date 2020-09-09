@@ -286,6 +286,7 @@ public class DataDependencyUtil {
 					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 					.getAllInstructionsAtMethod(className, methodName);
 			
+			//FIXME aaron try to handle Java collection field.
 			if(insList == null) {
 				Class<?> c = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
 				Class<?> superClass = c.getSuperclass();
@@ -312,6 +313,13 @@ public class DataDependencyUtil {
 		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
 		if (insList != null) {
 			for (BytecodeInstruction ins : insList) {
+				if(isCollection(field)) {
+					if(isCallElementModification(ins)) {
+						setterMap.put(ins, new ArrayList<>(cascadingCallRelations));
+					}
+				}
+				
+				
 				if (ins.getASMNodeString().contains(opcode)) {
 					AbstractInsnNode node = ins.getASMNode();
 					if (node instanceof FieldInsnNode) {
@@ -320,7 +328,8 @@ public class DataDependencyUtil {
 							setterMap.put(ins, new ArrayList<>(cascadingCallRelations));
 						}
 					}
-				} else if (ins.getASMNode() instanceof MethodInsnNode) {
+				} 
+				else if (ins.getASMNode() instanceof MethodInsnNode) {
 					if (depth > 0) {
 						MethodInsnNode mNode = (MethodInsnNode) (ins.getASMNode());
 
@@ -352,6 +361,28 @@ public class DataDependencyUtil {
 
 	}
 	
+	/**
+	 * check the call to elements.
+	 * @param ins
+	 * @return
+	 */
+	private static boolean isCallElementModification(BytecodeInstruction ins) {
+		// TODO aaron
+		return false;
+	}
+	
+	
+	/**
+	 * all the java classes from java.util.List/Collection
+	 * @param field
+	 * @return
+	 */
+	private static boolean isCollection(Field field) {
+		// TODO aaron
+		return false;
+	}
+
+
 	private static String confirmClassNameInParentClass(String calledClass, MethodInsnNode mNode) {
 		ClassNode classNode = DependencyAnalysis.getClassNode(calledClass);
 		List<String> superClassList = DependencyAnalysis.getInheritanceTree().getOrderedSuperclasses(calledClass);
