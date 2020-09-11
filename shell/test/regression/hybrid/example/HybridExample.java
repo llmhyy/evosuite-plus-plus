@@ -3,7 +3,7 @@ package regression.hybrid.example;
 public class HybridExample {
 	public void test(int x, int y) {
 		if(x==y) {
-			if(x>100000) {
+			if(x>5) {
 				return;
 			}
 		}
@@ -84,4 +84,20 @@ public class HybridExample {
 		else
 			s = shortestPalindrome(s);
 	}
+	
+	public void randomCannot(int x,int y) {
+		
+//		if(x == y + 10000) {
+//			return;
+//		}else if(x > y * 20) {
+//			return;
+//		}
+		
+		if(x>5) {
+			if(x==y) {
+				return;
+			}
+		}
+	}
+	
 }
