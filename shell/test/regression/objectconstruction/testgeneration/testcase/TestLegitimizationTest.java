@@ -27,7 +27,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 	
 	@Before
 	public void init() {
-		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 100;
 	}
 	
 	@Test
