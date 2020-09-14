@@ -15,7 +15,6 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
-import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
@@ -24,21 +23,23 @@ import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.statements.ArrayStatement;
+import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.statements.NullStatement;
-import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
-import org.evosuite.testcase.statements.StringPrimitiveStatement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
+import org.evosuite.testcase.synthesizer.DepVariableWrapper;
+import org.evosuite.testcase.synthesizer.PartialGraph;
+import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ObjectOrientedTest {
-	
-	private static final Logger logger = LoggerFactory.getLogger(ObjectOrientedTest.class);
-	
+
+	public static final Logger logger = LoggerFactory.getLogger(ObjectOrientedTest.class);
+
 	public static void setup() {
 		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 		Properties.ASSERTIONS = false;
@@ -50,14 +51,14 @@ public class ObjectOrientedTest {
 		Properties.PRIMITIVE_POOL = 0.5;
 		Properties.DYNAMIC_POOL = 0.5;
 		Properties.ASSERTIONS = false;
-		
+
 		Properties.TIMEOUT = 300000000;
-		
+
 		// Clear all branches so that branch numbers do not change
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		BranchPool.getInstance(classLoader).reset();
 	}
-	
+
 	protected TestCase generateCode(Branch b, boolean isDebugger) {
 		TestFactory testFactory = TestFactory.getInstance();
 		TestCase test = initializeTest(b, testFactory);
@@ -65,44 +66,83 @@ public class ObjectOrientedTest {
 			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebugger);
 			mutateNullStatements(test);
-			
+
 			System.out.println(test);
-			
+
 //			PartialGraph graph = cpSynthesizer.getPartialGraph();
 //			Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		System.out.println("random seed is " + Randomness.getSeed());
 		return test;
 	}
-	
-	
+
+	protected void assertLegitimization(Branch b, boolean isDebug) {
+
+		if (Properties.APPLY_OBJECT_RULE) {
+			Properties.PRIMITIVE_REUSE_PROBABILITY = 0;
+			System.currentTimeMillis();
+		}
+
+		TestFactory testFactory = TestFactory.getInstance();
+		TestCase test = initializeTest(b, testFactory);
+		try {
+			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebug);
+			mutateNullStatements(test);
+
+			PartialGraph graph = cpSynthesizer.getPartialGraph();
+			Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+
+			TestChromosome templateTestChromosome = new TestChromosome();
+			templateTestChromosome.setTestCase(test);
+			ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
+			templateTestChromosome.setLastExecutionResult(result);
+
+			TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(templateTestChromosome, graph, graph2CodeMap);
+			System.out.println(chromosome.getTestCase());
+
+			System.out.println("random seed is " + Randomness.getSeed());
+			System.out.println("legitimacy distance is " + chromosome.getLegitimacyDistance());
+			assert chromosome.getLegitimacyDistance() == 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("random seed is " + Randomness.getSeed());
+			assert false;
+		}
+
+		if (Properties.APPLY_OBJECT_RULE) {
+			Properties.PRIMITIVE_REUSE_PROBABILITY = 0.5;
+		}
+
+	}
+
 	protected void mutateNullStatements(TestCase test) {
-		for(int i=0; i<test.size(); i++) {
+		for (int i = 0; i < test.size(); i++) {
 			Statement s = test.getStatement(i);
-			if(s instanceof NullStatement) {
+			if (s instanceof NullStatement) {
 				TestFactory.getInstance().changeNullStatement(test, s);
 				System.currentTimeMillis();
 			}
 		}
 	}
-	
+
 	protected TestCase initializeTest(Branch b, TestFactory testFactory) {
 		TestCase test = new DefaultTestCase();
 		int success = -1;
 		while (test.size() == 0 || success == -1) {
 			test = new DefaultTestCase();
 			success = testFactory.insertRandomStatement(test, 0);
-			if(test.size() != 0 && success != -1) {
+			if (test.size() != 0 && success != -1) {
 				mutateNullStatements(test);
 			}
 		}
-		
+
 		return test;
 	}
-	
+
 	protected ArrayList<Branch> buildObjectConstructionGraph() throws ClassNotFoundException {
 		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
 		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
@@ -120,9 +160,10 @@ public class ObjectOrientedTest {
 		});
 		return rankedList;
 	}
-	
-	protected ArrayList<Branch> buildObjectConstructionGraph4SF100(List<String> classPaths) throws ClassNotFoundException {
-		
+
+	protected ArrayList<Branch> buildObjectConstructionGraph4SF100(List<String> classPaths)
+			throws ClassNotFoundException {
+
 //		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
 		Properties.APPLY_OBJECT_RULE = true;
@@ -138,6 +179,13 @@ public class ObjectOrientedTest {
 		});
 		return rankedList;
 	}
-	
-	
+
+	protected Branch searchBranch(ArrayList<Branch> rankedList, int lineNumber) {
+		for (Branch b : rankedList) {
+			if (b.getInstruction().getLineNumber() == lineNumber) {
+				return b;
+			}
+		}
+		return null;
+	}
 }
