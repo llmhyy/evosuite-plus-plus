@@ -38,6 +38,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 
 	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
 	
+	private Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
+	
 	private double initialCoverage = 0;
 	
 	private long initializationOverhead = 0;
@@ -478,4 +480,14 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	public void setMissingBranches(List<BranchInfo> missingBranches) {
 		this.missingBranches = missingBranches;
 	}
+
+	public Map<BranchInfo, String> getCoveredBranchWithTest() {
+		return coveredBranchWithTest;
+	}
+
+	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest) {
+		this.coveredBranchWithTest = coveredBranchWithTest;
+	}
+	
+	
 }

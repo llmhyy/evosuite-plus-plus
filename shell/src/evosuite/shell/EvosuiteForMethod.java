@@ -677,6 +677,8 @@ public class EvosuiteForMethod {
 					result.setInitialCoverage(r.getInitialCoverage());
 					result.setMissingBranches(r.getMissingBranches());
 					result.setInitializationOverhead(r.getInitializationOverhead());
+					result.setCoveredBranchWithTest(r.getCoveredBranchWithTest());
+					
 
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
@@ -704,15 +706,16 @@ public class EvosuiteForMethod {
 		System.out.println("Unavailable calls: " + r.getUnavailableCalls());
 		
 		System.out.println("Missing branches: ");
+		for(BranchInfo branch: r.getMissingBranches()) {
+			System.out.println(branch.getStringValue() + ":" + branch.getTruthValue());
+		}			
 		
-		try {
-			for(BranchInfo branch: r.getMissingBranches()) {
-				System.out.println(branch.getStringValue() + ":" + branch.getTruthValue());
-			}			
+		System.out.println("Covered branches");
+		for(BranchInfo branch: r.getCoveredBranchWithTest().keySet()) {
+			System.out.println("-- " + branch);
+			System.out.println(r.getCoveredBranchWithTest().get(branch));
 		}
-		catch(Exception e) {
-			e.printStackTrace();
-			System.currentTimeMillis();
-		}
+		
+		
 	}
 }

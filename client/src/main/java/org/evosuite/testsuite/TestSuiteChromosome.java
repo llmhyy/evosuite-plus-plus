@@ -76,6 +76,8 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private Map<String, Boolean> methodCallAvailabilityMap = new HashMap<>();
 	
 	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
+	
+	private Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
 
 	/**
 	 * Add an additional secondary objective to the end of the list of
@@ -461,5 +463,15 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	public void setMissingBranches(List<BranchInfo> missingBranches) {
 		this.missingBranches = missingBranches;
 	}
+
+	public Map<BranchInfo, String> getCoveredBranchWithTest() {
+		return coveredBranchWithTest;
+	}
+
+	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest) {
+		this.coveredBranchWithTest = coveredBranchWithTest;
+	}
+
+	
 
 }

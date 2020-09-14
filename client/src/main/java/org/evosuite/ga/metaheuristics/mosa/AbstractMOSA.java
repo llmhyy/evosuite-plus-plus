@@ -646,6 +646,9 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		List<BranchInfo> missingBranches = findMissingBranches();
 		best.setMissingBranches(missingBranches);
 		
+		Map<BranchInfo, String> coveredBranchWithTest = findCoveredBranches();
+		best.setCoveredBranchWithTest(coveredBranchWithTest);
+		
 		double IPFlagCoverage = 0;
 		if(IPFlags.size()!=0)
 			IPFlagCoverage = (double)uncoveredIPFlags.size()/IPFlags.size();
@@ -668,6 +671,24 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
     	}
 		return list;
 	}
+    
+    private Map<BranchInfo, String> findCoveredBranches(){
+    	Map<BranchInfo, String> map = new HashMap<BranchInfo, String>(); 
+        
+    	for(TestFitnessFunction tff: Archive.getArchiveInstance().getCoveredTargets()) {
+    		if(tff instanceof BranchFitness) {
+    			BranchFitness bf = (BranchFitness)tff;
+    			BranchCoverageGoal goal = bf.getBranchGoal();
+    			BranchInfo branchInfo = new BranchInfo(goal.getBranch(), goal.getValue());
+    			
+    			TestChromosome test = Archive.getArchiveInstance().getSolution(tff);
+    			map.put(branchInfo, test.toString());
+    		}
+    	}
+    	
+    	
+        return map;
+    }
 
 	protected void computeCoverageAndFitness(TestSuiteChromosome suite) {
       for (Entry<TestSuiteFitnessFunction, Class<?>> entry : this.suiteFitnessFunctions

@@ -143,5 +143,8 @@ public interface TestGenerationResult extends Serializable {
 
 	public List<BranchInfo> getMissingBranches();
 	public void setMissingBranches(List<BranchInfo> missingBranches);
+	
+	public Map<BranchInfo, String> getCoveredBranchWithTest();
+	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest);
 
 }
