@@ -283,6 +283,7 @@ public class FieldUseAnalyzer {
 		if(relatedVariableMap.isEmpty()) {
 			return null;
 		}
+		System.currentTimeMillis();
 		
 		String className = relatedVariableMap.keySet().iterator().next();
 		Set<DepVariable> relatedVariables = relatedVariableMap.get(className);
@@ -316,7 +317,7 @@ public class FieldUseAnalyzer {
 					
 					if(path != null) {
 						if(path.getPath().size() < 2) {
-							System.currentTimeMillis();
+							continue;
 						}
 						
 						DepVariable secondVar = path.getPath().get(path.size()-2);
