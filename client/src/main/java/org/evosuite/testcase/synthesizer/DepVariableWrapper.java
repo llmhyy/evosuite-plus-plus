@@ -148,7 +148,7 @@ public class DepVariableWrapper {
 
 	public String getShortName() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append(var.getMethodName() + "#" + var.getInstruction().getInstructionId());
+		buffer.append(var.getShortMethodName() + "#" + var.getInstruction().getInstructionId());
 		return buffer.toString();
 	}
 }

@@ -171,7 +171,7 @@ public class ConstructionPathSynthesizer {
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
 			logger.warn(String.valueOf(c) + ":" + node.toString());
-			if(c==39) {
+			if(c==11) {
 				System.currentTimeMillis();
 				System.currentTimeMillis();
 			}
@@ -915,15 +915,25 @@ public class ConstructionPathSynthesizer {
 		if(fieldSetter == null) {
 			try {
 				fieldSetter = generateFieldSetterInTest(test, targetObjectReference, map, fieldDeclaringClass, field);
+				if(fieldSetter != null) {
+					Statement s = test.getStatement(fieldSetter.getStPosition());
+					/**
+					 * if the field setter is a constructor, thus, the object represented by the field setter, o_new, should be
+					 * the target object reference as the field is now only relevant to o_new.
+					 */
+					if(s instanceof ConstructorStatement) {
+						targetObjectReference = fieldSetter;
+					}
+				}
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			} catch (ConstructionFailedException e) {
 				e.printStackTrace();
 			}
 		}
-		else {
-			return fieldSetter;
-		}
+//		else {
+//			return fieldSetter;
+//		}
 		
 		int insertionPostion = -1;
 		if(fieldSetter != null) {

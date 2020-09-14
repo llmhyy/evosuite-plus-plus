@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
@@ -20,7 +21,7 @@ public class GraphBasedCodeGenerationTest extends ObjectOrientedTest {
 	@Test
 	public void testGeneration4CheckRule() throws ClassNotFoundException, RuntimeException {
 		
-//		Properties.RANDOM_SEED = 1598462235539l;
+		Properties.RANDOM_SEED = 1600102372406l;
 		//1598462133372
 		
 		setup();
@@ -35,6 +36,8 @@ public class GraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 		
 		Branch b = searchBranch(rankedList, 15);
+		
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 		generateCode(b, true);
 	}
 	

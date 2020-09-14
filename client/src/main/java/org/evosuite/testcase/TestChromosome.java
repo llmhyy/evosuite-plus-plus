@@ -106,12 +106,12 @@ public class TestChromosome extends ExecutableChromosome {
 		ExecutionResult result = TestCaseExecutor.runTest(this.getTestCase());
 		this.setLastExecutionResult(result);
 		int numOfExecutedStatements = this.getLastExecutionResult().getExecutedStatements();
-		Statement statOfExp = test.getStatement(numOfExecutedStatements);
 		
-		if(statOfExp.getPosition() == this.test.size() - 1){
+		if(numOfExecutedStatements >= this.test.size() - 1){
 			return null;
 		}
 		
+		Statement statOfExp = test.getStatement(numOfExecutedStatements);
 		return statOfExp;
 	}
 	

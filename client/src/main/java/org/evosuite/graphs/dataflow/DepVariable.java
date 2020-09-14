@@ -600,5 +600,14 @@ public class DepVariable {
 	public String getMethodName() {
 		return this.getClassName() + "#" + this.getInstruction().getMethodName();
 	}
+	
+	public String getShortMethodName() {
+		String clazz = this.getClassName();
+		String shortClass = clazz.substring(clazz.lastIndexOf(".")+1, clazz.length());
+		String method = this.getInstruction().getMethodName();
+		String shortMethod = method.substring(0, method.indexOf("("));
+		
+		return shortClass + "#" + shortMethod;
+	}
 
 }
