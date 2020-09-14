@@ -99,7 +99,8 @@ public class DefUseAnalyzer {
 			// Can't find the method in current class
 			// Check its parent class
 			try {
-				Class<?> clazz = Class.forName(className);
+				Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
+//				Class<?> clazz = Class.forName(className);
 				if (clazz.getSuperclass() != null) {
 					Class<?> superClazz = clazz.getSuperclass();
 					return getMethodNode(classLoader, superClazz.getName(), methodName);
