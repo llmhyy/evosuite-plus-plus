@@ -35,7 +35,6 @@ import org.evosuite.ProgressMonitor;
 import org.evosuite.Properties;
 import org.evosuite.Properties.SelectionFunction;
 import org.evosuite.coverage.FitnessFunctions;
-import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.branch.BranchFitness;
@@ -51,6 +50,7 @@ import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.ga.metaheuristics.SearchListener;
 import org.evosuite.ga.operators.mutation.MutationHistory;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.result.BranchInfo;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -643,7 +643,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		best.setInitialCoverage(this.initialCoverage);
 		best.setInitializationOverhead(this.initializationOverhead);
 
-		List<Pair<String, Boolean>> missingBranches = findMissingBranches();
+		List<BranchInfo> missingBranches = findMissingBranches();
 		best.setMissingBranches(missingBranches);
 		
 		double IPFlagCoverage = 0;
@@ -655,14 +655,14 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
         return (T) best;
     }
     
-    private List<Pair<String, Boolean>> findMissingBranches() {
-    	List<Pair<String, Boolean>> list = new ArrayList<Pair<String,Boolean>>();
+    private List<BranchInfo> findMissingBranches() {
+    	List<BranchInfo> list = new ArrayList<BranchInfo>();
     	for(FitnessFunction<T> ff: getUncoveredGoals()) {
     		if(ff instanceof BranchFitness) {
     			BranchFitness bf = (BranchFitness)ff;
     			BranchCoverageGoal goal = bf.getBranchGoal();
-    			Pair<String, Boolean> pair = Pair.of(goal.getBranch().toString(), goal.getValue());
-    			list.add(pair);
+    			BranchInfo branchInfo = new BranchInfo(goal.getBranch(), goal.getValue());
+    			list.add(branchInfo);
     		}
     		
     	}

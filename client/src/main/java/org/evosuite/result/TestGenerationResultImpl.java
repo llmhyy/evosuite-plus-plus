@@ -36,7 +36,7 @@ import org.evosuite.testcase.TestCase;
 
 class TestGenerationResultImpl implements TestGenerationResult {
 
-	private List<Pair<String, Boolean>> missingBranches = new ArrayList<Pair<String, Boolean>>();
+	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
 	
 	private double initialCoverage = 0;
 	
@@ -471,11 +471,11 @@ class TestGenerationResultImpl implements TestGenerationResult {
 		this.initializationOverhead = initializationOverhead;
 	}
 
-	public List<Pair<String, Boolean>> getMissingBranches() {
+	public List<BranchInfo> getMissingBranches() {
 		return missingBranches;
 	}
 
-	public void setMissingBranches(List<Pair<String, Boolean>> missingBranches) {
+	public void setMissingBranches(List<BranchInfo> missingBranches) {
 		this.missingBranches = missingBranches;
 	}
 }

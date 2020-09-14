@@ -6,14 +6,14 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
-import org.evosuite.coverage.branch.Branch;
+import org.evosuite.result.BranchInfo;
 
 public class EvoTestResult {
 	
 	private double initialCoverage;
 	private long initializationOverhead;
 	
-	private List<Pair<String, Boolean>> missingBranches = new ArrayList<Pair<String, Boolean>>();
+	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
 	
 	private int time;
 	private double coverage;
@@ -195,11 +195,11 @@ public class EvoTestResult {
 		this.initializationOverhead = initializationOverhead;
 	}
 
-	public List<Pair<String, Boolean>> getMissingBranches() {
+	public List<BranchInfo> getMissingBranches() {
 		return missingBranches;
 	}
 
-	public void setMissingBranches(List<Pair<String, Boolean>> missingBranches) {
+	public void setMissingBranches(List<BranchInfo> missingBranches) {
 		this.missingBranches = missingBranches;
 	}
 

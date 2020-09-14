@@ -17,7 +17,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.CommandLineParameters;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
@@ -25,7 +24,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
-import org.evosuite.coverage.branch.Branch;
+import org.evosuite.result.BranchInfo;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.ProgramArgumentUtils;
@@ -707,8 +706,8 @@ public class EvosuiteForMethod {
 		System.out.println("Missing branches: ");
 		
 		try {
-			for(Pair<String, Boolean> pair: r.getMissingBranches()) {
-				System.out.println(pair.getLeft() + ":" + pair.getRight());
+			for(BranchInfo branch: r.getMissingBranches()) {
+				System.out.println(branch.getStringValue() + ":" + branch.getTruthValue());
 			}			
 		}
 		catch(Exception e) {

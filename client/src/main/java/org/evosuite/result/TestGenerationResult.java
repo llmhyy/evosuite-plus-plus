@@ -141,7 +141,7 @@ public interface TestGenerationResult extends Serializable {
 	public long getInitializationOverhead();
 	public void setInitializationOverhead(long initializationOverhead);
 
-	public List<Pair<String, Boolean>> getMissingBranches();
-	public void setMissingBranches(List<Pair<String, Boolean>> missingBranches);
+	public List<BranchInfo> getMissingBranches();
+	public void setMissingBranches(List<BranchInfo> missingBranches);
 
 }

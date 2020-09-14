@@ -27,15 +27,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
 import org.evosuite.Properties;
-import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.SecondaryObjective;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import org.evosuite.result.BranchInfo;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -76,7 +75,7 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	
 	private Map<String, Boolean> methodCallAvailabilityMap = new HashMap<>();
 	
-	private List<Pair<String, Boolean>> missingBranches = new ArrayList<Pair<String, Boolean>>();
+	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
 
 	/**
 	 * Add an additional secondary objective to the end of the list of
@@ -455,11 +454,11 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 		this.initializationOverhead = initializationOverhead;
 	}
 
-	public List<Pair<String, Boolean>> getMissingBranches() {
+	public List<BranchInfo> getMissingBranches() {
 		return missingBranches;
 	}
 
-	public void setMissingBranches(List<Pair<String, Boolean>> missingBranches) {
+	public void setMissingBranches(List<BranchInfo> missingBranches) {
 		this.missingBranches = missingBranches;
 	}
 
