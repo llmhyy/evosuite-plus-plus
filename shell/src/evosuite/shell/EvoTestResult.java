@@ -13,7 +13,7 @@ public class EvoTestResult {
 	private double initialCoverage;
 	private long initializationOverhead;
 	
-	private List<Pair<Branch, Boolean>> missingBranches = new ArrayList<Pair<Branch, Boolean>>();
+	private List<Pair<String, Boolean>> missingBranches = new ArrayList<Pair<String, Boolean>>();
 	
 	private int time;
 	private double coverage;
@@ -195,11 +195,11 @@ public class EvoTestResult {
 		this.initializationOverhead = initializationOverhead;
 	}
 
-	public List<Pair<Branch, Boolean>> getMissingBranches() {
+	public List<Pair<String, Boolean>> getMissingBranches() {
 		return missingBranches;
 	}
 
-	public void setMissingBranches(List<Pair<Branch, Boolean>> missingBranches) {
+	public void setMissingBranches(List<Pair<String, Boolean>> missingBranches) {
 		this.missingBranches = missingBranches;
 	}
 

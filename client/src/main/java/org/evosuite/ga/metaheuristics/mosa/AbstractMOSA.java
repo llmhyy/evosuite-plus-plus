@@ -643,7 +643,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		best.setInitialCoverage(this.initialCoverage);
 		best.setInitializationOverhead(this.initializationOverhead);
 
-		List<Pair<Branch, Boolean>> missingBranches = findMissingBranches();
+		List<Pair<String, Boolean>> missingBranches = findMissingBranches();
 		best.setMissingBranches(missingBranches);
 		
 		double IPFlagCoverage = 0;
@@ -655,13 +655,13 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
         return (T) best;
     }
     
-    private List<Pair<Branch, Boolean>> findMissingBranches() {
-    	List<Pair<Branch, Boolean>> list = new ArrayList<Pair<Branch,Boolean>>();
+    private List<Pair<String, Boolean>> findMissingBranches() {
+    	List<Pair<String, Boolean>> list = new ArrayList<Pair<String,Boolean>>();
     	for(FitnessFunction<T> ff: getUncoveredGoals()) {
     		if(ff instanceof BranchFitness) {
     			BranchFitness bf = (BranchFitness)ff;
     			BranchCoverageGoal goal = bf.getBranchGoal();
-    			Pair<Branch, Boolean> pair = Pair.of(goal.getBranch(), goal.getValue());
+    			Pair<String, Boolean> pair = Pair.of(goal.getBranch().toString(), goal.getValue());
     			list.add(pair);
     		}
     		

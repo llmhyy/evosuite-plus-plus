@@ -408,14 +408,14 @@ public abstract class Chromosome implements Comparable<Chromosome>, Serializable
         return cov;
     }
 	
-	public List<Pair<Branch, Boolean>> getMissingBranches() {
-		List<Pair<Branch, Boolean>> list = new ArrayList<Pair<Branch,Boolean>>();
+	public List<Pair<String, Boolean>> getMissingBranches() {
+		List<Pair<String, Boolean>> list = new ArrayList<Pair<String,Boolean>>();
         for (FitnessFunction<?> fitnessFunction : coverageValues.keySet()) {
             if(fitnessFunction instanceof BranchFitness) {
             	if(coverageValues.get(fitnessFunction)>0) {
             		BranchFitness bf = (BranchFitness)fitnessFunction;
             		BranchCoverageGoal goal = bf.getBranchGoal();
-            		Pair<Branch, Boolean> pair = Pair.of(goal.getBranch(), goal.getValue());
+            		Pair<String, Boolean> pair = Pair.of(goal.getBranch().toString(), goal.getValue());
             		list.add(pair);
             	}
             }

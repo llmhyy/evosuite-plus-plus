@@ -17,6 +17,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.CommandLineParameters;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
@@ -24,6 +25,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.ProgramArgumentUtils;
@@ -665,16 +667,7 @@ public class EvosuiteForMethod {
 			List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evosuite.parseCommandLine(args);
 			for (List<TestGenerationResult> l : list) {
 				for (TestGenerationResult r : l) {
-					
-					System.out.println("Initial Coverage: " + r.getInitialCoverage());
-					System.out.println("Initialization Time: " + r.getInitializationOverhead());
-					
-					System.out.println("Used time: " + r.getElapseTime());
-					System.out.println("Used generations: " + r.getAge());
-					System.out.println("Method call availability: " + r.getAvailabilityRatio());
-
-					System.out.println("Available calls: " + r.getAvailableCalls());
-					System.out.println("Unavailable calls: " + r.getUnavailableCalls());
+					printResult(r);
 					
 					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), r.getAge(), r.getAvailabilityRatio(),
 							r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
@@ -698,5 +691,29 @@ public class EvosuiteForMethod {
 		}
 
 		return result;
+	}
+
+	private void printResult(TestGenerationResult r) {
+		System.out.println("Initial Coverage: " + r.getInitialCoverage());
+		System.out.println("Initialization Time: " + r.getInitializationOverhead());
+		
+		System.out.println("Used time: " + r.getElapseTime());
+		System.out.println("Used generations: " + r.getAge());
+		System.out.println("Method call availability: " + r.getAvailabilityRatio());
+
+		System.out.println("Available calls: " + r.getAvailableCalls());
+		System.out.println("Unavailable calls: " + r.getUnavailableCalls());
+		
+		System.out.println("Missing branches: ");
+		
+		try {
+			for(Pair<String, Boolean> pair: r.getMissingBranches()) {
+				System.out.println(pair.getLeft() + ":" + pair.getRight());
+			}			
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			System.currentTimeMillis();
+		}
 	}
 }
