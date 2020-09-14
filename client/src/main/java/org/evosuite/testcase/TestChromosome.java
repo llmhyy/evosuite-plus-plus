@@ -160,7 +160,7 @@ public class TestChromosome extends ExecutableChromosome {
 					average += fit;
 				}
 				
-				average /= relevantBranches.size();
+				average = average/(double)relevantBranches.size();
 				this.legitimacyDistance += average;
 			}
 		}
@@ -209,7 +209,6 @@ public class TestChromosome extends ExecutableChromosome {
 					return nonNullBranches;
 				}
 			}
-			System.currentTimeMillis();
 		}
 		
 		if(excep.getStackTrace().length != 0) {
@@ -252,6 +251,7 @@ public class TestChromosome extends ExecutableChromosome {
 		if(element.getLineNumber()>0) {
 			insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());			
 		}
+		System.currentTimeMillis();
 		
 		List<FBranchTestFitness> fitnessList = new ArrayList<FBranchTestFitness>();
 		if(insList != null && insList.size() > 0) {
@@ -346,7 +346,9 @@ public class TestChromosome extends ExecutableChromosome {
 		
 		return statOfExp instanceof MethodStatement 
 				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
-				&& excep instanceof NullPointerException;
+				&& 
+				(excep instanceof NullPointerException ||
+						excep.getCause() instanceof NullPointerException);
 	}
 	
 	private boolean isAssignmentIncurExplicitNullPointerException(Statement statOfExp, Throwable excep,
