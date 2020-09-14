@@ -2,23 +2,10 @@ package regression.objectconstruction.testgeneration.testcase;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.execution.ExecutionResult;
-import org.evosuite.testcase.execution.TestCaseExecutor;
-import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
-import org.evosuite.testcase.synthesizer.DepVariableWrapper;
-import org.evosuite.testcase.synthesizer.PartialGraph;
-import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
-import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.MethodUtil;
-import org.evosuite.utils.Randomness;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -59,7 +46,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(19);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 		
 	}
 
@@ -81,7 +68,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(2);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 		
 	}
 
@@ -103,7 +90,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 
 		Branch b = rankedList.get(4);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 	}
 
 
@@ -123,48 +110,11 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 		
 	}
 	
-	protected void assertLegitimization(Branch b) {
-		
-		if(Properties.APPLY_OBJECT_RULE) {
-			Properties.PRIMITIVE_REUSE_PROBABILITY = 0;
-		}
-		
-		TestFactory testFactory = TestFactory.getInstance();
-		TestCase test = initializeTest(b, testFactory);
-		try {
-			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-			cpSynthesizer.constructDifficultObjectStatement(test, b, false);
-			mutateNullStatements(test);
-			
-			PartialGraph graph = cpSynthesizer.getPartialGraph();
-			Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
-
-			TestChromosome templateTestChromosome = new TestChromosome();
-			templateTestChromosome.setTestCase(test);
-			ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
-			templateTestChromosome.setLastExecutionResult(result);
-			
-			TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(templateTestChromosome, graph, graph2CodeMap);
-			System.out.println(chromosome.getTestCase());
-
-			System.out.println("random seed is " + Randomness.getSeed());
-			System.out.println("legitimacy distance is " + chromosome.getLegitimacyDistance());
-			assert chromosome.getLegitimacyDistance() == 0;
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("random seed is " + Randomness.getSeed());
-			assert false;
-		}
-		
-		if(Properties.APPLY_OBJECT_RULE) {
-			Properties.PRIMITIVE_REUSE_PROBABILITY = 0.5;
-		}
-		
-	}
+	
 
 	@Test
 	public void testLegitimization5() throws ClassNotFoundException, RuntimeException {
@@ -182,7 +132,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 		
 	}
 
@@ -202,7 +152,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(1);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 		
 	}
 
@@ -223,7 +173,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(4);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 		
 	}
 
@@ -244,7 +194,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 		
 	}
 
@@ -322,7 +272,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 //				Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 		
 	}
 
@@ -342,7 +292,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 //				Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 		
 	}
 
@@ -362,7 +312,7 @@ public class TestLegitimizationTest extends ObjectOrientedTest {
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(14);
 
-		assertLegitimization(b);
+		assertLegitimization(b, false);
 		
 	}
 

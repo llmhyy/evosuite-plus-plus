@@ -24,6 +24,8 @@ public class OverallRunningTest {
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = true;
 		Properties.ADOPT_SMART_MUTATION = false;
+		
+		Properties.CHROMOSOME_LENGTH = 200;
 	}
 	
 
@@ -32,7 +34,9 @@ public class OverallRunningTest {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
-				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.ifxfv3.beans.CustPayeeMsgRecChoice#equals(Ljava/lang/Object;)Z"
+				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
 				
 				};
 		
@@ -44,7 +48,7 @@ public class OverallRunningTest {
 		String fitnessApproach = "branch";
 		
 		
-		boolean aor = true;
+		boolean aor = false;
 		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
