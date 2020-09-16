@@ -11,7 +11,7 @@ import com.test.TestUtility;
 
 import regression.objectconstruction.testgeneration.example.ObjectExample;
 
-public class ObjectTest extends TestUtility{
+public class ProjectObjectTest extends TestUtility{
 	@Test
 	public void testList() {
 		Class<?> clazz = ObjectExample.class;
