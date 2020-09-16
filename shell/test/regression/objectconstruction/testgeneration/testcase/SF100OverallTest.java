@@ -15,7 +15,7 @@ import com.test.TestUtility;
 import evosuite.shell.EvoTestResult;
 import sf100.CommonTestUtil;
 
-public class SF100OverallRunningTest {
+public class SF100OverallTest {
 	@Before
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;
@@ -41,7 +41,6 @@ public class SF100OverallRunningTest {
 				"state.Party#remove(Lstate/Party;)V"
 				};
 		
-		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
@@ -50,10 +49,9 @@ public class SF100OverallRunningTest {
 		
 		
 		boolean aor = true;
-		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+		CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
-		EvoTestResult resultF = resultsF.get(0);
 		
 		System.currentTimeMillis();
 	}

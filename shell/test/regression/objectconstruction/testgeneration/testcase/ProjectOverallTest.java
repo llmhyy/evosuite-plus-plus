@@ -10,20 +10,21 @@ import org.junit.Test;
 import com.test.TestUtility;
 
 import regression.objectconstruction.testgeneration.example.ObjectExample;
+import sf100.CommonTestUtil;
 
-public class ProjectOverllTest extends TestUtility{
+public class ProjectOverallTest extends TestUtility{
 	@Test
-	public void testList() {
+	public void testCascadeCall() {
 		Class<?> clazz = ObjectExample.class;
-		String methodName = "test2";
-		int parameterNum = 2;
+		String methodName = "test";
+		int parameterNum = 1;
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes";
+		String cp = "target/test-classes";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
@@ -31,13 +32,18 @@ public class ProjectOverllTest extends TestUtility{
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-		Properties.TIMEOUT = 10000000;
+		Properties.TIMEOUT = 1000;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		String fitnessApproach = "fbranch";
+		String fitnessApproach = "branch";
 		
-		int timeBudget = 30000;
-		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		int timeBudget = 100;
+		
+		boolean aor = true;
+		TestUtility.evoTestSingleMethod(targetClass,  
+				targetMethod, timeBudget, true, aor, cp, fitnessApproach, 
+				"generateMOSuite", "MOSUITE", "DynaMOSA");
+		
 	}
 	
 	@Test
