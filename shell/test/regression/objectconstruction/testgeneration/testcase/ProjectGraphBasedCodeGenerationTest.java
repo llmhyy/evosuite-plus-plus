@@ -15,7 +15,7 @@ import regression.objectconstruction.testgeneration.example.graphcontruction.Acc
 import regression.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
 import regression.objectconstruction.testgeneration.example.graphcontruction.JNFE.AddressData;
 
-public class GraphBasedCodeGenerationTest extends ObjectOrientedTest {
+public class ProjectGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 	
 	
 	@Test
