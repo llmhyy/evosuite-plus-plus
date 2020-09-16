@@ -381,7 +381,9 @@ public class DataDependencyUtil {
 			// Check if invoked method is a method from Collection class
 			Class<?> methodClassType;
 			try {
-				methodClassType = Class.forName(methodNode.owner.replace('/', '.'));
+				String typeString = methodNode.owner.replace('/', '.');
+				methodClassType = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(typeString);
+//				methodClassType = Class.forName();
 				if (isCollectionType(methodClassType)) {
 					
 					// Check if invoked method modifies element
