@@ -255,8 +255,7 @@ public final class CVC4Solver extends SmtSolver {
 
 	private static String buildCVC4cmd(long cvcTimeout) {
 		String cmd = Properties.CVC4_PATH;
-		cmd += "  --rewrite-divk"; // rewrite-divk rewrites division (or
-									// modulus) by a constant value
+//		cmd += "  --rewrite-divk"; // rewrite-divk rewrites division (or // modulus) by a constant value
 		cmd += " --lang smt"; // query language is SMT-LIB
 		cmd += " --finite-model-find";
 		/**

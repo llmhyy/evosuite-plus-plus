@@ -78,6 +78,7 @@ public abstract class SmtSolver extends Solver {
 			long solver_end_time_millis = System.currentTimeMillis();
 			long solver_duration_secs = (solver_end_time_millis - solver_start_time_millis) / 1000;
 			logger.debug("Solver execution time was {}s", solver_duration_secs);
+//			System.currentTimeMillis();
 		}
 
 	}
