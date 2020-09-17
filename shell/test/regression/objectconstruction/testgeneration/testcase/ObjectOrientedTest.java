@@ -100,6 +100,14 @@ public class ObjectOrientedTest {
 			templateTestChromosome.setTestCase(test);
 			ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
 			templateTestChromosome.setLastExecutionResult(result);
+			
+			double legitimacyDistance = templateTestChromosome.getLegitimacyDistance();
+			if(legitimacyDistance == 0) {
+				System.out.println("****no need to legitimize");
+			}
+			else {
+				System.out.println("****start legitimization");
+			}
 
 			TestChromosome chromosome = TestCaseLegitimizer.getInstance().legitimize(templateTestChromosome, graph, graph2CodeMap);
 			System.out.println(chromosome.getTestCase());

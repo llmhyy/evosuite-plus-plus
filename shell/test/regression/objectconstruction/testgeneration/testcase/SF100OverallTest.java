@@ -15,7 +15,7 @@ import com.test.TestUtility;
 import evosuite.shell.EvoTestResult;
 import sf100.CommonTestUtil;
 
-public class OverallRunningTest {
+public class SF100OverallTest {
 	@Before
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;
@@ -31,16 +31,16 @@ public class OverallRunningTest {
 
 	@Test
 	public void testBugExample() {
-		String projectId = "84_ifx-framework";
+//		String projectId = "84_ifx-framework";
+		String projectId = "27_gangup";
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CustPayeeMsgRecChoice#equals(Ljava/lang/Object;)Z"
-				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
-				
+//				"net.sourceforge.ifxfv3.beans.CustAddRqSequence#equals(Ljava/lang/Object;)Z"
+				"state.Party#remove(Lstate/Party;)V"
 				};
 		
-		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
@@ -48,14 +48,14 @@ public class OverallRunningTest {
 		String fitnessApproach = "branch";
 		
 		
-		boolean aor = false;
-		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+		boolean aor = true;
+		CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
-		EvoTestResult resultF = resultsF.get(0);
 		
 		System.currentTimeMillis();
 	}
+	
 	
 	@Test
 	public void testProtectedExample() {
@@ -203,41 +203,30 @@ public class OverallRunningTest {
 //	
 //	
 //	
-//	@Test
-//	public void testGangupBasicRulesExample() {
-//		String projectId = "27_gangup";
-//		String[] targetMethods = new String[]{
-//				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
-//				};
+	@Test
+	public void testGangupBasicRulesExample() {
+		String projectId = "27_gangup";
+		String[] targetMethods = new String[]{
+				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
+				};
+		
+		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor);
 //		
-//		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
-//		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-//		int repeatTime = 1;
-//		int budget = 10;
-//		Long seed = null;
-//		
-//		String fitnessApproach = "fbranch";
-//		
-////		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
-////				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
-//		
-//		boolean aor = false;
-//		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
-//				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor);
-////		
-////		EvoTestResult resultT = resultsT.get(0);
-//		EvoTestResult resultF = resultsF.get(0);
-////		
-////		int ageT = resultT.getAge();
-////		int timeT = resultT.getTime();
-////		double coverageT = resultT.getCoverage();
-//		int ageF = resultF.getAge();
-//		int timeF = resultF.getTime();
-//		double coverageF = resultF.getCoverage();
-//		double initCoverage = resultF.getInitialCoverage();
-//		
-//		System.currentTimeMillis();
-//	}
+		
+	}
 //	
 //	@Test
 //	public void testCascadingCallExample() {

@@ -340,8 +340,6 @@ public class TestChromosome extends ExecutableChromosome {
 	private boolean isMethodCallIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result) {
 		if(excep == null || excep.getMessage() == null) {
 			System.currentTimeMillis();
-			StackTraceElement[] a= excep.getStackTrace();
-			System.currentTimeMillis();
 		}
 		
 		return statOfExp instanceof MethodStatement 

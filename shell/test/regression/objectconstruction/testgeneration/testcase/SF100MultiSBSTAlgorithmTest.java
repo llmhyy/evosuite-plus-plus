@@ -13,7 +13,7 @@ import org.junit.Test;
 import evosuite.shell.EvoTestResult;
 import sf100.CommonTestUtil;
 
-public class MultiSBSTAlgorithmTest {
+public class SF100MultiSBSTAlgorithmTest {
 	@Before
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;

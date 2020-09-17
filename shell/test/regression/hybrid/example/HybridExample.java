@@ -3,7 +3,7 @@ package regression.hybrid.example;
 public class HybridExample {
 	public void test(int x, int y) {
 		if(x==y) {
-			if(x>100000) {
+			if(x>5) {
 				return;
 			}
 		}
@@ -32,7 +32,7 @@ public class HybridExample {
 	}
 	
 //	3.breakPalindrome
-	public static String breakPalindrome(String palindrome) {
+	public String breakPalindrome(String palindrome) {
         if (palindrome == null || palindrome.length() <= 1) {
             return "";
         }
@@ -45,7 +45,7 @@ public class HybridExample {
     }
 	
 //	4.Palindrome
-	public static boolean Palindrome(String s) {
+	public boolean Palindrome(String s) {
 		int n = s.length();
 		
 		if(s == null || n == 0)
@@ -62,12 +62,12 @@ public class HybridExample {
 	}
 	
 //	5.
-	public static String shortestPalindrome(String s) {
+	public String shortestPalindrome(String s) {
 		int length = s.length();
 		
 		String s1 = "";
 		
-		for(int n = length-1;n >= 0;n--) {
+		for(int n = length-1;n >= 0 && length > 1;n--) {
 			s1 = s1 + s.charAt(n);
 			if(Palindrome(s1 + s))
 				break;
@@ -84,4 +84,20 @@ public class HybridExample {
 		else
 			s = shortestPalindrome(s);
 	}
+	
+	public void randomCannot(int x,int y) {
+		
+//		if(x == y + 10000) {
+//			return;
+//		}else if(x > y * 20) {
+//			return;
+//		}
+		
+		if(x>5) {
+			if(x==y) {
+				return;
+			}
+		}
+	}
+	
 }
