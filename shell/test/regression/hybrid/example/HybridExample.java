@@ -2,8 +2,8 @@ package regression.hybrid.example;
 
 public class HybridExample {
 	public void test(int x, int y) {
-		if(x>5) {
-			if(x==y) {
+		if(x==y) {
+			if(x>5) {
 				return;
 			}
 		}

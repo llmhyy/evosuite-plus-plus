@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
-import org.evosuite.Properties.SolverType;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
 
