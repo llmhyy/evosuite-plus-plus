@@ -34,12 +34,15 @@ public class BranchInfo implements Serializable {
 	private int lineNo;
 	
 	private boolean truthValue;
+	
+	private String stringValue;
 
 	public BranchInfo(Branch branch, boolean truthValue) {
 		this.className = branch.getClassName();
 		this.methodName = branch.getMethodName();
 		this.lineNo = branch.getInstruction().getLineNumber();
 		this.truthValue = truthValue;
+		this.stringValue = branch.toString();
 	}
 	
 	public BranchInfo(String className, String methodName, int lineNo,
@@ -110,6 +113,14 @@ public class BranchInfo implements Serializable {
 		return "BranchInfo [className=" + className + ", methodName="
 				+ methodName + ", lineNo=" + lineNo + ", truthValue="
 				+ truthValue + "]";
+	}
+
+	public String getStringValue() {
+		return stringValue;
+	}
+
+	public void setStringValue(String stringValue) {
+		this.stringValue = stringValue;
 	}
 	
 	

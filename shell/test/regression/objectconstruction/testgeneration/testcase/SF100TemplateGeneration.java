@@ -4,8 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.bcel.util.ClassPath;
-import org.apache.bcel.util.SyntheticRepository;
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
@@ -13,7 +11,7 @@ import org.junit.Test;
 
 import evosuite.shell.experiment.SFBenchmarkUtils;
 
-public class TemplateGenerationSF100 extends ObjectOrientedTest {
+public class SF100TemplateGeneration extends ObjectOrientedTest {
 	@Test
 	public void testLongTest1() throws ClassNotFoundException, RuntimeException {
 		
@@ -115,4 +113,41 @@ public class TemplateGenerationSF100 extends ObjectOrientedTest {
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 		generateCode(b, true);
 	}
+	
+	@Test
+	public void testLongTest4() throws ClassNotFoundException, RuntimeException {
+		
+//		Properties.RANDOM_SEED = 1599466414837l;
+		
+		setup();
+		
+		String projectId = "84_ifx-framework";
+		String className = "net.sourceforge.ifxfv3.beans.LoanInfoCommon";
+		String methodName = "equals(Ljava/lang/Object;)Z";
+		int lineNumber = 210;
+		
+		String defaultClassPath = System.getProperty("java.class.path");
+		StringBuffer buffer = new StringBuffer();
+		List<String> classPaths = SFBenchmarkUtils.setupProjectProperties(projectId);
+		for(String classPath: classPaths) {			
+//			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(classPath);
+			buffer.append(File.pathSeparator + classPath);
+		}
+		
+		String newPath = defaultClassPath + buffer.toString();
+		System.setProperty("java.class.path", newPath);
+		
+		Properties.TARGET_CLASS = className;
+		Properties.TARGET_METHOD = methodName;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
+
+		
+		Branch b = searchBranch(rankedList, lineNumber);
+		System.out.println(b);
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		generateCode(b, true);
+	}
+
+	
 }

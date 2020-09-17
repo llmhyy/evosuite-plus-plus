@@ -49,7 +49,7 @@ import regression.objectconstruction.testgeneration.example.graphcontruction.Arj
 import regression.objectconstruction.testgeneration.example.cascadecall.CascadingCallExample;
 import regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2;
 
-public class ComputationGraphConstructionTest extends ObjectOrientedTest {
+public class ProjectGraphConstructionTest extends ObjectOrientedTest {
 
 	public DepVariableWrapper getChild(List<DepVariableWrapper> children, String name) {
 		for (DepVariableWrapper v : children) {

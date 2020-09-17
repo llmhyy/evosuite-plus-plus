@@ -1,19 +1,21 @@
 package evosuite.shell;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
-import org.evosuite.coverage.branch.Branch;
+import org.evosuite.result.BranchInfo;
 
 public class EvoTestResult {
 	
 	private double initialCoverage;
 	private long initializationOverhead;
 	
-	private List<Pair<Branch, Boolean>> missingBranches = new ArrayList<Pair<Branch, Boolean>>();
+	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
+	private Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
 	
 	private int time;
 	private double coverage;
@@ -195,12 +197,20 @@ public class EvoTestResult {
 		this.initializationOverhead = initializationOverhead;
 	}
 
-	public List<Pair<Branch, Boolean>> getMissingBranches() {
+	public List<BranchInfo> getMissingBranches() {
 		return missingBranches;
 	}
 
-	public void setMissingBranches(List<Pair<Branch, Boolean>> missingBranches) {
+	public void setMissingBranches(List<BranchInfo> missingBranches) {
 		this.missingBranches = missingBranches;
+	}
+
+	public Map<BranchInfo, String> getCoveredBranchWithTest() {
+		return coveredBranchWithTest;
+	}
+
+	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest) {
+		this.coveredBranchWithTest = coveredBranchWithTest;
 	}
 
 }

@@ -270,8 +270,8 @@ public class DepVariable {
 			
 		}
 		else if(this.getType() == DepVariable.PARAMETER) {
-			
-			buffer.append("METHOD: " + this.getInstruction().getMethodName() + "\n");
+			String shortMethodName = extractShortMethodName(this.getInstruction().getMethodName());
+			buffer.append("METHOD: " + shortMethodName + "\n");
 			buffer.append("ORDER: " + this.getParamOrder() + "\n");
 		}
 		else if(this.getType() == DepVariable.THIS) {
@@ -297,7 +297,8 @@ public class DepVariable {
 			}
 			else if(this.getInstruction().isMethodCall()) {
 				String methodName = this.instruction.getCalledMethod();
-				buffer.append("invoke " + methodName + "\n");
+				String shortMethodName = extractShortMethodName(methodName);
+				buffer.append("invoke " + shortMethodName + "\n");
 			}
 			else {
 				buffer.append(this.getInstruction() + "\n");				
@@ -308,6 +309,16 @@ public class DepVariable {
 		buffer.append("LINE:" + this.getInstruction().getLineNumber() + "\n");
 		
 		return buffer.toString();
+	}
+
+	private String extractShortMethodName(String methodName) {
+		String returnType = methodName.substring(methodName.indexOf(")")+1, methodName.length());
+		if(returnType.contains("/")) {
+			returnType = returnType.substring(returnType.lastIndexOf("/")+1, returnType.length());
+		}
+		String name = methodName.substring(0, methodName.indexOf("("));
+		String shortMethodName = name + "()" + returnType;
+		return shortMethodName;
 	}
 	
 	public boolean equals(Object obj) {
@@ -588,6 +599,15 @@ public class DepVariable {
 
 	public String getMethodName() {
 		return this.getClassName() + "#" + this.getInstruction().getMethodName();
+	}
+	
+	public String getShortMethodName() {
+		String clazz = this.getClassName();
+		String shortClass = clazz.substring(clazz.lastIndexOf(".")+1, clazz.length());
+		String method = this.getInstruction().getMethodName();
+		String shortMethod = method.substring(0, method.indexOf("("));
+		
+		return shortClass + "#" + shortMethod;
 	}
 
 }

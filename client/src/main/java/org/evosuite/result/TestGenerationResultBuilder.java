@@ -90,6 +90,7 @@ public class TestGenerationResultBuilder {
 		result.setInitialCoverage(testSuite.getInitialCoverage());
 		result.setInitializationOverhead(testSuite.getInitializationOverhead());
 		result.setMissingBranches(testSuite.getMissingBranches());
+		result.setCoveredBranchWithTest(testSuite.getCoveredBranchWithTest());
 		
 		return result;
 	}

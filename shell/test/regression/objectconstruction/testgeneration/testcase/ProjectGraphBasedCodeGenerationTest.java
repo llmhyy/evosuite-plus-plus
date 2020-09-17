@@ -2,28 +2,44 @@ package regression.objectconstruction.testgeneration.testcase;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.dataflow.DepVariable;
-import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
-import org.evosuite.testcase.synthesizer.PartialGraph;
-import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.MethodUtil;
-import org.evosuite.utils.Randomness;
 import org.junit.Test;
 
 import com.test.TestUtility;
 
 import regression.objectconstruction.testgeneration.example.graphcontruction.AcctInqRq.AcctInqRq;
+import regression.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
 import regression.objectconstruction.testgeneration.example.graphcontruction.JNFE.AddressData;
 
-public class GraphBasedCodeGenerationTest extends ObjectOrientedTest {
+public class ProjectGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 	
+	
+	@Test
+	public void testGeneration4CheckRule() throws ClassNotFoundException, RuntimeException {
+		
+		Properties.RANDOM_SEED = 1600102372406l;
+		//1598462133372
+		
+		setup();
+
+		Properties.TARGET_CLASS = BasicRules.class.getCanonicalName();
+
+		Method method = TestUtility.getTargetMethod("checkRules", BasicRules.class, 2);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+
+		Properties.TARGET_METHOD = targetMethod;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		Branch b = searchBranch(rankedList, 15);
+		
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		generateCode(b, true);
+	}
 	
 	@Test
 	public void testGeneration4Equal1() throws ClassNotFoundException, RuntimeException {

@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.Type;
 
 public class DataDependencyUtil {
 	/**
@@ -277,7 +279,7 @@ public class DataDependencyUtil {
 			Field field, int depth, List<BytecodeInstruction> cascadingCallRelations,
 			Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap) {
 		List<BytecodeInstruction> insList = null;
-		
+
 //		MockFramework.disable();
 		System.currentTimeMillis();
 		try{
@@ -313,7 +315,7 @@ public class DataDependencyUtil {
 		String opcode = Modifier.isStatic(field.getModifiers()) ? "PUTSTATIC" : "PUTFIELD";
 		if (insList != null) {
 			for (BytecodeInstruction ins : insList) {
-				if(isCollection(field)) {
+				if(isCollectionType(field.getType())) {
 					if(isCallElementModification(ins)) {
 						setterMap.put(ins, new ArrayList<>(cascadingCallRelations));
 					}
@@ -368,20 +370,79 @@ public class DataDependencyUtil {
 	 */
 	private static boolean isCallElementModification(BytecodeInstruction ins) {
 		// TODO aaron
+//		java.lang.System.out.println(ins.getMethodName());
+//		java.lang.System.out.println(ins.getASMNodeString());
+		
+		// Check if instruction invokes another method
+		AbstractInsnNode asmNode = ins.getASMNode();
+		if (asmNode instanceof MethodInsnNode && asmNode.getOpcode() == Opcodes.INVOKEVIRTUAL) {
+			MethodInsnNode methodNode = (MethodInsnNode) asmNode; 
+			
+			// Check if invoked method is a method from Collection class
+			Class<?> methodClassType;
+			try {
+				String typeString = methodNode.owner.replace('/', '.');
+				methodClassType = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(typeString);
+//				methodClassType = Class.forName();
+				if (isCollectionType(methodClassType)) {
+					
+					// Check if invoked method modifies element
+					Set<String> collectionModifyMethodNames = new HashSet<>(Arrays.asList(
+							"add", 
+							"addAll", 
+							"addElement",
+							"addFirst",
+							"addLast",
+							"clear",
+							"ensureCapacity",
+							"offer",
+							"offerFirst",
+							"offerLast",
+							"poll",
+							"pollFirst",
+							"pollLast",
+							"pop",
+							"push",
+							"remove",
+							"removeAll",
+							"removeElement",
+							"removeElementAt",
+							"removeFirst",
+							"removeFirstOccurrence",
+							"removeIf",
+							"removeLast",
+							"removeLastOccurrence",
+							"removeRange",
+							"replaceAll",
+							"retainAll",
+							"set",
+							"setElementAt",
+							"setSize",
+							"sort",
+							"trimToSize"));
+					
+//					java.lang.System.out.println(collectionModifyMethodNames.contains(methodNode.name));
+					return collectionModifyMethodNames.contains(methodNode.name);
+					
+				}
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		
 		return false;
 	}
 	
 	
 	/**
 	 * all the java classes from java.util.List/Collection
-	 * @param field
+	 * @param type
 	 * @return
 	 */
-	private static boolean isCollection(Field field) {
+	private static boolean isCollectionType(Class<?> type) {
 		// TODO aaron
-		return false;
+		return Collection.class.isAssignableFrom(type);
 	}
-
 
 	private static String confirmClassNameInParentClass(String calledClass, MethodInsnNode mNode) {
 		ClassNode classNode = DependencyAnalysis.getClassNode(calledClass);

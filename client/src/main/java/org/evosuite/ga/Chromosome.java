@@ -31,6 +31,7 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
+import org.evosuite.result.BranchInfo;
 import org.evosuite.utils.PublicCloneable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -408,15 +409,15 @@ public abstract class Chromosome implements Comparable<Chromosome>, Serializable
         return cov;
     }
 	
-	public List<Pair<Branch, Boolean>> getMissingBranches() {
-		List<Pair<Branch, Boolean>> list = new ArrayList<Pair<Branch,Boolean>>();
+	public List<BranchInfo> getMissingBranches() {
+		List<BranchInfo> list = new ArrayList<BranchInfo>();
         for (FitnessFunction<?> fitnessFunction : coverageValues.keySet()) {
             if(fitnessFunction instanceof BranchFitness) {
             	if(coverageValues.get(fitnessFunction)>0) {
             		BranchFitness bf = (BranchFitness)fitnessFunction;
             		BranchCoverageGoal goal = bf.getBranchGoal();
-            		Pair<Branch, Boolean> pair = Pair.of(goal.getBranch(), goal.getValue());
-            		list.add(pair);
+            		BranchInfo branchInfo = new BranchInfo(goal.getBranch(), goal.getValue());
+            		list.add(branchInfo);
             	}
             }
             

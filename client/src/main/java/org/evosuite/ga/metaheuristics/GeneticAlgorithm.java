@@ -37,7 +37,6 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Algorithm;
-import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
@@ -48,7 +47,6 @@ import org.evosuite.ga.localsearch.LocalSearchBudget;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 import org.evosuite.ga.operators.crossover.CrossOverFunction;
 import org.evosuite.ga.operators.crossover.SinglePointCrossOver;
-import org.evosuite.ga.operators.ranking.IndividualGoalBasedSorting;
 import org.evosuite.ga.operators.ranking.RankBasedPreferenceSorting;
 import org.evosuite.ga.operators.ranking.RankingFunction;
 import org.evosuite.ga.operators.selection.RankSelection;
@@ -57,6 +55,7 @@ import org.evosuite.ga.populationlimit.IndividualPopulationLimit;
 import org.evosuite.ga.populationlimit.PopulationLimit;
 import org.evosuite.ga.stoppingconditions.MaxGenerationStoppingCondition;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
+import org.evosuite.result.BranchInfo;
 import org.evosuite.symbolic.DSEStats;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.evosuite.testsuite.TestSuiteChromosome;
@@ -127,7 +126,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	private Map<Integer, Integer> distributionMap;	
 	
 	protected long intializationOverhead;
-	private List<Pair<Branch, Boolean>> missingBranches = new ArrayList<Pair<Branch,Boolean>>();
+	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
 	
 	protected double initialCoverage = 0; 
 	
@@ -1332,11 +1331,11 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 		this.intializationOverhead = intializationOverhead;
 	}
 
-	public List<Pair<Branch, Boolean>> getMissingBranches() {
+	public List<BranchInfo> getMissingBranches() {
 		return missingBranches;
 	}
 
-	public void setMissingBranches(List<Pair<Branch, Boolean>> missingBranches) {
+	public void setMissingBranches(List<BranchInfo> missingBranches) {
 		this.missingBranches = missingBranches;
 	}
 
