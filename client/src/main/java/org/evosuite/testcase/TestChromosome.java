@@ -45,6 +45,7 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.javaee.injection.Injector;
 import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.setup.TestCluster;
@@ -245,19 +246,30 @@ public class TestChromosome extends ExecutableChromosome {
 	private List<FBranchTestFitness> getBranches(StackTraceElement element) {
 		String className = element.getClassName();
 		
-		BytecodeInstructionPool pool = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT());
+		InstrumentingClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		BytecodeInstructionPool pool = BytecodeInstructionPool.getInstance(loader);
 		
 		List<BytecodeInstruction> insList = null;
 		if(element.getLineNumber()>0) {
-			insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());			
+			insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());
+			if(insList == null) {
+				GraphPool.getInstance(loader).retrieveAllRawCFGs(className);
+				
+				insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());
+			}
 		}
-		System.currentTimeMillis();
 		
 		List<FBranchTestFitness> fitnessList = new ArrayList<FBranchTestFitness>();
 		if(insList != null && insList.size() > 0) {
 			BytecodeInstruction ins = insList.get(0);
-			Branch b = ins.getControlDependentBranch();
 			
+			Branch b = null;
+			try {
+				b = ins.getControlDependentBranch();
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
 			if(b != null) {
 				boolean value = ins.getControlDependentBranchExpressionValue();
 				
