@@ -726,7 +726,7 @@
 						<exclude>${integrationTests}</exclude>
 						<exclude>${systemTests}</exclude>
 					</excludes>
-					<argLine> -Xms512m -Xmx4096m </argLine>
+					<argLine> -Xms512m -Xmx4096m -Dlog4j.configuration=</argLine>
 				</configuration>
 			</plugin>
 			<!-- pluging to run tests after 'package' phase in 'integration-test' -->
