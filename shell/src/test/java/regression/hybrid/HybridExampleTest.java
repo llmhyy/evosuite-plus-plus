@@ -11,7 +11,7 @@ import com.test.TestUtility;
 
 public class HybridExampleTest {
 	@Test
-	public void test() {
+	public void testHybrid() {
 		Class<?> clazz = regression.hybrid.example.HybridExample.class;
 		String methodName = "test";
 		int parameterNum = 2;

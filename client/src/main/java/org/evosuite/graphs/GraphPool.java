@@ -35,7 +35,8 @@ import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
-import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
+import org.evosuite.graphs.dataflow.DefUseAnalyzer;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
@@ -329,6 +330,48 @@ public class GraphPool {
 		return null;
 	}
 	
+	public void retrieveAllRawCFGs(String className) {
+		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+				.getClassAsStream(className);
+		try {
+			ClassReader reader = new ClassReader(is);
+			ClassNode cn = new ClassNode();
+			reader.accept(cn, ClassReader.SKIP_FRAMES);
+			List<MethodNode> l = cn.methods;
+
+			InstrumentingClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+			
+			for (MethodNode m : l) {
+				String methodName = m.name + m.desc;
+//				ActualControlFlowGraph cfg = MethodUtil.registerMethod(className, methodName);
+//				if(cfg != null) {
+//					GraphPool.getInstance(loader).alwaysRegisterActualCFG(cfg);					
+//				}
+				MethodNode innerNode = DefUseAnalyzer.getMethodNode((InstrumentingClassLoader) classLoader, className, methodName);
+				
+				Properties.ALWAYS_REGISTER_BRANCH = true;
+				BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+				try {
+					bytecodeAnalyzer.analyze(loader, className, methodName, innerNode);
+				} catch (Exception e) {
+					/**
+					 * the cfg (e.g., jdk/library class) is out of our consideration
+					 */
+					continue;
+				}
+				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+//				ActualControlFlowGraph cfg = GraphPool.getInstance(loader).getActualCFG(className, methodName);
+				Properties.ALWAYS_REGISTER_BRANCH = false;
+				
+				
+			}
+		} catch (Exception e) {
+//			e.printStackTrace();
+		}
+		
+//		return null;
+	}
+	
 	public void alwaysRegisterActualCFG(ActualControlFlowGraph cfg) {
 		String className = cfg.getClassName();
 		String methodName = cfg.getMethodName();
@@ -369,6 +412,7 @@ public class GraphPool {
 		Map<String, ControlDependenceGraph> cds = controlDependencies.get(className);
 
 		cds.put(methodName, cd);
+//		cd.toDot();
 		if (Properties.WRITE_CFG)
 			cd.toDot();
 	}

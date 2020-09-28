@@ -409,7 +409,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 	}
 
 	private void recordSegmentationList(List<Segmentation> segList, TestFitnessFunction fitnessFunction) {
-		String path = "D:\\linyun\\git_space\\evosuite\\EvosuiteTest\\src\\evosuite\\experiment\\";
+		String path = "D:\\linyun\\experiment\\";
 		String targetfileName = "segmentationList.xlsx";
 		String tmpfileNme = "segmentationList_tmp.xlsx";
 

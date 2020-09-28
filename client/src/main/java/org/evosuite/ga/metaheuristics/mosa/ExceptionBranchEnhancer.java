@@ -265,8 +265,7 @@ public class ExceptionBranchEnhancer<T extends Chromosome> {
 						String methodName = ins.getMethodName();
 						ActualControlFlowGraph cfg = MethodUtil.registerMethod(className, methodName);
 						if(cfg != null) {
-							GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
-							alwaysRegisterActualCFG(cfg);
+							GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).alwaysRegisterActualCFG(cfg);
 							cds = ins.getControlDependencies();							
 						}
 						

@@ -23,7 +23,7 @@ public class DSETesting {
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes;target/test-classes";
 
-//		 Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
 //		Properties.PORT = 8000;
 		Properties.CLIENT_ON_THREAD = true;
