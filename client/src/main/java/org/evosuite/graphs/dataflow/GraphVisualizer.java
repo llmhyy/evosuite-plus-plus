@@ -45,7 +45,7 @@ public class GraphVisualizer {
 				guru.nidi.graphviz.model.Node n = node(source.var.getShortLabel()).link(node(target.var.getShortLabel()));
 
 				if (!links.contains(n)) {
-					links.add(n);
+					links.add(n); 
 					queue.add(target);	
 				}
 
