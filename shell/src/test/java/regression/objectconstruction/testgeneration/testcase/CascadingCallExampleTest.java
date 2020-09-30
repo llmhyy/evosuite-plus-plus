@@ -12,7 +12,7 @@ import evosuite.shell.EvoTestResult;
 
 public class CascadingCallExampleTest extends ObjectConstructionTestSetup {
 	@Test
-	public void testCascadingCallExample() {
+	public void testCascadingCallExample() { 
 		Class<?> clazz = regression.objectconstruction.testgeneration.example.cascadecall.CascadingCallExample.class;
 
 		String methodName = "targetM";
