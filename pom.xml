@@ -371,6 +371,11 @@
 				<artifactId>jgrapht</artifactId>
 				<version>0.8.3</version>
 			</dependency>
+		    <dependency>
+		      <groupId>org.openjfx</groupId>
+		      <artifactId>javafx-controls</artifactId>
+		      <version>12.0.1</version>
+		    </dependency>
 			<!-- <dependency> -->
 			<!-- LGPL -->
 			<!-- <groupId>org.jgrapht</groupId> <artifactId>jgrapht-core</artifactId> 
@@ -800,6 +805,14 @@
 					<artifactId>maven-site-plugin</artifactId>
 					<version>3.7</version>
 				</plugin>
+		        <plugin>
+		          <groupId>org.openjfx</groupId>
+		          <artifactId>javafx-maven-plugin</artifactId>
+		          <version>0.0.2</version>
+		          <configuration>
+		            <mainClass>HelloFX</mainClass>
+		          </configuration>
+		        </plugin>
 				<!-- Removed Eclipse m2e lifecycle mapping plugin. For a better solution 
 					see: http://stackoverflow.com/questions/7409823/m2e-lifecycle-mapping-not-found -->
 
