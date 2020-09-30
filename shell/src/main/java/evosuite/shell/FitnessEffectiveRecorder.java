@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+import org.evosuite.result.BranchInfo;
 import org.slf4j.Logger;
 
 import evosuite.shell.excel.ExcelWriter;
@@ -60,11 +60,19 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		rowData.add(unavailableString);
 		rowData.add(r.getInitialCoverage());
 		rowData.add(r.getInitializationOverhead());
-		String missingBranches = r.getMissingBranches().stream().map(Object::toString).collect(Collectors.joining(";"));
+
+		StringBuffer sb = new StringBuffer();
+		if (r.getMissingBranches() != null && !r.getMissingBranches().isEmpty()) {
+			for (BranchInfo b : r.getMissingBranches()) {
+				sb.append(b.toString() + "\\n");
+			}
+		}
+		String missingBranches = sb.toString();
 		if (missingBranches.isEmpty()) {
 			missingBranches = "NA";
 		}
 		rowData.add(missingBranches);
+
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 			logSuccessfulMethods(className, methodName);
@@ -78,7 +86,15 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		List<Object> rowData = new ArrayList<Object>();
 		rowData.add(className);
 		rowData.add(methodName);
-		rowData.add("Error" + e.getMessage());
+
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < e.getStackTrace().length; i++) {
+			StackTraceElement ste = e.getStackTrace()[i];
+			String s = "class Name: " + ste.getClassName() + ", line number:  " + ste.getLineNumber() + "\n";
+			sb.append(s);
+		}
+
+		rowData.add("Error" + sb.toString());
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 		} catch (IOException ex) {

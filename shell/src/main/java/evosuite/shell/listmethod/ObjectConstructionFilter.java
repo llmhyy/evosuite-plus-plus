@@ -45,7 +45,7 @@ public class ObjectConstructionFilter extends MethodFlagCondFilter {
 		List<BytecodeInstruction> instructions = insPool.getAllInstructionsAtMethod(className, methodName);
 		
 		// 2. Check if this method require construction of File, Socket or SQL types
-		if (hasUnwantedTypes(instructions, 5)) {
+		if (hasUnwantedTypes(instructions, 2)) {
 			return false;
 		}
 

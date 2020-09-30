@@ -8,6 +8,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.result.BranchInfo;
 import org.slf4j.Logger;
 
 import evosuite.shell.excel.ExcelWriter;
@@ -92,12 +95,19 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 			rowData.add(r.getAge());
 			rowData.add(r.getInitialCoverage());
 			rowData.add(r.getInitializationOverhead());
-			String missingBranches = r.getMissingBranches().stream().map(Object::toString)
-					.collect(Collectors.joining(";"));
+			
+			StringBuffer sb = new StringBuffer();
+			if(r.getMissingBranches() != null && !r.getMissingBranches().isEmpty()) {
+				for(BranchInfo b: r.getMissingBranches()) {
+					sb.append(b.toString() + "\\n");
+				}
+			}
+			String missingBranches = sb.toString();
 			if (missingBranches.isEmpty()) {
 				missingBranches = "NA";
 			}
 			rowData.add(missingBranches);
+			
 			if (bestCvg < r.getCoverage()) {
 				bestCvg = r.getCoverage();
 				ageOfBestCvg = r.getAge();
