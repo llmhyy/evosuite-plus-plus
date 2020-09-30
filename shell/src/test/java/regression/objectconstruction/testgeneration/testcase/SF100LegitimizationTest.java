@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.evosuite.Properties;
+import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.junit.Before;
@@ -18,6 +19,9 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 	@Before
 	public void init() {
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10000;
+		Properties.CRITERION = new Criterion[]{Criterion.FBRANCH};
+		Properties.INSTRUMENT_CONTEXT = true;
+		Properties.TIMEOUT = 1000000;
 	}
 	
 	@Test

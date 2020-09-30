@@ -1,16 +1,13 @@
 package regression.objectconstruction.testgeneration.testcase;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.utils.MethodUtil;
+import org.evosuite.runtime.sandbox.Sandbox;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.test.TestUtility;
 
 import evosuite.shell.EvoTestResult;
 import sf100.CommonTestUtil;
@@ -25,7 +22,11 @@ public class SF100OverallTest {
 		Properties.APPLY_OBJECT_RULE = true;
 		Properties.ADOPT_SMART_MUTATION = false;
 		
+		Properties.INSTRUMENT_CONTEXT = true;
 		Properties.CHROMOSOME_LENGTH = 200;
+		
+		Properties.TIMEOUT = 100000;
+//		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
 
@@ -33,18 +34,20 @@ public class SF100OverallTest {
 	public void testBugExample() {
 		String projectId = "84_ifx-framework";
 //		String projectId = "27_gangup";
+//		String projectId = "83_xbus";
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CustPayeeMsgRecChoice#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CustAddRqSequence#equals(Ljava/lang/Object;)Z"
 //				"state.Party#remove(Lstate/Party;)V"
-				"net.sourceforge.ifxfv3.beans.BankAcctTrnRec#equals(Ljava/lang/Object;)Z"
-
+//				"net.sourceforge.ifxfv3.beans.BankAcctTrnRec#equals(Ljava/lang/Object;)Z"
+//				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
+				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
 				};
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 100000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

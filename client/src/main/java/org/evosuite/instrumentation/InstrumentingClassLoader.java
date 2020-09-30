@@ -128,6 +128,11 @@ public class InstrumentingClassLoader extends ClassLoader {
 	
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
+        return loadClass(name, false);
+	}
+	
+	@Override
+	public Class<?> loadClass(String name, boolean forceReload) throws ClassNotFoundException {
         synchronized(getClassLoadingLock(name)) {
             ClassLoader dbLoader = DBManager.getInstance().getSutClassLoader();
             if (dbLoader != null && dbLoader != this && !isRegression) {
@@ -162,13 +167,19 @@ public class InstrumentingClassLoader extends ClassLoader {
                 return result;
             }
     
-            Class<?> result = classes.get(name);
-            if (result != null) {
-                return result;
-            } else {
-                logger.info("Seeing class for first time: " + name);
-                Class<?> instrumentedClass = instrumentClass(name);
-                return instrumentedClass;
+            if(forceReload) {
+            	 Class<?> instrumentedClass = instrumentClass(name);
+                 return instrumentedClass;
+            }
+            else {
+            	Class<?> result = classes.get(name);
+            	if (result != null) {
+            		return result;
+            	} else {
+            		logger.info("Seeing class for first time: " + name);
+            		Class<?> instrumentedClass = instrumentClass(name);
+            		return instrumentedClass;
+            	}            	
             }
             
         }
@@ -191,6 +202,7 @@ public class InstrumentingClassLoader extends ClassLoader {
 			}
 			String filePath = targetFolder + "/inst_src/test/" + classFName.substring(classFName.lastIndexOf(".") + 1)
 					+ ".class";
+			
 			FileIOUtils.getFileCreateIfNotExist(filePath);
 			FileOutputStream out = null;
 			try {
@@ -226,7 +238,7 @@ public class InstrumentingClassLoader extends ClassLoader {
 			
 			byte[] byteBuffer = getTransformedBytes(className,is);
 			createPackageDefinition(fullyQualifiedTargetClass);
-			Class<?> result = defineClass(fullyQualifiedTargetClass, byteBuffer, 0,byteBuffer.length);
+			Class<?> result = defineClass(fullyQualifiedTargetClass, byteBuffer, 0, byteBuffer.length);
 			classes.put(fullyQualifiedTargetClass, result);
 
 			logger.info("Loaded class: " + fullyQualifiedTargetClass);

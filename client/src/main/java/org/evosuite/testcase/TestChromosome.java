@@ -48,6 +48,8 @@ import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.javaee.injection.Injector;
 import org.evosuite.runtime.util.AtMostOnceLogger;
+import org.evosuite.setup.CallContext;
+import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.setup.TestCluster;
 import org.evosuite.symbolic.BranchCondition;
 import org.evosuite.symbolic.ConcolicExecution;
@@ -152,10 +154,24 @@ public class TestChromosome extends ExecutableChromosome {
 			/**
 			 * locate the relevant branches from the method call return null value
 			 */
-			List<FBranchTestFitness> relevantBranches = locateRelevantBranches(statOfExp, excep, test, this.getLastExecutionResult());
+			List<BranchCoverageTestFitness> relevantBranches = locateRelevantBranches(statOfExp, excep, test, this.getLastExecutionResult());
+			
 			if(!relevantBranches.isEmpty()){
+				
+				InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 				double average = 0;
-				for(FBranchTestFitness ftt: relevantBranches){
+				for(BranchCoverageTestFitness ftt: relevantBranches){
+					String className = ftt.getClassName();
+					if(!DependencyAnalysis.isTargetClassName(className)) {
+						DependencyAnalysis.addTargetClass(className);
+						try {
+							BytecodeInstructionPool.getInstance(classLoader).clear(className);
+							classLoader.loadClass(className, true);
+						} catch (ClassNotFoundException e) {
+							e.printStackTrace();
+						}						
+					}
+					
 					this.addFitness(ftt);	
 					double fit = ftt.getFitness(this);
 					average += fit;
@@ -174,8 +190,11 @@ public class TestChromosome extends ExecutableChromosome {
 		
 	}
 	
-	private List<FBranchTestFitness> locateRelevantBranches(Statement statOfExp, Throwable excep, 
+	private List<BranchCoverageTestFitness> locateRelevantBranches(Statement statOfExp, Throwable excep, 
 			TestCase test, ExecutionResult result) {
+//		CallContext callContext = getCallContext(excep);
+		CallContext callContext = new CallContext(excep.getStackTrace(), true);
+		System.currentTimeMillis();
 		/**
 		 * e.g., "a.m();" where a is null.
 		 */
@@ -188,7 +207,7 @@ public class TestChromosome extends ExecutableChromosome {
 				MethodStatement defMethodStat = (MethodStatement)defStat;
 				GenericMethod method = defMethodStat.getMethod();
 				
-				List<FBranchTestFitness> nonNullBranches = locateNonNullBranches(method);
+				List<BranchCoverageTestFitness> nonNullBranches = locateNonNullBranches(method, callContext);
 				return nonNullBranches;
 			}
 		}
@@ -206,16 +225,15 @@ public class TestChromosome extends ExecutableChromosome {
 					MethodStatement defMethodStat = (MethodStatement)defStat;
 					GenericMethod method = defMethodStat.getMethod();
 					
-					List<FBranchTestFitness> nonNullBranches = locateNonNullBranches(method);
+					List<BranchCoverageTestFitness> nonNullBranches = locateNonNullBranches(method, callContext);
 					return nonNullBranches;
 				}
 			}
 		}
 		
 		if(excep.getStackTrace().length != 0) {
-			// FIXME for Aaron (need to check more of the cascade stack element)
 			StackTraceElement element = excep.getStackTrace()[0];
-			List<FBranchTestFitness> branches = getBranches(element);
+			List<BranchCoverageTestFitness> branches = getBranches(element, callContext);
 			
 			return branches;
 		}
@@ -234,16 +252,21 @@ public class TestChromosome extends ExecutableChromosome {
 			}
 			
 			if(graph != null) {
-				List<FBranchTestFitness> branches = locateBranches(graph, excep);
+				List<BranchCoverageTestFitness> branches = locateBranches(graph, excep, callContext);
 				return branches;
 			}			
 		}
 		
 		
-		return new ArrayList<FBranchTestFitness>();
+		return new ArrayList<BranchCoverageTestFitness>();
 	}
 
-	private List<FBranchTestFitness> getBranches(StackTraceElement element) {
+	private CallContext getCallContext(Throwable excep) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private List<BranchCoverageTestFitness> getBranches(StackTraceElement element, CallContext callContext) {
 		String className = element.getClassName();
 		
 		InstrumentingClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
@@ -253,13 +276,17 @@ public class TestChromosome extends ExecutableChromosome {
 		if(element.getLineNumber()>0) {
 			insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());
 			if(insList == null) {
+				try {
+					loader.loadClass(className);
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
 				GraphPool.getInstance(loader).retrieveAllRawCFGs(className);
-				
 				insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());
 			}
 		}
 		
-		List<FBranchTestFitness> fitnessList = new ArrayList<FBranchTestFitness>();
+		List<BranchCoverageTestFitness> fitnessList = new ArrayList<>();
 		if(insList != null && insList.size() > 0) {
 			BytecodeInstruction ins = insList.get(0);
 			
@@ -272,9 +299,10 @@ public class TestChromosome extends ExecutableChromosome {
 			}
 			if(b != null) {
 				boolean value = ins.getControlDependentBranchExpressionValue();
-				
 				BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
+//				fitnessList.add(fitness);	
 				FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
+				fFit.setContext(callContext);
 				fitnessList.add(fFit);				
 			}
 		}
@@ -300,8 +328,8 @@ public class TestChromosome extends ExecutableChromosome {
 	}
 	
 	
-	private List<FBranchTestFitness> locateBranches(ActualControlFlowGraph graph, Throwable excep){
-		List<FBranchTestFitness> list = new ArrayList<FBranchTestFitness>();
+	private List<BranchCoverageTestFitness> locateBranches(ActualControlFlowGraph graph, Throwable excep, CallContext callContext){
+		List<BranchCoverageTestFitness> list = new ArrayList<>();
 		
 		for(BytecodeInstruction ins: graph.getAllInstructions()) {
 			if(ins.isThrow()) {
@@ -312,6 +340,7 @@ public class TestChromosome extends ExecutableChromosome {
 					
 					BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
 					FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
+					fFit.setContext(callContext);
 					list.add(fFit);				
 				}
 			}
@@ -321,12 +350,12 @@ public class TestChromosome extends ExecutableChromosome {
 		
 	}
 	
-	private List<FBranchTestFitness> locateNonNullBranches(GenericMethod method) {
+	private List<BranchCoverageTestFitness> locateNonNullBranches(GenericMethod method, CallContext callContext) {
 		String methodName = method.getName() + MethodUtil.getSignature(method.getMethod());
 		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 				.getActualCFG(method.getOwnerClass().getClassName(), methodName);
 		
-		List<FBranchTestFitness> list = new ArrayList<>();
+		List<BranchCoverageTestFitness> list = new ArrayList<>();
 		for(BytecodeInstruction exit: cfg.getExitPoints()){
 			
 			List<BytecodeInstruction> l = exit.getSourceListOfStackInstruction(0);
@@ -339,6 +368,7 @@ public class TestChromosome extends ExecutableChromosome {
 					
 					BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
 					FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
+					fFit.setContext(callContext);
 					list.add(fFit);
 				}
 				

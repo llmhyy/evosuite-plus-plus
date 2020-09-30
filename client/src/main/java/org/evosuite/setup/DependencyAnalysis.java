@@ -430,4 +430,13 @@ public class DependencyAnalysis {
 			}
 		}
 	}
+
+	public static void addTargetClass(String className) {
+		if(targetClasses == null) {
+			targetClasses = new LinkedHashSet<String>();
+		}
+		
+		targetClasses.add(className);
+		
+	}
 }
