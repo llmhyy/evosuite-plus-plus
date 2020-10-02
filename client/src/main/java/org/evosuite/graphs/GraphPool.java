@@ -330,7 +330,7 @@ public class GraphPool {
 		return null;
 	}
 	
-	public void retrieveAllRawCFGs(String className) {
+	public void retrieveAllRawCFGs(String className, ClassLoader loader) {
 		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 				.getClassAsStream(className);
 		try {
@@ -339,8 +339,6 @@ public class GraphPool {
 			reader.accept(cn, ClassReader.SKIP_FRAMES);
 			List<MethodNode> l = cn.methods;
 
-			InstrumentingClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-			
 			for (MethodNode m : l) {
 				String methodName = m.name + m.desc;
 //				ActualControlFlowGraph cfg = MethodUtil.registerMethod(className, methodName);

@@ -6,12 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.evosuite.Properties;
-import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testcase.execution.ExecutionResult;
-import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
@@ -23,11 +21,21 @@ public class TestCaseLegitimizer {
 	public static int optimizionPopluationSize = 20;
 	public static int localFuzzBudget = Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET;
 	
+	private InstrumentingClassLoader auxilaryLoader = new InstrumentingClassLoader();
+	
 	private PartialGraph graph;
 	private Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap;
 	
 	private static TestCaseLegitimizer legitimizer = new TestCaseLegitimizer();
-	private TestCaseLegitimizer(){}
+	private TestCaseLegitimizer(){
+		if(Properties.TARGET_CLASS != null || !Properties.TARGET_CLASS.isEmpty()) {
+			try {
+				auxilaryLoader.loadClass(Properties.TARGET_CLASS);
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	
 	public static TestCaseLegitimizer getInstance(){
 		return legitimizer;
@@ -55,6 +63,7 @@ public class TestCaseLegitimizer {
 //			MutationPositionDiscriminator.discriminator.setPurpose(relevantBranches);
 			
 			evolve(population);
+			legitimacyDistance = population.get(0).getLegitimacyDistance();
 			legitimacyDistance = population.get(0).getLegitimacyDistance();
 			t2 = System.currentTimeMillis();
 		}
@@ -112,9 +121,6 @@ public class TestCaseLegitimizer {
 				}
 			}
 		});
-		
-		population.get(1).updateLegitimacyDistance();
-		System.currentTimeMillis();
 		
 		List<TestChromosome> newPop = new ArrayList<>();
 		for(TestChromosome individual: population){
@@ -188,9 +194,9 @@ public class TestCaseLegitimizer {
 //			relevantBranches.forEach(fitnessFunction -> fitnessFunction.getFitness(parent));
 			parent.updateLegitimacyDistance();
 			TestChromosome offspring = (TestChromosome) parent.clone();
-			offspring.clearCachedResults();
 //			offspring.mutationChangePrimitiveStatement();
 			offspring.mutateRelevantStatements();
+			offspring.clearCachedResults();
 			
 //			relevantBranches.forEach(fitnessFunction -> fitnessFunction.getFitness(offspring));
 			offspring.updateLegitimacyDistance();
@@ -199,6 +205,10 @@ public class TestCaseLegitimizer {
 			newPop.add(offspring);
 		}
 		return newPop;
+	}
+
+	public InstrumentingClassLoader getAuxilaryLoader() {
+		return auxilaryLoader;
 	}
 
 	

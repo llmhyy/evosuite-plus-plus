@@ -55,6 +55,7 @@ import org.evosuite.symbolic.BranchCondition;
 import org.evosuite.symbolic.ConcolicExecution;
 import org.evosuite.symbolic.ConcolicMutation;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.execution.ExecutionTraceImpl;
 import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.localsearch.TestCaseLocalSearch;
@@ -65,6 +66,7 @@ import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.VariableReference;
@@ -118,6 +120,7 @@ public class TestChromosome extends ExecutableChromosome {
 		return statOfExp;
 	}
 	
+	
 	public void updateLegitimacyDistance(){
 		MethodStatement targetCallStat = test.findTargetMethodCallStatement();
 		
@@ -159,21 +162,39 @@ public class TestChromosome extends ExecutableChromosome {
 			if(!relevantBranches.isEmpty()){
 				
 				InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+				
+				InstrumentingClassLoader auxilaryLoader = TestCaseLegitimizer.getInstance().getAuxilaryLoader();
 				double average = 0;
 				for(BranchCoverageTestFitness ftt: relevantBranches){
 					String className = ftt.getClassName();
-					if(!DependencyAnalysis.isTargetClassName(className)) {
-						DependencyAnalysis.addTargetClass(className);
-						try {
-							BytecodeInstructionPool.getInstance(classLoader).clear(className);
-							classLoader.loadClass(className, true);
-						} catch (ClassNotFoundException e) {
-							e.printStackTrace();
-						}						
+					DependencyAnalysis.addTargetClass(className);
+					Class<?> cl = null;
+					try {
+						cl = auxilaryLoader.loadClass(className);
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					}	
+					
+					Properties.FULLY_INSTRUMENT_DEPENDENCIES = true;
+					((DefaultTestCase)this.getTestCase()).changeClassLoader(auxilaryLoader);
+					this.addFitness(ftt);	
+					this.clearCachedResults();
+					double fit = ftt.getFitness(this);
+					
+					if(fit == 0.0) {
+						Properties.RECORD_ITERATION_CONTEXT = true;
+						Properties.REQUIRE_AVERAGE_BRANCH_DISTANCE = true;
+						ExecutionTraceImpl.enableTraceCalls();
+						this.clearCachedResults();
+						fit = ftt.getFitness(this);
+//						System.currentTimeMillis();
+						ExecutionTraceImpl.disableTraceCalls();
+						Properties.REQUIRE_AVERAGE_BRANCH_DISTANCE = false;
+						Properties.RECORD_ITERATION_CONTEXT = false;		
 					}
 					
-					this.addFitness(ftt);	
-					double fit = ftt.getFitness(this);
+					((DefaultTestCase)this.getTestCase()).changeClassLoader(classLoader);
+					Properties.FULLY_INSTRUMENT_DEPENDENCIES = false;
 					average += fit;
 				}
 				
@@ -192,9 +213,7 @@ public class TestChromosome extends ExecutableChromosome {
 	
 	private List<BranchCoverageTestFitness> locateRelevantBranches(Statement statOfExp, Throwable excep, 
 			TestCase test, ExecutionResult result) {
-//		CallContext callContext = getCallContext(excep);
 		CallContext callContext = new CallContext(excep.getStackTrace(), true);
-		System.currentTimeMillis();
 		/**
 		 * e.g., "a.m();" where a is null.
 		 */
@@ -233,7 +252,7 @@ public class TestChromosome extends ExecutableChromosome {
 		
 		if(excep.getStackTrace().length != 0) {
 			StackTraceElement element = excep.getStackTrace()[0];
-			List<BranchCoverageTestFitness> branches = getBranches(element, callContext);
+			List<BranchCoverageTestFitness> branches = getExceptionalBranches(element, callContext);
 			
 			return branches;
 		}
@@ -243,12 +262,12 @@ public class TestChromosome extends ExecutableChromosome {
 			if(statOfExp instanceof MethodStatement) {
 				MethodStatement mStat = (MethodStatement)statOfExp;
 				GenericMethod method = mStat.getMethod();
-				graph = getControlFlowGraph(method);
+				graph = getControlFlowGraph(method, TestCaseLegitimizer.getInstance().getAuxilaryLoader());
 			}
 			else if(statOfExp instanceof ConstructorStatement) {
 				ConstructorStatement cStat = (ConstructorStatement)statOfExp;
 				GenericConstructor constructor = cStat.getConstructor();
-				graph = getControlFlowGraph(constructor);
+				graph = getControlFlowGraph(constructor, TestCaseLegitimizer.getInstance().getAuxilaryLoader());
 			}
 			
 			if(graph != null) {
@@ -261,27 +280,23 @@ public class TestChromosome extends ExecutableChromosome {
 		return new ArrayList<BranchCoverageTestFitness>();
 	}
 
-	private CallContext getCallContext(Throwable excep) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private List<BranchCoverageTestFitness> getBranches(StackTraceElement element, CallContext callContext) {
+	private List<BranchCoverageTestFitness> getExceptionalBranches(StackTraceElement element, CallContext callContext) {
 		String className = element.getClassName();
 		
-		InstrumentingClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		InstrumentingClassLoader loader = TestCaseLegitimizer.getInstance().getAuxilaryLoader();
 		BytecodeInstructionPool pool = BytecodeInstructionPool.getInstance(loader);
 		
 		List<BytecodeInstruction> insList = null;
 		if(element.getLineNumber()>0) {
 			insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());
 			if(insList == null) {
+				DependencyAnalysis.addTargetClass(className);
 				try {
 					loader.loadClass(className);
 				} catch (ClassNotFoundException e) {
 					e.printStackTrace();
 				}
-				GraphPool.getInstance(loader).retrieveAllRawCFGs(className);
+//				GraphPool.getInstance(loader).retrieveAllRawCFGs(className, loader);
 				insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());
 			}
 		}
@@ -311,17 +326,17 @@ public class TestChromosome extends ExecutableChromosome {
 		
 	}
 
-	private ActualControlFlowGraph getControlFlowGraph(GenericMethod method) {
+	private ActualControlFlowGraph getControlFlowGraph(GenericMethod method, InstrumentingClassLoader loader) {
 		String methodName = method.getName() + MethodUtil.getSignature(method.getMethod());
-		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+		ActualControlFlowGraph cfg = GraphPool.getInstance(loader)
 				.getActualCFG(method.getOwnerClass().getClassName(), methodName);
 		
 		return cfg;
 	}
 
-	private ActualControlFlowGraph getControlFlowGraph(GenericConstructor constructor) {
+	private ActualControlFlowGraph getControlFlowGraph(GenericConstructor constructor, InstrumentingClassLoader loader) {
 		String methodName = "<init>" + MethodUtil.getSignature(constructor.getConstructor());
-		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+		ActualControlFlowGraph cfg = GraphPool.getInstance(loader)
 				.getActualCFG(constructor.getOwnerClass().getClassName(), methodName);
 		
 		return cfg;
@@ -351,11 +366,21 @@ public class TestChromosome extends ExecutableChromosome {
 	}
 	
 	private List<BranchCoverageTestFitness> locateNonNullBranches(GenericMethod method, CallContext callContext) {
-		String methodName = method.getName() + MethodUtil.getSignature(method.getMethod());
-		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-				.getActualCFG(method.getOwnerClass().getClassName(), methodName);
-		
 		List<BranchCoverageTestFitness> list = new ArrayList<>();
+		
+		String methodName = method.getName() + MethodUtil.getSignature(method.getMethod());
+		String className = method.getOwnerClass().getClassName();
+		try {
+			TestCaseLegitimizer.getInstance().getAuxilaryLoader().loadClass(className);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return list;
+		}
+		
+		ActualControlFlowGraph cfg = GraphPool.getInstance(TestCaseLegitimizer.getInstance().getAuxilaryLoader())
+				.getActualCFG(className, methodName);
+		
+		
 		for(BytecodeInstruction exit: cfg.getExitPoints()){
 			
 			List<BytecodeInstruction> l = exit.getSourceListOfStackInstruction(0);
