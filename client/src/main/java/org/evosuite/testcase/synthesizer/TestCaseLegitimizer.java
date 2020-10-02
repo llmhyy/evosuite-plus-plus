@@ -137,7 +137,7 @@ public class TestCaseLegitimizer {
 			individual.setLegitimacyDistance(0);
 		}
 		
-		if(individual.getLegitimacyDistance() > 0){
+		if(legitimacyDistance > 0){
 			if(numOfExecutedStatements > test.size()-1){
 				System.currentTimeMillis();
 			}
@@ -194,7 +194,7 @@ public class TestCaseLegitimizer {
 				}
 				
 				average = average/(double)relevantBranches.size();
-				double newDistance = individual.getLegitimacyDistance() + average;
+				double newDistance = legitimacyDistance + average;
 				individual.setLegitimacyDistance(newDistance);
 			}
 		}
@@ -562,7 +562,7 @@ public class TestCaseLegitimizer {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void mutateRelevantStatements(TestChromosome individual) {
+	private void mutateRelevantStatements(TestChromosome individual) {
 		Statement statOfExp = individual.getStatementReportingException();
 		if(statOfExp == null) {
 			return;
