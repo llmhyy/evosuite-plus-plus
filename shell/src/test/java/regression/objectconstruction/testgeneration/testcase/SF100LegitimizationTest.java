@@ -18,7 +18,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 	
 	@Before
 	public void init() {
-		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10000;
 		Properties.CRITERION = new Criterion[]{Criterion.FBRANCH};
 		Properties.INSTRUMENT_CONTEXT = true;
 		Properties.TIMEOUT = 100000;

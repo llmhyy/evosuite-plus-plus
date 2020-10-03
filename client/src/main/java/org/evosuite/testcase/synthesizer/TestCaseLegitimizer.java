@@ -3,6 +3,7 @@ package org.evosuite.testcase.synthesizer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -156,6 +157,7 @@ public class TestCaseLegitimizer {
 				System.currentTimeMillis();
 			}
 			
+			Properties.FULLY_INSTRUMENT_DEPENDENCIES = true;
 			/**
 			 * locate the relevant branches from the method call return null value
 			 */
@@ -178,7 +180,7 @@ public class TestCaseLegitimizer {
 						e.printStackTrace();
 					}	
 					
-					Properties.FULLY_INSTRUMENT_DEPENDENCIES = true;
+					
 					((DefaultTestCase)individual.getTestCase()).changeClassLoader(auxilaryLoader);
 					individual.addFitness(ftt);	
 					individual.clearCachedResults();
@@ -197,7 +199,6 @@ public class TestCaseLegitimizer {
 					}
 					
 					((DefaultTestCase)individual.getTestCase()).changeClassLoader(classLoader);
-					Properties.FULLY_INSTRUMENT_DEPENDENCIES = false;
 					average += fit;
 				}
 				
@@ -205,6 +206,8 @@ public class TestCaseLegitimizer {
 				double newDistance = legitimacyDistance + average;
 				individual.setLegitimacyDistance(newDistance);
 			}
+			
+			Properties.FULLY_INSTRUMENT_DEPENDENCIES = false;
 		}
 		else {
 			individual.setLegitimacyDistance(0);
@@ -451,40 +454,68 @@ public class TestCaseLegitimizer {
 		select(population);
 	}
 
-	private void select(List<TestChromosome> population) {
-		population.sort(new Comparator<TestChromosome>() {
-			@Override
-			public int compare(TestChromosome o1, TestChromosome o2) {
-				if(o1.getLegitimacyDistance() - o2.getLegitimacyDistance() < 0){
-					return -1;
-				}
-				else if(o1.getLegitimacyDistance() - o2.getLegitimacyDistance() > 0){
-					return 1;
-				}
-				else{
-					return 0;
-				}
+	class PopulationComparator implements Comparator<TestChromosome>{
+		@Override
+		public int compare(TestChromosome o1, TestChromosome o2) {
+			if(o1.getLegitimacyDistance() - o2.getLegitimacyDistance() < 0){
+				return -1;
 			}
-		});
+			else if(o1.getLegitimacyDistance() - o2.getLegitimacyDistance() > 0){
+				return 1;
+			}
+			else{
+				return 0;
+			}
+		}
+	}
+	
+	private void select(List<TestChromosome> population) {
+		Map<String, List<TestChromosome>> exceptionBucket = new HashMap<String, List<TestChromosome>>();
+		for(TestChromosome individual: population){
+			int exceptionPosition = individual.getLastExecutionResult().getFirstPositionOfThrownException();
+			Throwable t = individual.getLastExecutionResult().getExceptionThrownAtPosition(exceptionPosition);
+			String cause = "null";
+			if(t.getStackTrace().length > 0) {
+				cause = t.getStackTrace()[0].getClassName() + "@" + t.getStackTrace()[0].getLineNumber();
+			}
+			else {
+				cause = t.getCause() == null ? t.getClass().getCanonicalName() : String.valueOf(t.getCause());				
+			}
+			String message = exceptionPosition + ":" + cause;
+			
+			List<TestChromosome> list = exceptionBucket.get(message);
+			if(list == null) {
+				list = new ArrayList<TestChromosome>();
+				exceptionBucket.put(message, list);
+			}
+			list.add(individual);
+		}
+		
+		for(String message: exceptionBucket.keySet()) {
+			List<TestChromosome> list = exceptionBucket.get(message);
+			list.sort(new PopulationComparator());
+		}
 		
 		List<TestChromosome> newPop = new ArrayList<>();
-		for(TestChromosome individual: population){
-			if(!newPop.contains(individual)){
-				newPop.add(individual);
+		int frontier = 0;
+		while(newPop.size() < optimizionPopluationSize){
+			for(String message: exceptionBucket.keySet()) {
+				List<TestChromosome> list = exceptionBucket.get(message);
+				if(list.size() > frontier) {
+					newPop.add(list.get(frontier));
+				}
 				
-				if(newPop.size() >= optimizionPopluationSize/2){
+				if(newPop.size() >= optimizionPopluationSize) {
 					break;
 				}
 			}
-		}
-		
-		while(newPop.size() < optimizionPopluationSize){
-			TestChromosome individual = Randomness.choice(population);
-			newPop.add(individual);
+			
+			frontier++;
 		}
 		
 		population.clear();
 		population.addAll(newPop);
+		population.sort(new PopulationComparator());
 	}
 
 //	/**
