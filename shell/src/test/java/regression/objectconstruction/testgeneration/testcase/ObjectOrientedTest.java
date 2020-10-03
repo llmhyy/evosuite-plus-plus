@@ -80,7 +80,6 @@ public class ObjectOrientedTest {
 	}
 
 	protected void assertLegitimization(Branch b, boolean isDebug) {
-
 		if (Properties.APPLY_OBJECT_RULE) {
 			Properties.PRIMITIVE_REUSE_PROBABILITY = 0;
 			System.currentTimeMillis();
@@ -89,10 +88,13 @@ public class ObjectOrientedTest {
 		TestFactory testFactory = TestFactory.getInstance();
 		TestCase test = initializeTest(b, testFactory);
 		try {
+			long t1 = System.currentTimeMillis();
 			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebug);
 			mutateNullStatements(test);
-
+			long t2 = System.currentTimeMillis();
+			System.out.println("Time to generate code template: " + (t2-t1)/1000 + "s");
+			
 			PartialGraph graph = cpSynthesizer.getPartialGraph();
 			Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
 

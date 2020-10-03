@@ -87,15 +87,19 @@ public class TestCaseLegitimizer {
 		 */
 		List<TestChromosome> population = initializePopulation(test);
 		
+		int iteration = 1;
+		
 		MutationPositionDiscriminator.discriminator.resetFrozenIteartion();
 		long t1 = System.currentTimeMillis();
 		long t2 = System.currentTimeMillis();
 		while (legitimacyDistance != 0 && (t2-t1) <= Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET * 1000){
-//			MutationPositionDiscriminator.discriminator.setPurpose(relevantBranches);
+			System.out.print(iteration++ + ", ");
 			
 			evolve(population);
 			legitimacyDistance = population.get(0).getLegitimacyDistance();
-			legitimacyDistance = population.get(0).getLegitimacyDistance();
+			
+			System.out.println("legitimancy distance: " + legitimacyDistance);
+			
 			t2 = System.currentTimeMillis();
 			
 			MutationPositionDiscriminator.discriminator.decreaseFrozenIteration();
@@ -205,9 +209,6 @@ public class TestCaseLegitimizer {
 		else {
 			individual.setLegitimacyDistance(0);
 		}
-		
-		
-		System.currentTimeMillis();
 		
 	}
 	
@@ -610,9 +611,9 @@ public class TestCaseLegitimizer {
 			MutationPositionDiscriminator.discriminator.setPurpose(individual.getFitnessValues());
 			double mutationProb = MutationPositionDiscriminator.discriminator.isFrozen() ? 
 					0.5 : mutationProbability[refStatement.getPosition()];
-			if(dice > mutationProb) {
-				continue;
-			}
+//			if(dice > mutationProb) {
+//				continue;
+//			}
 			
 			boolean isMutated = false;
 			boolean reuse = Randomness.nextBoolean();
