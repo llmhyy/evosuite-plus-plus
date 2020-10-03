@@ -91,7 +91,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			this.callContext = context;
 		}
 		
-		if(Properties.REQUIRE_AVERAGE_BRANCH_DISTANCE) {
+		if(Properties.REQUIRE_MAX_BRANCH_DISTANCE) {
 			Map<CallContext, Map<List<Integer>, Double>> contextDistanceMap = expressionValue
 					? result.getTrace().getContextIterationTrueMap().get(goal.getBranch().getActualBranchId())
 							: result.getTrace().getContextIterationFalseMap().get(goal.getBranch().getActualBranchId());
@@ -103,13 +103,17 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 						for(List<Integer> trace: contextMap.getValue().keySet()) {
 							double v = contextMap.getValue().get(trace);
 							if(v!=0) {
-								sum += v;
+//								sum += v;
+								if(sum < v) {
+									sum = v;
+								}
+								
 								count ++;
 							}
 						}
 						
-						if(sum > 0 && count>0) {
-							sum = sum/count;
+						if(sum > 0) {
+//							sum = sum/count;
 							value = sum;
 						}
 						
