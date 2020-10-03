@@ -79,8 +79,12 @@ public class RandomInsertion implements InsertionStrategy {
 		boolean success = false;
 		if (insertUUT) {
 			// Insert a call to the UUT at the end
-			position = test.size();
-			success = TestFactory.getInstance().insertRandomCall(test, lastPosition + 1);
+			if (test.size() == 0) {
+				position = 0;
+			} else {
+				position = lastPosition + 1;
+			}
+			success = TestFactory.getInstance().insertRandomCall(test, position);
 		} else if (insertEnv) {
 			/*
 				Insert a call to the environment. As such call is likely to depend on many constraints,
