@@ -471,24 +471,31 @@ public class TestCaseLegitimizer {
 	
 	private void select(List<TestChromosome> population) {
 		Map<String, List<TestChromosome>> exceptionBucket = new HashMap<String, List<TestChromosome>>();
+		
 		for(TestChromosome individual: population){
-			int exceptionPosition = individual.getLastExecutionResult().getFirstPositionOfThrownException();
-			Throwable t = individual.getLastExecutionResult().getExceptionThrownAtPosition(exceptionPosition);
-			String cause = "null";
-			if(t.getStackTrace().length > 0) {
-				cause = t.getStackTrace()[0].getClassName() + "@" + t.getStackTrace()[0].getLineNumber();
+			Integer exceptionPosition = individual.getLastExecutionResult().getFirstPositionOfThrownException();
+			if(exceptionPosition != null) {
+				Throwable t = individual.getLastExecutionResult().getExceptionThrownAtPosition(exceptionPosition);
+				String cause = "null";
+				if(t.getStackTrace().length > 0) {
+					cause = t.getStackTrace()[0].getClassName() + "@" + t.getStackTrace()[0].getLineNumber();
+				}
+				else {
+					cause = t.getCause() == null ? t.getClass().getCanonicalName() : String.valueOf(t.getCause());				
+				}
+				String message = exceptionPosition + ":" + cause;
+				
+				List<TestChromosome> list = exceptionBucket.get(message);
+				if(list == null) {
+					list = new ArrayList<TestChromosome>();
+					exceptionBucket.put(message, list);
+				}
+				list.add(individual);
 			}
 			else {
-				cause = t.getCause() == null ? t.getClass().getCanonicalName() : String.valueOf(t.getCause());				
+				population.sort(new PopulationComparator());
+				return;
 			}
-			String message = exceptionPosition + ":" + cause;
-			
-			List<TestChromosome> list = exceptionBucket.get(message);
-			if(list == null) {
-				list = new ArrayList<TestChromosome>();
-				exceptionBucket.put(message, list);
-			}
-			list.add(individual);
 		}
 		
 		for(String message: exceptionBucket.keySet()) {
@@ -642,9 +649,9 @@ public class TestCaseLegitimizer {
 			MutationPositionDiscriminator.discriminator.setPurpose(individual.getFitnessValues());
 			double mutationProb = MutationPositionDiscriminator.discriminator.isFrozen() ? 
 					0.5 : mutationProbability[refStatement.getPosition()];
-//			if(dice > mutationProb) {
-//				continue;
-//			}
+			if(dice > mutationProb) {
+				continue;
+			}
 			
 			boolean isMutated = false;
 			boolean reuse = Randomness.nextBoolean();
