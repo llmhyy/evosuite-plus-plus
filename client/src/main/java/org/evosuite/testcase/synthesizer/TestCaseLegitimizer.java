@@ -87,6 +87,7 @@ public class TestCaseLegitimizer {
 		 */
 		List<TestChromosome> population = initializePopulation(test);
 		
+		MutationPositionDiscriminator.discriminator.resetFrozenIteartion();
 		long t1 = System.currentTimeMillis();
 		long t2 = System.currentTimeMillis();
 		while (legitimacyDistance != 0 && (t2-t1) <= Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET * 1000){
@@ -96,6 +97,8 @@ public class TestCaseLegitimizer {
 			legitimacyDistance = population.get(0).getLegitimacyDistance();
 			legitimacyDistance = population.get(0).getLegitimacyDistance();
 			t2 = System.currentTimeMillis();
+			
+			MutationPositionDiscriminator.discriminator.decreaseFrozenIteration();
 		}
 		
 		return population.get(0);
@@ -157,8 +160,9 @@ public class TestCaseLegitimizer {
 			if(!relevantBranches.isEmpty()){
 				
 				InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-				
 				InstrumentingClassLoader auxilaryLoader = TestCaseLegitimizer.getInstance().getAuxilaryLoader();
+				
+				individual.getFitnessValues().clear();
 				double average = 0;
 				for(BranchCoverageTestFitness ftt: relevantBranches){
 					String className = ftt.getClassName();
@@ -178,13 +182,13 @@ public class TestCaseLegitimizer {
 					
 					if(fit == 0.0) {
 						Properties.RECORD_ITERATION_CONTEXT = true;
-						Properties.REQUIRE_AVERAGE_BRANCH_DISTANCE = true;
+						Properties.REQUIRE_MAX_BRANCH_DISTANCE = true;
 						ExecutionTraceImpl.enableTraceCalls();
 						individual.clearCachedResults();
 						fit = ftt.getFitness(individual);
 //						System.currentTimeMillis();
 						ExecutionTraceImpl.disableTraceCalls();
-						Properties.REQUIRE_AVERAGE_BRANCH_DISTANCE = false;
+						Properties.REQUIRE_MAX_BRANCH_DISTANCE = false;
 						Properties.RECORD_ITERATION_CONTEXT = false;		
 					}
 					
@@ -540,10 +544,12 @@ public class TestCaseLegitimizer {
 			
 //			relevantBranches.forEach(fitnessFunction -> fitnessFunction.getFitness(offspring));
 			updateLegitimacyDistance(offspring);
+			
 			MutationPositionDiscriminator.identifyRelevantMutations(offspring, parent);
 			
 			newPop.add(offspring);
 		}
+		
 		return newPop;
 	}
 	
@@ -569,6 +575,8 @@ public class TestCaseLegitimizer {
 		}
 		
 		TestCase test = individual.getTestCase();
+		double[] mutationProbability = MutationPositionDiscriminator.calculateMutationProbability(individual);
+		MutationPositionDiscriminator.normalizeProbability(mutationProbability);
 		List<Statement> influencingStatements = checkInfluencingStatements(test, statOfExp);
 		for(int i=0; i<influencingStatements.size(); i++){
 			Statement refStatement = influencingStatements.get(i);
@@ -597,6 +605,15 @@ public class TestCaseLegitimizer {
 				}
 			}
 			
+			
+			double dice = Randomness.nextDouble();
+			MutationPositionDiscriminator.discriminator.setPurpose(individual.getFitnessValues());
+			double mutationProb = MutationPositionDiscriminator.discriminator.isFrozen() ? 
+					0.5 : mutationProbability[refStatement.getPosition()];
+			if(dice > mutationProb) {
+				continue;
+			}
+			
 			boolean isMutated = false;
 			boolean reuse = Randomness.nextBoolean();
 			if(reuse){
@@ -606,6 +623,7 @@ public class TestCaseLegitimizer {
 					if(!candidates.isEmpty()){
 						Object value = Randomness.choice(candidates);
 						pStatement.setValue(value);
+						isMutated = true;
 						System.currentTimeMillis();
 					}					
 				}
@@ -617,6 +635,7 @@ public class TestCaseLegitimizer {
 			if (isMutated) {
 				individual.getMutationHistory().addMutationEntry(new TestMutationHistoryEntry(
 				        TestMutationHistoryEntry.TestMutation.CHANGE, statement));
+				statement.setChanged(true);
 				assert (test.isValid());
 				assert ConstraintVerifier.verifyTest(test);
 

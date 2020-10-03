@@ -237,7 +237,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 		this.goalsManager = new MultiCriteriaManager<>(this.fitnessFunctions);
 //		((MultiCriteriaManager<T>) goalsManager).getBranchFitnessGraph();
-		MutationPositionDiscriminator.discriminator.currentGoals = this.goalsManager.getCurrentGoals();
+		MutationPositionDiscriminator.discriminator.setPurpose(this.goalsManager.getCurrentGoals());
 
 		this.goalsManager.getCoveredGoals().clear();
 		LoggingUtils.getEvoLogger().info("* Initial Number of Goals in DynMOSA = "

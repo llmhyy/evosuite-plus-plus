@@ -406,7 +406,9 @@ public interface Statement {
 	 * and a set of fitnesses. 
 	 * @return
 	 */
+	@SuppressWarnings("rawtypes")
 	public Map<FitnessFunction, Pair<Double, Double>> getChangeRelevanceMap();
+	@SuppressWarnings("rawtypes")
 	public void setChangeRelevanceMap(Map<FitnessFunction, Pair<Double, Double>> changeRelevanceMap);
 
 

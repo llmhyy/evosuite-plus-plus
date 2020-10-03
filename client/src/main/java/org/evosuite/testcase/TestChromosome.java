@@ -23,16 +23,12 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationExecutionResult;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ConstructionFailedException;
-import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.SecondaryObjective;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 import org.evosuite.ga.operators.mutation.MutationHistory;
@@ -46,14 +42,12 @@ import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.localsearch.TestCaseLocalSearch;
-import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.FunctionalMockStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
-import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.evosuite.utils.Randomness;
@@ -81,11 +75,6 @@ public class TestChromosome extends ExecutableChromosome {
 	/** Secondary objectives used during ranking */
 	private static final List<SecondaryObjective<TestChromosome>> secondaryObjectives = new ArrayList<SecondaryObjective<TestChromosome>>();
 
-	/**
-	 * Use this constant to calculate the relevance of statement. 
-	 */
-	private static final double MAX_POWER = 100;
-
 	private double legitimacyDistance = 0;
 	
 	public Statement getStatementReportingException(){
@@ -100,8 +89,6 @@ public class TestChromosome extends ExecutableChromosome {
 		Statement statOfExp = test.getStatement(numOfExecutedStatements);
 		return statOfExp;
 	}
-	
-	
 	
 	
 	/**
@@ -548,8 +535,8 @@ public class TestChromosome extends ExecutableChromosome {
 		if (!changed) {
 			getChangedPositionsInOldTest().clear();
 			
-			double[] mutationProbability = calculateMutationProbability(this.test.size()-1);
-			List<Integer> forceMutationPosition = checkForceMutationPosition(mutationProbability);
+			double[] mutationProbability = MutationPositionDiscriminator.calculateMutationProbability(this);
+			List<Integer> forceMutationPosition = MutationPositionDiscriminator.checkForceMutationPosition(mutationProbability);
 			
 			for (int position = 0, oldPosition = 0; position < this.test.size(); position++, oldPosition++) {
 				
@@ -695,8 +682,8 @@ public class TestChromosome extends ExecutableChromosome {
 		if (!changed) {
 			getChangedPositionsInOldTest().clear();
 			
-			double[] mutationProbability = calculateMutationProbability(this.test.size()-1);
-			List<Integer> forceMutationPosition = checkForceMutationPosition(mutationProbability);
+			double[] mutationProbability = MutationPositionDiscriminator.calculateMutationProbability(this);
+			List<Integer> forceMutationPosition = MutationPositionDiscriminator.checkForceMutationPosition(mutationProbability);
 			
 			for (int position = 0, oldPosition = 0; position < this.test.size(); position++, oldPosition++) {
 				
@@ -837,269 +824,6 @@ public class TestChromosome extends ExecutableChromosome {
 		}
 		
 		return false;
-	}
-
-	/**
-	 * we choose the two largest position as force mutation position
-	 * 
-	 * @param mutationProbability
-	 * @return
-	 */
-	private List<Integer> checkForceMutationPosition(double[] mutationProbability) {
-		List<Integer> indexes = new ArrayList<Integer>();
-		List<Double> values = new ArrayList<Double>();
-		
-		for(int i=0; i<mutationProbability.length; i++) {
-			if(values.size() < 2) {
-				indexes.add(i);
-				values.add(mutationProbability[i]);
-			}
-			
-			if(values.size()==2) {
-				if(values.get(0) < values.get(1)) {
-					Double tmp = values.get(1);
-					values.set(1, values.get(0));
-					values.set(0, tmp);
-					
-					Integer iTemp = indexes.get(1);
-					indexes.set(1, indexes.get(0));
-					indexes.set(0, iTemp);
-				}
-				
-				if(i>=2 && mutationProbability[i] > values.get(1)) {
-					indexes.set(1, i);
-					values.set(1, mutationProbability[i]);
-				}
-			}
-		}
-		
-		return indexes;
-	}
-
-	@SuppressWarnings({ "unchecked"})
-	private double[] calculateMutationProbability(int size) {
-		if(size<=0) {
-			return new double[0];
-		}
-		
-		Set<FitnessFunction<? extends Chromosome>> currentGoalSet = MutationPositionDiscriminator.discriminator.currentGoals;
-		
-		if(currentGoalSet.isEmpty()) {
-			double[] distribution = new double[size];
-			for(int i=0; i<size; i++) {
-				distribution[i] = 1d/size;
-			}
-			return distribution;
-		}
-		
-		List<FitnessFunction<? extends Chromosome>> currentGoals = new ArrayList<>(currentGoalSet);
-		
-		double[][] relevanceMatrix = constructRelevanceMatrix(size, currentGoals);
-		List<List<Integer>> clusters = clusterGoals(relevanceMatrix);
-		
-//		System.currentTimeMillis();
-		
-		List<double[]> mutationProbabilityList = extractMutationProbabilityList(size, 
-				currentGoals, clusters);
-		
-		/**
-		 * The distribution correspond to the size of cluster.
-		 */
-		double[] probabilityDistribution = deriveProbabilityDistributionFromClusters(clusters);
-		
-		int index = pickRandomIndex(probabilityDistribution);
-		
-		return mutationProbabilityList.get(index);
-	}
-
-	private int pickRandomIndex(double[] probabilityDistribution) {
-		double random = Math.random();
-		int index = 0;
-		for(int i=0; i<probabilityDistribution.length; i++) {
-			double lowerBound = (i==0) ? 0 : probabilityDistribution[i-1];
-			double upperBound = probabilityDistribution[i];
-			if(lowerBound < random && random <= upperBound) {
-				index = i;
-				break;
-			}
-		}
-		return index;
-	}
-
-	/**
-	 * The distribution correspond to the size of cluster.
-	 * @param clusters
-	 * @return
-	 */
-	private double[] deriveProbabilityDistributionFromClusters(List<List<Integer>> clusters) {
-		double[] probability = new double[clusters.size()];
-		double sum = 0d;
-		for(int i=0; i<probability.length; i++) {
-			probability[i] = (double) (clusters.get(i).size());
-			sum += probability[i];
-		}
-		
-		for(int i=0; i<probability.length; i++) {
-			probability[i] /= sum;
-		}
-		
-		for(int i=0; i<probability.length-1; i++) {
-			probability[i+1] += probability[i];
-		}
-		return probability;
-	}
-
-	private List<List<Integer>> clusterGoals(double[][] relevanceMatrix) {
-		List<List<Integer>> clusters = new ArrayList<>();
-		List<Integer> markedGoals = new ArrayList<>();
-		
-		int totalGoalNum = relevanceMatrix[0].length; 
-		while(markedGoals.size() < totalGoalNum) {
-			List<Integer> cluster = new ArrayList<>();
-			for(int j=0; j<totalGoalNum; j++) {
-				if(markedGoals.contains(j)) {
-					continue;
-				}
-				
-				if(cluster.isEmpty()) {
-					cluster.add(j);
-					markedGoals.add(j);
-				}
-				else {
-					int goalIndex = cluster.get(0);
-					boolean isSimilar = compareSimilarity(goalIndex, j, relevanceMatrix);
-					if(isSimilar) {
-						cluster.add(j);
-						markedGoals.add(j);
-					}
-					
-				}
-			}		
-			
-			clusters.add(cluster);
-		}
-		
-		return clusters;
-	}
-
-	private boolean compareSimilarity(int goalIndex, int j, double[][] relevanceMatrix) {
-		double delta = 0.1;
-		
-		for(int i=0; i<relevanceMatrix.length; i++) {
-			double goalIndexValue = relevanceMatrix[i][goalIndex];
-			double jValue = relevanceMatrix[i][j];
-			
-			if(1-delta<goalIndexValue && goalIndexValue < 1+delta &&
-					1-delta<jValue && jValue < 1+delta) {
-				continue;
-			}
-			else if(goalIndexValue>1 && jValue<1) {
-				return false;
-			}
-			else if(goalIndexValue<1 && jValue>1) {
-				return false;
-			}
-			
-		}
-		
-		return true;
-	}
-
-	@SuppressWarnings("rawtypes")
-	private List<double[]> extractMutationProbabilityList(int lastMutatableStatement,
-			List<FitnessFunction<? extends Chromosome>> currentGoals, List<List<Integer>> clusters) {
-		List<double[]> mutationProbabilityList = new ArrayList<>();
-		for(List<Integer> cluster: clusters) {
-			double[] mutationProbabililty = new double[lastMutatableStatement+1];
-			
-			Double sum = 0d;
-			for(int i=0; i<lastMutatableStatement+1; i++) {
-				mutationProbabililty[i] = 1;
-				
-				Statement statement = test.getStatement(i);
-				Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
-				for(Integer index: cluster) {
-					FitnessFunction<?> ff = currentGoals.get(index);
-					Pair<Double, Double> effectFrequency = map.get(ff);
-					if(effectFrequency != null) {
-						Double positiveEffect = effectFrequency.getLeft();
-						Double negativeEffect = effectFrequency.getRight();
-						
-						double base = positiveEffect + negativeEffect;
-						double alpha = 1;
-						if(base > 10) {
-							if(negativeEffect==0 && positiveEffect != 0) {
-								alpha = MAX_POWER;
-							}
-							else {
-								alpha = positiveEffect / negativeEffect;
-							}
-						}
-						
-						mutationProbabililty[i] += base * alpha * alpha;
-						sum += mutationProbabililty[i];
-					}
-				}
-			}
-			
-			if(sum==0) {
-				sum = (double) (lastMutatableStatement+1);
-			}
-			
-			for(int i=0; i<lastMutatableStatement+1; i++) {
-				mutationProbabililty[i] =  mutationProbabililty[i] / sum;
-			}
-			
-			mutationProbabilityList.add(mutationProbabililty);
-		}
-		return mutationProbabilityList;
-	}
-
-	@SuppressWarnings("rawtypes")
-	private double[][] constructRelevanceMatrix(int testcaseSize,
-			List<FitnessFunction<? extends Chromosome>> currentGoals) {
-		double[][] relevanceMatrix = new double[test.size()][currentGoals.size()];
-		
-		for(int i=0; i<testcaseSize; i++) {
-			Statement statement = test.getStatement(i);
-			Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
-			for(int j=0; j<currentGoals.size(); j++) {
-				FitnessFunction<?> ff = currentGoals.get(j);
-				Pair<Double, Double> effectFrequency = map.get(ff);
-				if(effectFrequency != null) {
-					Double positiveEffect = effectFrequency.getLeft();
-					Double negativeEffect = effectFrequency.getRight();
-					
-					double base = positiveEffect + negativeEffect;
-					if(base > 10) {
-						if(negativeEffect==0 && positiveEffect != 0) {
-							relevanceMatrix[i][j] = MAX_POWER;
-						}
-						else {
-							relevanceMatrix[i][j] = positiveEffect / negativeEffect;
-						}
-					}
-					else {
-						relevanceMatrix[i][j] = 1;
-					}
-					
-				}
-			}
-		}
-		return relevanceMatrix;
-	}
-	
-	public double[] softmax(double[] mutationProbabililty) {
-		Double sum = 0d;
-		for(int i=0; i<mutationProbabililty.length; i++) {
-			sum += Math.pow(Math.E, mutationProbabililty[i]*10);
-		}
-		
-		for(int i=0; i<mutationProbabililty.length; i++) {
-			mutationProbabililty[i] = Math.pow(Math.E, mutationProbabililty[i]*10)/sum;
-		}
-		
-		return mutationProbabililty;
 	}
 
 	/**

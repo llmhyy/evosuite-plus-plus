@@ -166,7 +166,7 @@ public class Properties {
 	public static int ITERATION_CONTEXT_LIMIT = 3;
 	
 	@Parameter(key = "require_aggregate_branch_distance", group = "Test Creation", description = "require fbranch to use aggregate branch distance if they have multiple value because of loop iterations")
-	public static boolean REQUIRE_AVERAGE_BRANCH_DISTANCE = false;
+	public static boolean REQUIRE_MAX_BRANCH_DISTANCE = false;
 	
 	@Parameter(key = "computation_graph_call_depth", group = "Test Creation", description = "how depth the call hierarchy to analyze when constructing computation graph")
 	public static int COMPUTATION_GRAPH_METHOD_CALL_DEPTH = 5;
