@@ -38,6 +38,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.runtime.javaee.db.DBManager;
+import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.FileIOUtils;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
@@ -128,7 +129,7 @@ public class InstrumentingClassLoader extends ClassLoader {
 	
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
-        synchronized(getClassLoadingLock(name)) {
+		synchronized(getClassLoadingLock(name)) {
             ClassLoader dbLoader = DBManager.getInstance().getSutClassLoader();
             if (dbLoader != null && dbLoader != this && !isRegression) {
                 /*
@@ -163,17 +164,21 @@ public class InstrumentingClassLoader extends ClassLoader {
             }
     
             Class<?> result = classes.get(name);
-            if (result != null) {
-                return result;
-            } else {
-                logger.info("Seeing class for first time: " + name);
-                Class<?> instrumentedClass = instrumentClass(name);
-                return instrumentedClass;
-            }
+        	if (result != null) {
+        		return result;
+        	} else {
+        		logger.info("Seeing class for first time: " + name);
+        		if(Properties.FULLY_INSTRUMENT_DEPENDENCIES) {
+        			DependencyAnalysis.addTargetClass(name);
+        		}
+        		
+        		Class<?> instrumentedClass = instrumentClass(name);
+        		return instrumentedClass;
+        	}   
             
         }
 	}
-
+	
 	//This is needed, as it is overridden in subclasses
 		protected byte[] getTransformedBytes(String className, InputStream is) throws IOException {
 			byte[] data = instrumentation.transformBytes(this, className, new ClassReader(is));
@@ -191,6 +196,7 @@ public class InstrumentingClassLoader extends ClassLoader {
 			}
 			String filePath = targetFolder + "/inst_src/test/" + classFName.substring(classFName.lastIndexOf(".") + 1)
 					+ ".class";
+			
 			FileIOUtils.getFileCreateIfNotExist(filePath);
 			FileOutputStream out = null;
 			try {
@@ -226,7 +232,7 @@ public class InstrumentingClassLoader extends ClassLoader {
 			
 			byte[] byteBuffer = getTransformedBytes(className,is);
 			createPackageDefinition(fullyQualifiedTargetClass);
-			Class<?> result = defineClass(fullyQualifiedTargetClass, byteBuffer, 0,byteBuffer.length);
+			Class<?> result = defineClass(fullyQualifiedTargetClass, byteBuffer, 0, byteBuffer.length);
 			classes.put(fullyQualifiedTargetClass, result);
 
 			logger.info("Loaded class: " + fullyQualifiedTargetClass);

@@ -1,12 +1,12 @@
 language: java
 sudo: true
-# dist: trusty
+dist: trusty
 
 os:
    - linux
   
 jdk:
-   - openjdk8
+   - oraclejdk8
 
 install:
    - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B

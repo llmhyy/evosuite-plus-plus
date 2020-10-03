@@ -7,10 +7,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
-import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
@@ -47,10 +47,12 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		 * branch distance as we need to pass its parent branch node.
 		 */
 
-		Double value = getContextSensitiveBranchDistance(result, this.goal.getValue());	
+		Double value = getContextSensitiveBranchDistance(result, this.goal.getValue(), this.goal);	
 		if(value != null && value == 0) {
 			return 0;
 		}
+		
+		System.currentTimeMillis();
 		
 		FlagEffectResult r = FlagEffectEvaluator.checkFlagEffect(goal);
 		if (r == null || !r.hasFlagEffect) {
@@ -79,38 +81,62 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		}
 	}
 
-	private Double getContextSensitiveBranchDistance(ExecutionResult result, boolean expressionValue) {
+	private Double getContextSensitiveBranchDistance(ExecutionResult result, boolean expressionValue, BranchCoverageGoal goal) {
 		Double value = null;
 		if (this.callContext == null) {
-			Call call = new Call(this.goal.getClassName(), this.goal.getMethodName(), this.goal.getLineNumber());
+			Call call = new Call(goal.getClassName(), goal.getMethodName(), goal.getLineNumber());
 			List<Call> callList = new ArrayList<Call>();
 			callList.add(call);
 			CallContext context = new CallContext(callList);
 			this.callContext = context;
 		}
-			
-		Map<CallContext, Double> contextDistanceMap = expressionValue
-				? result.getTrace().getTrueDistancesContext().get(this.goal.getBranch().getActualBranchId())
-				: result.getTrace().getFalseDistancesContext().get(this.goal.getBranch().getActualBranchId());
-		if (contextDistanceMap != null) {
-			for (Entry<CallContext, Double> contextMap : contextDistanceMap.entrySet()) {
-				if (isSameContextVisited(contextMap.getKey())) {
-					value = contextMap.getValue();
-					break;
+		
+		if(Properties.REQUIRE_AVERAGE_BRANCH_DISTANCE) {
+			Map<CallContext, Map<List<Integer>, Double>> contextDistanceMap = expressionValue
+					? result.getTrace().getContextIterationTrueMap().get(goal.getBranch().getActualBranchId())
+							: result.getTrace().getContextIterationFalseMap().get(goal.getBranch().getActualBranchId());
+			if (contextDistanceMap != null) {
+				for (Entry<CallContext, Map<List<Integer>, Double>> contextMap : contextDistanceMap.entrySet()) {
+					if (isSameContextVisited(contextMap.getKey())) {
+						double sum = 0;
+						int count = 0;
+						for(List<Integer> trace: contextMap.getValue().keySet()) {
+							double v = contextMap.getValue().get(trace);
+							if(v!=0) {
+								sum += v;
+								count ++;
+							}
+						}
+						
+						if(sum > 0 && count>0) {
+							sum = sum/count;
+							value = sum;
+						}
+						
+						break;
+					}
 				}
 			}
 		}
-//		} else {
-//			value = expressionValue
-//					? result.getTrace().getTrueDistances().get(this.goal.getBranch().getActualBranchId())
-//							: result.getTrace().getFalseDistances().get(this.goal.getBranch().getActualBranchId());
-//		}
-
+		else {
+			Map<CallContext, Double> contextDistanceMap = expressionValue
+					? result.getTrace().getTrueDistancesContext().get(goal.getBranch().getActualBranchId())
+							: result.getTrace().getFalseDistancesContext().get(goal.getBranch().getActualBranchId());
+			if (contextDistanceMap != null) {
+				for (Entry<CallContext, Double> contextMap : contextDistanceMap.entrySet()) {
+					if (isSameContextVisited(contextMap.getKey())) {
+						value = contextMap.getValue();
+						break;
+					}
+				}
+			}
+			
+		}
+		
 		return value;
 	}
 	
 	private Double getBranchDisntanceWithApproachLevel(ExecutionResult result, BranchCoverageGoal goal, Set<BranchCoverageGoal> set) {
-		
 		Set<ControlDependency> cds = goal.getBranch().getInstruction().getControlDependencies();
 		
 		if(cds.isEmpty()) {
@@ -128,7 +154,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 			
 			set.add(newGoal);
 			
-			Double value = getContextSensitiveBranchDistance(result, cd.getBranchExpressionValue());		
+			Double value = getContextSensitiveBranchDistance(result, cd.getBranchExpressionValue(), newGoal);		
 			if(value != null) {
 				return 1 + normalize(value);
 			}
@@ -138,10 +164,12 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 					return 1 + subValue;
 				}
 				else {
+					System.currentTimeMillis();
 					return null;
 				}
 			}
 		}
+		
 		
 	}
 

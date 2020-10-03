@@ -35,7 +35,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.testcase.execution.MethodCall;
 						
 							
@@ -122,24 +122,37 @@ public class CallContext implements Serializable {
 				BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
 				getAllInstructionsAtLineNumber(className, lineNumber);
 		
-		if(insList == null && RuntimeInstrumentation.checkIfCanInstrument(className)) {
-			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
-			insList = BytecodeInstructionPool
-					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-					.getAllInstructionsAtLineNumber(className, lineNumber);
+//		if((insList == null) && RuntimeInstrumentation.checkIfCanInstrument(className)) {
+//			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+//			insList = BytecodeInstructionPool
+//					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+//					.getAllInstructionsAtLineNumber(className, lineNumber);
+//			
+//			if(insList == null) {
+//				return null;				
+//			}
+//			
+//		}
+		
+		if(insList!=null && !insList.isEmpty()) {
+			BytecodeInstruction instruction = insList.get(0);
+			return instruction.getMethodName();
+		}
+		else {
+			InstrumentingClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+			BytecodeInstructionPool pool = BytecodeInstructionPool.getInstance(loader);
 			
-			if(insList == null) {
-				return null;				
+			GraphPool.getInstance(loader).retrieveAllRawCFGs(className, loader);
+			insList = pool.getAllInstructionsAtLineNumber(className, elementToCallException.getLineNumber());
+			
+			if(insList == null || insList.isEmpty()) {
+				return null;
 			}
 			
-		}
-		
-		if(!insList.isEmpty()) {
 			BytecodeInstruction instruction = insList.get(0);
 			return instruction.getMethodName();
 		}
 		
-		return null;
 	}
 	
 	/**
@@ -168,6 +181,7 @@ public class CallContext implements Serializable {
 		for (int i = startPos; i >= endPos; i--) {
 			StackTraceElement element = stackTrace[i];
 			String methodSig = covert2Sig(element);
+			System.currentTimeMillis();
 			if (methodSig == null) {
 				this.hcode = 0;
 				this.context = null;

@@ -539,7 +539,7 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 					Math.min(coveredFalseContext.get(branch).get(context), false_distance));
 		}
 		
-		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH)) {
+		if(ArrayUtil.contains(Properties.CRITERION, Criterion.FBRANCH) || Properties.RECORD_ITERATION_CONTEXT) {
 			updateContextIterationMap(true, branch, true_distance, context);
 			updateContextIterationMap(false, branch, false_distance, context);
 		}
@@ -605,17 +605,17 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 		/**
 		 * get latest call
 		 */
-		MethodCall latestCall = null;
-		int count = 0;
-		while(iterator.hasNext()) {
-			MethodCall call = iterator.next();
-			if(count > 0) {
-				latestCall = call;
-				break;
-			}
-			
-			count++;
-		}
+		MethodCall latestCall = iterator.next();
+//		int count = 0;
+//		while(iterator.hasNext()) {
+//			MethodCall call = iterator.next();
+//			if(count > 0) {
+//				latestCall = call;
+//				break;
+//			}
+//			
+//			count++;
+//		}
 		
 		if(latestCall == null) {
 			return new ArrayList<>();

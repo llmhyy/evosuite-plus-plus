@@ -189,6 +189,8 @@ public class BranchCoverageTestFitness extends TestFitnessFunction implements Br
 //			fitness += individual.getLegitimacyDistance();
 //		}
 		
+		System.currentTimeMillis();
+		
 		return fitness;
 	}
 

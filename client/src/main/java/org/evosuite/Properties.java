@@ -156,6 +156,18 @@ public class Properties {
 	@Parameter(key = "total_legitimization_budget", group = "Test Creation", description = "total legitimization budget")
 	public static int TOTAL_LEGITIMIZATION_BUDGET = 30;
 	
+	@Parameter(key = "fully_instrument_dependencies", group = "Test Creation", description = "force evosuite++ to fully instrument relevant dependent classes")
+	public static boolean FULLY_INSTRUMENT_DEPENDENCIES = false;
+	
+	@Parameter(key = "record iteration context", group = "Test Creation", description = "record the branch distance of every iteration")
+	public static boolean RECORD_ITERATION_CONTEXT = false;
+	
+	@Parameter(key = "record iteration context", group = "Test Creation", description = "number of iterations to record a branch distance")
+	public static int ITERATION_CONTEXT_LIMIT = 3;
+	
+	@Parameter(key = "require_aggregate_branch_distance", group = "Test Creation", description = "require fbranch to use aggregate branch distance if they have multiple value because of loop iterations")
+	public static boolean REQUIRE_AVERAGE_BRANCH_DISTANCE = false;
+	
 	@Parameter(key = "computation_graph_call_depth", group = "Test Creation", description = "how depth the call hierarchy to analyze when constructing computation graph")
 	public static int COMPUTATION_GRAPH_METHOD_CALL_DEPTH = 5;
 	
@@ -2526,11 +2538,6 @@ public class Properties {
 	public static final String JAVA_VERSION_WARN_MSG = "EvoSuite does not support Java versions > 8 yet";
 
 	public static final int RECORD_INTERVAL = 5;
-
-	/**
-	 * number of iteration context limit.
-	 */
-	public static final int ITERATION_CONTEXT_LIMIT = 2;
 
 	/**
 	 * This field is for filtering target methods. When filtering a method, sometimes we need to construct
