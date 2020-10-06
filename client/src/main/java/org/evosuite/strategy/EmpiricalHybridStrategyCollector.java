@@ -467,12 +467,12 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 		if (segList != null) {
 			recordTmpSegmentationList(path + tmpfileNme, segList, fitnessFunction);
-			mergeSementationListResult(path + targetfileName, path + tmpfileNme);
+			mergeSegmentationListResult(path + targetfileName, path + tmpfileNme);
 		}
 
 	}
 
-	private void mergeSementationListResult(String targetFile, String tmpFile) {
+	private void mergeSegmentationListResult(String targetFile, String tmpFile) {
 		try {
 			FileInputStream targetFileIn = new FileInputStream(targetFile);
 			FileInputStream tmpFileIn = new FileInputStream(tmpFile);
