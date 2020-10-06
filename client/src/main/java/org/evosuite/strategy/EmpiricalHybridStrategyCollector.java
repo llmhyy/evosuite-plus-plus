@@ -44,6 +44,7 @@ import org.evosuite.rmi.service.ClientState;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.symbolic.DSEAlgorithm;
 import org.evosuite.symbolic.expr.Constraint;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
@@ -82,6 +83,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		List<Constraint<?>> constraintSegmentation;
 		long timeout;
 		String strategy;
+		TestChromosome bestIndividual;
 	}
 
 	@SuppressWarnings({ "unchecked" })
@@ -139,6 +141,8 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 			for (List<BranchGoal> path : paths) {
 				
+				int lasthybridStrategy = 999;
+				
 				for(int i=0; i<DEFAULT_PATH_TESTING_NUM; i++) {
 					logger.warn("working on " + fitnessFunction);
 					
@@ -152,6 +156,9 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 					
 					long start = System.currentTimeMillis();
 					long end = System.currentTimeMillis();
+					
+//					int lasthybridStrategy = 999;
+					
 					for (; end - start < pathWiseBudget; end = System.currentTimeMillis()) {
 						/**
 						 * randomly select a strategy and run it for a while.
@@ -162,8 +169,12 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 //						long timeBudget = strategyWiseBudget > remainBranchWiseBudget ? remainBranchWiseBudget : strategyWiseBudget;
 						
 						List<Hybridable> strategyList = getTotalStrategies(factory, stoppingCondition, fitnessFunction);
-						int index = new Random().nextInt(strategyList.size());
-						Hybridable hybridStrategy = strategyList.get(index);
+						int index = 0;
+						Hybridable hybridStrategy;
+						do {
+						index = new Random().nextInt(strategyList.size());
+						hybridStrategy = strategyList.get(index);
+						}while(lasthybridStrategy == index);
 						GeneticAlgorithm<TestChromosome> strategy = (GeneticAlgorithm<TestChromosome>) hybridStrategy;
 						
 						String strategyName = strategy.getClass().getCanonicalName();
@@ -195,6 +206,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						
 						Segmentation newSeg = parsePathSegmentation(segList, bestIndividual, realTimeout, fitnessFunction,
 								strategyName, path);
+						newSeg.bestIndividual = bestIndividual;
 						segList.add(newSeg);
 						
 						if (fitnessFunction.getFitness(bestIndividual) == 0.0) {
@@ -208,7 +220,29 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 									+ MaxStatementsStoppingCondition.getNumExecutedStatements());
 							seeds = hybridStrategy.getSeeds();
 							suite.addTests(seeds);
+							
+                            String segment = "";
+                            String goal = fitnessFunction.toString();
+                            
+                            int index1 = goal.indexOf(":");
+                			int index2 = goal.indexOf("-");
+                			
+                			goal = goal.substring(index1+2, index2-1);
+                			
+                			if (newSeg.branchSegmentation != null || newSeg.branchSegmentation.size() > 0) {
+                				for (int j = 0; j < newSeg.branchSegmentation.size(); j++) {
+                					Branch b = newSeg.branchSegmentation.get(j);
+                					segment = segment + b.toString() + ",";
+                				}
+                				if (segment.length() > 0) {
+                					segment = segment.substring(0, segment.length() - 1);
+                				}
+                			}
+							
+							if(segment.contains(goal))
+								segList.remove(segList.indexOf(newSeg));
 						}
+						lasthybridStrategy = index;
 					}
 					
 					//TODO add it back
@@ -507,11 +541,34 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 				FBranchTestFitness fBranchFitness = (FBranchTestFitness) fitnessFunction;
 				goal = fBranchFitness.getBranchGoal().toString();
 			}
-			goalCell.setCellValue(goal);
+//			goalCell.setCellValue(goal);
 
-			for (Segmentation seg : segList) {
-				recordSegmentation(seg, seg_ws);
+			int index1 = goal.indexOf(":");
+			int index2 = goal.indexOf("-");
+			String goalBranch = goal.substring(index1+2, goal.length());
+			goalCell.setCellValue(goalBranch);
+			
+			goalBranch = goal.substring(index1+2, index2-1);
+			Segmentation segLast = segList.get(segList.size()-1);
+			String segment = "";
+			
+			if (segLast.branchSegmentation != null || segLast.branchSegmentation.size() > 0) {
+				for (int j = 0; j < segLast.branchSegmentation.size(); j++) {
+					Branch b = segLast.branchSegmentation.get(j);
+					segment = segment + b.toString() + ",";
+				}
+				if (segment.length() > 0) {
+					segment = segment.substring(0, segment.length() - 1);
+				}
 			}
+			
+			if(segment.contains(goalBranch))
+			{
+				for (Segmentation seg : segList) {
+					recordSegmentation(seg, seg_ws);
+					}
+			}
+			
 
 			seg_wb.write(fileOut);
 			fileOut.close();
@@ -525,7 +582,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 	private void initSegmentationListExcel(String file) {
 		XSSFWorkbook segmentationList_wb = new XSSFWorkbook();
 		XSSFSheet segmentationList_ws = segmentationList_wb.createSheet("segmentationList");
-		String[] headers = { "Goals", "Timeout", "Strategy", "Branch" };
+		String[] headers = { "Goals","Segmentation", "Strategy", "Timeout","Suite" };
 		XSSFRow row = segmentationList_ws.createRow(0);
 		addHeader(row, headers);
 
@@ -552,34 +609,52 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 		XSSFRow row = seg_ws.getRow(0);
 		short newCellNum = row.getLastCellNum();
+		
+		String segment = "",suite = "";
 
-		XSSFCell timeout_cell = row.createCell((short) newCellNum);
-		timeout_cell.setCellValue(Long.toString(seg.timeout));
-		newCellNum++;
-
-		XSSFCell strategy_cell = row.createCell((short) newCellNum);
-		strategy_cell.setCellValue(seg.strategy);
-		newCellNum++;
-
-		XSSFCell branch_cell = row.createCell(newCellNum);
-		String branch = "";
+//		XSSFCell branch_cell = row.createCell(newCellNum);
+//		String branch = "";
 		// branch
-		if (seg.branchSegmentation != null) {
+		if (seg.branchSegmentation != null || seg.branchSegmentation.size() > 0) {
 			for (int j = 0; j < seg.branchSegmentation.size(); j++) {
 				Branch b = seg.branchSegmentation.get(j);
-				branch = branch + b.toString() + ",";
+				segment = segment + b.toString() + ",";
 			}
-			if (branch.length() > 0) {
-				branch = branch.substring(0, branch.length() - 1);
+			if (segment.length() > 0) {
+				segment = segment.substring(0, segment.length() - 1);
 			}
 		}
-		branch_cell.setCellValue(branch);
-		// constraints
-//		index=22;
-//		for(Constraint<?> c:seg.constraintSegmentation) {
-//			XSSFCell branch_cell=Row.createCell(index++);
-//			branch_cell.setCellValue(c.toString());
-//		}
+		if(segment != "") {
+			
+//			XSSFCell branch = row.getCell(0);
+//			String s = branch.toString();
+//			
+//			int index2 = s.indexOf("-");
+//			
+//			s = s.substring(0, index2-1);
+//			
+//			if(segment.contains(s))
+//			{
+			XSSFCell segment_cell = row.createCell(newCellNum);
+			segment_cell.setCellValue(segment);
+			newCellNum++;
+				
+			XSSFCell strategy_cell = row.createCell((short) newCellNum);
+			strategy_cell.setCellValue(seg.strategy);
+			newCellNum++;
+				
+			XSSFCell timeout_cell = row.createCell((short) newCellNum);
+			timeout_cell.setCellValue(Long.toString(seg.timeout));
+			newCellNum++;
+			
+			XSSFCell suite_cell = row.createCell((short) newCellNum);
+			TestChromosome bestIndividual = null;
+			bestIndividual = seg.bestIndividual;
+			suite = bestIndividual.toString();
+			suite_cell.setCellValue(suite);
+//			}
+		}
+
 
 	}
 
@@ -653,6 +728,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 			TestFitnessFunction fitnessFunction) {
 		List<Hybridable> list = new ArrayList<>();
 
+		Properties.ALGORITHM = Algorithm.MONOTONIC_GA;
 		GeneticAlgorithm<TestChromosome> ga = factory.getSearchAlgorithm();
 		setStrategyWiseBudget(ga);
 		ga.addFitnessFunction(fitnessFunction);
@@ -673,6 +749,18 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		}
 		((GeneticAlgorithm) dse).addFitnessFunction(function);
 		list.add((Hybridable) dse);
+		
+//		Properties.ALGORITHM = Algorithm.MOSA;
+//		GeneticAlgorithm<TestChromosome> mosa = factory.getSearchAlgorithm();
+//		setStrategyWiseBudget(mosa);
+//		ga.addFitnessFunction(fitnessFunction);
+//		list.add((Hybridable)mosa);
+//		
+//		Properties.ALGORITHM = Algorithm.DYNAMOSA;
+//		GeneticAlgorithm<TestChromosome> dynamosa = factory.getSearchAlgorithm();
+//		setStrategyWiseBudget(dynamosa);
+//		ga.addFitnessFunction(fitnessFunction);
+//		list.add((Hybridable)dynamosa);
 
 		return list;
 	}

@@ -2,8 +2,8 @@ package regression.hybrid.example;
 
 public class HybridExample {
 	public void test(int x, int y) {
-		if(x==y) {
-			if(x>5) {
+		if(x==y + 100) {
+			if(x >= 500) {
 				return;
 			}
 		}
@@ -85,19 +85,116 @@ public class HybridExample {
 			s = shortestPalindrome(s);
 	}
 	
-	public void randomCannot(int x,int y) {
+	public void function(int x,int y,String s) {		
+		//3.
+		if(x == y + 10000) {
+			if(x > y * 20){
+				if(Palindrome(s)) {
+					s = breakPalindrome(s);
+					return;
+				}
+			return;
+			}
+		}
 		
-//		if(x == y + 10000) {
-//			return;
-//		}else if(x > y * 20) {
-//			return;
-//		}
 		
-		if(x>5) {
-			if(x==y) {
-				return;
+	}
+	
+	public void magicnumber(int x,int y) {
+		if(x == y + 13) {
+			return;
+		}
+	}
+	
+	public void branch2(int x,int y) {
+		if(x == y + 10000) {
+			if(x > y * 20) {
+			return;
 			}
 		}
 	}
+	
+	public void ifnull(String s) {
+//		if(s == null) 
+		if(s == "")
+			return;
+	}
+	
+	public void nonlinear1(double n,double m,int x,int z) {
+		if(n  > Math.sqrt(m) + 1000) {
+			if(z > Math. pow (n,   2 )- 2) {
+				if(x >= Math.log(n - 10) + 10000) {
+					return;
+				}
+			}
+		return;		
+		}
+	}
+	
+	public void nonlinear(double x,double y) {
+		if(x  > Math.sqrt(y) + 1010) {
+			return;
+		}
+	}
+	
+	public int multiply(int A, int B) {
+		if(B < 0)
+			return 0;
+	
+        if(B == 0)
+            return 0;
+        return A + multiply(A,B-1);
+    }
+	
+	public void longpath(int x,int y,int z,String s,double n,double m,boolean t) {	
+		if(n  > Math.sqrt(m) + 1000) {
+			if(z > Math. pow (n,   2 )- 2) {
+				if(x > Math.log(n - 10) + 10000) {
+					if(s.equals("sas")) {
+						if(y * y * y > z / x) {
+							return;
+						}
+					}
+				}
+			}
+		}
+}
+	
+	
+	public int maxSubArray(int[] nums) {
+        int max = nums[0];
+        int res = nums[0];
+        for(int i = 0;i < nums.length;i++){
+            res = 0;
+            for(int j = i;j < nums.length;j++){
+                res += nums[j];
+                if(res > max)
+                    max = res;
+            }
+        }
+         return max;
+    }
+	
+	public void nonlinear2(double x,double y) {
+		if(x * x * x == 8) {
+				return;
+		}
+	}
+	
+	
+	public void longpath1(int x,int y,int z,String s,double n,double m) {	
+		if(x * x * x  > 1000) {
+			if(y > x * x - 2) {
+				if(z <= x / 10000 - 250) {
+					if(n * n == 7) {
+						if(m * m * m == z / x) {
+							return;
+							}
+						}
+					}
+				}
+			}
+		}
+	
 	
 }
