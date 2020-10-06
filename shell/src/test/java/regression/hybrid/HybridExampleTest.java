@@ -26,6 +26,10 @@ public class HybridExampleTest {
 	
 	@Test
 	public void testHybrid() {
+		Properties.HYBRID_OPTION = new HybridOption[]{
+		    	HybridOption.RANDOM
+	    };
+		
 		Class<?> clazz = regression.hybrid.example.HybridExample.class;
 		String methodName = "test";
 		int parameterNum = 2;

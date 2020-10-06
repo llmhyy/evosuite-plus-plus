@@ -1474,6 +1474,9 @@ public class Properties {
     	HybridOption.DSE, HybridOption.RANDOM, HybridOption.SEARCH
     };
     
+    public static int OVERALL_HYBRID_STRATEGY_TIMEOUT = 300;
+    public static int INDIVIDUAL_STRATEGY_TIMEOUT = 30;
+    
     /** Cache target class */
 	private static Class<?> TARGET_CLASS_INSTANCE = null;
 	

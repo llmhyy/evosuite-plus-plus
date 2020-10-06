@@ -67,16 +67,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 	private static final Logger logger = LoggerFactory.getLogger(EmpiricalHybridStrategyCollector.class);
 
-	public static final long DEFAULT_PATH_WISE_BUDGET = 100 * 1000;
-
 	public static final int DEFAULT_PATH_TESTING_NUM = 1;
-
-	public static long pathWiseBudget = DEFAULT_PATH_WISE_BUDGET;
-
-	/**
-	 * unit: seconds
-	 */
-	public static final long strategyWiseBudget = 20;
 
 	class Segmentation {
 		List<Branch> branchSegmentation;
@@ -152,23 +143,21 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 					List<Segmentation> segList = new ArrayList<>();
 
 //					Segmentation prevSeg = new Segmentation();
-					setPathBudget(path.size());
 
 					long start = System.currentTimeMillis();
 					long end = System.currentTimeMillis();
 
 //					int lasthybridStrategy = 999;
 
-					for (; end - start < pathWiseBudget; end = System.currentTimeMillis()) {
+					int timeout = Properties.OVERALL_HYBRID_STRATEGY_TIMEOUT * 1000 + path.size() * 10 * 1000;
+					for (; end - start < timeout; end = System.currentTimeMillis()) {
 						/**
 						 * randomly select a strategy and run it for a while.
 						 */
-						StoppingCondition stoppingCondition = getStoppingCondition();
-						stoppingCondition.setLimit(strategyWiseBudget);
 //						long remainBranchWiseBudget = end - start;
 //						long timeBudget = strategyWiseBudget > remainBranchWiseBudget ? remainBranchWiseBudget : strategyWiseBudget;
 
-						List<Hybridable> strategyList = getTotalStrategies(factory, stoppingCondition, fitnessFunction);
+						List<Hybridable> strategyList = getTotalStrategies(factory, fitnessFunction);
 						int index = 0;
 						Hybridable hybridStrategy;
 						do {
@@ -352,12 +341,6 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 	}
 
-	private void setPathBudget(int pathSize) {
-		pathWiseBudget = DEFAULT_PATH_WISE_BUDGET;
-		if (pathSize < 10)
-			pathWiseBudget = 50 * 1000 + pathSize * 5 * 1000;
-
-	}
 
 	/**
 	 * TODO 1. check out which path segmentation is reached. 2. set strategy and
@@ -721,7 +704,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private List<Hybridable> getTotalStrategies(PropertiesTestGAFactory factory, StoppingCondition stoppingCondition,
+	private List<Hybridable> getTotalStrategies(PropertiesTestGAFactory factory,
 			TestFitnessFunction fitnessFunction) {
 		List<Hybridable> list = new ArrayList<>();
 
@@ -775,11 +758,12 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		return list;
 	}
 
+	
 	private void setStrategyWiseBudget(GeneticAlgorithm<TestChromosome> ga) {
 		for (StoppingCondition condition : ga.getStoppingConditions()) {
 			if (condition instanceof MaxTimeStoppingCondition) {
 				MaxTimeStoppingCondition mCondition = (MaxTimeStoppingCondition) condition;
-				mCondition.setLimit(strategyWiseBudget);
+				mCondition.setLimit(Properties.INDIVIDUAL_STRATEGY_TIMEOUT);
 			}
 		}
 	}
