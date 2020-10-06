@@ -25,7 +25,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 	}
 	
 	@Test
-	public void testLegitimization1() throws ClassNotFoundException, RuntimeException {
+	public void testAuxilaryBranchWithLegitimization() throws ClassNotFoundException, RuntimeException {
 		Properties.RANDOM_SEED = 1600079372686l;
 		
 		setup();
