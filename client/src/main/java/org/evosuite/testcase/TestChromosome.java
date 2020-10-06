@@ -23,33 +23,17 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
-import org.evosuite.coverage.branch.Branch;
-import org.evosuite.coverage.branch.BranchCoverageFactory;
-import org.evosuite.coverage.branch.BranchCoverageTestFitness;
-import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationExecutionResult;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ConstructionFailedException;
-import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.SecondaryObjective;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 import org.evosuite.ga.operators.mutation.MutationHistory;
-import org.evosuite.graphs.GraphPool;
-import org.evosuite.graphs.cfg.ActualControlFlowGraph;
-import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.javaee.injection.Injector;
 import org.evosuite.runtime.util.AtMostOnceLogger;
-import org.evosuite.setup.CallContext;
-import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.setup.TestCluster;
 import org.evosuite.symbolic.BranchCondition;
 import org.evosuite.symbolic.ConcolicExecution;
@@ -58,23 +42,16 @@ import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.factories.TestGenerationUtil;
 import org.evosuite.testcase.localsearch.TestCaseLocalSearch;
-import org.evosuite.testcase.statements.AssignmentStatement;
-import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.FunctionalMockStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
-import org.evosuite.testcase.variable.ArrayIndex;
-import org.evosuite.testcase.variable.FieldReference;
+import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
-import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericAccessibleObject;
-import org.evosuite.utils.generic.GenericConstructor;
-import org.evosuite.utils.generic.GenericMethod;
-import org.objectweb.asm.Opcodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,11 +75,6 @@ public class TestChromosome extends ExecutableChromosome {
 	/** Secondary objectives used during ranking */
 	private static final List<SecondaryObjective<TestChromosome>> secondaryObjectives = new ArrayList<SecondaryObjective<TestChromosome>>();
 
-	/**
-	 * Use this constant to calculate the relevance of statement. 
-	 */
-	private static final double MAX_POWER = 100;
-
 	private double legitimacyDistance = 0;
 	
 	public Statement getStatementReportingException(){
@@ -118,291 +90,6 @@ public class TestChromosome extends ExecutableChromosome {
 		return statOfExp;
 	}
 	
-	public void updateLegitimacyDistance(){
-		MethodStatement targetCallStat = test.findTargetMethodCallStatement();
-		
-		if(this.getLastExecutionResult() == null) {
-			ExecutionResult result = TestCaseExecutor.runTest(this.getTestCase());
-			this.setLastExecutionResult(result);			
-		}
-		
-		int numOfExecutedStatements = this.getLastExecutionResult().getExecutedStatements();
-		this.legitimacyDistance = targetCallStat.getPosition() - numOfExecutedStatements + 1;
-		
-		if(this.getLastExecutionResult() == null) {
-			System.currentTimeMillis();
-		}
-		
-		Integer exceptionPosition = this.getLastExecutionResult().getFirstPositionOfThrownException();
-		if(exceptionPosition!=null 
-				&& exceptionPosition == targetCallStat.getPosition()) {
-			this.legitimacyDistance = 0;
-		}
-		
-		if(this.legitimacyDistance > 0){
-			if(numOfExecutedStatements > test.size()-1){
-				System.currentTimeMillis();
-			}
-			
-			Statement statOfExp = test.getStatement(numOfExecutedStatements);
-			Throwable excep = this.getLastExecutionResult().getExceptionThrownAtPosition(statOfExp.getPosition());
-			
-			if(excep == null){
-				System.currentTimeMillis();
-			}
-			
-			/**
-			 * locate the relevant branches from the method call return null value
-			 */
-			List<BranchCoverageTestFitness> relevantBranches = locateRelevantBranches(statOfExp, excep, test, this.getLastExecutionResult());
-			
-			if(!relevantBranches.isEmpty()){
-				
-				InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-				double average = 0;
-				for(BranchCoverageTestFitness ftt: relevantBranches){
-					String className = ftt.getClassName();
-					if(!DependencyAnalysis.isTargetClassName(className)) {
-						DependencyAnalysis.addTargetClass(className);
-						try {
-							BytecodeInstructionPool.getInstance(classLoader).clear(className);
-							classLoader.loadClass(className, true);
-						} catch (ClassNotFoundException e) {
-							e.printStackTrace();
-						}						
-					}
-					
-					this.addFitness(ftt);	
-					double fit = ftt.getFitness(this);
-					average += fit;
-				}
-				
-				average = average/(double)relevantBranches.size();
-				this.legitimacyDistance += average;
-			}
-		}
-		else {
-			this.legitimacyDistance = 0;
-		}
-		
-		
-		System.currentTimeMillis();
-		
-	}
-	
-	private List<BranchCoverageTestFitness> locateRelevantBranches(Statement statOfExp, Throwable excep, 
-			TestCase test, ExecutionResult result) {
-//		CallContext callContext = getCallContext(excep);
-		CallContext callContext = new CallContext(excep.getStackTrace(), true);
-		System.currentTimeMillis();
-		/**
-		 * e.g., "a.m();" where a is null.
-		 */
-		if(isMethodCallIncurExplicitNullPointerException(statOfExp, excep, result)){
-			MethodStatement mStat = (MethodStatement)statOfExp;
-			VariableReference callee = mStat.getCallee();
-			Statement defStat = test.getStatement(callee.getStPosition());
-			
-			if(defStat instanceof MethodStatement){
-				MethodStatement defMethodStat = (MethodStatement)defStat;
-				GenericMethod method = defMethodStat.getMethod();
-				
-				List<BranchCoverageTestFitness> nonNullBranches = locateNonNullBranches(method, callContext);
-				return nonNullBranches;
-			}
-		}
-		/**
-		 * e.g., "a[0] = b" or "a.f = b" where a is null.
-		 */
-		else if(isAssignmentIncurExplicitNullPointerException(statOfExp, excep, result)){
-			VariableReference ref = statOfExp.getReturnValue();
-			if(ref instanceof FieldReference){
-				FieldReference fieldRef = (FieldReference)ref;
-				VariableReference source = fieldRef.getSource();
-				
-				Statement defStat = test.getStatement(source.getStPosition());
-				if(defStat instanceof MethodStatement){
-					MethodStatement defMethodStat = (MethodStatement)defStat;
-					GenericMethod method = defMethodStat.getMethod();
-					
-					List<BranchCoverageTestFitness> nonNullBranches = locateNonNullBranches(method, callContext);
-					return nonNullBranches;
-				}
-			}
-		}
-		
-		if(excep.getStackTrace().length != 0) {
-			StackTraceElement element = excep.getStackTrace()[0];
-			List<BranchCoverageTestFitness> branches = getBranches(element, callContext);
-			
-			return branches;
-		}
-		
-		if(excep.getStackTrace().length == 0) {
-			ActualControlFlowGraph graph = null;
-			if(statOfExp instanceof MethodStatement) {
-				MethodStatement mStat = (MethodStatement)statOfExp;
-				GenericMethod method = mStat.getMethod();
-				graph = getControlFlowGraph(method);
-			}
-			else if(statOfExp instanceof ConstructorStatement) {
-				ConstructorStatement cStat = (ConstructorStatement)statOfExp;
-				GenericConstructor constructor = cStat.getConstructor();
-				graph = getControlFlowGraph(constructor);
-			}
-			
-			if(graph != null) {
-				List<BranchCoverageTestFitness> branches = locateBranches(graph, excep, callContext);
-				return branches;
-			}			
-		}
-		
-		
-		return new ArrayList<BranchCoverageTestFitness>();
-	}
-
-	private CallContext getCallContext(Throwable excep) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private List<BranchCoverageTestFitness> getBranches(StackTraceElement element, CallContext callContext) {
-		String className = element.getClassName();
-		
-		InstrumentingClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-		BytecodeInstructionPool pool = BytecodeInstructionPool.getInstance(loader);
-		
-		List<BytecodeInstruction> insList = null;
-		if(element.getLineNumber()>0) {
-			insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());
-			if(insList == null) {
-				try {
-					loader.loadClass(className);
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-				GraphPool.getInstance(loader).retrieveAllRawCFGs(className);
-				insList = pool.getAllInstructionsAtLineNumber(className, element.getLineNumber());
-			}
-		}
-		
-		List<BranchCoverageTestFitness> fitnessList = new ArrayList<>();
-		if(insList != null && insList.size() > 0) {
-			BytecodeInstruction ins = insList.get(0);
-			
-			Branch b = null;
-			try {
-				b = ins.getControlDependentBranch();
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-			}
-			if(b != null) {
-				boolean value = ins.getControlDependentBranchExpressionValue();
-				BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
-//				fitnessList.add(fitness);	
-				FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
-				fFit.setContext(callContext);
-				fitnessList.add(fFit);				
-			}
-		}
-		
-		return fitnessList;
-		
-	}
-
-	private ActualControlFlowGraph getControlFlowGraph(GenericMethod method) {
-		String methodName = method.getName() + MethodUtil.getSignature(method.getMethod());
-		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-				.getActualCFG(method.getOwnerClass().getClassName(), methodName);
-		
-		return cfg;
-	}
-
-	private ActualControlFlowGraph getControlFlowGraph(GenericConstructor constructor) {
-		String methodName = "<init>" + MethodUtil.getSignature(constructor.getConstructor());
-		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-				.getActualCFG(constructor.getOwnerClass().getClassName(), methodName);
-		
-		return cfg;
-	}
-	
-	
-	private List<BranchCoverageTestFitness> locateBranches(ActualControlFlowGraph graph, Throwable excep, CallContext callContext){
-		List<BranchCoverageTestFitness> list = new ArrayList<>();
-		
-		for(BytecodeInstruction ins: graph.getAllInstructions()) {
-			if(ins.isThrow()) {
-				Branch b = ins.getControlDependentBranch();
-				
-				if(b != null) {
-					boolean value = ins.getControlDependentBranchExpressionValue();
-					
-					BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
-					FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
-					fFit.setContext(callContext);
-					list.add(fFit);				
-				}
-			}
-		}	
-		
-		return list;
-		
-	}
-	
-	private List<BranchCoverageTestFitness> locateNonNullBranches(GenericMethod method, CallContext callContext) {
-		String methodName = method.getName() + MethodUtil.getSignature(method.getMethod());
-		ActualControlFlowGraph cfg = GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-				.getActualCFG(method.getOwnerClass().getClassName(), methodName);
-		
-		List<BranchCoverageTestFitness> list = new ArrayList<>();
-		for(BytecodeInstruction exit: cfg.getExitPoints()){
-			
-			List<BytecodeInstruction> l = exit.getSourceListOfStackInstruction(0);
-			for(BytecodeInstruction ins: l) {
-				System.currentTimeMillis();
-				
-				if(ins.getASMNode().getOpcode() == Opcodes.ACONST_NULL){
-					Branch b = ins.getControlDependentBranch();
-					boolean value = exit.getControlDependentBranchExpressionValue();
-					
-					BranchCoverageTestFitness fitness = BranchCoverageFactory.createBranchCoverageTestFitness(b, !value);
-					FBranchTestFitness fFit = new FBranchTestFitness(fitness.getBranchGoal());
-					fFit.setContext(callContext);
-					list.add(fFit);
-				}
-				
-			}
-			
-		}
-		
-		return list;
-	}
-
-	private boolean isMethodCallIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result) {
-		if(excep == null || excep.getMessage() == null) {
-			System.currentTimeMillis();
-		}
-		
-		return statOfExp instanceof MethodStatement 
-				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
-				&& 
-				(excep instanceof NullPointerException ||
-						excep.getCause() instanceof NullPointerException);
-	}
-	
-	private boolean isAssignmentIncurExplicitNullPointerException(Statement statOfExp, Throwable excep,
-			ExecutionResult result) {
-		return statOfExp instanceof AssignmentStatement 
-				&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
-				&& excep instanceof NullPointerException;
-	}
-	
-	private boolean isIncurExplicitNullPointerException(Statement statOfExp, Throwable excep, ExecutionResult result){
-		return statOfExp instanceof MethodStatement 
-			&&  result.explicitExceptions.get(statOfExp.getPosition()) != null
-			&& excep.getMessage().equals("java.lang.NullPointerException");
-	}
 	
 	/**
 	 * <p>
@@ -848,8 +535,8 @@ public class TestChromosome extends ExecutableChromosome {
 		if (!changed) {
 			getChangedPositionsInOldTest().clear();
 			
-			double[] mutationProbability = calculateMutationProbability(this.test.size()-1);
-			List<Integer> forceMutationPosition = checkForceMutationPosition(mutationProbability);
+			double[] mutationProbability = MutationPositionDiscriminator.calculateMutationProbability(this);
+			List<Integer> forceMutationPosition = MutationPositionDiscriminator.checkForceMutationPosition(mutationProbability);
 			
 			for (int position = 0, oldPosition = 0; position < this.test.size(); position++, oldPosition++) {
 				
@@ -995,8 +682,8 @@ public class TestChromosome extends ExecutableChromosome {
 		if (!changed) {
 			getChangedPositionsInOldTest().clear();
 			
-			double[] mutationProbability = calculateMutationProbability(this.test.size()-1);
-			List<Integer> forceMutationPosition = checkForceMutationPosition(mutationProbability);
+			double[] mutationProbability = MutationPositionDiscriminator.calculateMutationProbability(this);
+			List<Integer> forceMutationPosition = MutationPositionDiscriminator.checkForceMutationPosition(mutationProbability);
 			
 			for (int position = 0, oldPosition = 0; position < this.test.size(); position++, oldPosition++) {
 				
@@ -1137,269 +824,6 @@ public class TestChromosome extends ExecutableChromosome {
 		}
 		
 		return false;
-	}
-
-	/**
-	 * we choose the two largest position as force mutation position
-	 * 
-	 * @param mutationProbability
-	 * @return
-	 */
-	private List<Integer> checkForceMutationPosition(double[] mutationProbability) {
-		List<Integer> indexes = new ArrayList<Integer>();
-		List<Double> values = new ArrayList<Double>();
-		
-		for(int i=0; i<mutationProbability.length; i++) {
-			if(values.size() < 2) {
-				indexes.add(i);
-				values.add(mutationProbability[i]);
-			}
-			
-			if(values.size()==2) {
-				if(values.get(0) < values.get(1)) {
-					Double tmp = values.get(1);
-					values.set(1, values.get(0));
-					values.set(0, tmp);
-					
-					Integer iTemp = indexes.get(1);
-					indexes.set(1, indexes.get(0));
-					indexes.set(0, iTemp);
-				}
-				
-				if(i>=2 && mutationProbability[i] > values.get(1)) {
-					indexes.set(1, i);
-					values.set(1, mutationProbability[i]);
-				}
-			}
-		}
-		
-		return indexes;
-	}
-
-	@SuppressWarnings({ "unchecked"})
-	private double[] calculateMutationProbability(int size) {
-		if(size<=0) {
-			return new double[0];
-		}
-		
-		Set<FitnessFunction<? extends Chromosome>> currentGoalSet = MutationPositionDiscriminator.discriminator.currentGoals;
-		
-		if(currentGoalSet.isEmpty()) {
-			double[] distribution = new double[size];
-			for(int i=0; i<size; i++) {
-				distribution[i] = 1d/size;
-			}
-			return distribution;
-		}
-		
-		List<FitnessFunction<? extends Chromosome>> currentGoals = new ArrayList<>(currentGoalSet);
-		
-		double[][] relevanceMatrix = constructRelevanceMatrix(size, currentGoals);
-		List<List<Integer>> clusters = clusterGoals(relevanceMatrix);
-		
-//		System.currentTimeMillis();
-		
-		List<double[]> mutationProbabilityList = extractMutationProbabilityList(size, 
-				currentGoals, clusters);
-		
-		/**
-		 * The distribution correspond to the size of cluster.
-		 */
-		double[] probabilityDistribution = deriveProbabilityDistributionFromClusters(clusters);
-		
-		int index = pickRandomIndex(probabilityDistribution);
-		
-		return mutationProbabilityList.get(index);
-	}
-
-	private int pickRandomIndex(double[] probabilityDistribution) {
-		double random = Math.random();
-		int index = 0;
-		for(int i=0; i<probabilityDistribution.length; i++) {
-			double lowerBound = (i==0) ? 0 : probabilityDistribution[i-1];
-			double upperBound = probabilityDistribution[i];
-			if(lowerBound < random && random <= upperBound) {
-				index = i;
-				break;
-			}
-		}
-		return index;
-	}
-
-	/**
-	 * The distribution correspond to the size of cluster.
-	 * @param clusters
-	 * @return
-	 */
-	private double[] deriveProbabilityDistributionFromClusters(List<List<Integer>> clusters) {
-		double[] probability = new double[clusters.size()];
-		double sum = 0d;
-		for(int i=0; i<probability.length; i++) {
-			probability[i] = (double) (clusters.get(i).size());
-			sum += probability[i];
-		}
-		
-		for(int i=0; i<probability.length; i++) {
-			probability[i] /= sum;
-		}
-		
-		for(int i=0; i<probability.length-1; i++) {
-			probability[i+1] += probability[i];
-		}
-		return probability;
-	}
-
-	private List<List<Integer>> clusterGoals(double[][] relevanceMatrix) {
-		List<List<Integer>> clusters = new ArrayList<>();
-		List<Integer> markedGoals = new ArrayList<>();
-		
-		int totalGoalNum = relevanceMatrix[0].length; 
-		while(markedGoals.size() < totalGoalNum) {
-			List<Integer> cluster = new ArrayList<>();
-			for(int j=0; j<totalGoalNum; j++) {
-				if(markedGoals.contains(j)) {
-					continue;
-				}
-				
-				if(cluster.isEmpty()) {
-					cluster.add(j);
-					markedGoals.add(j);
-				}
-				else {
-					int goalIndex = cluster.get(0);
-					boolean isSimilar = compareSimilarity(goalIndex, j, relevanceMatrix);
-					if(isSimilar) {
-						cluster.add(j);
-						markedGoals.add(j);
-					}
-					
-				}
-			}		
-			
-			clusters.add(cluster);
-		}
-		
-		return clusters;
-	}
-
-	private boolean compareSimilarity(int goalIndex, int j, double[][] relevanceMatrix) {
-		double delta = 0.1;
-		
-		for(int i=0; i<relevanceMatrix.length; i++) {
-			double goalIndexValue = relevanceMatrix[i][goalIndex];
-			double jValue = relevanceMatrix[i][j];
-			
-			if(1-delta<goalIndexValue && goalIndexValue < 1+delta &&
-					1-delta<jValue && jValue < 1+delta) {
-				continue;
-			}
-			else if(goalIndexValue>1 && jValue<1) {
-				return false;
-			}
-			else if(goalIndexValue<1 && jValue>1) {
-				return false;
-			}
-			
-		}
-		
-		return true;
-	}
-
-	@SuppressWarnings("rawtypes")
-	private List<double[]> extractMutationProbabilityList(int lastMutatableStatement,
-			List<FitnessFunction<? extends Chromosome>> currentGoals, List<List<Integer>> clusters) {
-		List<double[]> mutationProbabilityList = new ArrayList<>();
-		for(List<Integer> cluster: clusters) {
-			double[] mutationProbabililty = new double[lastMutatableStatement+1];
-			
-			Double sum = 0d;
-			for(int i=0; i<lastMutatableStatement+1; i++) {
-				mutationProbabililty[i] = 1;
-				
-				Statement statement = test.getStatement(i);
-				Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
-				for(Integer index: cluster) {
-					FitnessFunction<?> ff = currentGoals.get(index);
-					Pair<Double, Double> effectFrequency = map.get(ff);
-					if(effectFrequency != null) {
-						Double positiveEffect = effectFrequency.getLeft();
-						Double negativeEffect = effectFrequency.getRight();
-						
-						double base = positiveEffect + negativeEffect;
-						double alpha = 1;
-						if(base > 10) {
-							if(negativeEffect==0 && positiveEffect != 0) {
-								alpha = MAX_POWER;
-							}
-							else {
-								alpha = positiveEffect / negativeEffect;
-							}
-						}
-						
-						mutationProbabililty[i] += base * alpha * alpha;
-						sum += mutationProbabililty[i];
-					}
-				}
-			}
-			
-			if(sum==0) {
-				sum = (double) (lastMutatableStatement+1);
-			}
-			
-			for(int i=0; i<lastMutatableStatement+1; i++) {
-				mutationProbabililty[i] =  mutationProbabililty[i] / sum;
-			}
-			
-			mutationProbabilityList.add(mutationProbabililty);
-		}
-		return mutationProbabilityList;
-	}
-
-	@SuppressWarnings("rawtypes")
-	private double[][] constructRelevanceMatrix(int testcaseSize,
-			List<FitnessFunction<? extends Chromosome>> currentGoals) {
-		double[][] relevanceMatrix = new double[test.size()][currentGoals.size()];
-		
-		for(int i=0; i<testcaseSize; i++) {
-			Statement statement = test.getStatement(i);
-			Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
-			for(int j=0; j<currentGoals.size(); j++) {
-				FitnessFunction<?> ff = currentGoals.get(j);
-				Pair<Double, Double> effectFrequency = map.get(ff);
-				if(effectFrequency != null) {
-					Double positiveEffect = effectFrequency.getLeft();
-					Double negativeEffect = effectFrequency.getRight();
-					
-					double base = positiveEffect + negativeEffect;
-					if(base > 10) {
-						if(negativeEffect==0 && positiveEffect != 0) {
-							relevanceMatrix[i][j] = MAX_POWER;
-						}
-						else {
-							relevanceMatrix[i][j] = positiveEffect / negativeEffect;
-						}
-					}
-					else {
-						relevanceMatrix[i][j] = 1;
-					}
-					
-				}
-			}
-		}
-		return relevanceMatrix;
-	}
-	
-	public double[] softmax(double[] mutationProbabililty) {
-		Double sum = 0d;
-		for(int i=0; i<mutationProbabililty.length; i++) {
-			sum += Math.pow(Math.E, mutationProbabililty[i]*10);
-		}
-		
-		for(int i=0; i<mutationProbabililty.length; i++) {
-			mutationProbabililty[i] = Math.pow(Math.E, mutationProbabililty[i]*10)/sum;
-		}
-		
-		return mutationProbabililty;
 	}
 
 	/**
@@ -1620,114 +1044,9 @@ public class TestChromosome extends ExecutableChromosome {
 		this.changedPositionsInOldTest = changedPositionsInOldTest;
 	}
 
-	private List<Statement> checkInfluencingStatements(TestCase test, Statement statOfExp) {
-		//TODO need a perfect relevance check
-		List<Statement> influencingStatements = new ArrayList<>();
-		for(int i=0; i<test.size(); i++){
-			Statement statement = test.getStatement(i);
-			if((statement instanceof PrimitiveStatement || statement instanceof AssignmentStatement)  
-					&& statement.getPosition() <= statOfExp.getPosition()){
-				influencingStatements.add(statement);
-			}
-		}
-		
-		return influencingStatements;
-	}
-	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void mutateRelevantStatements() {
-		Statement statOfExp = getStatementReportingException();
-		if(statOfExp == null) {
-			return;
-		}
-		
-		List<Statement> influencingStatements = checkInfluencingStatements(test, statOfExp);
-		for(int i=0; i<influencingStatements.size(); i++){
-			Statement refStatement = influencingStatements.get(i);
-			Statement statement = this.getTestCase().getStatement(refStatement.getPosition());
-			
-			TestFactory testFactory = TestFactory.getInstance();
-			
-			statement.setChanged(false);
-			assert (test.isValid());
-
-			if(statement.isReflectionStatement())
-				continue;
-
-			boolean changed = false; 
-			int oldDistance = statement.getReturnValue().getDistance();
-			if (statement instanceof NullStatement) {
-				int pos = statement.getPosition();
-				Statement nextStatement = test.getStatement(pos+1);
-				if (testFactory.changeNullStatement(test, statement)) {
-					statement = test.getStatement(nextStatement.getPosition()-1);
-					
-					changed = true;
-					mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
-							TestMutationHistoryEntry.TestMutation.CHANGE, statement));
-					assert ConstraintVerifier.verifyTest(test);		
-				}
-			}
-			
-			boolean isMutated = false;
-			boolean reuse = Randomness.nextBoolean();
-			if(reuse){
-				if(statement instanceof PrimitiveStatement){
-					PrimitiveStatement pStatement = (PrimitiveStatement)statement;
-					List<Object> candidates = searchForReusableVariables(influencingStatements, pStatement.getReturnType());
-					if(!candidates.isEmpty()){
-						Object value = Randomness.choice(candidates);
-						pStatement.setValue(value);
-						System.currentTimeMillis();
-					}					
-				}
-			}
-			else{
-				isMutated = statement.mutate(test, testFactory);				
-			}
-			
-			if (isMutated) {
-				mutationHistory.addMutationEntry(new TestMutationHistoryEntry(
-				        TestMutationHistoryEntry.TestMutation.CHANGE, statement));
-				assert (test.isValid());
-				assert ConstraintVerifier.verifyTest(test);
-
-			} 
-			
-			statement.getReturnValue().setDistance(oldDistance);
-			
-			if(changed){
-				assert ConstraintVerifier.verifyTest(test);
-			}
-
-		}
-		
-	}
-
-	@SuppressWarnings("rawtypes")
-	private List<Object> searchForReusableVariables(List<Statement> influencingStatements, Type returnType) {
-		List<Object> list = new ArrayList<>();
-		for(Statement stat: influencingStatements){
-			if(stat.getReturnType().equals(returnType)){
-				if(stat instanceof PrimitiveStatement){
-					list.add(((PrimitiveStatement) stat).getValue());					
-				}
-			}
-			else if(stat instanceof AssignmentStatement){
-				AssignmentStatement aStat = (AssignmentStatement)stat;
-				VariableReference varRef = aStat.getReturnValue();
-				if(varRef instanceof ArrayIndex && returnType.toString().equals("int")){
-					ArrayIndex index = (ArrayIndex)varRef;
-					list.add(index.getArrayIndex());
-				}
-			}
-		}
-		return list;
-	}
-
 	public double getLegitimacyDistance() {
 		try {
-			updateLegitimacyDistance();			
+			TestCaseLegitimizer.getInstance().updateLegitimacyDistance(this);			
 		}
 		catch(Exception e) {
 			legitimacyDistance = 0;

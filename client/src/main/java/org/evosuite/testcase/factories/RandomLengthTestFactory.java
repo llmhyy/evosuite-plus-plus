@@ -103,7 +103,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			
 			if(workingBranch != null) {
 				double d = Randomness.nextDouble();
-				applyObjectRule = d>0.99? false : true;
+				applyObjectRule = d>0.1? false : true;
 			}
 			else {
 				applyObjectRule = Randomness.nextBoolean();					

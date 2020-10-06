@@ -32,9 +32,9 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample() {
-		String projectId = "84_ifx-framework";
+//		String projectId = "84_ifx-framework";
 //		String projectId = "27_gangup";
-//		String projectId = "83_xbus";
+		String projectId = "83_xbus";
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -43,15 +43,15 @@ public class SF100OverallTest {
 //				"state.Party#remove(Lstate/Party;)V"
 //				"net.sourceforge.ifxfv3.beans.BankAcctTrnRec#equals(Ljava/lang/Object;)Z"
 //				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
-				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
+				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
 				};
 		
 		int repeatTime = 1;
-		int budget = 100000;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
-		
 		
 		boolean aor = true;
 		CommonTestUtil.evoTestSingleMethod(projectId,  

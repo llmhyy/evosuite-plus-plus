@@ -21,11 +21,11 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10000;
 		Properties.CRITERION = new Criterion[]{Criterion.FBRANCH};
 		Properties.INSTRUMENT_CONTEXT = true;
-		Properties.TIMEOUT = 1000000;
+		Properties.TIMEOUT = 100000;
 	}
 	
 	@Test
-	public void testLegitimization1() throws ClassNotFoundException, RuntimeException {
+	public void testAuxilaryBranchWithLegitimization() throws ClassNotFoundException, RuntimeException {
 		Properties.RANDOM_SEED = 1600079372686l;
 		
 		setup();
@@ -57,7 +57,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
 		
-		assertLegitimization(b, true);
+		assertLegitimization(b, false);
 		
 	}
 

@@ -142,7 +142,7 @@ public class CallContext implements Serializable {
 			InstrumentingClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 			BytecodeInstructionPool pool = BytecodeInstructionPool.getInstance(loader);
 			
-			GraphPool.getInstance(loader).retrieveAllRawCFGs(className);
+			GraphPool.getInstance(loader).retrieveAllRawCFGs(className, loader);
 			insList = pool.getAllInstructionsAtLineNumber(className, elementToCallException.getLineNumber());
 			
 			if(insList == null || insList.isEmpty()) {

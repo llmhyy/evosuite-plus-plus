@@ -38,6 +38,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.runtime.javaee.db.DBManager;
+import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.FileIOUtils;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
@@ -128,12 +129,7 @@ public class InstrumentingClassLoader extends ClassLoader {
 	
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
-        return loadClass(name, false);
-	}
-	
-	@Override
-	public Class<?> loadClass(String name, boolean forceReload) throws ClassNotFoundException {
-        synchronized(getClassLoadingLock(name)) {
+		synchronized(getClassLoadingLock(name)) {
             ClassLoader dbLoader = DBManager.getInstance().getSutClassLoader();
             if (dbLoader != null && dbLoader != this && !isRegression) {
                 /*
@@ -167,24 +163,22 @@ public class InstrumentingClassLoader extends ClassLoader {
                 return result;
             }
     
-            if(forceReload) {
-            	 Class<?> instrumentedClass = instrumentClass(name);
-                 return instrumentedClass;
-            }
-            else {
-            	Class<?> result = classes.get(name);
-            	if (result != null) {
-            		return result;
-            	} else {
-            		logger.info("Seeing class for first time: " + name);
-            		Class<?> instrumentedClass = instrumentClass(name);
-            		return instrumentedClass;
-            	}            	
-            }
+            Class<?> result = classes.get(name);
+        	if (result != null) {
+        		return result;
+        	} else {
+        		logger.info("Seeing class for first time: " + name);
+        		if(Properties.FULLY_INSTRUMENT_DEPENDENCIES) {
+        			DependencyAnalysis.addTargetClass(name);
+        		}
+        		
+        		Class<?> instrumentedClass = instrumentClass(name);
+        		return instrumentedClass;
+        	}   
             
         }
 	}
-
+	
 	//This is needed, as it is overridden in subclasses
 		protected byte[] getTransformedBytes(String className, InputStream is) throws IOException {
 			byte[] data = instrumentation.transformBytes(this, className, new ClassReader(is));

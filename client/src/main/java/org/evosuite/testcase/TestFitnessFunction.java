@@ -61,6 +61,7 @@ public abstract class TestFitnessFunction extends FitnessFunction<TestChromosome
 			individual.setLastExecutionResult(origResult);
 			individual.setChanged(false);
 		}
+		System.currentTimeMillis();
 
 		double fitness = getFitness(individual, origResult);
 		updateIndividual(this, individual, fitness);
