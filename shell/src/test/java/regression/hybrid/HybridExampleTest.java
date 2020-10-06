@@ -3,17 +3,31 @@ package regression.hybrid;
 import java.lang.reflect.Method;
 
 import org.evosuite.Properties;
+import org.evosuite.Properties.HybridOption;
 import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.test.TestUtility;
 
 public class HybridExampleTest {
+	
+	@Before
+	public void init() {
+//		Properties.HYBRID_OPTION = new HybridOption[]{
+//		    	HybridOption.DSE, HybridOption.RANDOM, HybridOption.SEARCH
+//	    };
+		
+		Properties.HYBRID_OPTION = new HybridOption[]{
+		    	HybridOption.RANDOM
+	    };
+	}
+	
 	@Test
 	public void testHybrid() {
 		Class<?> clazz = regression.hybrid.example.HybridExample.class;
-		String methodName = "multiply";
+		String methodName = "test";
 		int parameterNum = 2;
 				
 		String targetClass = clazz.getCanonicalName();

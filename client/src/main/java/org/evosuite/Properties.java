@@ -1466,6 +1466,14 @@ public class Properties {
             Criterion.LINE, Criterion.BRANCH, Criterion.EXCEPTION, Criterion.WEAKMUTATION, Criterion.OUTPUT, Criterion.METHOD, Criterion.METHODNOEXCEPTION, Criterion.CBRANCH  };
 
 
+    public enum HybridOption{
+    	DSE, RANDOM, SEARCH
+    }
+    
+    public static HybridOption[] HYBRID_OPTION = new HybridOption[]{
+    	HybridOption.DSE, HybridOption.RANDOM, HybridOption.SEARCH
+    };
+    
     /** Cache target class */
 	private static Class<?> TARGET_CLASS_INSTANCE = null;
 	
@@ -1572,7 +1580,7 @@ public class Properties {
 	public enum Strategy {
 	    ONEBRANCH, EVOSUITE, RANDOM, RANDOM_FIXED, ENTBUG, REGRESSION, MOSUITE, DSE, NOVELTY, EMPIRICAL_HYBRID_COLLECTOR, LEARNING_BASED_HYBRID
 	}
-
+	
 	@Parameter(key = "strategy", group = "Runtime", description = "Which mode to use")
 	public static Strategy STRATEGY = Strategy.EVOSUITE;
 

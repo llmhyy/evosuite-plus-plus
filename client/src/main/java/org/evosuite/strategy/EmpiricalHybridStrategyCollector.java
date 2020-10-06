@@ -23,6 +23,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Algorithm;
 import org.evosuite.Properties.Criterion;
+import org.evosuite.Properties.HybridOption;
 import org.evosuite.ShutdownTestWriter;
 import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.TestFitnessFactory;
@@ -44,7 +45,6 @@ import org.evosuite.rmi.service.ClientState;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.symbolic.DSEAlgorithm;
 import org.evosuite.symbolic.expr.Constraint;
-import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
@@ -175,6 +175,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 							index = new Random().nextInt(strategyList.size());
 							hybridStrategy = strategyList.get(index);
 						} while (lasthybridStrategy == index);
+						
 						GeneticAlgorithm<TestChromosome> strategy = (GeneticAlgorithm<TestChromosome>) hybridStrategy;
 
 						String strategyName = strategy.getClass().getCanonicalName();
@@ -724,27 +725,40 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 			TestFitnessFunction fitnessFunction) {
 		List<Hybridable> list = new ArrayList<>();
 
-		Properties.ALGORITHM = Algorithm.MONOTONIC_GA;
-		GeneticAlgorithm<TestChromosome> ga = factory.getSearchAlgorithm();
-		setStrategyWiseBudget(ga);
-		ga.addFitnessFunction(fitnessFunction);
-		list.add((Hybridable) ga);
-
-		Properties.ALGORITHM = Algorithm.RANDOM_SEARCH;
-		GeneticAlgorithm<TestChromosome> random = factory.getSearchAlgorithm();
-		setStrategyWiseBudget(random);
-		random.addFitnessFunction(fitnessFunction);
-		list.add((Hybridable) random);
-
-		DSEAlgorithm dse = new DSEAlgorithm();
-		setStrategyWiseBudget((GeneticAlgorithm) dse);
-		TestSuiteFitnessFunction function = FitnessFunctions.getFitnessFunction(Properties.CRITERION[0]);
-		if (function instanceof FBranchSuiteFitness) {
-			FBranchSuiteFitness ff = (FBranchSuiteFitness) function;
-			deriveSingleGoal(ff, fitnessFunction);
+		for(int i=0; i<Properties.HYBRID_OPTION.length; i++) {
+			if(Properties.HYBRID_OPTION[i].equals(HybridOption.DSE)) {
+				DSEAlgorithm dse = new DSEAlgorithm();
+				setStrategyWiseBudget((GeneticAlgorithm) dse);
+				TestSuiteFitnessFunction function = FitnessFunctions.getFitnessFunction(Properties.CRITERION[0]);
+				if (function instanceof FBranchSuiteFitness) {
+					FBranchSuiteFitness ff = (FBranchSuiteFitness) function;
+					deriveSingleGoal(ff, fitnessFunction);
+				}
+				((GeneticAlgorithm) dse).addFitnessFunction(function);
+				list.add((Hybridable) dse);
+			}
+			else if(Properties.HYBRID_OPTION[i].equals(HybridOption.RANDOM)) {
+				Properties.ALGORITHM = Algorithm.RANDOM_SEARCH;
+				GeneticAlgorithm<TestChromosome> random = factory.getSearchAlgorithm();
+				setStrategyWiseBudget(random);
+				random.addFitnessFunction(fitnessFunction);
+				list.add((Hybridable) random);
+			}
+			else if(Properties.HYBRID_OPTION[i].equals(HybridOption.SEARCH)) {
+				Properties.ALGORITHM = Algorithm.MONOTONIC_GA;
+				GeneticAlgorithm<TestChromosome> ga = factory.getSearchAlgorithm();
+				setStrategyWiseBudget(ga);
+				ga.addFitnessFunction(fitnessFunction);
+				list.add((Hybridable) ga);
+			}
 		}
-		((GeneticAlgorithm) dse).addFitnessFunction(function);
-		list.add((Hybridable) dse);
+		
+		
+		
+
+		
+
+		
 
 //		Properties.ALGORITHM = Algorithm.MOSA;
 //		GeneticAlgorithm<TestChromosome> mosa = factory.getSearchAlgorithm();
