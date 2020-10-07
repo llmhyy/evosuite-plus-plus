@@ -15,6 +15,7 @@ public class HybridExampleTest {
 	
 	@Before
 	public void init() {
+		Properties.OVERALL_HYBRID_STRATEGY_TIMEOUT = 100000;
 //		Properties.HYBRID_OPTION = new HybridOption[]{
 //		    	HybridOption.DSE, HybridOption.RANDOM, HybridOption.SEARCH
 //	    };
@@ -26,6 +27,7 @@ public class HybridExampleTest {
 	
 	@Test
 	public void testHybrid() {
+		
 		Properties.HYBRID_OPTION = new HybridOption[]{
 		    	HybridOption.RANDOM
 //		    	HybridOption.DSE

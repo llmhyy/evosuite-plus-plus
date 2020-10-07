@@ -29,6 +29,7 @@ import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
+import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.coverage.fbranch.FBranchSuiteFitness;
 import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.FitnessFunction;
@@ -127,10 +128,15 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 //		stoppingCondition.setLimit(strategyWiseBudget);
 
 		for (TestFitnessFunction fitnessFunction : goals) {
+			
 
 			List<ArrayList<BranchGoal>> paths = achieveAllPaths(fitnessFunction);
 
 			for (List<BranchGoal> path : paths) {
+				
+				if(path.get(path.size()-1).branch.getInstruction().getLineNumber() == 92) {
+					System.currentTimeMillis();
+				}
 
 				int lasthybridStrategy = 999;
 
@@ -179,7 +185,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						logger.info("Starting evolution for goal " + fitnessFunction);
 						long t1 = System.currentTimeMillis();
 						hybridStrategy.generateSolution(suite);
-
+						
 						long t2 = System.currentTimeMillis();
 						long realTimeout = t2 - t1;
 
@@ -189,6 +195,10 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						TestChromosome bestIndividual = null;
 						if (strategy.getBestIndividual() instanceof TestChromosome) {
 							bestIndividual = (TestChromosome) strategy.getBestIndividual();
+							if(bestIndividual.getTestCase().size() == 0) {
+								System.currentTimeMillis();
+								bestIndividual = (TestChromosome) strategy.getBestIndividual();
+							}
 						} else {
 							bestIndividual = findIndividualChromosomeFromSuite(strategy.getBestIndividual(),
 									fitnessFunction);
@@ -302,8 +312,8 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 	 */
 	private List<ArrayList<BranchGoal>> achieveAllPaths(TestFitnessFunction fitnessFunction) {
 		List<ArrayList<BranchGoal>> pathList = new ArrayList<>();
-		if (fitnessFunction instanceof FBranchTestFitness) {
-			FBranchTestFitness fBranch = (FBranchTestFitness) fitnessFunction;
+		if (fitnessFunction instanceof BranchFitness) {
+			BranchFitness fBranch = (BranchFitness) fitnessFunction;
 			BranchCoverageGoal goal = fBranch.getBranchGoal();
 			ArrayList<BranchGoal> path = new ArrayList<>();
 			path.add(new BranchGoal(goal.getBranch(), goal.getValue()));
