@@ -66,11 +66,13 @@ public class RandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> impl
 	@Override
 	protected void evolve() {
 		T newChromosome = chromosomeFactory.getChromosome();
-		getFitnessFunction().getFitness(newChromosome);
-		notifyEvaluation(newChromosome);
-		if (newChromosome.compareTo(getBestIndividual()) <= 0) {
-			logger.info("New fitness: " + newChromosome.getFitness());
-			population.set(0, newChromosome);
+		if(newChromosome.size() != 0) {
+			getFitnessFunction().getFitness(newChromosome);
+			notifyEvaluation(newChromosome);
+			if (newChromosome.compareTo(getBestIndividual()) <= 0) {
+				logger.info("New fitness: " + newChromosome.getFitness());
+				population.set(0, newChromosome);
+			}
 		}
 		currentIteration++;
 	}
@@ -137,6 +139,8 @@ public class RandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> impl
 		if (population.isEmpty()) {
 			initializePopulation();
 		}
+		
+//		System.currentTimeMillis();
 		
 		this.updatePopulation(previousSeeds);
 
