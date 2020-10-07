@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -157,13 +158,19 @@ public class ExcelReader {
 	private Object getCellValue(Cell cell) {
 		Object value = null;
 		if (cell != null) {
-			int cellType = cell.getCellType();
-			if (cellType == Cell.CELL_TYPE_BOOLEAN) {
+			CellType cellType = cell.getCellType();
+			switch(cellType) {
+			case BOOLEAN:
 				value = cell.getBooleanCellValue();
-			} else if (cellType == Cell.CELL_TYPE_STRING) {
+				break;
+			case STRING:
 				value = cell.getStringCellValue();
-			} else if (cellType == Cell.CELL_TYPE_NUMERIC){
+				break;
+			case NUMERIC:
 				value = cell.getNumericCellValue();
+				break;
+			default:
+				break;
 			}
 		}
 		return value;

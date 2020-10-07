@@ -160,10 +160,10 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						List<Hybridable> strategyList = getTotalStrategies(factory, fitnessFunction);
 						int index = 0;
 						Hybridable hybridStrategy;
-						do {
+//						do {
 							index = new Random().nextInt(strategyList.size());
 							hybridStrategy = strategyList.get(index);
-						} while (lasthybridStrategy == index);
+//						} while (lasthybridStrategy == index);
 						
 						GeneticAlgorithm<TestChromosome> strategy = (GeneticAlgorithm<TestChromosome>) hybridStrategy;
 
@@ -532,24 +532,28 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 			goalCell.setCellValue(goalBranch);
 
 			goalBranch = goal.substring(index1 + 2, index2 - 1);
-			Segmentation segLast = segList.get(segList.size() - 1);
-			String segment = "";
+			int index = segList.size();
+			if(index != 0) {
+				Segmentation segLast = segList.get(segList.size() - 1);
+				String segment = "";
 
-			if (segLast.branchSegmentation != null || segLast.branchSegmentation.size() > 0) {
-				for (int j = 0; j < segLast.branchSegmentation.size(); j++) {
-					Branch b = segLast.branchSegmentation.get(j);
-					segment = segment + b.toString() + ",";
+				if (segLast.branchSegmentation != null || segLast.branchSegmentation.size() > 0) {
+					for (int j = 0; j < segLast.branchSegmentation.size(); j++) {
+						Branch b = segLast.branchSegmentation.get(j);
+						segment = segment + b.toString() + ",";
+					}
+					if (segment.length() > 0) {
+						segment = segment.substring(0, segment.length() - 1);
+					}
 				}
-				if (segment.length() > 0) {
-					segment = segment.substring(0, segment.length() - 1);
+
+				if (segment.contains(goalBranch)) {
+					for (Segmentation seg : segList) {
+						recordSegmentation(seg, seg_ws);
+					}
 				}
 			}
-
-			if (segment.contains(goalBranch)) {
-				for (Segmentation seg : segList) {
-					recordSegmentation(seg, seg_ws);
-				}
-			}
+			
 
 			seg_wb.write(fileOut);
 			fileOut.close();
