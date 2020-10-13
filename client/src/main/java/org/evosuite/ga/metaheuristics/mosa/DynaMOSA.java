@@ -74,6 +74,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	}
 
 	/** {@inheritDoc} */
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void evolve() {
 //		Set<FitnessFunction<T>> prevCoveredGoals = new HashSet<FitnessFunction<T>>();

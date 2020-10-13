@@ -25,7 +25,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 	}
 	
 	@Test
-	public void testLegitimization1() throws ClassNotFoundException, RuntimeException {
+	public void testAuxilaryBranchWithLegitimization() throws ClassNotFoundException, RuntimeException {
 		Properties.RANDOM_SEED = 1600079372686l;
 		
 		setup();
@@ -58,6 +58,117 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 //		generateCode(b, true);
 		
 		assertLegitimization(b, false);
+		
+	}
+	
+	@Test
+	public void testLegitimization2() throws ClassNotFoundException, RuntimeException {
+		Properties.RANDOM_SEED = 1600079372686l;
+		
+		setup();
+		
+		String projectId = "6_jnfe";
+		String className = "br.com.jnfe.core.standalone.DefaultJNFeInstaller";
+		String methodName = "attachSeriesNFe(Lbr/com/jnfe/core/Emitente;)V";
+		int lineNumber = 1;
+		
+		String defaultClassPath = System.getProperty("java.class.path");
+		StringBuffer buffer = new StringBuffer();
+		List<String> classPaths = SFBenchmarkUtils.setupProjectProperties(projectId);
+		for(String classPath: classPaths) {			
+//			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(classPath);
+			buffer.append(File.pathSeparator + classPath);
+		}
+		
+		String newPath = defaultClassPath + buffer.toString();
+		System.setProperty("java.class.path", newPath);
+		
+		Properties.TARGET_CLASS = className;
+		Properties.TARGET_METHOD = methodName;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
+
+		
+		Branch b = searchBranch(rankedList, lineNumber);
+		System.out.println(b);
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+//		generateCode(b, true);
+		
+		assertLegitimization(b, true);
+		
+	}
+	
+	@Test
+	public void testLegitimizationBad1() throws ClassNotFoundException, RuntimeException {
+		Properties.RANDOM_SEED = 1600079372686l;
+		
+		setup();
+		
+		String projectId = "83_xbus";
+		String className = "net.sf.xbus.protocol.xml.XBUSXMLMessage";
+		String methodName = "synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V";
+		int lineNumber = 1;
+		
+		String defaultClassPath = System.getProperty("java.class.path");
+		StringBuffer buffer = new StringBuffer();
+		List<String> classPaths = SFBenchmarkUtils.setupProjectProperties(projectId);
+		for(String classPath: classPaths) {			
+//			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(classPath);
+			buffer.append(File.pathSeparator + classPath);
+		}
+		
+		String newPath = defaultClassPath + buffer.toString();
+		System.setProperty("java.class.path", newPath);
+		
+		Properties.TARGET_CLASS = className;
+		Properties.TARGET_METHOD = methodName;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
+
+		
+		Branch b = searchBranch(rankedList, lineNumber);
+		System.out.println(b);
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+//		generateCode(b, true);
+		
+		assertLegitimization(b, true);
+		
+	}
+	
+	@Test
+	public void testLegitimizationBad2() throws ClassNotFoundException, RuntimeException {
+		Properties.RANDOM_SEED = 1600079372686l;
+		
+		setup();
+		
+		String projectId = "85_shop";
+		String className = "umd.cs.shop.JSPlanningDomain";
+		String methodName = "solve(Lumd/cs/shop/JSPlanningProblem;Ljava/util/Vector;)Lumd/cs/shop/JSPairPlanTSListNodes;";
+		int lineNumber = 3;
+		
+		String defaultClassPath = System.getProperty("java.class.path");
+		StringBuffer buffer = new StringBuffer();
+		List<String> classPaths = SFBenchmarkUtils.setupProjectProperties(projectId);
+		for(String classPath: classPaths) {			
+//			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(classPath);
+			buffer.append(File.pathSeparator + classPath);
+		}
+		
+		String newPath = defaultClassPath + buffer.toString();
+		System.setProperty("java.class.path", newPath);
+		
+		Properties.TARGET_CLASS = className;
+		Properties.TARGET_METHOD = methodName;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
+
+		
+		Branch b = searchBranch(rankedList, lineNumber);
+		System.out.println(b);
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+//		generateCode(b, true);
+		
+		assertLegitimization(b, true);
 		
 	}
 

@@ -170,7 +170,7 @@ public class ConstructionPathSynthesizer {
 		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-			logger.warn(String.valueOf(c) + ":" + node.toString());
+//			logger.warn(String.valueOf(c) + ":" + node.toString());
 			if(c==11) {
 				System.currentTimeMillis();
 				System.currentTimeMillis();
@@ -185,7 +185,7 @@ public class ConstructionPathSynthesizer {
 			
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
-				enhanceTestStatement(test, map, node);	
+				enhanceTestStatement(test, map, node, b);	
 				logTest(test, b, isDebugger, c, node);
 				System.currentTimeMillis();
 				/**
@@ -281,7 +281,7 @@ public class ConstructionPathSynthesizer {
 	}
 
 	private boolean enhanceTestStatement(TestCase test, Map<DepVariableWrapper, List<VariableReference>> map,
-			DepVariableWrapper node) throws ClassNotFoundException, ConstructionFailedException {
+			DepVariableWrapper node, Branch b) throws ClassNotFoundException, ConstructionFailedException {
 		
 		List<DepVariableWrapper> contextualNodes = node.checkContextualNode();
 		System.currentTimeMillis();
@@ -297,7 +297,7 @@ public class ConstructionPathSynthesizer {
 			 * for root nodes
 			 */
 			if(inputObjects == null){
-				boolean s = deriveCodeForTest(map, test, null, node);
+				boolean s = deriveCodeForTest(map, test, null, node, b);
 				success = success && s;				
 			}
 			else{
@@ -307,7 +307,7 @@ public class ConstructionPathSynthesizer {
 					if(t.isPrimitive()) {
 						continue;
 					}
-					boolean s = deriveCodeForTest(map, test, inputObject, node);
+					boolean s = deriveCodeForTest(map, test, inputObject, node, b);
 					success = success && s;	
 				}
 			}
@@ -318,12 +318,12 @@ public class ConstructionPathSynthesizer {
 	}
 
 	private boolean deriveCodeForTest(Map<DepVariableWrapper, List<VariableReference>> map, TestCase test, 
-			VariableReference inputObject, DepVariableWrapper node) 
+			VariableReference inputObject, DepVariableWrapper node, Branch b) 
 					throws ClassNotFoundException, ConstructionFailedException{
 //		DepVariable var = node.var;
 		boolean isLeaf = node.children.isEmpty();
 		if (node.var.getType() == DepVariable.STATIC_FIELD) {
-			inputObject = generateFieldStatement(test, node, isLeaf, inputObject, map);
+			inputObject = generateFieldStatement(test, node, isLeaf, inputObject, map, b);
 		} else if (node.var.getType() == DepVariable.PARAMETER) {
 			String castSubClass = checkCastClassForParameter(node);
 			if(castSubClass == null) {
@@ -342,7 +342,7 @@ public class ConstructionPathSynthesizer {
 			if (inputObject == null) {
 				return false;
 			}
-			inputObject = generateFieldStatement(test, node, isLeaf, inputObject, map);
+			inputObject = generateFieldStatement(test, node, isLeaf, inputObject, map, b);
 		} else if (node.var.getType() == DepVariable.OTHER) {
 			int opcode = node.var.getInstruction().getASMNode().getOpcode();
 			if(opcode == Opcode.ALOAD ||
@@ -822,7 +822,7 @@ public class ConstructionPathSynthesizer {
 	 * @return
 	 */
 	private VariableReference generateFieldStatement(TestCase test, DepVariableWrapper node, boolean isLeaf,
-			VariableReference targetObjectReference, Map<DepVariableWrapper, List<VariableReference>> map) {
+			VariableReference targetObjectReference, Map<DepVariableWrapper, List<VariableReference>> map, Branch b) {
 		FieldInsnNode fieldNode = (FieldInsnNode) node.var.getInstruction().getASMNode();
 		String fieldType = fieldNode.desc;
 		String fieldOwner = fieldNode.owner.replace("/", ".");
@@ -888,7 +888,7 @@ public class ConstructionPathSynthesizer {
 			 */
 			if (!isLeaf) {
 				VariableReference getterObject = generateFieldGetterInTest(test, targetObjectReference, map, fieldDeclaringClass, field,
-						usedRefSearcher);
+						usedRefSearcher, b);
 				return getterObject;
 			} 
 			else {
@@ -897,15 +897,25 @@ public class ConstructionPathSynthesizer {
 			}
 
 		} catch (ClassNotFoundException | SecurityException | ConstructionFailedException e) {
+			printConstructionError(test, node, b);
 			e.printStackTrace();
 			return null;
 		}
 
 	}
 
+	private void printConstructionError(TestCase test, DepVariableWrapper node, Branch b) {
+		logger.error("exception happens when processing branch " + b);
+		if(node != null) {
+			logger.error("working on node" + node);			
+		}
+		logger.error("partial test case:");
+		logger.error(test.toString());
+	}
+
 	private VariableReference generateFieldGetterInTest(TestCase test, VariableReference targetObjectReference,
 			Map<DepVariableWrapper, List<VariableReference>> map, Class<?> fieldDeclaringClass, Field field, 
-			UsedReferenceSearcher usedRefSearcher)
+			UsedReferenceSearcher usedRefSearcher, Branch b)
 			throws ConstructionFailedException {
 		/**
 		 * make sure this field has been set before get, 
@@ -928,12 +938,15 @@ public class ConstructionPathSynthesizer {
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			} catch (ConstructionFailedException e) {
+				printConstructionError(test, null, b);
 				e.printStackTrace();
 			}
 		}
 //		else {
 //			return fieldSetter;
 //		}
+		
+		System.currentTimeMillis();
 		
 		int insertionPostion = -1;
 		if(fieldSetter != null) {
