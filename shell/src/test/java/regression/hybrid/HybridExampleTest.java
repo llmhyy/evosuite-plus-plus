@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import org.evosuite.Properties;
 import org.evosuite.Properties.HybridOption;
 import org.evosuite.Properties.StatisticsBackend;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +17,7 @@ public class HybridExampleTest {
 	@Before
 	public void init() {
 		Properties.OVERALL_HYBRID_STRATEGY_TIMEOUT = 100000;
+		Properties.INDIVIDUAL_STRATEGY_TIMEOUT = 2*60;
 //		Properties.HYBRID_OPTION = new HybridOption[]{
 //		    	HybridOption.DSE, HybridOption.RANDOM, HybridOption.SEARCH
 //	    };
@@ -437,6 +439,7 @@ public class HybridExampleTest {
 	public void testIfnull() {
 		Properties.HYBRID_OPTION = new HybridOption[]{
 		    	HybridOption.DSE
+//		    	HybridOption.RANDOM
 	    };
 		
 		Class<?> clazz = regression.hybrid.example.HybridExample.class;
@@ -449,6 +452,10 @@ public class HybridExampleTest {
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes;target/test-classes";
+		
+		InstrumentingClassLoader classLoader = new InstrumentingClassLoader();
+		System.out.println("ClassLoader for target class:"+ classLoader.getClassLoader()
+				.getClass().getName());
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;

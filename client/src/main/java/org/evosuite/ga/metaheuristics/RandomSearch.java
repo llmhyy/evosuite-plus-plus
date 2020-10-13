@@ -90,7 +90,7 @@ public class RandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> impl
 	@Override
 	public void initializePopulation() {
 		generateRandomPopulation(1);
-		calculateFitnessAndSortPopulation();
+//		calculateFitnessAndSortPopulation();
 	}
 
 	/* (non-Javadoc)
@@ -103,12 +103,12 @@ public class RandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> impl
 		if (population.isEmpty())
 			initializePopulation();
 
-		currentIteration = 0;
-		while (!isFinished()) {
-			evolve();
-			this.notifyIteration();
-		}
-		updateBestIndividualFromArchive();
+//		currentIteration = 0;
+//		while (!isFinished()) {
+//			evolve();
+//			this.notifyIteration();
+//		}
+//		updateBestIndividualFromArchive();
 		notifySearchFinished();
 	}
 	
@@ -144,12 +144,12 @@ public class RandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> impl
 		
 		this.updatePopulation(previousSeeds);
 
-		currentIteration = 0;
-		while (!isFinished()) {
-			evolve();
-			this.notifyIteration();
-		}
-		updateBestIndividualFromArchive();
+//		currentIteration = 0;
+//		while (!isFinished()) {
+//			evolve();
+//			this.notifyIteration();
+//		}
+//		updateBestIndividualFromArchive();
 		notifySearchFinished();
 		
 	}
