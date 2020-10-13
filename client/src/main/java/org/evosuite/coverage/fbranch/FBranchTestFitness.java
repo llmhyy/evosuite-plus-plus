@@ -55,7 +55,7 @@ public class FBranchTestFitness extends BranchCoverageTestFitness {
 		System.currentTimeMillis();
 		
 		FlagEffectResult r = FlagEffectEvaluator.checkFlagEffect(goal);
-		if (r == null || !r.hasFlagEffect) {
+		if (r == null || !r.hasFlagEffect || value==null) {
 			if (value == null) {
 				Set<BranchCoverageGoal> set = new HashSet<BranchCoverageGoal>();
 				set.add(this.goal);
