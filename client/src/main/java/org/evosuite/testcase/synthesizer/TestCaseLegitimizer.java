@@ -18,6 +18,7 @@ import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
+import org.evosuite.runtime.mock.MockFramework;
 import org.evosuite.setup.CallContext;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.ConstraintVerifier;
@@ -93,7 +94,7 @@ public class TestCaseLegitimizer {
 		MutationPositionDiscriminator.discriminator.resetFrozenIteartion();
 		long t1 = System.currentTimeMillis();
 		long t2 = System.currentTimeMillis();
-		while (legitimacyDistance != 0 && (t2-t1) <= Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET * 1000){
+		while (legitimacyDistance != 0 && (t2-t1) < Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET * 1000){
 			System.out.print(iteration++ + ", ");
 			
 			evolve(population);
@@ -180,26 +181,34 @@ public class TestCaseLegitimizer {
 						e.printStackTrace();
 					}	
 					
-					
-					((DefaultTestCase)individual.getTestCase()).changeClassLoader(auxilaryLoader);
-					individual.addFitness(ftt);	
-					individual.clearCachedResults();
-					double fit = ftt.getFitness(individual);
-					
-					if(fit == 0.0) {
-						Properties.RECORD_ITERATION_CONTEXT = true;
-						Properties.REQUIRE_MAX_BRANCH_DISTANCE = true;
-						ExecutionTraceImpl.enableTraceCalls();
+					try {
+						((DefaultTestCase)individual.getTestCase()).changeClassLoader(auxilaryLoader);
+						individual.addFitness(ftt);	
 						individual.clearCachedResults();
-						fit = ftt.getFitness(individual);
-//						System.currentTimeMillis();
-						ExecutionTraceImpl.disableTraceCalls();
-						Properties.REQUIRE_MAX_BRANCH_DISTANCE = false;
-						Properties.RECORD_ITERATION_CONTEXT = false;		
+						double fit = ftt.getFitness(individual);
+						
+						if(fit == 0.0) {
+							Properties.RECORD_ITERATION_CONTEXT = true;
+							Properties.REQUIRE_MAX_BRANCH_DISTANCE = true;
+							ExecutionTraceImpl.enableTraceCalls();
+							individual.clearCachedResults();
+							fit = ftt.getFitness(individual);
+//					System.currentTimeMillis();
+							ExecutionTraceImpl.disableTraceCalls();
+							Properties.REQUIRE_MAX_BRANCH_DISTANCE = false;
+							Properties.RECORD_ITERATION_CONTEXT = false;		
+						}
+						
+						((DefaultTestCase)individual.getTestCase()).changeClassLoader(classLoader);
+						average += fit;
 					}
-					
-					((DefaultTestCase)individual.getTestCase()).changeClassLoader(classLoader);
-					average += fit;
+					catch(Exception e) {
+						e.printStackTrace();
+//						locateRelevantBranches(statOfExp, excep, test, individual.getLastExecutionResult());
+					}
+					finally {
+						((DefaultTestCase)individual.getTestCase()).changeClassLoader(classLoader);
+					}
 				}
 				
 				average = average/(double)relevantBranches.size();
@@ -217,7 +226,14 @@ public class TestCaseLegitimizer {
 	
 	private List<BranchCoverageTestFitness> locateRelevantBranches(Statement statOfExp, Throwable excep, 
 			TestCase test, ExecutionResult result) {
+		boolean flag = MockFramework.isEnabled();
+		MockFramework.disable();
 		CallContext callContext = new CallContext(excep.getStackTrace(), true);
+		
+		if(flag) {
+			MockFramework.enable();
+		}
+		
 		/**
 		 * e.g., "a.m();" where a is null.
 		 */
