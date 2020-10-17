@@ -10,6 +10,7 @@ import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
 
 import evosuite.shell.EvoTestResult;
+import evosuite.shell.EvosuiteForMethod;
 
 public class TestUtility {
 	public static void evoTestSingleMethod(String targetClass, String targetMethod, 
@@ -507,25 +508,9 @@ public class TestUtility {
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evo.parseCommandLine(command);
 		for (List<TestGenerationResult> l : list) {
 			for (TestGenerationResult r : l) {
-				System.out.println(r.getProgressInformation());
-				if (r.getDistribution() != null) {
-					for (int i = 0; i < r.getDistribution().length; i++) {
-						System.out.println(r.getDistribution()[i]);
-					}
-				}
-
-				int age = 0;
-				if (r.getGeneticAlgorithm() != null) {
-					age = r.getGeneticAlgorithm().getAge();
-					System.out.println("Generations: " + age);
-				}
-
-				System.out.println("Used time: " + r.getElapseTime());
-				System.out.println("Age: " + r.getAge());
-
-				System.out.println("Available calls: " + getAvailableCalls());
-				System.out.println("Unavailable calls: " + getUnavailableCalls());
-
+				
+				EvosuiteForMethod.printResult(r);
+				
 				return new EvoTestResult(r.getElapseTime(), r.getCoverage(), r.getAge(), r.getAvailabilityRatio(),
 						r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
 						r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed(), r.getMethodCallAvailabilityMap());

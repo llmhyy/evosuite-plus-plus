@@ -694,7 +694,7 @@ public class EvosuiteForMethod {
 		return result;
 	}
 
-	private void printResult(TestGenerationResult r) {
+	public static void printResult(TestGenerationResult r) {
 		System.out.println("Initial Coverage: " + r.getInitialCoverage());
 		System.out.println("Initialization Time: " + r.getInitializationOverhead());
 		

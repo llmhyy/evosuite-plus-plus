@@ -2,7 +2,7 @@ package regression.hybrid.example;
 
 public class HybridExample {
 	public void test(int x, int y) {
-		if(x==y + 100) {
+		if(x == y + 100) {
 			if(x >= 500) {
 				return;
 			}

@@ -38,17 +38,8 @@ public class RandomTesting {
 		
 		String fitnessApproach = "branch";
 		
-		int timeBudget = 30;
+		int timeBudget = 3000;
 		TestUtility.evosuiteRandomTest(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		
-//		List<Tuple> l = new ArrayList<>();
-//		for(int i=0; i<7; i++){
-//			Tuple tu = t.evosuite(targetClass, targetMethod, cp, timeBudget, true);
-//			l.add(tu);
-//		}
-//		
-//		for(Tuple lu: l){
-//			System.out.println(lu.time + ", " + lu.age);
-//		}
 	}
 }
