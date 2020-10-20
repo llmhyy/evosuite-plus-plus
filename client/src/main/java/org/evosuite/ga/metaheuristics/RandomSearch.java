@@ -144,12 +144,12 @@ public class RandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> impl
 		
 		this.updatePopulation(previousSeeds);
 
-//		currentIteration = 0;
-//		while (!isFinished()) {
-//			evolve();
-//			this.notifyIteration();
-//		}
-//		updateBestIndividualFromArchive();
+		currentIteration = 0;
+		while (!isFinished()) {
+			evolve();
+			this.notifyIteration();
+		}
+		updateBestIndividualFromArchive();
 		notifySearchFinished();
 		
 	}
