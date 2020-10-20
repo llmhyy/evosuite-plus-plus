@@ -1,10 +1,12 @@
 package regression.hybrid.example;
 
-public class driller {
+public class DrillerExample {
+	public int x;
 	public int magic;
 	public String[] directives;
 	
-	public driller(int m,String s1,String s2) {
+	public DrillerExample(int m, int x, String s1,String s2) {
+		this.x = x;
 		magic = m;
 		directives = new String[] {s1,s2};
 	}
