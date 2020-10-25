@@ -12,9 +12,9 @@ import com.test.TestUtility;
 public class DSETesting {
 	@Test
 	public void testEvosuiteSolver() {
-		Class<?> clazz = regression.hybrid.example.HybridExample.class;
-		String methodName = "test";
-		int parameterNum = 2;
+		Class<?> clazz = regression.hybrid.example.HybridExample1.class;
+		String methodName = "driller_example1";
+		int parameterNum = 1;
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
