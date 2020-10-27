@@ -32,16 +32,16 @@ public class SFHybridTest {
 	}
 	@Test
 	public void runTullibee() {
-		Properties.HYBRID_OPTION = new HybridOption[]{
-		    	HybridOption.RANDOM
-//		    	HybridOption.DSE
-	    };
+//		Properties.HYBRID_OPTION = new HybridOption[]{
+//		    	HybridOption.RANDOM
+////		    	HybridOption.DSE
+//	    };
 		
 		String projectId = "1_tullibee";
 		String[] targetMethods = new String[]{
-//				"com.ib.client.EReader#processMsg(I)Z"
+				"com.ib.client.EReader#processMsg(I)Z"
 				
-				"com.ib.client.EClientSocket#reqContractDetails(ILcom/ib/client/Contract;)V"
+//				"com.ib.client.EClientSocket#reqContractDetails(ILcom/ib/client/Contract;)V"
 				};
 //				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z"};
 		
@@ -62,10 +62,10 @@ public class SFHybridTest {
 	}
 	@Test
 	public void testBugExample() {
-		Properties.HYBRID_OPTION = new HybridOption[]{
-//		    	HybridOption.RANDOM
-		    	HybridOption.DSE
-	    };
+//		Properties.HYBRID_OPTION = new HybridOption[]{
+////		    	HybridOption.RANDOM
+//		    	HybridOption.DSE
+//	    };
 		
 //		String projectId = "84_ifx-framework";
 //		String projectId = "27_gangup";
@@ -90,14 +90,68 @@ public class SFHybridTest {
 		
 		String fitnessApproach = "fbranch";
 		
-		boolean aor = false;
-		/*
-		 * TestUtility.evoTestSingleMethod(projectId, targetMethods, fitnessApproach,
-		 * repeatTime, budget, true, seed, aor, "generateTests",
-		 * "EMPIRICAL_HYBRID_COLLECTOR",cp);
-		 */
+		SF100TestUilt.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed);
 		
 		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testProtectedExample() {
+		String projectId = "10_water-simulator";
+		String[] targetMethods = new String[]{
+				"simulator.WSA.BehaviourQueryConsumers#handleInform(Ljade/lang/acl/ACLMessage;)V"
+				};
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = 1556814527153L;
+		
+		String fitnessApproach = "fbranch";
+		
+		
+		SF100TestUilt.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void runA4j() {
+		String projectId = "2_a4j";
+		String[] targetMethods = new String[]{
+				"net.kencochrane.a4j.file.FileUtil#getASINFile(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;"
+				};
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = 1556814527153L;
+//		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		SF100TestUilt.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed);
+	}
+	
+	@Test
+	public void runQuartz() {
+		String projectId = "113_quartz";
+		String[] targetMethods = new String[]{
+				"org.quartz.SchedulerContext#setAllowsTransientData(Z)V"
+		};
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = 1556814527153L;
+//		Long seed = null;
+		
+		String fitnessApproach = "fbranch";
+		SF100TestUilt.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed);
 	}
 	
 	private List<Long> checkRandomSeeds(List<EvoTestResult> results0) {

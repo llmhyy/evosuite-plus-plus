@@ -129,16 +129,21 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 		for (TestFitnessFunction fitnessFunction : goals) {
 			
+//			if(fitnessFunction instanceof BranchFitness) {
+//				BranchFitness bf = (BranchFitness)fitnessFunction;
+//				if(bf.getBranchGoal().getBranch().getInstruction().getLineNumber() != 7) {
+//					continue;
+//				}
+//			}
 
 			List<ArrayList<BranchGoal>> paths = achieveAllPaths(fitnessFunction);
 
 			for (List<BranchGoal> path : paths) {
 				
-				if(path.get(path.size()-1).branch.getInstruction().getLineNumber() == 92) {
-					System.currentTimeMillis();
-				}
+//				if(path.get(path.size()-1).branch.getInstruction().getLineNumber() == 92) {
+//					System.currentTimeMillis();
+//				}
 
-				int lasthybridStrategy = 999;
 
 				for (int i = 0; i < DEFAULT_PATH_TESTING_NUM; i++) {
 					logger.warn("working on " + fitnessFunction);
@@ -153,7 +158,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 					long start = System.currentTimeMillis();
 					long end = System.currentTimeMillis();
 
-//					int lasthybridStrategy = 999;
+					int count = 0;
 
 					int timeout = Properties.OVERALL_HYBRID_STRATEGY_TIMEOUT * 1000 + path.size() * 10 * 1000;
 					for (; end - start < timeout; end = System.currentTimeMillis()) {
@@ -166,11 +171,11 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						List<Hybridable> strategyList = getTotalStrategies(factory, fitnessFunction);
 						int index = 0;
 						Hybridable hybridStrategy;
-//						do {
-							index = new Random().nextInt(strategyList.size());
-							hybridStrategy = strategyList.get(index);
-//						} while (lasthybridStrategy == index);
-						
+
+						index = new Random().nextInt(strategyList.size());
+						index = Properties.HYBRID_ORDER[count++ % 2];
+						hybridStrategy = strategyList.get(index);
+
 						GeneticAlgorithm<TestChromosome> strategy = (GeneticAlgorithm<TestChromosome>) hybridStrategy;
 
 						String strategyName = strategy.getClass().getCanonicalName();
@@ -208,6 +213,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 								fitnessFunction, strategyName, path);
 						newSeg.bestIndividual = bestIndividual;
 						segList.add(newSeg);
+						System.out.println("bestIndividual:"+bestIndividual.getTestCase().toString());
 
 						if (fitnessFunction.getFitness(bestIndividual) == 0.0) {
 							if (Properties.PRINT_COVERED_GOALS)
@@ -242,7 +248,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 							if (segment.contains(goal))
 								segList.remove(segList.indexOf(newSeg));
 						}
-						lasthybridStrategy = index;
+	
 					}
 
 					// TODO add it back
@@ -725,6 +731,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		for(int i=0; i<Properties.HYBRID_OPTION.length; i++) {
 			if(Properties.HYBRID_OPTION[i].equals(HybridOption.DSE)) {
 				DSEAlgorithm dse = new DSEAlgorithm();
+				dse.addStoppingCondition(new MaxTimeStoppingCondition());
 				setStrategyWiseBudget((GeneticAlgorithm) dse);
 				TestSuiteFitnessFunction function = FitnessFunctions.getFitnessFunction(Properties.CRITERION[0]);
 				if (function instanceof FBranchSuiteFitness) {
@@ -741,13 +748,13 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 				random.addFitnessFunction(fitnessFunction);
 				list.add((Hybridable) random);
 			}
-			else if(Properties.HYBRID_OPTION[i].equals(HybridOption.SEARCH)) {
-				Properties.ALGORITHM = Algorithm.MONOTONIC_GA;
-				GeneticAlgorithm<TestChromosome> ga = factory.getSearchAlgorithm();
-				setStrategyWiseBudget(ga);
-				ga.addFitnessFunction(fitnessFunction);
-				list.add((Hybridable) ga);
-			}
+//			else if(Properties.HYBRID_OPTION[i].equals(HybridOption.SEARCH)) {
+//				Properties.ALGORITHM = Algorithm.MONOTONIC_GA;
+//				GeneticAlgorithm<TestChromosome> ga = factory.getSearchAlgorithm();
+//				setStrategyWiseBudget(ga);
+//				ga.addFitnessFunction(fitnessFunction);
+//				list.add((Hybridable) ga);
+//			}
 		}
 		
 		

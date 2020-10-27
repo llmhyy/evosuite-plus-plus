@@ -30,10 +30,10 @@ public class HybridExampleTest {
 	@Test
 	public void testHybrid() {
 		
-		Properties.HYBRID_OPTION = new HybridOption[]{
-//		    	HybridOption.RANDOM
-		    	HybridOption.DSE
-	    };
+//		Properties.HYBRID_OPTION = new HybridOption[]{
+////		    	HybridOption.RANDOM
+//		    	HybridOption.DSE
+//	    };
 		
 		Class<?> clazz = regression.hybrid.example.HybridExample1.class;
 		String methodName = "driller_example1";
@@ -61,7 +61,7 @@ public class HybridExampleTest {
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 60;
+		int timeBudget = 3000;
 		TestUtility.evosuiteHybrid(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 	
@@ -108,14 +108,14 @@ public class HybridExampleTest {
 	
 	@Test
 	public void testTest() {
-		Properties.HYBRID_OPTION = new HybridOption[]{
-		    	HybridOption.RANDOM
-//		    	HybridOption.DSE
-	    };
+//		Properties.HYBRID_OPTION = new HybridOption[]{
+//		    	HybridOption.RANDOM
+////		    	HybridOption.DSE
+//	    };
 		
-		Class<?> clazz = regression.hybrid.example.HybridExample.class;
-		String methodName = "test";
-		int parameterNum = 2;
+		Class<?> clazz = regression.hybrid.example.HybridSampleClass.class;
+		String methodName = "run";
+		int parameterNum = 0;
 				
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
