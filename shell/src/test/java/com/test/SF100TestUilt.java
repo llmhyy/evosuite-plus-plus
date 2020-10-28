@@ -2,23 +2,34 @@ package com.test;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
+import org.evosuite.utils.ProgramArgumentUtils;
 
 import evosuite.shell.EvoTestResult;
 import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.FileUtils;
+import evosuite.shell.FilterConfiguration;
+import evosuite.shell.FilterConfiguration.Filter;
+import evosuite.shell.FilterConfiguration.InclusiveFilter;
+import evosuite.shell.ParameterOptions;
+import evosuite.shell.Settings;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.SFConfiguration;
+import evosuite.shell.utils.LoggerUtils;
 
 public class SF100TestUilt {
-	public static List<EvoTestResult> evoTestSingleMethod(String projectId,
+	public static FilterConfiguration filter;
+	public static EvoTestResult evoTestSingleMethod(String projectId,
 			String[] targetMethods, String fitnessAppraoch, int iteration, 
 			long seconds, boolean context, Long seed
 //			, 
@@ -41,6 +52,9 @@ public class SF100TestUilt {
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
 		file.deleteOnExit();
 		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethods);
+		String cp = "target/classes;target/test-classes";
+		
+		EvoSuite evo = new EvoSuite();
 
 		String[] args = new String[] {
 				"-Dapply_object_rule", "true",
@@ -101,7 +115,84 @@ public class SF100TestUilt {
 		}
 		
 		SFBenchmarkUtils.setupProjectProperties(projectId);
-		return EvosuiteForMethod.generateTests(args);
+//		return EvosuiteForMethod.generateTests(args);
+		try {
+			Settings.setup(args);
+			args = ProgramArgumentUtils.extractArgs(args, ParameterOptions.ALL_OPTIONS);
+			String[] truncatedArgs = extractArgs(args);
+			filter = new FilterConfiguration(Settings.getInclusiveFilePath(), null);
+			InclusiveFilter inclusiveFilter = getInclusiveFilter();
+			Set<String> methodIDs = inclusiveFilter.getInclusives().get(projectName);
+			List<String> methodIDList = new ArrayList<String>(methodIDs);
+			
+			for(String methodID: methodIDList) {
+			String className = methodID.substring(0, methodID.indexOf("#"));
+			String methodName = methodID.substring(methodID.indexOf("#")+1, methodID.length());
+			String[] args1 = ArrayUtils.addAll(truncatedArgs, "-class", className, "-Dtarget_method", methodName);
+			List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evo.parseCommandLine(args1);
+			for (List<TestGenerationResult> l : list) {
+				for (TestGenerationResult r : l) {
+					System.out.println(r.getProgressInformation());
+					if (r.getDistribution() != null) {
+						for (int i = 0; i < r.getDistribution().length; i++) {
+							System.out.println(r.getDistribution()[i]);
+						}
+					}
+
+					int age = 0;
+					if (r.getGeneticAlgorithm() != null) {
+						age = r.getGeneticAlgorithm().getAge();
+						System.out.println("Generations: " + age);
+					}
+
+					System.out.println("Used time: " + r.getElapseTime());
+					System.out.println("Age: " + r.getAge());
+
+
+
+					return new EvoTestResult(r.getElapseTime(), r.getCoverage(), r.getAge(), r.getAvailabilityRatio(),
+							r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
+							r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed(), r.getMethodCallAvailabilityMap());
+					}
+				}
+			}
+			}catch (Throwable e) {
+				e.printStackTrace();
+			}
+			
+			return null;
 	
+	}
+	
+	private static String setup(String projectId) throws IOException {
+		String workingDir = System.getProperty("user.dir");
+		String projectName;
+		projectId = new File(workingDir).getName();
+		projectName = projectId.substring(projectId.indexOf("_") + 1);
+		String root = new File(workingDir).getParentFile().getAbsolutePath();
+		Settings.setSfBenchmarkFolder(root);
+		File folder = new File(Settings.getReportFolder());
+		if (!folder.exists()) {
+			folder.mkdir();
+		}
+		LoggerUtils.setupLogger(Settings.getReportFolder(), projectId);
+		return root;
+	}
+	
+	private static String[] extractArgs(String[] args) throws Exception {
+		Set<String> excludedOpts = new HashSet<>();
+		excludedOpts.add("-target");
+		excludedOpts.add("-prefix");
+		excludedOpts.add("-class");
+		return ProgramArgumentUtils.extractArgs(args, excludedOpts);
+	}
+	private static InclusiveFilter getInclusiveFilter() {
+		for(Filter f: filter.getFilters()) {
+			if(f instanceof InclusiveFilter) {
+				return (InclusiveFilter)f;
+			}
+		}
+		
+		return null;
 	}
 }

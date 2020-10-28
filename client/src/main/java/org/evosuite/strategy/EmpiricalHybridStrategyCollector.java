@@ -124,15 +124,27 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 //		TestSuiteChromosome suite = (TestSuiteChromosome) bootstrapRandomSuite(fitnessFunctions.get(0), goalFactories.get(0));
 		TestSuiteChromosome suite = new TestSuiteChromosome();
 
+//		StoppingCondition stoppingCondition = getStoppingCondition();
+//		stoppingCondition.setLimit(strategyWiseBudget);
+
 		for (TestFitnessFunction fitnessFunction : goals) {
 			
+//			if(fitnessFunction instanceof BranchFitness) {
+//				BranchFitness bf = (BranchFitness)fitnessFunction;
+//				if(bf.getBranchGoal().getBranch().getInstruction().getLineNumber() != 7) {
+//					continue;
+//				}
+//			}
+
 			List<ArrayList<BranchGoal>> paths = achieveAllPaths(fitnessFunction);
 
 			for (List<BranchGoal> path : paths) {
 				
-				if(path.get(path.size()-1).branch.getInstruction().getLineNumber() == 92) {
-					System.currentTimeMillis();
-				}
+//				if(path.get(path.size()-1).branch.getInstruction().getLineNumber() == 92) {
+//					System.currentTimeMillis();
+//				}
+
+
 
 				for (int i = 0; i < DEFAULT_PATH_TESTING_NUM; i++) {
 					logger.warn("working on " + fitnessFunction);
@@ -142,13 +154,14 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 					List<Segmentation> segList = new ArrayList<>();
 
+//					Segmentation prevSeg = new Segmentation();
+
 					long start = System.currentTimeMillis();
 					long end = System.currentTimeMillis();
 
-//					int lasthybridStrategy = 999;
+					int count = 0;
 
 					int timeout = Properties.OVERALL_HYBRID_STRATEGY_TIMEOUT * 1000 + path.size() * 10 * 1000;
-					int count = 0;
 					for (; end - start < timeout; end = System.currentTimeMillis()) {
 						/**
 						 * randomly select a strategy and run it for a while.
@@ -160,15 +173,10 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						int index = 0;
 						Hybridable hybridStrategy;
 						
-						if(Properties.PREDEFINED_ORDER == null) {
-							index = new Random().nextInt(strategyList.size());
-						}
-						else {
-							index = Properties.PREDEFINED_ORDER[count];
-							count++;
-						}
-						hybridStrategy = strategyList.get(index);							
-						
+						index = new Random().nextInt(strategyList.size());
+						index = Properties.PREDEFINED_ORDER[count++ % 2];
+						hybridStrategy = strategyList.get(index);
+
 						GeneticAlgorithm<TestChromosome> strategy = (GeneticAlgorithm<TestChromosome>) hybridStrategy;
 
 						String strategyName = strategy.getClass().getCanonicalName();
@@ -182,7 +190,6 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						// Perform search
 						logger.info("Starting evolution for goal " + fitnessFunction);
 						long t1 = System.currentTimeMillis();
-						Properties.DSE_CONSTRAINT_SOLVER_TIMEOUT_MILLIS = Properties.INDIVIDUAL_STRATEGY_TIMEOUT * 1000;
 						hybridStrategy.generateSolution(suite);
 						
 						long t2 = System.currentTimeMillis();
@@ -207,6 +214,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 								fitnessFunction, strategyName, path);
 						newSeg.bestIndividual = bestIndividual;
 						segList.add(newSeg);
+						System.out.println("bestIndividual:"+bestIndividual.getTestCase().toString());
 
 						if (fitnessFunction.getFitness(bestIndividual) == 0.0) {
 							if (Properties.PRINT_COVERED_GOALS)
@@ -241,6 +249,8 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 							if (segment.contains(goal))
 								segList.remove(segList.indexOf(newSeg));
 						}
+
+	
 					}
 
 					// TODO add it back

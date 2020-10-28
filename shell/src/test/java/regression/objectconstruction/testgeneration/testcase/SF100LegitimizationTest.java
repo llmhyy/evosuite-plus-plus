@@ -99,7 +99,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 	}
 	
 	@Test
-	public void testLegitimizationBad1() throws ClassNotFoundException, RuntimeException {
+	public void testLegitimizationBad0() throws ClassNotFoundException, RuntimeException {
 		Properties.RANDOM_SEED = 1600079372686l;
 		
 		setup();
@@ -135,16 +135,165 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		
 	}
 	
+	
+	@Test
+	public void testLegitimizationBad1() throws ClassNotFoundException, RuntimeException {
+		Properties.RANDOM_SEED = 1600079372686l;
+		
+		setup();
+		
+		String projectId = "6_jnfe";
+		String className = "br.com.jnfe.core.filter.JNFeFilterAdapter";
+		String methodName = "doFilter(Lorg/helianto/core/criteria/OrmCriteriaBuilder;)V";
+		int lineNumber = 74;
+		
+		String defaultClassPath = System.getProperty("java.class.path");
+		StringBuffer buffer = new StringBuffer();
+		List<String> classPaths = SFBenchmarkUtils.setupProjectProperties(projectId);
+		for(String classPath: classPaths) {			
+//			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(classPath);
+			buffer.append(File.pathSeparator + classPath);
+		}
+		
+		String newPath = defaultClassPath + buffer.toString();
+		System.setProperty("java.class.path", newPath);
+		
+		Properties.TARGET_CLASS = className;
+		Properties.TARGET_METHOD = methodName;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
+
+		
+		Branch b = searchBranch(rankedList, lineNumber);
+		System.out.println(b);
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+//		generateCode(b, true);
+		
+		assertLegitimization(b, false, false);
+		
+	}
+	
 	@Test
 	public void testLegitimizationBad2() throws ClassNotFoundException, RuntimeException {
 		Properties.RANDOM_SEED = 1600079372686l;
 		
 		setup();
 		
-		String projectId = "85_shop";
-		String className = "umd.cs.shop.JSPlanningDomain";
-		String methodName = "solve(Lumd/cs/shop/JSPlanningProblem;Ljava/util/Vector;)Lumd/cs/shop/JSPairPlanTSListNodes;";
-		int lineNumber = 3;
+		String projectId = "80_wheelwebtool";
+		String className = "wheel.components.Checkbox";
+		String methodName = "renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V";
+		int lineNumber = 60;
+		
+		String defaultClassPath = System.getProperty("java.class.path");
+		StringBuffer buffer = new StringBuffer();
+		List<String> classPaths = SFBenchmarkUtils.setupProjectProperties(projectId);
+		for(String classPath: classPaths) {			
+//			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(classPath);
+			buffer.append(File.pathSeparator + classPath);
+		}
+		
+		String newPath = defaultClassPath + buffer.toString();
+		System.setProperty("java.class.path", newPath);
+		
+		Properties.TARGET_CLASS = className;
+		Properties.TARGET_METHOD = methodName;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
+
+		
+		Branch b = searchBranch(rankedList, lineNumber);
+		System.out.println(b);
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+//		generateCode(b, true);
+		
+		assertLegitimization(b, true, false);
+		
+	}
+	
+	@Test
+	public void testLegitimizationBad3() throws ClassNotFoundException, RuntimeException {
+		Properties.RANDOM_SEED = 1600079372686l;
+		
+		setup();
+		
+		String projectId = "44_summa";
+		String className = "dk.statsbiblioteket.summa.storage.api.filter.UpdateFromFulldumpFilter";
+		String methodName = "init(Ldk/statsbiblioteket/summa/common/configuration/Configuration;Ldk/statsbiblioteket/summa/storage/api/WritableStorage;Ldk/statsbiblioteket/summa/storage/api/ReadableStorage;)V";
+		int lineNumber = 152;
+		
+		String defaultClassPath = System.getProperty("java.class.path");
+		StringBuffer buffer = new StringBuffer();
+		List<String> classPaths = SFBenchmarkUtils.setupProjectProperties(projectId);
+		for(String classPath: classPaths) {			
+//			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(classPath);
+			buffer.append(File.pathSeparator + classPath);
+		}
+		
+		String newPath = defaultClassPath + buffer.toString();
+		System.setProperty("java.class.path", newPath);
+		
+		Properties.TARGET_CLASS = className;
+		Properties.TARGET_METHOD = methodName;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
+
+		
+		Branch b = searchBranch(rankedList, lineNumber);
+		System.out.println(b);
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+//		generateCode(b, true);
+		
+		assertLegitimization(b, true, false);
+		
+	}
+	
+	@Test
+	public void testLegitimizationBad4() throws ClassNotFoundException, RuntimeException {
+		Properties.RANDOM_SEED = 1600079372686l;
+		
+		setup();
+		
+		String projectId = "35_corina";
+		String className = "corina.index.Polynomial";
+		String methodName = "index()V";
+		int lineNumber = 86;
+		
+		String defaultClassPath = System.getProperty("java.class.path");
+		StringBuffer buffer = new StringBuffer();
+		List<String> classPaths = SFBenchmarkUtils.setupProjectProperties(projectId);
+		for(String classPath: classPaths) {			
+//			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(classPath);
+			buffer.append(File.pathSeparator + classPath);
+		}
+		
+		String newPath = defaultClassPath + buffer.toString();
+		System.setProperty("java.class.path", newPath);
+		
+		Properties.TARGET_CLASS = className;
+		Properties.TARGET_METHOD = methodName;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
+
+		
+		Branch b = searchBranch(rankedList, lineNumber);
+		System.out.println(b);
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+//		generateCode(b, true);
+		
+		assertLegitimization(b, true, false);
+		
+	}
+	
+	@Test
+	public void testLegitimizationBad5() throws ClassNotFoundException, RuntimeException {
+		Properties.RANDOM_SEED = 1600079372686l;
+		
+		setup();
+		
+		String projectId = "32_httpanalyzer";
+		String className = "httpanalyzer.ParamsUrlTools";
+		String methodName = "splitUrl(Ljava/lang/String;Ljavax/swing/JFrame;)[Ljava/lang/String;";
+		int lineNumber = 82;
 		
 		String defaultClassPath = System.getProperty("java.class.path");
 		StringBuffer buffer = new StringBuffer();

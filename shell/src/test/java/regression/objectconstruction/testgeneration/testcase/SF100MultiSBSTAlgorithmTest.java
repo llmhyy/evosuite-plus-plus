@@ -98,15 +98,231 @@ public class SF100MultiSBSTAlgorithmTest {
 	
 	@Test
 	public void testDynaMOSA3() {
-		String projectId = "5_templateit";
+		String projectId = "45_lotus";
 		String[] targetMethods = new String[]{
-				"org.templateit.Reference#equals(Ljava/lang/Object;)Z"
+				"lotus.core.phases.DeclareBlockersPhase#doPhase()V"
 				};
 		
 		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
 		int budget = 10;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+//		
+//		EvoTestResult resultT = resultsT.get(0);
+		EvoTestResult resultF = resultsF.get(0);
+//		
+//		int ageT = resultT.getAge();
+//		int timeT = resultT.getTime();
+//		double coverageT = resultT.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		double coverageF = resultF.getCoverage();
+		double initCoverage = resultF.getInitialCoverage();
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testDynaMOSA4() {
+		String projectId = "83_xbus";
+		String[] targetMethods = new String[]{
+				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
+				};
+		
+		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+//		
+//		EvoTestResult resultT = resultsT.get(0);
+		EvoTestResult resultF = resultsF.get(0);
+//		
+//		int ageT = resultT.getAge();
+//		int timeT = resultT.getTime();
+//		double coverageT = resultT.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		double coverageF = resultF.getCoverage();
+		double initCoverage = resultF.getInitialCoverage();
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testDynaMOSA5() {
+		String projectId = "6_jnfe";
+		String[] targetMethods = new String[]{
+				"br.com.jnfe.core.filter.JNFeFilterAdapter#doFilter(Lorg/helianto/core/criteria/OrmCriteriaBuilder;)V"
+				};
+		
+		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 50;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+//		
+//		EvoTestResult resultT = resultsT.get(0);
+		EvoTestResult resultF = resultsF.get(0);
+//		
+//		int ageT = resultT.getAge();
+//		int timeT = resultT.getTime();
+//		double coverageT = resultT.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		double coverageF = resultF.getCoverage();
+		double initCoverage = resultF.getInitialCoverage();
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testDynaMOSA6() {
+		String projectId = "80_wheelwebtool";
+		String[] targetMethods = new String[]{
+				"wheel.components.Checkbox#renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V"
+				};
+		
+		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+//		
+//		EvoTestResult resultT = resultsT.get(0);
+		EvoTestResult resultF = resultsF.get(0);
+//		
+//		int ageT = resultT.getAge();
+//		int timeT = resultT.getTime();
+//		double coverageT = resultT.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		double coverageF = resultF.getCoverage();
+		double initCoverage = resultF.getInitialCoverage();
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testDynaMOSA7() {
+		String projectId = "44_summa";
+		String[] targetMethods = new String[]{
+				"dk.statsbiblioteket.summa.storage.api.filter.UpdateFromFulldumpFilter#init(Ldk/statsbiblioteket/summa/common/configuration/Configuration;Ldk/statsbiblioteket/summa/storage/api/WritableStorage;Ldk/statsbiblioteket/summa/storage/api/ReadableStorage;)V"
+				};
+		
+		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+//		
+//		EvoTestResult resultT = resultsT.get(0);
+		EvoTestResult resultF = resultsF.get(0);
+//		
+//		int ageT = resultT.getAge();
+//		int timeT = resultT.getTime();
+//		double coverageT = resultT.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		double coverageF = resultF.getCoverage();
+		double initCoverage = resultF.getInitialCoverage();
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testDynaMOSA8() {
+		String projectId = "35_corina";
+		String[] targetMethods = new String[]{
+				"corina.index.Polynomial#index()V"
+			};
+		
+		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+//		resultsT = CommonTestUtil.evoTestSingleMethod(projectId,  
+//				targetMethods, fitnessApproach, repeatTime, budget, true, seed);
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+//		
+//		EvoTestResult resultT = resultsT.get(0);
+		EvoTestResult resultF = resultsF.get(0);
+//		
+//		int ageT = resultT.getAge();
+//		int timeT = resultT.getTime();
+//		double coverageT = resultT.getCoverage();
+		int ageF = resultF.getAge();
+		int timeF = resultF.getTime();
+		double coverageF = resultF.getCoverage();
+		double initCoverage = resultF.getInitialCoverage();
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testDynaMOSA9() {
+		String projectId = "32_httpanalyzer";
+		String[] targetMethods = new String[]{
+				"httpanalyzer.ParamsUrlTools#splitUrl(Ljava/lang/String;Ljavax/swing/JFrame;)[Ljava/lang/String;"
+			};
+		
+		List<EvoTestResult> resultsT = new ArrayList<EvoTestResult>();
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
