@@ -57,7 +57,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
 		
-		assertLegitimization(b, false);
+		assertLegitimization(b, false, false);
 		
 	}
 	
@@ -94,7 +94,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
 		
-		assertLegitimization(b, true);
+		assertLegitimization(b, true, false);
 		
 	}
 	
@@ -107,7 +107,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		String projectId = "83_xbus";
 		String className = "net.sf.xbus.protocol.xml.XBUSXMLMessage";
 		String methodName = "synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V";
-		int lineNumber = 1;
+		int lineNumber = 230;
 		
 		String defaultClassPath = System.getProperty("java.class.path");
 		StringBuffer buffer = new StringBuffer();
@@ -131,7 +131,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
 		
-		assertLegitimization(b, true);
+		assertLegitimization(b, false, false);
 		
 	}
 	
@@ -168,7 +168,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
 		
-		assertLegitimization(b, true);
+		assertLegitimization(b, true, false);
 		
 	}
 

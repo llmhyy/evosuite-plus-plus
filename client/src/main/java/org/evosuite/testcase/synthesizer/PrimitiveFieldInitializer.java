@@ -19,7 +19,7 @@ import org.evosuite.utils.generic.GenericField;
 
 public class PrimitiveFieldInitializer extends FieldInitializer{
 	public VariableReference assignField(TestFactory testFactory, TestCase test, String fieldType, GenericField genericField,
-			int insertionPosition, FieldReference fieldVar) throws ConstructionFailedException {
+			int insertionPosition, FieldReference fieldVar, boolean allowNullValue) throws ConstructionFailedException {
 		try {
 			PrimitiveStatement<?> primStatement = createNewPrimitiveStatement(test, fieldType);
 			primStatement.randomize();

@@ -21,29 +21,29 @@ public class ProjectTestLegitimizationTest extends ObjectOrientedTest {
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 	}
 	
-	@Test
-	public void testLegitimization0() throws ClassNotFoundException, RuntimeException {
-		
-		Properties.RANDOM_SEED = 1598286332193l;
-		
-		setup();
-
-		Properties.TARGET_CLASS = InternalGmHeroFrame.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("valueChanged", InternalGmHeroFrame.class, 1);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
-
-		Branch b = rankedList.get(4);
-
-		assertLegitimization(b, false);
-	}
+//	@Test
+//	public void testLegitimization0() throws ClassNotFoundException, RuntimeException {
+//		
+////		Properties.RANDOM_SEED = 1598286332193l;
+//		
+//		setup();
+//
+//		Properties.TARGET_CLASS = InternalGmHeroFrame.class.getCanonicalName();
+//
+//		Method method = TestUtility.getTargetMethod("valueChanged", InternalGmHeroFrame.class, 1);
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//
+//		Properties.TARGET_METHOD = targetMethod;
+//
+//		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+//
+//		Branch b = rankedList.get(4);
+//
+//		assertLegitimization(b, false, false);
+//	}
 	
 	@Test
-	public void testLegitimization1() throws ClassNotFoundException, RuntimeException {
+	public void testLegitimizationCheckRules() throws ClassNotFoundException, RuntimeException {
 		setup();
 
 		Properties.TARGET_CLASS = BasicRules.class.getCanonicalName();
@@ -58,7 +58,7 @@ public class ProjectTestLegitimizationTest extends ObjectOrientedTest {
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(19);
 
-		assertLegitimization(b, false);
+		assertLegitimization(b, false, false);
 		
 	}
 

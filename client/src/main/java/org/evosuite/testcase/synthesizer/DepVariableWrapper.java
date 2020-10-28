@@ -121,7 +121,7 @@ public class DepVariableWrapper {
 		return var.toString();
 	}
 
-	public List<DepVariableWrapper> checkContextualNode() {
+	public List<DepVariableWrapper> getCallerNode() {
 		if(this.parents.isEmpty()){
 			return null;
 		}

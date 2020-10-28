@@ -38,7 +38,7 @@ public class ProjectGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		Branch b = searchBranch(rankedList, 15);
 		
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
-		generateCode(b, true);
+		generateCode(b, true, false);
 	}
 	
 	@Test
@@ -59,7 +59,7 @@ public class ProjectGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 
 		Branch b = rankedList.get(10);
-		generateCode(b, false);
+		generateCode(b, false, false);
 	}
 	
 	@Test
@@ -81,7 +81,7 @@ public class ProjectGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		//29
 		Branch b = rankedList.get(12);
 		System.out.println(b);
-		generateCode(b, false);
+		generateCode(b, false, false);
 	}
 
 }

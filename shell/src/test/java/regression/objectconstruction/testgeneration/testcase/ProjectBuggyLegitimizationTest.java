@@ -39,7 +39,7 @@ public class ProjectBuggyLegitimizationTest extends ObjectOrientedTest{
 		Branch b = rankedList.get(0);
 
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\test";
-		assertLegitimization(b, true);
+		assertLegitimization(b, true, false);
 		
 	}
 	
@@ -61,7 +61,7 @@ public class ProjectBuggyLegitimizationTest extends ObjectOrientedTest{
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(2);
 
-		assertLegitimization(b, false);
+		assertLegitimization(b, false, false);
 		
 	}
 	
@@ -82,7 +82,7 @@ public class ProjectBuggyLegitimizationTest extends ObjectOrientedTest{
 //			Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
 
-		assertLegitimization(b, false);
+		assertLegitimization(b, false, false);
 		
 	}
 }

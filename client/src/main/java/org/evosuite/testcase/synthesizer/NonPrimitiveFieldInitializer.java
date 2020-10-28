@@ -10,10 +10,10 @@ import org.evosuite.utils.generic.GenericField;
 public class NonPrimitiveFieldInitializer extends FieldInitializer{
 	
 	public VariableReference assignField(TestFactory testFactory, TestCase test, String fieldType, GenericField genericField,
-			int insertionPosition, FieldReference fieldVar) throws ConstructionFailedException {
+			int insertionPosition, FieldReference fieldVar, boolean allowNullValue) throws ConstructionFailedException {
 		
 		VariableReference constructorVarRef = 
-				ConstructionPathSynthesizer.addConstructorForClass(testFactory, test, insertionPosition, fieldType);
+				ConstructionPathSynthesizer.addConstructorForClass(testFactory, test, insertionPosition, fieldType, allowNullValue);
 		if (constructorVarRef == null) {
 			return null;
 		}

@@ -25,7 +25,9 @@ public class SF100OverallTest {
 		Properties.INSTRUMENT_CONTEXT = true;
 		Properties.CHROMOSOME_LENGTH = 200;
 		
-		Properties.TIMEOUT = 100000;
+		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 0;
+		
+		Properties.TIMEOUT = 1000;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
@@ -45,10 +47,11 @@ public class SF100OverallTest {
 //				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
 //				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
 				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
+//				"net.sourceforge.ifxfv3.beans.ChkOrdCanRs_TypeSequence2#equals(Ljava/lang/Object;)Z"
 				};
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 1000000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

@@ -110,6 +110,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			}
 		}
 		
+		boolean allowNullValue = Properties.NULL_PROBABILITY < Randomness.nextDouble();
 		// Then add random stuff
 		while (test.size() < length && num < Properties.MAX_ATTEMPTS) {
 			int position = test.size() - 1;
@@ -144,69 +145,62 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					b = Randomness.choice(interestedBranches.keySet());					
 				}
 //				Branch b = rankedList.get(19);
-				
-				TestCase t = templateTestMap.get(b);
-				if(t == null) {
-//					logger.warn("Selected branch:" + b + "\n");
-					try {
+
+				try {
+					System.currentTimeMillis();
+					long t0 = System.currentTimeMillis();
+					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+					cpSynthesizer.constructDifficultObjectStatement(test, b, false, allowNullValue);
+					if(!allowNullValue) {
+						mutateNullStatements(test);						
+					}
+					long t1 = System.currentTimeMillis();
+					logger.warn("construction time: " + (t1-t0));
+					logger.warn("graph size: " + cpSynthesizer.getPartialGraph().getGraphSize());
+					
+					if(t1-t0>10000) {
 						System.currentTimeMillis();
-						long t0 = System.currentTimeMillis();
-						ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-						cpSynthesizer.constructDifficultObjectStatement(test, b, false);
-						mutateNullStatements(test);
-						long t1 = System.currentTimeMillis();
-						logger.warn("construction time: " + (t1-t0));
-						logger.warn("graph size: " + cpSynthesizer.getPartialGraph().getGraphSize());
-						
-						if(t1-t0>10000) {
-							System.currentTimeMillis();
-						}
-						
-						PartialGraph graph = cpSynthesizer.getPartialGraph();
-						Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
-						
-//						t0 = System.currentTimeMillis();
-						TestChromosome templateTestChromosome = new TestChromosome();
-						templateTestChromosome.setTestCase(test);
-						ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
-						templateTestChromosome.setLastExecutionResult(result);
-//						t1 = System.currentTimeMillis();
-//						logger.warn("execution time: " + (t1-t0));
-						
-						TestChromosome legitimizedChromosome = null;
-						t0 = System.currentTimeMillis();
-						if(t0 - TestCaseLegitimizer.startTime <= Properties.TOTAL_LEGITIMIZATION_BUDGET * 1000) {
-							legitimizedChromosome = TestCaseLegitimizer.getInstance().legitimize(templateTestChromosome, graph, graph2CodeMap);
-							test = legitimizedChromosome.getTestCase();
-						}
-						else {
-							legitimizedChromosome = templateTestChromosome;
-						}
-						
-						legitimizedChromosome = templateTestChromosome;
-						
-						if(legitimizedChromosome.getLegitimacyDistance() == 0) {
-							templateTestMap.put(b, test);							
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
 					}
 					
-				}
-				else {
-					test = t;
+					PartialGraph graph = cpSynthesizer.getPartialGraph();
+					Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+					
+//					t0 = System.currentTimeMillis();
+					TestChromosome templateTestChromosome = new TestChromosome();
+					templateTestChromosome.setTestCase(test);
+					ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
+					templateTestChromosome.setLastExecutionResult(result);
+//					t1 = System.currentTimeMillis();
+//					logger.warn("execution time: " + (t1-t0));
+					
+					TestChromosome legitimizedChromosome = null;
+					t0 = System.currentTimeMillis();
+					if(t0 - TestCaseLegitimizer.startTime <= Properties.TOTAL_LEGITIMIZATION_BUDGET * 1000) {
+						legitimizedChromosome = TestCaseLegitimizer.getInstance().legitimize(templateTestChromosome, graph, graph2CodeMap);
+						test = legitimizedChromosome.getTestCase();
+					}
+					else {
+						legitimizedChromosome = templateTestChromosome;
+					}
+					
+					legitimizedChromosome = templateTestChromosome;
+					
+					if(legitimizedChromosome.getLegitimacyDistance() == 0) {
+						templateTestMap.put(b, test);							
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 				
 				break;
 			}
 			else {
-				testFactory.insertRandomStatement(test, position);
-				int success = -1;
+				int success = testFactory.insertRandomStatement(test, position);
 				int count = 0;
 				while (test.size() == 0 || success == -1) {
 					test = new DefaultTestCase();
 					success = testFactory.insertRandomStatement(test, 0);
-					if(test.size() != 0 && success != -1) {
+					if(test.size() != 0 && success != -1 && !allowNullValue) {
 						mutateNullStatements(test);
 					}
 					

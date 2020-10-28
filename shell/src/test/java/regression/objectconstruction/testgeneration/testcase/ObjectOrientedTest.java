@@ -59,13 +59,15 @@ public class ObjectOrientedTest {
 		BranchPool.getInstance(classLoader).reset();
 	}
 
-	protected TestCase generateCode(Branch b, boolean isDebugger) {
+	protected TestCase generateCode(Branch b, boolean isDebugger, boolean allowNullValue) {
 		TestFactory testFactory = TestFactory.getInstance();
-		TestCase test = initializeTest(b, testFactory);
+		TestCase test = initializeTest(b, testFactory, allowNullValue);
 		try {
 			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebugger);
-			mutateNullStatements(test);
+			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebugger, allowNullValue);
+			if(!allowNullValue) {
+				mutateNullStatements(test);				
+			}
 
 			System.out.println(test);
 
@@ -79,18 +81,18 @@ public class ObjectOrientedTest {
 		return test;
 	}
 
-	protected void assertLegitimization(Branch b, boolean isDebug) {
+	protected void assertLegitimization(Branch b, boolean isDebug, boolean allowNullValue) {
 		if (Properties.APPLY_OBJECT_RULE) {
 			Properties.PRIMITIVE_REUSE_PROBABILITY = 0;
 			System.currentTimeMillis();
 		}
 
 		TestFactory testFactory = TestFactory.getInstance();
-		TestCase test = initializeTest(b, testFactory);
+		TestCase test = initializeTest(b, testFactory, allowNullValue);
 		try {
 			long t1 = System.currentTimeMillis();
 			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebug);
+			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebug, allowNullValue);
 			mutateNullStatements(test);
 			long t2 = System.currentTimeMillis();
 			System.out.println("Time to generate code template: " + (t2-t1)/1000 + "s");
@@ -139,13 +141,13 @@ public class ObjectOrientedTest {
 		}
 	}
 
-	protected TestCase initializeTest(Branch b, TestFactory testFactory) {
+	protected TestCase initializeTest(Branch b, TestFactory testFactory, boolean allowNullValue) {
 		TestCase test = new DefaultTestCase();
 		int success = -1;
 		while (test.size() == 0 || success == -1) {
 			test = new DefaultTestCase();
 			success = testFactory.insertRandomStatement(test, 0);
-			if (test.size() != 0 && success != -1) {
+			if (test.size() != 0 && success != -1 && !allowNullValue) {
 				mutateNullStatements(test);
 			}
 		}

@@ -10,5 +10,5 @@ import org.evosuite.utils.generic.GenericField;
 public abstract class FieldInitializer {
 	
 	public abstract VariableReference assignField(TestFactory testFactory, TestCase test, String fieldType, GenericField genericField,
-			int insertionPosition, FieldReference fieldVar) throws ConstructionFailedException;
+			int insertionPosition, FieldReference fieldVar, boolean allowNullValue) throws ConstructionFailedException;
 }

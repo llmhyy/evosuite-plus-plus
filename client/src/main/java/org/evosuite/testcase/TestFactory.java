@@ -1338,7 +1338,7 @@ public class TestFactory {
 	 * @return
 	 * @throws ConstructionFailedException
 	 */
-	private VariableReference createNull(TestCase test, Type type, int position,
+	public VariableReference createNull(TestCase test, Type type, int position,
 	        int recursionDepth) throws ConstructionFailedException {
 		GenericClass genericType = new GenericClass(type);
 
@@ -2384,7 +2384,7 @@ public class TestFactory {
 					Type target = m.getOwnerType();
 
 					if (!test.hasObject(target, position)) {
-						callee = createObject(test, target, position, 0, null, false, false, true); //no FM for SUT
+						callee = createObject(test, target, position, 0, null, true, false, true); //no FM for SUT
 						position += test.size() - previousLength;
 						previousLength = test.size();
 					} else {
