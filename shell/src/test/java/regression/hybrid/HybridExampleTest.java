@@ -17,7 +17,7 @@ public class HybridExampleTest {
 	@Before
 	public void init() {
 		Properties.OVERALL_HYBRID_STRATEGY_TIMEOUT = 1000000;
-		Properties.INDIVIDUAL_STRATEGY_TIMEOUT = 60;
+		Properties.INDIVIDUAL_STRATEGY_TIMEOUT = 100;
 //		Properties.HYBRID_OPTION = new HybridOption[]{
 //		    	HybridOption.DSE, HybridOption.RANDOM, HybridOption.SEARCH
 //	    };
@@ -30,10 +30,12 @@ public class HybridExampleTest {
 	@Test
 	public void testHybrid() {
 		
-		Properties.HYBRID_OPTION = new HybridOption[]{
-//		    	HybridOption.RANDOM
-		    	HybridOption.DSE
-	    };
+//		Properties.HYBRID_OPTION = new HybridOption[]{
+//		    	HybridOption.RANDOM,
+//		    	HybridOption.DSE
+//	    };
+		
+		Properties.PREDEFINED_ORDER = new int[] {1, 0};
 		
 		Class<?> clazz = regression.hybrid.example.HybridExample1.class;
 		String methodName = "driller_example1";
@@ -61,7 +63,7 @@ public class HybridExampleTest {
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 60;
+		int timeBudget = 10000;
 		TestUtility.evosuiteHybrid(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 	

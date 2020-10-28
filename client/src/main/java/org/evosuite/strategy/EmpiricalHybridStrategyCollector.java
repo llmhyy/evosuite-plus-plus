@@ -124,12 +124,8 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 //		TestSuiteChromosome suite = (TestSuiteChromosome) bootstrapRandomSuite(fitnessFunctions.get(0), goalFactories.get(0));
 		TestSuiteChromosome suite = new TestSuiteChromosome();
 
-//		StoppingCondition stoppingCondition = getStoppingCondition();
-//		stoppingCondition.setLimit(strategyWiseBudget);
-
 		for (TestFitnessFunction fitnessFunction : goals) {
 			
-
 			List<ArrayList<BranchGoal>> paths = achieveAllPaths(fitnessFunction);
 
 			for (List<BranchGoal> path : paths) {
@@ -137,8 +133,6 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 				if(path.get(path.size()-1).branch.getInstruction().getLineNumber() == 92) {
 					System.currentTimeMillis();
 				}
-
-				int lasthybridStrategy = 999;
 
 				for (int i = 0; i < DEFAULT_PATH_TESTING_NUM; i++) {
 					logger.warn("working on " + fitnessFunction);
@@ -148,14 +142,13 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 
 					List<Segmentation> segList = new ArrayList<>();
 
-//					Segmentation prevSeg = new Segmentation();
-
 					long start = System.currentTimeMillis();
 					long end = System.currentTimeMillis();
 
 //					int lasthybridStrategy = 999;
 
 					int timeout = Properties.OVERALL_HYBRID_STRATEGY_TIMEOUT * 1000 + path.size() * 10 * 1000;
+					int count = 0;
 					for (; end - start < timeout; end = System.currentTimeMillis()) {
 						/**
 						 * randomly select a strategy and run it for a while.
@@ -166,10 +159,15 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						List<Hybridable> strategyList = getTotalStrategies(factory, fitnessFunction);
 						int index = 0;
 						Hybridable hybridStrategy;
-//						do {
+						
+						if(Properties.PREDEFINED_ORDER == null) {
 							index = new Random().nextInt(strategyList.size());
-							hybridStrategy = strategyList.get(index);
-//						} while (lasthybridStrategy == index);
+						}
+						else {
+							index = Properties.PREDEFINED_ORDER[count];
+							count++;
+						}
+						hybridStrategy = strategyList.get(index);							
 						
 						GeneticAlgorithm<TestChromosome> strategy = (GeneticAlgorithm<TestChromosome>) hybridStrategy;
 
@@ -184,6 +182,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 						// Perform search
 						logger.info("Starting evolution for goal " + fitnessFunction);
 						long t1 = System.currentTimeMillis();
+						Properties.DSE_CONSTRAINT_SOLVER_TIMEOUT_MILLIS = Properties.INDIVIDUAL_STRATEGY_TIMEOUT * 1000;
 						hybridStrategy.generateSolution(suite);
 						
 						long t2 = System.currentTimeMillis();
@@ -242,7 +241,6 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 							if (segment.contains(goal))
 								segList.remove(segList.indexOf(newSeg));
 						}
-						lasthybridStrategy = index;
 					}
 
 					// TODO add it back
@@ -261,6 +259,10 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		Branch branch;
 		boolean value;
 
+		public String toString() {
+			return branch.toString() + ":" + value;
+		}
+		
 		public BranchGoal(Branch branch, boolean value) {
 			super();
 			this.branch = branch;
@@ -725,6 +727,7 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 		for(int i=0; i<Properties.HYBRID_OPTION.length; i++) {
 			if(Properties.HYBRID_OPTION[i].equals(HybridOption.DSE)) {
 				DSEAlgorithm dse = new DSEAlgorithm();
+				dse.addStoppingCondition(new MaxTimeStoppingCondition());
 				setStrategyWiseBudget((GeneticAlgorithm) dse);
 				TestSuiteFitnessFunction function = FitnessFunctions.getFitnessFunction(Properties.CRITERION[0]);
 				if (function instanceof FBranchSuiteFitness) {
@@ -750,13 +753,6 @@ public class EmpiricalHybridStrategyCollector extends TestGenerationStrategy {
 			}
 		}
 		
-		
-		
-
-		
-
-		
-
 //		Properties.ALGORITHM = Algorithm.MOSA;
 //		GeneticAlgorithm<TestChromosome> mosa = factory.getSearchAlgorithm();
 //		setStrategyWiseBudget(mosa);
