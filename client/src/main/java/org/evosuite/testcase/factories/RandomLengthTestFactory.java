@@ -110,7 +110,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			}
 		}
 		
-		boolean allowNullValue = Properties.NULL_PROBABILITY < Randomness.nextDouble();
+		boolean allowNullValue = Properties.NULL_PROBABILITY > Randomness.nextDouble();
 		// Then add random stuff
 		while (test.size() < length && num < Properties.MAX_ATTEMPTS) {
 			int position = test.size() - 1;

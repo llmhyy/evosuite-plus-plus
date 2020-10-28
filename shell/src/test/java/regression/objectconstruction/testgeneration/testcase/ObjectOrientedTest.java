@@ -93,7 +93,10 @@ public class ObjectOrientedTest {
 			long t1 = System.currentTimeMillis();
 			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebug, allowNullValue);
-			mutateNullStatements(test);
+			if(!allowNullValue) {
+				mutateNullStatements(test);		
+				System.currentTimeMillis();
+			}
 			long t2 = System.currentTimeMillis();
 			System.out.println("Time to generate code template: " + (t2-t1)/1000 + "s");
 			

@@ -391,6 +391,9 @@ public class ConstructionPathSynthesizer {
 			}
 			map.put(node, list);
 		}
+		else {
+			return false;
+		}
 		
 		return true;
 	}
