@@ -62,10 +62,48 @@ public class ProjectTestLegitimizationTest extends ObjectOrientedTest {
 		
 	}
 
-	
+	@Test
+	public void testLegitimizationCheckRulesNullValue1() throws ClassNotFoundException, RuntimeException {
+		setup();
+
+		Properties.TARGET_CLASS = BasicRules.class.getCanonicalName();
+		Properties.NULL_PROBABILITY = 0.5;
+
+		Method method = TestUtility.getTargetMethod("checkRules", BasicRules.class, 2);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+
+		Properties.TARGET_METHOD = targetMethod;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+
+//			Branch b = Randomness.choice(interestedBranches.keySet());
+		Branch b = rankedList.get(19);
+		
+		assertLegitimization(b, false, true);
+		
+	}
 
 
+	@Test
+	public void testLegitimizationCheckRulesNullValue2() throws ClassNotFoundException, RuntimeException {
+		setup();
 
+		Properties.TARGET_CLASS = BasicRules.class.getCanonicalName();
+		Properties.NULL_PROBABILITY = 1.0;
+
+		Method method = TestUtility.getTargetMethod("checkRules", BasicRules.class, 2);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+
+		Properties.TARGET_METHOD = targetMethod;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+
+//			Branch b = Randomness.choice(interestedBranches.keySet());
+		Branch b = rankedList.get(19);
+		
+		assertLegitimization(b, false, true);
+		
+	}
 	
 
 //	@Test
