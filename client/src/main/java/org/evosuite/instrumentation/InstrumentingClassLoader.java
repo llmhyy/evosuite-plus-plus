@@ -239,6 +239,7 @@ public class InstrumentingClassLoader extends ClassLoader {
 			return result;
 		} catch (Throwable t) {
 			logger.info("Error while loading class: "+t);
+			t.printStackTrace();
 			throw new ClassNotFoundException(t.getMessage(), t);
 		} finally {
 			if(is != null)
