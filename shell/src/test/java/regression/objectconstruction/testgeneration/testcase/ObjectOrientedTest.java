@@ -1,6 +1,8 @@
 package regression.objectconstruction.testgeneration.testcase;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,11 +16,11 @@ import org.evosuite.Properties.Criterion;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
+import org.evosuite.runtime.LoopCounter;
 import org.evosuite.setup.DependencyAnalysis;
+import org.evosuite.setup.ExceptionMapGenerator;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -35,6 +37,7 @@ import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class ObjectOrientedTest {
 
@@ -55,8 +58,8 @@ public class ObjectOrientedTest {
 		Properties.TIMEOUT = 300000000;
 
 		// Clear all branches so that branch numbers do not change
-		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-		BranchPool.getInstance(classLoader).reset();
+//		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+//		BranchPool.getInstance(classLoader).reset();
 	}
 
 	protected TestCase generateCode(Branch b, boolean isDebugger, boolean allowNullValue) {
@@ -181,6 +184,32 @@ public class ObjectOrientedTest {
 
 //		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
+		// Deactivate loop counter to make sure classes initialize properly
+		LoopCounter.getInstance().setActive(false);
+		ExceptionMapGenerator.initializeExceptionMap(Properties.TARGET_CLASS);
+
+		TestCaseExecutor.initExecutor();
+		
+		ClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT().getClassLoader();
+		Class<?> c = Class.forName("sun.misc.Launcher$AppClassLoader");
+		try {
+			Field f = c.getDeclaredField("ucp");
+			f.setAccessible(true);
+			Object o = f.get(loader);
+			sun.misc.URLClassPath path = (sun.misc.URLClassPath)o;
+			for(String classpath: classPaths) {
+				path.addURL(new File(classpath).toURI().toURL());
+			}
+			
+			System.currentTimeMillis();
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		Properties.APPLY_OBJECT_RULE = true;
 		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, classPaths);
 

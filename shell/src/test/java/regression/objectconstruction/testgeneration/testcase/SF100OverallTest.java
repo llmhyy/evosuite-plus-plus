@@ -34,9 +34,11 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample() {
+		
 //		String projectId = "84_ifx-framework";
 //		String projectId = "27_gangup";
-		String projectId = "83_xbus";
+//		String projectId = "83_xbus";
+		String projectId = "80_wheelwebtool";
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -46,8 +48,8 @@ public class SF100OverallTest {
 //				"net.sourceforge.ifxfv3.beans.BankAcctTrnRec#equals(Ljava/lang/Object;)Z"
 //				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
 //				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
-				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
-//				"net.sourceforge.ifxfv3.beans.ChkOrdCanRs_TypeSequence2#equals(Ljava/lang/Object;)Z"
+//				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
+				"wheel.components.Checkbox#renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V"
 				};
 		
 		int repeatTime = 1;
@@ -56,12 +58,26 @@ public class SF100OverallTest {
 		
 		String fitnessApproach = "branch";
 		
-		boolean aor = true;
-		CommonTestUtil.evoTestSingleMethod(projectId,  
+		boolean aor = false;
+		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
 		
-		System.currentTimeMillis();
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
 	}
 	
 	
