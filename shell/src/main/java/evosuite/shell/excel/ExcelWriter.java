@@ -47,18 +47,22 @@ public class ExcelWriter {
 				initFromNewFile(file);
 				writeWorkbook();
 			} else {
-				initFromExistingFile(file);
+				try {
+					InputStream inp = new FileInputStream(file);
+					workbook = WorkbookFactory.create(inp);					
+				}
+				catch(Exception e) {
+					file.delete();
+					initFromNewFile(file);
+					writeWorkbook();
+				}
 			}
 		} catch (Exception e) {
+			
 			throw new RuntimeException(e);
 		}
 	}
 	
-	protected void initFromExistingFile(File file) throws Exception {
-		InputStream inp = new FileInputStream(file);
-		workbook = WorkbookFactory.create(inp);
-	}
-
 	protected void initFromNewFile(File file) {
 		workbook = new XSSFWorkbook();
 	}
