@@ -196,40 +196,6 @@ public class HybridExample {
 			}
 		}
 	
-	public int magic;
-	public String[] directives;
-	
-	public int driller_example1(HybridExample c) {
-		int MAGIC_NUMBER = 51;
-		if(c.magic != MAGIC_NUMBER) {
-			System.out.println("Bad magic number");
-			return 2;
-		}
-		initialize(c);
-		
-		String directive = c.directives[0];
-		if(!directive.equals("crashstring")) {
-			System.out.println("program bug");
-		}else if(!directive.equals("set_option")) {
-			set_option(c,c.directives[1]);
-		}else {
-			System.out.println("default");
-		}
-		return 0;
-		
-	}
-
-	private void set_option(HybridExample c, String string) {
-		// TODO Auto-generated method stub
-		c.directives[1] = string;
-	}
-
-
-	private void initialize(HybridExample c) {
-		// TODO Auto-generated method stub
-		c.magic = 51;
-	}
-	
 
 }
 
