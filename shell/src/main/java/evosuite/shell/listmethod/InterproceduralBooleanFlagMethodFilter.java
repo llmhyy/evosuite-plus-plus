@@ -48,12 +48,12 @@ import evosuite.shell.utils.LoggerUtils;
 /**
  * Base IPF Filter
  */
-public class InterproceduralFlagMethodFilter extends MethodFlagCondFilter {
+public class InterproceduralBooleanFlagMethodFilter extends MethodFlagCondFilter {
 	public static final String excelProfileSubfix = "_ipfFlagMethod.xlsx";
 	private static Logger log = LoggerUtils.getLogger(PrimitiveBasedFlagMethodFilter.class);
 	private ExcelWriter writer;
 	
-	public InterproceduralFlagMethodFilter() {
+	public InterproceduralBooleanFlagMethodFilter() {
 		String statisticFile = new StringBuilder(Settings.getReportFolder()).append(File.separator)
 				.append(EvosuiteForMethod.projectId).append(excelProfileSubfix).toString();
 		File newFile = new File(statisticFile);
@@ -106,7 +106,7 @@ public class InterproceduralFlagMethodFilter extends MethodFlagCondFilter {
 					/* Next instruction is to invokeMethod followed by IFEQ or IFNE */
 					if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
 
-						if (checkFlagMethod(classLoader, condDefinition, insn.getLineNumber(), mc, methodValidityMap)) {
+						if (checkBooleanFlagMethod(classLoader, condDefinition, insn.getLineNumber(), mc, methodValidityMap)) {
 							log.info("!FOUND IT! in method " + methodName);
 							valid = true;
 						}
@@ -129,7 +129,7 @@ public class InterproceduralFlagMethodFilter extends MethodFlagCondFilter {
 								}
 							}
 							if (lastDef != null && CommonUtility.isInvokeMethodInsn(lastDef.getASMNode())) {
-								if (checkFlagMethod(classLoader, lastDef.getASMNode(), insn.getLineNumber(), mc,
+								if (checkBooleanFlagMethod(classLoader, lastDef.getASMNode(), insn.getLineNumber(), mc,
 										methodValidityMap)) {
 									log.info("!FOUND IT! in method " + methodName);
 									valid = true;
@@ -181,7 +181,7 @@ public class InterproceduralFlagMethodFilter extends MethodFlagCondFilter {
 		writer.writeSheet("data", data);
 	}
 
-	protected boolean checkFlagMethod(ClassLoader classLoader, AbstractInsnNode flagDefIns,
+	protected boolean checkBooleanFlagMethod(ClassLoader classLoader, AbstractInsnNode flagDefIns,
 			int calledLineInTargetMethod, MethodContent mc, Map<String, Boolean> visitMethods)
 					throws AnalyzerException, IOException, ClassNotFoundException {
 		FlagMethod flagMethod = new FlagMethod();
