@@ -1,5 +1,10 @@
 package org.evosuite.symbolic;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
@@ -15,7 +20,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.Hybridable;
 import org.evosuite.runtime.classhandling.ClassResetter;
@@ -110,6 +122,9 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> implemen
 			Set<Constraint<?>> constraintsSet = canonicalize(pathCondition.getConstraints());
 			pathConditions.add(constraintsSet);
 			logger.debug("Number of stored path condition: " + pathConditions.size());
+			
+			//path conditions
+			recordPathConditionList(pathCondition,staticEntryMethod);
 
 			for (int i = pathCondition.size() - 1; i >= 0; i--) {
 				logger.debug("negating index " + i + " of path condition");
@@ -200,6 +215,94 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> implemen
 		logger.debug("DSE test generation finished for method " + staticEntryMethod.getName() + ". Exiting with "
 				+ generatedTests.size() + " generated test cases");
 		return;
+	}
+
+	private void recordPathConditionList(PathCondition pathCondition, Method staticEntryMethod) {
+		// TODO Auto-generated method stub
+		String path = "D:\\linyun\\experiment\\";
+		String targetfileName = "DSEPathConditionList.xlsx";
+		
+		File files = new File(path);
+		File[] filesList = files.listFiles();
+		
+		boolean isExisted = false;
+		for(File f : filesList) {
+			if(f.getName().equals(targetfileName)) {
+				isExisted = true;
+			}
+		}
+		
+		if(!isExisted) {
+			initPathConditionListExcel(path + targetfileName);
+		}
+		
+		if(pathCondition != null) {
+			recordConditionLists(path + targetfileName,pathCondition,staticEntryMethod);
+		}
+		
+	}
+
+	private void recordConditionLists(String file, PathCondition pathCondition, Method staticEntryMethod) {
+		// TODO Auto-generated method stub
+		try {
+			FileInputStream fileIn = new FileInputStream(file);
+			XSSFWorkbook wb = new XSSFWorkbook(fileIn);
+			XSSFSheet ws = wb.getSheet("DSEPathConditionList");
+			FileOutputStream fileOut = new FileOutputStream(file);		
+			
+			int rowNum = ws.getLastRowNum();
+			rowNum++;
+			XSSFRow row = ws.createRow(rowNum);
+			short newCellNum = 0;
+			
+			XSSFCell class_cell = row.createCell((short) 0);
+			class_cell.setCellValue(staticEntryMethod.getClass().toString());
+			newCellNum++;
+			
+			XSSFCell method_cell = row.createCell((short) newCellNum);
+			method_cell.setCellValue(staticEntryMethod.getName().toString());
+			newCellNum++;
+			
+			XSSFCell size_cell = row.createCell((short) newCellNum);
+			size_cell.setCellValue(pathCondition.size());
+			newCellNum++;
+			
+			XSSFCell pathCondition_cell = row.createCell((short) newCellNum);
+			pathCondition_cell.setCellValue(pathCondition.getBranchConditions().toString());
+			
+			wb.write(fileOut);
+			fileIn.close();
+			fileOut.close();
+			wb.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void initPathConditionListExcel(String file) {
+		// TODO Auto-generated method stub
+		XSSFWorkbook pathCondition_wb = new XSSFWorkbook();
+		XSSFSheet pathCondition_ws = pathCondition_wb.createSheet("DSEPathConditionList");
+		String[] headers = {"Class","Method","Path Condition Size","Path Condition"};
+		XSSFRow row = pathCondition_ws.createRow(0);
+		addHeader(row, headers);
+
+		try {
+			OutputStream fileOut = new FileOutputStream(file);
+			pathCondition_wb.write(fileOut);
+			fileOut.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void addHeader(XSSFRow Row, String[] headers) {
+		for (int i = 0; i < headers.length; i++) {
+			XSSFCell cell = Row.createCell((short) i);
+			XSSFRichTextString text = new XSSFRichTextString(headers[i]);
+			cell.setCellValue(text.toString());
+
+		}
 	}
 
 	protected static HashSet<Constraint<?>> canonicalize(List<Constraint<?>> query) {
