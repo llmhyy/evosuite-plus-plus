@@ -2,7 +2,9 @@
 [![CircleCI](https://circleci.com/gh/EvoSuite/evosuite.svg?style=svg&circle-token=f00c8d84b9dcf7dae4a82438441823f3be9df090)](https://circleci.com/gh/EvoSuite/evosuite)
 
 # Evosuite++
-This project is a forked version of Evosuite. The original address of evosuite is here: https://github.com/EvoSuite/evosuite
+This project is a forked version of Evosuite. The original address of evosuite is here: https://github.com/EvoSuite/evosuite. The goal of this project aims to improve Evosuite from the perspective of gradient recovering, a paramount assumption of the effectiveness of SBST (Search-based Software Testing). The traditional SBST approaches defines the measurement (e.g., branch distance) for evaluating how far a generated test is away from covering a branch. Such a measurement is considered as a loss function (or fitness function) to guide test generation to cover specific branches with various search algorithm e.g., GA (Genetic Algorithm), Hill Climbing, etc. However, more often than not, the landscape of the search space is not continuous, which makes SBST approaches degrade to random testing.
+
+The project (Evosuite++) aims to pinpoint when the landscape is not conitinuous and propose various approaches to restore the effectiveness of SBST, e.g., recovering gradients for inteprocedural flag problem and constructing shortcut seeds to facilitate test generation.
 
 In this project, we enhance Evosuite in terms of branch distance gradient recovering, object construction, smarter mutation, etc.
 Here is the relevant publication:
