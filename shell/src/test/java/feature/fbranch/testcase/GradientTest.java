@@ -31,7 +31,7 @@ public class GradientTest {
 		TestFactory testFactory = TestFactory.getInstance();
 //		TestCase test = initializeTest(b, testFactory, allowNullValue);
 
-		int timeBudget = 300;
+		int timeBudget = 100;
 		EvoTestResult resultT = null;
 		EvoTestResult resultF = null;
 

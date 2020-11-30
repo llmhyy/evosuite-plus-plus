@@ -14,7 +14,8 @@ public class ValueRangeExampleTest extends FBranchTestSetup {
 	@Test
 	public void testValueRangeExample() {
 		
-		Properties.PRINT_FITNESS = false;
+		Properties.PRINT_FITNESS = true;
+		Properties.ADOPT_SMART_MUTATION = true;
 		
 		Class<?> clazz = feature.fbranch.example.ValueRangeExample.class;
 		String methodName = "targetM";
