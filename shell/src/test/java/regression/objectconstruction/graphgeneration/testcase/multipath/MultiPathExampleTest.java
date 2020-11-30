@@ -9,7 +9,7 @@ import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.test.TestUtility;
+import common.TestUtility;
 
 public class MultiPathExampleTest {
 	@Test

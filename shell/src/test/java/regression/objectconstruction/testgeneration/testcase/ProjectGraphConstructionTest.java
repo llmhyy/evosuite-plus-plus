@@ -34,8 +34,7 @@ import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.test.TestUtility;
-
+import common.TestUtility;
 import regression.objectconstruction.testgeneration.example.graphcontruction.PngEncoderB;
 import regression.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
 import regression.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame;

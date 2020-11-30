@@ -2,18 +2,15 @@ package regression.objectconstruction.testgeneration.example;
 
 import java.util.List;
 
-import com.example.Student;
-import com.example.Student1;
-import com.example.StudentAbstract;
-import com.example.StudentInterface;
-import com.example.Util;
+
+import regression.fbranch.example.ValueUtil;
 
 public class ObjectExample {
 	public boolean test(Student student) {
 		int a = 0;
-		if (Util.isOk(student.getAge(), 
+		if (ValueUtil.isOk(student.getAge(), 
 				student.getFriend().getAge())) {
-			if (Util.isCornerCase(student.getAge(), 
+			if (ValueUtil.isCornerCase(student.getAge(), 
 					student.getFriend().getAge())) {
 				return true;
 			}
@@ -22,7 +19,7 @@ public class ObjectExample {
 		return false;
 	}
 
-	public boolean test(List<Integer> list, Student1 student) {
+	public boolean test(List<Integer> list, Student student) {
 		for (Integer age : list) {
 			if (student.getAge() == age) {
 				return true;

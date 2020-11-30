@@ -27,7 +27,7 @@ public class SF100OverallTest {
 		
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 0;
 		
-		Properties.TIMEOUT = 1000;
+		Properties.TIMEOUT = 10000000;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
@@ -38,7 +38,9 @@ public class SF100OverallTest {
 //		String projectId = "84_ifx-framework";
 //		String projectId = "27_gangup";
 //		String projectId = "83_xbus";
-		String projectId = "80_wheelwebtool";
+//		String projectId = "80_wheelwebtool";
+//		String projectId = "58_fps370";
+		String projectId = "24_saxpath";
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -49,11 +51,12 @@ public class SF100OverallTest {
 //				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
 //				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
 //				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
-				"wheel.components.Checkbox#renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V"
+//				"wheel.components.Checkbox#renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V"
+				"com.werken.saxpath.XPathLexer#nextToken()Lcom/werken/saxpath/Token;"
 				};
 		
-		int repeatTime = 1;
-		int budget = 1000000;
+		int repeatTime = 10;
+		int budget = 100000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

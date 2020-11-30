@@ -1,4 +1,4 @@
-package com.example;
+package regression.objectconstruction.testgeneration.example;
 
 public abstract class StudentAbstract {
 

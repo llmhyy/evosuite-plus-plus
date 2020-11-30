@@ -8,7 +8,7 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.test.TestUtility;
+import common.TestUtility;
 
 public class DSETesting {
 	@Test

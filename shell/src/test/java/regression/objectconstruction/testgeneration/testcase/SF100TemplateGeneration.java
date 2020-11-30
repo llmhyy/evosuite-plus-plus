@@ -151,6 +151,42 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 	}
 
 	@Test
+	public void testAttributeInParentTest() throws ClassNotFoundException, RuntimeException {
+		
+//		Properties.RANDOM_SEED = 1599466414837l;
+		
+		setup();
+		
+		String projectId = "80_wheelwebtool";
+		String className = "wheel.components.Checkbox";
+		String methodName = "renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V";
+		int lineNumber = 60;
+		
+		String defaultClassPath = System.getProperty("java.class.path");
+		StringBuffer buffer = new StringBuffer();
+		List<String> classPaths = SFBenchmarkUtils.setupProjectProperties(projectId);
+		for(String classPath: classPaths) {			
+//			ClassPathHandler.getInstance().addElementToTargetProjectClassPath(classPath);
+			buffer.append(File.pathSeparator + classPath);
+		}
+		
+		String newPath = defaultClassPath + buffer.toString();
+		System.setProperty("java.class.path", newPath);
+		
+		Properties.TARGET_CLASS = className;
+		Properties.TARGET_METHOD = methodName;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
+
+		
+		Branch b = searchBranch(rankedList, lineNumber);
+		System.out.println(b);
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		generateCode(b, false, false);
+	}
+	
+	
+	@Test
 	public void testConstructionException() throws ClassNotFoundException, RuntimeException {
 		
 //		Properties.RANDOM_SEED = 1599466414837l;

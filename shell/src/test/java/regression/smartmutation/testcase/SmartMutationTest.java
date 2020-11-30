@@ -10,8 +10,7 @@ import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.test.TestUtility;
-
+import common.TestUtility;
 import evosuite.shell.EvoTestResult;
 import sf100.CommonTestUtil;
 

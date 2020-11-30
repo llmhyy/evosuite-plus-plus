@@ -1,4 +1,4 @@
-package com.test;
+package common;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -495,8 +495,8 @@ public class TestUtility {
 				"-Dmax_attempts", "100",
 				"-Dassertions", "false",
 				"-Delite", "10",
-				"-Dprimitive_pool", "0.0",
-				"-Ddynamic_pool", "0.0",
+				"-Dprimitive_pool", "0.5",
+				"-Ddynamic_pool", "0.5",
 				"-Dlocal_search_ensure_double_execution", "false",
 //				"-Dchromosome_length", "100",
 //				"-Dstopping_condition", "maxgenerations",

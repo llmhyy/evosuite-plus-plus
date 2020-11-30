@@ -1,4 +1,4 @@
-package com.test;
+package regression.hybrid;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
 
-public class SF100TestUilt {
+public class SF100TestUilty {
 	public static FilterConfiguration filter;
 	public static EvoTestResult evoTestSingleMethod(String projectId,
 			String[] targetMethods, String fitnessAppraoch, int iteration, 

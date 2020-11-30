@@ -9,8 +9,7 @@ import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.test.TestUtility;
-
+import common.TestUtility;
 import regression.objectconstruction.testgeneration.example.graphcontruction.AcctInqRq.AcctInqRq;
 import regression.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
 import regression.objectconstruction.testgeneration.example.graphcontruction.JNFE.AddressData;

@@ -7,8 +7,7 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.test.TestUtility;
-
+import common.TestUtility;
 import regression.objectconstruction.testgeneration.example.ObjectExample;
 import sf100.CommonTestUtil;
 

@@ -1,8 +1,8 @@
-package com.example;
+package regression.fbranch.example;
 
 import java.math.BigInteger;
 
-public class Util {
+public class ValueUtil {
 	public static boolean isOk(int a, int b){
 		if(Math.pow(a, 2)<=10000){
 			if(Math.pow(b, 2)<=9801){

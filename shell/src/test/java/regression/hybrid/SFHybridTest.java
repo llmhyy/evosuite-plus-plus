@@ -9,9 +9,7 @@ import org.evosuite.Properties.StatisticsBackend;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.test.SF100TestUilt;
-import com.test.TestUtility;
-
+import common.TestUtility;
 import evosuite.shell.EvoTestResult;
 import evosuite.shell.TempGlobalVariables;
 import sf100.CommonTestUtil;
@@ -53,7 +51,7 @@ public class SFHybridTest {
 //		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
-		SF100TestUilt.evoTestSingleMethod(projectId,  
+		SF100TestUilty.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed);
 //		TempGlobalVariables.seeds = checkRandomSeeds(results0);
@@ -90,7 +88,7 @@ public class SFHybridTest {
 		
 		String fitnessApproach = "fbranch";
 		
-		SF100TestUilt.evoTestSingleMethod(projectId,  
+		SF100TestUilty.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed);
 		
@@ -111,7 +109,7 @@ public class SFHybridTest {
 		String fitnessApproach = "fbranch";
 		
 		
-		SF100TestUilt.evoTestSingleMethod(projectId,  
+		SF100TestUilty.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed);
 		
@@ -131,7 +129,7 @@ public class SFHybridTest {
 //		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
-		SF100TestUilt.evoTestSingleMethod(projectId,  
+		SF100TestUilty.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed);
 	}
@@ -149,7 +147,7 @@ public class SFHybridTest {
 //		Long seed = null;
 		
 		String fitnessApproach = "fbranch";
-		SF100TestUilt.evoTestSingleMethod(projectId,  
+		SF100TestUilty.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed);
 	}

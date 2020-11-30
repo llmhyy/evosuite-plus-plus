@@ -6,8 +6,7 @@ import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import com.test.TestUtility;
-
+import common.TestUtility;
 import evosuite.shell.EvoTestResult;
 
 public class ValueRangeExampleTest extends FBranchTestSetup {

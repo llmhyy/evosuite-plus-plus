@@ -10,8 +10,7 @@ import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.test.TestUtility;
-
+import common.TestUtility;
 import regression.objectconstruction.testgeneration.example.cascadecall.CascadingCallExample;
 import regression.objectconstruction.testgeneration.example.graphcontruction.PngEncoderB;
 import regression.objectconstruction.testgeneration.example.graphcontruction.MUXFilter.pump.MUXFilter;
