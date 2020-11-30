@@ -45,32 +45,32 @@ public class SmartMutationTest {
 		EvoTestResult resultF = null;
 		
 		try {
-			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			resultT = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		} catch (Exception e1) {
 			try {
-				resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+				resultT = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 			} catch (Exception e2) {
-				resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+				resultT = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 			}
 		}
 
 		Properties.ADOPT_SMART_MUTATION = false;
 		try {
-			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			resultF = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		} catch (Exception e1) {
 			try {
-				resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+				resultF = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 			} catch (Exception e2) {
-				resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+				resultF = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 			}
 		}
 
 		if (resultT == null) {
-			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			resultT = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		}
 
 		if (resultF == null) {
-			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			resultF = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		}
 
 		int ageT = resultT.getAge();

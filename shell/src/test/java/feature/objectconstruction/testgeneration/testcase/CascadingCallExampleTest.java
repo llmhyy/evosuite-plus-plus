@@ -31,17 +31,17 @@ public class CascadingCallExampleTest extends ObjectConstructionTestSetup {
 		EvoTestResult resultF = null;
 
 		try {
-			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			resultT = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		} catch (Exception e) {
-			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			resultT = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		}
 
 		Properties.APPLY_OBJECT_RULE = false;
 
 		try {
-			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			resultF = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		} catch (Exception e) {
-			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+			resultF = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 		}
 
 		int ageT = resultT.getAge();

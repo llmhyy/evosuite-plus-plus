@@ -39,15 +39,15 @@ public class FBranchTest {
 		EvoTestResult resultF = null;
 		
 		try {
-			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
+			resultT = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
 		} catch (NullPointerException e) {
-			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
+			resultT = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
 		}
 		
 		try {
-			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
+			resultF = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");
 		} catch (NullPointerException e) {
-			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
+			resultF = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");
 		}
 
 		int ageT = resultT.getAge();

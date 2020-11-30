@@ -314,7 +314,7 @@ public class TestUtility {
 	
 	
 	@SuppressWarnings("unchecked")
-	public static EvoTestResult evosuite(String targetClass, String targetMethod, String cp, int seconds,
+	public static EvoTestResult evosuiteFlagBranch(String targetClass, String targetMethod, String cp, int seconds,
 			boolean instrumentContext, String fitnessAppraoch, String... seed) {
 		EvoSuite evo = new EvoSuite();
 		Properties.TARGET_CLASS = targetClass;

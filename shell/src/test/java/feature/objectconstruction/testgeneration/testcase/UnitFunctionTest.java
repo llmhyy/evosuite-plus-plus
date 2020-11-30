@@ -40,7 +40,7 @@ public class UnitFunctionTest {
 		String fitnessApproach = "fbranch";
 
 		int timeBudget = 1000000;
-		EvoTestResult resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		EvoTestResult resultT = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 
 //		Properties.APPLY_OBJECT_RULE = false;
 //		EvoTestResult resultF = TestUility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);

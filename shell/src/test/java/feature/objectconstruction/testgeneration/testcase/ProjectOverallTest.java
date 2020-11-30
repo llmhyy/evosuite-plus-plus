@@ -70,7 +70,7 @@ public class ProjectOverallTest extends TestUtility{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 30000;
-		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 	
 	@Test
@@ -98,6 +98,6 @@ public class ProjectOverallTest extends TestUtility{
 		String fitnessApproach = "fbranch";
 		
 		int timeBudget = 30000;
-		TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
+		TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 }
