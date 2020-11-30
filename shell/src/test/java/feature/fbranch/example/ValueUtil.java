@@ -13,17 +13,6 @@ public class ValueUtil {
 		return false;
 	}
 	
-	public static boolean isOk(String a, String b){
-		if (a.contains(b)) {
-			return true;
-		} 
-		return false;
-	}
-	
-	public static boolean isCornerCase(int a, int b){
-		return a+b >= 199;
-	}
-
 	public static boolean checkPrecondition(int[] keys, int value) {
 		return checkValueRange(value) &&
 				checkArrayRange(keys);

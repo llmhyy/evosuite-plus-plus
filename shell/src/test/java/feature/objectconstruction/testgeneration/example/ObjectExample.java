@@ -2,14 +2,25 @@ package feature.objectconstruction.testgeneration.example;
 
 import java.util.List;
 
-import feature.fbranch.example.ValueUtil;
-
 public class ObjectExample {
+	public static boolean isOk(int a, int b){
+		if(Math.pow(a, 2)<=10000){
+			if(Math.pow(b, 2)<=9801){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public static boolean isCornerCase(int a, int b){
+		return a+b >= 199;
+	}
+	
 	public boolean test(Student student) {
-		int a = 0;
-		if (ValueUtil.isOk(student.getAge(), 
+		if (isOk(student.getAge(), 
 				student.getFriend().getAge())) {
-			if (ValueUtil.isCornerCase(student.getAge(), 
+			if (isCornerCase(student.getAge(), 
 					student.getFriend().getAge())) {
 				return true;
 			}
