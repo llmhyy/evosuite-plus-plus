@@ -195,34 +195,37 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	}
 
 	private void printBestFitness() {
-		Map<FitnessFunction<T>, Double> bestMap = new HashMap<>();
-		Map<FitnessFunction<T>, T> bestTestMap = new HashMap<>();
+		
+		if(Properties.PRINT_FITNESS) {
+			Map<FitnessFunction<T>, Double> bestMap = new HashMap<>();
+			Map<FitnessFunction<T>, T> bestTestMap = new HashMap<>();
 
-		for (T t : this.population) {
-			if (t instanceof TestChromosome) {
-				for (FitnessFunction<T> ff : this.goalsManager.getCurrentGoals()) {
-					Double fitness = ff.getFitness(t);
-					Double bestSoFar = bestMap.get(ff);
-					if (bestSoFar == null) {
-						bestSoFar = fitness;
-						bestTestMap.put(ff, t);
-					} else if (bestSoFar > fitness) {
-						bestSoFar = fitness;
-						bestTestMap.put(ff, t);
+			for (T t : this.population) {
+				if (t instanceof TestChromosome) {
+					for (FitnessFunction<T> ff : this.goalsManager.getCurrentGoals()) {
+						Double fitness = ff.getFitness(t);
+						Double bestSoFar = bestMap.get(ff);
+						if (bestSoFar == null) {
+							bestSoFar = fitness;
+							bestTestMap.put(ff, t);
+						} else if (bestSoFar > fitness) {
+							bestSoFar = fitness;
+							bestTestMap.put(ff, t);
+						}
+						bestMap.put(ff, bestSoFar);
 					}
-					bestMap.put(ff, bestSoFar);
 				}
 			}
-		}
 
-		System.out.println(this.currentIteration + "th iteration ========================");
-		for (FitnessFunction<T> ff : bestMap.keySet()) {
-			Double fitness = bestMap.get(ff);
-			T t = bestTestMap.get(ff);
-			ff.getFitness(t);
-			System.out.print(ff + ":");
-			System.out.println(fitness);
-			System.currentTimeMillis();
+			System.out.println(this.currentIteration + "th iteration ========================");
+			for (FitnessFunction<T> ff : bestMap.keySet()) {
+				Double fitness = bestMap.get(ff);
+				T t = bestTestMap.get(ff);
+				ff.getFitness(t);
+				System.out.print(ff + ":");
+				System.out.println(fitness);
+				System.currentTimeMillis();
+			}
 		}
 
 	}

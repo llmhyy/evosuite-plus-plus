@@ -2,6 +2,7 @@ package feature.fbranch.testcase;
 
 import java.lang.reflect.Method;
 
+import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
@@ -12,6 +13,9 @@ import evosuite.shell.EvoTestResult;
 public class ValueRangeExampleTest extends FBranchTestSetup {
 	@Test
 	public void testValueRangeExample() {
+		
+		Properties.PRINT_FITNESS = false;
+		
 		Class<?> clazz = feature.fbranch.example.ValueRangeExample.class;
 		String methodName = "targetM";
 		int parameterNum = 2;
@@ -38,6 +42,9 @@ public class ValueRangeExampleTest extends FBranchTestSetup {
 //		int timeT = resultT.getTime();
 		double coverageT = resultT.getCoverage();
 		double coverageF = resultF.getCoverage();
+		
+		System.out.println("fbranch coverage: " + coverageT);
+		System.out.println("branch coverage: " + coverageF);
 
 		assert coverageT > coverageF; 
 		

@@ -2561,6 +2561,7 @@ public class Properties {
 	
 	
 	public static final int OBJECT_CONSTRUCTION_DEPTH = 2;
+	public static boolean PRINT_FITNESS = true;
 
 	/*
 	 * whether or not the regression mode is running
