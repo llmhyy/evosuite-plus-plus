@@ -2,6 +2,7 @@ package regression.fbranch.testcase;
 
 import java.lang.reflect.Method;
 
+import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
@@ -20,23 +21,19 @@ public class ValueRangeExampleTest extends FBranchTestSetup {
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/test-classes";
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+//		String cp = "target/test-classes;target/test-classes";
 
 		int timeBudget = 200;
 		EvoTestResult resultT = null;
 		EvoTestResult resultF = null;
 
-		try {
-			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
-		} catch (NullPointerException e) {
-			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
-		}
+		resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
 
-		try {
-			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
-		} catch (NullPointerException e) {
-			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
-		}
+		resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, "branch");
 
 		int ageT = resultT.getAge();
 		int timeT = resultT.getTime();
