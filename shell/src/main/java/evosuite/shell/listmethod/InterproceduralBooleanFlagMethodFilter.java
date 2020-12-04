@@ -52,7 +52,7 @@ public class InterproceduralBooleanFlagMethodFilter extends MethodFlagCondFilter
 	public static final String excelProfileSubfix = "_ipfFlagMethod.xlsx";
 	private static Logger log = LoggerUtils.getLogger(PrimitiveBasedFlagMethodFilter.class);
 	private ExcelWriter writer;
-	
+
 	public InterproceduralBooleanFlagMethodFilter() {
 		String statisticFile = new StringBuilder(Settings.getReportFolder()).append(File.separator)
 				.append(EvosuiteForMethod.projectId).append(excelProfileSubfix).toString();
@@ -106,7 +106,8 @@ public class InterproceduralBooleanFlagMethodFilter extends MethodFlagCondFilter
 					/* Next instruction is to invokeMethod followed by IFEQ or IFNE */
 					if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
 
-						if (checkBooleanFlagMethod(classLoader, condDefinition, insn.getLineNumber(), mc, methodValidityMap)) {
+						if (checkBooleanFlagMethod(classLoader, condDefinition, insn.getLineNumber(), mc,
+								methodValidityMap)) {
 							log.info("!FOUND IT! in method " + methodName);
 							valid = true;
 						}
@@ -143,7 +144,7 @@ public class InterproceduralBooleanFlagMethodFilter extends MethodFlagCondFilter
 
 		return valid;
 	}
-	
+
 	protected boolean hasParam(MethodNode mn, ClassNode cn) {
 		try {
 			Type[] argTypes = Type.getArgumentTypes(mn.desc);
@@ -183,7 +184,7 @@ public class InterproceduralBooleanFlagMethodFilter extends MethodFlagCondFilter
 
 	protected boolean checkBooleanFlagMethod(ClassLoader classLoader, AbstractInsnNode flagDefIns,
 			int calledLineInTargetMethod, MethodContent mc, Map<String, Boolean> visitMethods)
-					throws AnalyzerException, IOException, ClassNotFoundException {
+			throws AnalyzerException, IOException, ClassNotFoundException {
 		FlagMethod flagMethod = new FlagMethod();
 
 		MethodInsnNode methodInsn = null;
@@ -231,7 +232,7 @@ public class InterproceduralBooleanFlagMethodFilter extends MethodFlagCondFilter
 				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 				cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			}
-			
+
 			if (CollectionUtil.getSize(getIfBranchesInMethod(cfg)) < 1) {
 				flagMethod.notes.add(Remarks.NOBRANCH.text);
 				visitMethods.put(flagMethod.methodName, false);
@@ -352,4 +353,4 @@ public class InterproceduralBooleanFlagMethodFilter extends MethodFlagCondFilter
 		}
 	}
 
-	}
+}

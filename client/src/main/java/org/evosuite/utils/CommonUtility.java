@@ -26,5 +26,9 @@ public class CommonUtility {
 				Opcodes.INVOKEDYNAMIC,
 				Opcodes.INVOKEVIRTUAL);
 	}
+	
+	public static boolean isGetFieldInsn(AbstractInsnNode condDefinition) {
+		return condDefinition.getOpcode() == Opcodes.GETFIELD;
+	}
 
 }
