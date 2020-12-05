@@ -107,13 +107,12 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		}
 
-		
 		BytecodeInstructionPool insPool = BytecodeInstructionPool.getInstance(classLoader);
 		List<BytecodeInstruction> instructions = insPool.getAllInstructionsAtMethod(className, methodName);
 
 		DefUseAnalyzer instr = new DefUseAnalyzer();
 		instr.analyze(classLoader, node, className, methodName, node.access);
-			
+
 		MethodContent mc = new MethodContent();
 
 		boolean valid = false;
@@ -129,7 +128,7 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 				if (!(value instanceof SourceValue)) {
 					continue;
 				}
-				
+
 				SourceValue srcValue = (SourceValue) value;
 				AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
 
@@ -150,7 +149,7 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 					/* isFieldUse or isLocalVariableUse or isArrayLoadInstruction */
 					// Check if the insn is use
 					if (condBcDef.isUse()) {
-					
+
 						// TODO the value could be defined multiple times
 						// Find the last instruction that defined this operand
 						Use use = getUse(condBcDef);
@@ -251,15 +250,23 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 				if (prevIns.isConstant() && currIns.isReturn()) {
 					return true;
 				}
-				
+
 				// 2. Return value is a method call
 				if (i - 2 >= 0) {
-					BytecodeInstruction objParamIns = instructions.get(i - 2);
-					
-					if (objParamIns.isConstant() && prevIns.isInvokeSpecial() && currIns.isReturn()) {
-//						AbstractInsnNode insnNode = prevIns.getASMNode();
-						return true;
+					// Constructor method call
+					if (prevIns.isInvokeSpecial() && prevIns.getCalledMethodName().equals("<init>")
+							&& currIns.isReturn()) {
+						if (constructorHasConstParam(instructions, i - 1)) {
+							return true;
+						}
 					}
+
+//					BytecodeInstruction objParamIns = instructions.get(i - 2);
+//					if (objParamIns.isConstant() && prevIns.isInvokeSpecial() && currIns.isReturn()) {
+//						return true;
+//					}
+
+					// TODO Other method calls
 				}
 
 				// Return value is a local variable
@@ -291,7 +298,7 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 			return false;
 		}
 	}
-	
+
 	private boolean localVarAssignedConst(List<BytecodeInstruction> instructions, int varIndex, int endIndex) {
 		for (int i = 1; i < endIndex; i++) {
 			BytecodeInstruction prevIns = instructions.get(i - 1);
@@ -315,6 +322,32 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 			if (objParamIns.isConstant() && prevIns.isInvokeSpecial() && currIns.isLocalVariableDefinition()
 					&& currIns.getLocalVariableSlot() == varIndex) {
 				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean constructorHasConstParam(List<BytecodeInstruction> instructions, int constructorIndex) {
+		BytecodeInstruction constructorInsn = instructions.get(constructorIndex);
+		MethodInsnNode methodInsnNode = (MethodInsnNode) constructorInsn.getASMNode();
+		int numOfParams = Type.getArgumentTypes(methodInsnNode.desc).length - 1;
+
+		for (int i = constructorIndex - 1; i >= 0 && i >= constructorIndex - numOfParams; i -= 1) {
+			BytecodeInstruction paramIns = instructions.get(i);
+
+			// Parameter for constructor is a constant, return true
+			if (paramIns.isConstant()) {
+				return true;
+			}
+
+			// Parameter for constructor is a local variable, check if the 
+			// variable was assigned a constant
+			if (paramIns.isLocalVariableUse()) {
+				int varIndex = paramIns.getLocalVariableSlot();
+				if (localVarAssignedConst(instructions, varIndex, i)) {
+					return true;
+				}
 			}
 		}
 
@@ -367,18 +400,18 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 		}
 		return null;
 	}
-	
+
 	private Use getUse(BytecodeInstruction condBcDef) {
 		// Operand is an object field
-		if(condBcDef.isFieldDU()) {
+		if (condBcDef.isFieldDU()) {
 			List<BytecodeInstruction> insList = condBcDef.getSourceListOfStackInstruction(0);
-			for(BytecodeInstruction ins: insList) {
+			for (BytecodeInstruction ins : insList) {
 				if (ins.isUse()) {
 					return DefUseFactory.makeUse(ins);
 				}
 			}
 		}
-		
+
 		return DefUseFactory.makeUse(condBcDef);
 	}
 

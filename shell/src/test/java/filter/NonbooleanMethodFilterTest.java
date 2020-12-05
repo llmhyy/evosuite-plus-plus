@@ -10,44 +10,57 @@ import evosuite.shell.listmethod.InterproceduralNonBooleanFlagMethodFilter;
 public class NonbooleanMethodFilterTest {
 	InterproceduralNonBooleanFlagMethodFilter filter = new InterproceduralNonBooleanFlagMethodFilter();
 	String className = "com.example.FlagEffectExample";
+	String methodName = "";
 
 	@Test
-	public void testBasicPrimitive() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
-		String methodName = "CallerBasicEqualString()I";
+	public void testPrimitiveReturnConstant() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
+		methodName = "CallerStringReturnConstantEqual()I";
 		assert filter.checkMethod(className, methodName);
 
-		methodName = "CallerBasicNotEqualString()I";
+		methodName = "CallerStringReturnConstantNotEqual()I";
 		assert filter.checkMethod(className, methodName);
 
-		methodName = "CallerBasicGreaterInt()I";
+		methodName = "CallerIntReturnConstantGreater()I";
 		assert filter.checkMethod(className, methodName);
 
-		methodName = "CallerBasicGreaterEqualInt()I";
+		methodName = "CallerIntReturnConstantGreaterEqual()I";
 		assert filter.checkMethod(className, methodName);
 
-		methodName = "CallerBasicLesserInt()I";
+		methodName = "CallerIntReturnConstantLesser()I";
 		assert filter.checkMethod(className, methodName);
 
-		methodName = "CallerBasicLesserEqualInt()I";
+		methodName = "CallerIntReturnConstantGreaterLesserEqual()I";
 		assert filter.checkMethod(className, methodName);
 		
-		methodName = "CallerBasicMethodCallOperand()I";
+		methodName = "CallerIntReturnConstantMethodCall()I";
+		assert filter.checkMethod(className, methodName);
+	}
+
+	@Test
+	public void testPrimitiveReturnVariable() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
+		methodName = "CallerIntReturnVariablePositive()I";
+		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerIntReturnVariableNegative()I";
+		assert !filter.checkMethod(className, methodName);
+	}
+	
+	@Test
+	public void testObjectReturnConstant() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
+		methodName = "CallerObjectReturnConstantLeft()I";
+		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerObjectReturnConstantRight()I";
 		assert filter.checkMethod(className, methodName);
 	}
 	
 	@Test
-	public void testBasicObject() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
-		String methodName = "CallerBasicObject()I";
-		assert filter.checkMethod(className, methodName);
-	}
-
-	@Test
-	public void testAdvanced() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
-		String className = "com.example.FlagEffectExample";
-		String methodName = "CallerAdvanced()I";
-
-		InterproceduralNonBooleanFlagMethodFilter filter = new InterproceduralNonBooleanFlagMethodFilter();
-		assert filter.checkMethod(className, methodName);
+	public void testObjectReturnVariable() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
+		methodName = "CallerObjectReturnVariablePositive()I";
+//		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerObjectReturnVariableNegative()I";
+		assert !filter.checkMethod(className, methodName);
 	}
 
 }
