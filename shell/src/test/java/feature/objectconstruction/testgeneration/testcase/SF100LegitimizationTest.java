@@ -11,6 +11,7 @@ import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.junit.Before;
 import org.junit.Test;
 
+import common.TestUtil;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 
 
@@ -52,7 +53,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
 		
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
@@ -89,7 +90,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
 		
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
@@ -126,7 +127,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
 		
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
@@ -164,7 +165,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
 		
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
@@ -201,7 +202,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
 		
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
@@ -238,7 +239,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
 		
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
@@ -275,7 +276,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
 		
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);
@@ -312,7 +313,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
 		
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 //		generateCode(b, true);

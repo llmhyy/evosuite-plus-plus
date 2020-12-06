@@ -21,14 +21,11 @@ import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.runtime.LoopCounter;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.setup.ExceptionMapGenerator;
-import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.TestCaseExecutor;
-import org.evosuite.testcase.statements.NullStatement;
-import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.PartialGraph;
@@ -37,6 +34,8 @@ import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import common.TestUtil;
 
 
 public class ObjectOrientedTest {
@@ -64,12 +63,12 @@ public class ObjectOrientedTest {
 
 	protected TestCase generateCode(Branch b, boolean isDebugger, boolean allowNullValue) {
 		TestFactory testFactory = TestFactory.getInstance();
-		TestCase test = initializeTest(b, testFactory, allowNullValue);
+		TestCase test = TestUtil.initializeTest(b, testFactory, allowNullValue);
 		try {
 			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebugger, allowNullValue);
 			if(!allowNullValue) {
-				mutateNullStatements(test);				
+				TestUtil.mutateNullStatements(test);				
 			}
 
 			System.out.println(test);
@@ -91,13 +90,13 @@ public class ObjectOrientedTest {
 		}
 
 		TestFactory testFactory = TestFactory.getInstance();
-		TestCase test = initializeTest(b, testFactory, allowNullValue);
+		TestCase test = TestUtil.initializeTest(b, testFactory, allowNullValue);
 		try {
 			long t1 = System.currentTimeMillis();
 			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
 			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebug, allowNullValue);
 			if(!allowNullValue) {
-				mutateNullStatements(test);		
+				TestUtil.mutateNullStatements(test);		
 				System.currentTimeMillis();
 			}
 			long t2 = System.currentTimeMillis();
@@ -135,30 +134,6 @@ public class ObjectOrientedTest {
 			Properties.PRIMITIVE_REUSE_PROBABILITY = 0.5;
 		}
 
-	}
-
-	protected void mutateNullStatements(TestCase test) {
-		for (int i = 0; i < test.size(); i++) {
-			Statement s = test.getStatement(i);
-			if (s instanceof NullStatement) {
-				TestFactory.getInstance().changeNullStatement(test, s);
-				System.currentTimeMillis();
-			}
-		}
-	}
-
-	protected TestCase initializeTest(Branch b, TestFactory testFactory, boolean allowNullValue) {
-		TestCase test = new DefaultTestCase();
-		int success = -1;
-		while (test.size() == 0 || success == -1) {
-			test = new DefaultTestCase();
-			success = testFactory.insertRandomStatement(test, 0);
-			if (test.size() != 0 && success != -1 && !allowNullValue) {
-				mutateNullStatements(test);
-			}
-		}
-
-		return test;
 	}
 
 	protected ArrayList<Branch> buildObjectConstructionGraph() throws ClassNotFoundException {
@@ -223,13 +198,5 @@ public class ObjectOrientedTest {
 		});
 		return rankedList;
 	}
-
-	protected Branch searchBranch(ArrayList<Branch> rankedList, int lineNumber) {
-		for (Branch b : rankedList) {
-			if (b.getInstruction().getLineNumber() == lineNumber) {
-				return b;
-			}
-		}
-		return null;
-	}
+	
 }

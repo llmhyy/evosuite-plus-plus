@@ -18,6 +18,9 @@ public class FBranchTestSetup {
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = false;
 		Properties.ADOPT_SMART_MUTATION = false;
+		
+		Properties.RECORD_ITERATION_CONTEXT = true;
+		Properties.ITERATION_CONTEXT_LIMIT = 3;
 	}
 
 	protected void printResult(List<EvoTestResult> results0) {

@@ -457,6 +457,16 @@ public class BranchPool {
 
 		return branchMap.get(className).get(methodName).size();
 	}
+	
+	
+	public List<Branch> getBranchesForMethod(String className, String methodName) {
+		if (branchMap.get(className) == null)
+			return new ArrayList<Branch>();
+		if (branchMap.get(className).get(methodName) == null)
+			return new ArrayList<Branch>();
+
+		return branchMap.get(className).get(methodName);
+	}
 
 	public int getNonArtificialBranchCountForMethod(String className,
 	        String methodName) {

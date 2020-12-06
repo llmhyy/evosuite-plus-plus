@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.execution.ExecutionTraceImpl;
 import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testsuite.TestSuiteChromosome;
 
@@ -55,6 +56,12 @@ public abstract class TestFitnessFunction extends FitnessFunction<TestChromosome
 	@Override
 	public double getFitness(TestChromosome individual) {
 		logger.trace("Executing test case on original");
+		
+		boolean enableTraceCalls = ExecutionTraceImpl.isTraceCallsEnabled();
+		if(!enableTraceCalls) {
+			ExecutionTraceImpl.enableTraceCalls();			
+		}
+		
 		ExecutionResult origResult = individual.getLastExecutionResult();
 		if (origResult == null || individual.isChanged()) {
 			origResult = runTest(individual.test);
@@ -66,6 +73,10 @@ public abstract class TestFitnessFunction extends FitnessFunction<TestChromosome
 		double fitness = getFitness(individual, origResult);
 		updateIndividual(this, individual, fitness);
 
+		if(!enableTraceCalls) {
+			ExecutionTraceImpl.disableTraceCalls();			
+		}
+		
 		return fitness;
 	}
 

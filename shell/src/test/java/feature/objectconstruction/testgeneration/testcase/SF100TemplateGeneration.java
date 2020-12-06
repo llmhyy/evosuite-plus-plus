@@ -9,6 +9,7 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.junit.Test;
 
+import common.TestUtil;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 
 public class SF100TemplateGeneration extends ObjectOrientedTest {
@@ -144,7 +145,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
 		
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 		generateCode(b, true, false);
@@ -179,7 +180,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
 		
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 		generateCode(b, false, false);
@@ -214,7 +215,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 		generateCode(b, false, false);
@@ -248,7 +249,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph4SF100(classPaths);
 
-		Branch b = searchBranch(rankedList, lineNumber);
+		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 		generateCode(b, true, false);

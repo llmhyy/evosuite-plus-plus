@@ -9,6 +9,7 @@ import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
+import common.TestUtil;
 import common.TestUtility;
 import feature.objectconstruction.testgeneration.example.graphcontruction.AcctInqRq.AcctInqRq;
 import feature.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
@@ -34,7 +35,7 @@ public class ProjectGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 		
-		Branch b = searchBranch(rankedList, 15);
+		Branch b = TestUtil.searchBranch(rankedList, 15);
 		
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 		generateCode(b, true, false);
