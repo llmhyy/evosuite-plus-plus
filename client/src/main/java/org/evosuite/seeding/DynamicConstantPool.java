@@ -23,6 +23,9 @@
 package org.evosuite.seeding;
 
 import org.evosuite.Properties;
+import org.evosuite.result.seedexpr.DynamicPoolEvent;
+import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.utils.DefaultRandomAccessQueue;
 import org.evosuite.utils.RandomAccessQueue;
 import org.objectweb.asm.Type;
@@ -66,11 +69,13 @@ public class DynamicConstantPool implements ConstantPool {
 	 */
 	@Override
 	public String getRandomString() {
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.STRING, stringPool.size()));
 		return stringPool.getRandomValue();
 	}
 
 	@Override
 	public Type getRandomType() {
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.CLASS, typePool.size()));
 		return typePool.getRandomValue();
 	}
 
@@ -79,6 +84,7 @@ public class DynamicConstantPool implements ConstantPool {
 	 */
 	@Override
 	public int getRandomInt() {
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.INT, intPool.size()));
 		return intPool.getRandomValue();
 	}
 
@@ -87,6 +93,7 @@ public class DynamicConstantPool implements ConstantPool {
 	 */
 	@Override
 	public float getRandomFloat() {
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.FLOAT, floatPool.size()));
 		return floatPool.getRandomValue();
 	}
 
@@ -95,6 +102,7 @@ public class DynamicConstantPool implements ConstantPool {
 	 */
 	@Override
 	public double getRandomDouble() {
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.DOUBLE, doublePool.size()));
 		return doublePool.getRandomValue();
 	}
 
@@ -103,6 +111,7 @@ public class DynamicConstantPool implements ConstantPool {
 	 */
 	@Override
 	public long getRandomLong() {
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.LONG, longPool.size()));
 		return longPool.getRandomValue();
 	}
 

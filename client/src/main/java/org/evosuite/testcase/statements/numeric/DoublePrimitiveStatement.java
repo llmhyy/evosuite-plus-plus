@@ -26,6 +26,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import org.evosuite.Properties;
+import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.RandomSamplingEvent;
+import org.evosuite.result.seedexpr.SamplingDataType;
+import org.evosuite.result.seedexpr.SearchEvent;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.ConstantPoolManager;
 import org.evosuite.testcase.TestCase;
@@ -84,6 +88,7 @@ public class DoublePrimitiveStatement extends NumericalPrimitiveStatement<Double
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT));
 		double P = Randomness.nextDouble();
 		if(P < 1d/3d) {
 			value += Randomness.nextGaussian() * Properties.MAX_DELTA;
@@ -131,6 +136,7 @@ public class DoublePrimitiveStatement extends NumericalPrimitiveStatement<Double
 			value = Randomness.nextGaussian() * Properties.MAX_INT;
 			int precision = Randomness.nextInt(15);
 			chopPrecision(precision);
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.DOUBLE));
 		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();

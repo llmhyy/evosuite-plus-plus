@@ -7,6 +7,7 @@ public abstract class Event {
 	public static final int staticContextPoolSampling = 2;
 	public static final int dynamicPoolSampling = 3;
 	public static final int randomSampling = 4;
+	public static final int search = 5;
 	
 	private long timestamp;
 	private int type;

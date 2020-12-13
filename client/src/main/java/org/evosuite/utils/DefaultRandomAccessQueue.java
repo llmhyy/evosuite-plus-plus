@@ -79,4 +79,9 @@ public class DefaultRandomAccessQueue<T> implements RandomAccessQueue<T> {
 		return res;
 	}
 
+	@Override
+	public int size() {
+		return queue.size();
+	}
+
 }

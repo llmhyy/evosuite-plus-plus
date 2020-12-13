@@ -28,6 +28,10 @@ import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.RandomSamplingEvent;
+import org.evosuite.result.seedexpr.SamplingDataType;
+import org.evosuite.result.seedexpr.SearchEvent;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.evosuite.utils.generic.GenericClass;
@@ -161,6 +165,8 @@ public class EnumPrimitiveStatement<T extends Enum<T>> extends PrimitiveStatemen
 				break;
 			}
 		}
+		
+		EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.ENUM));
 		boolean delta = Randomness.nextBoolean();
 		if (delta) {
 			pos++;
@@ -203,6 +209,7 @@ public class EnumPrimitiveStatement<T extends Enum<T>> extends PrimitiveStatemen
 	@Override
 	public void randomize() {
 		if (constants.length > 1) {
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.ENUM));
 			int pos = Randomness.nextInt(constants.length);
 			value = constants[pos];
 		}

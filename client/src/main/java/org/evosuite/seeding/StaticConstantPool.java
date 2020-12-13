@@ -27,6 +27,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.evosuite.Properties;
+import org.evosuite.result.seedexpr.EventFactory;
+import org.evosuite.result.seedexpr.SamplingDataType;
+import org.evosuite.result.seedexpr.StaticPoolSamplingEvent;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Type;
@@ -48,12 +51,16 @@ public class StaticConstantPool implements ConstantPool {
 	private final Set<Long> longPool = Collections.synchronizedSet(new LinkedHashSet<Long>());
 
 	private final Set<Float> floatPool = Collections.synchronizedSet(new LinkedHashSet<Float>());
+	
+	private boolean isContextual;
 
-	public StaticConstantPool() {
+	public StaticConstantPool(boolean isContextual) {
 		/*
 		 * all pools HAVE to be non-empty 
 		 */
 
+		this.isContextual = isContextual;
+		
 		stringPool.add("");
 
 		if (Properties.TARGET_CLASS != null && !Properties.TARGET_CLASS.isEmpty()) {
@@ -88,11 +95,13 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public String getRandomString() {
+		//TODO cheng yan
 		return Randomness.choice(stringPool);
 	}
 
 	@Override
 	public Type getRandomType() {
+		//TODO cheng yan
 		return Randomness.choice(typePool);
 	}
 
@@ -105,6 +114,7 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public int getRandomInt() {
+		//TODO cheng yan
 		int r = Randomness.choice(intPool);
 		return r;
 	}
@@ -118,6 +128,7 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public float getRandomFloat() {
+		//TODO cheng yan
 		return Randomness.choice(floatPool);
 	}
 
@@ -130,6 +141,8 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public double getRandomDouble() {
+		// TODO cheng yan follow
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.DOUBLE, doublePool.size());
 		return Randomness.choice(doublePool);
 	}
 
@@ -142,6 +155,7 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public long getRandomLong() {
+		//TODO cheng yan
 		return Randomness.choice(longPool);
 	}
 

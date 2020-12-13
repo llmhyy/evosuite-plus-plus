@@ -9,4 +9,5 @@ public abstract class PoolSamplingEvent extends Event{
 		
 		this.poolSize = poolSize;
 	}
+	
 }
