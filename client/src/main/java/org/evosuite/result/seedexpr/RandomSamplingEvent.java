@@ -1,6 +1,6 @@
 package org.evosuite.result.seedexpr;
 
-public class RandomSamplingEvent extends Event {
+public class RandomSamplingEvent extends SamplingEvent {
 	
 
 	public RandomSamplingEvent(long timestamp, String dataType) {

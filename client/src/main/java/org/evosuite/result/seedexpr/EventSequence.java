@@ -1,6 +1,7 @@
 package org.evosuite.result.seedexpr;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -42,17 +43,29 @@ public class EventSequence {
 			Set<Integer> oldFalseBranches = p.getLastExecutionResult().getTrace().getCoveredFalseBranches();
 			Set<Integer> diffFalseBranches = diff(oldFalseBranches, newFalseBranches);
 			
-			for(Integer branchId: diffTrueBranches) {
-				Branch b = BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getBranch(branchId);	
-				BranchInfo branchInfo = new BranchInfo(b, true);
-//				BranchCoveringEvent e = new BranchCoveringEvent(System.cure, dataType, branchInfo)
-			}
+			extractEvents(diffTrueBranches, true);
+			extractEvents(diffFalseBranches, false);
 		}
 		return null;
 	}
 
-	private static Set<Integer> diff(Set<Integer> oldTrueBranches, Set<Integer> newTrueBranches) {
-		// TODO Auto-generated method stub
-		return null;
+	private static void extractEvents(Set<Integer> diffTrueBranches, boolean conditionValue) {
+		for(Integer branchId: diffTrueBranches) {
+			Branch b = BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getBranch(branchId);	
+			BranchInfo branchInfo = new BranchInfo(b, conditionValue);
+			BranchCoveringEvent e = new BranchCoveringEvent(System.currentTimeMillis(), branchInfo);
+			addEvent(e);
+		}
+	}
+
+	private static Set<Integer> diff(Set<Integer> oldBranches, Set<Integer> newBranches) {
+		Set<Integer> diffSet = new HashSet<Integer>();
+		for(Integer branchId: newBranches) {
+			if(!oldBranches.contains(branchId)) {
+				diffSet.add(branchId);
+			}
+		}
+		
+		return diffSet;
 	}
 }

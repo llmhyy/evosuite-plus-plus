@@ -1,6 +1,6 @@
 package org.evosuite.result.seedexpr;
 
-public abstract class PoolSamplingEvent extends Event{
+public abstract class PoolSamplingEvent extends SamplingEvent{
 
 	protected int poolSize;
 	

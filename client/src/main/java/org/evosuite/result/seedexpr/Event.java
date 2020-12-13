@@ -11,11 +11,10 @@ public abstract class Event {
 	
 	private long timestamp;
 	private int type;
-	private String dataType;
 	
-	public Event(long timestamp, String dataType) {
+	
+	public Event(long timestamp) {
 		this.setTimestamp(timestamp);
-		this.setDataType(dataType);
 	}
 
 	public long getTimestamp() {
@@ -34,11 +33,5 @@ public abstract class Event {
 		this.type = type;
 	}
 
-	public String getDataType() {
-		return dataType;
-	}
-
-	public void setDataType(String dataType) {
-		this.dataType = dataType;
-	}
+	
 }

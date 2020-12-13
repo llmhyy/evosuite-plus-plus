@@ -6,8 +6,8 @@ public class BranchCoveringEvent extends Event {
 
 	private BranchInfo branch;
 	
-	public BranchCoveringEvent(long timestamp, String dataType, BranchInfo branchInfo) {
-		super(timestamp, dataType);
+	public BranchCoveringEvent(long timestamp, BranchInfo branchInfo) {
+		super(timestamp);
 		this.setType(Event.branchCovering);
 		
 		this.setBranch(branchInfo);
