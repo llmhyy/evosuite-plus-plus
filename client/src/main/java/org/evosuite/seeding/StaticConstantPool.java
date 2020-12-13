@@ -96,12 +96,14 @@ public class StaticConstantPool implements ConstantPool {
 	@Override
 	public String getRandomString() {
 		//TODO cheng yan
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.STRING, stringPool.size());
 		return Randomness.choice(stringPool);
 	}
 
 	@Override
 	public Type getRandomType() {
 		//TODO cheng yan
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.CLASS, typePool.size());
 		return Randomness.choice(typePool);
 	}
 
@@ -115,6 +117,7 @@ public class StaticConstantPool implements ConstantPool {
 	@Override
 	public int getRandomInt() {
 		//TODO cheng yan
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.INT, intPool.size());
 		int r = Randomness.choice(intPool);
 		return r;
 	}
@@ -129,6 +132,7 @@ public class StaticConstantPool implements ConstantPool {
 	@Override
 	public float getRandomFloat() {
 		//TODO cheng yan
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.FLOAT, floatPool.size());
 		return Randomness.choice(floatPool);
 	}
 
@@ -156,6 +160,7 @@ public class StaticConstantPool implements ConstantPool {
 	@Override
 	public long getRandomLong() {
 		//TODO cheng yan
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.LONG, longPool.size());
 		return Randomness.choice(longPool);
 	}
 
