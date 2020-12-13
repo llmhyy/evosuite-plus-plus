@@ -75,9 +75,9 @@ public class CharPrimitiveStatement extends NumericalPrimitiveStatement<Characte
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT));
 		int delta = Randomness.nextInt(2 * Properties.MAX_DELTA) - Properties.MAX_DELTA;
 		value = (char) (value.charValue() + delta);
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT, String.valueOf(value)));
 	}
 
 	/* (non-Javadoc)

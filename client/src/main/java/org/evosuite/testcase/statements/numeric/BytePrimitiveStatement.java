@@ -100,9 +100,9 @@ public class BytePrimitiveStatement extends NumericalPrimitiveStatement<Byte> {
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.ENUM));
 		byte delta = (byte)Math.floor(Randomness.nextGaussian() * Properties.MAX_DELTA);
 		value = (byte) (value.byteValue() + delta);
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.BYTE, String.valueOf(value)));
 	}
 
 	/* (non-Javadoc)
@@ -121,8 +121,8 @@ public class BytePrimitiveStatement extends NumericalPrimitiveStatement<Byte> {
 	@Override
 	public void randomize() {
 		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
-			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.BYTE));			
 			value = (byte) (Randomness.nextInt(256) - 128);
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.BYTE, String.valueOf(value)));			
 		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();
