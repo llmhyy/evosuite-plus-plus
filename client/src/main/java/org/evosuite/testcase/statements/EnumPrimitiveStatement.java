@@ -163,7 +163,6 @@ public class EnumPrimitiveStatement<T extends Enum<T>> extends PrimitiveStatemen
 			}
 		}
 		
-		EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.ENUM));
 		boolean delta = Randomness.nextBoolean();
 		if (delta) {
 			pos++;
@@ -177,6 +176,7 @@ public class EnumPrimitiveStatement<T extends Enum<T>> extends PrimitiveStatemen
 		}
 
 		value = constants[pos];
+		EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.ENUM, String.valueOf(value)));
 	}
 
 	/* (non-Javadoc)
@@ -206,9 +206,9 @@ public class EnumPrimitiveStatement<T extends Enum<T>> extends PrimitiveStatemen
 	@Override
 	public void randomize() {
 		if (constants.length > 1) {
-			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.ENUM));
 			int pos = Randomness.nextInt(constants.length);
 			value = constants[pos];
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.ENUM, String.valueOf(value)));
 		}
 	}
 

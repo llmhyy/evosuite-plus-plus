@@ -88,7 +88,6 @@ public class FloatPrimitiveStatement extends NumericalPrimitiveStatement<Float> 
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT));
 		double P = Randomness.nextDouble();
 		if(P < 1d/3d) {
 			value += (float)Randomness.nextGaussian() * Properties.MAX_DELTA;
@@ -98,6 +97,7 @@ public class FloatPrimitiveStatement extends NumericalPrimitiveStatement<Float> 
 			int precision = Randomness.nextInt(7);
 			chopPrecision(precision);
 		}
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.FLOAT, String.valueOf(value)));
 	}
 
 	private void chopPrecision(int precision) {
@@ -136,7 +136,7 @@ public class FloatPrimitiveStatement extends NumericalPrimitiveStatement<Float> 
 			value = (float)(Randomness.nextGaussian() * Properties.MAX_INT);
 			int precision = Randomness.nextInt(7);
 			chopPrecision(precision);
-			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.FLOAT));
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.FLOAT, String.valueOf(value)));
 		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();

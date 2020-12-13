@@ -115,7 +115,6 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.STRING));
 		
 		String s = value;
 		if(s == null) {
@@ -199,6 +198,7 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 		}
 		value = s;
 		// logger.info("Mutated string now is: "+value);
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.STRING, String.valueOf(value)));
 	}
 
 	/* (non-Javadoc)
@@ -210,7 +210,6 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 	 * </p>
 	 */
 	public void increment() {
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.STRING));
 		
 		String s = value;
 		if(s == null) {
@@ -224,6 +223,7 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 		}
 
 		value = s;
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.STRING, String.valueOf(value)));
 	}
 
 	/* (non-Javadoc)
@@ -234,7 +234,7 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 	public void randomize() {
 		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
 			value = Randomness.nextString(Randomness.nextInt(Properties.STRING_LENGTH));
-			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.STRING));			
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.STRING, String.valueOf(value)));			
 		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();

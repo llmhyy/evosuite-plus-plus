@@ -84,9 +84,9 @@ public class ShortPrimitiveStatement extends NumericalPrimitiveStatement<Short> 
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.SHORT));
 		short delta = (short)Math.floor(Randomness.nextGaussian() * Properties.MAX_DELTA);
 		value = (short) (value.shortValue() + delta);
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.SHORT, String.valueOf(value)));
 	}
 
 	/* (non-Javadoc)
@@ -107,7 +107,7 @@ public class ShortPrimitiveStatement extends NumericalPrimitiveStatement<Short> 
 		short max = (short) Math.min(Properties.MAX_INT, 32767);
 		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
 			value = (short) ((Randomness.nextGaussian() * max));
-			EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.SHORT));
+			EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.SHORT, String.valueOf(value)));
 		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();

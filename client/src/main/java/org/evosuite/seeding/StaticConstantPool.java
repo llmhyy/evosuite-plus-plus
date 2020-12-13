@@ -94,14 +94,16 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public String getRandomString() {
-		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.STRING, stringPool.size());
-		return Randomness.choice(stringPool);
+		String value = Randomness.choice(stringPool);
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.STRING, stringPool.size(), String.valueOf(value));
+		return value;
 	}
 
 	@Override
 	public Type getRandomType() {
-		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.CLASS, typePool.size());
-		return Randomness.choice(typePool);
+		Type value = Randomness.choice(typePool);
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.CLASS, typePool.size(), String.valueOf(value));
+		return value;
 	}
 
 	/**
@@ -113,9 +115,9 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public int getRandomInt() {
-		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.INT, intPool.size());
-		int r = Randomness.choice(intPool);
-		return r;
+		int value = Randomness.choice(intPool);
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.INT, intPool.size(), String.valueOf(value));
+		return value;
 	}
 
 	/**
@@ -127,8 +129,9 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public float getRandomFloat() {
-		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.FLOAT, floatPool.size());
-		return Randomness.choice(floatPool);
+		float value = Randomness.choice(floatPool);
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.FLOAT, floatPool.size(), String.valueOf(value));
+		return value;
 	}
 
 	/**
@@ -140,8 +143,9 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public double getRandomDouble() {
-		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.DOUBLE, doublePool.size());
-		return Randomness.choice(doublePool);
+		double value = Randomness.choice(doublePool);
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.DOUBLE, doublePool.size(), String.valueOf(value));
+		return value;
 	}
 
 	/**
@@ -153,8 +157,9 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public long getRandomLong() {
-		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.LONG, longPool.size());
-		return Randomness.choice(longPool);
+		long value = Randomness.choice(longPool);
+		EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.LONG, longPool.size(), String.valueOf(value));
+		return value;
 	}
 
 	/**

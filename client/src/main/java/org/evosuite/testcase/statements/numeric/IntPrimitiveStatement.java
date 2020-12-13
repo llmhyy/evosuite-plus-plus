@@ -84,9 +84,9 @@ public class IntPrimitiveStatement extends NumericalPrimitiveStatement<Integer> 
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT));
 		int delta = (int)Math.floor(Randomness.nextGaussian() * Properties.MAX_DELTA);
 		value = value + delta;
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT, String.valueOf(value)));
 	}
 
 	/* (non-Javadoc)
@@ -106,7 +106,7 @@ public class IntPrimitiveStatement extends NumericalPrimitiveStatement<Integer> 
 	public void randomize() {
 		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
 			value = (int)(Randomness.nextGaussian() * Properties.MAX_INT);
-			EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT));
+			EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT, String.valueOf(value)));
 		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();
