@@ -29,7 +29,6 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.result.seedexpr.EventFactory;
 import org.evosuite.result.seedexpr.SamplingDataType;
-import org.evosuite.result.seedexpr.StaticPoolSamplingEvent;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Type;

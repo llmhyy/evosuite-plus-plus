@@ -31,13 +31,10 @@ import java.util.List;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.result.seedexpr.RandomSamplingEvent;
 import org.evosuite.result.seedexpr.SamplingDataType;
-import org.evosuite.result.seedexpr.SearchEvent;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.execution.ExecutionTracer;
-import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.Randomness;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
+import org.evosuite.utils.generic.GenericClass;
 
 /**
  * <p>
