@@ -7,6 +7,7 @@ import java.util.Set;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
+import org.evosuite.result.BranchInfo;
 import org.evosuite.testcase.TestChromosome;
 
 public class EventSequence {
@@ -42,9 +43,9 @@ public class EventSequence {
 			Set<Integer> diffFalseBranches = diff(oldFalseBranches, newFalseBranches);
 			
 			for(Integer branchId: diffTrueBranches) {
-				
-				
-				Branch b = BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getBranch(branchId);				
+				Branch b = BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getBranch(branchId);	
+				BranchInfo branchInfo = new BranchInfo(b, true);
+//				BranchCoveringEvent e = new BranchCoveringEvent(System.cure, dataType, branchInfo)
 			}
 		}
 		return null;
