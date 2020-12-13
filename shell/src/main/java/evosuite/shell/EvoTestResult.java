@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.seedexpr.Event;
 
 public class EvoTestResult {
 	
@@ -211,6 +212,16 @@ public class EvoTestResult {
 
 	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest) {
 		this.coveredBranchWithTest = coveredBranchWithTest;
+	}
+
+	private List<Event> eventSequence;
+	
+	public void setEventSequence(List<Event> eventSequence) {
+		this.eventSequence = eventSequence;
+	}
+	
+	public List<Event> getEventSequence(){
+		return eventSequence;
 	}
 
 }

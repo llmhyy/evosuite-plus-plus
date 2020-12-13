@@ -674,6 +674,7 @@ public class EvosuiteForMethod {
 					result.setMissingBranches(r.getMissingBranches());
 					result.setInitializationOverhead(r.getInitializationOverhead());
 					result.setCoveredBranchWithTest(r.getCoveredBranchWithTest());
+					result.setEventSequence(r.getEventSequence());
 					
 
 					for (ExperimentRecorder recorder : recorders) {
