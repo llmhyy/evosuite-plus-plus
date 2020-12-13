@@ -1,6 +1,10 @@
 package org.evosuite.result.seedexpr;
 
 public class SamplingEvent extends Event {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4902325047832256255L;
 	private String dataType;
 	
 	public SamplingEvent(long timestamp, String dataType) {

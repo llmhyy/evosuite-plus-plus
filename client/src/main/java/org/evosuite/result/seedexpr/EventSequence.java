@@ -20,6 +20,10 @@ public class EventSequence {
 			events.add(e);			
 		}
 	}
+	
+	public static void clear() {
+		events.clear();
+	}
 
 	public static void enableRecord() {
 		enabled = true;

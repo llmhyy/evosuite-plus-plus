@@ -1,6 +1,13 @@
 package org.evosuite.result.seedexpr;
 
-public abstract class Event {
+import java.io.Serializable;
+
+public abstract class Event implements Serializable{
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6069894109502320030L;
 	
 	public static final int branchCovering = 0;
 	public static final int staticPoolSampling = 1;
@@ -33,5 +40,26 @@ public abstract class Event {
 		this.type = type;
 	}
 
-	
+	public String toString() {
+		return "Event: " + getStringValue(this.type);
+	}
+
+	private String getStringValue(int eventType) {
+		switch(eventType) {
+		case branchCovering:
+			return "branchCovering";
+		case staticPoolSampling:
+			return "staticPoolSampling";
+		case staticContextPoolSampling:
+			return "staticContextPoolSampling";
+		case dynamicPoolSampling:
+			return "dynamicPoolSampling";
+		case randomSampling:
+			return "randomSampling";
+		case search:
+			return "search";
+		}
+		
+		return "unknown";
+	}
 }
