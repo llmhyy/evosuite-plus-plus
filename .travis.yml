@@ -15,7 +15,7 @@ script:
    # object construction
    # - mvn -Dtest=ComputationGraphConstructionTest test -pl shell -e
    # test legitimization
-   - mvn -q -Dtest=ValueRangeExampleTest test -pl shell
+   - mvn -q -Dtest=BooleanFlagGradientTest test -pl shell
    - mvn -q -Dtest=ProjectTestLegitimizationTest test -pl shell
    #- mvn -Dtest=LayeredCallExampleTest test -pl EvosuiteTest -e
    #- mvn -Dtest=MultipleConstructorsExampleTest test -pl EvosuiteTest -e

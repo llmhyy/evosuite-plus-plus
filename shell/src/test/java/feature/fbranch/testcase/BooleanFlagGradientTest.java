@@ -23,16 +23,16 @@ import org.junit.Test;
 import common.TestUtil;
 import common.TestUtility;
 
-public class BranchDistanceGradientTest extends FBranchTestSetup{
+public class BooleanFlagGradientTest extends FBranchTestSetup{
 	
 	
 	@Test
-	public void testValueRangeExample() throws ClassNotFoundException, RuntimeException {
+	public void testFlagExample1() throws ClassNotFoundException, RuntimeException {
 		Properties.TIMEOUT = 300000000;
 		Properties.RANDOM_SEED = 1606757586999l;
 		Properties.INSTRUMENT_CONTEXT = true;
 		
-		Class<?> clazz = feature.fbranch.example.ValueRangeExample.class;
+		Class<?> clazz = feature.fbranch.example.BooleanFlagExample1.class;
 		String methodName = "targetM";
 		int parameterNum = 2;
 
