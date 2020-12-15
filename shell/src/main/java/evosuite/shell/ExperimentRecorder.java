@@ -2,6 +2,8 @@ package evosuite.shell;
 
 import static evosuite.shell.EvosuiteForMethod.projectId;
 
+import java.io.IOException;
+
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.CommonUtility;
 
@@ -34,5 +36,10 @@ public class ExperimentRecorder {
 
 	public void record(String className, String methodName, TestGenerationResult r) {
 		// override when needed.
+	}
+	
+	public void recordSeeding(String className, String methodName, EvoTestResult result) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 }

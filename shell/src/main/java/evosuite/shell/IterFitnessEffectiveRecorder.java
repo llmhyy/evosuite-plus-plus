@@ -24,7 +24,7 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 	private ExcelWriter excelWriter;
 	private int iterator;
 
-	public IterFitnessEffectiveRecorder(int iterator) {
+	public IterFitnessEffectiveRecorder(int iterator) throws IOException {
 		super();
 		this.iterator = iterator;
 		excelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), new StringBuilder()
