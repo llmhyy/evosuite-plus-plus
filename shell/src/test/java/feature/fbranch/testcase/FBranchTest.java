@@ -24,7 +24,7 @@ public class FBranchTest {
 
 	@Test
 	public void testValueRangeExample() {
-		Class<?> clazz = feature.fbranch.example.ValueRangeExample.class;
+		Class<?> clazz = feature.fbranch.example.BooleanFlagExample1.class;
 		String methodName = "targetM";
 		int parameterNum = 2;
 

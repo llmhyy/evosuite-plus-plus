@@ -1,6 +1,6 @@
 package feature.fbranch.example;
 
-public class ValueRangeExample {
+public class BooleanFlagExample1 {
 	public Integer targetM(int[] hashValues, int value) {
 		if (!ValueUtil.checkPrecondition(hashValues, value)) {
 			return null;

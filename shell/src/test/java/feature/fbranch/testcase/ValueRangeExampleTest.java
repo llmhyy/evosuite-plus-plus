@@ -17,7 +17,7 @@ public class ValueRangeExampleTest extends FBranchTestSetup {
 		Properties.PRINT_FITNESS = true;
 		Properties.ADOPT_SMART_MUTATION = true;
 		
-		Class<?> clazz = feature.fbranch.example.ValueRangeExample.class;
+		Class<?> clazz = feature.fbranch.example.BooleanFlagExample1.class;
 		String methodName = "targetM";
 		int parameterNum = 2;
 
