@@ -47,17 +47,17 @@ public class EventSequence {
 			Set<Integer> oldFalseBranches = p.getLastExecutionResult().getTrace().getCoveredFalseBranches();
 			Set<Integer> diffFalseBranches = diff(oldFalseBranches, newFalseBranches);
 			
-			extractEvents(diffTrueBranches, true);
-			extractEvents(diffFalseBranches, false);
+			extractEvents(diffTrueBranches, true, o);
+			extractEvents(diffFalseBranches, false, o);
 		}
 		return null;
 	}
 
-	private static void extractEvents(Set<Integer> diffTrueBranches, boolean conditionValue) {
+	private static void extractEvents(Set<Integer> diffTrueBranches, boolean conditionValue, TestChromosome o) {
 		for(Integer branchId: diffTrueBranches) {
 			Branch b = BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getBranch(branchId);	
 			BranchInfo branchInfo = new BranchInfo(b, conditionValue);
-			BranchCoveringEvent e = new BranchCoveringEvent(System.currentTimeMillis(), branchInfo);
+			BranchCoveringEvent e = new BranchCoveringEvent(System.currentTimeMillis(), branchInfo, o.getTestCase().toCode());
 			addEvent(e);
 		}
 	}
