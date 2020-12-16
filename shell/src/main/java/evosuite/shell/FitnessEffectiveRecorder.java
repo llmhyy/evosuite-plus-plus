@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.Event;
 import org.slf4j.Logger;
 
@@ -45,9 +46,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		if (csvFile.isFile()) {
 		    // create BufferedReader
 			csvWtriter = new BufferedWriter(new FileWriter(csvFile));
-			Object[] head = {"Class", "Method", "Execution Time", "Coverage", "Age", "Call Availability",
-					"IP Flag Coverage", "Uncovered IF Flag", "Random Seed", "Unavailable Call", "Initial Coverage",
-					"Initialization Overhead","CoveredBranchWithTest", "Missing Branches","Missing InstructID","Events"};
+			Object[] head = {"Events"};
 		    List<Object> headList = Arrays.asList(head);
 			writeRow(headList, csvWtriter);
 //			System.out.println("csvFile：" + csvFile);
@@ -133,61 +132,17 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 	
 	@Override
 	public void recordSeeding(String className, String methodName, EvoTestResult r) throws IOException {
-		List<Object> rowData = new ArrayList<Object>();
-		rowData.add(className);
-		rowData.add(methodName);
-		rowData.add(r.getTime());
-		rowData.add(r.getCoverage());
-		rowData.add(r.getAge());
-		rowData.add(r.getRatio());
-		rowData.add(r.getIPFlagCoverage());
-		rowData.add(r.getUncoveredFlags());
-		rowData.add(r.getRandomSeed());
-		String unavailableString = getUnaviableCall(r.getMethodCallAvailability());
-		rowData.add(unavailableString);
-		rowData.add(r.getInitialCoverage());
-		rowData.add(r.getInitializationOverhead());
-		rowData.add(r.getCoveredBranchWithTest().toString());
-//		StringBuffer ss = new StringBuffer();
-//		if (r.getCoveredBranchWithTest() != null && !r.getCoveredBranchWithTest().isEmpty()) {
-//			for (BranchInfo b: r.getCoveredBranchWithTest().keySet()) {
-//				ss.append(r.getCoveredBranchWithTest().get(b) + "\\n");
-//			}
-//		}
-//		String coveredBranch = ss.toString();
-//		if (coveredBranch.isEmpty()) {
-//			coveredBranch = "NA";
-//		}
-//		rowData.add(coveredBranch);
-
-		StringBuffer sb = new StringBuffer();
-		if (r.getMissingBranches() != null && !r.getMissingBranches().isEmpty()) {
-			for (BranchInfo b : r.getMissingBranches()) {
-				sb.append(b.toString() + "\\n");
-			}
-		}
-		String missingBranches = sb.toString();
-		if (missingBranches.isEmpty()) {
-			missingBranches = "NA";
-		}
-		rowData.add(missingBranches);
-		
-		StringBuffer si = new StringBuffer();
-		if (r.getMissingBranches() != null && !r.getMissingBranches().isEmpty()) {
-			for (BranchInfo b : r.getMissingBranches()) {
-				si.append(b.getStringValue() + ":" + b.getTruthValue() + "\\n");
-			}
-		}
-		String missingInstructID = si.toString();
-		if (missingInstructID.isEmpty()) {
-			missingInstructID = "NA";
-		}
-		rowData.add(missingInstructID);
-		
+		List<Object> rowData = new ArrayList<Object>();		
 		StringBuffer se = new StringBuffer();
 		if (r.getEventSequence() != null && !r.getEventSequence().isEmpty()) {
 			for (Event e: r.getEventSequence()) {
-				se.append(e.toString() + ",");
+				if(e.toString().contains("branchCovering")) {
+					BranchCoveringEvent bc = (BranchCoveringEvent)e;
+					BranchInfo b = bc.getBranch();
+					String testcase = bc.getTestCode();
+					se.append(e.toString() + "--" + b + "--" + testcase + ",");	
+				}else
+					se.append(e.toString() + "--" + e.getDataType()+ "--" + e.getValue()+ ",");		
 			}
 		}
 		String events = se.toString();

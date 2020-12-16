@@ -18,6 +18,10 @@ public abstract class Event implements Serializable{
 	
 	private long timestamp;
 	private int type;
+	private String dataType;
+	private int poolsize;
+	private String value;
+	
 	
 	
 	public Event(long timestamp) {
@@ -61,5 +65,29 @@ public abstract class Event implements Serializable{
 		}
 		
 		return "unknown";
+	}
+
+	public String getDataType() {
+		return dataType;
+	}
+
+	public void setDataType(String dataType) {
+		this.dataType = dataType;
+	}
+
+	public int getPoolsize() {
+		return poolsize;
+	}
+
+	public void setPoolsize(int poolsize) {
+		this.poolsize = poolsize;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
 	}
 }
