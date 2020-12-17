@@ -337,21 +337,6 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 		return false;
 	}
 
-	private boolean localVarConstObj(List<BytecodeInstruction> instructions, int varIndex, int endIndex) {
-		for (int i = 2; i < endIndex; i++) {
-			BytecodeInstruction objParamIns = instructions.get(i - 2);
-			BytecodeInstruction prevIns = instructions.get(i - 1);
-			BytecodeInstruction currIns = instructions.get(i);
-
-			if (objParamIns.isConstant() && prevIns.isInvokeSpecial() && currIns.isLocalVariableDefinition()
-					&& currIns.getLocalVariableSlot() == varIndex) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	private int getInvokeInsnIndexFromNew(List<BytecodeInstruction> instructions, int newIndex) {
 		BytecodeInstruction newInsn = instructions.get(newIndex);
 		String className = newInsn.getClassName();

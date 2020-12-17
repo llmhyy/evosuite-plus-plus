@@ -59,7 +59,7 @@ public class FlagEffectExample {
 
 	public int CallerIntReturnConstantMethodCall() {
 		int y = 999;
-		if (AddExample.CalleeIntReturnConstant(10) == y) {
+		if (CalleeIntReturnConstant(10) == y) {
 			return 77;
 		}
 		return 88;
