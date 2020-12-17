@@ -3,9 +3,6 @@ package evosuite.shell.listmethod;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +12,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.coverage.dataflow.DefUseFactory;
 import org.evosuite.coverage.dataflow.DefUsePool;
@@ -35,7 +31,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -48,6 +43,7 @@ import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.utils.LoggerUtils;
+import javassist.bytecode.Opcode;
 
 public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFilter {
 	public static final String excelProfileSubfix = "_ipfFlagMethod.xlsx";
@@ -119,7 +115,6 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 		Map<String, Boolean> methodValidityMap = new HashMap<>();
 		for (BytecodeInstruction insn : getIfBranchesInMethod(cfg)) {
 			CFGFrame frame = insn.getFrame();
-//			Value value = frame.getStack(0);
 			int stackSize = frame.getStackSize();
 
 			// Loop through either 1 or 2 operands of a branch
@@ -131,11 +126,6 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 
 				SourceValue srcValue = (SourceValue) value;
 				AbstractInsnNode condDefinition = (AbstractInsnNode) srcValue.insns.iterator().next();
-
-//				if (CommonUtility.isGetFieldInsn(condDefinition)) {
-//					FieldInsnNode fieldNode = (FieldInsnNode) condDefinition;
-//					System.currentTimeMillis();
-//				}
 
 				/* Next instruction is to invokeMethod followed by IF- instruction */
 				if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
@@ -161,11 +151,17 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 							}
 						}
 
-						// Current Def node is XSTORE instruction
-						// Need to get the previous instruction to check if it is a method call
-						if (lastDef != null && CommonUtility.isInvokeMethodInsn(lastDef.getASMNode().getPrevious())) {
-							if (checkNonBooleanFlagMethod(classLoader, lastDef.getASMNode().getPrevious(),
-									insn.getLineNumber(), mc, methodValidityMap)) {
+						if (lastDef == null) {
+							continue;
+						}
+
+						// lastDef node is ..STORE instruction
+						// get the previous instruction which is the stored value to check if it is a
+						// method call
+						AbstractInsnNode prevNode = lastDef.getASMNode().getPrevious();
+						if (CommonUtility.isInvokeMethodInsn(prevNode)) {
+							if (checkNonBooleanFlagMethod(classLoader, prevNode, insn.getLineNumber(), mc,
+									methodValidityMap)) {
 								log.info("!FOUND IT! in method " + methodName);
 								valid = true;
 							}
@@ -173,7 +169,6 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 					}
 				}
 			}
-//			}
 		}
 
 		return valid;
@@ -240,47 +235,76 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 				return false;
 			}
 
+			DefUseAnalyzer instr = new DefUseAnalyzer();
+			instr.analyze(classLoader, methodNode, className, methodName, methodNode.access);
+
 			BytecodeInstructionPool insPool = BytecodeInstructionPool.getInstance(classLoader);
 			List<BytecodeInstruction> instructions = insPool.getAllInstructionsAtMethod(className, methodName);
 
 			for (int i = 1; i < instructions.size(); i++) {
 				BytecodeInstruction prevIns = instructions.get(i - 1);
 				BytecodeInstruction currIns = instructions.get(i);
-				// 1. Return value is a constant
-				if (prevIns.isConstant() && currIns.isReturn()) {
-					return true;
-				}
 
-				// 2. Return value is a method call
-				if (i - 2 >= 0) {
-					// Constructor method call
-					if (prevIns.isInvokeSpecial() && prevIns.getCalledMethodName().equals("<init>")
-							&& currIns.isReturn()) {
-						if (constructorHasConstParam(instructions, i - 1)) {
+				if (currIns.isReturn()) {
+					List<BytecodeInstruction> returnValueInsns = currIns.getSourceListOfStackInstruction(0);
+
+					for (BytecodeInstruction returnValueInsn : returnValueInsns) {
+						// 1. Return value is a constant
+						if (returnValueInsn.isConstant()) {
 							return true;
 						}
-					}
 
-//					BytecodeInstruction objParamIns = instructions.get(i - 2);
-//					if (objParamIns.isConstant() && prevIns.isInvokeSpecial() && currIns.isReturn()) {
-//						return true;
-//					}
+						// 2. Return value is a 'constant' object
+						if (returnValueInsn.getASMNode().getOpcode() == Opcode.NEW) {
+							int invokeInsnIndex = getInvokeInsnIndexFromNew(instructions,
+									returnValueInsn.getInstructionId());
+							if (invokeInsnIndex > 0 && constructorHasConstParam(instructions, invokeInsnIndex)) {
+								return true;
+							}
+						}
 
-					// TODO Other method calls
-				}
+						// 3. Return value is a nested method call
+						if (returnValueInsn.isMethodCall()) {
+							if (checkNonBooleanFlagMethod(classLoader, returnValueInsn.getASMNode(), 0, mc,
+									visitMethods)) {
+								return true;
+							}
+						}
 
-				// Return value is a local variable
-				if (prevIns.isLocalVariableUse() && currIns.isReturn()) {
-					int varIndex = prevIns.getLocalVariableSlot();
+						// Return value is a local variable
+						if (returnValueInsn.isUse()) {
+							Use use = getUse(prevIns);
+							List<Definition> defs = DefUsePool.getDefinitions(use); // null if it is a method parameter.
+							for (Definition def : CollectionUtil.nullToEmpty(defs)) {
+								AbstractInsnNode prevNode = def.getASMNode().getPrevious();
+								if (prevNode == null) {
+									continue;
+								}
+								BytecodeInstruction sourceInsn = cfg
+										.getInstruction(methodNode.instructions.indexOf(prevNode));
 
-					// 3. Return value is a local variable which was assigned a constant
-					if (localVarAssignedConst(instructions, varIndex, i)) {
-						return true;
-					}
+								// 3. Return value is a local variable which was assigned a constant
+								if (sourceInsn.isConstant()) {
+									return true;
+								}
 
-					// 4. Return value is a local variable which was assigned a 'constant' object
-					if (localVarConstObj(instructions, varIndex, i)) {
-						return true;
+								// 4. Return value is a local variable which was assigned a 'constant' object
+								if (sourceInsn.isInvokeSpecial() && sourceInsn.getCalledMethodName().equals("<init>")) {
+									if (constructorHasConstParam(instructions, sourceInsn.getInstructionId())) {
+										return true;
+									}
+								}
+
+								// 5. Return value is a nested method call
+								if (sourceInsn.isMethodCall()) {
+									if (checkNonBooleanFlagMethod(classLoader, sourceInsn.getASMNode(), 0, mc,
+											visitMethods)) {
+										return true;
+									}
+								}
+							}
+						}
+
 					}
 				}
 			}
@@ -328,6 +352,21 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 		return false;
 	}
 
+	private int getInvokeInsnIndexFromNew(List<BytecodeInstruction> instructions, int newIndex) {
+		BytecodeInstruction newInsn = instructions.get(newIndex);
+		String className = newInsn.getClassName();
+
+		for (int i = newIndex + 1; i < instructions.size(); i++) {
+			BytecodeInstruction insn = instructions.get(i);
+			if (insn.isInvokeSpecial() && insn.getCalledMethodName().equals("<init>")
+					&& insn.getClassName().equals(className)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
 	private boolean constructorHasConstParam(List<BytecodeInstruction> instructions, int constructorIndex) {
 		BytecodeInstruction constructorInsn = instructions.get(constructorIndex);
 		MethodInsnNode methodInsnNode = (MethodInsnNode) constructorInsn.getASMNode();
@@ -341,7 +380,7 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 				return true;
 			}
 
-			// Parameter for constructor is a local variable, check if the 
+			// Parameter for constructor is a local variable, check if the
 			// variable was assigned a constant
 			if (paramIns.isLocalVariableUse()) {
 				int varIndex = paramIns.getLocalVariableSlot();

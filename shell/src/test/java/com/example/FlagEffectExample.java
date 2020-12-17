@@ -56,10 +56,10 @@ public class FlagEffectExample {
 		}
 		return 88;
 	}
-	
+
 	public int CallerIntReturnConstantMethodCall() {
 		int y = 999;
-		if (CalleeIntReturnConstant(10) == y) {
+		if (AddExample.CalleeIntReturnConstant(10) == y) {
 			return 77;
 		}
 		return 88;
@@ -78,7 +78,7 @@ public class FlagEffectExample {
 		}
 		return 30;
 	}
-	
+
 	/** PRIMITIVE RETURN VARIABLE **/
 
 	public int CallerIntReturnVariablePositive() {
@@ -98,7 +98,7 @@ public class FlagEffectExample {
 		}
 		return z;
 	}
-	
+
 	public int CallerIntReturnVariableNegative() {
 		int y = 999;
 		if (CalleeReturnVariableNegative(10) == y) {
@@ -106,13 +106,13 @@ public class FlagEffectExample {
 		}
 		return 88;
 	}
-	
+
 	public int CalleeReturnVariableNegative(int x) {
 		int z;
 		if (x > 10) {
-			z = x*x;
+			z = x * x;
 		} else {
-			z = x+x+x;
+			z = x + x + x;
 		}
 		return z;
 	}
@@ -134,7 +134,7 @@ public class FlagEffectExample {
 		}
 		return new Student("Test2", x);
 	}
-	
+
 	public int CallerObjectReturnConstantRight() {
 		Student x = CalleeObjectReturnConstantRight("Test1", 10);
 		int y = 999;
@@ -150,9 +150,50 @@ public class FlagEffectExample {
 		}
 		return new Student(x, 10);
 	}
-	
+
+	/** OBJECT RETURN VARIABLE PARAM **/
+
+	public int CallerObjectReturnVariableParamPositive() {
+		Student x = CalleeObjectReturnVariableParamPositive(10);
+		int y = 999;
+		if (x.age == y) {
+			return 77;
+		}
+		return 88;
+	}
+
+	public Student CalleeObjectReturnVariableParamPositive(int x) {
+		String y;
+		if (x > 10) {
+			y = "test1";
+		} else {
+			y = "test2";
+		}
+
+		return new Student(y, x);
+	}
+
+	public int CallerObjectReturnVariableParamNegative() {
+		Student x = CalleeObjectReturnVariableParamNegative("Test", 10);
+		int y = 999;
+		if (x.age == y) {
+			return 77;
+		}
+		return 88;
+	}
+
+	public Student CalleeObjectReturnVariableParamNegative(String x, int y) {
+		int age = y;
+		if (y > 10) {
+			age += 20;
+		} else {
+			age += 10;
+		}
+		return new Student(x, age);
+	}
+
 	/** OBJECT RETURN VARIABLE **/
-	
+
 	public int CallerObjectReturnVariablePositive() {
 		Student x = CalleeObjectReturnVariablePositive(10);
 		int y = 999;
@@ -161,16 +202,16 @@ public class FlagEffectExample {
 		}
 		return 88;
 	}
-	
+
 	public Student CalleeObjectReturnVariablePositive(int x) {
-		String y;
+		Student y;
 		if (x > 10) {
-			y = "test1";
+			y = new Student("test1", x);
 		} else {
-			y = "test2";
+			y = new Student("test2", x);
 		}
-		
-		return new Student(y, x);
+
+		return y;
 	}
 
 	public int CallerObjectReturnVariableNegative() {
@@ -181,17 +222,53 @@ public class FlagEffectExample {
 		}
 		return 88;
 	}
-	
+
 	public Student CalleeObjectReturnVariableNegative(String x, int y) {
-		int age = y;
+		Student z;
 		if (y > 10) {
-			age += 20;
+			y += 10;
+			z = new Student(x, y);
 		} else {
-			age += 10;
+			z = new Student(x, y);
 		}
-		return new Student(x, age);
+		return z;
 	}
-	
+
+	/** RETURN METHOD CALL **/
+
+	public int CallerReturnMethodCall() {
+		int y = CalleeIntReturnMethodCall(10);
+		if (y > 1000) {
+			return 77;
+		}
+		return 88;
+	}
+
+	public int CalleeIntReturnMethodCall(int x) {
+		if (x > 10) {
+			return CalleeIntReturnConstant(100);
+		}
+		return CalleeIntReturnConstant(10);
+	}
+
+	public int CallerReturnVariableMethodCall() {
+		int y = CalleeIntReturnVariableMethodCall(10);
+		if (y > 1000) {
+			return 77;
+		}
+		return 88;
+	}
+
+	public int CalleeIntReturnVariableMethodCall(int x) {
+		int y;
+		if (x > 10) {
+			y = CalleeIntReturnConstant(100);
+		} else {
+			y = CalleeIntReturnConstant(1000);
+		}
+		return y;
+	}
+
 	/** EXAMPLE CLASSES **/
 
 	public class Student {

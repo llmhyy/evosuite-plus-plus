@@ -57,10 +57,28 @@ public class NonbooleanMethodFilterTest {
 	@Test
 	public void testObjectReturnVariable() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
 		methodName = "CallerObjectReturnVariablePositive()I";
-//		assert filter.checkMethod(className, methodName);
+		assert filter.checkMethod(className, methodName);
 		
 		methodName = "CallerObjectReturnVariableNegative()I";
 		assert !filter.checkMethod(className, methodName);
+	}
+	
+	@Test
+	public void testObjectReturnVariableParam() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
+		methodName = "CallerObjectReturnVariableParamPositive()I";
+		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerObjectReturnVariableParamNegative()I";
+		assert !filter.checkMethod(className, methodName);
+	}
+	
+	@Test
+	public void testReturnMethodCall() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
+		methodName = "CallerReturnMethodCall()I";
+		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerReturnVariableMethodCall()I";
+		assert filter.checkMethod(className, methodName);
 	}
 
 }
