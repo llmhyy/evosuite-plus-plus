@@ -679,7 +679,7 @@ public class EvosuiteForMethod {
 
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
-						recorder.recordSeeding(className, methodName, result);
+						recorder.recordSeedingToJson(className, methodName, result);
 						
 					}
 				}

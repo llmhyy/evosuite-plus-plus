@@ -38,7 +38,7 @@ public class ExperimentRecorder {
 		// override when needed.
 	}
 	
-	public void recordSeeding(String className, String methodName, EvoTestResult result) throws IOException {
+	public void recordSeedingToJson(String className, String methodName, EvoTestResult r) throws IOException {
 		// TODO Auto-generated method stub
 		
 	}
