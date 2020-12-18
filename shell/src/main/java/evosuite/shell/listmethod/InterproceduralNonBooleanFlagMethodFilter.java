@@ -132,38 +132,26 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 					if (checkNonBooleanFlagMethod(classLoader, condDefinition, insn.getLineNumber(), mc,
 							methodValidityMap)) {
 						log.info("!FOUND IT! in method " + methodName);
-						valid = true;
+						return true;
 					}
 				} else {
 					BytecodeInstruction condBcDef = cfg.getInstruction(node.instructions.indexOf(condDefinition));
-					/* isFieldUse or isLocalVariableUse or isArrayLoadInstruction */
-					// Check if the insn is use
+					
 					if (condBcDef.isUse()) {
-
-						// TODO the value could be defined multiple times
-						// Find the last instruction that defined this operand
+						// Find all instructions that defined this operand
 						Use use = getUse(condBcDef);
-						List<Definition> defs = DefUsePool.getDefinitions(use); // null if it is a method parameter.
-						Definition lastDef = null;
+						List<Definition> defs = DefUsePool.getDefinitions(use); // null if it is a method parameter
+						
 						for (Definition def : CollectionUtil.nullToEmpty(defs)) {
-							if (lastDef == null || def.getInstructionId() > lastDef.getInstructionId()) {
-								lastDef = def;
-							}
-						}
-
-						if (lastDef == null) {
-							continue;
-						}
-
-						// lastDef node is ..STORE instruction
-						// get the previous instruction which is the stored value to check if it is a
-						// method call
-						AbstractInsnNode prevNode = lastDef.getASMNode().getPrevious();
-						if (CommonUtility.isInvokeMethodInsn(prevNode)) {
-							if (checkNonBooleanFlagMethod(classLoader, prevNode, insn.getLineNumber(), mc,
-									methodValidityMap)) {
-								log.info("!FOUND IT! in method " + methodName);
-								valid = true;
+							// def node is ..STORE instruction - get the previous instruction which is
+							// the stored value to check if it is a method call
+							AbstractInsnNode sourceNode = def.getASMNode().getPrevious();
+							if (CommonUtility.isInvokeMethodInsn(sourceNode)) {
+								if (checkNonBooleanFlagMethod(classLoader, sourceNode, insn.getLineNumber(), mc,
+										methodValidityMap)) {
+									log.info("!FOUND IT! in method " + methodName);
+									return true;
+								}
 							}
 						}
 					}
@@ -171,7 +159,7 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 			}
 		}
 
-		return valid;
+		return false;
 	}
 
 	protected boolean checkNonBooleanFlagMethod(ClassLoader classLoader, AbstractInsnNode flagDefIns,
@@ -295,8 +283,9 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 									}
 								}
 
-								// 5. Return value is a nested method call
+								// 5. Return value is a local variable which depended on a nested method call
 								if (sourceInsn.isMethodCall()) {
+//									classLoader.loadClass(sourceInsn.getClassName());
 									if (checkNonBooleanFlagMethod(classLoader, sourceInsn.getASMNode(), 0, mc,
 											visitMethods)) {
 										return true;
@@ -356,6 +345,11 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 		BytecodeInstruction constructorInsn = instructions.get(constructorIndex);
 		MethodInsnNode methodInsnNode = (MethodInsnNode) constructorInsn.getASMNode();
 		int numOfParams = Type.getArgumentTypes(methodInsnNode.desc).length - 1;
+
+		// No parameters provided for constructor
+		if (numOfParams == 0) {
+			return true;
+		}
 
 		for (int i = constructorIndex - 1; i >= 0 && i >= constructorIndex - numOfParams; i -= 1) {
 			BytecodeInstruction paramIns = instructions.get(i);

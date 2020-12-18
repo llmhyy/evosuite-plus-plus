@@ -24,7 +24,8 @@ public enum MethodFilterOption {
 	CALLS_RECURSIVE_METHOD("callsRecursiveMethod"),
 	OBJECT_CONSTRUCTION("objectConstruction"),
 	EQUALS_METHOD("equalsMethod"),
-	FLAG_EFFECT("flagEffect");
+	FLAG_EFFECT_BOOLEAN("flagEffectBoolean"),
+	FLAG_EFFECT_NON_BOOLEAN("flagEffectNonBoolean");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -77,7 +78,9 @@ public enum MethodFilterOption {
 			return new ObjectConstructionFilter();
 		case EQUALS_METHOD:
 			return new EqualsMethodFilter();
-		case FLAG_EFFECT:
+		case FLAG_EFFECT_BOOLEAN:
+			return new InterproceduralBooleanFlagMethodFilter();
+		case FLAG_EFFECT_NON_BOOLEAN:
 			return new InterproceduralNonBooleanFlagMethodFilter();
 //			return new FlagEffectFilter();
 		}

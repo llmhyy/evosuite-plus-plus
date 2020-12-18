@@ -49,7 +49,8 @@ public class ListMethodsBatch {
 //		runListMethod(MethodFilterOption.CALLS_RECURSIVE_METHOD);
 //		runListMethod(MethodFilterOption.OBJECT_CONSTRUCTION);
 //		runListMethod(MethodFilterOption.EQUALS_METHOD);
-		runListMethod(MethodFilterOption.FLAG_EFFECT);
+//		runListMethod(MethodFilterOption.FLAG_EFFECT_BOOLEAN);
+		runListMethod(MethodFilterOption.FLAG_EFFECT_NON_BOOLEAN);
 
 //	}
 	}

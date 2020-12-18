@@ -150,6 +150,22 @@ public class FlagEffectExample {
 		}
 		return new Student(x, 10);
 	}
+	
+	public int CallerObjectReturnConstantNoParam() {
+		Student x = CalleeObjectReturnConstantNoParam("Test1", 10);
+		int y = 999;
+		if (x.age == y) {
+			return 77;
+		}
+		return 88;
+	}
+
+	public Student CalleeObjectReturnConstantNoParam(String x, int y) {
+		if (y > 10) {
+			return new Student();
+		}
+		return new Student(x, y);
+	}
 
 	/** OBJECT RETURN VARIABLE PARAM **/
 
@@ -274,6 +290,11 @@ public class FlagEffectExample {
 	public class Student {
 		public String name;
 		public int age;
+		
+		public Student() {
+			this.name = "testName";
+			this.age = 20;
+		}
 
 		public Student(String name, int age) {
 			this.name = name;

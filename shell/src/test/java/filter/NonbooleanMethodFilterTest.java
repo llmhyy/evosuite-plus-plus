@@ -52,6 +52,9 @@ public class NonbooleanMethodFilterTest {
 		
 		methodName = "CallerObjectReturnConstantRight()I";
 		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerObjectReturnConstantNoParam()I";
+		assert filter.checkMethod(className, methodName);
 	}
 	
 	@Test
