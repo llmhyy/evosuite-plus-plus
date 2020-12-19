@@ -24,6 +24,7 @@ package org.evosuite.testcase.statements.numeric;
 
 import org.evosuite.Properties;
 import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.RandomSamplingEvent;
 import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.result.seedexpr.SearchEvent;
 import org.evosuite.seeding.ConstantPool;
@@ -84,9 +85,10 @@ public class IntPrimitiveStatement extends NumericalPrimitiveStatement<Integer> 
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
+		String oldValue = String.valueOf(value);
 		int delta = (int)Math.floor(Randomness.nextGaussian() * Properties.MAX_DELTA);
 		value = value + delta;
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT, String.valueOf(value)));
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT, String.valueOf(value), oldValue));
 	}
 
 	/* (non-Javadoc)
@@ -106,7 +108,7 @@ public class IntPrimitiveStatement extends NumericalPrimitiveStatement<Integer> 
 	public void randomize() {
 		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
 			value = (int)(Randomness.nextGaussian() * Properties.MAX_INT);
-			EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT, String.valueOf(value)));
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.INT, String.valueOf(value)));
 		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();

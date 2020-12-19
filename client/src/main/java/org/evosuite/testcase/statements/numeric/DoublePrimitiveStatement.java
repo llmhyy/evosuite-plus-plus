@@ -88,6 +88,7 @@ public class DoublePrimitiveStatement extends NumericalPrimitiveStatement<Double
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
+		String oldValue = String.valueOf(value);
 		double P = Randomness.nextDouble();
 		if(P < 1d/3d) {
 			value += Randomness.nextGaussian() * Properties.MAX_DELTA;
@@ -97,7 +98,7 @@ public class DoublePrimitiveStatement extends NumericalPrimitiveStatement<Double
 			int precision = Randomness.nextInt(15);
 			chopPrecision(precision);
 		}
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT, String.valueOf(value)));
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.INT, String.valueOf(value), oldValue));
 	}
 
 	/* (non-Javadoc)

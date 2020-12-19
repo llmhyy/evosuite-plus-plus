@@ -117,6 +117,8 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 	public void delta() {
 		
 		String s = value;
+		String oldValue = s;
+		
 		if(s == null) {
 			randomize();
 			return;
@@ -198,7 +200,7 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 		}
 		value = s;
 		// logger.info("Mutated string now is: "+value);
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.STRING, String.valueOf(value)));
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.STRING, String.valueOf(value), oldValue));
 	}
 
 	/* (non-Javadoc)
@@ -210,7 +212,7 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 	 * </p>
 	 */
 	public void increment() {
-		
+		String oldValue = String.valueOf(value);
 		String s = value;
 		if(s == null) {
 			randomize();
@@ -223,7 +225,7 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 		}
 
 		value = s;
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.STRING, String.valueOf(value)));
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.STRING, String.valueOf(value), oldValue));
 	}
 
 	/* (non-Javadoc)

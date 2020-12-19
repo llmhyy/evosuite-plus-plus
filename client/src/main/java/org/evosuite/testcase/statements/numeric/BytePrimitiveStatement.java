@@ -100,9 +100,10 @@ public class BytePrimitiveStatement extends NumericalPrimitiveStatement<Byte> {
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
+		String oldValue = String.valueOf(value);
 		byte delta = (byte)Math.floor(Randomness.nextGaussian() * Properties.MAX_DELTA);
 		value = (byte) (value.byteValue() + delta);
-		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.BYTE, String.valueOf(value)));
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.BYTE, String.valueOf(value), oldValue));
 	}
 
 	/* (non-Javadoc)
