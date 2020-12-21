@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import common.TestUtility;
 import feature.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
-import feature.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame;
 
 public class ProjectTestLegitimizationTest extends ObjectOrientedTest {
 	
