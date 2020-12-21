@@ -2,51 +2,30 @@ package feature.objectconstruction.testgeneration.testcase;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
-import org.evosuite.Properties.Criterion;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.graphs.dataflow.Dataflow;
 import org.evosuite.graphs.dataflow.DepVariable;
 import org.evosuite.graphs.dataflow.GraphVisualizer;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
-import org.evosuite.testcase.DefaultTestCase;
-import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.PartialGraph;
-import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
-import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
 import common.TestUtility;
 import feature.objectconstruction.testgeneration.example.cascadecall.CascadingCallExample;
-import feature.objectconstruction.testgeneration.example.graphcontruction.Article;
-import feature.objectconstruction.testgeneration.example.graphcontruction.HandballModel;
-import feature.objectconstruction.testgeneration.example.graphcontruction.PngEncoderB;
 import feature.objectconstruction.testgeneration.example.graphcontruction.ArjArchiveEntry.isDirectory.ArjArchiveEntry;
 import feature.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
-import feature.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2;
-import feature.objectconstruction.testgeneration.example.graphcontruction.ExpressionNodeList.addExpressionList.ExpressionNodeList;
-import feature.objectconstruction.testgeneration.example.graphcontruction.FTPSender.execute.FTPSender;
-import feature.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame;
-import feature.objectconstruction.testgeneration.example.graphcontruction.MUXFilter.pump.MUXFilter;
-import feature.objectconstruction.testgeneration.example.graphcontruction.RMIManagedConnectionAcceptor.close.RMIManagedConnectionAcceptor;
 
 public class ProjectGraphConstructionTest extends ObjectOrientedTest {
 
@@ -863,746 +842,746 @@ public class ProjectGraphConstructionTest extends ObjectOrientedTest {
 		}
 	}
 
-	@Test
-	public void testComputationGraphConstruction2() throws ClassNotFoundException {
-		setup();
-
-		Properties.TARGET_CLASS = PngEncoderB.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("pngEncode", PngEncoderB.class, 1);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-
-		for (Branch b : map.keySet()) {
-			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
-
-			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest2");
-
-			String branchName = partialGraph.getBranch().toString();
-			System.out.println(branchName);
-			Set<String> labelStrings = new HashSet<String>();
-
-			switch (branchName) {
-			case "I41 Branch 4 IFNONNULL L14": {
-				// Instance: PngEncoderB
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.PngEncoderB\n");
-
-//				for (DepVariableWrapper v : topLayer.get(0).children) {
-//					System.out.println(v.var.getUniqueLabel());
-//				}
-
-				// PngEncoder -> image
-				assert topLayer.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).var.getUniqueLabel()
-						.equals("instance field\n"
-								+ "regression/objectconstruction/testgeneration/example/graphcontruction/PngEncoderB\n"
-								+ "Ljava/awt/image/BufferedImage;\n" + "image\n");
-				break;
-			}
-			case "I78 Branch 5 IFNE L19":
-			case "I138 Branch 6 IFEQ L27": {
-				// Instance: PngEncoderB
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.PngEncoderB\n");
-
-				// PngEncoder -> image
-				assert topLayer.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).var.getUniqueLabel()
-						.equals("instance field\n"
-								+ "regression/objectconstruction/testgeneration/example/graphcontruction/PngEncoderB\n"
-								+ "Ljava/awt/image/BufferedImage;\n" + "image\n");
-
-				// TODO
-				// should have image -> other getRaster() (Line 37)
-				assert topLayer.get(0).children.get(0).children.size() > 0;
-
-				break;
-			}
-			default: {
-				assert false;
-			}
-			}
-		}
-	}
-
-	@Test
-	public void testComputationGraphConstruction3() throws ClassNotFoundException {
-		setup();
-
-		Properties.TARGET_CLASS = InternalGmHeroFrame.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("valueChanged", InternalGmHeroFrame.class, 1);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-
-		for (Branch b : map.keySet()) {
-			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
-
-			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest3");
-
-			String branchName = partialGraph.getBranch().toString();
-			System.out.println(branchName);
-			Set<String> labelStrings = new HashSet<String>();
-
-			switch (branchName) {
-			case "I14 Branch 7 IFEQ L20": {
-				// TODO
-//				for (DepVariableWrapper v : topLayer) {
-//					System.out.println(v.var.getUniqueLabel());
-//				}
-
-				// Parameters: TreeSelectionEvent; Instance: InternalGmHeroFrame
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.size() == 2;
-				assert labelStrings.contains("parameter\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame\n"
-						+ "valueChanged(Ljavax/swing/event/TreeSelectionEvent;)V\n" + "1\n");
-				assert labelStrings.contains("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame\n");
-
-				// this InternalGmHeroFrame -> model
-				// TODO: should not have instance field tree
-				assert topLayer.get(1).children.size() == 1;
-
-				// model -> root
-				// TODO: should not have other getClass()
-				assert topLayer.get(1).children.get(0).children.size() == 1;
-
-				break;
-			}
-			case "I31 Branch 8 IFEQ L21": {
-				// TODO
-				break;
-			}
-			case "I40 Branch 9 IFLE L22": {
-				// TODO
-				break;
-			}
-			case "I78 Branch 10 IFGT L28": {
-				// Instance: InternalGmHeroFrame -> frameName
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame\n");
-
-				// InternalGmHeroFrame -> frameName
-				assert topLayer.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/InternalGmHeroFrame/valueChanged/InternalGmHeroFrame\n"
-						+ "Ljava/lang/String;\n" + "frameName\n");
-			}
-			case "I96 Branch 11 IFEQ L30": {
-				// TODO
-				break;
-			}
-			default: {
-				assert false;
-			}
-			}
-		}
-	}
-
-	@Test
-	public void testComputationGraphConstruction4() throws ClassNotFoundException {
-		setup();
-
-		Properties.TARGET_CLASS = HandballModel.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("setMoveName", HandballModel.class, 1);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-
-		for (Branch b : map.keySet()) {
-			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
-
-			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest4");
-
-			String branchName = partialGraph.getBranch().toString();
-			System.out.println(branchName);
-			Set<String> labelStrings = new HashSet<String>();
-
-			switch (branchName) {
-			case "I10 Branch 1 IFNULL L46": {
-				// TODO
-				// Static class/method not shown
-				// should be Static Main -> window
-				assert topLayer.size() > 0;
-
-				break;
-			}
-			case "I31 Branch 2 IFNULL L49":
-			case "I37 Branch 3 IFLE L49": {
-				// TODO
-				// Static class/method not shown, primitive parameter not shown
-				// should be Static Main -> window, Parameter: paramString
-				assert topLayer.size() > 0;
-
-				break;
-			}
-			case "I63 Branch 4 IFNE L54": {
-				// TODO
-				// Static class/method not shown, instance methods not shown
-				// should be Static Main -> window, this.isSaved() -> this.lastSavedModel
-				assert topLayer.size() > 0;
-
-				break;
-			}
-			default: {
-				assert false;
-			}
-			}
-		}
-	}
-
-	@Test
-	public void testComputationGraphConstruction5() throws ClassNotFoundException {
-		setup();
-
-		Properties.TARGET_CLASS = Article.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("getRevisionId", Article.class, 0);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-
-		for (Branch b : map.keySet()) {
-			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
-
-			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest5");
-
-			String branchName = partialGraph.getBranch().toString();
-			System.out.println(branchName);
-			Set<String> labelStrings = new HashSet<String>();
-
-			switch (branchName) {
-			case "I7 Branch 1 IFEQ L27": {
-				// TODO: instance method not checked
-				// should be this Article -> bot, reload
-				assert topLayer.size() > 0;
-
-				break;
-			}
-			default: {
-				assert false;
-			}
-			}
-		}
-	}
-
-	@Test
-	public void testComputationGraphConstruction6() throws ClassNotFoundException {
-		setup();
-
-		Properties.TARGET_CLASS = ExpressionNodeList.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("addExpressionList", ExpressionNodeList.class, 1);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-
-		for (Branch b : map.keySet()) {
-			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
-
-			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest6");
-
-			String branchName = partialGraph.getBranch().toString();
-			System.out.println(branchName);
-			Set<String> labelStrings = new HashSet<String>();
-
-			switch (branchName) {
-			case "I21 Branch 1 IFNE L11": {
-				// Parameter: list
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("parameter\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ExpressionNodeList.addExpressionList.ExpressionNodeList\n"
-						+ "addExpressionList(Lregression/objectconstruction/testgeneration/example/graphcontruction/ExpressionNodeList/addExpressionList/ExpressionNodeList;)V\n"
-						+ "1\n");
-
-				// list -> other get(), list -> items
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.size() == 2;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ExpressionNodeList/addExpressionList/ExpressionNodeList\n"
-						+ "Ljava/util/ArrayList;\n" + "items\n");
-				assert labelStrings.contains(
-						"other\n" + "I18 (32) INVOKEVIRTUAL java/util/ArrayList.get(I)Ljava/lang/Object; l30\n");
-
-				// items -> size, items -> other get()
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer.get(0).children.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.get(0).children.size() == 2;
-				assert labelStrings.contains("instance field\n" + "java/util/ArrayList\n" + "I\n" + "size\n");
-				assert labelStrings.contains(
-						"other\n" + "I18 (32) INVOKEVIRTUAL java/util/ArrayList.get(I)Ljava/lang/Object; l30\n");
-
-				// other get() -> other CHECKCAST -> value
-				assert topLayer.get(0).children.get(0).children.get(1).children.size() == 1;
-				assert topLayer.get(0).children.get(0).children.get(1).children.get(0).var.getUniqueLabel()
-						.equals("other\n" + "I19 (35) CHECKCAST java/lang/Integer l30\n");
-				assert topLayer.get(0).children.get(0).children.get(1).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).children.get(1).children.get(0).children.get(0).var
-						.getUniqueLabel().equals("instance field\n" + "java/lang/Integer\n" + "I\n" + "value\n");
-				break;
-			}
-			case "I38 Branch 2 IF_ICMPLT L9": {
-				// Parameter: list -> items -> size
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("parameter\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ExpressionNodeList.addExpressionList.ExpressionNodeList\n"
-						+ "addExpressionList(Lregression/objectconstruction/testgeneration/example/graphcontruction/ExpressionNodeList/addExpressionList/ExpressionNodeList;)V\n"
-						+ "1\n");
-				assert topLayer.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ExpressionNodeList/addExpressionList/ExpressionNodeList\n"
-						+ "Ljava/util/ArrayList;\n" + "items\n");
-				assert topLayer.get(0).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).children.get(0).var.getUniqueLabel()
-						.equals("instance field\n" + "java/util/ArrayList\n" + "I\n" + "size\n");
-
-				break;
-			}
-			default: {
-				assert false;
-			}
-			}
-		}
-	}
-
-	@Test
-	public void testComputationGraphConstruction7() throws ClassNotFoundException {
-		setup();
-
-		Properties.TARGET_CLASS = RMIManagedConnectionAcceptor.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("close", RMIManagedConnectionAcceptor.class, 0);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-
-		for (Branch b : map.keySet()) {
-			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
-
-			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest7");
-
-			String branchName = partialGraph.getBranch().toString();
-			System.out.println(branchName);
-			Set<String> labelStrings = new HashSet<String>();
-
-			switch (branchName) {
-			case "I4 Branch 5 IFNULL L17": {
-				// this RMIManagedConnectionAcceptor -> _registry
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.RMIManagedConnectionAcceptor.close.RMIManagedConnectionAcceptor\n");
-				assert topLayer.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
-						+ "Ljava/rmi/registry/Registry;\n" + "_registry\n");
-
-				break;
-			}
-			case "I24 Branch 6 IFNE L20": {
-				// this RMIManagedConnectionAcceptor -> _registry, _factory
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.RMIManagedConnectionAcceptor.close.RMIManagedConnectionAcceptor\n");
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.size() == 2;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
-						+ "Ljava/rmi/registry/Registry;\n" + "_registry\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIInvokerFactory;\n"
-						+ "_factory\n");
-
-				break;
-			}
-			case "I36 Branch 7 IFEQ L22":
-			case "I42 Branch 8 IFNE L22":
-			case "I51 Branch 9 IFNE L23": {
-				// this RMIManagedConnectionAcceptor -> _registry, _factory, _created
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.RMIManagedConnectionAcceptor.close.RMIManagedConnectionAcceptor\n");
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.size() == 3;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
-						+ "Ljava/rmi/registry/Registry;\n" + "_registry\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIInvokerFactory;\n"
-						+ "_factory\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
-						+ "Z\n" + "_created\n");
-
-				break;
-			}
-			default: {
-				assert false;
-			}
-			}
-		}
-	}
-
-	@Test
-	public void testComputationGraphConstruction8() throws ClassNotFoundException {
-		setup();
-
-		Properties.TARGET_CLASS = MUXFilter.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("pump", MUXFilter.class, 0);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-
-		for (Branch b : map.keySet()) {
-			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
-
-			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest8");
-
-			String branchName = partialGraph.getBranch().toString();
-			System.out.println(branchName);
-			Set<String> labelStrings = new HashSet<String>();
-
-			switch (branchName) {
-			case "I6 Branch 1 IFNE L16": {
-//				for (DepVariableWrapper v : topLayer.get(0).children) {
-//				System.out.println(v.var.getUniqueLabel());
+//	@Test
+//	public void testComputationGraphConstruction2() throws ClassNotFoundException {
+//		setup();
+//
+//		Properties.TARGET_CLASS = PngEncoderB.class.getCanonicalName();
+//
+//		Method method = TestUtility.getTargetMethod("pngEncode", PngEncoderB.class, 1);
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//
+//		Properties.TARGET_METHOD = targetMethod;
+//
+//		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+//		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//
+//		Properties.APPLY_OBJECT_RULE = true;
+//		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+//
+//		TestFactory testFactory = TestFactory.getInstance();
+//		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+//
+//		for (Branch b : map.keySet()) {
+//			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+//
+//			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+//
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest2");
+//
+//			String branchName = partialGraph.getBranch().toString();
+//			System.out.println(branchName);
+//			Set<String> labelStrings = new HashSet<String>();
+//
+//			switch (branchName) {
+//			case "I41 Branch 4 IFNONNULL L14": {
+//				// Instance: PngEncoderB
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.PngEncoderB\n");
+//
+////				for (DepVariableWrapper v : topLayer.get(0).children) {
+////					System.out.println(v.var.getUniqueLabel());
+////				}
+//
+//				// PngEncoder -> image
+//				assert topLayer.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).var.getUniqueLabel()
+//						.equals("instance field\n"
+//								+ "regression/objectconstruction/testgeneration/example/graphcontruction/PngEncoderB\n"
+//								+ "Ljava/awt/image/BufferedImage;\n" + "image\n");
+//				break;
 //			}
-				// TODO: instance method not checked
-				// should be this MUXFilter -> availablePayload, eofReached, outqueue
-				assert topLayer.size() > 0;
-
-				break;
-			}
-			default: {
-				assert false;
-			}
-			}
-		}
-	}
-
-	@Test
-	public void testComputationGraphConstruction9() throws ClassNotFoundException {
-		setup();
-
-		Properties.TARGET_CLASS = FTPSender.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("execute", FTPSender.class, 2);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-
-		for (Branch b : map.keySet()) {
-			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
-
-			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest9");
-
-			String branchName = partialGraph.getBranch().toString();
-			System.out.println(branchName);
-			Set<String> labelStrings = new HashSet<String>();
-
-			// The branch number is different when you execute this test only or with
-			// multiple tests, not sure why
-			if (branchName.endsWith("IFLE L29")) {
-				// this FTPSender -> mConfiguration -> mResolution
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.FTPSender.execute.FTPSender\n");
-				assert topLayer.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration;\n"
-						+ "mConfiguration\n");
-				assert topLayer.get(0).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration\n"
-						+ "Ljava/lang/String;\n" + "mResolution\n");
-			} else if (branchName.endsWith("IFEQ L30") || branchName.endsWith("IFLE L37")
-					|| branchName.endsWith("IFEQ L38")) {
-				// this FTPSender -> mConfiguration, mFTPConnection, mWorkDir, mFileName
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.FTPSender.execute.FTPSender\n");
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.size() == 4;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration;\n"
-						+ "mConfiguration\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection;\n"
-						+ "mFTPConnection\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Ljava/lang/String;\n" + "mWorkDir\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Ljava/lang/String;\n" + "mFileName\n");
-
-				// mConfiguration -> mResolution
-				assert topLayer.get(0).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration\n"
-						+ "Ljava/lang/String;\n" + "mResolution\n");
-
-				// mFTPConnection -> mFTPClient -> other listNames() -> other ALOAD -> array
-				assert topLayer.get(0).children.get(1).children.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection\n"
-						+ "Lorg/apache/commons/net/ftp/FTPClient;\n" + "mFTPClient\n");
-				assert topLayer.get(0).children.get(1).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).var.getUniqueLabel()
-						.equals("other\n"
-								+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).var
-						.getUniqueLabel().equals("other\n" + "I25 (37) ALOAD 3 l134\n");
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
-						.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
-						.get(0).var.getUniqueLabel().equals("array element\n" + "I27 (39) AALOAD l134\n");
-
-				// mWorkDir -> other listNames()
-				assert topLayer.get(0).children.get(2).children.size() == 1;
-				assert topLayer.get(0).children.get(2).children.get(0).var.getUniqueLabel().equals("other\n"
-						+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
-			} else if (branchName.endsWith("IFEQ L35")) {
-				// this FTPSender
-				// -> mConfiguration, mFTPConnection, mWorkDir, mFileName, mTmpFileName
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.FTPSender.execute.FTPSender\n");
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.size() == 5;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration;\n"
-						+ "mConfiguration\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection;\n"
-						+ "mFTPConnection\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Ljava/lang/String;\n" + "mWorkDir\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Ljava/lang/String;\n" + "mFileName\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Ljava/lang/String;\n" + "mTmpFileName\n");
-
-				// mConfiguration -> mResolution
-				assert topLayer.get(0).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration\n"
-						+ "Ljava/lang/String;\n" + "mResolution\n");
-
-				// mFTPConnection -> mFTPClient -> other listNames() -> other ALOAD -> array
-				assert topLayer.get(0).children.get(1).children.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection\n"
-						+ "Lorg/apache/commons/net/ftp/FTPClient;\n" + "mFTPClient\n");
-				assert topLayer.get(0).children.get(1).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).var.getUniqueLabel()
-						.equals("other\n"
-								+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).var
-						.getUniqueLabel().equals("other\n" + "I25 (37) ALOAD 3 l134\n");
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
-						.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
-						.get(0).var.getUniqueLabel().equals("array element\n" + "I27 (39) AALOAD l134\n");
-
-				// mWorkDir -> other listNames()
-				assert topLayer.get(0).children.get(2).children.size() == 1;
-				assert topLayer.get(0).children.get(2).children.get(0).var.getUniqueLabel().equals("other\n"
-						+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
-			} else if (branchName.endsWith("IFLE L41") || branchName.endsWith("IF_ICMPEQ L42")) {
-				// this FTPSender -> mConfiguration, mFTPConnection, mWorkDir, mFileName
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.FTPSender.execute.FTPSender\n");
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.size() == 4;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration;\n"
-						+ "mConfiguration\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection;\n"
-						+ "mFTPConnection\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Ljava/lang/String;\n" + "mWorkDir\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
-						+ "Ljava/lang/String;\n" + "mFileName\n");
-
-				// mConfiguration -> mResolution, mEncoding
-				// TODO: should have mConfiguration -> mEncoding
-				assert topLayer.get(0).children.get(0).children.size() == 2;
-				assert topLayer.get(0).children.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration\n"
-						+ "Ljava/lang/String;\n" + "mResolution\n");
-
-				// mFTPConnection -> mFTPClient -> other listNames() -> other ALOAD -> array
-				assert topLayer.get(0).children.get(1).children.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection\n"
-						+ "Lorg/apache/commons/net/ftp/FTPClient;\n" + "mFTPClient\n");
-				assert topLayer.get(0).children.get(1).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).var.getUniqueLabel()
-						.equals("other\n"
-								+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).var
-						.getUniqueLabel().equals("other\n" + "I25 (37) ALOAD 3 l134\n");
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
-						.size() == 1;
-				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
-						.get(0).var.getUniqueLabel().equals("array element\n" + "I27 (39) AALOAD l134\n");
-
-				// mWorkDir -> other listNames()
-				assert topLayer.get(0).children.get(2).children.size() == 1;
-				assert topLayer.get(0).children.get(2).children.get(0).var.getUniqueLabel().equals("other\n"
-						+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
-			} else {
-				assert false;
-			}
-		}
-	}
+//			case "I78 Branch 5 IFNE L19":
+//			case "I138 Branch 6 IFEQ L27": {
+//				// Instance: PngEncoderB
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.PngEncoderB\n");
+//
+//				// PngEncoder -> image
+//				assert topLayer.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).var.getUniqueLabel()
+//						.equals("instance field\n"
+//								+ "regression/objectconstruction/testgeneration/example/graphcontruction/PngEncoderB\n"
+//								+ "Ljava/awt/image/BufferedImage;\n" + "image\n");
+//
+//				// TODO
+//				// should have image -> other getRaster() (Line 37)
+//				assert topLayer.get(0).children.get(0).children.size() > 0;
+//
+//				break;
+//			}
+//			default: {
+//				assert false;
+//			}
+//			}
+//		}
+//	}
+//
+//	@Test
+//	public void testComputationGraphConstruction3() throws ClassNotFoundException {
+//		setup();
+//
+//		Properties.TARGET_CLASS = InternalGmHeroFrame.class.getCanonicalName();
+//
+//		Method method = TestUtility.getTargetMethod("valueChanged", InternalGmHeroFrame.class, 1);
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//
+//		Properties.TARGET_METHOD = targetMethod;
+//
+//		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+//		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//
+//		Properties.APPLY_OBJECT_RULE = true;
+//		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+//
+//		TestFactory testFactory = TestFactory.getInstance();
+//		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+//
+//		for (Branch b : map.keySet()) {
+//			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+//
+//			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+//
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest3");
+//
+//			String branchName = partialGraph.getBranch().toString();
+//			System.out.println(branchName);
+//			Set<String> labelStrings = new HashSet<String>();
+//
+//			switch (branchName) {
+//			case "I14 Branch 7 IFEQ L20": {
+//				// TODO
+////				for (DepVariableWrapper v : topLayer) {
+////					System.out.println(v.var.getUniqueLabel());
+////				}
+//
+//				// Parameters: TreeSelectionEvent; Instance: InternalGmHeroFrame
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.size() == 2;
+//				assert labelStrings.contains("parameter\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame\n"
+//						+ "valueChanged(Ljavax/swing/event/TreeSelectionEvent;)V\n" + "1\n");
+//				assert labelStrings.contains("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame\n");
+//
+//				// this InternalGmHeroFrame -> model
+//				// TODO: should not have instance field tree
+//				assert topLayer.get(1).children.size() == 1;
+//
+//				// model -> root
+//				// TODO: should not have other getClass()
+//				assert topLayer.get(1).children.get(0).children.size() == 1;
+//
+//				break;
+//			}
+//			case "I31 Branch 8 IFEQ L21": {
+//				// TODO
+//				break;
+//			}
+//			case "I40 Branch 9 IFLE L22": {
+//				// TODO
+//				break;
+//			}
+//			case "I78 Branch 10 IFGT L28": {
+//				// Instance: InternalGmHeroFrame -> frameName
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.InternalGmHeroFrame.valueChanged.InternalGmHeroFrame\n");
+//
+//				// InternalGmHeroFrame -> frameName
+//				assert topLayer.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/InternalGmHeroFrame/valueChanged/InternalGmHeroFrame\n"
+//						+ "Ljava/lang/String;\n" + "frameName\n");
+//			}
+//			case "I96 Branch 11 IFEQ L30": {
+//				// TODO
+//				break;
+//			}
+//			default: {
+//				assert false;
+//			}
+//			}
+//		}
+//	}
+//
+//	@Test
+//	public void testComputationGraphConstruction4() throws ClassNotFoundException {
+//		setup();
+//
+//		Properties.TARGET_CLASS = HandballModel.class.getCanonicalName();
+//
+//		Method method = TestUtility.getTargetMethod("setMoveName", HandballModel.class, 1);
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//
+//		Properties.TARGET_METHOD = targetMethod;
+//
+//		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+//		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//
+//		Properties.APPLY_OBJECT_RULE = true;
+//		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+//
+//		TestFactory testFactory = TestFactory.getInstance();
+//		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+//
+//		for (Branch b : map.keySet()) {
+//			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+//
+//			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+//
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest4");
+//
+//			String branchName = partialGraph.getBranch().toString();
+//			System.out.println(branchName);
+//			Set<String> labelStrings = new HashSet<String>();
+//
+//			switch (branchName) {
+//			case "I10 Branch 1 IFNULL L46": {
+//				// TODO
+//				// Static class/method not shown
+//				// should be Static Main -> window
+//				assert topLayer.size() > 0;
+//
+//				break;
+//			}
+//			case "I31 Branch 2 IFNULL L49":
+//			case "I37 Branch 3 IFLE L49": {
+//				// TODO
+//				// Static class/method not shown, primitive parameter not shown
+//				// should be Static Main -> window, Parameter: paramString
+//				assert topLayer.size() > 0;
+//
+//				break;
+//			}
+//			case "I63 Branch 4 IFNE L54": {
+//				// TODO
+//				// Static class/method not shown, instance methods not shown
+//				// should be Static Main -> window, this.isSaved() -> this.lastSavedModel
+//				assert topLayer.size() > 0;
+//
+//				break;
+//			}
+//			default: {
+//				assert false;
+//			}
+//			}
+//		}
+//	}
+//
+//	@Test
+//	public void testComputationGraphConstruction5() throws ClassNotFoundException {
+//		setup();
+//
+//		Properties.TARGET_CLASS = Article.class.getCanonicalName();
+//
+//		Method method = TestUtility.getTargetMethod("getRevisionId", Article.class, 0);
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//
+//		Properties.TARGET_METHOD = targetMethod;
+//
+//		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+//		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//
+//		Properties.APPLY_OBJECT_RULE = true;
+//		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+//
+//		TestFactory testFactory = TestFactory.getInstance();
+//		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+//
+//		for (Branch b : map.keySet()) {
+//			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+//
+//			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+//
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest5");
+//
+//			String branchName = partialGraph.getBranch().toString();
+//			System.out.println(branchName);
+//			Set<String> labelStrings = new HashSet<String>();
+//
+//			switch (branchName) {
+//			case "I7 Branch 1 IFEQ L27": {
+//				// TODO: instance method not checked
+//				// should be this Article -> bot, reload
+//				assert topLayer.size() > 0;
+//
+//				break;
+//			}
+//			default: {
+//				assert false;
+//			}
+//			}
+//		}
+//	}
+//
+//	@Test
+//	public void testComputationGraphConstruction6() throws ClassNotFoundException {
+//		setup();
+//
+//		Properties.TARGET_CLASS = ExpressionNodeList.class.getCanonicalName();
+//
+//		Method method = TestUtility.getTargetMethod("addExpressionList", ExpressionNodeList.class, 1);
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//
+//		Properties.TARGET_METHOD = targetMethod;
+//
+//		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+//		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//
+//		Properties.APPLY_OBJECT_RULE = true;
+//		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+//
+//		TestFactory testFactory = TestFactory.getInstance();
+//		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+//
+//		for (Branch b : map.keySet()) {
+//			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+//
+//			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+//
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest6");
+//
+//			String branchName = partialGraph.getBranch().toString();
+//			System.out.println(branchName);
+//			Set<String> labelStrings = new HashSet<String>();
+//
+//			switch (branchName) {
+//			case "I21 Branch 1 IFNE L11": {
+//				// Parameter: list
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("parameter\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ExpressionNodeList.addExpressionList.ExpressionNodeList\n"
+//						+ "addExpressionList(Lregression/objectconstruction/testgeneration/example/graphcontruction/ExpressionNodeList/addExpressionList/ExpressionNodeList;)V\n"
+//						+ "1\n");
+//
+//				// list -> other get(), list -> items
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.size() == 2;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ExpressionNodeList/addExpressionList/ExpressionNodeList\n"
+//						+ "Ljava/util/ArrayList;\n" + "items\n");
+//				assert labelStrings.contains(
+//						"other\n" + "I18 (32) INVOKEVIRTUAL java/util/ArrayList.get(I)Ljava/lang/Object; l30\n");
+//
+//				// items -> size, items -> other get()
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer.get(0).children.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.get(0).children.size() == 2;
+//				assert labelStrings.contains("instance field\n" + "java/util/ArrayList\n" + "I\n" + "size\n");
+//				assert labelStrings.contains(
+//						"other\n" + "I18 (32) INVOKEVIRTUAL java/util/ArrayList.get(I)Ljava/lang/Object; l30\n");
+//
+//				// other get() -> other CHECKCAST -> value
+//				assert topLayer.get(0).children.get(0).children.get(1).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).children.get(1).children.get(0).var.getUniqueLabel()
+//						.equals("other\n" + "I19 (35) CHECKCAST java/lang/Integer l30\n");
+//				assert topLayer.get(0).children.get(0).children.get(1).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).children.get(1).children.get(0).children.get(0).var
+//						.getUniqueLabel().equals("instance field\n" + "java/lang/Integer\n" + "I\n" + "value\n");
+//				break;
+//			}
+//			case "I38 Branch 2 IF_ICMPLT L9": {
+//				// Parameter: list -> items -> size
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("parameter\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ExpressionNodeList.addExpressionList.ExpressionNodeList\n"
+//						+ "addExpressionList(Lregression/objectconstruction/testgeneration/example/graphcontruction/ExpressionNodeList/addExpressionList/ExpressionNodeList;)V\n"
+//						+ "1\n");
+//				assert topLayer.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ExpressionNodeList/addExpressionList/ExpressionNodeList\n"
+//						+ "Ljava/util/ArrayList;\n" + "items\n");
+//				assert topLayer.get(0).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).children.get(0).var.getUniqueLabel()
+//						.equals("instance field\n" + "java/util/ArrayList\n" + "I\n" + "size\n");
+//
+//				break;
+//			}
+//			default: {
+//				assert false;
+//			}
+//			}
+//		}
+//	}
+//
+//	@Test
+//	public void testComputationGraphConstruction7() throws ClassNotFoundException {
+//		setup();
+//
+//		Properties.TARGET_CLASS = RMIManagedConnectionAcceptor.class.getCanonicalName();
+//
+//		Method method = TestUtility.getTargetMethod("close", RMIManagedConnectionAcceptor.class, 0);
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//
+//		Properties.TARGET_METHOD = targetMethod;
+//
+//		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+//		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//
+//		Properties.APPLY_OBJECT_RULE = true;
+//		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+//
+//		TestFactory testFactory = TestFactory.getInstance();
+//		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+//
+//		for (Branch b : map.keySet()) {
+//			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+//
+//			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+//
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest7");
+//
+//			String branchName = partialGraph.getBranch().toString();
+//			System.out.println(branchName);
+//			Set<String> labelStrings = new HashSet<String>();
+//
+//			switch (branchName) {
+//			case "I4 Branch 5 IFNULL L17": {
+//				// this RMIManagedConnectionAcceptor -> _registry
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.RMIManagedConnectionAcceptor.close.RMIManagedConnectionAcceptor\n");
+//				assert topLayer.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
+//						+ "Ljava/rmi/registry/Registry;\n" + "_registry\n");
+//
+//				break;
+//			}
+//			case "I24 Branch 6 IFNE L20": {
+//				// this RMIManagedConnectionAcceptor -> _registry, _factory
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.RMIManagedConnectionAcceptor.close.RMIManagedConnectionAcceptor\n");
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.size() == 2;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
+//						+ "Ljava/rmi/registry/Registry;\n" + "_registry\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIInvokerFactory;\n"
+//						+ "_factory\n");
+//
+//				break;
+//			}
+//			case "I36 Branch 7 IFEQ L22":
+//			case "I42 Branch 8 IFNE L22":
+//			case "I51 Branch 9 IFNE L23": {
+//				// this RMIManagedConnectionAcceptor -> _registry, _factory, _created
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.RMIManagedConnectionAcceptor.close.RMIManagedConnectionAcceptor\n");
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.size() == 3;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
+//						+ "Ljava/rmi/registry/Registry;\n" + "_registry\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIInvokerFactory;\n"
+//						+ "_factory\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/RMIManagedConnectionAcceptor/close/RMIManagedConnectionAcceptor\n"
+//						+ "Z\n" + "_created\n");
+//
+//				break;
+//			}
+//			default: {
+//				assert false;
+//			}
+//			}
+//		}
+//	}
+//
+//	@Test
+//	public void testComputationGraphConstruction8() throws ClassNotFoundException {
+//		setup();
+//
+//		Properties.TARGET_CLASS = MUXFilter.class.getCanonicalName();
+//
+//		Method method = TestUtility.getTargetMethod("pump", MUXFilter.class, 0);
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//
+//		Properties.TARGET_METHOD = targetMethod;
+//
+//		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+//		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//
+//		Properties.APPLY_OBJECT_RULE = true;
+//		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+//
+//		TestFactory testFactory = TestFactory.getInstance();
+//		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+//
+//		for (Branch b : map.keySet()) {
+//			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+//
+//			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+//
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest8");
+//
+//			String branchName = partialGraph.getBranch().toString();
+//			System.out.println(branchName);
+//			Set<String> labelStrings = new HashSet<String>();
+//
+//			switch (branchName) {
+//			case "I6 Branch 1 IFNE L16": {
+////				for (DepVariableWrapper v : topLayer.get(0).children) {
+////				System.out.println(v.var.getUniqueLabel());
+////			}
+//				// TODO: instance method not checked
+//				// should be this MUXFilter -> availablePayload, eofReached, outqueue
+//				assert topLayer.size() > 0;
+//
+//				break;
+//			}
+//			default: {
+//				assert false;
+//			}
+//			}
+//		}
+//	}
+//
+//	@Test
+//	public void testComputationGraphConstruction9() throws ClassNotFoundException {
+//		setup();
+//
+//		Properties.TARGET_CLASS = FTPSender.class.getCanonicalName();
+//
+//		Method method = TestUtility.getTargetMethod("execute", FTPSender.class, 2);
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//
+//		Properties.TARGET_METHOD = targetMethod;
+//
+//		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+//		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//
+//		Properties.APPLY_OBJECT_RULE = true;
+//		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+//
+//		TestFactory testFactory = TestFactory.getInstance();
+//		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+//
+//		for (Branch b : map.keySet()) {
+//			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+//
+//			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+//
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest9");
+//
+//			String branchName = partialGraph.getBranch().toString();
+//			System.out.println(branchName);
+//			Set<String> labelStrings = new HashSet<String>();
+//
+//			// The branch number is different when you execute this test only or with
+//			// multiple tests, not sure why
+//			if (branchName.endsWith("IFLE L29")) {
+//				// this FTPSender -> mConfiguration -> mResolution
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.FTPSender.execute.FTPSender\n");
+//				assert topLayer.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration;\n"
+//						+ "mConfiguration\n");
+//				assert topLayer.get(0).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration\n"
+//						+ "Ljava/lang/String;\n" + "mResolution\n");
+//			} else if (branchName.endsWith("IFEQ L30") || branchName.endsWith("IFLE L37")
+//					|| branchName.endsWith("IFEQ L38")) {
+//				// this FTPSender -> mConfiguration, mFTPConnection, mWorkDir, mFileName
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.FTPSender.execute.FTPSender\n");
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.size() == 4;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration;\n"
+//						+ "mConfiguration\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection;\n"
+//						+ "mFTPConnection\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Ljava/lang/String;\n" + "mWorkDir\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Ljava/lang/String;\n" + "mFileName\n");
+//
+//				// mConfiguration -> mResolution
+//				assert topLayer.get(0).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration\n"
+//						+ "Ljava/lang/String;\n" + "mResolution\n");
+//
+//				// mFTPConnection -> mFTPClient -> other listNames() -> other ALOAD -> array
+//				assert topLayer.get(0).children.get(1).children.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection\n"
+//						+ "Lorg/apache/commons/net/ftp/FTPClient;\n" + "mFTPClient\n");
+//				assert topLayer.get(0).children.get(1).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).var.getUniqueLabel()
+//						.equals("other\n"
+//								+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).var
+//						.getUniqueLabel().equals("other\n" + "I25 (37) ALOAD 3 l134\n");
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
+//						.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
+//						.get(0).var.getUniqueLabel().equals("array element\n" + "I27 (39) AALOAD l134\n");
+//
+//				// mWorkDir -> other listNames()
+//				assert topLayer.get(0).children.get(2).children.size() == 1;
+//				assert topLayer.get(0).children.get(2).children.get(0).var.getUniqueLabel().equals("other\n"
+//						+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
+//			} else if (branchName.endsWith("IFEQ L35")) {
+//				// this FTPSender
+//				// -> mConfiguration, mFTPConnection, mWorkDir, mFileName, mTmpFileName
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.FTPSender.execute.FTPSender\n");
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.size() == 5;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration;\n"
+//						+ "mConfiguration\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection;\n"
+//						+ "mFTPConnection\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Ljava/lang/String;\n" + "mWorkDir\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Ljava/lang/String;\n" + "mFileName\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Ljava/lang/String;\n" + "mTmpFileName\n");
+//
+//				// mConfiguration -> mResolution
+//				assert topLayer.get(0).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration\n"
+//						+ "Ljava/lang/String;\n" + "mResolution\n");
+//
+//				// mFTPConnection -> mFTPClient -> other listNames() -> other ALOAD -> array
+//				assert topLayer.get(0).children.get(1).children.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection\n"
+//						+ "Lorg/apache/commons/net/ftp/FTPClient;\n" + "mFTPClient\n");
+//				assert topLayer.get(0).children.get(1).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).var.getUniqueLabel()
+//						.equals("other\n"
+//								+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).var
+//						.getUniqueLabel().equals("other\n" + "I25 (37) ALOAD 3 l134\n");
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
+//						.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
+//						.get(0).var.getUniqueLabel().equals("array element\n" + "I27 (39) AALOAD l134\n");
+//
+//				// mWorkDir -> other listNames()
+//				assert topLayer.get(0).children.get(2).children.size() == 1;
+//				assert topLayer.get(0).children.get(2).children.get(0).var.getUniqueLabel().equals("other\n"
+//						+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
+//			} else if (branchName.endsWith("IFLE L41") || branchName.endsWith("IF_ICMPEQ L42")) {
+//				// this FTPSender -> mConfiguration, mFTPConnection, mWorkDir, mFileName
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.FTPSender.execute.FTPSender\n");
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.size() == 4;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration;\n"
+//						+ "mConfiguration\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection;\n"
+//						+ "mFTPConnection\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Ljava/lang/String;\n" + "mWorkDir\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPSender\n"
+//						+ "Ljava/lang/String;\n" + "mFileName\n");
+//
+//				// mConfiguration -> mResolution, mEncoding
+//				// TODO: should have mConfiguration -> mEncoding
+//				assert topLayer.get(0).children.get(0).children.size() == 2;
+//				assert topLayer.get(0).children.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FileSenderConfiguration\n"
+//						+ "Ljava/lang/String;\n" + "mResolution\n");
+//
+//				// mFTPConnection -> mFTPClient -> other listNames() -> other ALOAD -> array
+//				assert topLayer.get(0).children.get(1).children.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/FTPSender/execute/FTPConnection\n"
+//						+ "Lorg/apache/commons/net/ftp/FTPClient;\n" + "mFTPClient\n");
+//				assert topLayer.get(0).children.get(1).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).var.getUniqueLabel()
+//						.equals("other\n"
+//								+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).var
+//						.getUniqueLabel().equals("other\n" + "I25 (37) ALOAD 3 l134\n");
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
+//						.size() == 1;
+//				assert topLayer.get(0).children.get(1).children.get(0).children.get(0).children.get(0).children
+//						.get(0).var.getUniqueLabel().equals("array element\n" + "I27 (39) AALOAD l134\n");
+//
+//				// mWorkDir -> other listNames()
+//				assert topLayer.get(0).children.get(2).children.size() == 1;
+//				assert topLayer.get(0).children.get(2).children.get(0).var.getUniqueLabel().equals("other\n"
+//						+ "I14 (22) INVOKEVIRTUAL org/apache/commons/net/ftp/FTPClient.listNames(Ljava/lang/String;)[Ljava/lang/String; l133\n");
+//			} else {
+//				assert false;
+//			}
+//		}
+//	}
 
 	@Test
 	public void testComputationGraphConstruction10() throws ClassNotFoundException {
@@ -1711,309 +1690,309 @@ public class ProjectGraphConstructionTest extends ObjectOrientedTest {
 		}
 	}
 
-	@Test
-	public void testComputationGraphConstruction12() throws ClassNotFoundException {
-		setup();
-
-		Properties.TARGET_CLASS = ChkOrdAudRs_TypeSequence2.class.getCanonicalName();
-
-		Method method = TestUtility.getTargetMethod("equals", ChkOrdAudRs_TypeSequence2.class, 1);
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-
-		Properties.TARGET_METHOD = targetMethod;
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		Properties.APPLY_OBJECT_RULE = true;
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
-
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
-
-		for (Branch b : map.keySet()) {
-			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
-
-			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest12");
-
-			String branchName = partialGraph.getBranch().toString();
-			System.out.println(branchName);
-			Set<String> labelStrings = new HashSet<String>();
-
-			switch (branchName) {
-			case "I4 Branch 37 IF_ACMPNE L12":
-			case "I16 Branch 38 IFNE L14":
-			case "I25 Branch 39 IFEQ L16": {
-				// TODO
-				// should have Parameter: obj
-//				assert topLayer.size() > 0;
-				break;
-			}
-			case "I35 Branch 40 IFNULL L18":
-			case "I40 Branch 41 IFNONNULL L19":
-			case "I63 Branch 43 IFNULL L23": {
-				// this ChkOrdAudRs_TypeSequence2 -> _recCtrlOut
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
-				assert topLayer.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
-						+ "_recCtrlOut\n");
-
-				break;
-			}
-			case "I54 Branch 42 IFNE L21": {
-				// this ChkOrdAudRs_TypeSequence2 -> _recCtrlOut
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
-				assert topLayer.get(0).children.size() == 1;
-				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
-						+ "_recCtrlOut\n");
-
-				// _recCtrlOut
-				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
-				for (DepVariableWrapper v : topLayer.get(0).children.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.get(0).children.size() == 5;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
-						+ "_cursor\n");
-
-				break;
-			}
-			case "I72 Branch 44 IFNULL L26":
-			case "I77 Branch 45 IFNONNULL L27":
-			case "I100 Branch 47 IFNULL L31": {
-				// this ChkOrdAudRs_TypeSequence2
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
-
-				// this -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.size() == 2;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
-						+ "_chkOrdAudRs_TypeSequence2Sequence\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
-						+ "_recCtrlOut\n");
-
-				// _recCtrlOut
-				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
-				for (DepVariableWrapper v : topLayer.get(0).children.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.get(0).children.size() == 5;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
-						+ "_cursor\n");
-
-				break;
-			}
-			case "I91 Branch 46 IFNE L29": {
-				// this ChkOrdAudRs_TypeSequence2
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
-
-				// this -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.size() == 2;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
-						+ "_chkOrdAudRs_TypeSequence2Sequence\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
-						+ "_recCtrlOut\n");
-
-				// _recCtrlOut
-				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
-				DepVariableWrapper _recCtrlOut = getChild(topLayer.get(0).children, "instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
-						+ "_recCtrlOut\n");
-				for (DepVariableWrapper v : _recCtrlOut.children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert _recCtrlOut.children.size() == 5;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
-						+ "_cursor\n");
-
-				// _chkOrdAudRs_TypeSequence2Sequence
-				// -> _selRangeDt, _methodList, _chkOrdIdList, _recChkOrdIdList
-				DepVariableWrapper _chkOrdAudRs_TypeSequence2Sequence = getChild(topLayer.get(0).children,
-						"instance field\n"
-								+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-								+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
-								+ "_chkOrdAudRs_TypeSequence2Sequence\n");
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : _chkOrdAudRs_TypeSequence2Sequence.children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert _chkOrdAudRs_TypeSequence2Sequence.children.size() == 4;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/SelRangeDt;\n"
-						+ "_selRangeDt\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_methodList\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_chkOrdIdList\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_recChkOrdIdList\n");
-
-				break;
-			}
-			case "I109 Branch 48 IFNULL L34":
-			case "I114 Branch 49 IFNONNULL L35":
-			case "I128 Branch 50 IFNE L37":
-			case "I137 Branch 51 IFNULL L39": {
-				// this ChkOrdAudRs_TypeSequence2
-				assert topLayer.size() == 1;
-				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
-						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
-
-				// this -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence,
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : topLayer.get(0).children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert topLayer.get(0).children.size() == 3;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
-						+ "_chkOrdAudRs_TypeSequence2Sequence\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
-						+ "_recCtrlOut\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Ljava/util/ArrayList;\n" + "_chkOrdMsgRecList\n");
-
-				// _recCtrlOut
-				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
-				DepVariableWrapper _recCtrlOut = getChild(topLayer.get(0).children, "instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
-						+ "_recCtrlOut\n");
-				for (DepVariableWrapper v : _recCtrlOut.children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert _recCtrlOut.children.size() == 5;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_matchedRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "J\n" + "_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Z\n" + "_has_sentRec\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
-						+ "_cursor\n");
-
-				// _chkOrdAudRs_TypeSequence2Sequence
-				// -> _selRangeDt, _methodList, _chkOrdIdList, _recChkOrdIdList
-				DepVariableWrapper _chkOrdAudRs_TypeSequence2Sequence = getChild(topLayer.get(0).children,
-						"instance field\n"
-								+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
-								+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
-								+ "_chkOrdAudRs_TypeSequence2Sequence\n");
-				labelStrings = new HashSet<String>();
-				for (DepVariableWrapper v : _chkOrdAudRs_TypeSequence2Sequence.children) {
-					labelStrings.add(v.var.getUniqueLabel());
-				}
-				assert _chkOrdAudRs_TypeSequence2Sequence.children.size() == 4;
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/SelRangeDt;\n"
-						+ "_selRangeDt\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_methodList\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_chkOrdIdList\n");
-				assert labelStrings.contains("instance field\n"
-						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
-						+ "Ljava/util/ArrayList;\n" + "_recChkOrdIdList\n");
-
-				break;
-			}
-			default: {
-				assert false;
-			}
-			}
-		}
-	}
+//	@Test
+//	public void testComputationGraphConstruction12() throws ClassNotFoundException {
+//		setup();
+//
+//		Properties.TARGET_CLASS = ChkOrdAudRs_TypeSequence2.class.getCanonicalName();
+//
+//		Method method = TestUtility.getTargetMethod("equals", ChkOrdAudRs_TypeSequence2.class, 1);
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//
+//		Properties.TARGET_METHOD = targetMethod;
+//
+//		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+//		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//
+//		Properties.APPLY_OBJECT_RULE = true;
+//		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+//
+//		TestFactory testFactory = TestFactory.getInstance();
+//		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+//
+//		for (Branch b : map.keySet()) {
+//			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+//
+//			List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+//
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "computationGraphTest12");
+//
+//			String branchName = partialGraph.getBranch().toString();
+//			System.out.println(branchName);
+//			Set<String> labelStrings = new HashSet<String>();
+//
+//			switch (branchName) {
+//			case "I4 Branch 37 IF_ACMPNE L12":
+//			case "I16 Branch 38 IFNE L14":
+//			case "I25 Branch 39 IFEQ L16": {
+//				// TODO
+//				// should have Parameter: obj
+////				assert topLayer.size() > 0;
+//				break;
+//			}
+//			case "I35 Branch 40 IFNULL L18":
+//			case "I40 Branch 41 IFNONNULL L19":
+//			case "I63 Branch 43 IFNULL L23": {
+//				// this ChkOrdAudRs_TypeSequence2 -> _recCtrlOut
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
+//				assert topLayer.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
+//						+ "_recCtrlOut\n");
+//
+//				break;
+//			}
+//			case "I54 Branch 42 IFNE L21": {
+//				// this ChkOrdAudRs_TypeSequence2 -> _recCtrlOut
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
+//				assert topLayer.get(0).children.size() == 1;
+//				assert topLayer.get(0).children.get(0).var.getUniqueLabel().equals("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
+//						+ "_recCtrlOut\n");
+//
+//				// _recCtrlOut
+//				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
+//				for (DepVariableWrapper v : topLayer.get(0).children.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.get(0).children.size() == 5;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "J\n" + "_matchedRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Z\n" + "_has_matchedRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "J\n" + "_sentRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Z\n" + "_has_sentRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
+//						+ "_cursor\n");
+//
+//				break;
+//			}
+//			case "I72 Branch 44 IFNULL L26":
+//			case "I77 Branch 45 IFNONNULL L27":
+//			case "I100 Branch 47 IFNULL L31": {
+//				// this ChkOrdAudRs_TypeSequence2
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
+//
+//				// this -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.size() == 2;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
+//						+ "_chkOrdAudRs_TypeSequence2Sequence\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
+//						+ "_recCtrlOut\n");
+//
+//				// _recCtrlOut
+//				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
+//				for (DepVariableWrapper v : topLayer.get(0).children.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.get(0).children.size() == 5;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "J\n" + "_matchedRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Z\n" + "_has_matchedRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "J\n" + "_sentRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Z\n" + "_has_sentRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
+//						+ "_cursor\n");
+//
+//				break;
+//			}
+//			case "I91 Branch 46 IFNE L29": {
+//				// this ChkOrdAudRs_TypeSequence2
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
+//
+//				// this -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.size() == 2;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
+//						+ "_chkOrdAudRs_TypeSequence2Sequence\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
+//						+ "_recCtrlOut\n");
+//
+//				// _recCtrlOut
+//				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
+//				DepVariableWrapper _recCtrlOut = getChild(topLayer.get(0).children, "instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
+//						+ "_recCtrlOut\n");
+//				for (DepVariableWrapper v : _recCtrlOut.children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert _recCtrlOut.children.size() == 5;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "J\n" + "_matchedRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Z\n" + "_has_matchedRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "J\n" + "_sentRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Z\n" + "_has_sentRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
+//						+ "_cursor\n");
+//
+//				// _chkOrdAudRs_TypeSequence2Sequence
+//				// -> _selRangeDt, _methodList, _chkOrdIdList, _recChkOrdIdList
+//				DepVariableWrapper _chkOrdAudRs_TypeSequence2Sequence = getChild(topLayer.get(0).children,
+//						"instance field\n"
+//								+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//								+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
+//								+ "_chkOrdAudRs_TypeSequence2Sequence\n");
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : _chkOrdAudRs_TypeSequence2Sequence.children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert _chkOrdAudRs_TypeSequence2Sequence.children.size() == 4;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/SelRangeDt;\n"
+//						+ "_selRangeDt\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
+//						+ "Ljava/util/ArrayList;\n" + "_methodList\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
+//						+ "Ljava/util/ArrayList;\n" + "_chkOrdIdList\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
+//						+ "Ljava/util/ArrayList;\n" + "_recChkOrdIdList\n");
+//
+//				break;
+//			}
+//			case "I109 Branch 48 IFNULL L34":
+//			case "I114 Branch 49 IFNONNULL L35":
+//			case "I128 Branch 50 IFNE L37":
+//			case "I137 Branch 51 IFNULL L39": {
+//				// this ChkOrdAudRs_TypeSequence2
+//				assert topLayer.size() == 1;
+//				assert topLayer.get(0).var.getUniqueLabel().equals("this\n"
+//						+ "regression.objectconstruction.testgeneration.example.graphcontruction.ChkOrdAudRs_TypeSequence2.equals.ChkOrdAudRs_TypeSequence2\n");
+//
+//				// this -> _recCtrlOut, _chkOrdAudRs_TypeSequence2Sequence,
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : topLayer.get(0).children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert topLayer.get(0).children.size() == 3;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
+//						+ "_chkOrdAudRs_TypeSequence2Sequence\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
+//						+ "_recCtrlOut\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Ljava/util/ArrayList;\n" + "_chkOrdMsgRecList\n");
+//
+//				// _recCtrlOut
+//				// -> _matchedRec, _has_matchedRec, _sentRec, _has_sentRec, _cursor
+//				DepVariableWrapper _recCtrlOut = getChild(topLayer.get(0).children, "instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut;\n"
+//						+ "_recCtrlOut\n");
+//				for (DepVariableWrapper v : _recCtrlOut.children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert _recCtrlOut.children.size() == 5;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "J\n" + "_matchedRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Z\n" + "_has_matchedRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "J\n" + "_sentRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Z\n" + "_has_sentRec\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/RecCtrlOut\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/Cursor;\n"
+//						+ "_cursor\n");
+//
+//				// _chkOrdAudRs_TypeSequence2Sequence
+//				// -> _selRangeDt, _methodList, _chkOrdIdList, _recChkOrdIdList
+//				DepVariableWrapper _chkOrdAudRs_TypeSequence2Sequence = getChild(topLayer.get(0).children,
+//						"instance field\n"
+//								+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2\n"
+//								+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence;\n"
+//								+ "_chkOrdAudRs_TypeSequence2Sequence\n");
+//				labelStrings = new HashSet<String>();
+//				for (DepVariableWrapper v : _chkOrdAudRs_TypeSequence2Sequence.children) {
+//					labelStrings.add(v.var.getUniqueLabel());
+//				}
+//				assert _chkOrdAudRs_TypeSequence2Sequence.children.size() == 4;
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
+//						+ "Lregression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/SelRangeDt;\n"
+//						+ "_selRangeDt\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
+//						+ "Ljava/util/ArrayList;\n" + "_methodList\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
+//						+ "Ljava/util/ArrayList;\n" + "_chkOrdIdList\n");
+//				assert labelStrings.contains("instance field\n"
+//						+ "regression/objectconstruction/testgeneration/example/graphcontruction/ChkOrdAudRs_TypeSequence2/equals/ChkOrdAudRs_TypeSequence2Sequence\n"
+//						+ "Ljava/util/ArrayList;\n" + "_recChkOrdIdList\n");
+//
+//				break;
+//			}
+//			default: {
+//				assert false;
+//			}
+//			}
+//		}
+//	}
 
 }
