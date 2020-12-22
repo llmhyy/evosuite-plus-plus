@@ -62,7 +62,7 @@ public class SF100OverallTest {
 				};
 		
 		int repeatTime = 1;
-		int budget = 10;
+		int budget = 10000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

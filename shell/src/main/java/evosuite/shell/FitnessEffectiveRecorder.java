@@ -153,7 +153,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 				if(e.toString().contains("branchCovering")) {
 					BranchCoveringEvent bc = (BranchCoveringEvent)e;
 					BranchInfo b = bc.getBranch();
-					String testcase = bc.getTestCode();
+					String testcase = bc.getNewCode();
 					eventMap.put("Type",e.toString());
 					eventMap.put("BranchInfo",b);
 					eventMap.put("Testcode",testcase);

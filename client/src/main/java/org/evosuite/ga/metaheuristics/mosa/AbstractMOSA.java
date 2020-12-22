@@ -179,12 +179,14 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 //			this.removeUnusedVariables(offspring2);
 			
 			// apply mutation on offspring1
+			Set<?> uncoveredGoals = getUncoveredGoals();
 			this.mutate(offspring1, parent1);
 			if (offspring1.isChanged()) {
+				
 				this.clearCachedResults(offspring1);
 				this.calculateFitness(offspring1);
 				
-				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1);
+				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
 				EventSequence.addEvent(e);
 				
 				MutationPositionDiscriminator.identifyRelevantMutations(offspring1, parent1);
@@ -192,12 +194,13 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			}
 
 			// apply mutation on offspring2
+			uncoveredGoals = getUncoveredGoals();
 			this.mutate(offspring2, parent2);
 			if (offspring2.isChanged()) {
 				this.clearCachedResults(offspring2);
 				this.calculateFitness(offspring2);
 				
-				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1);
+				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
 				EventSequence.addEvent(e);
 				
 				MutationPositionDiscriminator.identifyRelevantMutations(offspring2, parent2);
