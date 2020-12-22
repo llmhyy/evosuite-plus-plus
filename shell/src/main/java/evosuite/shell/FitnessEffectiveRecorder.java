@@ -162,6 +162,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 				{
 					eventMap.put("Type",e.toString());
 					eventMap.put("DataType",e.getDataType());
+					eventMap.put("oldValue",e.getOldValue());
 					eventMap.put("value",e.getValue());
 					rowData.add(eventMap);
 				}
