@@ -21,6 +21,7 @@ public abstract class Event implements Serializable{
 	private String dataType;
 	private int poolsize;
 	private String value;
+	private String oldValue;
 	
 	
 	
@@ -89,5 +90,13 @@ public abstract class Event implements Serializable{
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	public String getOldValue() {
+		return oldValue;
+	}
+
+	public void setOldValue(String oldValue) {
+		this.oldValue = oldValue;
 	}
 }
