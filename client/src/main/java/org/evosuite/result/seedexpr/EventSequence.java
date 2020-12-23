@@ -5,21 +5,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.coverage.branch.BranchPool;
-import org.evosuite.ga.FitnessFunction;
-import org.evosuite.ga.archive.Archive;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.testcase.TestChromosome;
 
 public class EventSequence {
 	public static List<Event> events = new ArrayList<Event>();
-	public static boolean enabled = false;
+//	public static boolean enabled = false;
 	
 	public static void addEvent(Event e) {
-		if(enabled && e != null) {
+		if(Properties.ENABLE_TRACEING_EVENT && e != null) {
 			events.add(e);			
 		}
 	}
@@ -29,12 +28,12 @@ public class EventSequence {
 	}
 
 	public static void enableRecord() {
-		enabled = true;
+		Properties.ENABLE_TRACEING_EVENT = true;
 		
 	}
 
 	public static void disableRecord() {
-		enabled = false;
+		Properties.ENABLE_TRACEING_EVENT = false;
 	}
 
 	public static BranchCoveringEvent deriveCoveredBranch(Object offspring, Object parent, Set<?> uncoveredGoals) {
