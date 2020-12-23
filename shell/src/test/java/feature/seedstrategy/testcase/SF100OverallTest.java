@@ -29,6 +29,9 @@ public class SF100OverallTest {
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 0;
 		
 		Properties.TIMEOUT = 10000000;
+		
+		Properties.ENABLE_TRACEING_EVENT = true;
+		
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
