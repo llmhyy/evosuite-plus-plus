@@ -214,10 +214,10 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		for (int i = 0; i < Properties.POPULATION * Properties.P_TEST_INSERTION; i++) {
 			T tch = null;
 			if (this.getCoveredGoals().size() == 0 || Randomness.nextBoolean()) {
-				RandomLengthTestFactory.workingBranch = null;
+				RandomLengthTestFactory.workingBranch4ObjectGraph = null;
 				FitnessFunction<?> ff = Randomness.choice(getUncoveredGoals());
 				if(ff != null && ff instanceof BranchFitness) {
-					RandomLengthTestFactory.workingBranch = ((BranchFitness)ff).getBranchGoal().getBranch();
+					RandomLengthTestFactory.workingBranch4ObjectGraph = ((BranchFitness)ff).getBranchGoal().getBranch();
 				}
 				
 				tch = this.chromosomeFactory.getChromosome();

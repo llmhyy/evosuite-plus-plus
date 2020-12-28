@@ -9,14 +9,15 @@ import org.evosuite.runtime.sandbox.Sandbox;
 import org.junit.Before;
 import org.junit.Test;
 
+import common.SF100Project;
 import evosuite.shell.EvoTestResult;
 import sf100.CommonTestUtil;
 
 public class SF100OverallTest {
 	@Before
 	public void beforeTest() {
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = true;
@@ -25,9 +26,9 @@ public class SF100OverallTest {
 		Properties.INSTRUMENT_CONTEXT = true;
 		Properties.CHROMOSOME_LENGTH = 200;
 		
-		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 0;
+		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 		
-		Properties.TIMEOUT = 10000000;
+//		Properties.TIMEOUT = 10000000;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
@@ -40,7 +41,7 @@ public class SF100OverallTest {
 //		String projectId = "83_xbus";
 //		String projectId = "80_wheelwebtool";
 //		String projectId = "58_fps370";
-		String projectId = "24_saxpath";
+		String projectId = SF100Project.P84;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -52,16 +53,21 @@ public class SF100OverallTest {
 //				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
 //				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
 //				"wheel.components.Checkbox#renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V"
-				"com.werken.saxpath.XPathLexer#nextToken()Lcom/werken/saxpath/Token;"
+//				"net.sourceforge.ifxfv3.beans.CCAcctStmtInqRs#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.ifxfv3.beans.PmtMsgRecChoice#equals(Ljava/lang/Object;)Z"
+//				"de.paragon.explorer.model.AttributeModelComparator#compare(Lde/paragon/explorer/model/AttributeModel;Lde/paragon/explorer/model/AttributeModel;)I"
+				"net.sourceforge.ifxfv3.beans.PmtLegalRptData#equals(Ljava/lang/Object;)Z"
+
+//				"com.lts.scheduler.Scheduler#cancel(Lcom/lts/scheduler/ScheduledEventListener;)V" 
 				};
 		
-		int repeatTime = 10;
-		int budget = 100000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
 		
-		boolean aor = false;
+		boolean aor = true;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
