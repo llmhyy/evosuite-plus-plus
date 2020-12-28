@@ -1600,8 +1600,14 @@ public class ConstructionPathSynthesizer {
 	 */
 	private double estimateCoverageLikelihood(Map<BytecodeInstruction, List<BytecodeInstruction>> map,
 			Integer validParamNum) {
-		//TODO too simple?
-		return (double)validParamNum /(map.size());
+		
+		double sum = 0;
+		for(BytecodeInstruction ins: map.keySet()) {
+			double callchainSize = map.get(ins).size();
+			sum += 1/(callchainSize+1);
+		}
+		
+		return (double)(validParamNum+1) * sum;
 	}
 
 	private int select(double p, double[] probability) {
