@@ -88,7 +88,7 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		StringBuffer sb = new StringBuffer();
 		if (r.getMissingBranches() != null && !r.getMissingBranches().isEmpty()) {
 			for (BranchInfo b : r.getMissingBranches()) {
-				sb.append(b.toString() + "\\n");
+				sb.append(b.toString() + b.getStringValue() + ":" + b.getTruthValue() + "\\n");
 			}
 		}
 		String missingBranches = sb.toString();
