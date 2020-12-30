@@ -92,7 +92,6 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 	@Override
 	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,
 			ClassNode cn) throws AnalyzerException, IOException, ClassNotFoundException {
-		System.out.println("A");
 		log.debug(String.format("#Method %s#%s", className, methodName));
 
 		// Get actual CFG for target method
@@ -147,23 +146,18 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 						}
 
 						for (int j = 0; j < defs.size() && j < 10; j++) {
-							System.out.println(j);
 							Definition def = defs.get(j);
 							// def node is ..STORE instruction - get the previous instruction which is
 							// the stored value to check if it is a method call
 							AbstractInsnNode sourceNode = def.getASMNode().getPrevious();
-							System.out.println("D");
 							BytecodeInstruction sourceInsn = cfg.getInstruction(node.instructions.indexOf(sourceNode));
-							System.out.println("E");
 							if (CommonUtility.isInvokeMethodInsn(sourceNode)) {
-								System.out.println("F");
 								if (checkNonBooleanFlagMethod(classLoader, sourceNode, insn.getLineNumber(), mc,
 										methodValidityMap, limit)) {
 									log.info("!FOUND IT! in method " + methodName);
 									return true;
 								}
 							} else if (sourceInsn.isUse()) {
-								System.out.println("G");
 								defs.addAll(getDefinitions(sourceInsn));
 							} else if (isArithmetic(sourceInsn)) {
 								// Arithmetic operand might be a method call
@@ -225,7 +219,6 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 	protected boolean checkNonBooleanFlagMethod(ClassLoader classLoader, AbstractInsnNode flagDefIns,
 			int calledLineInTargetMethod, MethodContent mc, Map<String, Boolean> visitMethods, int limit)
 			throws AnalyzerException, IOException, ClassNotFoundException {
-		System.out.println("B");
 		if (limit <= 0) {
 			return false;
 		}
@@ -312,7 +305,6 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 						continue;
 					}
 
-					System.out.println("C");
 					for (BytecodeInstruction returnValueInsn : returnValueInsns) {
 						// 1. Return value is a constant
 						if (returnValueInsn.isConstant()) {
@@ -450,11 +442,8 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 	}
 
 	private List<Definition> getDefinitions(BytecodeInstruction useInsn) {
-		System.out.println("H");
 		Use use = getUse(useInsn);
-		System.out.println("I");
 		List<Definition> defs = DefUsePool.getDefinitions(use);
-		System.out.println("J");
 		return CollectionUtil.nullToEmpty(defs);
 	}
 	
@@ -483,7 +472,7 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 		try {
 			if (methodInsn.owner.startsWith("java")) {
 				is = ResourceList.getInstance(this.getClass().getClassLoader()).getClassAsStream(className);
-			} else if (methodInsn.owner.startsWith("com/example")) {
+			} else if (methodInsn.owner.startsWith("feature/objectconstruction/testgeneration/example")) {
 				ClassReader reader = new ClassReader(className);
 				ClassNode classNode = new ClassNode();
 				reader.accept(classNode, ClassReader.SKIP_FRAMES);

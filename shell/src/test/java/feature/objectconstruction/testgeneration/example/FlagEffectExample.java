@@ -1,4 +1,4 @@
-package com.example;
+package feature.objectconstruction.testgeneration.example;
 
 public class FlagEffectExample {
 	/** PRIMITIVE RETURN CONSTANT **/

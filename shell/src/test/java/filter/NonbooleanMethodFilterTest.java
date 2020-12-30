@@ -9,7 +9,7 @@ import evosuite.shell.listmethod.InterproceduralNonBooleanFlagMethodFilter;
 
 public class NonbooleanMethodFilterTest {
 	InterproceduralNonBooleanFlagMethodFilter filter = new InterproceduralNonBooleanFlagMethodFilter();
-	String className = "com.example.FlagEffectExample";
+	String className = "feature.objectconstruction.testgeneration.example.FlagEffectExample";
 	String methodName = "";
 
 	@Test
