@@ -332,13 +332,13 @@ public class DataDependencyUtil {
 					}
 				} 
 				else if (ins.getASMNode() instanceof MethodInsnNode) {
-					if (depth > 0) {
+					if (depth > 0 && setterMap.size()>10) {
 						MethodInsnNode mNode = (MethodInsnNode) (ins.getASMNode());
 
 						String calledClass = mNode.owner;
 						calledClass = calledClass.replace("/", ".");
 						/**
-						 * FIXME, ziheng: we only analyze the callee method in the same class, but we
+						 * FIXME: we only analyze the callee method in the same class, but we
 						 * need to consider the invocation in other class.
 						 */
 						if (calledClass.equals(className)) {

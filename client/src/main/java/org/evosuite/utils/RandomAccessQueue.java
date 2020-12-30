@@ -31,4 +31,6 @@ public interface RandomAccessQueue<T> {
 	public void restrictedAdd(T value);
 
 	public T getRandomValue();
+	
+	public int size();
 }

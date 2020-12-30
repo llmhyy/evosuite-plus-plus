@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
-import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import org.evosuite.result.seedexpr.Event;
+import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.testcase.TestCase;
 
 public interface TestGenerationResult extends Serializable {
@@ -147,4 +147,7 @@ public interface TestGenerationResult extends Serializable {
 	public Map<BranchInfo, String> getCoveredBranchWithTest();
 	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest);
 
+	
+	public List<Event> getEventSequence();
+	public void setEventSequence(List<Event> events);
 }

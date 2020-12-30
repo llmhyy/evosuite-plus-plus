@@ -25,11 +25,14 @@ package org.evosuite.testcase.statements.numeric;
 import java.lang.reflect.Type;
 
 import org.evosuite.Properties;
+import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.RandomSamplingEvent;
+import org.evosuite.result.seedexpr.SamplingDataType;
+import org.evosuite.result.seedexpr.SearchEvent;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.ConstantPoolManager;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.utils.Randomness;
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 /**
  * <p>
@@ -97,8 +100,10 @@ public class BytePrimitiveStatement extends NumericalPrimitiveStatement<Byte> {
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
+		String oldValue = String.valueOf(value);
 		byte delta = (byte)Math.floor(Randomness.nextGaussian() * Properties.MAX_DELTA);
 		value = (byte) (value.byteValue() + delta);
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.BYTE, String.valueOf(value), oldValue));
 	}
 
 	/* (non-Javadoc)
@@ -116,8 +121,10 @@ public class BytePrimitiveStatement extends NumericalPrimitiveStatement<Byte> {
 	/** {@inheritDoc} */
 	@Override
 	public void randomize() {
-		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL)
+		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
 			value = (byte) (Randomness.nextInt(256) - 128);
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.BYTE, String.valueOf(value)));			
+		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();
 			value = (byte) constantPool.getRandomInt();

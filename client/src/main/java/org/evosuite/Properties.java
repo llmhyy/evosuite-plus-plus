@@ -377,6 +377,9 @@ public class Properties {
 		COMPACT_THIRTEEN
 	}
 
+	@Parameter(key = "enable_tracing_event", group = "Search Algorithm", description = "enable tracing events such as branch covering events, seeding events, etc.")
+	public static boolean ENABLE_TRACEING_EVENT = false;
+	
 	@Parameter(key = "neighborhood_model", group = "Search Algorithm", description = "The model of neighborhood used in case of CGA. L5 is default")
 	public static CGA_Models MODEL = CGA_Models.LINEAR_FIVE;
 	
@@ -2561,6 +2564,7 @@ public class Properties {
 	
 	
 	public static final int OBJECT_CONSTRUCTION_DEPTH = 2;
+	public static boolean PRINT_FITNESS = true;
 
 	/*
 	 * whether or not the regression mode is running

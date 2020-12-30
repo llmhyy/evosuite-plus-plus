@@ -28,12 +28,13 @@ import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.RandomSamplingEvent;
+import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.execution.ExecutionTracer;
-import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.Randomness;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
+import org.evosuite.utils.generic.GenericClass;
 
 /**
  * <p>
@@ -161,6 +162,7 @@ public class EnumPrimitiveStatement<T extends Enum<T>> extends PrimitiveStatemen
 				break;
 			}
 		}
+		
 		boolean delta = Randomness.nextBoolean();
 		if (delta) {
 			pos++;
@@ -174,6 +176,7 @@ public class EnumPrimitiveStatement<T extends Enum<T>> extends PrimitiveStatemen
 		}
 
 		value = constants[pos];
+		EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.ENUM, String.valueOf(value)));
 	}
 
 	/* (non-Javadoc)
@@ -205,6 +208,7 @@ public class EnumPrimitiveStatement<T extends Enum<T>> extends PrimitiveStatemen
 		if (constants.length > 1) {
 			int pos = Randomness.nextInt(constants.length);
 			value = constants[pos];
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.ENUM, String.valueOf(value)));
 		}
 	}
 

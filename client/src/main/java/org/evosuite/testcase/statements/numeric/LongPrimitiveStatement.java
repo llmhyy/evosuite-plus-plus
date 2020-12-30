@@ -23,6 +23,10 @@
 package org.evosuite.testcase.statements.numeric;
 
 import org.evosuite.Properties;
+import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.RandomSamplingEvent;
+import org.evosuite.result.seedexpr.SamplingDataType;
+import org.evosuite.result.seedexpr.SearchEvent;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.ConstantPoolManager;
 import org.evosuite.testcase.TestCase;
@@ -81,8 +85,10 @@ public class LongPrimitiveStatement extends NumericalPrimitiveStatement<Long> {
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
+		String oldValue = String.valueOf(value);
 		long delta = (long)Math.floor(Randomness.nextGaussian() * Properties.MAX_DELTA);
 		value = value + delta;
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.LONG, String.valueOf(value), oldValue));
 	}
 
 	/* (non-Javadoc)
@@ -102,6 +108,7 @@ public class LongPrimitiveStatement extends NumericalPrimitiveStatement<Long> {
 	public void randomize() {
 		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
 			value = (long)(Randomness.nextGaussian() * Properties.MAX_INT);
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.LONG, String.valueOf(value)));
 		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();

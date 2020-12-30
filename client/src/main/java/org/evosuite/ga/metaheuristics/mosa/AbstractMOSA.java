@@ -51,6 +51,8 @@ import org.evosuite.ga.metaheuristics.SearchListener;
 import org.evosuite.ga.operators.mutation.MutationHistory;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.seedexpr.BranchCoveringEvent;
+import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -142,6 +144,9 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	 */
 	@SuppressWarnings("unchecked")
 	protected List<T> breedNextGeneration() {
+		
+		EventSequence.enableRecord();
+		
 		List<T> offspringPopulation = new ArrayList<T>(Properties.POPULATION);
 		// we apply only Properties.POPULATION/2 iterations since in each generation
 		// we generate two offsprings
@@ -174,33 +179,45 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 //			this.removeUnusedVariables(offspring2);
 			
 			// apply mutation on offspring1
+			Set<?> uncoveredGoals = getUncoveredGoals();
 			this.mutate(offspring1, parent1);
-			
 			if (offspring1.isChanged()) {
+				
 				this.clearCachedResults(offspring1);
 				this.calculateFitness(offspring1);
+				
+				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
+				EventSequence.addEvent(e);
+				
 				MutationPositionDiscriminator.identifyRelevantMutations(offspring1, parent1);
 				offspringPopulation.add(offspring1);
 			}
 
 			// apply mutation on offspring2
+			uncoveredGoals = getUncoveredGoals();
 			this.mutate(offspring2, parent2);
 			if (offspring2.isChanged()) {
 				this.clearCachedResults(offspring2);
 				this.calculateFitness(offspring2);
+				
+				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
+				EventSequence.addEvent(e);
+				
 				MutationPositionDiscriminator.identifyRelevantMutations(offspring2, parent2);
 				offspringPopulation.add(offspring2);
 			}
 		}
 		
+		EventSequence.disableRecord();
+		
 		// Add new randomly generate tests
 		for (int i = 0; i < Properties.POPULATION * Properties.P_TEST_INSERTION; i++) {
 			T tch = null;
 			if (this.getCoveredGoals().size() == 0 || Randomness.nextBoolean()) {
-				RandomLengthTestFactory.workingBranch = null;
+				RandomLengthTestFactory.workingBranch4ObjectGraph = null;
 				FitnessFunction<?> ff = Randomness.choice(getUncoveredGoals());
 				if(ff != null && ff instanceof BranchFitness) {
-					RandomLengthTestFactory.workingBranch = ((BranchFitness)ff).getBranchGoal().getBranch();
+					RandomLengthTestFactory.workingBranch4ObjectGraph = ((BranchFitness)ff).getBranchGoal().getBranch();
 				}
 				
 				tch = this.chromosomeFactory.getChromosome();
@@ -215,6 +232,8 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				offspringPopulation.add(tch);
 			}
 		}
+		
+		
 		logger.info("Number of offsprings = {}", offspringPopulation.size());
 		return offspringPopulation;
 	}

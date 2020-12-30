@@ -26,6 +26,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import org.evosuite.Properties;
+import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.RandomSamplingEvent;
+import org.evosuite.result.seedexpr.SamplingDataType;
+import org.evosuite.result.seedexpr.SearchEvent;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.ConstantPoolManager;
 import org.evosuite.testcase.TestCase;
@@ -84,6 +88,7 @@ public class FloatPrimitiveStatement extends NumericalPrimitiveStatement<Float> 
 	/** {@inheritDoc} */
 	@Override
 	public void delta() {
+		String oldValue = String.valueOf(value);
 		double P = Randomness.nextDouble();
 		if(P < 1d/3d) {
 			value += (float)Randomness.nextGaussian() * Properties.MAX_DELTA;
@@ -93,6 +98,7 @@ public class FloatPrimitiveStatement extends NumericalPrimitiveStatement<Float> 
 			int precision = Randomness.nextInt(7);
 			chopPrecision(precision);
 		}
+		EventSequence.addEvent(new SearchEvent(System.currentTimeMillis(), SamplingDataType.FLOAT, String.valueOf(value), oldValue));
 	}
 
 	private void chopPrecision(int precision) {
@@ -131,6 +137,7 @@ public class FloatPrimitiveStatement extends NumericalPrimitiveStatement<Float> 
 			value = (float)(Randomness.nextGaussian() * Properties.MAX_INT);
 			int precision = Randomness.nextInt(7);
 			chopPrecision(precision);
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.FLOAT, String.valueOf(value)));
 		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();

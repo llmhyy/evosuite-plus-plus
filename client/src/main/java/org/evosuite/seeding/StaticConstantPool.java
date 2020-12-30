@@ -27,6 +27,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.evosuite.Properties;
+import org.evosuite.result.seedexpr.EventFactory;
+import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Type;
@@ -48,12 +51,16 @@ public class StaticConstantPool implements ConstantPool {
 	private final Set<Long> longPool = Collections.synchronizedSet(new LinkedHashSet<Long>());
 
 	private final Set<Float> floatPool = Collections.synchronizedSet(new LinkedHashSet<Float>());
+	
+	private boolean isContextual;
 
-	public StaticConstantPool() {
+	public StaticConstantPool(boolean isContextual) {
 		/*
 		 * all pools HAVE to be non-empty 
 		 */
 
+		this.isContextual = isContextual;
+		
 		stringPool.add("");
 
 		if (Properties.TARGET_CLASS != null && !Properties.TARGET_CLASS.isEmpty()) {
@@ -88,12 +95,16 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public String getRandomString() {
-		return Randomness.choice(stringPool);
+		String value = Randomness.choice(stringPool);
+		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.STRING, stringPool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	@Override
 	public Type getRandomType() {
-		return Randomness.choice(typePool);
+		Type value = Randomness.choice(typePool);
+		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.CLASS, typePool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	/**
@@ -105,8 +116,9 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public int getRandomInt() {
-		int r = Randomness.choice(intPool);
-		return r;
+		int value = Randomness.choice(intPool);
+		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.INT, intPool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	/**
@@ -118,7 +130,9 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public float getRandomFloat() {
-		return Randomness.choice(floatPool);
+		float value = Randomness.choice(floatPool);
+		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.FLOAT, floatPool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	/**
@@ -130,7 +144,9 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public double getRandomDouble() {
-		return Randomness.choice(doublePool);
+		double value = Randomness.choice(doublePool);
+		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.DOUBLE, doublePool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	/**
@@ -142,7 +158,9 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public long getRandomLong() {
-		return Randomness.choice(longPool);
+		long value = Randomness.choice(longPool);
+		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.LONG, longPool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	/**

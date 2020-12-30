@@ -71,4 +71,8 @@ public class FrequencyBasedRandomAccessQueue<T> implements RandomAccessQueue<T> 
         return res;
     }
 
+    @Override
+	public int size() {
+		return queue.size();
+	}
 }

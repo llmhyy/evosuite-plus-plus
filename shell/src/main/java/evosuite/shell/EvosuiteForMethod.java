@@ -26,6 +26,7 @@ import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.TestGenerationResult;
+import org.evosuite.result.seedexpr.Event;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.ProgramArgumentUtils;
 import org.slf4j.Logger;
@@ -198,17 +199,12 @@ public class EvosuiteForMethod {
 
 				if (Settings.getIteration() > 1) {
 					fitnessRecorder = new IterFitnessEffectiveRecorder(Settings.getIteration());
-//					distributionRecorder = new IterDistributionRecorder(usedStrategy);
 					recorderList.add(fitnessRecorder);
-//					recorderList.add(distributionRecorder);
 				} else {
 					fitnessRecorder = new FitnessEffectiveRecorder();
-//					distributionRecorder = new DistributionRecorder(usedStrategy);
-//					oneBranchRecorder = new OneBranchRecorder(strastr);
 					recorderList.add(fitnessRecorder);
-//					recorderList.add(distributionRecorder);
-//					recorderList.add(oneBranchRecorder);
 				}
+				
 				String existingReport = fitnessRecorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;
 				if (Settings.isReportBasedFilterEnable()) {
@@ -678,10 +674,13 @@ public class EvosuiteForMethod {
 					result.setMissingBranches(r.getMissingBranches());
 					result.setInitializationOverhead(r.getInitializationOverhead());
 					result.setCoveredBranchWithTest(r.getCoveredBranchWithTest());
+					result.setEventSequence(r.getEventSequence());
 					
 
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
+						recorder.recordSeedingToJson(className, methodName, result);
+						
 					}
 				}
 			}
@@ -716,6 +715,9 @@ public class EvosuiteForMethod {
 			System.out.println(r.getCoveredBranchWithTest().get(branch));
 		}
 		
-		
+		System.out.println("Events");
+		for(Event e: r.getEventSequence()) {
+			System.out.print(e.toString() + ", ");
+		}
 	}
 }

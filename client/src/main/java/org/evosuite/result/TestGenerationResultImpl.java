@@ -27,15 +27,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
-import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import org.evosuite.result.seedexpr.Event;
+import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.testcase.TestCase;
 
 class TestGenerationResultImpl implements TestGenerationResult {
 
+	private List<Event> eventSequence = new ArrayList<Event>();
+	
 	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
 	
 	private Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
@@ -488,6 +490,15 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest) {
 		this.coveredBranchWithTest = coveredBranchWithTest;
 	}
+
+	@Override
+	public List<Event> getEventSequence() {
+		return this.eventSequence;
+	}
 	
+	@Override
+	public void setEventSequence(List<Event> eventList) {
+		this.eventSequence = eventList;
+	}
 	
 }

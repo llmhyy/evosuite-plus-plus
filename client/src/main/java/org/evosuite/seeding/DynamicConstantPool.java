@@ -23,6 +23,9 @@
 package org.evosuite.seeding;
 
 import org.evosuite.Properties;
+import org.evosuite.result.seedexpr.DynamicPoolEvent;
+import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.utils.DefaultRandomAccessQueue;
 import org.evosuite.utils.RandomAccessQueue;
 import org.objectweb.asm.Type;
@@ -66,12 +69,16 @@ public class DynamicConstantPool implements ConstantPool {
 	 */
 	@Override
 	public String getRandomString() {
-		return stringPool.getRandomValue();
+		String value = stringPool.getRandomValue();
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.STRING, stringPool.size(), value));
+		return value;
 	}
 
 	@Override
 	public Type getRandomType() {
-		return typePool.getRandomValue();
+		Type value = typePool.getRandomValue();
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.CLASS, typePool.size(), value.toString()));
+		return value;
 	}
 
 	/* (non-Javadoc)
@@ -79,7 +86,9 @@ public class DynamicConstantPool implements ConstantPool {
 	 */
 	@Override
 	public int getRandomInt() {
-		return intPool.getRandomValue();
+		int value = intPool.getRandomValue();
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.INT, intPool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	/* (non-Javadoc)
@@ -87,7 +96,9 @@ public class DynamicConstantPool implements ConstantPool {
 	 */
 	@Override
 	public float getRandomFloat() {
-		return floatPool.getRandomValue();
+		float value = floatPool.getRandomValue();
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.FLOAT, floatPool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	/* (non-Javadoc)
@@ -95,7 +106,9 @@ public class DynamicConstantPool implements ConstantPool {
 	 */
 	@Override
 	public double getRandomDouble() {
-		return doublePool.getRandomValue();
+		double value = doublePool.getRandomValue();
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.DOUBLE, doublePool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	/* (non-Javadoc)
@@ -103,7 +116,9 @@ public class DynamicConstantPool implements ConstantPool {
 	 */
 	@Override
 	public long getRandomLong() {
-		return longPool.getRandomValue();
+		long value = longPool.getRandomValue();
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.LONG, longPool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	/* (non-Javadoc)

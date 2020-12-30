@@ -37,6 +37,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.instrumentation.LinePool;
 import org.evosuite.result.TestGenerationResult.Status;
+import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
@@ -91,6 +92,7 @@ public class TestGenerationResultBuilder {
 		result.setInitializationOverhead(testSuite.getInitializationOverhead());
 		result.setMissingBranches(testSuite.getMissingBranches());
 		result.setCoveredBranchWithTest(testSuite.getCoveredBranchWithTest());
+		result.setEventSequence(EventSequence.events);
 		
 		return result;
 	}

@@ -67,7 +67,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 	
 	protected static Map<Branch, TestCase> templateTestMap = new HashMap<Branch, TestCase>();
 	
-	public static Branch workingBranch = null;
+	public static Branch workingBranch4ObjectGraph = null;
 	
 	
 	/**
@@ -101,12 +101,13 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 		boolean applyObjectRule = false;
 		if(Properties.APPLY_OBJECT_RULE) {
 			
-			if(workingBranch != null) {
+			if(workingBranch4ObjectGraph != null) {
 				double d = Randomness.nextDouble();
-				applyObjectRule = d>0.1? false : true;
+				applyObjectRule = d>0.3? false : true;
 			}
 			else {
-				applyObjectRule = Randomness.nextBoolean();					
+//				applyObjectRule = Randomness.nextBoolean();	
+				applyObjectRule = false;
 			}
 		}
 		
@@ -140,7 +141,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				});
 				
 				
-				Branch b = workingBranch;
+				Branch b = workingBranch4ObjectGraph;
 				if(b == null) {
 					b = Randomness.choice(interestedBranches.keySet());					
 				}
@@ -157,6 +158,10 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					long t1 = System.currentTimeMillis();
 					logger.warn("construction time: " + (t1-t0));
 					logger.warn("graph size: " + cpSynthesizer.getPartialGraph().getGraphSize());
+					
+					if(cpSynthesizer.getPartialGraph().getGraphSize() == 0) {
+						System.currentTimeMillis();
+					}
 					
 					if(t1-t0>10000) {
 						System.currentTimeMillis();

@@ -108,6 +108,11 @@ public class CSVStatisticsBackend implements StatisticsBackend {
 		try {
 			File outputDir = getReportDir();			
 			File f = new File(outputDir.getAbsolutePath() + File.separator + "statistics.csv");
+			
+			if(!new File(outputDir.getAbsolutePath()).exists()) {
+				new File(outputDir.getAbsolutePath()).mkdir();
+			}
+			
 			out = new BufferedWriter(new FileWriter(f, true));
 			if (f.length() == 0L) {
 				out.write(getCSVHeader(data) + "\n");

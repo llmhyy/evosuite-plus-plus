@@ -110,9 +110,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
 		Set<BranchCoverageGoal> uncoveredGoals = getUncoveredBranches(bestIndividual, branchGoals);
 		
-		RandomLengthTestFactory.workingBranch = null; 
+		RandomLengthTestFactory.workingBranch4ObjectGraph = null; 
 		if(uncoveredGoals != null && !uncoveredGoals.isEmpty()) {
-			RandomLengthTestFactory.workingBranch = Randomness.choice(uncoveredGoals).getBranch();
+			RandomLengthTestFactory.workingBranch4ObjectGraph = Randomness.choice(uncoveredGoals).getBranch();
 		}
 		
 		// Elitism
