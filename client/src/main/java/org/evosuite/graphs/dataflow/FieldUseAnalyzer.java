@@ -209,8 +209,10 @@ public class FieldUseAnalyzer {
 			allLeafDepVars.add(outputVar);
 		}
 		
-		if(outputVar.referenceToThis() || outputVar.isParameter() || outputVar.isStaticField()) {
-			//return;
+		if(outputVar.isParameter() && 
+				outputVar.getInstruction().getMethodName().equals(Properties.TARGET_METHOD) &&
+				outputVar.getClassName().equals(Properties.TARGET_CLASS)) {
+			allLeafDepVars.add(outputVar);
 		}
 		
 		/**
