@@ -49,6 +49,7 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 	public static final String excelProfileSubfix = "_ipfFlagMethod.xlsx";
 	private static Logger log = LoggerUtils.getLogger(InterproceduralNonBooleanFlagMethodFilter.class);
 	private ExcelWriter writer;
+	private final int limit = 3;
 
 	public InterproceduralNonBooleanFlagMethodFilter() {
 		String statisticFile = new StringBuilder(Settings.getReportFolder()).append(File.separator)
@@ -91,6 +92,7 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 	@Override
 	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,
 			ClassNode cn) throws AnalyzerException, IOException, ClassNotFoundException {
+		System.out.println("A");
 		log.debug(String.format("#Method %s#%s", className, methodName));
 
 		// Get actual CFG for target method
@@ -130,30 +132,88 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 				/* Next instruction is to invokeMethod followed by IF- instruction */
 				if (CommonUtility.isInvokeMethodInsn(condDefinition)) {
 					if (checkNonBooleanFlagMethod(classLoader, condDefinition, insn.getLineNumber(), mc,
-							methodValidityMap)) {
+							methodValidityMap, limit)) {
 						log.info("!FOUND IT! in method " + methodName);
 						return true;
 					}
 				} else {
 					BytecodeInstruction condBcDef = cfg.getInstruction(node.instructions.indexOf(condDefinition));
-					
+
 					if (condBcDef.isUse()) {
 						// Find all instructions that defined this operand
-						Use use = getUse(condBcDef);
-						List<Definition> defs = DefUsePool.getDefinitions(use); // null if it is a method parameter
-						
-						for (Definition def : CollectionUtil.nullToEmpty(defs)) {
+						List<Definition> defs = getDefinitions(condBcDef); // null if it is a method parameter
+						if (defs == null) {
+							continue;
+						}
+
+						for (int j = 0; j < defs.size() && j < 10; j++) {
+							System.out.println(j);
+							Definition def = defs.get(j);
 							// def node is ..STORE instruction - get the previous instruction which is
 							// the stored value to check if it is a method call
 							AbstractInsnNode sourceNode = def.getASMNode().getPrevious();
+							System.out.println("D");
+							BytecodeInstruction sourceInsn = cfg.getInstruction(node.instructions.indexOf(sourceNode));
+							System.out.println("E");
 							if (CommonUtility.isInvokeMethodInsn(sourceNode)) {
+								System.out.println("F");
 								if (checkNonBooleanFlagMethod(classLoader, sourceNode, insn.getLineNumber(), mc,
-										methodValidityMap)) {
+										methodValidityMap, limit)) {
 									log.info("!FOUND IT! in method " + methodName);
 									return true;
 								}
+							} else if (sourceInsn.isUse()) {
+								System.out.println("G");
+								defs.addAll(getDefinitions(sourceInsn));
+							} else if (isArithmetic(sourceInsn)) {
+								// Arithmetic operand might be a method call
+								List<BytecodeInstruction> operands = new ArrayList<>();
+								operands.add(sourceInsn.getPreviousInstruction());
+								operands.add(sourceInsn.getPreviousInstruction().getPreviousInstruction());
+								
+								for (BytecodeInstruction opr : operands) {
+									if (CommonUtility.isInvokeMethodInsn(opr.getASMNode())) {
+										if (checkNonBooleanFlagMethod(classLoader, opr.getASMNode(), opr.getLineNumber(), mc,
+												methodValidityMap, limit)) {
+											log.info("!FOUND IT! in method " + methodName);
+											return true;
+										}
+									}
+								}
+								
+								// Get chained definitions for this arithmetic operand
+								defs.addAll(getArithmeticDefinitions(sourceInsn));
+							} else if (isNegate(sourceInsn)) {
+								BytecodeInstruction opr = sourceInsn.getPreviousInstruction();
+								if (opr.isUse()) {
+									defs.addAll(getDefinitions(opr));
+								}
+								
+								if (CommonUtility.isInvokeMethodInsn(opr.getASMNode())) {
+									if (checkNonBooleanFlagMethod(classLoader, opr.getASMNode(), opr.getLineNumber(), mc,
+											methodValidityMap, limit)) {
+										log.info("!FOUND IT! in method " + methodName);
+										return true;
+									}
+								}
 							}
 						}
+
+//						for (Definition def : CollectionUtil.nullToEmpty(defs)) {
+//							// def node is ..STORE instruction - get the previous instruction which is
+//							// the stored value to check if it is a method call
+//							AbstractInsnNode sourceNode = def.getASMNode().getPrevious();
+//							
+////							BytecodeInstruction sourceInsn = cfg.getInstruction(node.instructions.indexOf(sourceNode));
+//							
+//							if (CommonUtility.isInvokeMethodInsn(sourceNode)) {
+//								if (checkNonBooleanFlagMethod(classLoader, sourceNode, insn.getLineNumber(), mc,
+//										methodValidityMap)) {
+//									log.info("!FOUND IT! in method " + methodName);
+//									return true;
+//								}
+//							}
+//						}
 					}
 				}
 			}
@@ -163,8 +223,13 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 	}
 
 	protected boolean checkNonBooleanFlagMethod(ClassLoader classLoader, AbstractInsnNode flagDefIns,
-			int calledLineInTargetMethod, MethodContent mc, Map<String, Boolean> visitMethods)
+			int calledLineInTargetMethod, MethodContent mc, Map<String, Boolean> visitMethods, int limit)
 			throws AnalyzerException, IOException, ClassNotFoundException {
+		System.out.println("B");
+		if (limit <= 0) {
+			return false;
+		}
+
 		FlagMethod flagMethod = new FlagMethod();
 		MethodInsnNode methodInsn = null;
 		String className = null;
@@ -202,6 +267,12 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 			return false;
 		}
 
+//		// Called method returns primitive type
+//		if (isPrimitiveType(Type.getReturnType(methodNode.desc))) {
+//			return false;
+//		}
+//		return true;
+
 		try {
 			/**
 			 * we get the cfg for called method here.
@@ -234,8 +305,14 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 				BytecodeInstruction currIns = instructions.get(i);
 
 				if (currIns.isReturn()) {
-					List<BytecodeInstruction> returnValueInsns = currIns.getSourceListOfStackInstruction(0);
+					List<BytecodeInstruction> returnValueInsns;
+					try {
+						returnValueInsns = currIns.getSourceListOfStackInstruction(0);
+					} catch (IllegalStateException e) {
+						continue;
+					}
 
+					System.out.println("C");
 					for (BytecodeInstruction returnValueInsn : returnValueInsns) {
 						// 1. Return value is a constant
 						if (returnValueInsn.isConstant()) {
@@ -254,7 +331,7 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 						// 3. Return value is a nested method call
 						if (returnValueInsn.isMethodCall()) {
 							if (checkNonBooleanFlagMethod(classLoader, returnValueInsn.getASMNode(), 0, mc,
-									visitMethods)) {
+									visitMethods, limit - 1)) {
 								return true;
 							}
 						}
@@ -271,23 +348,23 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 								BytecodeInstruction sourceInsn = cfg
 										.getInstruction(methodNode.instructions.indexOf(prevNode));
 
-								// 3. Return value is a local variable which was assigned a constant
+								// 4. Return value is a local variable which was assigned a constant
 								if (sourceInsn.isConstant()) {
 									return true;
 								}
 
-								// 4. Return value is a local variable which was assigned a 'constant' object
+								// 5. Return value is a local variable which was assigned a 'constant' object
 								if (sourceInsn.isInvokeSpecial() && sourceInsn.getCalledMethodName().equals("<init>")) {
 									if (constructorHasConstParam(instructions, sourceInsn.getInstructionId())) {
 										return true;
 									}
 								}
 
-								// 5. Return value is a local variable which depended on a nested method call
+								// 6. Return value is a local variable which depended on a nested method call
 								if (sourceInsn.isMethodCall()) {
 //									classLoader.loadClass(sourceInsn.getClassName());
 									if (checkNonBooleanFlagMethod(classLoader, sourceInsn.getASMNode(), 0, mc,
-											visitMethods)) {
+											visitMethods, limit - 1)) {
 										return true;
 									}
 								}
@@ -372,6 +449,34 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 		return false;
 	}
 
+	private List<Definition> getDefinitions(BytecodeInstruction useInsn) {
+		System.out.println("H");
+		Use use = getUse(useInsn);
+		System.out.println("I");
+		List<Definition> defs = DefUsePool.getDefinitions(use);
+		System.out.println("J");
+		return CollectionUtil.nullToEmpty(defs);
+	}
+	
+	private List<Definition> getArithmeticDefinitions(BytecodeInstruction insn) {
+		List<Definition> defs = new ArrayList<>();
+		List<BytecodeInstruction> operands = new ArrayList<>();
+		operands.add(insn.getPreviousInstruction());
+		operands.add(insn.getPreviousInstruction().getPreviousInstruction());
+		
+		for (BytecodeInstruction opr : operands) {
+			if (opr.isUse()) {
+				defs.addAll(getDefinitions(opr));
+			}
+			
+			if (isArithmetic(opr)) {
+				defs.addAll(getArithmeticDefinitions(opr));
+			}
+		}
+		
+		return defs;
+	}
+
 	private MethodNode getMethod(ClassLoader classLoader, MethodInsnNode methodInsn, String className)
 			throws ClassNotFoundException, IOException {
 		InputStream is = null;
@@ -431,6 +536,58 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 		}
 
 		return DefUseFactory.makeUse(condBcDef);
+	}
+	
+	private boolean isArithmetic(BytecodeInstruction insn) {
+		switch (insn.getASMNode().getOpcode()) {
+		case Opcode.IADD:
+		case Opcode.LADD:
+		case Opcode.FADD:
+		case Opcode.DADD:
+		case Opcode.ISUB:
+		case Opcode.LSUB:
+		case Opcode.FSUB:
+		case Opcode.DSUB:
+		case Opcode.IMUL:
+		case Opcode.LMUL:
+		case Opcode.FMUL:
+		case Opcode.DMUL:
+		case Opcode.IDIV:
+		case Opcode.LDIV:
+		case Opcode.FDIV:
+		case Opcode.DDIV:
+		case Opcode.IREM:
+		case Opcode.LREM:
+		case Opcode.FREM:
+		case Opcode.DREM:
+		case Opcode.ISHL:
+		case Opcode.LSHL:
+		case Opcode.ISHR:
+		case Opcode.LSHR:
+		case Opcode.IUSHR:
+		case Opcode.LUSHR:
+		case Opcode.IAND:
+		case Opcode.LAND:
+		case Opcode.IOR:
+		case Opcode.LOR:
+		case Opcode.IXOR:
+		case Opcode.LXOR:
+			return true;
+		default:
+			return false;
+		}
+	}
+	
+	private boolean isNegate(BytecodeInstruction insn) {
+		switch (insn.getASMNode().getOpcode()) {
+		case Opcode.INEG:
+		case Opcode.LNEG:
+		case Opcode.FNEG:
+		case Opcode.DNEG:
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	private void dump(MethodNode m) {
@@ -496,5 +653,12 @@ public class InterproceduralNonBooleanFlagMethodFilter extends MethodFlagCondFil
 		public String getText() {
 			return text;
 		}
+	}
+
+	private boolean isPrimitiveType(Type type) {
+		return type.equals(Type.BYTE_TYPE) || type.equals(Type.CHAR_TYPE) || type.equals(Type.SHORT_TYPE)
+				|| type.equals(Type.INT_TYPE) || type.equals(Type.LONG_TYPE) || type.equals(Type.FLOAT_TYPE)
+				|| type.equals(Type.DOUBLE_TYPE) || type.equals(Type.BOOLEAN_TYPE)
+				|| type.toString().equals("Ljava/lang/String;");
 	}
 }

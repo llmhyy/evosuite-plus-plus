@@ -284,7 +284,73 @@ public class FlagEffectExample {
 		}
 		return y;
 	}
+	
+	/** CALLER INDIRECT METHOD CALL **/
 
+	public int CallerIndirectMethodCall1() {
+		int w = CalleeIntReturnConstant(10);
+		int x = w;
+		int y = 999;
+		if (x > y) {
+			return 77;
+		}
+		return 88;
+	}
+	
+	public int CallerIndirectMethodCall2() {
+		int w = CalleeIntReturnConstant(10);
+		int x = w + 10;
+		int y = 999;
+		if (x > y) {
+			return 77;
+		}
+		return 88;
+	}
+	
+	public int CallerIndirectMethodCall3() {
+		int w = CalleeIntReturnConstant(10);
+		int x = 10 * w / 2 + 100 % 10 - 2;
+		int y = 999;
+		if (x > y) {
+			return 77;
+		}
+		return 88;
+	}
+	
+	public int CallerIndirectMethodCall4() {
+		int u = CalleeIntReturnConstant(10);
+		int v = 10 + u;
+		int w = v * 2;
+		int x = 10 + w;
+		int y = 999;
+		if (x > y) {
+			return 77;
+		}
+		return 88;
+	}
+	
+	public int CallerIndirectMethodCall5() {
+		int x = 10 + CalleeIntReturnConstant(10);
+		int y = 999;
+		if (x > y) {
+			return 77;
+		}
+		return 88;
+	}
+	
+	public int CallerIndirectMethodCallNegate() {
+		int u = -CalleeIntReturnConstant(10);
+		int v = -u;
+		int w = v / 2;
+		int x = -w;
+		int y = 999;
+		if (x > y) {
+			return 77;
+		}
+		return 88;
+	}
+	
+	
 	/** EXAMPLE CLASSES **/
 
 	public class Student {

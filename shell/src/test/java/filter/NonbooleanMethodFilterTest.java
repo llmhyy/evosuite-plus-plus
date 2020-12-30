@@ -83,5 +83,26 @@ public class NonbooleanMethodFilterTest {
 		methodName = "CallerReturnVariableMethodCall()I";
 		assert filter.checkMethod(className, methodName);
 	}
+	
+	@Test
+	public void testIndirectMethodCall() throws ClassNotFoundException, AnalyzerException, MalformedURLException {
+		methodName = "CallerIndirectMethodCall1()I";
+		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerIndirectMethodCall2()I";
+		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerIndirectMethodCall3()I";
+		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerIndirectMethodCall4()I";
+		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerIndirectMethodCall5()I";
+		assert filter.checkMethod(className, methodName);
+		
+		methodName = "CallerIndirectMethodCallNegate()I";
+		assert filter.checkMethod(className, methodName);
+	}
 
 }
