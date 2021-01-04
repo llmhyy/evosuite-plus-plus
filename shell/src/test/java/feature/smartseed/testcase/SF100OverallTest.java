@@ -1,4 +1,4 @@
-package feature.seedstrategy.testcase;
+package feature.smartseed.testcase;
 
 import java.util.ArrayList;
 import java.util.List;

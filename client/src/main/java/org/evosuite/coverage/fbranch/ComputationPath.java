@@ -4,6 +4,11 @@ import java.util.List;
 
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 
+/**
+ * each computation path starts with a method input, ends with an operand
+ * @author Yun Lin
+ *
+ */
 public class ComputationPath {
 	private double score = 0;
 	private List<BytecodeInstruction> computationNodes;
@@ -22,6 +27,16 @@ public class ComputationPath {
 
 	public void setComputationNodes(List<BytecodeInstruction> computationNodes) {
 		this.computationNodes = computationNodes;
+	}
+
+	public boolean isFastChannel() {
+		// TODO Cheng Yan
+		return false;
+	}
+
+	public boolean isConstant() {
+		// TODO Cheng Yan
+		return false;
 	}
 
 }
