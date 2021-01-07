@@ -1,10 +1,12 @@
 package org.evosuite.seeding.smart;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.xmlbeans.impl.store.Path;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
@@ -46,6 +48,21 @@ public class SeedingApplicationEvaluator {
 		for (ComputationPath path : pathList) {
 			if (path.isFastChannel()) {
 				ComputationPath otherPath = findTheOtherPath(path, pathList);
+				if(otherPath == null && operands.size() > 1) {
+					for(int i = 0;i < operands.size();i++)
+					{
+						List<BytecodeInstruction> computationNodes = new ArrayList<>();
+						computationNodes = path.getComputationNodes();
+						if(computationNodes.get(computationNodes.size() - 1) != operands.get(i) 
+								&& operands.get(i) != null ) {
+							List<BytecodeInstruction> computationNodes1 = new ArrayList<>();
+							computationNodes1.add(operands.get(i));
+							otherPath = new ComputationPath();
+							otherPath.setComputationNodes(computationNodes1);
+							otherPath.setScore(computationNodes1.size());
+						}
+					}
+				}
 				if (otherPath.isConstant()) {
 					return STATIC_POOL;
 				} else if (!otherPath.isFastChannel()) {
@@ -59,17 +76,76 @@ public class SeedingApplicationEvaluator {
 
 	private static ComputationPath findTheOtherPath(ComputationPath path, List<ComputationPath> pathList) {
 		// TODO Cheng Yan
+		ComputationPath theOtherPath = new ComputationPath();
+		for(int i = 0;i < pathList.size();i++) {
+			if(pathList.get(i) != path) {
+				theOtherPath = pathList.get(i);
+				return theOtherPath;
+			}
+		}
 		return null;
 	}
 
 	private static ComputationPath findSimplestPath(List<ComputationPath> computationPathList) {
 		// TODO Cheng Yan
+		ComputationPath simplestPath = new ComputationPath();
+		simplestPath.setScore(9999);
+		for(int i = 0;i < computationPathList.size();i++) {
+			if(computationPathList.get(i).getScore() < simplestPath.getScore()) {
+				simplestPath = computationPathList.get(i);
+				return simplestPath;
+			}
+				
+		}
 		return null;
 	}
 
 	private static List<ComputationPath> computePath(DepVariable root, List<BytecodeInstruction> operands) {
 		// TODO Cheng Yan
-		return null;
+		List<ComputationPath> computationPath = new ArrayList<>();
+		List<BytecodeInstruction> nodes = new ArrayList<>(); 
+		//traverse input to oprands
+		nodes.add(root.getInstruction());
+		dfsRoot(root,operands,computationPath,nodes);
+		return computationPath;
+		
+//		return null;
+	}
+
+	private static void dfsRoot(DepVariable root, List<BytecodeInstruction> operands,
+			List<ComputationPath> computationPath,List<BytecodeInstruction> nodes) {
+		DepVariable node = root;
+		Boolean isVisted = true;
+		while(node.getRelations()[0] != null && isVisted) {
+			for(int i = 0;i < node.getRelations().length;i++) {
+				List<DepVariable> nodeList = node.getRelations()[i];
+				if(nodeList == null) {
+					isVisted = false;
+					break;
+				}
+				node = nodeList.get(0);
+				if(!operands.contains(node.getInstruction())) {
+					nodes.add(node.getInstruction());
+					dfsRoot(node,operands,computationPath,nodes);
+				}
+				else {
+					nodes.add(node.getInstruction());
+					break;
+				}
+			}
+		}
+		
+		if(operands.contains(nodes.get(nodes.size() - 1))) {
+			List<BytecodeInstruction> computationNodes = new ArrayList<>();
+			for(int i = 0; i< nodes.size();i++) {
+				computationNodes.add(nodes.get(i));
+			}
+			ComputationPath pathRecord = new ComputationPath();
+			pathRecord.setComputationNodes(computationNodes);
+			pathRecord.setScore(computationNodes.size());
+			computationPath.add(pathRecord);
+		}
+		nodes.remove(nodes.size() - 1);
 	}
 
 	@SuppressWarnings("rawtypes")

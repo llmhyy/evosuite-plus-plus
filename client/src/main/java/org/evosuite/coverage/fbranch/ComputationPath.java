@@ -31,11 +31,18 @@ public class ComputationPath {
 
 	public boolean isFastChannel() {
 		// TODO Cheng Yan
+		if(this.score < 5)
+			return true;
 		return false;
 	}
 
 	public boolean isConstant() {
 		// TODO Cheng Yan
+		for(int i = 0; i < this.computationNodes.size();i++) {
+			System.out.print(this.computationNodes.get(i).getInstructionType());
+			if(this.computationNodes.get(i).getInstructionType().equals("LDC"))
+				return true;
+		}
 		return false;
 	}
 

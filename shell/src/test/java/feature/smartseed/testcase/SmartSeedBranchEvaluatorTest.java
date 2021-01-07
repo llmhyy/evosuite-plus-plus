@@ -30,9 +30,9 @@ public class SmartSeedBranchEvaluatorTest {
 		Properties.APPLY_SMART_SEED = true;
 		
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
-		String methodName = "dynamicExample1";
+		String methodName = "staticExample2";
 		int parameterNum = 2;
-		int lineNumber = 6;
+		int lineNumber = 24;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
