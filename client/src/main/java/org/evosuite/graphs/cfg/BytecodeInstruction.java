@@ -33,12 +33,15 @@ import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LocalVariable;
 import org.apache.bcel.util.ClassPath;
 import org.apache.bcel.util.SyntheticRepository;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
+import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.utils.CollectionUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -53,11 +56,14 @@ import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
+import org.objectweb.asm.tree.analysis.Value;
 
 /**
  * Internal representation of a BytecodeInstruction
@@ -428,6 +434,38 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 						"lineNumber field was manually set to a value different from the actual lineNumber contained in LineNumberNode");
 			this.lineNumber = asmLine;
 		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public List<BytecodeInstruction> getOperands() {
+		List<BytecodeInstruction> operands = new ArrayList<>();
+		Frame frame = this.getFrame();
+
+		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(this.getClassName(),
+				this.getMethodName());
+		String className = cfg.getClassName();
+		String methodName = cfg.getMethodName();
+		MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
+
+		for (int i = 0; i < this.getOperandNum(); i++) {
+			int index = frame.getStackSize() - i - 1;
+			Value val = frame.getStack(index);
+
+			if (val instanceof SourceValue) {
+				SourceValue srcValue = (SourceValue) val;
+				/**
+				 * get all the instruction defining the value.
+				 */
+				for (AbstractInsnNode insNode : srcValue.insns) {
+					BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
+					if (defIns != null) {
+						operands.add(defIns);
+					}
+				}
+			}
+		}
+		return operands;
 	}
 
 	// --- graph section ---
