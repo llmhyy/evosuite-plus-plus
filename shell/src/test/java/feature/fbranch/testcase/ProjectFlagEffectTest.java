@@ -15,7 +15,6 @@ public class ProjectFlagEffectTest{
 	public void init() {
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 		Properties.DEBUG = true;
-		Properties.APPLY_OBJECT_RULE = false;
 	}
 	
 	@Test

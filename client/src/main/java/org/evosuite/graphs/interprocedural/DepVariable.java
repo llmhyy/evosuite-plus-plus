@@ -1,10 +1,11 @@
-package org.evosuite.graphs.dataflow;
+package org.evosuite.graphs.interprocedural;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.Properties;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -53,6 +54,33 @@ public class DepVariable {
 		this.className = insn.getClassName();
 		this.setInstruction(insn);
 		this.setType();
+	}
+	
+	
+	public boolean isMethodInput() {
+		if(this.isParameter() && 
+				this.getInstruction().getMethodName().equals(Properties.TARGET_METHOD) &&
+				this.getClassName().equals(Properties.TARGET_CLASS)) {
+			return true;
+		}
+		
+		if(this.isStaticField()) {
+			return true;
+		}
+		
+		if(this.isInstaceField() && this.getClassName().equals(Properties.TARGET_CLASS)) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public boolean isConstant() {
+		return this.instruction.isConstant();
+	}
+	
+	public boolean isStateVariable() {
+		return this.isStaticField() || this.isInstaceField() || this.isLoadArrayElement();
 	}
 	
 	public String inferRelationWithChild(DepVariable childVar, int operandPosition) {

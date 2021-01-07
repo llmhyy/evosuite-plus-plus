@@ -1,4 +1,4 @@
-package org.evosuite.graphs.dataflow;
+package org.evosuite.graphs.interprocedural;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -17,6 +17,7 @@ import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
+import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.Randomness;
@@ -26,13 +27,16 @@ import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 
-public class FieldUseAnalyzer {
+public class InterproceduralGraphAnalyzer {
 	private Map<BytecodeInstruction, DepVariable> insPool = new HashMap<>();
+	private IInterestedNodeFilter interestedNodeFilter;
 	
 	public Branch branchInProcess;
 	
-	public FieldUseAnalyzer(Branch b) {
+	
+	public InterproceduralGraphAnalyzer(Branch b, IInterestedNodeFilter interestedNodeFilter) {
 		this.branchInProcess = b;
+		this.interestedNodeFilter = interestedNodeFilter;
 	}
 
 	private Map<String, Set<DepVariable>> analyzeReturnValueFromMethod(BytecodeInstruction instruction, int callGraphDepth){
@@ -205,15 +209,18 @@ public class FieldUseAnalyzer {
 		/**
 		 *  handle load/get static, need to put the variable into the return list
 		 */
-		if(outputVar.isStaticField() || outputVar.isInstaceField() || outputVar.isLoadArrayElement()) {
+		if(interestedNodeFilter.isInterested(outputVar)) {
 			allLeafDepVars.add(outputVar);
 		}
-		
-		if(outputVar.isParameter() && 
-				outputVar.getInstruction().getMethodName().equals(Properties.TARGET_METHOD) &&
-				outputVar.getClassName().equals(Properties.TARGET_CLASS)) {
-			allLeafDepVars.add(outputVar);
-		}
+//		if(outputVar.isStaticField() || outputVar.isInstaceField() || outputVar.isLoadArrayElement()) {
+//			allLeafDepVars.add(outputVar);
+//		}
+//		
+//		if(outputVar.isParameter() && 
+//				outputVar.getInstruction().getMethodName().equals(Properties.TARGET_METHOD) &&
+//				outputVar.getClassName().equals(Properties.TARGET_CLASS)) {
+//			allLeafDepVars.add(outputVar);
+//		}
 		
 		/**
 		 * the variable is computed by local variables

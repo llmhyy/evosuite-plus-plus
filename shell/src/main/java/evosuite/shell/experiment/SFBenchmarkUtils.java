@@ -17,7 +17,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHandler;
-import org.evosuite.graphs.dataflow.DefUseAnalyzer;
+import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.utils.CollectionUtil;
 
 import evosuite.shell.FileUtils;

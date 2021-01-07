@@ -18,7 +18,7 @@ public class FBranchTest {
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
-		Properties.APPLY_OBJECT_RULE = false;
+		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = false;
 		Properties.ADOPT_SMART_MUTATION = false;
 	}
 

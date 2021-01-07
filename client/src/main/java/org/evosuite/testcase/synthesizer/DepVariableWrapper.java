@@ -3,7 +3,7 @@ package org.evosuite.testcase.synthesizer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.graphs.interprocedural.DepVariable;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;

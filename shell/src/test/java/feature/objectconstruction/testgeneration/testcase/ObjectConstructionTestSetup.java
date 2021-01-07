@@ -17,6 +17,7 @@ public class ObjectConstructionTestSetup {
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = true;
+		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
 		Properties.ADOPT_SMART_MUTATION = false;
 	}
 

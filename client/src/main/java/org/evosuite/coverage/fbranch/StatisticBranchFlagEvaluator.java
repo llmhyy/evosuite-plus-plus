@@ -11,9 +11,9 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.dataflow.Dataflow;
-import org.evosuite.graphs.dataflow.DefUseAnalyzer;
-import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
+import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -24,7 +24,7 @@ import org.objectweb.asm.tree.analysis.Value;
 public class StatisticBranchFlagEvaluator {
 	public static double evaluate(Branch b) {
 		
-		Map<Branch, Set<DepVariable>> branchesInTargetMethod = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 		Set<DepVariable> rootVariables = branchesInTargetMethod.get(b);
 		
 		List<BytecodeInstruction> operands = retrieveOperands(b);

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.graphs.interprocedural.DepVariable;
 
 public class PartialGraph {
 	Map<DepVariableWrapper, DepVariableWrapper> allRelevantNodes = new HashMap<DepVariableWrapper, DepVariableWrapper>();

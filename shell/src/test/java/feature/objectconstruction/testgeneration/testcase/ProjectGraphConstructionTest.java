@@ -11,9 +11,9 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.dataflow.Dataflow;
-import org.evosuite.graphs.dataflow.DepVariable;
-import org.evosuite.graphs.dataflow.GraphVisualizer;
+import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.GraphVisualizer;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
@@ -67,7 +67,7 @@ public class ProjectGraphConstructionTest extends ObjectOrientedTest {
 
 		TestFactory testFactory = TestFactory.getInstance();
 		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 
 		for (Branch b : map.keySet()) {
 			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
@@ -1602,7 +1602,7 @@ public class ProjectGraphConstructionTest extends ObjectOrientedTest {
 
 		TestFactory testFactory = TestFactory.getInstance();
 		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 
 		for (Branch b : map.keySet()) {
 			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
@@ -1658,7 +1658,7 @@ public class ProjectGraphConstructionTest extends ObjectOrientedTest {
 
 		TestFactory testFactory = TestFactory.getInstance();
 		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 
 		for (Branch b : map.keySet()) {
 			PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);

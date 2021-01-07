@@ -17,7 +17,7 @@ import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
-import org.evosuite.graphs.dataflow.DefUseAnalyzer;
+import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.setup.Call;
 import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.execution.ExecutionResult;

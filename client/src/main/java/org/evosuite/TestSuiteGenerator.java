@@ -41,7 +41,7 @@ import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.dataflow.DefUseCoverageSuiteFitness;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
-import org.evosuite.graphs.dataflow.Dataflow;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.junit.JUnitAnalyzer;
 import org.evosuite.junit.writer.TestSuiteWriter;
 import org.evosuite.regression.RegressionSuiteMinimizer;

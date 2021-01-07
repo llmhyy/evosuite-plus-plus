@@ -30,8 +30,8 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.ChromosomeFactory;
-import org.evosuite.graphs.dataflow.Dataflow;
-import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -131,7 +131,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			 */
 			if(num == 1 && targetMethodCallPosition != -1 && applyObjectRule) {
 				
-				Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+				Map<Branch, Set<DepVariable>> interestedBranches = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 				ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
 				Collections.sort(rankedList, new Comparator<Branch>() {
 					@Override

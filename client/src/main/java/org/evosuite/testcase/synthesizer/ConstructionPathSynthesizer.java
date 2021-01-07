@@ -37,10 +37,10 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.graphs.dataflow.ConstructionPath;
-import org.evosuite.graphs.dataflow.Dataflow;
-import org.evosuite.graphs.dataflow.DepVariable;
-import org.evosuite.graphs.dataflow.GraphVisualizer;
+import org.evosuite.graphs.interprocedural.ConstructionPath;
+import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.GraphVisualizer;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -88,7 +88,7 @@ public class ConstructionPathSynthesizer {
 	public PartialGraph constructPartialComputationGraph(Branch b) {
 		PartialGraph graph = new PartialGraph();
 		
-		Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 		Set<DepVariable> variables = map.get(b);
 		graph.setBranch(b);
 		
@@ -332,7 +332,7 @@ public class ConstructionPathSynthesizer {
 			String castSubClass = checkCastClassForParameter(node);
 			if(castSubClass == null) {
 				int paramPosition = node.var.getParamOrder() - 1;
-				List<String> recommendations = Dataflow.recommendedClasses.get(paramPosition);
+				List<String> recommendations = InterproceduralGraphAnalysis.recommendedClasses.get(paramPosition);
 				if(recommendations!=null && !recommendations.isEmpty()) {
 					castSubClass = Randomness.choice(recommendations);					
 				}

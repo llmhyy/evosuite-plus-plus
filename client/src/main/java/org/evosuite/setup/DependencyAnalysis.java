@@ -31,7 +31,11 @@ import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.mutation.MutationPool;
 import org.evosuite.graphs.cfg.CFGMethodAdapter;
-import org.evosuite.graphs.dataflow.Dataflow;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.interestednode.EmptyInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.interestednode.OCGInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.interestednode.SmartSeedInterestedNodeFilter;
 import org.evosuite.instrumentation.LinePool;
 import org.evosuite.junit.CoverageAnalysis;
 import org.evosuite.rmi.ClientServices;
@@ -135,8 +139,17 @@ public class DependencyAnalysis {
 		analyze(className, classPath);
 		
 		// Parse the data flow before generating tests
-		if (Properties.APPLY_OBJECT_RULE) {
-			Dataflow.initializeDataflow();
+		if (Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS) {
+			
+			IInterestedNodeFilter interestedNodeFilter = new EmptyInterestedNodeFilter();
+			if(Properties.APPLY_OBJECT_RULE) {
+				interestedNodeFilter = new OCGInterestedNodeFilter();
+			}
+			else if(Properties.APPLY_SMART_SEED) {
+				interestedNodeFilter = new SmartSeedInterestedNodeFilter();
+			}
+			
+			InterproceduralGraphAnalysis.initializeDataflow(interestedNodeFilter);
 		}
 	}
 

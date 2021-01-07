@@ -1,4 +1,4 @@
-package org.evosuite.graphs.dataflow;
+package org.evosuite.graphs.interprocedural;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,7 +65,7 @@ public class DefUseAnalyzer {
 			ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			BytecodeInstruction defInstruction = convert2BytecodeInstruction(cfg, node, def.getASMNode());
 			
-			if(Dataflow.isReachableInClass(def, use)) {
+			if(InterproceduralGraphAnalysis.isReachableInClass(def, use)) {
 				list.add(defInstruction);		
 			}
 			

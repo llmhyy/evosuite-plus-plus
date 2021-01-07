@@ -1,4 +1,4 @@
-package org.evosuite.graphs.dataflow;
+package org.evosuite.graphs.interprocedural;
 
 import static guru.nidi.graphviz.model.Factory.graph;
 import static guru.nidi.graphviz.model.Factory.node;
@@ -105,8 +105,8 @@ public class GraphVisualizer {
 	}
 
 	public static void visualizeComputationGraph(Branch b, int resolution) {
-		for (String methodName : Dataflow.branchDepVarsMap.keySet()) {
-			Map<Branch, Set<DepVariable>> map = Dataflow.branchDepVarsMap.get(methodName);
+		for (String methodName : InterproceduralGraphAnalysis.branchInterestedVarsMap.keySet()) {
+			Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(methodName);
 
 			Set<DepVariable> variables = map.get(b);
 

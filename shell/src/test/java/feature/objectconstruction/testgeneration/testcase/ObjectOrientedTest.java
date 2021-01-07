@@ -16,8 +16,8 @@ import org.evosuite.Properties.Criterion;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.dataflow.Dataflow;
-import org.evosuite.graphs.dataflow.DepVariable;
+import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.runtime.LoopCounter;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.setup.ExceptionMapGenerator;
@@ -141,9 +141,10 @@ public class ObjectOrientedTest {
 		String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
 		Properties.APPLY_OBJECT_RULE = true;
+		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
 		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
 
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+		Map<Branch, Set<DepVariable>> interestedBranches = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
 		Collections.sort(rankedList, new Comparator<Branch>() {
 			@Override
@@ -186,9 +187,10 @@ public class ObjectOrientedTest {
 		}
 		
 		Properties.APPLY_OBJECT_RULE = true;
+		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
 		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, classPaths);
 
-		Map<Branch, Set<DepVariable>> interestedBranches = Dataflow.branchDepVarsMap.get(Properties.TARGET_METHOD);
+		Map<Branch, Set<DepVariable>> interestedBranches = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 		ArrayList<Branch> rankedList = new ArrayList<>(interestedBranches.keySet());
 		Collections.sort(rankedList, new Comparator<Branch>() {
 			@Override

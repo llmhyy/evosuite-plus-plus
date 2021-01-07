@@ -1,4 +1,4 @@
-package org.evosuite.graphs.dataflow;
+package org.evosuite.graphs.interprocedural;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package org.evosuite.graphs.dataflow;
+package org.evosuite.graphs.interprocedural;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +17,7 @@ import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -25,12 +26,12 @@ import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 
-public class Dataflow {
+public class InterproceduralGraphAnalysis {
 	/**
 	 * a map maintains what variables are dependent by which branch, method->branch->dependent variables
 	 * 
 	 */
-	public static Map<String, Map<Branch, Set<DepVariable>>> branchDepVarsMap = new HashMap<>();
+	public static Map<String, Map<Branch, Set<DepVariable>>> branchInterestedVarsMap = new HashMap<>();
 	public static Map<Integer, List<String>> recommendedClasses = new HashMap<>();
 
 	public static boolean isReachableInClass(BytecodeInstruction b1, BytecodeInstruction b2) {
@@ -58,7 +59,7 @@ public class Dataflow {
 		return false;
 	}
 	
-	public static void initializeDataflow() {
+	public static void initializeDataflow(IInterestedNodeFilter interestedNodeFilter) {
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 
 		for (String className : BranchPool.getInstance(classLoader).knownClasses()) {
@@ -77,10 +78,10 @@ public class Dataflow {
 					ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 					FBranchDefUseAnalyzer.analyze(cfg.getRawGraph());
 					
-					Map<Branch, Set<DepVariable>> map = analyzeIndividualMethod(cfg);
+					Map<Branch, Set<DepVariable>> map = analyzeIndividualMethod(cfg, interestedNodeFilter);
 					recommendedClasses = analyzeRecommendationClasses(cfg);
 					System.currentTimeMillis();
-					branchDepVarsMap.put(methodName, map);					
+					branchInterestedVarsMap.put(methodName, map);					
 				}
 			}
 		}
@@ -147,7 +148,7 @@ public class Dataflow {
 	
 	
 	@SuppressWarnings("rawtypes")
-	public static Map<Branch, Set<DepVariable>> analyzeIndividualMethod(ActualControlFlowGraph cfg) {
+	public static Map<Branch, Set<DepVariable>> analyzeIndividualMethod(ActualControlFlowGraph cfg, IInterestedNodeFilter interestedNodeFilter) {
 		Map<Branch, Set<DepVariable>> map = new HashMap<>();
 		
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
@@ -155,8 +156,8 @@ public class Dataflow {
 		String methodName = cfg.getMethodName();
 		
 		for (Branch b : BranchPool.getInstance(classLoader).retrieveBranchesInMethod(className, methodName)) {
-			FieldUseAnalyzer fAnalyzer = new FieldUseAnalyzer(b);
-			Set<DepVariable> allDepVars = new HashSet<DepVariable>();
+			InterproceduralGraphAnalyzer graphAnalyzer = new InterproceduralGraphAnalyzer(b, interestedNodeFilter);
+			Set<DepVariable> inputRootVars = new HashSet<DepVariable>();
 			Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
 			if (!b.isInstrumented()) {
 				Frame frame = b.getInstruction().getFrame();
@@ -164,11 +165,12 @@ public class Dataflow {
 					int index = frame.getStackSize() - i - 1;
 					Value val = frame.getStack(index);
 					
-					fAnalyzer.searchDependantVariables(val, cfg, allDepVars, visitedIns, Properties.COMPUTATION_GRAPH_METHOD_CALL_DEPTH);
+					graphAnalyzer.searchDependantVariables(val, cfg, inputRootVars, visitedIns, 
+							Properties.COMPUTATION_GRAPH_METHOD_CALL_DEPTH);
 				}
 			}
 			
-			map.put(b, allDepVars);
+			map.put(b, inputRootVars);
 		}
 		
 		return map;
@@ -183,7 +185,7 @@ public class Dataflow {
 	}
 
 	public static Map<Branch, List<ConstructionPath>> checkObjectDifficultPath() {
-		Map<Branch, Set<DepVariable>> interestedBranches = branchDepVarsMap.get(Properties.TARGET_METHOD);
+		Map<Branch, Set<DepVariable>> interestedBranches = branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 		
 		Map<Branch, List<ConstructionPath>> interestedPaths = new HashMap<>(); 
 		for(Branch branch: interestedBranches.keySet()) {

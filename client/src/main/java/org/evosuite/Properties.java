@@ -150,6 +150,9 @@ public class Properties {
 	@Parameter(key = "apply_object_rule", group = "Test Creation", description = "Ask the tool to analyze the branch-dependant variables")
 	public static boolean APPLY_OBJECT_RULE = false;
 	
+	@Parameter(key = "apply_interprocedural_graph_analysis", group = "Test Creation", description = "Ask the tool to analyze the interprocedural graph")
+	public static boolean APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = false;
+	
 	@Parameter(key = "individual_legitimization_budget", group = "Test Creation", description = "individual legitimization budget")
 	public static int INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 	

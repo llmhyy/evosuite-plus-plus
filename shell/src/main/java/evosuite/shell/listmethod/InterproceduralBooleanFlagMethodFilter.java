@@ -24,7 +24,7 @@ import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.cfg.CFGFrame;
-import org.evosuite.graphs.dataflow.DefUseAnalyzer;
+import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.ClassReader;
