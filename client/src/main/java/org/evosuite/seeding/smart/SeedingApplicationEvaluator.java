@@ -41,27 +41,13 @@ public class SeedingApplicationEvaluator {
 		for (DepVariable input : methodInputs) {
 			List<ComputationPath> computationPathList = ComputationPath.computePath(input, operands);
 			ComputationPath path = findSimplestPath(computationPathList);
-			pathList.add(path);
+			if(path != null)
+				pathList.add(path);
 		}
 		
 		for (ComputationPath path : pathList) {
 			if (path.isFastChannel(operands)) {
 				ComputationPath otherPath = findTheOtherPath(path, pathList);
-				if(otherPath == null && operands.size() > 1) {
-					for(int i = 0;i < operands.size();i++)
-					{
-						List<BytecodeInstruction> computationNodes = new ArrayList<>();
-						computationNodes = path.getComputationNodes();
-						if(computationNodes.get(computationNodes.size() - 1) != operands.get(i) 
-								&& operands.get(i) != null ) {
-							List<BytecodeInstruction> computationNodes1 = new ArrayList<>();
-							computationNodes1.add(operands.get(i));
-							otherPath = new ComputationPath();
-							otherPath.setComputationNodes(computationNodes1);
-							otherPath.setScore(computationNodes1.size());
-						}
-					}
-				}
 				if (otherPath.isConstant()) {
 					return STATIC_POOL;
 				} else if (!otherPath.isFastChannel(operands)) {
