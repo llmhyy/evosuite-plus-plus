@@ -29,7 +29,7 @@ public class StatisticalFlagBranchEvaluatorTest {
 		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 		
 //		Properties.APPLY_OBJECT_RULE = true;
-		Properties.APPLY_SMART_SEED = true;
+		Properties.APPLY_GRADEINT_ANALYSIS = true;
 		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
 	}
 	

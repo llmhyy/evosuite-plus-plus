@@ -34,21 +34,28 @@ public class InterproceduralGraphAnalysis {
 	public static Map<String, Map<Branch, Set<DepVariable>>> branchInterestedVarsMap = new HashMap<>();
 	public static Map<Integer, List<String>> recommendedClasses = new HashMap<>();
 
-	public static boolean isReachableInClass(BytecodeInstruction b1, BytecodeInstruction b2) {
+	public static boolean isReachableInClass(BytecodeInstruction source, BytecodeInstruction target) {
 		
-		BasicBlock block1 = b1.getBasicBlock();
-		BasicBlock block2 = b2.getBasicBlock();
+		BasicBlock sourceBlock = source.getBasicBlock();
+		BasicBlock targetBlock = target.getBasicBlock();
+		
 		int distance = 0;
 		try {
-			distance = block2.getCDG().getDistance(block1, block2);			
+			distance = targetBlock.getCDG().getDistance(sourceBlock, targetBlock);			
 		}
 		catch(Exception e) {
 			return false;
 		}
 		
+		if(distance == -1) {
+			
+			distance = targetBlock.getCDG().getDistance(sourceBlock, targetBlock);
+			System.currentTimeMillis();
+		}
+		
 		if(distance >= 0) {
 			if(distance == 0) {
-				if(b1.getInstructionId() < b2.getInstructionId()) {
+				if(source.getInstructionId() < target.getInstructionId()) {
 					return true;							
 				}
 			}
@@ -79,6 +86,7 @@ public class InterproceduralGraphAnalysis {
 					FBranchDefUseAnalyzer.analyze(cfg.getRawGraph());
 					
 					Map<Branch, Set<DepVariable>> map = analyzeIndividualMethod(cfg, interestedNodeFilter);
+					System.currentTimeMillis();
 					recommendedClasses = analyzeRecommendationClasses(cfg);
 					System.currentTimeMillis();
 					branchInterestedVarsMap.put(methodName, map);					

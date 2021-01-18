@@ -236,6 +236,11 @@ public class InterproceduralGraphAnalyzer {
 //			Use use = DefUseFactory.makeUse(defIns);
 			// Ignore method parameter
 //			List<Definition> ds = DefUsePool.getDefinitions(use);
+			
+			if(defIns.getLineNumber() == 53) {
+				System.currentTimeMillis();
+			}
+			
 			List<BytecodeInstruction> defs = DefUseAnalyzer.getDefFromUse(defIns);
 			for (BytecodeInstruction def : defs) {
 				buildInputOutputForInstruction(def, node,
