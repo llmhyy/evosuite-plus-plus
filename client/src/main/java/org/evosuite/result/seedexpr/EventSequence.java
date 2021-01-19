@@ -17,8 +17,11 @@ public class EventSequence {
 	public static List<Event> events = new ArrayList<Event>();
 //	public static boolean enabled = false;
 	
+	
+	public static boolean LOCAL_ENABLE = false;
+	
 	public static void addEvent(Event e) {
-		if(Properties.ENABLE_TRACEING_EVENT && e != null) {
+		if(Properties.ENABLE_TRACEING_EVENT && LOCAL_ENABLE && e != null) {
 			events.add(e);			
 		}
 	}
@@ -28,12 +31,11 @@ public class EventSequence {
 	}
 
 	public static void enableRecord() {
-		Properties.ENABLE_TRACEING_EVENT = true;
-		
+		LOCAL_ENABLE = true;
 	}
 
 	public static void disableRecord() {
-		Properties.ENABLE_TRACEING_EVENT = false;
+		LOCAL_ENABLE = false;
 	}
 
 	public static BranchCoveringEvent deriveCoveredBranch(Object offspring, Object parent, Set<?> uncoveredGoals) {
