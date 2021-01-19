@@ -34,7 +34,7 @@ public class SeedingApplicationEvaluator {
 	public static int evaluate(Branch b) {
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
-
+		
 		List<BytecodeInstruction> operands = b.getInstruction().getOperands();
 
 		List<ComputationPath> pathList = new ArrayList<>();
@@ -76,7 +76,7 @@ public class SeedingApplicationEvaluator {
 		ComputationPath simplestPath = new ComputationPath();
 		simplestPath.setScore(9999);
 		for(int i = 0;i < computationPathList.size();i++) {
-			if(computationPathList.get(i).getScore() < simplestPath.getScore()) {
+			if(computationPathList.get(i).getScore() < simplestPath.getScore() ) {
 				simplestPath = computationPathList.get(i);
 				return simplestPath;
 			}

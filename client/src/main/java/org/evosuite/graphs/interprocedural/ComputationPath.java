@@ -507,14 +507,17 @@ public class ComputationPath {
 			if(nodeList == null) {
 				continue;
 			}
-			node = nodeList.get(0);
-			if(!operands.contains(node.getInstruction())) {
-				nodes.add(node.getInstruction());
-				dfsRoot(node,operands,computationPath,nodes);
-			}
-			else {
-				nodes.add(node.getInstruction());
-				break;
+			for(int j = 0;j < nodeList.size();j++) {
+				node = nodeList.get(j);
+				if(! (operands.contains(node.getInstruction()) &&
+						operands.contains(node.getInstruction().getLineNumber()))) {
+					nodes.add(node.getInstruction());
+					dfsRoot(node,operands,computationPath,nodes);
+				}
+				else {
+					nodes.add(node.getInstruction());
+					break;
+				}
 			}
 		}
 		
