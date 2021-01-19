@@ -53,6 +53,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.seeding.smart.BranchUpdateManager;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -180,6 +181,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			
 			// apply mutation on offspring1
 			Set<?> uncoveredGoals = getUncoveredGoals();
+			BranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
 			this.mutate(offspring1, parent1);
 			if (offspring1.isChanged()) {
 				
@@ -195,6 +197,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 
 			// apply mutation on offspring2
 			uncoveredGoals = getUncoveredGoals();
+			BranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
 			this.mutate(offspring2, parent2);
 			if (offspring2.isChanged()) {
 				this.clearCachedResults(offspring2);
@@ -248,16 +251,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		TestChromosome tch = (TestChromosome) offspring;
 		tch.clearMutationHistory();
 		offspring.mutate();
-		
-//		int size = tch.getTestCase().size();
-//		Statement s0 = tch.getTestCase().getStatement(size-1);
-//		MethodStatement ms = (MethodStatement)s0;
-//		List<VariableReference> vars = ms.getParameterReferences();
-//		for(int i=0; i<vars.size()-1; i++){
-//			if(vars.get(i).getStPosition() == vars.get(i+1).getStPosition()){
-//				System.currentTimeMillis();
-//			}
-//		}
 		
 		if (!offspring.isChanged()) {
 			// if offspring is not changed, we try to mutate it once again

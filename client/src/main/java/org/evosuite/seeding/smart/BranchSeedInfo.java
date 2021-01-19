@@ -4,6 +4,10 @@ import org.evosuite.coverage.branch.Branch;
 
 public class BranchSeedInfo {
 	private Branch branch;
+	
+	/**
+	 * see type defined in {@code SeedingApplicationEvaluator}
+	 */
 	private int benefiticalType;
 
 	public Branch getBranch() {

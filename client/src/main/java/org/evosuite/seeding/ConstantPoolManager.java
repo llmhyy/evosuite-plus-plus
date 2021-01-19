@@ -22,7 +22,12 @@
  */
 package org.evosuite.seeding;
 
+import java.util.Set;
+
 import org.evosuite.Properties;
+import org.evosuite.seeding.smart.BranchSeedInfo;
+import org.evosuite.seeding.smart.BranchUpdateManager;
+import org.evosuite.seeding.smart.PoolGenerator;
 import org.evosuite.utils.Randomness;
 
 /**
@@ -103,6 +108,17 @@ public class ConstantPoolManager {
 	}
 
 	public ConstantPool getConstantPool() {
+		if(Properties.APPLY_SMART_SEED) {
+			Set<BranchSeedInfo> uncoveredBranches = BranchUpdateManager.uncoveredBranchInfo;
+			if(!uncoveredBranches.isEmpty()) {
+				BranchSeedInfo interestedBranchInfo = Randomness.choice(uncoveredBranches);
+				ConstantPool pool = PoolGenerator.evaluate(interestedBranchInfo);
+				if(pool != null) {
+					return pool;
+				}
+			}			
+		}
+		
 		double p = Randomness.nextDouble();
 		double k = 0d;
 		for (int i = 0; i < probabilities.length; i++) {
