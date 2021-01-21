@@ -71,7 +71,11 @@ public class StatisticBranchFlagEvaluator {
 
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
+
 		Set<DepVariable> rootVariables = branchesInTargetMethod.get(b);
+		
+		//FIXME Aaron, the root variables can contain multiple instructions pointing to the same parameters
+		// we shall remove the duplication then.
 
 		List<BytecodeInstruction> operands = b.getInstruction().getOperands();
 

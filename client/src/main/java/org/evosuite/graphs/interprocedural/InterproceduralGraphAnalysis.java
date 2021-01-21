@@ -41,16 +41,11 @@ public class InterproceduralGraphAnalysis {
 		
 		int distance = 0;
 		try {
-			distance = targetBlock.getCDG().getDistance(sourceBlock, targetBlock);			
+			ActualControlFlowGraph cfg = source.getActualCFG();
+			distance = cfg.getDistance(sourceBlock, targetBlock);
 		}
 		catch(Exception e) {
 			return false;
-		}
-		
-		if(distance == -1) {
-			
-			distance = targetBlock.getCDG().getDistance(sourceBlock, targetBlock);
-			System.currentTimeMillis();
 		}
 		
 		if(distance >= 0) {
