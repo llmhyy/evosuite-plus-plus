@@ -3,14 +3,19 @@ package org.evosuite.seeding.smart;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchFitness;
 
 public class BranchUpdateManager {
 
-	public static Set<BranchSeedInfo> uncoveredBranchInfo;
+	public static Set<BranchSeedInfo> uncoveredBranchInfo = new HashSet<>();
 	
 	public static void updateUncoveredBranchInfo(Set<?> uncoveredGoals) {
+		
+		if(!Properties.APPLY_SMART_SEED)
+			return;
+		
 		
 		uncoveredBranchInfo.clear();
 		

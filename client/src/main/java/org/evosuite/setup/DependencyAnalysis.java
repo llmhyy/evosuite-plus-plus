@@ -140,7 +140,12 @@ public class DependencyAnalysis {
 		analyze(className, classPath);
 		
 		// Parse the data flow before generating tests
-		if (Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS) {
+		
+		
+		if (Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS ||
+				Properties.APPLY_OBJECT_RULE ||
+				Properties.APPLY_SMART_SEED ||
+				Properties.APPLY_GRADEINT_ANALYSIS) {
 			
 			IInterestedNodeFilter interestedNodeFilter = new EmptyInterestedNodeFilter();
 			if(Properties.APPLY_OBJECT_RULE) {
