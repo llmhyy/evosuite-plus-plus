@@ -41,9 +41,22 @@ public class SeedingApplicationEvaluator {
 				pathList.add(path);
 		}
 		
+		List<ComputationPath> removeList = removeRedundancyPath(pathList);
+		if(removeList != null) {
+			for(ComputationPath path : removeList) {
+				pathList.remove(path);
+			}
+		}
+		
 		for (ComputationPath path : pathList) {
 			if (path.isFastChannel(operands)) {
 				ComputationPath otherPath = findTheOtherPath(path, pathList);
+				if(otherPath == null && b.getInstruction().getASMNodeString().contains("NULL")) {
+					List<BytecodeInstruction> computationNodes = new ArrayList<>();
+					computationNodes.add(b.getInstruction());
+					otherPath = new ComputationPath();
+					otherPath.setComputationNodes(computationNodes);
+				}
 				if (otherPath.isConstant()) {
 					cache.put(b, new BranchSeedInfo(b, STATIC_POOL));
 					return STATIC_POOL;
@@ -58,14 +71,52 @@ public class SeedingApplicationEvaluator {
 		return NO_POOL;
 	}
 
+	private static List<ComputationPath> removeRedundancyPath(List<ComputationPath> pathList) {
+		List<ComputationPath> localPathList = new ArrayList<>();
+		for(int i = 0;i < pathList.size();i++) {
+			ComputationPath path = pathList.get(i);
+			int size = path.getComputationNodes().size();
+			for(int j = i + 1;j < pathList.size();j++) {
+				ComputationPath pathNext = pathList.get(j);
+				int sizeNext = pathNext.getComputationNodes().size();
+				
+				//method inputs to remove
+				if(!path.getComputationNodes().get(0).isConstant() &&
+						size >= 2 && sizeNext >= 2 &&
+						path.getComputationNodes().get(size - 2) == pathNext.getComputationNodes().get(sizeNext - 2)) {
+					if(path.getScore() <= pathNext.getScore()){
+						if(!localPathList.contains(pathNext)) {
+							localPathList.add(pathNext);
+						}
+					}
+				}
+			}
+			
+			//constants need to remove
+			if(path.getComputationNodes().get(0).isConstant()) {
+				if(path.getComputationNodes().get(0).getLineNumber() != path.getComputationNodes().get(size - 1).getLineNumber()) {
+					if(!localPathList.contains(path)) {
+						localPathList.add(path);
+					}
+				}
+			}
+			
+		}
+		if(localPathList.size() != 0)
+			return localPathList;
+		else
+			return null;
+	}
+
 	private static ComputationPath findTheOtherPath(ComputationPath path, List<ComputationPath> pathList) {
 		// TODO Cheng Yan
 		ComputationPath theOtherPath = new ComputationPath();
-		for(int i = 0;i < pathList.size();i++) {
-			if(pathList.get(i) != path) {
-				theOtherPath = pathList.get(i);
+		for(ComputationPath otherPath : pathList) {
+			if(otherPath != path) {
+				theOtherPath = otherPath;
 				return theOtherPath;
 			}
+				
 		}
 		return null;
 	}
@@ -74,14 +125,14 @@ public class SeedingApplicationEvaluator {
 		// TODO Cheng Yan
 		ComputationPath simplestPath = new ComputationPath();
 		simplestPath.setScore(9999);
-		for(int i = 0;i < computationPathList.size();i++) {
-			if(computationPathList.get(i).getScore() < simplestPath.getScore() ) {
-				simplestPath = computationPathList.get(i);
-				return simplestPath;
-			}
-				
+		for(ComputationPath path : computationPathList) {
+			if(path.getScore() < simplestPath.getScore())
+				simplestPath = path;
 		}
-		return null;
+		if(simplestPath.getScore() != 9999)
+			return simplestPath;
+		else
+			return null;
 	}
 
 	public static List<BranchSeedInfo> evaluate(String targetMethod) {

@@ -41,13 +41,12 @@ public class ComputationPath {
 			double conq = evaluateConsequence(ins, operands);
 			value = value * conq;
 		}
+		if(!(this.getComputationNodes().get(0).isParameter() 
+				|| this.getComputationNodes().get(0).getName().contains("LOAD")))
+			value = value * 0.6;
+		return value > 0.6;
+				
 		
-		return value >= 0.8;
-		
-		// TODO Cheng Yan
-//		if(this.score < 5)
-//			return true;
-//		return false;
 	}
 
 	private double evaluateConsequence(BytecodeInstruction ins, List<BytecodeInstruction> operands) {
