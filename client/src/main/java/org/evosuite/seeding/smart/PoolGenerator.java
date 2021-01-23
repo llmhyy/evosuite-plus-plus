@@ -1,18 +1,26 @@
 package org.evosuite.seeding.smart;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.seeding.ConstantPool;
+import org.evosuite.seeding.DynamicConstantPool;
 import org.evosuite.seeding.StaticConstantPool;
 
 public class PoolGenerator {
+	public static Map<Branch, ConstantPool> poolCache = new HashMap<>();
 	public static ConstantPool evaluate(BranchSeedInfo b) {
 		
 		Class<?> clazz = analyzeType(b);
+		if(poolCache.containsKey(b.getBranch())) {
+			return poolCache.get(b.getBranch());
+		}
 		
 		if(b.getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL) {
 			//TODO cache is possible
@@ -21,10 +29,14 @@ public class PoolGenerator {
 			for(Object obj: relevantConstants) {
 				pool.add(obj);				
 			}
+			poolCache.put(b.getBranch(), pool);
+			return pool;
 			
 		}
 		else if(b.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL) {
-			
+			ConstantPool pool = new DynamicConstantPool();
+			poolCache.put(b.getBranch(), pool);
+			return pool;
 		}
 		
 		return null;
@@ -42,10 +54,9 @@ public class PoolGenerator {
 
 		for(BytecodeInstruction row : rowGraph) {
 			if(row.getLineNumber() == lineNumber) {
-				if(row.isConstant()) {
-//					Object o = new Object();
-					row.getASMNode().getType();
-					row.getASMNodeString().split(" ");
+				if(row.isConstant()) {				
+					//instruction to object
+					
 					Object o = row.getASMNode();
 					relevantConstants.add(o);
 				}
@@ -61,9 +72,8 @@ public class PoolGenerator {
 					if(i.equals(rowGraph.iterator().next()))
 						continue;
 					i = i.getPreviousInstruction();
-					i.getType();
-					i.getASMNodeString();
-					i.getInstructionType();
+					
+					//instruction to object
 					
 					Object o = i.getASMNode();
 					relevantConstants.add(o);
@@ -72,7 +82,6 @@ public class PoolGenerator {
 			}
 		}
 		
-		// deal with the graph
 		return relevantConstants;
 	}
 
