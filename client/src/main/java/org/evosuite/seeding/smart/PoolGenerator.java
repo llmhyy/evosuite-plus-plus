@@ -5,19 +5,23 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.cfg.RawControlFlowGraph;
+import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.DynamicConstantPool;
 import org.evosuite.seeding.StaticConstantPool;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 
 public class PoolGenerator {
 	public static Map<Branch, ConstantPool> poolCache = new HashMap<>();
 	public static ConstantPool evaluate(BranchSeedInfo b) {
 		
-		Class<?> clazz = analyzeType(b);
+		Class<?> type = analyzeType(b);
 		if(poolCache.containsKey(b.getBranch())) {
 			return poolCache.get(b.getBranch());
 		}
@@ -25,7 +29,7 @@ public class PoolGenerator {
 		if(b.getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL) {
 			//TODO cache is possible
 			ConstantPool pool = new StaticConstantPool(false);
-			Set<Object> relevantConstants = parseRelevantConstants(b);
+			Set<Object> relevantConstants = parseRelevantConstants(b, type);
 			for(Object obj: relevantConstants) {
 				pool.add(obj);				
 			}
@@ -42,47 +46,34 @@ public class PoolGenerator {
 		return null;
 	}
 
-	private static Set<Object> parseRelevantConstants(BranchSeedInfo b) {
-		// TODO
-		ActualControlFlowGraph graph = b.getBranch().getInstruction().getActualCFG();
+	private static Set<Object> parseRelevantConstants(BranchSeedInfo b, Class<?> type) {
+		Set<Object> constantValues = new HashSet<>();
 		
-		Set<Object> relevantConstants = new HashSet<Object>();
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
+		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b.getBranch());
 		
-		int lineNumber = b.getBranch().getInstruction().getLineNumber();
-		
- 		Set<BytecodeInstruction> rowGraph = graph.getRawGraph().getGraph().vertexSet();
-
-		for(BytecodeInstruction row : rowGraph) {
-			if(row.getLineNumber() == lineNumber) {
-				if(row.isConstant()) {				
-					//instruction to object
-					
-					Object o = row.getASMNode();
-					relevantConstants.add(o);
+		for(DepVariable input: methodInputs) {
+			if(input.getInstruction().isConstant()) {
+				
+				BytecodeInstruction ins = input.getInstruction();
+				
+				AbstractInsnNode node = ins.getASMNode();
+				if(node instanceof LdcInsnNode) {
+					LdcInsnNode lNode = (LdcInsnNode)node;
+					constantValues.add(lNode.cst);
 				}
-				if(row.getASMNodeString().contains("LOAD")){
-					String line = row.getASMNodeString().split(" ")[1];
-					BytecodeInstruction i = row;
-					while(!(i.getASMNodeString().contains("STORE") &&
-							i.getASMNodeString().split(" ")[1].equals(line))) {
-						if(i.equals(rowGraph.iterator().next()))
-							break;
-						i = i.getPreviousInstruction();
-					}
-					if(i.equals(rowGraph.iterator().next()))
-						continue;
-					i = i.getPreviousInstruction();
-					
-					//instruction to object
-					
-					Object o = i.getASMNode();
-					relevantConstants.add(o);
+				else if(node instanceof InsnNode) {
+					InsnNode iNode = (InsnNode)node;
+					//TODO Cheng Yan check constant related instructions
 				}
-					
+				
+				System.currentTimeMillis();
 			}
 		}
 		
-		return relevantConstants;
+		
+		
+		return constantValues;
 	}
 
 	private static Class<?> analyzeType(BranchSeedInfo b) {
