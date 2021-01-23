@@ -21,6 +21,7 @@ public class SF100OverallTest {
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = true;
+		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
 		Properties.ADOPT_SMART_MUTATION = false;
 		
 		Properties.INSTRUMENT_CONTEXT = true;
@@ -41,12 +42,13 @@ public class SF100OverallTest {
 //		String projectId = "83_xbus";
 //		String projectId = "80_wheelwebtool";
 //		String projectId = "58_fps370";
-		String projectId = SF100Project.P84;
+		String projectId = SF100Project.P51;
+		
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CustPayeeMsgRecChoice#equals(Ljava/lang/Object;)Z"
-				"net.sourceforge.ifxfv3.beans.CustAddRqSequence#equals(Ljava/lang/Object;)Z"
+				"org.objectweb.asm.jip.attrs.StackMapAttribute#getFrame(Lorg/objectweb/asm/jip/Label;)Lorg/objectweb/asm/jip/attrs/StackMapFrame;"
 //				"state.Party#remove(Lstate/Party;)V"
 //				"net.sourceforge.ifxfv3.beans.BankAcctTrnRec#equals(Ljava/lang/Object;)Z"
 //				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
