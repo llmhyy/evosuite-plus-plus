@@ -76,6 +76,7 @@ public class SeedingApplicationEvaluator {
 		for(int i = 0;i < pathList.size();i++) {
 			ComputationPath path = pathList.get(i);
 			int size = path.getComputationNodes().size();
+			boolean haveLineConstant = false;
 			for(int j = i + 1;j < pathList.size();j++) {
 				ComputationPath pathNext = pathList.get(j);
 				int sizeNext = pathNext.getComputationNodes().size();
@@ -90,10 +91,13 @@ public class SeedingApplicationEvaluator {
 						}
 					}
 				}
+				if(pathNext.getComputationNodes().get(0).isConstant() &&
+						pathNext.getComputationNodes().get(0).getLineNumber() == path.getComputationNodes().get(size - 1).getLineNumber())
+					haveLineConstant = true;
 			}
 			
 			//constants need to remove
-			if(path.getComputationNodes().get(0).isConstant()) {
+			if(path.getComputationNodes().get(0).isConstant() && haveLineConstant) {
 				if(path.getComputationNodes().get(0).getLineNumber() != path.getComputationNodes().get(size - 1).getLineNumber()) {
 					if(!localPathList.contains(path)) {
 						localPathList.add(path);
