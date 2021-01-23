@@ -234,7 +234,7 @@ public class SmartSeedBranchEvaluatorTest {
 	
 	@Test
 	public void testSmartSeedBranch8() throws ClassNotFoundException, RuntimeException {
-		Class<?> clazz = feature.smartseed.example.ResourcesDirectory.class;
+		Class<?> clazz = feature.smartseed.example.empirical.ResourcesDirectory.class;
 		String methodName = "addResource";
 		int parameterNum = 2;
 		int lineNumber = 31;
