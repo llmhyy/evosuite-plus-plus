@@ -1,4 +1,4 @@
-package feature.smartseed.example;
+package feature.smartseed.example.empirical;
 
 public class IMenuItem {
 	private int index;

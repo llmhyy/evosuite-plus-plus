@@ -1,4 +1,4 @@
-package feature.smartseed.example;
+package feature.smartseed.example.empirical;
 
 import java.util.Iterator;
 import java.util.Vector;
