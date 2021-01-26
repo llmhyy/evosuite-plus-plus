@@ -27,7 +27,7 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.seeding.smart.BranchUpdateManager;
-import org.evosuite.seeding.smart.PoolGenerator;
+import org.evosuite.seeding.smart.BranchwiseConstantPoolManager;
 import org.evosuite.utils.Randomness;
 
 /**
@@ -112,7 +112,7 @@ public class ConstantPoolManager {
 			Set<BranchSeedInfo> uncoveredBranches = BranchUpdateManager.uncoveredBranchInfo;
 			if(!uncoveredBranches.isEmpty()) {
 				BranchSeedInfo interestedBranchInfo = Randomness.choice(uncoveredBranches);
-				ConstantPool pool = PoolGenerator.evaluate(interestedBranchInfo);
+				ConstantPool pool = BranchwiseConstantPoolManager.evaluate(interestedBranchInfo);
 				if(pool != null) {
 					return pool;
 				}

@@ -21,11 +21,13 @@ package org.evosuite.testcase.execution;
 
 import java.util.Map;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.dataflow.DefUsePool;
 import org.evosuite.coverage.dataflow.Definition;
 import org.evosuite.coverage.dataflow.Use;
 import org.evosuite.instrumentation.testability.BooleanHelper;
 import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.smart.BranchwiseConstantPoolManager;
 import org.objectweb.asm.Opcodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -481,6 +483,9 @@ public class ExecutionTracer {
 			val = comparisonValue.snd;
 		}
 		ConstantPoolManager.getInstance().addDynamicConstant(val);
+		if(Properties.APPLY_SMART_SEED) {
+			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, val);
+		}
 
 		// logger.trace("Called passedBranch1 with opcode "+AbstractVisitor.OPCODES[opcode]+" and val "+val+" in branch "+branch);
 		double distance_true = 0.0;
@@ -684,7 +689,12 @@ public class ExecutionTracer {
 		
 		ConstantPoolManager.getInstance().addDynamicConstant(val1);
 		ConstantPoolManager.getInstance().addDynamicConstant(val2);
-
+		
+		if(Properties.APPLY_SMART_SEED) {
+			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, val1);
+			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, val2);
+		}
+		
 		/* logger.trace("Called passedBranch2 with opcode "
 		        + AbstractVisitor.OPCODES[opcode] + ", val1=" + val1 + ", val2=" + val2
 		        + " in branch " + branch); */

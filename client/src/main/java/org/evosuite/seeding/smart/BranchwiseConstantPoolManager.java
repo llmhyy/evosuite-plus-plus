@@ -20,29 +20,45 @@ import org.objectweb.asm.tree.LdcInsnNode;
 
 import net.bytebuddy.jar.asm.Opcodes;
 
-public class PoolGenerator {
-	public static Map<Branch, ConstantPool> poolCache = new HashMap<>();
+public class BranchwiseConstantPoolManager {
+	public static Map<Integer, ConstantPool> STATIC_POOL_CACHE = new HashMap<>();
+	public static Map<Integer, ConstantPool> DYNAMIC_POOL_CACHE = new HashMap<>();
+	
+	public static ConstantPool getBranchwiseDynamicConstantPool(Integer branchId) {
+		ConstantPool pool = DYNAMIC_POOL_CACHE.get(branchId);
+		if(pool == null) {
+			pool = new DynamicConstantPool();
+			DYNAMIC_POOL_CACHE.put(branchId, pool);
+		}
+		
+		return pool;
+	}
+	
+	public static void addBranchwiseDynamicConstant(Integer branchId, Object obj) {
+		Properties.DYNAMIC_POOL_SIZE = 10;
+		ConstantPool pool = getBranchwiseDynamicConstantPool(branchId);
+		pool.add(obj);
+	}
+	
 	public static ConstantPool evaluate(BranchSeedInfo b) {
 		
 		Class<?> type = analyzeType(b);
-		if(poolCache.containsKey(b.getBranch())) {
-			return poolCache.get(b.getBranch());
-		}
 		
 		if(b.getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL) {
+			if(STATIC_POOL_CACHE.containsKey(b.getBranch().getActualBranchId())) {
+				return STATIC_POOL_CACHE.get(b.getBranch().getActualBranchId());
+			}
+			
 			ConstantPool pool = new StaticConstantPool(false);
 			Set<Object> relevantConstants = parseRelevantConstants(b, type);
 			for(Object obj: relevantConstants) {
 				pool.add(obj);				
 			}
-			poolCache.put(b.getBranch(), pool);
+			STATIC_POOL_CACHE.put(b.getBranch().getActualBranchId(), pool);
 			return pool;
-			
 		}
 		else if(b.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL) {
-			ConstantPool pool = new DynamicConstantPool();
-			
-			poolCache.put(b.getBranch(), pool);
+			ConstantPool pool = getBranchwiseDynamicConstantPool(b.getBranch().getActualBranchId());
 			return pool;
 		}
 		
