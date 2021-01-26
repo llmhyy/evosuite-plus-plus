@@ -18,6 +18,8 @@ import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 
+import net.bytebuddy.jar.asm.Opcodes;
+
 public class PoolGenerator {
 	public static Map<Branch, ConstantPool> poolCache = new HashMap<>();
 	public static ConstantPool evaluate(BranchSeedInfo b) {
@@ -28,7 +30,6 @@ public class PoolGenerator {
 		}
 		
 		if(b.getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL) {
-			//TODO cache is possible
 			ConstantPool pool = new StaticConstantPool(false);
 			Set<Object> relevantConstants = parseRelevantConstants(b, type);
 			for(Object obj: relevantConstants) {
@@ -66,69 +67,52 @@ public class PoolGenerator {
 				}
 				else if(node instanceof InsnNode) {
 					InsnNode iNode = (InsnNode)node;
-					int i;
-					long l;
-					float f;
-					double d;
 					switch(iNode.getOpcode()) {
-						case 1:
+						case Opcodes.ACONST_NULL:
 							constantValues.add(null);
 							break;
-						case 2:
-							i = -1;
-							constantValues.add(i);
+						case Opcodes.ICONST_M1:
+							constantValues.add(new Integer(-1));
 							break;
+						//TODO Cheng Yan, refactor code
 						case 3:
-							i = 0;
-							constantValues.add(i);	
+							constantValues.add(new Integer(0));	
 							break;
 						case 4:
-							i = 1;
-							constantValues.add(i);
+							constantValues.add(new Integer(1));
 							break;
 						case 5:
-							i = 2;
-							constantValues.add(i);
+							constantValues.add(new Integer(2));
 							break;
 						case 6:
-							i = 3;
-							constantValues.add(i);
+							constantValues.add(new Integer(3));
 							break;
 						case 7:
-							i = 4;
-							constantValues.add(i);
+							constantValues.add(new Integer(4));
 							break;
 						case 8:
-							i = 5;
-							constantValues.add(i);
+							constantValues.add(new Integer(5));
 							break;
 						case 9:
-							l = 0;
-							constantValues.add(l);
+							constantValues.add(new Long(0));
 							break;
 						case 10:
-							l = 1;
-							constantValues.add(l);
+							constantValues.add(new Long(1));
 							break;
 						case 11:
-							f = 0;
-							constantValues.add(f);
+							constantValues.add(new Float(0));
 							break;
 						case 12:
-							f = 1;
-							constantValues.add(f);
+							constantValues.add(new Float(1));
 							break;
 						case 13:
-							f = 2;
-							constantValues.add(f);
+							constantValues.add(new Float(2));
 							break;
 						case 14:
-							d = 0;
-							constantValues.add(d);
+							constantValues.add(new Double(0));
 							break;
 						case 15:
-							d = 1;
-							constantValues.add(d);
+							constantValues.add(new Double(1));
 							break;
 						}				
 				}
