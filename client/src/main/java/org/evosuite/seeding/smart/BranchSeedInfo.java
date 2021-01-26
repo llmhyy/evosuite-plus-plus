@@ -9,6 +9,7 @@ public class BranchSeedInfo {
 	 * see type defined in {@code SeedingApplicationEvaluator}
 	 */
 	private int benefiticalType;
+	private Class<?> targetType;
 
 	public Branch getBranch() {
 		return branch;
@@ -26,9 +27,18 @@ public class BranchSeedInfo {
 		this.benefiticalType = benefiticalType;
 	}
 
-	public BranchSeedInfo(Branch branch, int benefiticalType) {
+	public BranchSeedInfo(Branch branch, int benefiticalType,Class<?> targetType) {
 		super();
 		this.branch = branch;
 		this.benefiticalType = benefiticalType;
+		this.targetType = targetType;
+	}
+
+	public Class<?> getTargetType() {
+		return targetType;
+	}
+
+	public void setTargetType(Class<?> targetType) {
+		this.targetType = targetType;
 	}
 }

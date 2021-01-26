@@ -26,7 +26,8 @@ public class EmpiricalStudyExample {
 		if ((i > 0) && (i < s.length() - 1)) {
 			suffixe = s.substring(i + 1).toLowerCase();
 		}
-		return (suffixe != null) && (appartient(suffixe));
+		return (suffixe != null) 
+				&& (appartient(suffixe));
 	}
 
 	public boolean appartient(String suffixe) {
@@ -110,7 +111,8 @@ public class EmpiricalStudyExample {
 		for (int i = 0; i < nSheets; i++) {
 			HSSFSheet sheet = workbook.getSheetAt(i);
 			String sheetName = workbook.getSheetName(i);
-			if (excludedSheetNames != null && !excludedSheetNames.contains(sheetName)) {
+			if (excludedSheetNames != null 
+					&& !excludedSheetNames.contains(sheetName)) {
 				System.currentTimeMillis();
 			}
 		}

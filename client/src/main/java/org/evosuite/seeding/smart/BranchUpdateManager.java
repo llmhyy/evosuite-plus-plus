@@ -11,7 +11,7 @@ public class BranchUpdateManager {
 
 	public static Set<BranchSeedInfo> uncoveredBranchInfo = new HashSet<>();
 	
-	public static void updateUncoveredBranchInfo(Set<?> uncoveredGoals) {
+	public static void updateUncoveredBranchInfo(Set<?> uncoveredGoals){
 		
 		if(!Properties.APPLY_SMART_SEED)
 			return;
@@ -26,7 +26,8 @@ public class BranchUpdateManager {
 				BranchCoverageGoal goal = bf.getBranchGoal();
 				
 				int type = SeedingApplicationEvaluator.evaluate(goal.getBranch());
-				BranchSeedInfo info = new BranchSeedInfo(goal.getBranch(), type);
+				Class<?> cla = SeedingApplicationEvaluator.cache.get(goal.getBranch()).getTargetType();
+				BranchSeedInfo info = new BranchSeedInfo(goal.getBranch(), type, cla);
 				
 				if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
 					infoSet.add(info);					

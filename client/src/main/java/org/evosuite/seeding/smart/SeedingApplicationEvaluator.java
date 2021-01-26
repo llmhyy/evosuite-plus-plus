@@ -14,6 +14,9 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.TypeInsnNode;
 
 public class SeedingApplicationEvaluator {
 
@@ -23,7 +26,7 @@ public class SeedingApplicationEvaluator {
 	
 	public static Map<Branch, BranchSeedInfo> cache = new HashMap<>();
 
-	public static int evaluate(Branch b) {
+	public static int evaluate(Branch b){
 		if(cache.containsKey(b)) {
 			return cache.get(b).getBenefiticalType();
 		}
@@ -50,6 +53,7 @@ public class SeedingApplicationEvaluator {
 		
 		for (ComputationPath path : pathList) {
 			if (path.isFastChannel(operands)) {
+//				Class<?> cla = findOpcodeType(path);
 				ComputationPath otherPath = findTheOtherPath(path, pathList);
 				if(otherPath == null && b.getInstruction().getASMNodeString().contains("NULL")) {
 					List<BytecodeInstruction> computationNodes = new ArrayList<>();
@@ -58,17 +62,59 @@ public class SeedingApplicationEvaluator {
 					otherPath.setComputationNodes(computationNodes);
 				}
 				if (otherPath.isConstant()) {
-					cache.put(b, new BranchSeedInfo(b, STATIC_POOL));
+					cache.put(b, new BranchSeedInfo(b, STATIC_POOL,otherPath.getComputationNodes().get(0).getClass()));
 					return STATIC_POOL;
 				} else if (!otherPath.isFastChannel(operands)) {
-					cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL));
+//					if(cla == null)
+//						cla = findOpcodeType(otherPath);
+					cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL,null));
 					return DYNAMIC_POOL;
 				}
 			}
 		}
 
-		cache.put(b, new BranchSeedInfo(b, NO_POOL));
+		cache.put(b, new BranchSeedInfo(b, NO_POOL,null));
 		return NO_POOL;
+	}
+
+	private static Class<?> findOpcodeType(ComputationPath otherPath){
+		int size = otherPath.getComputationNodes().size();
+		for(BytecodeInstruction bi : otherPath.getComputationNodes()) {
+			AbstractInsnNode node = bi.getASMNode();
+			if(node instanceof TypeInsnNode) {
+				TypeInsnNode tNode = (TypeInsnNode) node;
+				String des = tNode.desc.replace("/", ".");
+				Class<?> cla;
+				try {
+					if(Class.forName(des) != null) {
+						cla = Class.forName(des);
+						return cla;
+					}
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}		
+			}else if(node instanceof MethodInsnNode) {
+				MethodInsnNode mNode = (MethodInsnNode) node;
+				String des = mNode.desc.replace("/", ".");
+				Class<?> cla;
+				try {
+					if(Class.forName(des) != null) {
+						cla = Class.forName(des);
+						return cla;
+					}
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
+			int opcode = bi.getASMNode().getOpcode();
+			switch(opcode) {
+			case 0x97:
+				return double.class;
+				
+			}
+		}
+		
+		return null;
 	}
 
 	private static List<ComputationPath> removeRedundancyPath(List<ComputationPath> pathList) {
@@ -139,7 +185,7 @@ public class SeedingApplicationEvaluator {
 			return null;
 	}
 
-	public static List<BranchSeedInfo> evaluate(String targetMethod) {
+	public static List<BranchSeedInfo> evaluate(String targetMethod) throws ClassNotFoundException {
 		List<BranchSeedInfo> interestedBranches = new ArrayList<>();
 
 		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
@@ -148,8 +194,9 @@ public class SeedingApplicationEvaluator {
 
 		for (Branch branch : branches) {
 			int type = evaluate(branch);
+			Class<?> cla = cache.get(branch).getTargetType();
 			if (type != NO_POOL) {
-				interestedBranches.add(new BranchSeedInfo(branch, type));
+				interestedBranches.add(new BranchSeedInfo(branch, type,cla));
 			}
 		}
 
