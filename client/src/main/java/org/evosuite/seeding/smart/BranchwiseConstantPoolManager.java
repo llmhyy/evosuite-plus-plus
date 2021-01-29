@@ -90,44 +90,43 @@ public class BranchwiseConstantPoolManager {
 						case Opcodes.ICONST_M1:
 							constantValues.add(new Integer(-1));
 							break;
-						//TODO Cheng Yan, refactor code
-						case 3:
+						case Opcodes.ICONST_0:
 							constantValues.add(new Integer(0));	
 							break;
-						case 4:
+						case Opcodes.ICONST_1:
 							constantValues.add(new Integer(1));
 							break;
-						case 5:
+						case Opcodes.ICONST_2:
 							constantValues.add(new Integer(2));
 							break;
-						case 6:
+						case Opcodes.ICONST_3:
 							constantValues.add(new Integer(3));
 							break;
-						case 7:
+						case Opcodes.ICONST_4:
 							constantValues.add(new Integer(4));
 							break;
-						case 8:
+						case Opcodes.ICONST_5:
 							constantValues.add(new Integer(5));
 							break;
-						case 9:
+						case Opcodes.LCONST_0:
 							constantValues.add(new Long(0));
 							break;
-						case 10:
+						case Opcodes.LCONST_1:
 							constantValues.add(new Long(1));
 							break;
-						case 11:
+						case Opcodes.FCONST_0:
 							constantValues.add(new Float(0));
 							break;
-						case 12:
+						case Opcodes.FCONST_1:
 							constantValues.add(new Float(1));
 							break;
-						case 13:
+						case Opcodes.FCONST_2:
 							constantValues.add(new Float(2));
 							break;
-						case 14:
+						case Opcodes.DCONST_0:
 							constantValues.add(new Double(0));
 							break;
-						case 15:
+						case Opcodes.DCONST_1:
 							constantValues.add(new Double(1));
 							break;
 						}				
@@ -145,9 +144,8 @@ public class BranchwiseConstantPoolManager {
 
 	private static Class<?> analyzeType(BranchSeedInfo b) {
 		// TODO Cheng Yan
-		return b.getTargetType();
 		
-//		return null;
+		return null;
 	}
 	
 }

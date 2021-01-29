@@ -23,7 +23,8 @@ public enum MethodFilterOption {
 	CALLS_INT_METHOD("callsIntMethod"),
 	CALLS_RECURSIVE_METHOD("callsRecursiveMethod"),
 	OBJECT_CONSTRUCTION("objectConstruction"),
-	EQUALS_METHOD("equalsMethod");
+	EQUALS_METHOD("equalsMethod"),
+	BRANCHWISE_METHOD("branchwiseMethod");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -76,6 +77,8 @@ public enum MethodFilterOption {
 			return new ObjectConstructionFilter();
 		case EQUALS_METHOD:
 			return new EqualsMethodFilter();
+		case BRANCHWISE_METHOD:
+			return new BranchwiseMethodFillter();
 		}
 		return null;
 	}
