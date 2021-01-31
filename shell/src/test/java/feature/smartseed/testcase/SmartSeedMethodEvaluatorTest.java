@@ -37,7 +37,7 @@ public class SmartSeedMethodEvaluatorTest {
 		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
 		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 		
-		Properties.APPLY_OBJECT_RULE = true;
+		Properties.APPLY_SMART_SEED = true;
 		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
 		
 		List<BranchSeedInfo> benefitedBranches = SeedingApplicationEvaluator.evaluate(Properties.TARGET_METHOD);

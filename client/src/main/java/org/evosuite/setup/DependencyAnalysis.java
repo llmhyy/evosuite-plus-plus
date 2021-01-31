@@ -89,7 +89,7 @@ public class DependencyAnalysis {
 	private static void analyze(String className, List<String> classPath) throws RuntimeException,
 			ClassNotFoundException {
 
-		if (!inheritanceTree.hasClass(Properties.TARGET_CLASS)) {
+		if (!inheritanceTree.hasClass(className)) {
 			throw new ClassNotFoundException("Target class not found in inheritance tree");
 		}
 

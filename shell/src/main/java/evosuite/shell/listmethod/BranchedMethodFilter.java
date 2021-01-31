@@ -2,7 +2,12 @@ package evosuite.shell.listmethod;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
+import org.evosuite.Properties;
+import org.evosuite.Properties.Criterion;
+import org.evosuite.classpath.ClassPathHandler;
+import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
