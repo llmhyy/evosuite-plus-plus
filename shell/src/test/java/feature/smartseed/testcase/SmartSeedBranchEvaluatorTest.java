@@ -39,7 +39,7 @@ public class SmartSeedBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "dynamicExample1";
 		int parameterNum = 2;
-		int lineNumber = 27;
+		int lineNumber = 20;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -68,7 +68,7 @@ public class SmartSeedBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "dynamicExample2";
 		int parameterNum = 2;
-		int lineNumber = 33;
+		int lineNumber = 26;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -97,7 +97,7 @@ public class SmartSeedBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "staticExample1";
 		int parameterNum = 2;
-		int lineNumber = 39;
+		int lineNumber = 32;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -126,7 +126,7 @@ public class SmartSeedBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "staticExample2";
 		int parameterNum = 2;
-		int lineNumber = 45;
+		int lineNumber = 38;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -154,7 +154,7 @@ public class SmartSeedBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "staticExample3";
 		int parameterNum = 2;
-		int lineNumber = 52;
+		int lineNumber = 45;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -178,10 +178,10 @@ public class SmartSeedBranchEvaluatorTest {
 	}
 	@Test
 	public void testSmartSeedBranch6() throws ClassNotFoundException, RuntimeException {
-		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		Class<?> clazz = feature.smartseed.example.empirical.EmpiricalStudyExample.class;
 		String methodName = "accept";
 		int parameterNum = 1;
-		int lineNumber = 66;
+		int lineNumber = 30;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -206,10 +206,10 @@ public class SmartSeedBranchEvaluatorTest {
 	
 	@Test
 	public void testSmartSeedBranch7() throws ClassNotFoundException, RuntimeException {
-		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		Class<?> clazz = feature.smartseed.example.empirical.EmpiricalStudyExample.class;
 		String methodName = "addMenuItem";
 		int parameterNum = 2;
-		int lineNumber = 95;
+		int lineNumber = 57;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -261,10 +261,10 @@ public class SmartSeedBranchEvaluatorTest {
 	}
 	@Test
 	public void testSmartSeedBranch9() throws ClassNotFoundException, RuntimeException {
-		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		Class<?> clazz = feature.smartseed.example.empirical.EmpiricalStudyExample.class;
 		String methodName = "parse";
 		int parameterNum = 1;
-		int lineNumber = 156;
+		int lineNumber = 115;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -289,10 +289,10 @@ public class SmartSeedBranchEvaluatorTest {
 	
 	@Test
 	public void testSmartSeedBranch10() throws ClassNotFoundException, RuntimeException {
-		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		Class<?> clazz = feature.smartseed.example.empirical.EmpiricalStudyExample.class;
 		String methodName = "loadInstructions";
 		int parameterNum = 1;
-		int lineNumber = 171;
+		int lineNumber = 128;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);

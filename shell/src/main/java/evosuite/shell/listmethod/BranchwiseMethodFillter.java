@@ -13,6 +13,7 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
@@ -20,6 +21,9 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.interestednode.EmptyInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.interestednode.SmartSeedInterestedNodeFilter;
 import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.Opcodes;
@@ -36,6 +40,7 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 	private static Logger log = LoggerUtils.getLogger(BranchwiseMethodFillter.class);
 	private static List<String> validStaticMethods = new ArrayList<String>();
 	private static List<String> validDynamicMethods = new ArrayList<String>();
+	private static List<String> visitedClass = new ArrayList<String>();
 
 	public BranchwiseMethodFillter() {
 		Properties.INSTRUMENT_CONTEXT = true;
@@ -50,14 +55,15 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 			ClassNode cn) throws AnalyzerException, IOException, ClassNotFoundException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
 		
-		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();	
+		cp = cp.replace('\\', '/');
 		try {
-			Properties.TARGET_CLASS = className;
 			Properties.TARGET_METHOD = methodName;
+			Properties.TARGET_CLASS = className;
 			DependencyAnalysis.analyzeClass(className, Arrays.asList(cp.split(File.pathSeparator)));
 		} catch (ClassNotFoundException | RuntimeException e) {
 			e.printStackTrace();
-		}	
+		}
 		
 		// Get actual CFG for target method
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
@@ -67,27 +73,31 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		}
-
+		
 		// Get instructions for target method
 		BytecodeInstructionPool insPool = BytecodeInstructionPool.getInstance(classLoader);
 		List<BytecodeInstruction> instructions = insPool.getAllInstructionsAtMethod(className, methodName);
 
 		// Write your filter logic here
-		// Return true if the method passes your filter
-		for (BytecodeInstruction b : cfg.getBranches()) {
-			Branch br = b.toBranch();
-
-			int type = SeedingApplicationEvaluator.evaluate(br);
-			if (type == SeedingApplicationEvaluator.STATIC_POOL) {
-				validStaticMethods.add(methodName);
-				return true;
-			} else if (type == SeedingApplicationEvaluator.DYNAMIC_POOL) {
-				validDynamicMethods.add(methodName);
-				return true;
+		// Return true if the method passes your filter		
+		for (BytecodeInstruction b : getIfBranchesInMethod(cfg)) {
+			Branch br = b.toBranch();				
+			if(b.getOperandNum() == 2 && br != null) {					
+				int type = SeedingApplicationEvaluator.evaluate(br);
+				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
+					validStaticMethods.add(methodName);
+					DependencyAnalysis.clear();
+					return true;
+				} else if (type == SeedingApplicationEvaluator.DYNAMIC_POOL) {
+					validDynamicMethods.add(methodName);
+					DependencyAnalysis.clear();
+					return true;
+					}
+				}
 			}
-
-		}
-
+		
+		DependencyAnalysis.clear();
 		return false;
+			
 	}
 }

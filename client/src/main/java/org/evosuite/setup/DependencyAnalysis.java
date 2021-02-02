@@ -461,4 +461,11 @@ public class DependencyAnalysis {
 		targetClasses.add(className);
 		
 	}
+	
+	public static void clear() {
+		classCache.clear();
+		callGraphs.clear();
+		inheritanceTree = null;
+//		targetClasses.clear();
+	}
 }

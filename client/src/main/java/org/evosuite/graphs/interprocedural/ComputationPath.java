@@ -41,12 +41,24 @@ public class ComputationPath {
 			double conq = evaluateConsequence(ins, operands);
 			value = value * conq;
 		}
-		if(!(this.getComputationNodes().get(0).isParameter() 
-				|| this.getComputationNodes().get(0).getName().contains("LOAD")))
+		
+		boolean isParameter = hasParameter(operands);
+		if(!isParameter)
 			value = value * 0.6;
+//		if(!(this.getComputationNodes().get(0).isParameter() 
+//				|| this.getComputationNodes().get(0).getName().contains("LOAD")))
+//			value = value * 0.6;
 		return value > 0.6;
 				
 		
+	}
+
+	private boolean hasParameter(List<BytecodeInstruction> operands) {
+		for(BytecodeInstruction isParameter : this.getComputationNodes()) {
+			if(isParameter.isParameter())
+				return true;
+		}
+		return false;
 	}
 
 	private double evaluateConsequence(BytecodeInstruction ins, List<BytecodeInstruction> operands) {
