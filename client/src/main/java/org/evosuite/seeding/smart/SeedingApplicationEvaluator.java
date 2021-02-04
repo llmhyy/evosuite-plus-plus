@@ -34,9 +34,8 @@ public class SeedingApplicationEvaluator {
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 		if(branchesInTargetMethod == null)
 			return NO_POOL;
-		Set<DepVariable> methodInputs =  branchesInTargetMethod.get(b);
-		
 		b = rightBranch(branchesInTargetMethod,b);
+		Set<DepVariable> methodInputs =  branchesInTargetMethod.get(b);
 		
 		try {
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
