@@ -32,7 +32,9 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
@@ -76,7 +78,7 @@ public class StringTransformation {
 	public ClassNode transform() {
 		List<MethodNode> methodNodes = cn.methods;
 		for (MethodNode mn : methodNodes) {
-			if (transformMethod(mn)) {
+			if (transformMethod(cn, mn)) {
 				mn.maxStack++;
 			}
 		}
@@ -90,18 +92,26 @@ public class StringTransformation {
 	 * @param mn
 	 */
 	@SuppressWarnings("unchecked")
-	private boolean transformStrings(MethodNode mn) {
+	private boolean transformStrings(ClassNode cn, MethodNode mn) {
 		logger.info("Current method: " + mn.name);
 		boolean changed = false;
 		ListIterator<AbstractInsnNode> iterator = mn.instructions.iterator();
+		int index = 0;
 		while (iterator.hasNext()) {
+			index++;
 			AbstractInsnNode node = iterator.next();
 			if (node instanceof MethodInsnNode) {
 				MethodInsnNode min = (MethodInsnNode) node;
 				if (min.owner.equals("java/lang/String")) {
 					if (min.name.equals("equals")) {
 						changed = true;
-
+						
+						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+						mn.instructions.insertBefore(node, methodSig);
+						
+						IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+						mn.instructions.insertBefore(node, indexNode);
+						
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
 						        Type.getInternalName(StringHelper.class),
@@ -109,7 +119,10 @@ public class StringTransformation {
 						        Type.getMethodDescriptor(Type.INT_TYPE,
 						                                 new Type[] {
 						                                         Type.getType(String.class),
-						                                         Type.getType(Object.class) }), false);
+						                                         Type.getType(Object.class), 
+						                                         Type.getType(String.class),
+						                                         Type.INT_TYPE
+						        						}), false);
 						mn.instructions.insertBefore(node, equalCheck);
 						mn.instructions.remove(node);
 						/*
@@ -285,11 +298,11 @@ public class StringTransformation {
 	 *            a {@link org.objectweb.asm.tree.MethodNode} object.
 	 * @return a boolean.
 	 */
-	public boolean transformMethod(MethodNode mn) {
-		boolean changed = transformStrings(mn);
+	public boolean transformMethod(ClassNode cn, MethodNode mn) {
+		boolean changed = transformStrings(cn, mn);
 		if (changed) {
 			try {
-				mn.maxStack++;
+				mn.maxStack = mn.maxStack + 3;
 				Analyzer a = new Analyzer(new StringBooleanInterpreter());
 				a.analyze(cn.name, mn);
 				Frame[] frames = a.getFrames();

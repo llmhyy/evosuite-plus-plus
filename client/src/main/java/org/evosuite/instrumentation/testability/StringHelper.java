@@ -19,13 +19,19 @@
  */
 package org.evosuite.instrumentation.testability;
 
-import org.evosuite.Properties;
-import org.evosuite.instrumentation.RegexDistance;
-import org.evosuite.seeding.ConstantPoolManager;
-
 import java.lang.reflect.Field;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchPool;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.instrumentation.RegexDistance;
+import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.smart.BranchwiseConstantPoolManager;
 
 /**
  * Created by Andrea Arcuri on 26/03/15.
@@ -148,8 +154,63 @@ public class StringHelper {
 			return (int) Math.round(BooleanHelper.K * d2);            
         }
     }
+    
+    public static int StringEquals(String first, Object second, String methodSig, int index) {
+        if (first == null) {
+            throw new NullPointerException(
+                    "StringEquals is not supposed to work on a null caller");
+        }
+        // Comparison with null is always false
+        if (second == null) {
+            return - BooleanHelper.K;
+        }
 
-    public static double StringEqualsCharacterDistance(String first, Object second) {
+        if (first.equals(second)) {
+            return BooleanHelper.K; // Identical
+        } else {
+        	if(Properties.APPLY_SMART_SEED) {
+        		int branch = parseBranchId(methodSig, index);
+    			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, first);
+    			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, second);
+    		}
+        	
+            ConstantPoolManager.getInstance().addDynamicConstant(first);
+            ConstantPoolManager.getInstance().addDynamicConstant(second);
+            // return -getDistanceBasedOnLeftAlignment(first, second.toString());
+            double distance = -getDistanceBasedOnLeftAlignmentCharacterDistance(first, second.toString());
+            double d2 = distance / (1.0 + Math.abs(distance));
+			
+			return (int) Math.round(BooleanHelper.K * d2);            
+        }
+    }
+
+    private static int parseBranchId(String methodSig, int index) {
+    	String className = methodSig.substring(0, methodSig.indexOf("#"));
+    	className = className.replace("/", ".");
+    	String methodName = methodSig.substring(methodSig.indexOf("#")+1, methodSig.length());
+    	
+    	ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		BytecodeInstruction instruction = BytecodeInstructionPool.getInstance(classLoader).
+			getInstruction(className, methodName, index);
+		
+		while(!instruction.isBranch()) {
+			instruction = instruction.getNextInstruction();
+		}
+		
+		if(instruction != null) {
+			if (BranchPool.getInstance(classLoader).isKnownAsBranch(instruction)) {
+				Branch b = BranchPool.getInstance(classLoader).getBranchForInstruction(instruction);
+				if (b == null)
+					return -1;
+
+				return b.getActualBranchId();
+			}
+		}
+		
+		return -1;
+	}
+
+	public static double StringEqualsCharacterDistance(String first, Object second) {
         if (first == null) {
             throw new IllegalArgumentException(
                     "StringEquals is not supposed to work on a null caller");

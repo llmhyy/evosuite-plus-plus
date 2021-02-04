@@ -7,23 +7,28 @@ import java.util.List;
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
+import org.junit.Before;
 import org.junit.Test;
 
-import common.SeedStrategyUtil;
 import common.TestUtility;
 import evosuite.shell.EvoTestResult;
 import feature.smartseed.example.SmartSeedExample;
 import feature.smartseed.example.empirical.EmpiricalStudyExample;
-import sf100.CommonTestUtil;
 
 public class SmartSeedRuntimeTest {
 	
+	@Before
+	public void init() {
+		Properties.APPLY_SMART_SEED = true;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.TIMEOUT = 10000000;
+	}
+	
 	@Test
 	public void testConsturctingConstantPool4UncoveredBranch1() throws IOException {
-		Properties.APPLY_SMART_SEED = true;
-		
 		Class<?> clazz = SmartSeedExample.class;
-		String methodName = "staticExample1";
+		String methodName = "staticExample3";
 		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
@@ -32,24 +37,17 @@ public class SmartSeedRuntimeTest {
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes;target/test-classes";
 
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-
-		Properties.TIMEOUT = 1000;
-		
 		String fitnessApproach = "branch";
 		
-		int timeBudget = 100;
-		
-		int repeatTime = 30;
-		int budget = 100;
+		int repeatTime = 1;
+		int budget = 1000000;
 		Long seed = null;
 				
 		boolean aor = false;
 
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, true, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 1.0, 0.0);	
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
 		double coverage = 0;
 		double initCoverage = 0;
 		double time = 0;
@@ -76,8 +74,6 @@ public class SmartSeedRuntimeTest {
 	}
 	@Test
 	public void testConsturctingConstantPool4UncoveredBranch2() {
-		Properties.APPLY_SMART_SEED = true;
-		
 		Class<?> clazz = SmartSeedExample.class;
 		String methodName = "staticExample2";
 		int parameterNum = 2;
@@ -88,14 +84,7 @@ public class SmartSeedRuntimeTest {
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes;target/test-classes";
 
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-
-		Properties.TIMEOUT = 1000;
-		
 		String fitnessApproach = "branch";
-		
-		int timeBudget = 100;
 		
 		int repeatTime = 30;
 		int budget = 100;
@@ -130,7 +119,6 @@ public class SmartSeedRuntimeTest {
 	}
 	@Test
 	public void testConsturctingConstantPool4UncoveredBranch3() {
-		Properties.APPLY_SMART_SEED = true;
 		
 		Class<?> clazz = SmartSeedExample.class;
 		String methodName = "staticExample3";
@@ -142,11 +130,6 @@ public class SmartSeedRuntimeTest {
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/classes;target/test-classes";
 
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-
-		Properties.TIMEOUT = 1000;
-		
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 30;
