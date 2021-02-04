@@ -143,6 +143,9 @@ public class StringTransformation {
 
 					} else if (min.name.equals("equalsIgnoreCase")) {
 						changed = true;
+						
+						//TODO
+						
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
 						        Type.getInternalName(StringHelper.class),
@@ -157,6 +160,9 @@ public class StringTransformation {
 
 					} else if (min.name.equals("startsWith")) {
 						changed = true;
+						
+						//TODO
+						
 						if (min.desc.equals("(Ljava/lang/String;)Z")) {
 							mn.instructions.insertBefore(node, new InsnNode(
 							        Opcodes.ICONST_0));
@@ -176,6 +182,8 @@ public class StringTransformation {
 
 					} else if (min.name.equals("endsWith")) {
 						changed = true;
+						
+						//TODO
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
 						        Type.getInternalName(StringHelper.class),
@@ -190,6 +198,8 @@ public class StringTransformation {
 
 					} else if (min.name.equals("isEmpty")) {
 						changed = true;
+						
+						//TODO
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
 						        Type.getInternalName(StringHelper.class),
@@ -201,6 +211,8 @@ public class StringTransformation {
 						TransformationStatistics.transformedStringComparison();
 					} else if (min.name.equals("matches")) {
 						changed = true;
+						
+						//TODO
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
 						        Type.getInternalName(StringHelper.class),
@@ -213,6 +225,8 @@ public class StringTransformation {
 						mn.instructions.remove(node);
 						TransformationStatistics.transformedStringComparison();
 					} else if (min.name.equals("regionMatches")) {
+						
+						//TODO
 						Type[] argumentTypes = Type.getArgumentTypes(min.desc);
 						if (argumentTypes.length == 4) {
 							changed = true;
@@ -249,6 +263,7 @@ public class StringTransformation {
 					}
 
 				} else if (min.owner.equals("java/util/regex/Pattern")) {
+					//TODO
 					if (min.name.equals("matches")) {
 						changed = true;
 						MethodInsnNode equalCheck = new MethodInsnNode(
@@ -263,6 +278,7 @@ public class StringTransformation {
 						mn.instructions.remove(node);
 					}
 				} else if (min.owner.equals("java/util/regex/Matcher")) {
+					//TODO
 					if (min.name.equals("matches")) {
 						changed = true;
 						MethodInsnNode equalCheck = new MethodInsnNode(
