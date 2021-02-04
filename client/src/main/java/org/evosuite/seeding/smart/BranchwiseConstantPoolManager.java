@@ -35,6 +35,7 @@ public class BranchwiseConstantPoolManager {
 	}
 	
 	public static void addBranchwiseDynamicConstant(Integer branchId, Object obj) {
+		//TODO Cheng Yan, we should use a separate property to control the dynamic pool size
 		Properties.DYNAMIC_POOL_SIZE = 10;
 		ConstantPool pool = getBranchwiseDynamicConstantPool(branchId);
 		pool.add(obj);
