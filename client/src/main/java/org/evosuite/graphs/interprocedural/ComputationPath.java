@@ -42,7 +42,7 @@ public class ComputationPath {
 			value = value * conq;
 		}
 		
-		boolean isParameter = hasParameter(operands);
+		boolean isParameter = hasParameter(this);
 		if(!isParameter)
 			value = value * 0.6;
 //		if(!(this.getComputationNodes().get(0).isParameter() 
@@ -53,8 +53,8 @@ public class ComputationPath {
 		
 	}
 
-	private boolean hasParameter(List<BytecodeInstruction> operands) {
-		for(BytecodeInstruction isParameter : this.getComputationNodes()) {
+	public static boolean hasParameter(ComputationPath computationPath) {
+		for(BytecodeInstruction isParameter : computationPath.getComputationNodes()) {
 			if(isParameter.isParameter())
 				return true;
 		}
@@ -334,15 +334,15 @@ public class ComputationPath {
 		case "INSTANCEOF":
 			return 1;
 		case "INVOKEDYNAMIC":
-			return 0.7;
+			return 0.8;
 		case "INVOKEINTERFACE":
-			return 0.7;
+			return 0.8;
 		case "INVOKESPECIAL":
-			return 0.7;
+			return 0.8;
 		case "INVOKESTATIC":
-			return 0.7;
+			return 0.8;
 		case "INVOKEVIRTUAL":
-			return 0.7;
+			return 0.8;
 		case "IOR":
 			return 0.8;
 		case "IREM":
@@ -484,14 +484,26 @@ public class ComputationPath {
 		return 0;
 	}
 
-	public boolean isConstant() {
+	public boolean isConstant(List<BytecodeInstruction> operands) {
 		// TODO Cheng Yan
-		for(int i = 0; i < this.computationNodes.size();i++) {
-			System.out.print(this.computationNodes.get(i).isConstant());
-			if(this.computationNodes.get(i).isConstant())
-				return true;
+		boolean isConstant = true;
+		
+		for(BytecodeInstruction ins: computationNodes) {
+			if(operands.contains(ins)) {
+				continue;
+			}
+			if(!ins.isConstant()) {
+				isConstant = false;
+				return isConstant;
+			}
 		}
-		return false;
+		
+//		for(int i = 0; i < this.computationNodes.size();i++) {
+//			System.out.print(this.computationNodes.get(i).isConstant());
+//			if(this.computationNodes.get(i).isConstant())
+//				return true;
+//		}
+		return isConstant;
 	}
 	
 	public static List<ComputationPath> computePath(DepVariable root, List<BytecodeInstruction> operands) {

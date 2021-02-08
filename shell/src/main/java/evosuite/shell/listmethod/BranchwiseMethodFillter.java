@@ -9,6 +9,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.classpath.ClassPathHandler;
@@ -34,6 +35,10 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.slf4j.Logger;
 
+import evosuite.shell.EvosuiteForMethod;
+import evosuite.shell.Settings;
+import evosuite.shell.excel.ExcelWriter;
+import evosuite.shell.listmethod.FlagMethodProfilesFilter.MethodContent;
 import evosuite.shell.utils.LoggerUtils;
 
 public class BranchwiseMethodFillter extends MethodFlagCondFilter {
@@ -41,6 +46,9 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 	private static List<String> validStaticMethods = new ArrayList<String>();
 	private static List<String> validDynamicMethods = new ArrayList<String>();
 	private static List<String> visitedClass = new ArrayList<String>();
+	
+	public static final String excelProfileSubfix = "_branchwiseMethods.xlsx";
+	private ExcelWriter writer;
 
 	public BranchwiseMethodFillter() {
 		Properties.INSTRUMENT_CONTEXT = true;
@@ -48,13 +56,24 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		Properties.APPLY_SMART_SEED = true;
 		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
 		
+		String statisticFile = new StringBuilder(Settings.getReportFolder()).append(File.separator)
+				.append(EvosuiteForMethod.projectId).append(excelProfileSubfix).toString();
+		File newFile = new File(statisticFile);
+		if (newFile.exists()) {
+			newFile.delete();
+		}
+		writer = new ExcelWriter(new File(statisticFile));
+		writer.getSheet("data",
+				new String[] { "ProjectId", "ProjectName", "Target Method", "Branch", "Type" },
+				0);
+		
 	}
 	
 	@Override
 	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,
 			ClassNode cn) throws AnalyzerException, IOException, ClassNotFoundException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
-		
+		DependencyAnalysis.clear();
 		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();	
 		cp = cp.replace('\\', '/');
 		try {
@@ -79,25 +98,42 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		List<BytecodeInstruction> instructions = insPool.getAllInstructionsAtMethod(className, methodName);
 
 		// Write your filter logic here
-		// Return true if the method passes your filter		
+		// Return true if the method passes your filter	
+		MethodContent mc = new MethodContent();
 		for (BytecodeInstruction b : getIfBranchesInMethod(cfg)) {
-			Branch br = b.toBranch();				
-			if(b.getOperandNum() == 2 && br != null) {					
+			Branch br = b.toBranch();		
+			
+			if(b.getOperandNum() <= 2 && br != null && b.getOperandNum() > 0) {					
 				int type = SeedingApplicationEvaluator.evaluate(br);
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
-					validStaticMethods.add(methodName);
-					DependencyAnalysis.clear();
+					validStaticMethods.add(className + "#" + methodName);
+					System.out.println("type:STATIC_POOL");
+					logToExcel(br, className, methodName, 1);
 					return true;
-				} else if (type == SeedingApplicationEvaluator.DYNAMIC_POOL) {
-					validDynamicMethods.add(methodName);
-					DependencyAnalysis.clear();
+				}
+				else if (type == SeedingApplicationEvaluator.DYNAMIC_POOL) {
+					validDynamicMethods.add(className + "#" + methodName);
+					System.out.println("type:DYNAMIC_POOL");
+					logToExcel(br, className, methodName, 2);
 					return true;
 					}
 				}
 			}
-		
-		DependencyAnalysis.clear();
+//		System.out.println("type:NO_POOL");
 		return false;
 			
+	}
+	
+	protected void logToExcel(Branch br, String className, String methodName, int type) throws IOException {
+		List<List<Object>> data = new ArrayList<>();
+		String methodFullName = className + "#" + methodName;
+		List<Object> rowData = new ArrayList<>();
+		rowData.add(EvosuiteForMethod.projectId);
+		rowData.add(EvosuiteForMethod.projectName);
+		rowData.add(methodFullName);
+		rowData.add(br);
+		rowData.add(type);
+		data.add(rowData);
+		writer.writeSheet("data", data);
 	}
 }

@@ -1,5 +1,8 @@
 package feature.smartseed.example;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class SmartSeedExample {
 	
 	public static String[] noise = 
@@ -22,7 +25,7 @@ public class SmartSeedExample {
 		}
 	}
 
-	public void dynamicExample2(int x, int y) {
+	public void staticExample(int x, int y) {
 		if (x / 20000 == 345) {
 			System.currentTimeMillis();
 		}
@@ -67,5 +70,59 @@ public class SmartSeedExample {
 		}
 	}
 
+	public void equalsIgnoreCaseExample(String x, int y) {
+		String a = "ignoreCase" + x;
+		String b = "example";
+		if (a.equalsIgnoreCase("IGNORECASEString" + b)) {
+			System.currentTimeMillis();
+		}
+	}
 	
+	public void stratWithExample(String x, int index) {
+		String a = x.substring(2, x.length() - 3);
+		String b = "example";
+		if (a.startsWith(b, index)) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void stratWithExample(String x) {
+		String a = x.replace('a', 'A');
+		String b = "example";
+		if (a.startsWith("Find the right String")) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void endWithExample(String args[],String suffix) {
+		String endString = "end";
+		for(String a : args) {
+			if (a.startsWith(endString)) {
+				System.currentTimeMillis();
+			}
+		}
+	}
+	
+	public void matchesExample(String x) {
+		String regex = "^tr[A-F0-3]";
+		if(x.matches(regex)) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void patternMatchesExample(String x) {
+		String regex ="a*b";
+		if(Pattern.matches(regex, x)) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void matcherMatchesExample(String x) {
+		Pattern pattern = Pattern.compile("(\\d{3,4})\\-(\\d{7,8})");
+        // get Matcher object
+        Matcher matcher = pattern.matcher(x);
+		if(matcher.matches()) {
+			System.currentTimeMillis();
+		}
+	}
 }

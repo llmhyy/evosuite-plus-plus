@@ -145,6 +145,11 @@ public class StringTransformation {
 						changed = true;
 						
 						//TODO
+						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+						mn.instructions.insertBefore(node, methodSig);
+						
+						IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+						mn.instructions.insertBefore(node, indexNode);
 						
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
@@ -153,7 +158,10 @@ public class StringTransformation {
 						        Type.getMethodDescriptor(Type.INT_TYPE,
 						                                 new Type[] {
 						                                         Type.getType(String.class),
-						                                         Type.getType(String.class) }), false);
+						                                         Type.getType(String.class),
+						                                         Type.getType(String.class),
+						                                         Type.INT_TYPE
+						                                         }), false);
 						mn.instructions.insertBefore(node, equalCheck);
 						mn.instructions.remove(node);
 						TransformationStatistics.transformedStringComparison();
@@ -161,12 +169,13 @@ public class StringTransformation {
 					} else if (min.name.equals("startsWith")) {
 						changed = true;
 						
-						//TODO
-						
+						//TODO					
 						if (min.desc.equals("(Ljava/lang/String;)Z")) {
+							
 							mn.instructions.insertBefore(node, new InsnNode(
 							        Opcodes.ICONST_0));
 						}
+						
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
 						        Type.getInternalName(StringHelper.class),
@@ -175,15 +184,42 @@ public class StringTransformation {
 						                                 new Type[] {
 						                                         Type.getType(String.class),
 						                                         Type.getType(String.class),
-						                                         Type.INT_TYPE }), false);
+						                                         Type.INT_TYPE
+						                                         }), false);
+						if(min.desc.equals("(Ljava/lang/String;)Z")) {
+							LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+							mn.instructions.insertBefore(node, methodSig);
+							
+							IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+							mn.instructions.insertBefore(node, indexNode);
+							equalCheck = new MethodInsnNode(
+							        Opcodes.INVOKESTATIC,
+							        Type.getInternalName(StringHelper.class),
+							        "StringStartsWith",
+							        Type.getMethodDescriptor(Type.INT_TYPE,
+							                                 new Type[] {
+							                                         Type.getType(String.class),
+							                                         Type.getType(String.class),
+							                                         Type.INT_TYPE,
+							                                         Type.getType(String.class),
+							                                         Type.INT_TYPE
+							                                         }), false);
+						}
 						mn.instructions.insertBefore(node, equalCheck);
 						mn.instructions.remove(node);
 						TransformationStatistics.transformedStringComparison();
+						
 
 					} else if (min.name.equals("endsWith")) {
 						changed = true;
 						
 						//TODO
+						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+						mn.instructions.insertBefore(node, methodSig);
+						
+						IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+						mn.instructions.insertBefore(node, indexNode);
+						
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
 						        Type.getInternalName(StringHelper.class),
@@ -191,7 +227,10 @@ public class StringTransformation {
 						        Type.getMethodDescriptor(Type.INT_TYPE,
 						                                 new Type[] {
 						                                         Type.getType(String.class),
-						                                         Type.getType(String.class) }), false);
+						                                         Type.getType(String.class),
+						                                         Type.getType(String.class),
+						                                         Type.INT_TYPE
+						                                         }), false);
 						mn.instructions.insertBefore(node, equalCheck);
 						mn.instructions.remove(node);
 						TransformationStatistics.transformedStringComparison();
@@ -200,6 +239,7 @@ public class StringTransformation {
 						changed = true;
 						
 						//TODO
+						//one operand
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
 						        Type.getInternalName(StringHelper.class),
@@ -213,6 +253,12 @@ public class StringTransformation {
 						changed = true;
 						
 						//TODO
+						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+						mn.instructions.insertBefore(node, methodSig);
+						
+						IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+						mn.instructions.insertBefore(node, indexNode);
+						
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
 						        Type.getInternalName(StringHelper.class),
@@ -220,7 +266,10 @@ public class StringTransformation {
 						        Type.getMethodDescriptor(Type.INT_TYPE,
 						                                 new Type[] {
 						                                         Type.getType(String.class),
-						                                         Type.getType(String.class) }), false);
+						                                         Type.getType(String.class),
+						                                         Type.getType(String.class),
+						                                         Type.INT_TYPE
+						                                         }), false);
 						mn.instructions.insertBefore(node, equalCheck);
 						mn.instructions.remove(node);
 						TransformationStatistics.transformedStringComparison();
@@ -266,6 +315,12 @@ public class StringTransformation {
 					//TODO
 					if (min.name.equals("matches")) {
 						changed = true;
+						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+						mn.instructions.insertBefore(node, methodSig);
+						
+						IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+						mn.instructions.insertBefore(node, indexNode);
+						
 						MethodInsnNode equalCheck = new MethodInsnNode(
 						        Opcodes.INVOKESTATIC,
 						        Type.getInternalName(StringHelper.class),
@@ -273,12 +328,21 @@ public class StringTransformation {
 						        Type.getMethodDescriptor(Type.INT_TYPE,
 						                                 new Type[] {
 						                                         Type.getType(String.class),
-						                                         Type.getType(CharSequence.class) }), false);
+						                                         Type.getType(CharSequence.class),
+						                                         Type.getType(String.class),
+					                                             Type.INT_TYPE
+					                                              }), false);
 						mn.instructions.insertBefore(node, equalCheck);
 						mn.instructions.remove(node);
 					}
 				} else if (min.owner.equals("java/util/regex/Matcher")) {
 					//TODO
+					LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+					mn.instructions.insertBefore(node, methodSig);
+					
+					IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+					mn.instructions.insertBefore(node, indexNode);
+					
 					if (min.name.equals("matches")) {
 						changed = true;
 						MethodInsnNode equalCheck = new MethodInsnNode(
@@ -286,7 +350,10 @@ public class StringTransformation {
 						        Type.getInternalName(StringHelper.class),
 						        "StringMatchRegex",
 						        Type.getMethodDescriptor(Type.INT_TYPE,
-						                                 new Type[] { Type.getType(Matcher.class) }), false);
+						                                 new Type[] { Type.getType(Matcher.class),
+						                                		 	  Type.getType(String.class),
+						                                              Type.INT_TYPE
+						                                		 }), false);
 						mn.instructions.insertBefore(node, equalCheck);
 						mn.instructions.remove(node);
 					}

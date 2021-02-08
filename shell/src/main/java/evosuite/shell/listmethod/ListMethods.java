@@ -90,4 +90,58 @@ public class ListMethods {
 		return total;
 	}
 	
+	//test
+	public static int execute(String[] targetClasses, ClassLoader classLoader, MethodFilterOption mFilterOpt,
+			String cp )
+			throws ClassNotFoundException, IOException {
+		StringBuilder headerSb = new StringBuilder();
+		if (!ArrayUtil.contains(Properties.CRITERION, Criterion.DEFUSE)) {
+			Properties.CRITERION = ArrayUtils.addAll(Properties.CRITERION, Criterion.DEFUSE);
+		}
+		
+		/**
+		 * we clear the branch pool and graph pool when analyzing a new project.
+		 */
+		BranchPool.getInstance(classLoader).reset();
+		GraphPool.getInstance(classLoader).clear();
+		
+		IMethodFilter methodFilter = mFilterOpt.getCorrespondingFilter();
+		int total = 0;
+		StringBuilder tMethodSb = new StringBuilder(headerSb.toString());
+		List<String> testableClasses = new ArrayList<String>();
+		for (String className : targetClasses) {
+			try {
+				Class<?> targetClass = classLoader.loadClass(className);
+				// Filter out interface
+				if (targetClass.isInterface()) {
+					continue;
+				}
+				System.out.println("Class " + targetClass.getName());
+				List<String> testableMethods = methodFilter.listTestableMethods(targetClass, classLoader);
+				
+				if (!CollectionUtil.isEmpty(testableMethods)) {
+					testableClasses.add(className);
+				}
+				total += CollectionUtil.getSize(testableMethods);
+				tMethodSb = new StringBuilder();
+				for (String methodName : testableMethods) {
+					tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
+				}
+				
+				System.currentTimeMillis();
+				/* log to targetMethod.txt file */
+//				FileUtils.writeFile(targetMethodFilePath, tMethodSb.toString(), true);
+			} catch (Throwable t) {
+				tMethodSb = new StringBuilder();
+				tMethodSb.append("Error when executing class ").append(className);
+				tMethodSb.append(t.getMessage());
+				log.error("Error", t);
+			}
+		}
+		/* log target classes */
+//		TargetMethodIOUtils.writeTargetClassOrMethodTxt(EvosuiteForMethod.projectName, EvosuiteForMethod.projectId, 
+//				testableClasses, targetClassFilePath);
+		return total;
+	}
+	
 }

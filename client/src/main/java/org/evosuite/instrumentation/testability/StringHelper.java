@@ -251,6 +251,32 @@ public class StringHelper {
         else
             return BooleanHelper.K;
     }
+    public static int StringMatches(String str, String regex, String methodSig, int index) {
+        int distance = RegexDistance.getDistance(str, regex);
+
+        if (Properties.DYNAMIC_POOL > 0.0) {
+            if (distance > 0) {
+                String instance = RegexDistance.getRegexInstance(regex);
+                if(Properties.APPLY_SMART_SEED) {
+            		int branch = parseBranchId(methodSig, index);
+        			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, instance);
+        		}
+                ConstantPoolManager.getInstance().addDynamicConstant(instance);
+            } else {
+                String instance = RegexDistance.getNonMatchingRegexInstance(regex);
+                if(Properties.APPLY_SMART_SEED) {
+            		int branch = parseBranchId(methodSig, index);
+        			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, instance);
+        		}
+                ConstantPoolManager.getInstance().addDynamicConstant(instance);
+            }
+        }
+
+        if (distance > 0)
+            return -distance;
+        else
+            return BooleanHelper.K;
+    }
 
     public static int StringMatchRegex(String regex, CharSequence input) {
         int distance = RegexDistance.getDistance(input.toString(), regex);
@@ -261,6 +287,33 @@ public class StringHelper {
                 ConstantPoolManager.getInstance().addDynamicConstant(instance);
             } else {
                 String instance = RegexDistance.getNonMatchingRegexInstance(regex);
+                ConstantPoolManager.getInstance().addDynamicConstant(instance);
+            }
+        }
+
+        if (distance > 0)
+            return -distance;
+        else
+            return BooleanHelper.K;
+    }
+    
+    public static int StringMatchRegex(String regex, CharSequence input, String methodSig, int index) {
+        int distance = RegexDistance.getDistance(input.toString(), regex);
+
+        if (Properties.DYNAMIC_POOL > 0.0) {
+            if (distance > 0) {
+                String instance = RegexDistance.getRegexInstance(regex);
+                if(Properties.APPLY_SMART_SEED) {
+            		int branch = parseBranchId(methodSig, index);
+        			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, instance);
+        		}
+                ConstantPoolManager.getInstance().addDynamicConstant(instance);
+            } else {
+                String instance = RegexDistance.getNonMatchingRegexInstance(regex);
+                if(Properties.APPLY_SMART_SEED) {
+            		int branch = parseBranchId(methodSig, index);
+        			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, instance);
+        		}
                 ConstantPoolManager.getInstance().addDynamicConstant(instance);
             }
         }
@@ -300,6 +353,7 @@ public class StringHelper {
             return matcher.matches() ? 1 : -1;
         }
     }
+    
 
     /**
      * <p>
@@ -386,6 +440,23 @@ public class StringHelper {
         }
         return StringEquals(first.toLowerCase(), second.toLowerCase());
     }
+    
+    public static int StringEqualsIgnoreCase(String first, String second, String methodSig, int index) {
+        if (first == null) {
+            throw new NullPointerException(
+                    "StringEquals is not supposed to work on a null caller");
+        }
+        // Comparison with null is always false
+        if (second == null) {
+            return -BooleanHelper.K;
+        }
+        // We may miss locale specific cases of equivalence, so
+        // first we check for equivalence using java.lang.String
+        if(first.equalsIgnoreCase(second)) {
+        	return BooleanHelper.K;
+        }
+        return StringEquals(first.toLowerCase(), second.toLowerCase(),methodSig,index);
+    }
 
     /**
      * <p>
@@ -405,6 +476,16 @@ public class StringHelper {
         ConstantPoolManager.getInstance().addDynamicConstant(prefix + value);
         return StringEquals(value.substring(start, Math.min(start + len, value.length())), prefix);
     }
+    
+    public static int StringStartsWith(String value, String prefix, int start, String methodSig, int index) {
+        int len = Math.min(prefix.length(), value.length());
+        if(Properties.APPLY_SMART_SEED) {
+    		int branch = parseBranchId(methodSig, index);
+			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, prefix + value);
+		}
+        ConstantPoolManager.getInstance().addDynamicConstant(prefix + value);
+        return StringEquals(value.substring(start, Math.min(start + len, value.length())), prefix, methodSig, index);
+    }
 
     /**
      * <p>
@@ -422,6 +503,17 @@ public class StringHelper {
         String val1 = value.substring(value.length() - len);
         ConstantPoolManager.getInstance().addDynamicConstant(value + suffix);
         return StringEquals(val1, suffix);
+    }
+    
+    public static int StringEndsWith(String value, String suffix, String methodSig, int index) {
+        int len = Math.min(suffix.length(), value.length());
+        String val1 = value.substring(value.length() - len);
+        if(Properties.APPLY_SMART_SEED) {
+    		int branch = parseBranchId(methodSig, index);
+			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, value + suffix);
+		}
+        ConstantPoolManager.getInstance().addDynamicConstant(value + suffix);
+        return StringEquals(val1, suffix, methodSig, index);
     }
 
     /**

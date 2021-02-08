@@ -39,7 +39,7 @@ public class SmartSeedBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "dynamicExample1";
 		int parameterNum = 2;
-		int lineNumber = 20;
+		int lineNumber = 23;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -66,9 +66,9 @@ public class SmartSeedBranchEvaluatorTest {
 	public void testSmartSeedBranch2() throws ClassNotFoundException, RuntimeException {
 		
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
-		String methodName = "dynamicExample2";
+		String methodName = "staticExample";
 		int parameterNum = 2;
-		int lineNumber = 26;
+		int lineNumber = 29;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -97,7 +97,7 @@ public class SmartSeedBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "staticExample1";
 		int parameterNum = 2;
-		int lineNumber = 32;
+		int lineNumber = 35;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -126,7 +126,7 @@ public class SmartSeedBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "staticExample2";
 		int parameterNum = 2;
-		int lineNumber = 38;
+		int lineNumber = 41;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -154,7 +154,7 @@ public class SmartSeedBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "staticExample3";
 		int parameterNum = 2;
-		int lineNumber = 45;
+		int lineNumber = 48;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -200,7 +200,7 @@ public class SmartSeedBranchEvaluatorTest {
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch);
 		
-//		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
+		assert type == SeedingApplicationEvaluator.NO_POOL;
 		
 	}
 	
@@ -314,4 +314,203 @@ public class SmartSeedBranchEvaluatorTest {
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 		
 	}
+	
+	@Test
+	public void testSmartSeedBranch11() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		String methodName = "equalsIgnoreCaseExample";
+		int parameterNum = 2;
+		int lineNumber = 76;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch);
+		
+		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
+		
+	}
+	
+	@Test
+	public void testSmartSeedBranch12() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		String methodName = "stratWithExample";
+		int parameterNum = 2;
+		int lineNumber = 84;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch);
+		
+		assert type == SeedingApplicationEvaluator.NO_POOL;
+		
+	}
+	
+	@Test
+	public void testSmartSeedBranch13() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		String methodName = "stratWithExample";
+		int parameterNum = 1;
+		int lineNumber = 92;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch);
+		
+		assert type == SeedingApplicationEvaluator.STATIC_POOL;
+		
+	}
+	
+	@Test
+	public void testSmartSeedBranch14() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		String methodName = "endWithExample";
+		int parameterNum = 2;
+		int lineNumber = 100;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch);
+		
+		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
+		
+	}
+	
+	
+	@Test
+	public void testSmartSeedBranch15() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		String methodName = "matchesExample";
+		int parameterNum = 1;
+		int lineNumber = 108;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch);
+		
+		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
+		
+	}
+	
+	@Test
+	public void testSmartSeedBranch16() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		String methodName = "patternMatchesExample";
+		int parameterNum = 1;
+		int lineNumber = 115;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch);
+		
+		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
+		
+	}
+	
+	@Test
+	public void testSmartSeedBranch17() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		String methodName = "matcherMatchesExample";
+		int parameterNum = 1;
+		int lineNumber = 124;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch);
+		
+		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
+		
+	}
+	
+	
 }
