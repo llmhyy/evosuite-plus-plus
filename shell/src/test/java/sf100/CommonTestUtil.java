@@ -92,6 +92,88 @@ public class CommonTestUtil {
 		return EvosuiteForMethod.generateTests(args);
 	}
 	
+	
+	public static List<EvoTestResult> evoTestSingleMethodSmartSeedProbability(String projectId,
+			String[] targetMethods, String fitnessAppraoch, int iteration, 
+			long seconds, boolean context, Long seed, 
+			boolean applyObjectRule,
+			String option,
+			String strategy,
+			String algorithm,
+			double primitivePool,
+			double dynamicPool,
+			boolean applySmartSeed
+			) {
+		/* configure */
+	
+		/* run */
+		
+		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
+		
+		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
+			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
+			return null;
+		}
+		
+		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
+		file.deleteOnExit();
+		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethods);
+
+		String[] args = new String[] {
+				"-Dapply_smart_seed", String.valueOf(applySmartSeed),
+				"-"+option,
+				"-Dstrategy", strategy,
+				"-Dalgorithm", algorithm,
+				
+//				"-generateSuiteUsingDSE",
+//				"-Dstrategy", "DSE",
+				
+//				"-generateTests",
+//				"-Dstrategy", "EMPIRICAL_HYBRID_COLLECTOR",
+				
+//				"-generateMOSuite",
+//				"-Dstrategy", "MOSUITE",
+//				"-Dalgorithm", "DYNAMOSA",
+				
+				
+//				"-generateRandom",
+//				"-Dstrategy", "random",
+//				"-generateSuite",
+				"-criterion", fitnessAppraoch,
+				"-target", FileUtils.getFilePath(SFConfiguration.sfBenchmarkFolder, projectId, projectName + ".jar"),
+				"-inclusiveFile", file.getAbsolutePath(),
+				"-iteration", String.valueOf(iteration),
+				"-Dadopt_smart_mutation", "true",
+				"-Dsearch_budget", String.valueOf(seconds),
+				"-Dcriterion", fitnessAppraoch,
+				"-Dinstrument_context", String.valueOf(context), 
+				"-Dp_test_delete", "0.0",
+				"-Dp_test_change", "0.9",
+				"-Dp_test_insert", "0.3",
+				"-Dp_change_parameter", "0.6",
+				"-Dp_functional_mocking", "0",
+				"-Dmock_if_no_generator", "false",
+				"-Dfunctional_mocking_percent", "0",
+				"-Dinstrument_libraries", "true",
+				"-Dinstrument_parent", "true",
+				"-Dassertions", "false",
+				"-Delite", "10",
+				"-Dprimitive_pool", String.valueOf(primitivePool),
+				"-Ddynamic_pool", String.valueOf(dynamicPool),
+//				"-seed", "1556035769590"
+				
+		};
+		
+		if(seed != null) {
+			args = ArrayUtils.add(args, "-seed");
+			args = ArrayUtils.add(args,  seed.toString());
+		}
+		
+		SFBenchmarkUtils.setupProjectProperties(projectId);
+		return EvosuiteForMethod.generateTests(args);
+	}
+	
+	
 	public static List<EvoTestResult> evoTestSingleMethod(String projectId,
 			String[] targetMethods, String fitnessAppraoch, int iteration, 
 			long seconds, boolean context, Long seed, 

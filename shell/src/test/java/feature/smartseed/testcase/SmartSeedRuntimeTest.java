@@ -44,9 +44,10 @@ public class SmartSeedRuntimeTest {
 		Long seed = null;
 				
 		boolean aor = false;
+		boolean ass = true;
 
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, true, true,
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
 		double coverage = 0;
 		double initCoverage = 0;

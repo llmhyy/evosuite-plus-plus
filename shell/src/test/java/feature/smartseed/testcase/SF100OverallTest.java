@@ -20,7 +20,7 @@ public class SF100OverallTest {
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
-		Properties.APPLY_OBJECT_RULE = true;
+//		Properties.APPLY_OBJECT_RULE = true;
 		Properties.ADOPT_SMART_MUTATION = false;
 		
 		Properties.INSTRUMENT_CONTEXT = true;
@@ -28,7 +28,7 @@ public class SF100OverallTest {
 		
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 0;
 		
-		Properties.TIMEOUT = 10000000;
+		Properties.TIMEOUT = 1000;
 		
 		Properties.ENABLE_TRACEING_EVENT = true;
 		Properties.APPLY_SMART_SEED = true;
@@ -64,16 +64,17 @@ public class SF100OverallTest {
 				"org.jsecurity.ri.authc.module.activedirectory.ActiveDirectoryAuthenticationModule#processAttribute(Lorg/jsecurity/ri/authc/module/ldap/LdapDirectoryInfo;Ljavax/naming/directory/Attribute;)V"
 				};
 		
-		int repeatTime = 3;
-		int budget = 10000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
 		
 		boolean aor = false;
-		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSeedProbability(projectId,  
+		boolean ass = false;
+		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
 		
 		double coverage = 0;
 		double initCoverage = 0;
