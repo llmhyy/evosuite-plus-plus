@@ -64,7 +64,7 @@ public class SF100OverallTest {
 				};
 		
 		int repeatTime = 5;
-		int budget = 100;
+		int budget = 10;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
@@ -155,6 +155,126 @@ public class SF100OverallTest {
 		String fitnessApproach = "branch";
 		
 		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testEqualExampleMOSA1() {
+		String projectId = "84_ifx-framework";
+		String[] targetMethods = new String[]{
+				"net.sourceforge.ifxfv3.beans.AcctInqRq#equals(Ljava/lang/Object;)Z"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "MOSA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testEqualExampleMOSA2() {
+		String projectId = "84_ifx-framework";
+		String[] targetMethods = new String[]{
+				"net.sourceforge.ifxfv3.beans.MediaAcctAdjInqRs#equals(Ljava/lang/Object;)Z"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "MOSA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testEqualExampleMonotonicGA1() {
+		String projectId = "84_ifx-framework";
+		String[] targetMethods = new String[]{
+				"net.sourceforge.ifxfv3.beans.AcctInqRq#equals(Ljava/lang/Object;)Z"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateSuite", "Evosuite", "MONOTONIC_GA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testEqualExampleMonotonicGA2() {
+		String projectId = "84_ifx-framework";
+		String[] targetMethods = new String[]{
+				"net.sourceforge.ifxfv3.beans.MediaAcctAdjInqRs#equals(Ljava/lang/Object;)Z"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateSuite", "Evosuite", "MONOTONIC_GA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testDynaMOSA1() {
+		String projectId = "3_jigen";
+		String[] targetMethods = new String[]{
+				"com.jigen.msi.ResourcesDirectory#addResource(Lcom/jigen/msi/ResourceDescriptor;Ljava/util/LinkedList;)V"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
 		boolean aor = true;
 		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
@@ -165,10 +285,106 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testEqualExampleMonotonicGA() {
-		String projectId = "84_ifx-framework";
+	public void testDynaMOSA2() {
+		String projectId = "43_lilith";
 		String[] targetMethods = new String[]{
-				"net.sourceforge.ifxfv3.beans.AcctInqRq#equals(Ljava/lang/Object;)Z"
+				"de.huxhorn.lilith.engine.LoggingFileBufferFactory#resolveCodec(Lde/huxhorn/sulky/codec/filebuffer/MetaData;)Lde/huxhorn/sulky/codec/Codec;"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testExampleMOSA1() {
+		String projectId = "3_jigen";
+		String[] targetMethods = new String[]{
+				"com.jigen.msi.ResourcesDirectory#addResource(Lcom/jigen/msi/ResourceDescriptor;Ljava/util/LinkedList;)V"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "MOSA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testExampleMOSA2() {
+		String projectId = "43_lilith";
+		String[] targetMethods = new String[]{
+				"de.huxhorn.lilith.engine.LoggingFileBufferFactory#resolveCodec(Lde/huxhorn/sulky/codec/filebuffer/MetaData;)Lde/huxhorn/sulky/codec/Codec;"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "MOSA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testExampleMonotonicGA1() {
+		String projectId = "3_jigen";
+		String[] targetMethods = new String[]{
+				"com.jigen.msi.ResourcesDirectory#addResource(Lcom/jigen/msi/ResourceDescriptor;Ljava/util/LinkedList;)V"
+				};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateSuite", "Evosuite", "MONOTONIC_GA");
+		EvoTestResult resultF = resultsF.get(0);
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testExampleMonotonicGA2() {
+		String projectId = "43_lilith";
+		String[] targetMethods = new String[]{
+				"de.huxhorn.lilith.engine.LoggingFileBufferFactory#resolveCodec(Lde/huxhorn/sulky/codec/filebuffer/MetaData;)Lde/huxhorn/sulky/codec/Codec;"
 				};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
