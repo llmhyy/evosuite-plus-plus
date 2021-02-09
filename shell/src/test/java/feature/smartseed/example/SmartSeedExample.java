@@ -125,4 +125,13 @@ public class SmartSeedExample {
 			System.currentTimeMillis();
 		}
 	}
+	
+	public void equalsExample(String x, int y) {
+		String s ="it is a difficult string" ;
+		String a = x.substring(0, x.length() - 3);
+		String b = "Equal";
+		if (a.equals(s)) {
+			System.currentTimeMillis();
+		}
+	}
 }
