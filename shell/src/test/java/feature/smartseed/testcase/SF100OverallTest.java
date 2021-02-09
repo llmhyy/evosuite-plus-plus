@@ -31,7 +31,7 @@ public class SF100OverallTest {
 		Properties.TIMEOUT = 10000000;
 		
 		Properties.ENABLE_TRACEING_EVENT = true;
-		
+		Properties.APPLY_SMART_SEED = true;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
@@ -46,7 +46,7 @@ public class SF100OverallTest {
 //		String projectId = "58_fps370";
 //		String projectId = "24_saxpath";
 //		String projectId = "60_sugar";
-		String projectId = SF100Project.P22;
+		String projectId = SF100Project.P18;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -61,10 +61,10 @@ public class SF100OverallTest {
 //				"com.werken.saxpath.XPathLexer#nextToken()Lcom/werken/saxpath/Token;"
 //				"net.sf.sugar.fspath.xpath.RegexFunction#getNodeValue(Ljava/util/List;)Ljava/lang/String;"
 //				"ioproject.server.network.NetworkService#disconnect()V"
-				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"
+				"org.jsecurity.ri.authc.module.activedirectory.ActiveDirectoryAuthenticationModule#processAttribute(Lorg/jsecurity/ri/authc/module/ldap/LdapDirectoryInfo;Ljavax/naming/directory/Attribute;)V"
 				};
 		
-		int repeatTime = 1;
+		int repeatTime = 3;
 		int budget = 10000;
 		Long seed = null;
 		
