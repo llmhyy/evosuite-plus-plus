@@ -66,17 +66,18 @@ public class SeedingApplicationEvaluator {
 					if (path.isFastChannel(operands)) {
 //						Class<?> cla = findOpcodeType(path);
 						ComputationPath otherPath = findTheOtherPath(path, pathList);
-						if (otherPath == null && b.getInstruction().getASMNodeString().contains("NULL")) {
-							List<BytecodeInstruction> computationNodes = new ArrayList<>();
-							computationNodes.add(b.getInstruction());
-							otherPath = new ComputationPath();
-							otherPath.setComputationNodes(computationNodes);
-						}
-						if (otherPath != null && otherPath.isConstant(operands)) {
+//						if (otherPath == null && b.getInstruction().getASMNodeString().contains("NULL")) {
+//							List<BytecodeInstruction> computationNodes = new ArrayList<>();
+//							computationNodes.add(b.getInstruction());
+//							otherPath = new ComputationPath();
+//							otherPath.setComputationNodes(computationNodes);
+//						}
+						if (otherPath != null && otherPath.isHardConstant(operands)) {
 							cache.put(b, new BranchSeedInfo(b, STATIC_POOL,
 									otherPath.getComputationNodes().get(0).getClass()));
 							return STATIC_POOL;
-						} else if (otherPath != null && !otherPath.isFastChannel(operands)) {
+						} 
+						else if (otherPath != null && !otherPath.isFastChannel(operands)) {
 //							if(cla == null)
 //								cla = findOpcodeType(otherPath);
 							cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL, null));
@@ -145,7 +146,8 @@ public class SeedingApplicationEvaluator {
 
 	private static Class<?> findOpcodeType(ComputationPath otherPath) {
 		int size = otherPath.getComputationNodes().size();
-		for (BytecodeInstruction bi : otherPath.getComputationNodes()) {
+		for (DepVariable n : otherPath.getComputationNodes()) {
+			BytecodeInstruction bi = n.getInstruction();
 			AbstractInsnNode node = bi.getASMNode();
 			if (node instanceof TypeInsnNode) {
 				TypeInsnNode tNode = (TypeInsnNode) node;
@@ -195,11 +197,9 @@ public class SeedingApplicationEvaluator {
 				int sizeNext = pathNext.getComputationNodes().size();
 
 				// method inputs to remove
-				
-				
-				boolean bothParameter = false;
-				
-				bothParameter = ComputationPath.hasParameter(path) && ComputationPath.hasParameter(pathNext);
+				boolean bothParameter
+					= ComputationPath.isStartWithMethodInput(path) && 
+					ComputationPath.isStartWithMethodInput(pathNext);
 				
 				if ( bothParameter 
 //						&& !path.getComputationNodes().get(0).isConstant() 
@@ -215,17 +215,17 @@ public class SeedingApplicationEvaluator {
 						}
 					}
 				}
-				if (pathNext.getComputationNodes().get(0).isConstant() && pathNext.getComputationNodes().get(0)
-						.getLineNumber() == path.getComputationNodes().get(size - 1).getLineNumber()) {
+				if (pathNext.getComputationNodes().get(0).isConstant() && pathNext.getComputationNodes().get(0).getInstruction()
+						.getLineNumber() == path.getComputationNodes().get(size - 1).getInstruction().getLineNumber()) {
 					haveLineConstant = true;
 					if (!constant.contains(pathNext)) {
 						constant.add(pathNext);
 					}
 					
 					//startwith method has 0
-					if(pathNext.getComputationNodes().get(sizeNext - 1).explain().contains("StartsWith") 
+					if(pathNext.getComputationNodes().get(sizeNext - 1).getInstruction().explain().contains("StartsWith") 
 							&& sizeNext == 2 
-							&& pathNext.getComputationNodes().get(0).explain().contains("ICONST_0")) {
+							&& pathNext.getComputationNodes().get(0).getInstruction().explain().contains("ICONST_0")) {
 							
 							if (!localPathList.contains(pathNext)) {
 								localPathList.add(pathNext);
@@ -243,8 +243,8 @@ public class SeedingApplicationEvaluator {
 			// constants need to remove
 			if (path.getComputationNodes().get(0).isConstant() 
 					&& haveLineConstant) {
-				if (path.getComputationNodes().get(0).getLineNumber() != 
-						path.getComputationNodes().get(size - 1).getLineNumber()) {
+				if (path.getComputationNodes().get(0).getInstruction().getLineNumber() != 
+						path.getComputationNodes().get(size - 1).getInstruction().getLineNumber()) {
 					if (!localPathList.contains(path)) {
 						localPathList.add(path);
 					}
@@ -280,7 +280,8 @@ public class SeedingApplicationEvaluator {
 		for(int i = 0;i < computationPathList.size();i++) {
 			if(computationPathList.get(i).getScore() < simplestPath.getScore() && !hasVar)
 				simplestPath = computationPathList.get(i);
-			for(BytecodeInstruction ins : computationPathList.get(i).getComputationNodes()) {
+			for(DepVariable node : computationPathList.get(i).getComputationNodes()) {
+				BytecodeInstruction ins = node.getInstruction();
 				if(ins.isLocalVariableUse()) {
 					hasVar = true;
 					simplestPath = computationPathList.get(i);

@@ -30,7 +30,7 @@ public class SF100OverallTest {
 		
 		Properties.TIMEOUT = 1000;
 		
-		Properties.ENABLE_TRACEING_EVENT = true;
+//		Properties.ENABLE_TRACEING_EVENT = true;
 		Properties.APPLY_SMART_SEED = true;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}

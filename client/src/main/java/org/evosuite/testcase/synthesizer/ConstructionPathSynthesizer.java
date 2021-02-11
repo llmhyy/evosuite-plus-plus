@@ -1775,6 +1775,9 @@ public class ConstructionPathSynthesizer {
 		VariableReference objRef = fieldInitializer.assignField(testFactory, test, fieldType, 
 				genericField, insertionPosition, fieldVar, allowNullValue);	
 		
+		if(objRef == null) {
+			System.currentTimeMillis();
+		}
 		
 		AbstractStatement stmt = new AssignmentStatement(test, fieldVar, objRef);		
 		test.addStatement(stmt, objRef.getStPosition()+1);

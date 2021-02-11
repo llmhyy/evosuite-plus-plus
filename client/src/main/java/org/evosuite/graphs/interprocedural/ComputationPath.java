@@ -3,7 +3,11 @@ package org.evosuite.graphs.interprocedural;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.evosuite.Properties;
+import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+
+import ch.qos.logback.classic.Logger;
 
 /**
  * each computation path starts with a method input, ends with an operand
@@ -12,7 +16,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
  */
 public class ComputationPath {
 	private double score = 0;
-	private List<BytecodeInstruction> computationNodes;
+	private List<DepVariable> computationNodes;
 
 	public double getScore() {
 		return score;
@@ -22,29 +26,38 @@ public class ComputationPath {
 		this.score = score;
 	}
 
-	public List<BytecodeInstruction> getComputationNodes() {
+	public List<DepVariable> getComputationNodes() {
 		return computationNodes;
 	}
 
-	public void setComputationNodes(List<BytecodeInstruction> computationNodes) {
+	public void setComputationNodes(List<DepVariable> computationNodes) {
 		this.computationNodes = computationNodes;
 	}
 
+	/**
+	 * (1) the start node should be a method input/parameter.
+	 * (2) the path from the start node to the brand operand is "simple".
+	 * @param operands
+	 * @return
+	 */
 	public boolean isFastChannel(List<BytecodeInstruction> operands) {
+		boolean isParameter = isStartWithMethodInput(this);
+		if(!isParameter) return false;
 		
 		double value = 1;
 		
-		for(BytecodeInstruction ins: computationNodes) {
+		DepVariable prevNode = null;
+		for(DepVariable node: computationNodes) {
+//			BytecodeInstruction ins = node.getInstruction();
 			/**
 			 * conq is between (0, 1).
 			 */
-			double conq = evaluateConsequence(ins, operands);
+			double conq = evaluateConsequence(node, prevNode, operands);
 			value = value * conq;
+			
+			prevNode = node;
 		}
 		
-		boolean isParameter = hasParameter(this);
-		if(!isParameter)
-			value = value * 0.6;
 //		if(!(this.getComputationNodes().get(0).isParameter() 
 //				|| this.getComputationNodes().get(0).getName().contains("LOAD")))
 //			value = value * 0.6;
@@ -53,15 +66,28 @@ public class ComputationPath {
 		
 	}
 
-	public static boolean hasParameter(ComputationPath computationPath) {
-		for(BytecodeInstruction isParameter : computationPath.getComputationNodes()) {
-			if(isParameter.isParameter())
-				return true;
+	public static boolean isStartWithMethodInput(ComputationPath computationPath) {
+		if(computationPath.getComputationNodes().isEmpty()) {
+			return false;
 		}
+		
+		DepVariable node = computationPath.getComputationNodes().get(0);
+		if(node.isParameter()) {
+			return true;
+		}
+		else if(node.isInstaceField()) {
+			String className = node.getInstruction().getClassName();
+			if(className.equals(Properties.TARGET_CLASS)) {
+				return true;
+			}
+		}
+		
 		return false;
 	}
 
-	private double evaluateConsequence(BytecodeInstruction ins, List<BytecodeInstruction> operands) {
+	private double evaluateConsequence(DepVariable node, DepVariable prevNode, List<BytecodeInstruction> operands) {
+		
+		BytecodeInstruction ins = node.getInstruction();
 		
 		if(operands.contains(ins)) {
 			return 1;
@@ -334,15 +360,12 @@ public class ComputationPath {
 		case "INSTANCEOF":
 			return 1;
 		case "INVOKEDYNAMIC":
-			return 0.8;
 		case "INVOKEINTERFACE":
-			return 0.8;
 		case "INVOKESPECIAL":
-			return 0.8;
 		case "INVOKESTATIC":
-			return 0.8;
 		case "INVOKEVIRTUAL":
-			return 0.8;
+			double score = estimateMethodCall(node, prevNode);
+			return score;
 		case "IOR":
 			return 0.8;
 		case "IREM":
@@ -444,9 +467,9 @@ public class ComputationPath {
 		case "LXOR":
 			return 0.8;
 		case "MONITORENTER":
-			return 0.7;
+			return 1;
 		case "MONITOREXIT":
-			return 0.7;
+			return 1;
 		case "MULTIANEWARRAY":
 			return 0.9;
 		case "NEW":
@@ -484,44 +507,91 @@ public class ComputationPath {
 		return 0;
 	}
 
-	public boolean isConstant(List<BytecodeInstruction> operands) {
+
+	private double estimateMethodCall(DepVariable node, DepVariable prevNode) {
+		//TODO
+		
+		if(prevNode == null) return 1;
+		
+		int inputOrder = node.getInputOrder(prevNode);
+		if(inputOrder != 0) {
+			BytecodeInstruction ins = node.getInstruction();
+			if(ins.isInvokeStatic()) {
+				String desc = ins.getMethodCallDescriptor();
+			}
+			else {
+				inputOrder--;
+				String desc = ins.getMethodCallDescriptor();
+				String[] separateTypes = parseSignature(desc);
+				String inputType = separateTypes[inputOrder];
+				String outType = separateTypes[separateTypes.length-1];
+				
+				System.currentTimeMillis();
+			}
+		}
+		
+//		node.getRelations();
+		
+//		ActualControlFlowGraph graph = ins.getCalledActualCFG();
+		System.err.println("DepVariable cannot locate its input");
+		return 0.5;
+	}
+
+	private String[] parseSignature(String desc) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public boolean isHardConstant(List<BytecodeInstruction> operands) {
 		// TODO Cheng Yan
 		boolean isConstant = true;
-		
-		for(BytecodeInstruction ins: computationNodes) {
-			if(operands.contains(ins)) {
-				continue;
-			}
+		/**
+		 * We assume that each path can only have two nodes, one for operand, and the other for the constant
+		 */
+		if(computationNodes.size() == 2) {
+			//TODO what is the order of computation node?
+			BytecodeInstruction ins = computationNodes.get(1).getInstruction();
 			if(!ins.isConstant()) {
 				isConstant = false;
 				return isConstant;
 			}
+			else {
+				Object obj = getConstantValue(ins);
+				//TODO non-string value should be larger 100?
+				
+				if(obj instanceof Double) {
+					return (Double)obj > 100;
+				}
+				else {
+					return true;
+				}
+			}
 		}
 		
-//		for(int i = 0; i < this.computationNodes.size();i++) {
-//			System.out.print(this.computationNodes.get(i).isConstant());
-//			if(this.computationNodes.get(i).isConstant())
-//				return true;
-//		}
 		return isConstant;
 	}
 	
+	private Object getConstantValue(BytecodeInstruction ins) {
+		//TODO Cheng Yan
+		return "abstda";
+	}
+
 	public static List<ComputationPath> computePath(DepVariable root, List<BytecodeInstruction> operands) {
 		// TODO Cheng Yan
 		List<ComputationPath> computationPath = new ArrayList<>();
-		List<BytecodeInstruction> nodes = new ArrayList<>(); 
+		List<DepVariable> nodes = new ArrayList<>(); 
 		//traverse input to oprands
-		nodes.add(root.getInstruction());
-		dfsRoot(root,operands,computationPath,nodes);
+		nodes.add(root);
+		dfsRoot(root, operands, computationPath, nodes);
 		return computationPath;
 		
 //		return null;
 	}
 
 	private static void dfsRoot(DepVariable root, List<BytecodeInstruction> operands,
-			List<ComputationPath> computationPath,List<BytecodeInstruction> nodes) {
+			List<ComputationPath> computationPath, List<DepVariable> nodes) {
 		DepVariable node = root;
-		Boolean isVisted = true;
+//		Boolean isVisted = true;
 		int n = node.getInstruction().getOperandNum();
 		if(n == 0)
 			n += 1;
@@ -532,22 +602,21 @@ public class ComputationPath {
 			}
 			for(int j = 0;j < nodeList.size();j++) {
 				node = nodeList.get(j);
-				if(! (operands.contains(node.getInstruction()) &&
-						operands.contains(node.getInstruction().getLineNumber()))) {
-					nodes.add(node.getInstruction());
+				if(!(operands.contains(node.getInstruction()) 
+//						&& operands.contains(node.getInstruction().getLineNumber())
+						)) {
+					nodes.add(node);
 					dfsRoot(node,operands,computationPath,nodes);
 				}
 				else {
-					nodes.add(node.getInstruction());
+					nodes.add(node);
 					break;
 				}
 			}
 		}
 		
-		
-		
-		if(operands.contains(nodes.get(nodes.size() - 1))) {
-			List<BytecodeInstruction> computationNodes = new ArrayList<>();
+		if(operands.contains(nodes.get(nodes.size() - 1).getInstruction())) {
+			List<DepVariable> computationNodes = new ArrayList<>();
 			for(int i = 0; i< nodes.size();i++) {
 				computationNodes.add(nodes.get(i));
 			}

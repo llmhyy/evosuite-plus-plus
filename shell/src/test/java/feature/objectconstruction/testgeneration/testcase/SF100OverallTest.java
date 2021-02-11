@@ -28,7 +28,7 @@ public class SF100OverallTest {
 		Properties.CHROMOSOME_LENGTH = 200;
 		
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
-		
+		Properties.TOTAL_LEGITIMIZATION_BUDGET = 30;
 //		Properties.TIMEOUT = 10000000;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
@@ -42,13 +42,13 @@ public class SF100OverallTest {
 //		String projectId = "83_xbus";
 //		String projectId = "80_wheelwebtool";
 //		String projectId = "58_fps370";
-		String projectId = SF100Project.P51;
+		String projectId = SF100Project.P66;
 		
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CustPayeeMsgRecChoice#equals(Ljava/lang/Object;)Z"
-				"org.objectweb.asm.jip.attrs.StackMapAttribute#getFrame(Lorg/objectweb/asm/jip/Label;)Lorg/objectweb/asm/jip/attrs/StackMapFrame;"
+//				"org.objectweb.asm.jip.attrs.StackMapAttribute#getFrame(Lorg/objectweb/asm/jip/Label;)Lorg/objectweb/asm/jip/attrs/StackMapFrame;"
 //				"state.Party#remove(Lstate/Party;)V"
 //				"net.sourceforge.ifxfv3.beans.BankAcctTrnRec#equals(Ljava/lang/Object;)Z"
 //				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
@@ -59,17 +59,18 @@ public class SF100OverallTest {
 //				"net.sourceforge.ifxfv3.beans.PmtMsgRecChoice#equals(Ljava/lang/Object;)Z"
 //				"de.paragon.explorer.model.AttributeModelComparator#compare(Lde/paragon/explorer/model/AttributeModel;Lde/paragon/explorer/model/AttributeModel;)I"
 //				"net.sourceforge.ifxfv3.beans.PmtLegalRptData#equals(Ljava/lang/Object;)Z"
-
-//				"com.lts.scheduler.Scheduler#cancel(Lcom/lts/scheduler/ScheduledEventListener;)V" 
+//				"corina.index.Horizontal#index()V"
+//				"com.lts.scheduler.Scheduler#cancel(Lcom/lts/scheduler/ScheduledEventListener;)V"
+				"org.exolab.jms.gc.GarbageCollectionService#doStart()V"
 				};
 		
 		int repeatTime = 5;
-		int budget = 10;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
 		
-		boolean aor = true;
+		boolean aor = false;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
@@ -172,7 +173,7 @@ public class SF100OverallTest {
 				};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 1;
+		int repeatTime = 5;
 		int budget = 100;
 		Long seed = null;
 		
@@ -219,8 +220,8 @@ public class SF100OverallTest {
 				"net.sourceforge.ifxfv3.beans.AcctInqRq#equals(Ljava/lang/Object;)Z"
 				};
 		
-		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 1;
+		List<EvoTestResult> results = new ArrayList<EvoTestResult>();
+		int repeatTime = 5;
 		int budget = 100;
 		Long seed = null;
 		
@@ -228,36 +229,64 @@ public class SF100OverallTest {
 		
 		
 		boolean aor = false;
-		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+		results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateSuite", "Evosuite", "MONOTONIC_GA");
-		EvoTestResult resultF = resultsF.get(0);
+		EvoTestResult resultF = results.get(0);
 		
-		System.currentTimeMillis();
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
 	}
 	
 	@Test
 	public void testEqualExampleMonotonicGA2() {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
-				"net.sourceforge.ifxfv3.beans.MediaAcctAdjInqRs#equals(Ljava/lang/Object;)Z"
+				"net.sourceforge.ifxfv3.beans.AcctInqRq#equals(Ljava/lang/Object;)Z"
 				};
 		
-		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 1;
+		List<EvoTestResult> results = new ArrayList<EvoTestResult>();
+		int repeatTime = 5;
 		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
 		
 		
-		boolean aor = false;
-		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+		boolean aor = true;
+		results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateSuite", "Evosuite", "MONOTONIC_GA");
-		EvoTestResult resultF = resultsF.get(0);
+		EvoTestResult resultF = results.get(0);
 		
-		System.currentTimeMillis();
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
 	}
 	
 	@Test

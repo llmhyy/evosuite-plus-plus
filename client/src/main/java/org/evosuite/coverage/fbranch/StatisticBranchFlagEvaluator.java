@@ -119,10 +119,11 @@ public class StatisticBranchFlagEvaluator {
 	}
 
 	private static void computePathScore(ComputationPath path) {
-		List<BytecodeInstruction> nodes = path.getComputationNodes();
+		List<DepVariable> nodes = path.getComputationNodes();
 		double pathScore = 0;
-		for (BytecodeInstruction node : nodes) {
-			pathScore += entropyMap.getOrDefault(node.getASMNode().getOpcode(), 0.0);
+		for (DepVariable node : nodes) {
+			BytecodeInstruction ins = node.getInstruction();
+			pathScore += entropyMap.getOrDefault(ins.getASMNode().getOpcode(), 0.0);
 		}
 		path.setScore(pathScore);
 	}
