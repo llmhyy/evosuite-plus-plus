@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 
 import ch.qos.logback.classic.Logger;
+import javassist.ClassPool;
 
 /**
  * each computation path starts with a method input, ends with an operand
@@ -509,37 +511,67 @@ public class ComputationPath {
 
 
 	private double estimateMethodCall(DepVariable node, DepVariable prevNode) {
-		//TODO
-		
 		if(prevNode == null) return 1;
 		
 		int inputOrder = node.getInputOrder(prevNode);
 		if(inputOrder != 0) {
 			BytecodeInstruction ins = node.getInstruction();
-			if(ins.isInvokeStatic()) {
-				String desc = ins.getMethodCallDescriptor();
-			}
-			else {
+			String desc = ins.getMethodCallDescriptor();
+			String[] separateTypes = parseSignature(desc);
+			if(!ins.isInvokeStatic()) {
 				inputOrder--;
-				String desc = ins.getMethodCallDescriptor();
-				String[] separateTypes = parseSignature(desc);
-				String inputType = separateTypes[inputOrder];
-				String outType = separateTypes[separateTypes.length-1];
-				
-				
-				System.currentTimeMillis();
 			}
+			
+			String inputType = separateTypes[inputOrder];
+			String outType = separateTypes[separateTypes.length-1];
+			
+			double score = estimateInformationSensitivity(inputType, outType);
+			return score;
 		}
 		
-//		node.getRelations();
 		
-//		ActualControlFlowGraph graph = ins.getCalledActualCFG();
 		System.err.println("DepVariable cannot locate its input");
 		return 0.5;
 	}
 
+	private double estimateInformationSensitivity(String inputType, String outType) {
+		if(inputType.equals(outType)) {
+			return 1;
+		}
+		
+		if(isPrimitive(inputType) && isPrimitive(outType)) {
+			return 0.8;
+		}
+		
+		ClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		try {
+			Class<?> inputClazz = loader.loadClass(inputType);
+			Class<?> outputClazz = loader.loadClass(outType);
+			
+			if(inputClazz.isAssignableFrom(outputClazz) || outputClazz.isAssignableFrom(inputClazz)) {
+				return 0.8;
+			}
+			
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		return 0;
+	}
+
+	private boolean isPrimitive(String inputType) {
+		// TODO Cheng Yan
+		return false;
+	}
+
+	/**
+	 * return class name such as com.a.b.Class
+	 * return primitive type such as int, double, etc.
+	 * @param desc
+	 * @return
+	 */
 	private String[] parseSignature(String desc) {
-		// TODO Auto-generated method stub
+		// TODO Cheng Yan, also need to parse primitive type like int, char, boolea, etc.
 		String[] separateTypes = desc.split(";");
 		for(int i = 0; i < separateTypes.length ;i++) {
 			if(separateTypes[i].contains("(")) {
@@ -561,7 +593,7 @@ public class ComputationPath {
 		 * We assume that each path can only have two nodes, one for operand, and the other for the constant
 		 */
 		if(computationNodes.size() == 2) {
-			//TODO what is the order of computation node?
+			//TODO Cheng Yan what is the order of computation node?
 			BytecodeInstruction ins = computationNodes.get(1).getInstruction();
 			if(!ins.isConstant()) {
 				isConstant = false;
@@ -569,7 +601,7 @@ public class ComputationPath {
 			}
 			else {
 				Object obj = getConstantValue(ins);
-				//TODO non-string value should be larger 100?
+				//TODO Cheng Yan non-string value should be larger 100?
 				
 				if(obj instanceof Double) {
 					return (Double)obj > 100;
