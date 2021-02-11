@@ -105,7 +105,6 @@ public class SeedingApplicationEvaluator {
 				LdcInsnNode ldc = (LdcInsnNode) node;
 				String cla = Properties.TARGET_CLASS.replace('.', '/');
 				if(ldc.cst.equals(cla + "#" +Properties.TARGET_METHOD)) {
-//					methodInputs.remove(input);
 					additionalInstruction = true;
 					continue;
 				}
@@ -113,7 +112,6 @@ public class SeedingApplicationEvaluator {
 			if(node.getType() == AbstractInsnNode.INT_INSN) {
 				IntInsnNode iins = (IntInsnNode)node;
 				if(additionalInstruction && iins.getOpcode() == Opcodes.SIPUSH) {
-//					methodInputs.remove(input);
 					additionalInstruction = false;
 					continue;
 				}
@@ -263,7 +261,7 @@ public class SeedingApplicationEvaluator {
 		// TODO Cheng Yan
 		ComputationPath theOtherPath = new ComputationPath();
 		for (ComputationPath otherPath : pathList) {
-			if (otherPath != path) {
+			if (otherPath != path) {				
 				theOtherPath = otherPath;
 				return theOtherPath;
 			}

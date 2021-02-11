@@ -7,6 +7,10 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.IntInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 
 import ch.qos.logback.classic.Logger;
 import javassist.ClassPool;
@@ -90,7 +94,7 @@ public class ComputationPath {
 	private double evaluateConsequence(DepVariable node, DepVariable prevNode, List<BytecodeInstruction> operands) {
 		
 		BytecodeInstruction ins = node.getInstruction();
-		
+
 		if(operands.contains(ins)) {
 			return 1;
 		}
@@ -512,12 +516,12 @@ public class ComputationPath {
 
 	private double estimateMethodCall(DepVariable node, DepVariable prevNode) {
 		if(prevNode == null) return 1;
-		
+
 		int inputOrder = node.getInputOrder(prevNode);
 		if(inputOrder != 0) {
 			BytecodeInstruction ins = node.getInstruction();
 			String desc = ins.getMethodCallDescriptor();
-			String[] separateTypes = parseSignature(desc);
+			String[] separateTypes = parseSignature(desc,ins);
 			if(!ins.isInvokeStatic()) {
 				inputOrder--;
 			}
@@ -531,7 +535,7 @@ public class ComputationPath {
 		
 		
 		System.err.println("DepVariable cannot locate its input");
-		return 0.5;
+		return 0.7;
 	}
 
 	private double estimateInformationSensitivity(String inputType, String outType) {
@@ -561,6 +565,17 @@ public class ComputationPath {
 
 	private boolean isPrimitive(String inputType) {
 		// TODO Cheng Yan
+		
+		if(inputType.equals("I") || inputType.equals("J")//LONG
+				|| inputType.equals("F")
+				|| inputType.equals("D")
+				|| inputType.equals("C")
+				|| inputType.equals("Z")//BOOLEAN
+				|| inputType.equals("B")
+				|| inputType.equals("S")
+				) {
+			return true;			
+		}
 		return false;
 	}
 
@@ -568,33 +583,64 @@ public class ComputationPath {
 	 * return class name such as com.a.b.Class
 	 * return primitive type such as int, double, etc.
 	 * @param desc
+	 * @param ins 
 	 * @return
 	 */
-	private String[] parseSignature(String desc) {
+	private String[] parseSignature(String desc, BytecodeInstruction ins) {
 		// TODO Cheng Yan, also need to parse primitive type like int, char, boolea, etc.
-		String[] separateTypes = desc.split(";");
-		for(int i = 0; i < separateTypes.length ;i++) {
-			if(separateTypes[i].contains("(")) {
-				separateTypes[i] = 
-						separateTypes[i].substring(separateTypes[i].indexOf('(') + 1, separateTypes[i].length());
-			}else if(separateTypes[i].contains(")")) {
-				separateTypes[i] = 
-						separateTypes[i].substring(separateTypes[i].indexOf(')') + 1, separateTypes[i].length());
+		
+		//input:()
+		String input = desc.split("[)]")[0];
+		input = input.substring(input.indexOf('(') + 1, input.length());
+		//output:after ')'
+		String output = desc.split("[)]")[1];
+		if(output.contains(";"))
+			output = output.substring(0, output.indexOf(';'));
+		
+		String[] inputTypes = input.split(";");
+		int primitiveNum = 1;
+		if(inputTypes.length < ins.getOperandNum()) {
+			for(int i = 0;i < inputTypes.length ;i++) {
+				if(!inputTypes[i].startsWith("L")) {
+					primitiveNum = inputTypes[i].toCharArray().length;
+				}
 			}
 		}
+		
+		String[] localSeparateTypes = new String[inputTypes.length + primitiveNum];
 
-		return separateTypes;
+		for(int i = 0;i < inputTypes.length + primitiveNum;i++){
+			if(i < inputTypes.length) {
+				if(inputTypes[i].startsWith("L"))
+					localSeparateTypes[i] = inputTypes[i];
+				else {
+					char[] temp = inputTypes[i].toCharArray();
+					for(char c :temp) {
+						localSeparateTypes[i] = String.valueOf(c);
+						i++;
+					}
+					i--;
+				}
+			}
+			else
+				localSeparateTypes[i] = output;
+		}
+		return localSeparateTypes;
 	}
 
 	public boolean isHardConstant(List<BytecodeInstruction> operands) {
 		// TODO Cheng Yan
-		boolean isConstant = true;
+		boolean isConstant = false;
 		/**
 		 * We assume that each path can only have two nodes, one for operand, and the other for the constant
+		 * 
+		 * x == 34500000
+		 * computationNodes.size() == 1
+		 * 
 		 */
-		if(computationNodes.size() == 2) {
+		if(computationNodes.size() == 2 || computationNodes.size() == 1) {
 			//TODO Cheng Yan what is the order of computation node?
-			BytecodeInstruction ins = computationNodes.get(1).getInstruction();
+			BytecodeInstruction ins = computationNodes.get(0).getInstruction();
 			if(!ins.isConstant()) {
 				isConstant = false;
 				return isConstant;
@@ -602,7 +648,6 @@ public class ComputationPath {
 			else {
 				Object obj = getConstantValue(ins);
 				//TODO Cheng Yan non-string value should be larger 100?
-				
 				if(obj instanceof Double) {
 					return (Double)obj > 100;
 				}
@@ -617,6 +662,20 @@ public class ComputationPath {
 	
 	private Object getConstantValue(BytecodeInstruction ins) {
 		//TODO Cheng Yan
+		AbstractInsnNode node = ins.getASMNode();
+		if(node.getType() == AbstractInsnNode.INT_INSN) {
+			IntInsnNode iins = (IntInsnNode)node;
+			return Double.valueOf(iins.operand);
+		}else if(node.getType() == AbstractInsnNode.INSN) {
+			//small value
+			return 5.0;
+		}else if(node.getType() == AbstractInsnNode.LDC_INSN) {
+			LdcInsnNode ldc = (LdcInsnNode)node;
+			if(ldc.cst.getClass() != String.class) {
+				return Double.valueOf(ldc.cst.toString());
+			}
+		}
+		
 		return "abstda";
 	}
 
