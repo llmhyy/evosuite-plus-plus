@@ -526,6 +526,7 @@ public class ComputationPath {
 				String inputType = separateTypes[inputOrder];
 				String outType = separateTypes[separateTypes.length-1];
 				
+				
 				System.currentTimeMillis();
 			}
 		}
@@ -539,7 +540,18 @@ public class ComputationPath {
 
 	private String[] parseSignature(String desc) {
 		// TODO Auto-generated method stub
-		return null;
+		String[] separateTypes = desc.split(";");
+		for(int i = 0; i < separateTypes.length ;i++) {
+			if(separateTypes[i].contains("(")) {
+				separateTypes[i] = 
+						separateTypes[i].substring(separateTypes[i].indexOf('(') + 1, separateTypes[i].length());
+			}else if(separateTypes[i].contains(")")) {
+				separateTypes[i] = 
+						separateTypes[i].substring(separateTypes[i].indexOf(')') + 1, separateTypes[i].length());
+			}
+		}
+
+		return separateTypes;
 	}
 
 	public boolean isHardConstant(List<BytecodeInstruction> operands) {
