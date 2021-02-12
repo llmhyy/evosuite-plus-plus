@@ -66,12 +66,6 @@ public class SeedingApplicationEvaluator {
 					if (path.isFastChannel(operands)) {
 //						Class<?> cla = findOpcodeType(path);
 						ComputationPath otherPath = findTheOtherPath(path, pathList);
-//						if (otherPath == null && b.getInstruction().getASMNodeString().contains("NULL")) {
-//							List<BytecodeInstruction> computationNodes = new ArrayList<>();
-//							computationNodes.add(b.getInstruction());
-//							otherPath = new ComputationPath();
-//							otherPath.setComputationNodes(computationNodes);
-//						}
 						if (otherPath != null && otherPath.isHardConstant(operands)) {
 							cache.put(b, new BranchSeedInfo(b, STATIC_POOL,
 									otherPath.getComputationNodes().get(0).getClass()));
@@ -142,46 +136,46 @@ public class SeedingApplicationEvaluator {
 		return targetBranch;
 	}
 
-	private static Class<?> findOpcodeType(ComputationPath otherPath) {
-		int size = otherPath.getComputationNodes().size();
-		for (DepVariable n : otherPath.getComputationNodes()) {
-			BytecodeInstruction bi = n.getInstruction();
-			AbstractInsnNode node = bi.getASMNode();
-			if (node instanceof TypeInsnNode) {
-				TypeInsnNode tNode = (TypeInsnNode) node;
-				String des = tNode.desc.replace("/", ".");
-				Class<?> cla;
-				try {
-					if (Class.forName(des) != null) {
-						cla = Class.forName(des);
-						return cla;
-					}
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-			} else if (node instanceof MethodInsnNode) {
-				MethodInsnNode mNode = (MethodInsnNode) node;
-				String des = mNode.desc.replace("/", ".");
-				Class<?> cla;
-				try {
-					if (Class.forName(des) != null) {
-						cla = Class.forName(des);
-						return cla;
-					}
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-			}
-			int opcode = bi.getASMNode().getOpcode();
-			switch (opcode) {
-			case 0x97:
-				return double.class;
-
-			}
-		}
-
-		return null;
-	}
+//	private static Class<?> findOpcodeType(ComputationPath otherPath) {
+//		int size = otherPath.getComputationNodes().size();
+//		for (DepVariable n : otherPath.getComputationNodes()) {
+//			BytecodeInstruction bi = n.getInstruction();
+//			AbstractInsnNode node = bi.getASMNode();
+//			if (node instanceof TypeInsnNode) {
+//				TypeInsnNode tNode = (TypeInsnNode) node;
+//				String des = tNode.desc.replace("/", ".");
+//				Class<?> cla;
+//				try {
+//					if (Class.forName(des) != null) {
+//						cla = Class.forName(des);
+//						return cla;
+//					}
+//				} catch (ClassNotFoundException e) {
+//					e.printStackTrace();
+//				}
+//			} else if (node instanceof MethodInsnNode) {
+//				MethodInsnNode mNode = (MethodInsnNode) node;
+//				String des = mNode.desc.replace("/", ".");
+//				Class<?> cla;
+//				try {
+//					if (Class.forName(des) != null) {
+//						cla = Class.forName(des);
+//						return cla;
+//					}
+//				} catch (ClassNotFoundException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//			int opcode = bi.getASMNode().getOpcode();
+//			switch (opcode) {
+//			case 0x97:
+//				return double.class;
+//
+//			}
+//		}
+//
+//		return null;
+//	}
 
 	private static List<ComputationPath> removeRedundancyPath(List<ComputationPath> pathList) {
 		List<ComputationPath> localPathList = new ArrayList<>();
@@ -195,59 +189,51 @@ public class SeedingApplicationEvaluator {
 				int sizeNext = pathNext.getComputationNodes().size();
 
 				// method inputs to remove
-				boolean bothParameter
-					= ComputationPath.isStartWithMethodInput(path) && 
-					ComputationPath.isStartWithMethodInput(pathNext);
 				
-				if ( bothParameter 
-//						&& !path.getComputationNodes().get(0).isConstant() 
-						&& size >= 2 && sizeNext >= 2 && 
-						path.getComputationNodes().get(size - 2) == pathNext.getComputationNodes().get(sizeNext - 2)) {
-					if (path.getScore() <= pathNext.getScore()) {
-						if (!localPathList.contains(pathNext)) {
-							localPathList.add(pathNext);
-						}
+				//have same input line and out put line
+				if(path.getComputationNodes().get(0).getInstruction().getLineNumber() == 
+						pathNext.getComputationNodes().get(0).getInstruction().getLineNumber() 
+						&&
+						path.getComputationNodes().get(size - 1).getInstruction().getLineNumber() ==
+						pathNext.getComputationNodes().get(sizeNext - 1).getInstruction().getLineNumber()) {
+					if(ComputationPath.isStartWithMethodInput(path)) {
+						localPathList.add(pathNext);
 					}else {
-						if (!localPathList.contains(path)) {
-							localPathList.add(path);
-						}
+						if(path.getScore() <= pathNext.getScore())
+							localPathList.add(pathNext);
 					}
 				}
-				if (pathNext.getComputationNodes().get(0).isConstant() && pathNext.getComputationNodes().get(0).getInstruction()
-						.getLineNumber() == path.getComputationNodes().get(size - 1).getInstruction().getLineNumber()) {
-					haveLineConstant = true;
-					if (!constant.contains(pathNext)) {
-						constant.add(pathNext);
-					}
-					
+		
 					//startwith method has 0
 					if(pathNext.getComputationNodes().get(sizeNext - 1).getInstruction().explain().contains("StartsWith") 
-							&& sizeNext == 2 
-							&& pathNext.getComputationNodes().get(0).getInstruction().explain().contains("ICONST_0")) {
-							
+							&& pathNext.getComputationNodes().get(0).getInstruction().explain().contains("ICONST_0")) {							
 							if (!localPathList.contains(pathNext)) {
 								localPathList.add(pathNext);
 							}
-							if(constant.size() == 1) {
-								haveLineConstant = false;
-							}
 						
 					}
-					
-				}
 				
 			}
-
-			// constants need to remove
-			if (path.getComputationNodes().get(0).isConstant() 
-					&& haveLineConstant) {
-				if (path.getComputationNodes().get(0).getInstruction().getLineNumber() != 
-						path.getComputationNodes().get(size - 1).getInstruction().getLineNumber()) {
-					if (!localPathList.contains(path)) {
-						localPathList.add(path);
+			//constant
+			if(path.getScore() < 3) {
+				if (path.getComputationNodes().get(0).isConstant()) {
+					constant.add(path);
+					for(ComputationPath cons : localPathList) {
+						if(cons.equals(path)) {
+							localPathList.remove(path);
+							break;
+						}
+						}
+					for(ComputationPath small : constant) {
+						if(small.getScore() < path.getScore()) {
+							localPathList.add(path);
+						}
 					}
+					
+					
 				}
 			}
+			
 
 		}
 		if (localPathList.size() != 0) {

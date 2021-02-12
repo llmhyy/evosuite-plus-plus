@@ -54,7 +54,6 @@ public class ComputationPath {
 		
 		DepVariable prevNode = null;
 		for(DepVariable node: computationNodes) {
-//			BytecodeInstruction ins = node.getInstruction();
 			/**
 			 * conq is between (0, 1).
 			 */
@@ -64,10 +63,7 @@ public class ComputationPath {
 			prevNode = node;
 		}
 		
-//		if(!(this.getComputationNodes().get(0).isParameter() 
-//				|| this.getComputationNodes().get(0).getName().contains("LOAD")))
-//			value = value * 0.6;
-		return value > 0.6;
+		return value > 0.7;
 				
 		
 	}
@@ -522,12 +518,12 @@ public class ComputationPath {
 			BytecodeInstruction ins = node.getInstruction();
 			String desc = ins.getMethodCallDescriptor();
 			String[] separateTypes = parseSignature(desc,ins);
-			if(!ins.isInvokeStatic()) {
+			if(!ins.isInvokeStatic() && inputOrder != 0) {
 				inputOrder--;
 			}
 			
 			String inputType = separateTypes[inputOrder];
-			String outType = separateTypes[separateTypes.length-1];
+			String outType = separateTypes[separateTypes.length-1];			
 			
 			double score = estimateInformationSensitivity(inputType, outType);
 			return score;
@@ -619,7 +615,8 @@ public class ComputationPath {
 						localSeparateTypes[i] = String.valueOf(c);
 						i++;
 					}
-					i--;
+					if(temp.length != 0)
+						i--;
 				}
 			}
 			else
@@ -646,6 +643,10 @@ public class ComputationPath {
 				return isConstant;
 			}
 			else {
+				//string value
+				if(ins.getASMNode().getType() == AbstractInsnNode.LDC_INSN)
+					return true;
+				
 				Object obj = getConstantValue(ins);
 				//TODO Cheng Yan non-string value should be larger 100?
 				if(obj instanceof Double) {

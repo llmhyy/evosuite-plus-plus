@@ -97,7 +97,7 @@ public class SmartSeedExample {
 	public void endWithExample(String args[],String suffix) {
 		String endString = "end";
 		for(String a : args) {
-			if (a.startsWith(endString)) {
+			if (a.endsWith(endString)) {
 				System.currentTimeMillis();
 			}
 		}
@@ -126,12 +126,4 @@ public class SmartSeedExample {
 		}
 	}
 	
-	public void equalsExample(String x, int y) {
-		String s ="it is a difficult string" ;
-		String a = x.substring(0, x.length() - 3);
-		String b = "Equal";
-		if (a.equals(s)) {
-			System.currentTimeMillis();
-		}
-	}
 }
