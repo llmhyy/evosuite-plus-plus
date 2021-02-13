@@ -20,7 +20,12 @@ import org.junit.Test;
 import common.TestUtil;
 import common.TestUtility;
 
-public class SmartSeedBranchEvaluatorTest {
+/**
+ * This test is for checking applicable branch for branchwise smart seed strategy.
+ * @author Yun Lin
+ *
+ */
+public class SmartSeedPositiveBranchEvaluatorTest {
 	
 	@Before
 	public void init() {

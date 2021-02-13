@@ -81,7 +81,7 @@ public class SeedingApplicationEvaluator {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("Null pointer exception");
+			e.printStackTrace();
 		}
 
 		cache.put(b, new BranchSeedInfo(b, NO_POOL, null));
@@ -90,7 +90,7 @@ public class SeedingApplicationEvaluator {
 
 	private static Set<DepVariable> compileInputs(Set<DepVariable> methodInputs) {
 		boolean additionalInstruction = false;
-		Set<DepVariable> local = new HashSet();
+		Set<DepVariable> local = new HashSet<>();
 		if(methodInputs == null)
 			return methodInputs;
 		for(DepVariable input : methodInputs) {

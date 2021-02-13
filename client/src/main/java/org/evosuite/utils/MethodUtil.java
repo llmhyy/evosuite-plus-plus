@@ -49,11 +49,9 @@ public class MethodUtil {
 		
 		int primitiveNum = 1;
 		String[] inputTypes = input.split(";");
-		if(inputTypes.length < 2) {
-			for(int i = 0;i < inputTypes.length ;i++) {
-				if(!inputTypes[i].startsWith("L")) {
-					primitiveNum = inputTypes[i].toCharArray().length;
-				}
+		for(int i = 0;i < inputTypes.length ;i++) {
+			if(!inputTypes[i].startsWith("L")) {
+				primitiveNum = inputTypes[i].toCharArray().length;
 			}
 		}
 		
@@ -79,7 +77,7 @@ public class MethodUtil {
 		
 		
 		for(int i=0; i<localSeparateTypes.length; i++) {
-			if(localSeparateTypes[i].startsWith("L")) {
+			if(localSeparateTypes[i]!=null && localSeparateTypes[i].startsWith("L")) {
 				localSeparateTypes[i] = localSeparateTypes[i].substring(1, localSeparateTypes[i].length());
 				localSeparateTypes[i] = localSeparateTypes[i].replace("/", ".");
 			}

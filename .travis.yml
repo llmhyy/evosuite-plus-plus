@@ -18,6 +18,8 @@ script:
    - mvn -q -Dtest=BooleanFlagGradientTest test -pl shell
    - mvn -q -Dtest=ProjectTestLegitimizationTest test -pl shell
    - mvn -q -Dtest=MethodUtilTest test -pl shell
+   - mvn -q -Dtest=SmartSeedPositiveBranchEvaluatorTest test -pl shell
+   - mvn -q -Dtest=SmartSeedNegativeBranchEvaluatorTest test -pl shell
    #- mvn -Dtest=LayeredCallExampleTest test -pl EvosuiteTest -e
    #- mvn -Dtest=MultipleConstructorsExampleTest test -pl EvosuiteTest -e
    #- mvn -Dtest=MultipleExceptionsExampleTest test -pl EvosuiteTest -e

@@ -512,25 +512,39 @@ public class ComputationPath {
 		if(prevNode == null) return 1;
 
 		int inputOrder = node.getInputOrder(prevNode);
-		if(inputOrder != 0) {
+		if(inputOrder >= 0) {
 			BytecodeInstruction ins = node.getInstruction();
-			
-//			String className = ins.getCalledMethodsClass();
-//			String methodName = ins.getCalledMethod();
-//			ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-//			MethodNode method = MethodUtil.getMethodNode((InstrumentingClassLoader)classLoader, className, methodName);
 			
 			String desc = ins.getMethodCallDescriptor();
 			String[] separateTypes = MethodUtil.parseSignature(desc);
-			if(!ins.isInvokeStatic() && inputOrder != 0) {
+			if(!ins.isInvokeStatic()) {
 				inputOrder--;
+			}
+			
+			if(inputOrder == -1) {
+				/**
+				 *  It means the input is the caller object of the method, to be conservative, 
+				 *  we make its sensitivity score to be 0. Nevertheless, we can attach some sensitivity 
+				 *  for some String type. 
+				 */
+				//TODO Cheng Yan/Lin Yun we can be smarter if we can analyze the method body
+				/** input -> obj
+				 * string b = obj.m() // m() can be getName(); obj can be string; ...
+				 * if(b.length()>10){...}
+				 */
+				
+				//TODO for Cheng Yan, we can add rules here
+				if(ins.getCalledMethodName().equals("toString")) {
+					return 1;
+				}
+				
+				return 0;
 			}
 			
 			String inputType = separateTypes[inputOrder];
 			String outType = separateTypes[separateTypes.length-1];			
 			
 			double score = estimateInformationSensitivity(inputType, outType);
-			System.currentTimeMillis();
 			return score;
 		}
 		
@@ -564,12 +578,36 @@ public class ComputationPath {
 			if(inputClazz.isAssignableFrom(outputClazz) || outputClazz.isAssignableFrom(inputClazz)) {
 				return 0.8;
 			}
+			else{
+				double score = getRelevanceWithHeuristics(inputClazz, outputClazz);
+				return score;
+			}
 			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 		
 		return 0;
+	}
+
+	private double getRelevanceWithHeuristics(Class<?> inputClazz, Class<?> outputClazz) {
+		String className1 = inputClazz.getCanonicalName();
+		String className2 = outputClazz.getCanonicalName();
+		
+		String common = greatestCommonPrefix(className1, className2);
+		double numerator = common.length();
+		double denominator = Math.min(className1.length(), className2.length());
+		return numerator/denominator;
+	}
+	
+	private String greatestCommonPrefix(String a, String b) {
+	    int minLength = Math.min(a.length(), b.length());
+	    for (int i = 0; i < minLength; i++) {
+	        if (a.charAt(i) != b.charAt(i)) {
+	            return a.substring(0, i);
+	        }
+	    }
+	    return a.substring(0, minLength);
 	}
 
 	private boolean isPrimitive(String inputType) {
