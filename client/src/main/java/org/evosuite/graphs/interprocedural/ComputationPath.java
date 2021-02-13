@@ -5,15 +5,13 @@ import java.util.List;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
-import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.objectweb.asm.Opcodes;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
+import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
-
-import ch.qos.logback.classic.Logger;
-import javassist.ClassPool;
+import org.objectweb.asm.tree.MethodNode;
 
 /**
  * each computation path starts with a method input, ends with an operand
@@ -516,8 +514,14 @@ public class ComputationPath {
 		int inputOrder = node.getInputOrder(prevNode);
 		if(inputOrder != 0) {
 			BytecodeInstruction ins = node.getInstruction();
+			
+//			String className = ins.getCalledMethodsClass();
+//			String methodName = ins.getCalledMethod();
+//			ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+//			MethodNode method = MethodUtil.getMethodNode((InstrumentingClassLoader)classLoader, className, methodName);
+			
 			String desc = ins.getMethodCallDescriptor();
-			String[] separateTypes = parseSignature(desc,ins);
+			String[] separateTypes = MethodUtil.parseSignature(desc);
 			if(!ins.isInvokeStatic() && inputOrder != 0) {
 				inputOrder--;
 			}
@@ -526,6 +530,7 @@ public class ComputationPath {
 			String outType = separateTypes[separateTypes.length-1];			
 			
 			double score = estimateInformationSensitivity(inputType, outType);
+			System.currentTimeMillis();
 			return score;
 		}
 		
@@ -541,6 +546,14 @@ public class ComputationPath {
 		
 		if(isPrimitive(inputType) && isPrimitive(outType)) {
 			return 0.8;
+		}
+		
+		if(isPrimitive(inputType) && !isPrimitive(outType)) {
+			return 0;
+		}
+		
+		if(!isPrimitive(inputType) && isPrimitive(outType)) {
+			return 0;
 		}
 		
 		ClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
@@ -575,55 +588,7 @@ public class ComputationPath {
 		return false;
 	}
 
-	/**
-	 * return class name such as com.a.b.Class
-	 * return primitive type such as int, double, etc.
-	 * @param desc
-	 * @param ins 
-	 * @return
-	 */
-	private String[] parseSignature(String desc, BytecodeInstruction ins) {
-		// TODO Cheng Yan, also need to parse primitive type like int, char, boolea, etc.
-		
-		//input:()
-		String input = desc.split("[)]")[0];
-		input = input.substring(input.indexOf('(') + 1, input.length());
-		//output:after ')'
-		String output = desc.split("[)]")[1];
-		if(output.contains(";"))
-			output = output.substring(0, output.indexOf(';'));
-		
-		String[] inputTypes = input.split(";");
-		int primitiveNum = 1;
-		if(inputTypes.length < ins.getOperandNum()) {
-			for(int i = 0;i < inputTypes.length ;i++) {
-				if(!inputTypes[i].startsWith("L")) {
-					primitiveNum = inputTypes[i].toCharArray().length;
-				}
-			}
-		}
-		
-		String[] localSeparateTypes = new String[inputTypes.length + primitiveNum];
-
-		for(int i = 0;i < inputTypes.length + primitiveNum;i++){
-			if(i < inputTypes.length) {
-				if(inputTypes[i].startsWith("L"))
-					localSeparateTypes[i] = inputTypes[i];
-				else {
-					char[] temp = inputTypes[i].toCharArray();
-					for(char c :temp) {
-						localSeparateTypes[i] = String.valueOf(c);
-						i++;
-					}
-					if(temp.length != 0)
-						i--;
-				}
-			}
-			else
-				localSeparateTypes[i] = output;
-		}
-		return localSeparateTypes;
-	}
+	
 
 	public boolean isHardConstant(List<BytecodeInstruction> operands) {
 		// TODO Cheng Yan

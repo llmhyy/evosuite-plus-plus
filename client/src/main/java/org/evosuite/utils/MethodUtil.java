@@ -15,6 +15,7 @@ import org.evosuite.classpath.ResourceList;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -26,6 +27,66 @@ import org.slf4j.LoggerFactory;
 
 public class MethodUtil {
 	private static Logger log = LoggerFactory.getLogger(MethodUtil.class);
+	
+	
+	/**
+	 * return class name such as com.a.b.Class
+	 * return primitive type such as int, double, etc.
+	 * @param desc
+	 * @param ins 
+	 * @return
+	 */
+	public static String[] parseSignature(String desc) {
+		// TODO Cheng Yan, also need to parse primitive type like int, char, boolea, etc.
+		
+		//input:()
+		String input = desc.split("[)]")[0];
+		input = input.substring(input.indexOf('(') + 1, input.length());
+		//output:after ')'
+		String output = desc.split("[)]")[1];
+		if(output.contains(";"))
+			output = output.substring(0, output.indexOf(';'));
+		
+		int primitiveNum = 1;
+		String[] inputTypes = input.split(";");
+		if(inputTypes.length < 2) {
+			for(int i = 0;i < inputTypes.length ;i++) {
+				if(!inputTypes[i].startsWith("L")) {
+					primitiveNum = inputTypes[i].toCharArray().length;
+				}
+			}
+		}
+		
+		String[] localSeparateTypes = new String[inputTypes.length + primitiveNum];
+
+		for(int i = 0;i < inputTypes.length + primitiveNum;i++){
+			if(i < inputTypes.length) {
+				if(inputTypes[i].startsWith("L"))
+					localSeparateTypes[i] = inputTypes[i];
+				else {
+					char[] temp = inputTypes[i].toCharArray();
+					for(char c :temp) {
+						localSeparateTypes[i] = String.valueOf(c);
+						i++;
+					}
+					if(temp.length != 0)
+						i--;
+				}
+			}
+			else
+				localSeparateTypes[i] = output;
+		}
+		
+		
+		for(int i=0; i<localSeparateTypes.length; i++) {
+			if(localSeparateTypes[i].startsWith("L")) {
+				localSeparateTypes[i] = localSeparateTypes[i].substring(1, localSeparateTypes[i].length());
+				localSeparateTypes[i] = localSeparateTypes[i].replace("/", ".");
+			}
+		}
+		
+		return localSeparateTypes;
+	}
 	
 	public static MethodNode getMethodNode(InstrumentingClassLoader classLoader, String className, String methodName) {
 		InputStream is = ResourceList.getInstance(classLoader).getClassAsStream(className);
