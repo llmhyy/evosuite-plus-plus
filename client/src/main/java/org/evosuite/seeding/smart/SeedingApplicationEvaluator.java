@@ -160,7 +160,7 @@ public class SeedingApplicationEvaluator {
 			
 			for(int i=p.size()-2; i>=0; i--) {
 				if(path.size() > 2 && !p.getInstruction(i).equals(anchor)) {
-					BytecodeInstruction ins = path.getInstruction(i);
+					BytecodeInstruction ins = path.getInstruction(path.size() - 2);
 					BytecodeInstruction pIns = p.getInstruction(i);
 					
 					if(ins.equals(pIns)) {
