@@ -73,7 +73,7 @@ public class SmartSeedExample {
 	public void equalsIgnoreCaseExample(String x, int y) {
 		String a = "ignoreCase" + x;
 		String b = "example";
-		if (a.equalsIgnoreCase("IGNORECASEString" + b)) {
+		if (a.equalsIgnoreCase("IGNORECASEString".concat(b))) {
 			System.currentTimeMillis();
 		}
 	}
@@ -94,13 +94,13 @@ public class SmartSeedExample {
 		}
 	}
 	
-	public void endWithExample(String args[],String suffix) {
+	public String endWithExample(String args[],String suffix) {
 		String endString = "end";
 		for(String a : args) {
 			if (a.endsWith(endString)) {
 				System.currentTimeMillis();
-			}
-		}
+				return a;}}
+		return null;
 	}
 	
 	public void matchesExample(String x) {
@@ -125,5 +125,14 @@ public class SmartSeedExample {
 			System.currentTimeMillis();
 		}
 	}
+	
+	public void combinationExample(String[] x) {
+		String a = x[0];
+		String b = endWithExample(x,a);
+		if(b == "end") {
+			System.currentTimeMillis();
+		}
+	}
+	
 	
 }

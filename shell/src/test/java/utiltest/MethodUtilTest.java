@@ -1,5 +1,6 @@
 package utiltest;
 
+import org.evosuite.TestGenerationContext;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
@@ -69,5 +70,26 @@ public class MethodUtilTest {
 		assert inputArray[3].equals("int");
 		assert inputArray[4].equals("empirical.MenuItemList[]");
 		assert inputArray[5].equals("double");
+	}
+	
+	@Test
+	public void testSignatureParser6() {
+		String sigDesc = "()V";
+		String[] inputArray = MethodUtil.parseSignature(sigDesc);
+		
+		assert inputArray.length == 2;
+		assert inputArray[0].equals("void");
+		assert inputArray[1].equals("void");
+	}
+	
+	@Test
+	public void testEstimateInformationSensitivity() {
+		ClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		try {
+			Class<?> Clazz2 = loader.loadClass("empirical.MenuItemList[]");
+			Class<?> Clazz3 = loader.loadClass("long[]");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 }

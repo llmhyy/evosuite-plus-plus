@@ -63,6 +63,8 @@ public class SeedingApplicationEvaluator {
 				}
 
 				for (ComputationPath path : pathList) {
+					if(pathList.size() > 2)//multiple operands
+						return NO_POOL;
 					if (path.isFastChannel(operands)) {
 //						Class<?> cla = findOpcodeType(path);
 						ComputationPath otherPath = findTheOtherPath(path, pathList);
@@ -72,10 +74,21 @@ public class SeedingApplicationEvaluator {
 							return STATIC_POOL;
 						} 
 						else if (otherPath != null && !otherPath.isFastChannel(operands)) {
+							boolean easyConstant = false;
+							if(otherPath.getScore() < 3) {
+								for(DepVariable var : otherPath.getComputationNodes()) {
+									if(operands.contains(var.getInstruction()) && !var.getInstruction().isConstant())
+										continue;
+									else if(var.getInstruction().isConstant())
+										easyConstant = true;
+								}
+							}
 //							if(cla == null)
 //								cla = findOpcodeType(otherPath);
-							cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL, null));
-							return DYNAMIC_POOL;
+							if(!easyConstant) {
+								cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL, null));
+								return DYNAMIC_POOL;
+							}
 						}
 					}
 				}
@@ -98,8 +111,9 @@ public class SeedingApplicationEvaluator {
 			if(node.getType() == AbstractInsnNode.LDC_INSN) {
 				LdcInsnNode ldc = (LdcInsnNode) node;
 				String cla = Properties.TARGET_CLASS.replace('.', '/');
-				if(ldc.cst.equals(cla + "#" +Properties.TARGET_METHOD)) {
+				if(ldc.cst.toString().contains(cla + "#")) {
 					additionalInstruction = true;
+					local = removeVisitedDepVariable(local, input, methodInputs);
 					continue;
 				}
 			}
@@ -115,9 +129,27 @@ public class SeedingApplicationEvaluator {
 		return local;
 	}
 
+	private static Set<DepVariable> removeVisitedDepVariable(Set<DepVariable> local, DepVariable input, Set<DepVariable> methodInputs) {
+		for(DepVariable visit : methodInputs) {
+			AbstractInsnNode visitNode = visit.getInstruction().getASMNode();
+			if(visitNode.getType() == AbstractInsnNode.INT_INSN) {
+				IntInsnNode iins = (IntInsnNode)visitNode;
+				if(iins.getOpcode() == Opcodes.SIPUSH
+						&&
+						visit.getInstruction().getLineNumber() == input.getInstruction().getLineNumber()) {
+					if(local.contains(visit))
+						local.remove(visit);
+					break;
+				}
+			}
+			
+		}
+		return local;
+	}
+
 	private static Branch compileBranch(Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch b) {
 		Branch targetBranch = b;
-		targetBranch.getInstruction();
+//		targetBranch.getInstruction();
 		List<Branch> lineBranches = new ArrayList<>();
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			String[] s = b.toString().split(" ");
@@ -183,14 +215,13 @@ public class SeedingApplicationEvaluator {
 		for (int i = 0; i < pathList.size(); i++) {
 			ComputationPath path = pathList.get(i);
 			int size = path.getComputationNodes().size();
-			boolean haveLineConstant = false;
 			for (int j = i + 1; j < pathList.size(); j++) {
 				ComputationPath pathNext = pathList.get(j);
 				int sizeNext = pathNext.getComputationNodes().size();
 
 				// method inputs to remove
 				
-				//have same input line and out put line
+				//have same input line and output line
 				if(path.getComputationNodes().get(0).getInstruction().getLineNumber() == 
 						pathNext.getComputationNodes().get(0).getInstruction().getLineNumber() 
 						&&
@@ -203,14 +234,19 @@ public class SeedingApplicationEvaluator {
 							localPathList.add(pathNext);
 					}
 				}
+				
+				//have same path
+				if(size > 2 && sizeNext > 2) {
+					if(path.getComputationNodes().get(size - 2).equals(pathNext.getComputationNodes().get(sizeNext - 2)))
+						localPathList.add(pathNext);
+				}
 		
-					//startwith method has 0
-					if(pathNext.getComputationNodes().get(sizeNext - 1).getInstruction().explain().contains("StartsWith") 
-							&& pathNext.getComputationNodes().get(0).getInstruction().explain().contains("ICONST_0")) {							
-							if (!localPathList.contains(pathNext)) {
-								localPathList.add(pathNext);
-							}
-						
+				//start with method has 0
+				if(pathNext.getComputationNodes().get(sizeNext - 1).getInstruction().explain().contains("StartsWith") 
+						&& pathNext.getComputationNodes().get(0).getInstruction().explain().contains("ICONST_0")) {							
+					if (!localPathList.contains(pathNext)) {
+						localPathList.add(pathNext);
+						}	
 					}
 				
 			}
@@ -228,9 +264,7 @@ public class SeedingApplicationEvaluator {
 						if(small.getScore() < path.getScore()) {
 							localPathList.add(path);
 						}
-					}
-					
-					
+					}			
 				}
 			}
 			

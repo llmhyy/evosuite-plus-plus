@@ -43,49 +43,100 @@ public class MethodUtil {
 		String input = desc.split("[)]")[0];
 		input = input.substring(input.indexOf('(') + 1, input.length());
 		//output:after ')'
-		String output = desc.split("[)]")[1];
-		if(output.contains(";"))
-			output = output.substring(0, output.indexOf(';'));
+		String[] outputTypes = desc.split("[)]")[1].split(";");
 		
-		int primitiveNum = 1;
 		String[] inputTypes = input.split(";");
-		for(int i = 0;i < inputTypes.length ;i++) {
-			if(!inputTypes[i].startsWith("L")) {
-				primitiveNum = inputTypes[i].toCharArray().length;
-			}
-		}
-		
-		String[] localSeparateTypes = new String[inputTypes.length + primitiveNum];
-
-		for(int i = 0;i < inputTypes.length + primitiveNum;i++){
-			if(i < inputTypes.length) {
-				if(inputTypes[i].startsWith("L"))
-					localSeparateTypes[i] = inputTypes[i];
-				else {
-					char[] temp = inputTypes[i].toCharArray();
-					for(char c :temp) {
-						localSeparateTypes[i] = String.valueOf(c);
-						i++;
-					}
-					if(temp.length != 0)
-						i--;
-				}
-			}
-			else
-				localSeparateTypes[i] = output;
-		}
-		
-		
+		List<String> allTypes = new ArrayList<>();
+		prase(allTypes,inputTypes);
+		prase(allTypes,outputTypes);	
+		String[] localSeparateTypes  = allTypes.toArray(new String[0]);
+				
 		for(int i=0; i<localSeparateTypes.length; i++) {
-			if(localSeparateTypes[i]!=null && localSeparateTypes[i].startsWith("L")) {
+			if(localSeparateTypes[i].startsWith("L")) {
 				localSeparateTypes[i] = localSeparateTypes[i].substring(1, localSeparateTypes[i].length());
 				localSeparateTypes[i] = localSeparateTypes[i].replace("/", ".");
 			}
-		}
-		
+			}
 		return localSeparateTypes;
 	}
 	
+	private static void prase(List<String> inputs, String[] inputTypes) {
+		if(inputTypes.length == 1) {//void
+			if(inputTypes[0].equals("") || inputTypes[0].equals("V")) {
+				inputs.add("void");
+				return;
+			}
+		}
+		for(int i = 0;i < inputTypes.length ;i++) {
+			if(!inputTypes[i].startsWith("L")) {
+				//&& !inputTypes[i].startsWith("[L")
+				//start with primitive type || '[' type
+				char[] charList = inputTypes[i].toCharArray();
+				boolean isList = false;
+				int startIndex = 0;
+				for(int j = 0;j < charList.length ;j++) {
+					char c = charList[j];
+					String clas = null;
+					if(!isList && c == '[') {
+						startIndex = j;
+						isList = true;
+						continue;
+					}
+					switch(c) {
+					case '[':
+						continue;
+					case 'I':
+						clas = "int";
+						break;
+					case 'J':
+						clas = "long";
+						break;
+					case 'F':
+						clas = "float";
+						break;
+					case 'D':
+						clas = "double";
+						break;
+					case 'C':
+						clas = "char";
+						break;
+					case 'Z':
+						clas = "boolean";
+						break;
+					case 'B':
+						clas = "byte";
+						break;
+					case 'S':{
+						clas = "short";
+						break;
+					}
+					case 'L':{
+						clas = inputTypes[i].substring(j, charList.length);
+						j = charList.length - 1;
+						break;
+						}
+					}
+					String type = praseInstructionType(isList, j, clas, startIndex);
+					inputs.add(type);
+					isList = false;
+				}
+			}else
+				//start with 'L'
+				inputs.add(inputTypes[i]);
+		}
+		
+	}
+
+	private static String praseInstructionType(boolean isList, int j, String string, int startIndex) {		
+		if(isList) {
+			if(j - startIndex == 2)
+				return string + "[][]";
+			else
+				return string + "[]";
+		}else
+			return string;
+	}
+
 	public static MethodNode getMethodNode(InstrumentingClassLoader classLoader, String className, String methodName) {
 		InputStream is = ResourceList.getInstance(classLoader).getClassAsStream(className);
 		try {

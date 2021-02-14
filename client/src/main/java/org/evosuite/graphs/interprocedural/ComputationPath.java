@@ -537,7 +537,27 @@ public class ComputationPath {
 				if(ins.getCalledMethodName().equals("toString")) {
 					return 1;
 				}
-				
+				if(ins.getCalledMethodName().equals("replace")) {
+					return 0.9;
+				}
+				if(ins.getCalledMethodName().equals("equals")) {
+					return 0.9;
+				}
+				if(ins.getCalledMethodName().equals("length")) {
+					return 1;
+				}
+				if(ins.getCalledMethodName().equals("toLowerCase")) {
+					return 0.9;
+				}
+				if(ins.getCalledMethodName().equals("toUpperCase")) {
+					return 0.9;
+				}
+				if(ins.getCalledMethodName().equals("getFirst")) {
+					return 0.9;
+				}
+				if(ins.getCalledMethodName().equals("split")) {
+					return 0.9;
+				}
 				return 0;
 			}
 			
@@ -613,13 +633,23 @@ public class ComputationPath {
 	private boolean isPrimitive(String inputType) {
 		// TODO Cheng Yan
 		
-		if(inputType.equals("I") || inputType.equals("J")//LONG
-				|| inputType.equals("F")
-				|| inputType.equals("D")
-				|| inputType.equals("C")
-				|| inputType.equals("Z")//BOOLEAN
-				|| inputType.equals("B")
-				|| inputType.equals("S")
+//		if(inputType.equals("I") || inputType.equals("J")//LONG
+//				|| inputType.equals("F")
+//				|| inputType.equals("D")
+//				|| inputType.equals("C")
+//				|| inputType.equals("Z")//BOOLEAN
+//				|| inputType.equals("B")
+//				|| inputType.equals("S")
+//				) {
+//			return true;			
+//		}
+		if(inputType.equals(int.class.toString()) || inputType.equals(long.class.toString())//LONG
+				|| inputType.equals(float.class.toString())
+				|| inputType.equals(double.class.toString())
+				|| inputType.equals(char.class.toString())
+				|| inputType.equals(boolean.class.toString())//BOOLEAN
+				|| inputType.equals(byte.class.toString())
+				|| inputType.equals(short.class.toString())
 				) {
 			return true;			
 		}
@@ -656,7 +686,7 @@ public class ComputationPath {
 					return (Double)obj > 100;
 				}
 				else {
-					return true;
+					return false;
 				}
 			}
 		}
