@@ -1,6 +1,7 @@
 package utiltest;
 
 import org.evosuite.TestGenerationContext;
+import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
@@ -84,12 +85,11 @@ public class MethodUtilTest {
 	
 	@Test
 	public void testEstimateInformationSensitivity() {
-		ClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-		try {
-			Class<?> Clazz2 = loader.loadClass("empirical.MenuItemList[]");
-			Class<?> Clazz3 = loader.loadClass("long[]");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		
+		String inputType = "java.util.ArrayList[]";
+		String outputType = "java.util.ArrayList";
+		
+		double score = ComputationPath.estimateInformationSensitivity(inputType, outputType);
+		assert score > 0.5;
 	}
 }

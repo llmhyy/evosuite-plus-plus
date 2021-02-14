@@ -573,27 +573,30 @@ public class ComputationPath {
 		return 0.7;
 	}
 
-	private double estimateInformationSensitivity(String inputType, String outType) {
-		if(inputType.equals(outType)) {
+	public static double estimateInformationSensitivity(String inputType, String outputType) {
+		if(inputType.equals(outputType)) {
 			return 1;
 		}
 		
-		if(isPrimitive(inputType) && isPrimitive(outType)) {
+		if(isPrimitive(inputType) && isPrimitive(outputType)) {
 			return 0.8;
 		}
 		
-		if(isPrimitive(inputType) && !isPrimitive(outType)) {
+		if(isPrimitive(inputType) && !isPrimitive(outputType)) {
 			return 0;
 		}
 		
-		if(!isPrimitive(inputType) && isPrimitive(outType)) {
+		if(!isPrimitive(inputType) && isPrimitive(outputType)) {
 			return 0;
 		}
 		
 		ClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		try {
-			Class<?> inputClazz = loader.loadClass(inputType);
-			Class<?> outputClazz = loader.loadClass(outType);
+			String input = inputType.contains("[") ? inputType.substring(0, inputType.indexOf("[")) : inputType;
+			String output = outputType.contains("[") ? outputType.substring(0, outputType.indexOf("[")) : outputType;
+			
+			Class<?> inputClazz = loader.loadClass(input);
+			Class<?> outputClazz = loader.loadClass(output);
 			
 			if(inputClazz.isAssignableFrom(outputClazz) || outputClazz.isAssignableFrom(inputClazz)) {
 				return 0.8;
@@ -610,7 +613,7 @@ public class ComputationPath {
 		return 0;
 	}
 
-	private double getRelevanceWithHeuristics(Class<?> inputClazz, Class<?> outputClazz) {
+	private static double getRelevanceWithHeuristics(Class<?> inputClazz, Class<?> outputClazz) {
 		String className1 = inputClazz.getCanonicalName();
 		String className2 = outputClazz.getCanonicalName();
 		
@@ -620,7 +623,7 @@ public class ComputationPath {
 		return numerator/denominator;
 	}
 	
-	private String greatestCommonPrefix(String a, String b) {
+	private static String greatestCommonPrefix(String a, String b) {
 	    int minLength = Math.min(a.length(), b.length());
 	    for (int i = 0; i < minLength; i++) {
 	        if (a.charAt(i) != b.charAt(i)) {
@@ -630,7 +633,7 @@ public class ComputationPath {
 	    return a.substring(0, minLength);
 	}
 
-	private boolean isPrimitive(String inputType) {
+	private static boolean isPrimitive(String inputType) {
 		// TODO Cheng Yan
 		
 //		if(inputType.equals("I") || inputType.equals("J")//LONG
@@ -653,6 +656,7 @@ public class ComputationPath {
 				) {
 			return true;			
 		}
+		
 		return false;
 	}
 
