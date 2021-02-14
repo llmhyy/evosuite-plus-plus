@@ -3,10 +3,12 @@ package org.evosuite.seeding.smart;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
@@ -19,8 +21,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.TypeInsnNode;
 
 public class SeedingApplicationEvaluator {
 
@@ -30,6 +30,176 @@ public class SeedingApplicationEvaluator {
 
 	public static Map<Branch, BranchSeedInfo> cache = new HashMap<>();
 
+	public class PathPartition{
+		List<ComputationPath> list = new ArrayList<>();
+		
+		public PathPartition(List<ComputationPath> list) {
+			this.list = list;
+		}
+		
+		public ComputationPath getSimplestChannel() {
+			ComputationPath simplestPath = null;
+			double score = -1;
+			
+			for(ComputationPath path: list) {
+				if(simplestPath == null) {
+					simplestPath = path;
+					score = path.evaluateFastChannelScore();
+				}
+				else {
+					double newScore = path.evaluateFastChannelScore();
+					if(newScore < score) {
+						simplestPath = path;
+						score = newScore;
+					}
+				}
+			}
+			
+			return simplestPath;
+		}
+		
+		public boolean isEmpty() {
+			return this.list.isEmpty();
+		}
+	}
+	
+	public class TwoSidePathList{
+		public PathPartition side1 = new PathPartition(new ArrayList<>());
+		public PathPartition side2 = new PathPartition(new ArrayList<>());
+	}
+	
+	private static TwoSidePathList separateList(List<ComputationPath> pathList, List<BytecodeInstruction> operands) {
+		TwoSidePathList twoSidePathList = new SeedingApplicationEvaluator().new TwoSidePathList();
+
+		Map<BytecodeInstruction, List<ComputationPath>> sides = new HashMap<>();
+		
+		for(ComputationPath path: pathList) {
+			BytecodeInstruction anchor = null;
+			if(operands.size() == 1) {
+				if(sides.isEmpty()) {
+					createSide(sides, path);
+				}
+				else {
+					BytecodeInstruction anchorInPath = findAnchorInPath(sides, path);
+					if(anchorInPath != null) {
+						List<ComputationPath> list = sides.get(anchorInPath);
+						list.add(path);
+					}
+					else {
+						Pair<BytecodeInstruction, BytecodeInstruction> pair 
+							= findAnchorSharingCommonNodes(sides, path);
+						
+						if(pair != null) {
+							BytecodeInstruction anchorSharingCommonNode = pair.getLeft();
+							BytecodeInstruction commonNode = pair.getRight();
+							
+							List<ComputationPath> list = sides.get(anchorSharingCommonNode);
+							sides.remove(anchorSharingCommonNode);
+							
+							list.add(path);
+							sides.put(commonNode, list);								
+						}
+						else {
+							createSide(sides, path);
+						}
+						
+					}
+				}
+				
+				
+			}
+			else if(operands.size()==2) {
+				BytecodeInstruction operand1 = operands.get(0);
+				BytecodeInstruction operand2 = operands.get(1);
+				anchor = path.containsInstruction(operand1) ? operand1 : operand2;
+				List<ComputationPath> list = sides.get(anchor);
+				if(list==null) {
+					list = new ArrayList<>();
+				}
+				list.add(path);
+				sides.put(anchor, list);
+			}
+			else {
+				System.err.println("something wrong, operand number is larger than 2");
+			}
+		}
+		
+		if(sides.keySet().size()==2) {
+			Iterator<BytecodeInstruction> iter = sides.keySet().iterator();
+			BytecodeInstruction key1 = iter.next();
+			BytecodeInstruction key2 = iter.next();
+			twoSidePathList.side1 = new SeedingApplicationEvaluator().new PathPartition(sides.get(key1));
+			twoSidePathList.side2 = new SeedingApplicationEvaluator().new PathPartition(sides.get(key2));
+		}
+		else {
+			List<ComputationPath> list = new ArrayList<>();
+			for(List<ComputationPath> l: sides.values()) {
+				list.addAll(l);
+			}
+			twoSidePathList.side1 = new SeedingApplicationEvaluator().new PathPartition(list);
+			twoSidePathList.side2 = new SeedingApplicationEvaluator().new PathPartition(new ArrayList<>());
+		}
+		
+		return twoSidePathList;
+	}
+
+	/**
+	 * find a side whose computation paths which share common nodes with the path {@code path},
+	 * if we can find such a side, we return pair.left as the anchor of that side, and pair.right as 
+	 * the most-root node shared by the paths in the side and the path {@code path}.
+	 * @param sides
+	 * @param path
+	 * @return
+	 */
+	private static Pair<BytecodeInstruction, BytecodeInstruction> findAnchorSharingCommonNodes(
+			Map<BytecodeInstruction, List<ComputationPath>> sides, ComputationPath path) {
+		
+		for(BytecodeInstruction anchor: sides.keySet()) {
+			List<ComputationPath> pathList = sides.get(anchor);
+			ComputationPath p = pathList.get(0);
+			
+			for(int i=p.size()-2; i>=0; i--) {
+				if(path.size() > 2 && !p.getInstruction(i).equals(anchor)) {
+					BytecodeInstruction ins = path.getInstruction(i);
+					BytecodeInstruction pIns = p.getInstruction(i);
+					
+					if(ins.equals(pIns)) {
+						Pair<BytecodeInstruction, BytecodeInstruction> pair = Pair.of(anchor, ins);
+						return pair;
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
+
+	private static BytecodeInstruction findAnchorInPath(Map<BytecodeInstruction, List<ComputationPath>> sides,
+			ComputationPath path) {
+		
+		for(BytecodeInstruction anchor: sides.keySet()) {
+			if(path.containsInstruction(anchor)) {
+				return anchor;
+			}
+		}
+		
+		return null;
+	}
+
+	private static void createSide(Map<BytecodeInstruction, List<ComputationPath>> sides, ComputationPath path) {
+		BytecodeInstruction anchor;
+		int index = path.size()-2;
+		if(path.size() >= 2) {
+			anchor = path.getComputationNodes().get(index).getInstruction();
+			List<ComputationPath> list = sides.get(anchor);
+			if(list==null) {
+				list = new ArrayList<>();
+			}
+			list.add(path);
+			sides.put(anchor, list);
+		}
+	}
+	
 	public static int evaluate(Branch b) {
 		if (cache.containsKey(b)) {
 			return cache.get(b).getBenefiticalType();
@@ -50,48 +220,38 @@ public class SeedingApplicationEvaluator {
 				List<ComputationPath> pathList = new ArrayList<>();
 				for (DepVariable input : methodInputs) {
 					List<ComputationPath> computationPathList = ComputationPath.computePath(input, operands);
-					ComputationPath path = findSimplestPath(computationPathList);
-					if (path != null)
-						pathList.add(path);
+					pathList.addAll(computationPathList);
 				}
+				removeRedundancy(pathList);
 
-				List<ComputationPath> removeList = removeRedundancyPath(pathList);
-				if (removeList != null) {
-					for (ComputationPath path : removeList) {
-						pathList.remove(path);
-					}
-				}
-
-				for (ComputationPath path : pathList) {
-					if(pathList.size() > 2)//multiple operands
+				TwoSidePathList list = separateList(pathList, operands);
+				if (list.side1.isEmpty() || list.side2.isEmpty()) {
+					return NO_POOL;
+				} else {
+					ComputationPath path1 = list.side1.getSimplestChannel();
+					ComputationPath path2 = list.side2.getSimplestChannel();
+					if (path1.isFastChannel() && path2.isFastChannel()
+							|| !path1.isFastChannel() && !path2.isFastChannel()) {
 						return NO_POOL;
-					if (path.isFastChannel(operands)) {
-//						Class<?> cla = findOpcodeType(path);
-						ComputationPath otherPath = findTheOtherPath(path, pathList);
-						if (otherPath != null && otherPath.isHardConstant(operands)) {
-							cache.put(b, new BranchSeedInfo(b, STATIC_POOL,
-									otherPath.getComputationNodes().get(0).getClass()));
-							return STATIC_POOL;
+					} else {
+//						ComputationPath fastPath = path1.isFastChannel(operands) ? path1 : path2;
+						ComputationPath otherPath = path2.isFastChannel() ? path1 : path2;
+
+						if (otherPath.getInstruction(0).isConstant() 
+								&& otherPath.size()<=2) {
+							if(otherPath.isHardConstant(operands)) {
+								cache.put(b, new BranchSeedInfo(b, STATIC_POOL,
+										otherPath.getComputationNodes().get(0).getClass()));
+								return STATIC_POOL;								
+							}
 						} 
-						else if (otherPath != null && !otherPath.isFastChannel(operands)) {
-							boolean easyConstant = false;
-							if(otherPath.getScore() < 3) {
-								for(DepVariable var : otherPath.getComputationNodes()) {
-									if(operands.contains(var.getInstruction()) && !var.getInstruction().isConstant())
-										continue;
-									else if(var.getInstruction().isConstant())
-										easyConstant = true;
-								}
-							}
-//							if(cla == null)
-//								cla = findOpcodeType(otherPath);
-							if(!easyConstant) {
-								cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL, null));
-								return DYNAMIC_POOL;
-							}
+						else{
+							cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL, null));
+							return DYNAMIC_POOL;
 						}
 					}
 				}
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -101,25 +261,34 @@ public class SeedingApplicationEvaluator {
 		return NO_POOL;
 	}
 
+	private static void removeRedundancy(List<ComputationPath> pathList) {
+		List<ComputationPath> removeList = removeRedundancyPath(pathList);
+		if (removeList != null) {
+			for (ComputationPath path : removeList) {
+				pathList.remove(path);
+			}
+		}
+	}
+
 	private static Set<DepVariable> compileInputs(Set<DepVariable> methodInputs) {
 		boolean additionalInstruction = false;
 		Set<DepVariable> local = new HashSet<>();
-		if(methodInputs == null)
+		if (methodInputs == null)
 			return methodInputs;
-		for(DepVariable input : methodInputs) {
+		for (DepVariable input : methodInputs) {
 			AbstractInsnNode node = input.getInstruction().getASMNode();
-			if(node.getType() == AbstractInsnNode.LDC_INSN) {
+			if (node.getType() == AbstractInsnNode.LDC_INSN) {
 				LdcInsnNode ldc = (LdcInsnNode) node;
 				String cla = Properties.TARGET_CLASS.replace('.', '/');
-				if(ldc.cst.toString().contains(cla + "#")) {
+				if (ldc.cst.toString().contains(cla + "#")) {
 					additionalInstruction = true;
 					local = removeVisitedDepVariable(local, input, methodInputs);
 					continue;
 				}
 			}
-			if(node.getType() == AbstractInsnNode.INT_INSN) {
-				IntInsnNode iins = (IntInsnNode)node;
-				if(additionalInstruction && iins.getOpcode() == Opcodes.SIPUSH) {
+			if (node.getType() == AbstractInsnNode.INT_INSN) {
+				IntInsnNode iins = (IntInsnNode) node;
+				if (additionalInstruction && iins.getOpcode() == Opcodes.SIPUSH) {
 					additionalInstruction = false;
 					continue;
 				}
@@ -129,20 +298,20 @@ public class SeedingApplicationEvaluator {
 		return local;
 	}
 
-	private static Set<DepVariable> removeVisitedDepVariable(Set<DepVariable> local, DepVariable input, Set<DepVariable> methodInputs) {
-		for(DepVariable visit : methodInputs) {
+	private static Set<DepVariable> removeVisitedDepVariable(Set<DepVariable> local, DepVariable input,
+			Set<DepVariable> methodInputs) {
+		for (DepVariable visit : methodInputs) {
 			AbstractInsnNode visitNode = visit.getInstruction().getASMNode();
-			if(visitNode.getType() == AbstractInsnNode.INT_INSN) {
-				IntInsnNode iins = (IntInsnNode)visitNode;
-				if(iins.getOpcode() == Opcodes.SIPUSH
-						&&
-						visit.getInstruction().getLineNumber() == input.getInstruction().getLineNumber()) {
-					if(local.contains(visit))
+			if (visitNode.getType() == AbstractInsnNode.INT_INSN) {
+				IntInsnNode iins = (IntInsnNode) visitNode;
+				if (iins.getOpcode() == Opcodes.SIPUSH
+						&& visit.getInstruction().getLineNumber() == input.getInstruction().getLineNumber()) {
+					if (local.contains(visit))
 						local.remove(visit);
 					break;
 				}
 			}
-			
+
 		}
 		return local;
 	}
@@ -158,11 +327,11 @@ public class SeedingApplicationEvaluator {
 				targetBranch = br;
 				break;
 			}
-			if(br.toString().contains(s[4])) {
+			if (br.toString().contains(s[4])) {
 				lineBranches.add(br);
 			}
 		}
-		if(lineBranches.size() == 1 && !lineBranches.get(0).equals(b)) {
+		if (lineBranches.size() == 1 && !lineBranches.get(0).equals(b)) {
 			targetBranch = lineBranches.get(0);
 		}
 		return targetBranch;
@@ -220,60 +389,58 @@ public class SeedingApplicationEvaluator {
 				int sizeNext = pathNext.getComputationNodes().size();
 
 				// method inputs to remove
-				
-				//have same input line and output line
-				if(path.getComputationNodes().get(0).getInstruction().getLineNumber() == 
-						pathNext.getComputationNodes().get(0).getInstruction().getLineNumber() 
-						&&
-						path.getComputationNodes().get(size - 1).getInstruction().getLineNumber() ==
-						pathNext.getComputationNodes().get(sizeNext - 1).getInstruction().getLineNumber()) {
-					if(ComputationPath.isStartWithMethodInput(path)) {
+
+				// have same input line and output line
+				if (path.getComputationNodes().get(0).getInstruction().getLineNumber() == pathNext.getComputationNodes()
+						.get(0).getInstruction().getLineNumber()
+						&& path.getComputationNodes().get(size - 1).getInstruction().getLineNumber() == pathNext
+								.getComputationNodes().get(sizeNext - 1).getInstruction().getLineNumber()) {
+					if (ComputationPath.isStartWithMethodInput(path)) {
 						localPathList.add(pathNext);
-					}else {
-						if(path.getScore() <= pathNext.getScore())
+					} else {
+						if (path.getScore() <= pathNext.getScore())
 							localPathList.add(pathNext);
 					}
 				}
-				
-				//have same path
-				if(size > 2 && sizeNext > 2) {
-					if(path.getComputationNodes().get(size - 2).equals(pathNext.getComputationNodes().get(sizeNext - 2)))
+
+				// have same path
+				if (size > 2 && sizeNext > 2) {
+					if (path.getComputationNodes().get(size - 2)
+							.equals(pathNext.getComputationNodes().get(sizeNext - 2)))
 						localPathList.add(pathNext);
 				}
-		
-				//start with method has 0
-				if(pathNext.getComputationNodes().get(sizeNext - 1).getInstruction().explain().contains("StartsWith") 
-						&& pathNext.getComputationNodes().get(0).getInstruction().explain().contains("ICONST_0")) {							
+
+				// start with method has 0
+				if (pathNext.getComputationNodes().get(sizeNext - 1).getInstruction().explain().contains("StartsWith")
+						&& pathNext.getComputationNodes().get(0).getInstruction().explain().contains("ICONST_0")) {
 					if (!localPathList.contains(pathNext)) {
 						localPathList.add(pathNext);
-						}	
 					}
-				
+				}
+
 			}
-			//constant
-			if(path.getScore() < 3) {
+			// constant
+			if (path.getScore() < 3) {
 				if (path.getComputationNodes().get(0).isConstant()) {
 					constant.add(path);
-					for(ComputationPath cons : localPathList) {
-						if(cons.equals(path)) {
+					for (ComputationPath cons : localPathList) {
+						if (cons.equals(path)) {
 							localPathList.remove(path);
 							break;
 						}
-						}
-					for(ComputationPath small : constant) {
-						if(small.getScore() < path.getScore()) {
+					}
+					for (ComputationPath small : constant) {
+						if (small.getScore() < path.getScore()) {
 							localPathList.add(path);
 						}
-					}			
+					}
 				}
 			}
-			
 
 		}
 		if (localPathList.size() != 0) {
 			return localPathList;
-		}
-		else
+		} else
 			return null;
 	}
 
@@ -281,7 +448,7 @@ public class SeedingApplicationEvaluator {
 		// TODO Cheng Yan
 		ComputationPath theOtherPath = new ComputationPath();
 		for (ComputationPath otherPath : pathList) {
-			if (otherPath != path) {				
+			if (otherPath != path) {
 				theOtherPath = otherPath;
 				return theOtherPath;
 			}
@@ -295,18 +462,17 @@ public class SeedingApplicationEvaluator {
 		ComputationPath simplestPath = new ComputationPath();
 		simplestPath.setScore(9999);
 		boolean hasVar = false;
-		for(int i = 0;i < computationPathList.size();i++) {
-			if(computationPathList.get(i).getScore() < simplestPath.getScore() && !hasVar)
+		for (int i = 0; i < computationPathList.size(); i++) {
+			if (computationPathList.get(i).getScore() < simplestPath.getScore() && !hasVar)
 				simplestPath = computationPathList.get(i);
-			for(DepVariable node : computationPathList.get(i).getComputationNodes()) {
+			for (DepVariable node : computationPathList.get(i).getComputationNodes()) {
 				BytecodeInstruction ins = node.getInstruction();
-				if(ins.isLocalVariableUse()) {
+				if (ins.isLocalVariableUse()) {
 					hasVar = true;
 					simplestPath = computationPathList.get(i);
 				}
 			}
-				
-			
+
 		}
 //		for (ComputationPath path : computationPathList) {
 //			

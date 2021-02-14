@@ -162,6 +162,9 @@ public class Properties {
 	@Parameter(key = "apply_smart_seed", group = "Test Creation", description = "let evosuite++ sample seed from dynamically generated seeds")
 	public static boolean APPLY_SMART_SEED = false;
 	
+	@Parameter(key = "fast_channel_score_threshold", group = "Test Creation", description = "evaluate whether a computation path is fast channel")
+	public static double FAST_CHANNEL_SCORE_THRESHOLD = 0.7;
+	
 	@Parameter(key = "apply_gradient_analysis", group = "Test Creation", description = "let evosuite++ evaluate the gradients of a branch")
 	public static boolean APPLY_GRADEINT_ANALYSIS = false;
 	

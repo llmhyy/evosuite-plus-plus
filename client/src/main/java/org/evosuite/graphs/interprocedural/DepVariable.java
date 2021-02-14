@@ -641,11 +641,14 @@ public class DepVariable {
 	public int getInputOrder(DepVariable prevNode) {
 		for(int i=0; i<this.reverseRelations.length; i++) {
 			List<DepVariable> list = this.reverseRelations[i];
-			for(DepVariable node: list) {
-				if(node.getInstruction().equals(prevNode.getInstruction())) {
-					return i;
+			if(list != null) {
+				for(DepVariable node: list) {
+					if(node.getInstruction().equals(prevNode.getInstruction())) {
+						return i;
+					}
 				}
 			}
+			
 		}
 		
 		return -1;

@@ -6,12 +6,10 @@ import java.util.List;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
-import org.objectweb.asm.tree.MethodNode;
 
 /**
  * each computation path starts with a method input, ends with an operand
@@ -19,10 +17,14 @@ import org.objectweb.asm.tree.MethodNode;
  *
  */
 public class ComputationPath {
-	private double score = 0;
+	private double score = -1;
 	private List<DepVariable> computationNodes;
 
 	public double getScore() {
+		if(score == -1) {
+			this.score = this.evaluateFastChannelScore();
+		}
+		
 		return score;
 	}
 
@@ -44,26 +46,25 @@ public class ComputationPath {
 	 * @param operands
 	 * @return
 	 */
-	public boolean isFastChannel(List<BytecodeInstruction> operands) {
+	public double evaluateFastChannelScore() {
 		boolean isParameter = isStartWithMethodInput(this);
-		if(!isParameter) return false;
+		if(!isParameter) return 0;
 		
 		double value = 1;
 		
 		DepVariable prevNode = null;
-		for(DepVariable node: computationNodes) {
+		for(int i=0; i<this.computationNodes.size()-1; i++) {
+			DepVariable node = computationNodes.get(i);
 			/**
 			 * conq is between (0, 1).
 			 */
-			double conq = evaluateConsequence(node, prevNode, operands);
+			double conq = evaluateConsequence(node, prevNode);
 			value = value * conq;
 			
 			prevNode = node;
 		}
 		
-		return value > 0.7;
-				
-		
+		return value;
 	}
 
 	public static boolean isStartWithMethodInput(ComputationPath computationPath) {
@@ -85,15 +86,15 @@ public class ComputationPath {
 		return false;
 	}
 
-	private double evaluateConsequence(DepVariable node, DepVariable prevNode, List<BytecodeInstruction> operands) {
+	private double evaluateConsequence(DepVariable node, DepVariable prevNode) {
+		if(prevNode!=null && prevNode.equals(node)) return 1;
 		
 		BytecodeInstruction ins = node.getInstruction();
 
-		if(operands.contains(ins)) {
-			return 1;
-		}
+//		if(operands.contains(ins)) {
+//			return 1;
+//		}
 		
-		// TODO Cheng Yan, need to evaluate all the possbilities of Java bytecode instructions.
 		switch(ins.getInstructionType()) {
 		case "ALOAD":
 			return 1;
@@ -634,18 +635,6 @@ public class ComputationPath {
 	}
 
 	private static boolean isPrimitive(String inputType) {
-		// TODO Cheng Yan
-		
-//		if(inputType.equals("I") || inputType.equals("J")//LONG
-//				|| inputType.equals("F")
-//				|| inputType.equals("D")
-//				|| inputType.equals("C")
-//				|| inputType.equals("Z")//BOOLEAN
-//				|| inputType.equals("B")
-//				|| inputType.equals("S")
-//				) {
-//			return true;			
-//		}
 		if(inputType.equals(int.class.toString()) || inputType.equals(long.class.toString())//LONG
 				|| inputType.equals(float.class.toString())
 				|| inputType.equals(double.class.toString())
@@ -663,7 +652,6 @@ public class ComputationPath {
 	
 
 	public boolean isHardConstant(List<BytecodeInstruction> operands) {
-		// TODO Cheng Yan
 		boolean isConstant = false;
 		/**
 		 * We assume that each path can only have two nodes, one for operand, and the other for the constant
@@ -673,14 +661,12 @@ public class ComputationPath {
 		 * 
 		 */
 		if(computationNodes.size() == 2 || computationNodes.size() == 1) {
-			//TODO Cheng Yan what is the order of computation node?
 			BytecodeInstruction ins = computationNodes.get(0).getInstruction();
 			if(!ins.isConstant()) {
 				isConstant = false;
 				return isConstant;
 			}
 			else {
-				//string value
 				if(ins.getASMNode().getType() == AbstractInsnNode.LDC_INSN)
 					return true;
 				
@@ -699,7 +685,6 @@ public class ComputationPath {
 	}
 	
 	private Object getConstantValue(BytecodeInstruction ins) {
-		//TODO Cheng Yan
 		AbstractInsnNode node = ins.getASMNode();
 		if(node.getType() == AbstractInsnNode.INT_INSN) {
 			IntInsnNode iins = (IntInsnNode)node;
@@ -714,11 +699,10 @@ public class ComputationPath {
 			}
 		}
 		
-		return "abstda";
+		return "string";
 	}
 
 	public static List<ComputationPath> computePath(DepVariable root, List<BytecodeInstruction> operands) {
-		// TODO Cheng Yan
 		List<ComputationPath> computationPath = new ArrayList<>();
 		List<DepVariable> nodes = new ArrayList<>(); 
 		//traverse input to oprands
@@ -763,10 +747,31 @@ public class ComputationPath {
 			}
 			ComputationPath pathRecord = new ComputationPath();
 			pathRecord.setComputationNodes(computationNodes);
-			pathRecord.setScore(computationNodes.size());
+//			pathRecord.setScore(computationNodes.size());
 			computationPath.add(pathRecord);
 		}
 		nodes.remove(nodes.size() - 1);
+	}
+
+	public int size() {
+		return this.computationNodes.size();
+	}
+
+	public boolean containsInstruction(BytecodeInstruction ins) {
+		for(DepVariable node: this.computationNodes) {
+			if(node.getInstruction().equals(ins)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isFastChannel() {
+		return this.evaluateFastChannelScore() > Properties.FAST_CHANNEL_SCORE_THRESHOLD;
+	}
+
+	public BytecodeInstruction getInstruction(int i) {
+		return this.computationNodes.get(i).getInstruction();
 	}
 
 }
