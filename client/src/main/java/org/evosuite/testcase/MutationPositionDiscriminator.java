@@ -9,9 +9,11 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.utils.Randomness;
 
@@ -63,11 +65,32 @@ public class MutationPositionDiscriminator <T extends Chromosome> {
 			
 //			System.currentTimeMillis();
 			
+			//TODO aaron
+			Object diff = parseMutation(newTest, oldTest);
+			
+			Set<FitnessFunction<?>> relvantBranches = analyzeRelevantBranch(diff, newTest.getFitnessValues().keySet());
+			Map<Branch, List<ComputationPath>> map = parseComputationPath(newTest);
+			
 			updateChangeRelevanceMap(changedFitnesses, newTest.getTestCase());
 			updateChangeRelevanceMap(changedFitnesses, oldTest.getTestCase());
 		}
 	}
-	
+
+	private static Map<Branch, List<ComputationPath>> parseComputationPath(TestChromosome newTest) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private static Set<FitnessFunction<?>> analyzeRelevantBranch(Object diff, Set<FitnessFunction<?>> keySet) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private static Object parseMutation(TestChromosome newTest, TestChromosome oldTest) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	@SuppressWarnings("rawtypes")
 	private static void updateChangeRelevanceMap(Map<FitnessFunction, Boolean> changedFitnesses, TestCase test) {
 		for(int pos=0; pos<test.size()-1; pos++) {
