@@ -131,7 +131,7 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		rowData.add(EvosuiteForMethod.projectId);
 		rowData.add(EvosuiteForMethod.projectName);
 		rowData.add(methodFullName);
-		rowData.add(br);
+		rowData.add(br.toString());
 		rowData.add(type);
 		data.add(rowData);
 		writer.writeSheet("data", data);

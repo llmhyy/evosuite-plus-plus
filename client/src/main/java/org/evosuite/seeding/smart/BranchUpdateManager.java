@@ -26,8 +26,8 @@ public class BranchUpdateManager {
 				BranchCoverageGoal goal = bf.getBranchGoal();
 				
 				int type = SeedingApplicationEvaluator.evaluate(goal.getBranch());
-				Class<?> cla = SeedingApplicationEvaluator.cache.get(goal.getBranch()).getTargetType();
-				BranchSeedInfo info = new BranchSeedInfo(goal.getBranch(), type, cla);
+//				Class<?> cla = SeedingApplicationEvaluator.cache.get(goal.getBranch()).getTargetType();
+				BranchSeedInfo info = new BranchSeedInfo(goal.getBranch(), type, null);
 				
 				if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
 					infoSet.add(info);					
