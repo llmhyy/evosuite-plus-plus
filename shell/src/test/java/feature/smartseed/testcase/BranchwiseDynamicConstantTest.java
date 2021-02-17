@@ -249,8 +249,6 @@ public class BranchwiseDynamicConstantTest {
 		ConstantPool pool = BranchwiseConstantPoolManager.DYNAMIC_POOL_CACHE.get(branchID);
 		boolean hasRelevantValue = getRelevantValue(pool,"kkkkk");
 		assert hasRelevantValue;
-		
-		
 	}
 
 	private int getRelevantBranchID() {
