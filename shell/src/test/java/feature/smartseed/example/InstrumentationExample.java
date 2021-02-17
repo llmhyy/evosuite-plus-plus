@@ -1,5 +1,9 @@
 package feature.smartseed.example;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,6 +87,59 @@ public class InstrumentationExample {
         // get Matcher object
         Matcher matcher = pattern.matcher(x);
 		if(matcher.matches()) {//one operand
+			System.currentTimeMillis();
+		}
+	}
+	
+	private ArrayList<String> list;
+	private Map<String, Integer> map;
+
+	public InstrumentationExample(ArrayList<String> list) {
+		this.list = list;
+	}
+
+	public void containExample(String str) {
+		String k = "kkkkk";
+		if(list.contains(k)) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public InstrumentationExample(String key,Integer value) {
+		map.put(key, value);
+	}
+
+	public void containKeyExample(String str) {
+		String k = "containKey";
+		if(map.containsKey(k)) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void containValueExample(String str) {
+		int k = 899;
+		if(map.containsValue(k)) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void longCompare(long l) {
+		long value = 9223372036854775800l;
+		if(l >= value) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void floatCompare(float f) {
+		float value = 123.45566778465651454545f;
+		if(f <= value) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void doubleCompare(double d) {
+		double value = 3.1234567890123456789;
+		if(d >= value) {
 			System.currentTimeMillis();
 		}
 	}

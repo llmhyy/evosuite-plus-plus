@@ -34,8 +34,10 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
@@ -71,7 +73,7 @@ public class ContainerTransformation {
 	public ClassNode transform() {
 		List<MethodNode> methodNodes = cn.methods;
 		for (MethodNode mn : methodNodes) {
-			if (transformMethod(mn)) {
+			if (transformMethod(cn,mn)) {
 				mn.maxStack++;
 			}
 		}
@@ -85,10 +87,12 @@ public class ContainerTransformation {
 	 * @param mn
 	 */
 	@SuppressWarnings("unchecked")
-	public boolean transformMethod(MethodNode mn) {
+	public boolean transformMethod(ClassNode cn,MethodNode mn) {
 		boolean changed = false;
 		ListIterator<AbstractInsnNode> iterator = mn.instructions.iterator();
+		int index = 0;
 		while (iterator.hasNext()) {
+			index++;
 			AbstractInsnNode node = iterator.next();
 
 			if (node instanceof MethodInsnNode) {
@@ -118,6 +122,12 @@ public class ContainerTransformation {
 						
 						changed = true;
 					} else if (methodNode.name.equals("contains")) {
+						//TODO
+						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+						mn.instructions.insertBefore(node, methodSig);
+						
+						IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+						mn.instructions.insertBefore(node, indexNode);
 
 						logger.debug("Test Transformation of " + methodNode.owner + "." + methodNode.name 
 								+ " -> " +  Type.getInternalName(ContainerHelper.class) + "." + "collectionContains");
@@ -129,7 +139,10 @@ public class ContainerTransformation {
 						        Type.getMethodDescriptor(Type.INT_TYPE,
 						                                 new Type[] {
 						                                         Type.getType(Collection.class),
-						                                         Type.getType(Object.class) }), false);
+						                                         Type.getType(Object.class), 
+						                                         Type.getType(String.class),
+						                                         Type.INT_TYPE
+						                                         }), false);
 						InsnList il = createNewIfThenElse(n);
 						mn.instructions.insertBefore(node, il);
 						mn.instructions.remove(node);
@@ -137,6 +150,12 @@ public class ContainerTransformation {
 
 						changed = true;
 					} else if (methodNode.name.equals("containsAll")) {
+						//TODO
+//						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+//						mn.instructions.insertBefore(node, methodSig);
+//						
+//						IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+//						mn.instructions.insertBefore(node, indexNode);
 						
 						logger.debug("Test Transformation of " + methodNode.owner + "." + methodNode.name 
 								+ " -> " +  Type.getInternalName(ContainerHelper.class) + "." + "collectionContainsAll");
@@ -148,7 +167,10 @@ public class ContainerTransformation {
 						        Type.getMethodDescriptor(Type.INT_TYPE,
 						                                 new Type[] {
 						                                         Type.getType(Collection.class),
-						                                         Type.getType(Collection.class) }), false);
+						                                         Type.getType(Collection.class)
+//						                                         ,Type.getType(String.class),
+//						                                         Type.INT_TYPE
+						                                         }), false);
 						InsnList il = createNewIfThenElse(n);
 						mn.instructions.insertBefore(node, il);
 						mn.instructions.remove(node);
@@ -173,6 +195,12 @@ public class ContainerTransformation {
 						TransformationStatistics.transformedContainerComparison();
 						changed = true;
 					} else if (methodNode.name.equals("containsKey")) {
+						//TODO
+						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+						mn.instructions.insertBefore(node, methodSig);
+						
+						IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+						mn.instructions.insertBefore(node, indexNode);
 						
 						logger.debug("Test Transformation of " + methodNode.owner + "." + methodNode.name 
 								+ " -> " +  Type.getInternalName(ContainerHelper.class) + "." + "mapContainsKey");
@@ -184,13 +212,22 @@ public class ContainerTransformation {
 						        Type.getMethodDescriptor(Type.INT_TYPE,
 						                                 new Type[] {
 						                                         Type.getType(Map.class),
-						                                         Type.getType(Object.class) }), false);
+						                                         Type.getType(Object.class),
+						                                         Type.getType(String.class),
+						                                         Type.INT_TYPE
+						                                         }), false);
 						InsnList il = createNewIfThenElse(n);
 						mn.instructions.insertBefore(node, il);
 						mn.instructions.remove(node);
 						TransformationStatistics.transformedContainerComparison();
 						changed = true;
 					} else if (methodNode.name.equals("containsValue")) {
+						//TODO
+						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+						mn.instructions.insertBefore(node, methodSig);
+						
+						IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+						mn.instructions.insertBefore(node, indexNode);
 						
 						logger.debug("Test Transformation of " + methodNode.owner + "." + methodNode.name 
 								+ " -> " +  Type.getInternalName(ContainerHelper.class) + "." + "mapContainsValue");
@@ -202,7 +239,9 @@ public class ContainerTransformation {
 						        Type.getMethodDescriptor(Type.INT_TYPE,
 						                                 new Type[] {
 						                                         Type.getType(Map.class),
-						                                         Type.getType(Object.class) }), false);
+						                                         Type.getType(Object.class),
+						                                         Type.getType(String.class),
+						                                         Type.INT_TYPE}), false);
 						InsnList il = createNewIfThenElse(n);
 						mn.instructions.insertBefore(node, il);
 						mn.instructions.remove(node);

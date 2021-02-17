@@ -22,6 +22,7 @@ import org.objectweb.asm.tree.LdcInsnNode;
 import common.TestUtility;
 import evosuite.shell.EvoTestResult;
 import feature.smartseed.example.InstrumentationExample;
+import sf100.CommonTestUtil;
 
 public class BranchwiseDynamicConstantTest {
 	
@@ -30,7 +31,7 @@ public class BranchwiseDynamicConstantTest {
 		Properties.APPLY_SMART_SEED = true;
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.TIMEOUT = 10000000;
+		Properties.TIMEOUT = 1000;
 	}
 	
 	@Test
@@ -48,7 +49,7 @@ public class BranchwiseDynamicConstantTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 1000000;
+		int budget = 10;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -83,7 +84,7 @@ public class BranchwiseDynamicConstantTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -104,7 +105,7 @@ public class BranchwiseDynamicConstantTest {
 	public void testBranchwiseDynamicStarWith() throws IOException {
 		Class<?> clazz = InstrumentationExample.class;
 		String methodName = "stratWithExample";
-		int parameterNum = 2;
+		int parameterNum = 1;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -115,7 +116,7 @@ public class BranchwiseDynamicConstantTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -145,7 +146,7 @@ public class BranchwiseDynamicConstantTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -175,7 +176,7 @@ public class BranchwiseDynamicConstantTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -205,7 +206,7 @@ public class BranchwiseDynamicConstantTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 1000;
+		int budget = 10;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -219,9 +220,188 @@ public class BranchwiseDynamicConstantTest {
 		boolean hasRelevantValue = getRelevantValue(pool,"colours");
 		assert hasRelevantValue;		
 	}
+	
+	@Test
+	public void testBranchwiseDynamicContains() throws IOException {
+		Class<?> clazz = InstrumentationExample.class;
+		String methodName = "containExample";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 10;
+		Long seed = null;
+				
+		boolean aor = false;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, true, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		//TODO Cheng Yan
+		int branchID = getRelevantBranchID();
+		ConstantPool pool = BranchwiseConstantPoolManager.DYNAMIC_POOL_CACHE.get(branchID);
+		boolean hasRelevantValue = getRelevantValue(pool,"kkkkk");
+		assert hasRelevantValue;
+
+
+	}
+	
+	@Test
+	public void testBranchwiseDynamicContainsKey() throws IOException {
+		Class<?> clazz = InstrumentationExample.class;
+		String methodName = "containKeyExample";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 10;
+		Long seed = null;
+				
+		boolean aor = false;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, true, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		//TODO Cheng Yan
+		int branchID = getRelevantBranchID();
+		ConstantPool pool = BranchwiseConstantPoolManager.DYNAMIC_POOL_CACHE.get(branchID);
+		boolean hasRelevantValue = getRelevantValue(pool,"containKey");
+		assert hasRelevantValue;
+
+
+	}
+	
+	@Test
+	public void testBranchwiseDynamicContainsValue() throws IOException {
+		Class<?> clazz = InstrumentationExample.class;
+		String methodName = "containValueExample";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 10;
+		Long seed = null;
+				
+		boolean aor = false;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, true, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		//TODO Cheng Yan
+		int branchID = getRelevantBranchID();
+		ConstantPool pool = BranchwiseConstantPoolManager.DYNAMIC_POOL_CACHE.get(branchID);
+		boolean hasRelevantValue = getRelevantValue(pool,899);
+		assert hasRelevantValue;
+
+
+	}
+	
+	@Test
+	public void testBranchwiseDynamicLongCompare() throws IOException {
+		Class<?> clazz = InstrumentationExample.class;
+		String methodName = "longCompare";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 10;
+		Long seed = null;
+				
+		boolean aor = false;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, true, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		//TODO Cheng Yan
+		int branchID = getRelevantBranchID();
+		ConstantPool pool = BranchwiseConstantPoolManager.DYNAMIC_POOL_CACHE.get(branchID);
+		boolean hasRelevantValue = getRelevantValue(pool,9223372036854775800l);
+		assert hasRelevantValue;
+
+
+	}
+	
+	@Test
+	public void testBranchwiseDynamicFloatCompare() throws IOException {
+		Class<?> clazz = InstrumentationExample.class;
+		String methodName = "floatCompare";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 1000;
+		Long seed = null;
+				
+		boolean aor = false;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, true, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	 		
+		//TODO Cheng Yan
+		int branchID = getRelevantBranchID();
+		ConstantPool pool = BranchwiseConstantPoolManager.DYNAMIC_POOL_CACHE.get(branchID);
+		boolean hasRelevantValue = getRelevantValue(pool,123.45566778465651454545f);
+		assert hasRelevantValue;
+
+
+	}
+	
+	@Test
+	public void testBranchwiseDynamicDoubleCompare() throws IOException {
+		Class<?> clazz = InstrumentationExample.class;
+		String methodName = "doubleCompare";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 10;
+		Long seed = null;
+				
+		boolean aor = false;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, true, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		//TODO Cheng Yan
+		int branchID = getRelevantBranchID();
+		ConstantPool pool = BranchwiseConstantPoolManager.DYNAMIC_POOL_CACHE.get(branchID);
+		boolean hasRelevantValue = getRelevantValue(pool,3.1234567890123456789);
+		assert hasRelevantValue;
+
+
+	}
 
 	private int getRelevantBranchID() {
-		BytecodeInstruction instruction = null;
+      		BytecodeInstruction instruction = null;
 		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		List<BytecodeInstruction> instructions =BytecodeInstructionPool.getInstance(classLoader).getAllInstructionsAtMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
 		for(BytecodeInstruction ins : instructions) {
