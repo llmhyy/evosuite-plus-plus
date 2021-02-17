@@ -53,7 +53,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.EventSequence;
-import org.evosuite.seeding.smart.BranchUpdateManager;
+import org.evosuite.seeding.smart.SmartSeedBranchUpdateManager;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -181,7 +181,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			
 			// apply mutation on offspring1
 			Set<?> uncoveredGoals = getUncoveredGoals();
-			BranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
+			SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
 			this.mutate(offspring1, parent1);
 			if (offspring1.isChanged()) {
 				
@@ -197,7 +197,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 
 			// apply mutation on offspring2
 			uncoveredGoals = getUncoveredGoals();
-			BranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
+			SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
 			this.mutate(offspring2, parent2);
 			if (offspring2.isChanged()) {
 				this.clearCachedResults(offspring2);

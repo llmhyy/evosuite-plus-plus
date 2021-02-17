@@ -444,46 +444,46 @@ public class SeedingApplicationEvaluator {
 			return null;
 	}
 
-	private static ComputationPath findTheOtherPath(ComputationPath path, List<ComputationPath> pathList) {
-		// TODO Cheng Yan
-		ComputationPath theOtherPath = new ComputationPath();
-		for (ComputationPath otherPath : pathList) {
-			if (otherPath != path) {
-				theOtherPath = otherPath;
-				return theOtherPath;
-			}
-
-		}
-		return null;
-	}
-
-	private static ComputationPath findSimplestPath(List<ComputationPath> computationPathList) {
-		// TODO Cheng Yan
-		ComputationPath simplestPath = new ComputationPath();
-		simplestPath.setScore(9999);
-		boolean hasVar = false;
-		for (int i = 0; i < computationPathList.size(); i++) {
-			if (computationPathList.get(i).getScore() < simplestPath.getScore() && !hasVar)
-				simplestPath = computationPathList.get(i);
-			for (DepVariable node : computationPathList.get(i).getComputationNodes()) {
-				BytecodeInstruction ins = node.getInstruction();
-				if (ins.isLocalVariableUse()) {
-					hasVar = true;
-					simplestPath = computationPathList.get(i);
-				}
-			}
-
-		}
-//		for (ComputationPath path : computationPathList) {
-//			
-//			if (path.getScore() < simplestPath.getScore())
-//				simplestPath = path;
+//	private static ComputationPath findTheOtherPath(ComputationPath path, List<ComputationPath> pathList) {
+//		// TODO Cheng Yan
+//		ComputationPath theOtherPath = new ComputationPath();
+//		for (ComputationPath otherPath : pathList) {
+//			if (otherPath != path) {
+//				theOtherPath = otherPath;
+//				return theOtherPath;
+//			}
+//
 //		}
-		if (simplestPath.getScore() != 9999)
-			return simplestPath;
-		else
-			return null;
-	}
+//		return null;
+//	}
+//
+//	private static ComputationPath findSimplestPath(List<ComputationPath> computationPathList) {
+//		// TODO Cheng Yan
+//		ComputationPath simplestPath = new ComputationPath();
+//		simplestPath.setScore(9999);
+//		boolean hasVar = false;
+//		for (int i = 0; i < computationPathList.size(); i++) {
+//			if (computationPathList.get(i).getScore() < simplestPath.getScore() && !hasVar)
+//				simplestPath = computationPathList.get(i);
+//			for (DepVariable node : computationPathList.get(i).getComputationNodes()) {
+//				BytecodeInstruction ins = node.getInstruction();
+//				if (ins.isLocalVariableUse()) {
+//					hasVar = true;
+//					simplestPath = computationPathList.get(i);
+//				}
+//			}
+//
+//		}
+////		for (ComputationPath path : computationPathList) {
+////			
+////			if (path.getScore() < simplestPath.getScore())
+////				simplestPath = path;
+////		}
+//		if (simplestPath.getScore() != 9999)
+//			return simplestPath;
+//		else
+//			return null;
+//	}
 
 	public static List<BranchSeedInfo> evaluate(String targetMethod) throws ClassNotFoundException {
 		List<BranchSeedInfo> interestedBranches = new ArrayList<>();

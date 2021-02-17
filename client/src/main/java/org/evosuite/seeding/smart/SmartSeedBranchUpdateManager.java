@@ -7,9 +7,10 @@ import org.evosuite.Properties;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchFitness;
 
-public class BranchUpdateManager {
+public class SmartSeedBranchUpdateManager {
 
-	public static Set<BranchSeedInfo> uncoveredBranchInfo = new HashSet<>();
+	public static Set<BranchSeedInfo> uncoveredApplicableBranchInfo = new HashSet<>();
+	public static double oldPrimitivePool = Properties.PRIMITIVE_POOL;
 	
 	public static void updateUncoveredBranchInfo(Set<?> uncoveredGoals){
 		
@@ -17,7 +18,7 @@ public class BranchUpdateManager {
 			return;
 		
 		
-		uncoveredBranchInfo.clear();
+		uncoveredApplicableBranchInfo.clear();
 		
 		Set<BranchSeedInfo> infoSet = new HashSet<>();
 		for(Object obj: uncoveredGoals) {
@@ -26,7 +27,6 @@ public class BranchUpdateManager {
 				BranchCoverageGoal goal = bf.getBranchGoal();
 				
 				int type = SeedingApplicationEvaluator.evaluate(goal.getBranch());
-//				Class<?> cla = SeedingApplicationEvaluator.cache.get(goal.getBranch()).getTargetType();
 				BranchSeedInfo info = new BranchSeedInfo(goal.getBranch(), type, null);
 				
 				if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
@@ -35,7 +35,10 @@ public class BranchUpdateManager {
 			}
 		}
 		
-		uncoveredBranchInfo = infoSet;
+		uncoveredApplicableBranchInfo = infoSet;
+		if(infoSet.isEmpty()) {
+			Properties.PRIMITIVE_POOL = 0.1;
+		}
 	}
 
 }
