@@ -36,6 +36,7 @@ import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.factories.RandomLengthTestFactory;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
@@ -236,6 +237,9 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void generateSolution() {
+		RandomLengthTestFactory.legitimizationSuccess = 0;
+		RandomLengthTestFactory.legitimizationTrials = 0;
+		
 		logger.debug("executing generateSolution function");
 
 		this.goalsManager = new MultiCriteriaManager<>(this.fitnessFunctions);
@@ -286,6 +290,9 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			this.notifyIteration();
 		}
 
+		logger.warn("legitimizationSuccess: " + RandomLengthTestFactory.legitimizationSuccess);
+		logger.warn("legitimizationTrials: " + RandomLengthTestFactory.legitimizationTrials);
+		
 		this.notifySearchFinished();
 	}
 

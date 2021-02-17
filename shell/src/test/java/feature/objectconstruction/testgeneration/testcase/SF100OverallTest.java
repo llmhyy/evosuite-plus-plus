@@ -27,9 +27,11 @@ public class SF100OverallTest {
 		Properties.INSTRUMENT_CONTEXT = true;
 		Properties.CHROMOSOME_LENGTH = 200;
 		
-		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
-		Properties.TOTAL_LEGITIMIZATION_BUDGET = 30;
-//		Properties.TIMEOUT = 10000000;
+//		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 20;
+//		Properties.TOTAL_LEGITIMIZATION_BUDGET = 50;
+		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 0;
+		Properties.TOTAL_LEGITIMIZATION_BUDGET = 0;
+		Properties.TIMEOUT = 1000;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
@@ -42,7 +44,7 @@ public class SF100OverallTest {
 //		String projectId = "83_xbus";
 //		String projectId = "80_wheelwebtool";
 //		String projectId = "58_fps370";
-		String projectId = SF100Project.P66;
+		String projectId = SF100Project.P1;
 		
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -61,7 +63,19 @@ public class SF100OverallTest {
 //				"net.sourceforge.ifxfv3.beans.PmtLegalRptData#equals(Ljava/lang/Object;)Z"
 //				"corina.index.Horizontal#index()V"
 //				"com.lts.scheduler.Scheduler#cancel(Lcom/lts/scheduler/ScheduledEventListener;)V"
-				"org.exolab.jms.gc.GarbageCollectionService#doStart()V"
+//				"org.exolab.jms.gc.GarbageCollectionService#doStart()V"
+//				"com.lts.caloriecount.data.CalorieCountData#setFrequentFoods(Lcom/lts/application/data/IdApplicationDataList;)V"
+//				"de.outstare.fortbattleplayer.gui.battlefield.BattleFieldLayoutManager#layoutContainer(Ljava/awt/Container;)V"
+//				"org.jcvi.trace.frg.DefaultFragment#equals(Ljava/lang/Object;)Z"
+//				"com.lts.scheduler.Scheduler#cancel(Lcom/lts/scheduler/ScheduledEventListener;)V"
+//				"de.huxhorn.lilith.services.clipboard.AccessUriFormatter#isCompatible(Ljava/lang/Object;)Z"
+//				"state.GameState#unpack([B)V"
+//				"de.beiri22.filedp.FileDiffPatch#createPatch(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V"
+//				"com.lts.xmlser.tags.CollectionTag#write(Lcom/lts/xmlser/XmlSerializer;Lcom/lts/io/IndentingPrintWriter;Ljava/lang/String;Ljava/lang/Object;Z)V"
+				"com.ib.client.Contract#equals(Ljava/lang/Object;)Z"
+//				"com.lts.xmlser.tags.CollectionTag#write(Lcom/lts/xmlser/XmlSerializer;Lcom/lts/io/IndentingPrintWriter;Ljava/lang/String;Ljava/lang/Object;Z)V"
+//				"org.jcvi.trace.sanger.chromatogram.BasicChromatogram#equals(Ljava/lang/Object;)Z"
+
 				};
 		
 		int repeatTime = 5;
@@ -73,7 +87,7 @@ public class SF100OverallTest {
 		boolean aor = false;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+				seed, aor, "generateSuite", "Evosuite", "MONOTONIC_GA");
 		
 		double coverage = 0;
 		double initCoverage = 0;
@@ -86,6 +100,8 @@ public class SF100OverallTest {
 			iteration += res.getAge();
 		}
 		
+		System.out.println("applied object rule: " + aor);
+		System.out.println("overall legitimization budget: " + Properties.TOTAL_LEGITIMIZATION_BUDGET);
 		System.out.println("coverage: " + coverage/repeatTime);
 		System.out.println("initCoverage: " + initCoverage/repeatTime);
 		System.out.println("time: " + time/repeatTime);

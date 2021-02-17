@@ -59,6 +59,10 @@ import org.slf4j.LoggerFactory;
  */
 public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome> {
 
+	public static int legitimizationTrials = 0;
+	public static int legitimizationSuccess = 0;
+	
+	
 	private static final long serialVersionUID = -5202578461625984100L;
 
 	/** Constant <code>logger</code> */
@@ -175,8 +179,13 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					templateTestChromosome.setTestCase(test);
 					ExecutionResult result = TestCaseExecutor.getInstance().execute(test);
 					templateTestChromosome.setLastExecutionResult(result);
+					double oldLegitimateDistance = templateTestChromosome.getLegitimacyDistance();
 //					t1 = System.currentTimeMillis();
 //					logger.warn("execution time: " + (t1-t0));
+					
+					if(oldLegitimateDistance != 0) {
+						legitimizationTrials++;
+					}
 					
 					TestChromosome legitimizedChromosome = null;
 					t0 = System.currentTimeMillis();
@@ -191,7 +200,15 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					legitimizedChromosome = templateTestChromosome;
 					
 					if(legitimizedChromosome.getLegitimacyDistance() == 0) {
+						if(oldLegitimateDistance != 0) {
+							// it means that legitimization is effective in this case.
+							legitimizationSuccess++;
+							
+						}
 						templateTestMap.put(b, test);							
+					}
+					else {
+						System.currentTimeMillis();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
