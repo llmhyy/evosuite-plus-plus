@@ -219,6 +219,39 @@ public class BranchwiseDynamicConstantTest {
 		boolean hasRelevantValue = getRelevantValue(pool,"colours");
 		assert hasRelevantValue;		
 	}
+	
+	@Test
+	public void testBranchwiseDynamicContains() throws IOException {
+		Class<?> clazz = InstrumentationExample.class;
+		String methodName = "containExample";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 1000000;
+		Long seed = null;
+				
+		boolean aor = false;
+
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, true, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		//TODO Cheng Yan
+		int branchID = getRelevantBranchID();
+		ConstantPool pool = BranchwiseConstantPoolManager.DYNAMIC_POOL_CACHE.get(branchID);
+		boolean hasRelevantValue = getRelevantValue(pool,"kkkkk");
+		assert hasRelevantValue;
+		
+		
+	}
 
 	private int getRelevantBranchID() {
 		BytecodeInstruction instruction = null;

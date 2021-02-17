@@ -1,5 +1,6 @@
 package feature.smartseed.example;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,6 +84,19 @@ public class InstrumentationExample {
         // get Matcher object
         Matcher matcher = pattern.matcher(x);
 		if(matcher.matches()) {//one operand
+			System.currentTimeMillis();
+		}
+	}
+	
+	private ArrayList<String> list;
+	
+	public InstrumentationExample(ArrayList<String> list) {
+		this.list = list;
+	}
+	
+	public void containExample(String str) {
+		String k = "kkkkk";
+		if(list.contains(k)) {
 			System.currentTimeMillis();
 		}
 	}
