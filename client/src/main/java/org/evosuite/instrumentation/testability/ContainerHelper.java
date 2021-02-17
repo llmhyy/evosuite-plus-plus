@@ -107,7 +107,12 @@ public class ContainerHelper {
         }
     }
     
-    public static int collectionContains(Collection<?> c, Object o1,String methodSig, int index) {
+    public static int collectionContains(Collection<?> c, Object o1, String methodSig, int index) {
+    	if(Properties.APPLY_SMART_SEED) {
+    		int branch = parseBranchId(methodSig, index);
+			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, o1);
+		}
+    	
         if(o1 != null) {
             TestCluster.getInstance().addCastClassForContainer(o1.getClass());
         }
@@ -126,10 +131,6 @@ public class ContainerHelper {
                                     Math.abs(n1.doubleValue()
                                             - n2.doubleValue()));
                         } else if (o2 instanceof String) {
-                        	if(Properties.APPLY_SMART_SEED) {
-                        		int branch = parseBranchId(methodSig, index);
-                    			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, o1);
-                    		}
                             ConstantPoolManager.getInstance().addDynamicConstant(o1);
                             min_distance = Math.min(min_distance,
                                     StringHelper.editDistance((String) o1, (String) o2));

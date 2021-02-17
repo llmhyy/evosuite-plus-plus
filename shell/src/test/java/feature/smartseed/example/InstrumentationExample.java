@@ -92,7 +92,7 @@ public class InstrumentationExample {
 	}
 	
 	private ArrayList<String> list;
-	private Map<String, Integer> map;
+	private Map<String, Integer> map = new HashMap<String, Integer>();
 
 	public InstrumentationExample(ArrayList<String> list) {
 		this.list = list;
@@ -117,7 +117,7 @@ public class InstrumentationExample {
 	}
 	
 	public void containValueExample(String str) {
-		int k = 899;
+		Integer k = 899;
 		if(map.containsValue(k)) {
 			System.currentTimeMillis();
 		}

@@ -74,7 +74,8 @@ public class ContainerTransformation {
 		List<MethodNode> methodNodes = cn.methods;
 		for (MethodNode mn : methodNodes) {
 			if (transformMethod(cn,mn)) {
-				mn.maxStack++;
+//				mn.maxStack++;
+				mn.maxStack = mn.maxStack + 3;
 			}
 		}
 
@@ -122,7 +123,6 @@ public class ContainerTransformation {
 						
 						changed = true;
 					} else if (methodNode.name.equals("contains")) {
-						//TODO
 						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
 						mn.instructions.insertBefore(node, methodSig);
 						
@@ -150,13 +150,6 @@ public class ContainerTransformation {
 
 						changed = true;
 					} else if (methodNode.name.equals("containsAll")) {
-						//TODO
-//						LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
-//						mn.instructions.insertBefore(node, methodSig);
-//						
-//						IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
-//						mn.instructions.insertBefore(node, indexNode);
-						
 						logger.debug("Test Transformation of " + methodNode.owner + "." + methodNode.name 
 								+ " -> " +  Type.getInternalName(ContainerHelper.class) + "." + "collectionContainsAll");
 						
