@@ -534,32 +534,12 @@ public class ComputationPath {
 				 * if(b.length()>10){...}
 				 */
 				
+				String callerObjectType = ins.getCalledMethodsClass();
+				String methodName = ins.getCalledMethodName();
+				
 				//TODO for Cheng Yan, we can add rules here
-				if(ins.getCalledMethodName().equals("toString")) {
-					return 1;
-				}
-				if(ins.getCalledMethodName().equals("replace")) {
-					return 0.9;
-				}
-				if(ins.getCalledMethodName().equals("equals")) {
-					return 0.9;
-				}
-				if(ins.getCalledMethodName().equals("length")) {
-					return 1;
-				}
-				if(ins.getCalledMethodName().equals("toLowerCase")) {
-					return 0.9;
-				}
-				if(ins.getCalledMethodName().equals("toUpperCase")) {
-					return 0.9;
-				}
-				if(ins.getCalledMethodName().equals("getFirst")) {
-					return 0.9;
-				}
-				if(ins.getCalledMethodName().equals("split")) {
-					return 0.9;
-				}
-				return 0;
+				double value = SensitiveCallRules.getSensitivity(callerObjectType, methodName);
+				return value;
 			}
 			
 			String inputType = separateTypes[inputOrder];

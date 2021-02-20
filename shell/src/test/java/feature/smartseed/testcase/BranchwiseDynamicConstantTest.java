@@ -31,7 +31,7 @@ public class BranchwiseDynamicConstantTest {
 		Properties.APPLY_SMART_SEED = true;
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.TIMEOUT = 1000;
+		Properties.TIMEOUT = 1000000;
 	}
 	
 	@Test
@@ -305,7 +305,7 @@ public class BranchwiseDynamicConstantTest {
 		//TODO Cheng Yan
 		int branchID = getRelevantBranchID();
 		ConstantPool pool = BranchwiseConstantPoolManager.DYNAMIC_POOL_CACHE.get(branchID);
-		boolean hasRelevantValue = getRelevantValue(pool,899);
+		boolean hasRelevantValue = getRelevantValue(pool, 899);
 		assert hasRelevantValue;
 
 

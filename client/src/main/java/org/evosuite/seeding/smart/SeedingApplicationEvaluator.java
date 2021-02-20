@@ -201,9 +201,9 @@ public class SeedingApplicationEvaluator {
 	}
 	
 	public static int evaluate(Branch b) {
-		if (cache.containsKey(b)) {
-			return cache.get(b).getBenefiticalType();
-		}
+//		if (cache.containsKey(b)) {
+//			return cache.get(b).getBenefiticalType();
+//		}
 
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
@@ -226,12 +226,19 @@ public class SeedingApplicationEvaluator {
 
 				TwoSidePathList list = separateList(pathList, operands);
 				if (list.side1.isEmpty() || list.side2.isEmpty()) {
+					cache.put(b, new BranchSeedInfo(b, STATIC_POOL));
 					return NO_POOL;
 				} else {
+//					if(b.getInstruction().getLineNumber()==111) {
+//						System.currentTimeMillis();
+//					}
+					
 					ComputationPath path1 = list.side1.getSimplestChannel();
 					ComputationPath path2 = list.side2.getSimplestChannel();
 					if (path1.isFastChannel() && path2.isFastChannel()
 							|| !path1.isFastChannel() && !path2.isFastChannel()) {
+						System.currentTimeMillis();
+						cache.put(b, new BranchSeedInfo(b, STATIC_POOL));
 						return NO_POOL;
 					} else {
 //						ComputationPath fastPath = path1.isFastChannel(operands) ? path1 : path2;
@@ -240,13 +247,12 @@ public class SeedingApplicationEvaluator {
 						if (otherPath.getInstruction(0).isConstant() 
 								&& otherPath.size()<=2) {
 							if(otherPath.isHardConstant(operands)) {
-								cache.put(b, new BranchSeedInfo(b, STATIC_POOL,
-										otherPath.getComputationNodes().get(0).getClass()));
+								cache.put(b, new BranchSeedInfo(b, STATIC_POOL));
 								return STATIC_POOL;								
 							}
 						} 
 						else{
-							cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL, null));
+							cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL));
 							return DYNAMIC_POOL;
 						}
 					}
@@ -257,7 +263,7 @@ public class SeedingApplicationEvaluator {
 			e.printStackTrace();
 		}
 
-		cache.put(b, new BranchSeedInfo(b, NO_POOL, null));
+		cache.put(b, new BranchSeedInfo(b, NO_POOL));
 		return NO_POOL;
 	}
 
@@ -494,9 +500,9 @@ public class SeedingApplicationEvaluator {
 
 		for (Branch branch : branches) {
 			int type = evaluate(branch);
-			Class<?> cla = cache.get(branch).getTargetType();
+//			Class<?> cla = cache.get(branch).getTargetType();
 			if (type != NO_POOL) {
-				interestedBranches.add(new BranchSeedInfo(branch, type, cla));
+				interestedBranches.add(new BranchSeedInfo(branch, type));
 			}
 		}
 

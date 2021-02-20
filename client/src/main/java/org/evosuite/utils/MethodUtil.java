@@ -30,8 +30,11 @@ public class MethodUtil {
 	
 	
 	/**
-	 * return class name such as com.a.b.Class
-	 * return primitive type such as int, double, etc.
+	 * 
+	 * return a list of parameter types followed by the return type.
+	 * 
+	 * class name such as com.a.b.Class
+	 * primitive type such as int, double, etc.
 	 * @param desc
 	 * @param ins 
 	 * @return
