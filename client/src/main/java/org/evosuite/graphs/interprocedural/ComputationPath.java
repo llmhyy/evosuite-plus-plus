@@ -716,10 +716,9 @@ public class ComputationPath {
 	private static void dfsRoot(DepVariable root, List<BytecodeInstruction> operands,
 			List<ComputationPath> computationPath, List<DepVariable> nodes) {
 		DepVariable node = root;
-//		Boolean isVisted = true;
-		int n = node.getInstruction().getOperandNum();
-		if(n == 0)
-			n += 1;
+//		int n = node.getInstruction().getOperandNum();
+//		if(n == 0)
+//			n += 1;
 		for(int i = 0; i < node.getRelations().length;i++) {
 			List<DepVariable> nodeList = node.getRelations()[i];
 			if(nodeList == null) {

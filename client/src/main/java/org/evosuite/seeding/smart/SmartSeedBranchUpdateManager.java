@@ -23,7 +23,7 @@ public class SmartSeedBranchUpdateManager {
 		if(!Properties.APPLY_SMART_SEED)
 			return;
 		
-		
+		int num = oldUncoveredApplicableBranchInfo.size();
 		uncoveredApplicableBranchInfo.clear();
 		
 		Set<BranchSeedInfo> infoSet = new HashSet<>();
@@ -33,14 +33,15 @@ public class SmartSeedBranchUpdateManager {
 				BranchFitness bf = (BranchFitness)obj;
 				BranchCoverageGoal goal = bf.getBranchGoal();
 				int type;
-//				if(oldUncoveredApplicableBranchInfo.size() == 0) {//how to know the new iteration
+				if(num == 0) {//how to know the new iteration
 					type = SeedingApplicationEvaluator.evaluate(goal.getBranch());
-//				}else {
-//					type = oldUncoveredApplicableBranchInfo.get(goal.getBranch());
-//				}
+				}else {
+					type = oldUncoveredApplicableBranchInfo.get(goal.getBranch());
+				}
 				BranchSeedInfo info = new BranchSeedInfo(goal.getBranch(), type, null);
 				
-//				oldSet.put(goal.getBranch(), type);
+				if(num == 0)
+					oldSet.put(goal.getBranch(), type);
 				if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
 					infoSet.add(info);	
 				}
