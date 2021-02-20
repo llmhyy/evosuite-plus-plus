@@ -398,7 +398,7 @@ public class SeedingApplicationEvaluator {
 					if (ComputationPath.isStartWithMethodInput(path)) {
 						localPathList.add(pathNext);
 					} else {
-						if (path.getScore() <= pathNext.getScore())
+						if (size <= sizeNext)
 							localPathList.add(pathNext);
 					}
 				}
@@ -420,7 +420,7 @@ public class SeedingApplicationEvaluator {
 
 			}
 			// constant
-			if (path.getScore() < 3) {
+			if (path.getComputationNodes().size() < 3) {
 				if (path.getComputationNodes().get(0).isConstant()) {
 					constant.add(path);
 					for (ComputationPath cons : localPathList) {
@@ -430,7 +430,7 @@ public class SeedingApplicationEvaluator {
 						}
 					}
 					for (ComputationPath small : constant) {
-						if (small.getScore() < path.getScore()) {
+						if (small.getComputationNodes().size() < path.getComputationNodes().size()) {
 							localPathList.add(path);
 						}
 					}

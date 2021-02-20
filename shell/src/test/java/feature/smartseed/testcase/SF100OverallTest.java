@@ -46,32 +46,26 @@ public class SF100OverallTest {
 //		String projectId = "58_fps370";
 //		String projectId = "24_saxpath";
 //		String projectId = "60_sugar";
-		String projectId = SF100Project.P18;
+		String projectId = SF100Project.P29;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
-//				"net.sourceforge.ifxfv3.beans.CustPayeeMsgRecChoice#equals(Ljava/lang/Object;)Z"
-//				"net.sourceforge.ifxfv3.beans.CustAddRqSequence#equals(Ljava/lang/Object;)Z"
-//				"state.Party#remove(Lstate/Party;)V"
-//				"net.sourceforge.ifxfv3.beans.BankAcctTrnRec#equals(Ljava/lang/Object;)Z"
-//				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
-//				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
-//				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
-//				"wheel.components.Checkbox#renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V"
-//				"com.werken.saxpath.XPathLexer#nextToken()Lcom/werken/saxpath/Token;"
-//				"net.sf.sugar.fspath.xpath.RegexFunction#getNodeValue(Ljava/util/List;)Ljava/lang/String;"
-//				"ioproject.server.network.NetworkService#disconnect()V"
-				"org.jsecurity.ri.authc.module.activedirectory.ActiveDirectoryAuthenticationModule#processAttribute(Lorg/jsecurity/ri/authc/module/ldap/LdapDirectoryInfo;Ljavax/naming/directory/Attribute;)V"
-				};
+//				"edu.mscd.cs.jclo.JCLOTests#main([Ljava/lang/String;)V"//94
+				"apbs_mem_gui.FileEditor#getEnergy(Ljava/lang/String;)[Ljava/lang/String;"//29
+//				"com.soops.CEN4010.JMCA.JParser.JavaCharStream#AdjustBuffSize()V" //19 
+//				"com.soops.CEN4010.JMCA.JParser.SimpleNode#dump(Ljava/lang/String;Ljava/io/Writer;)V"//19
+//				"jigcell.sbml2.ConservationRelationFinder#validateConservationRelations(Ljava/util/List;)Z"//34
+		};
 		
-		int repeatTime = 1;
-		int budget = 100;
+		int repeatTime = 3;
+		int budget = 10000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
-		
+//		"generateMOSuite", "MOSUITE", "DynaMOSA"
+//		"generateSuite", "Evosuite", "MONOTONIC_GA"
 		boolean aor = false;
-		boolean ass = false;
+		boolean ass = true;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
