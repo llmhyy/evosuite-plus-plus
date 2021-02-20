@@ -201,9 +201,9 @@ public class SeedingApplicationEvaluator {
 	}
 	
 	public static int evaluate(Branch b) {
-//		if (cache.containsKey(b)) {
-//			return cache.get(b).getBenefiticalType();
-//		}
+		if (cache.containsKey(b)) {
+			return cache.get(b).getBenefiticalType();
+		}
 
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
@@ -229,9 +229,9 @@ public class SeedingApplicationEvaluator {
 					cache.put(b, new BranchSeedInfo(b, STATIC_POOL));
 					return NO_POOL;
 				} else {
-//					if(b.getInstruction().getLineNumber()==111) {
-//						System.currentTimeMillis();
-//					}
+					if(b.getInstruction().getLineNumber()==191) {
+						System.currentTimeMillis();
+					}
 					
 					ComputationPath path1 = list.side1.getSimplestChannel();
 					ComputationPath path2 = list.side2.getSimplestChannel();

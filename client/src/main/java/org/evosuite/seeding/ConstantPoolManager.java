@@ -118,7 +118,10 @@ public class ConstantPoolManager {
 				BranchSeedInfo interestedBranchInfo = Randomness.choice(uncoveredBranches);
 				ConstantPool pool = BranchwiseConstantPoolManager.evaluate(interestedBranchInfo);
 				if(pool != null) {
-					return pool;						
+					double r = Randomness.nextDouble(0, 1);
+					if(r > 0.8) {
+						return pool;												
+					}
 				}
 			}			
 		}
