@@ -207,8 +207,10 @@ public class SeedingApplicationEvaluator {
 
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
-		if (branchesInTargetMethod == null)
+		if (branchesInTargetMethod == null) {
+			cache.put(b, new BranchSeedInfo(b, NO_POOL));
 			return NO_POOL;
+		}
 		b = compileBranch(branchesInTargetMethod, b);
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
 		methodInputs = compileInputs(methodInputs);
@@ -226,19 +228,19 @@ public class SeedingApplicationEvaluator {
 
 				TwoSidePathList list = separateList(pathList, operands);
 				if (list.side1.isEmpty() || list.side2.isEmpty()) {
-					cache.put(b, new BranchSeedInfo(b, STATIC_POOL));
+					cache.put(b, new BranchSeedInfo(b, NO_POOL));
 					return NO_POOL;
 				} else {
-					if(b.getInstruction().getLineNumber()==191) {
-						System.currentTimeMillis();
-					}
-					
+//					if(b.getInstruction().getLineNumber()==310) {
+//						System.currentTimeMillis();
+//					}
+					System.currentTimeMillis();
 					ComputationPath path1 = list.side1.getSimplestChannel();
 					ComputationPath path2 = list.side2.getSimplestChannel();
 					if (path1.isFastChannel() && path2.isFastChannel()
 							|| !path1.isFastChannel() && !path2.isFastChannel()) {
-						System.currentTimeMillis();
-						cache.put(b, new BranchSeedInfo(b, STATIC_POOL));
+//						System.currentTimeMillis();
+						cache.put(b, new BranchSeedInfo(b, NO_POOL));
 						return NO_POOL;
 					} else {
 //						ComputationPath fastPath = path1.isFastChannel(operands) ? path1 : path2;

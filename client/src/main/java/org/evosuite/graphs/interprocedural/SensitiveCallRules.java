@@ -41,6 +41,8 @@ public class SensitiveCallRules {
 			}
 			else if(methodName.equals("getFirst")) {
 				return 0.8;
+			}else if(methodName.equals("substring")) {
+				return 0.9;
 			}
 		}
 		
@@ -68,6 +70,8 @@ public class SensitiveCallRules {
 						methodName.equals("containsAll") ||
 						methodName.equals("retainAll") ||
 						methodName.equals("removeAll") ||
+						methodName.equals("getFirst") ||
+						methodName.equals("getFirst") ||
 						methodName.equals("addAll")) {
 					return 0.8;
 				}
