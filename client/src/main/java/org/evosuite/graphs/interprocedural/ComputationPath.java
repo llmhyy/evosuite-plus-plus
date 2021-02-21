@@ -50,21 +50,23 @@ public class ComputationPath {
 		boolean isParameter = isStartWithMethodInput(this);
 		if(!isParameter) return 0;
 		
-		double value = 1;
+		return 1;
 		
-		DepVariable prevNode = null;
-		for(int i=0; i<this.computationNodes.size()-1; i++) {
-			DepVariable node = computationNodes.get(i);
-			/**
-			 * conq is between (0, 1).
-			 */
-			double conq = evaluateConsequence(node, prevNode);
-			value = value * conq;
-			
-			prevNode = node;
-		}
-		
-		return value;
+//		double value = 1;
+//		
+//		DepVariable prevNode = null;
+//		for(int i=0; i<this.computationNodes.size()-1; i++) {
+//			DepVariable node = computationNodes.get(i);
+//			/**
+//			 * conq is between (0, 1).
+//			 */
+//			double conq = evaluateConsequence(node, prevNode);
+//			value = value * conq;
+//			
+//			prevNode = node;
+//		}
+//		
+//		return value;
 	}
 
 	public static boolean isStartWithMethodInput(ComputationPath computationPath) {
