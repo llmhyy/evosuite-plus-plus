@@ -33,34 +33,7 @@ public class SmartSeedNegativeBranchEvaluatorTest {
 	}
 	
 	//TODO for Cheng Yan, add 10 test cases
-	@Test
-	public void testSmartSeedBranch1() throws ClassNotFoundException, RuntimeException {
-		//substring
-		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
-		String methodName = "staticExample3";
-		int parameterNum = 2;
-		int lineNumber = 48;
-
-		Properties.TARGET_CLASS = clazz.getCanonicalName();
-		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
-		
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
-		
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
-		
-		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-		
-		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
-		
-		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
-		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
-		
-		assert type == SeedingApplicationEvaluator.NO_POOL;
-		
-	}
+	
 	
 	@Test
 	public void testSmartSeedBranch2() throws ClassNotFoundException, RuntimeException {
@@ -121,34 +94,6 @@ public class SmartSeedNegativeBranchEvaluatorTest {
 		
 	}
 	
-	@Test
-	public void testSmartSeedBranch4() throws ClassNotFoundException, RuntimeException {
-		//both fast channel
-		Class<?> clazz = feature.smartseed.example.empirical.ResourcesDirectory.class;
-		String methodName = "addResource";
-		int parameterNum = 2;
-		int lineNumber = 31;
-
-		Properties.TARGET_CLASS = clazz.getCanonicalName();
-		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
-		
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
-		
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
-		
-		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-		
-		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
-		
-		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
-		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
-		
-		assert type == SeedingApplicationEvaluator.NO_POOL;
-		
-	}
 	
 	@Test
 	public void testSmartSeedBranch5() throws ClassNotFoundException, RuntimeException {

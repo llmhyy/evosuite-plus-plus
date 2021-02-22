@@ -240,13 +240,20 @@ public class SeedingApplicationEvaluator {
 					System.currentTimeMillis();
 					ComputationPath path1 = list.side1.getSimplestChannel();
 					ComputationPath path2 = list.side2.getSimplestChannel();
-					if (path1.isFastChannel() && path2.isFastChannel()
-							|| !path1.isFastChannel() && !path2.isFastChannel()) {
+					if (!path1.isFastChannel() && !path2.isFastChannel()) {
 //						System.currentTimeMillis();
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
 						cache.put(b, branchInfo);
 						return branchInfo;
-					} else {
+					} 
+					else if(path1.isFastChannel() && path2.isFastChannel()) {
+						ComputationPath fastPath = path2.size() < path1.size() ? path2 : path1;
+						String dataType = getDynamicDataType(fastPath);
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
+						cache.put(b, branchInfo);
+						return branchInfo;
+					}
+					else {
 						ComputationPath fastPath = path2.isFastChannel() ? path2 : path1;
 						ComputationPath otherPath = path2.isFastChannel() ? path1 : path2;
 
@@ -279,32 +286,48 @@ public class SeedingApplicationEvaluator {
 	}
 
 	private static String getDynamicDataType(ComputationPath otherPath) {
-		List<String> fastpathTypes = new ArrayList<>();
 		List<DepVariable> computationNodes = otherPath.getComputationNodes();
-		BytecodeInstruction input = computationNodes.get(0).getInstruction();
-		BytecodeInstruction oprand = computationNodes.get(computationNodes.size() - 1).getInstruction();
-		BytecodeInstruction oprates = computationNodes.get(computationNodes.size() - 2).getInstruction();
 		
-		if(computationNodes.get(0).isParameter()) {
-			String inputTypes = input.getVariableName();
-			int i = Integer.parseInt(inputTypes.split("LV_")[1]);
-			String[] separateTypes = MethodUtil.parseSignature(input.getMethodName());
-			String inputType = separateTypes[i - 1];
-			fastpathTypes.add(inputType);
-			System.currentTimeMillis();
-		}
-		if(oprand.isInvokeSpecial() || oprand.isInvokeStatic()) {
-			DepVariable lastNode = computationNodes.get(computationNodes.size() - 2);
-			int i = relationNum(lastNode);
-			String[] outputTypes = MethodUtil.parseSignature(oprand.getMethodName());
-			String outputType = outputTypes[i];
-			fastpathTypes.add(outputType);
-			return finalType(outputType);
+		List<String> list = new ArrayList<String>();
+		for(DepVariable n: computationNodes) {
+			String str = n.getDataType();
+			if(!str.equals(BranchSeedInfo.OTHER)) {
+				str = finalType(str);
+				list.add(str);
+			}
 		}
 		
+		if(list.isEmpty()) {
+			return BranchSeedInfo.OTHER;
+		}
+		
+		return list.get(list.size()-1);
+//		System.currentTimeMillis();
+//		List<String> fastpathTypes = new ArrayList<>();
+//		BytecodeInstruction input = computationNodes.get(0).getInstruction();
+//		BytecodeInstruction oprand = computationNodes.get(computationNodes.size() - 1).getInstruction();
+//		BytecodeInstruction oprates = computationNodes.get(computationNodes.size() - 2).getInstruction();
+//		
+//		if(computationNodes.get(0).isParameter()) {
+//			String inputTypes = input.getVariableName();
+//			int i = Integer.parseInt(inputTypes.split("LV_")[1]);
+//			String[] separateTypes = MethodUtil.parseSignature(input.getMethodName());
+//			String inputType = separateTypes[i - 1];
+//			fastpathTypes.add(inputType);
+//			System.currentTimeMillis();
+//		}
+//		if(oprand.isInvokeSpecial() || oprand.isInvokeStatic()) {
+//			DepVariable lastNode = computationNodes.get(computationNodes.size() - 2);
+//			int i = relationNum(lastNode);
+//			String[] outputTypes = MethodUtil.parseSignature(oprand.getMethodName());
+//			String outputType = outputTypes[i];
+//			fastpathTypes.add(outputType);
+//			return finalType(outputType);
+//		}
 		
 		
-		return null;
+		
+//		return null;
 	}
 
 	private static int relationNum(DepVariable lastNode) {

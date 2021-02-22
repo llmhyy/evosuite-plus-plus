@@ -14,7 +14,7 @@ public class BranchSeedInfo {
 	public static String LONG = "long";
 	public static String SHORT = "short";
 	public static String STRING = "string";
-	public static String OTHER = "other";
+	public static String OTHER = "unknown";
 	
 	private Branch branch;
 	private String operandType; 

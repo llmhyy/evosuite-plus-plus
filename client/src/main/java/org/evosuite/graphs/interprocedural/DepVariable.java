@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.evosuite.Properties;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.seeding.smart.BranchSeedInfo;
+import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -660,7 +662,16 @@ public class DepVariable {
 			return this.className;
 		}
 		else if(this.isParameter()) {
-			return "";
+			String methodSig = this.instruction.getMethodName();
+			String[] splitted = MethodUtil.parseSignature(methodSig);
+			int order = this.getParamOrder();
+			if(order != -1) {
+				String parameterType = splitted[order-1];
+				return parameterType;
+			}
+			else {
+				return BranchSeedInfo.OTHER;
+			}
 		}
 		else if(this.isStaticField()) {
 			return this.instruction.getFieldType();
@@ -669,11 +680,36 @@ public class DepVariable {
 			return this.instruction.getFieldType();
 		}
 		else if(this.isLoadArrayElement()) {
-			return "unknown";
+			return BranchSeedInfo.OTHER;
+		}
+		else if(this.isMethodCall()){
+			if(this.getInstruction().getCalledMethodsClass().contains("StringHelper") ||
+					this.getInstruction().getCalledMethodsClass().contains("BooleanHelper") ||
+					this.getInstruction().getCalledMethodsClass().contains("ContainerHelper")) {
+				return BranchSeedInfo.OTHER;
+			}
+			
+			
+			String methodSig = this.getInstruction().getCalledMethod();
+			String[] splitted = MethodUtil.parseSignature(methodSig);
+			
+			return splitted[splitted.length-1];
 		}
 		else {
-			return "unkown";
+			int slotNum = this.getInstruction().getLocalVariableSlot();
+			if(slotNum != -1) {
+				String methodSig = this.instruction.getMethodName();
+				String[] splitted = MethodUtil.parseSignature(methodSig);
+				int paramNum = splitted.length - 1;
+				if(slotNum < paramNum) {
+					return splitted[slotNum];
+				}
+				
+			}
+			
 		}
+		
+		return BranchSeedInfo.OTHER;
 	}
 
 }
