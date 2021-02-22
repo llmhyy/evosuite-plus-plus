@@ -31,6 +31,7 @@ import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.result.seedexpr.SearchEvent;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.utils.Randomness;
 
@@ -126,7 +127,7 @@ public class BytePrimitiveStatement extends NumericalPrimitiveStatement<Byte> {
 			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.BYTE, String.valueOf(value)));			
 		}
 		else {
-			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();
+			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool(BranchSeedInfo.BYTE);
 			value = (byte) constantPool.getRandomInt();
 		}
 	}

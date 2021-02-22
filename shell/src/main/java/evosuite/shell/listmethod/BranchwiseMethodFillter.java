@@ -104,7 +104,7 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 			Branch br = b.toBranch();		
 			
 			if(b.getOperandNum() <= 2 && br != null && b.getOperandNum() > 0) {					
-				int type = SeedingApplicationEvaluator.evaluate(br);
+				int type = SeedingApplicationEvaluator.evaluate(br).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					validStaticMethods.add(className + "#" + methodName);
 					System.out.println("type:STATIC_POOL");

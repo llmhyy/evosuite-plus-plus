@@ -46,18 +46,19 @@ public class SF100OverallTest {
 //		String projectId = "58_fps370";
 //		String projectId = "24_saxpath";
 //		String projectId = "60_sugar";
-		String projectId = SF100Project.P19;
+		String projectId = SF100Project.P41;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"edu.mscd.cs.jclo.JCLOTests#main([Ljava/lang/String;)V"//94
 //				"apbs_mem_gui.FileEditor#getEnergy(Ljava/lang/String;)[Ljava/lang/String;"//29
-				"com.soops.CEN4010.JMCA.JParser.JavaCharStream#AdjustBuffSize()V" //19 
+//				"com.soops.CEN4010.JMCA.JParser.JavaCharStream#AdjustBuffSize()V" //19 
 //				"com.soops.CEN4010.JMCA.JParser.SimpleNode#dump(Ljava/lang/String;Ljava/io/Writer;)V"//19
 //				"jigcell.sbml2.ConservationRelationFinder#validateConservationRelations(Ljava/util/List;)Z"//34
+				"ghm.follow.font.FontSelectionPanel#getSelectedFontSize()I"//41
 		};
 		
-		int repeatTime = 3;
+		int repeatTime = 1;
 		int budget = 10000;
 		Long seed = null;
 		

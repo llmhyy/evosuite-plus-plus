@@ -654,4 +654,26 @@ public class DepVariable {
 		return -1;
 	}
 
+
+	public String getDataType() {
+		if(this.referenceToThis()) {
+			return this.className;
+		}
+		else if(this.isParameter()) {
+			return "";
+		}
+		else if(this.isStaticField()) {
+			return this.instruction.getFieldType();
+		}
+		else if(this.isInstaceField()) {
+			return this.instruction.getFieldType();
+		}
+		else if(this.isLoadArrayElement()) {
+			return "unknown";
+		}
+		else {
+			return "unkown";
+		}
+	}
+
 }

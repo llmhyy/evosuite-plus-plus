@@ -43,7 +43,7 @@ public class BranchwiseConstantPoolManager {
 	
 	public static ConstantPool evaluate(BranchSeedInfo b) {
 		
-		Class<?> type = analyzeType(b);
+//		Class<?> type = analyzeType(b);
 		
 		if(b.getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL) {
 			if(STATIC_POOL_CACHE.containsKey(b.getBranch().getActualBranchId())) {
@@ -51,7 +51,7 @@ public class BranchwiseConstantPoolManager {
 			}
 			
 			ConstantPool pool = new StaticConstantPool(false);
-			Set<Object> relevantConstants = parseRelevantConstants(b, type);
+			Set<Object> relevantConstants = parseRelevantConstants(b);
 			for(Object obj: relevantConstants) {
 				pool.add(obj);				
 			}
@@ -66,7 +66,7 @@ public class BranchwiseConstantPoolManager {
 		return null;
 	}
 
-	private static Set<Object> parseRelevantConstants(BranchSeedInfo b, Class<?> type) {
+	private static Set<Object> parseRelevantConstants(BranchSeedInfo b) {
 		Set<Object> constantValues = new HashSet<>();
 		
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
@@ -140,13 +140,8 @@ public class BranchwiseConstantPoolManager {
 				System.currentTimeMillis();				
 			}
 		}		
+		
 		return constantValues;
 	}
 
-	private static Class<?> analyzeType(BranchSeedInfo b) {
-		// TODO Cheng Yan
-		
-		return null;
-	}
-	
 }

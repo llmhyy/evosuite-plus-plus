@@ -111,18 +111,21 @@ public class ConstantPoolManager {
 		pools[DYNAMIC_POOL_INDEX].add(value);
 	}
 
-	public ConstantPool getConstantPool() {
+	public ConstantPool getConstantPool(String dataType) {
 		if(Properties.APPLY_SMART_SEED) {
 			Set<BranchSeedInfo> uncoveredBranches = SmartSeedBranchUpdateManager.uncoveredApplicableBranchInfo;
 			if(!uncoveredBranches.isEmpty()) {
 				BranchSeedInfo interestedBranchInfo = Randomness.choice(uncoveredBranches);
-				ConstantPool pool = BranchwiseConstantPoolManager.evaluate(interestedBranchInfo);
-				if(pool != null) {
-					double r = Randomness.nextDouble(0, 1);
-					if(r > 0.8) {
-						return pool;												
-					}
+				if(interestedBranchInfo.getOperandType().equals(dataType)) {
+					ConstantPool pool = BranchwiseConstantPoolManager.evaluate(interestedBranchInfo);
+					if(pool != null) {
+						double r = Randomness.nextDouble(0, 1);
+						if(r > 0.5) {
+							return pool;												
+						}
+					}					
 				}
+				
 			}			
 		}
 		

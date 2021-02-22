@@ -17,6 +17,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
@@ -200,16 +201,17 @@ public class SeedingApplicationEvaluator {
 		}
 	}
 	
-	public static int evaluate(Branch b) {
+	public static BranchSeedInfo evaluate(Branch b) {
 		if (cache.containsKey(b)) {
-			return cache.get(b).getBenefiticalType();
+			return cache.get(b);
 		}
 
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 		if (branchesInTargetMethod == null) {
-			cache.put(b, new BranchSeedInfo(b, NO_POOL));
-			return NO_POOL;
+			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+			cache.put(b, branchInfo);
+			return branchInfo;
 		}
 		b = compileBranch(branchesInTargetMethod, b);
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
@@ -228,8 +230,9 @@ public class SeedingApplicationEvaluator {
 
 				TwoSidePathList list = separateList(pathList, operands);
 				if (list.side1.isEmpty() || list.side2.isEmpty()) {
-					cache.put(b, new BranchSeedInfo(b, NO_POOL));
-					return NO_POOL;
+					BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+					cache.put(b, branchInfo);
+					return branchInfo;
 				} else {
 //					if(b.getInstruction().getLineNumber()==310) {
 //						System.currentTimeMillis();
@@ -240,22 +243,27 @@ public class SeedingApplicationEvaluator {
 					if (path1.isFastChannel() && path2.isFastChannel()
 							|| !path1.isFastChannel() && !path2.isFastChannel()) {
 //						System.currentTimeMillis();
-						cache.put(b, new BranchSeedInfo(b, NO_POOL));
-						return NO_POOL;
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+						cache.put(b, branchInfo);
+						return branchInfo;
 					} else {
-//						ComputationPath fastPath = path1.isFastChannel(operands) ? path1 : path2;
+						
 						ComputationPath otherPath = path2.isFastChannel() ? path1 : path2;
 
 						if (otherPath.getInstruction(0).isConstant() 
 								&& otherPath.size()<=2) {
 							if(otherPath.isHardConstant(operands)) {
-								cache.put(b, new BranchSeedInfo(b, STATIC_POOL));
-								return STATIC_POOL;								
+								String dataType = getConstantDataType(otherPath);
+								BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
+								cache.put(b, branchInfo);
+								return branchInfo;
 							}
 						} 
 						else{
-							cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL));
-							return DYNAMIC_POOL;
+							String dataType = getDynamicDataType(otherPath);
+							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
+							cache.put(b, branchInfo);
+							return branchInfo;
 						}
 					}
 				}
@@ -265,8 +273,19 @@ public class SeedingApplicationEvaluator {
 			e.printStackTrace();
 		}
 
-		cache.put(b, new BranchSeedInfo(b, NO_POOL));
-		return NO_POOL;
+		BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+		cache.put(b, branchInfo);
+		return branchInfo;
+	}
+
+	private static String getDynamicDataType(ComputationPath otherPath) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private static String getConstantDataType(ComputationPath otherPath) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	private static void removeRedundancy(List<ComputationPath> pathList) {
@@ -501,10 +520,10 @@ public class SeedingApplicationEvaluator {
 				targetMethod);
 
 		for (Branch branch : branches) {
-			int type = evaluate(branch);
+			BranchSeedInfo info = evaluate(branch);
 //			Class<?> cla = cache.get(branch).getTargetType();
-			if (type != NO_POOL) {
-				interestedBranches.add(new BranchSeedInfo(branch, type));
+			if (info.getBenefiticalType() != NO_POOL) {
+				interestedBranches.add(info);
 			}
 		}
 

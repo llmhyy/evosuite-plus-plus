@@ -24,8 +24,7 @@ public class SmartSeedBranchUpdateManager {
 			if(obj instanceof BranchFitness) {
 				BranchFitness bf = (BranchFitness)obj;
 				BranchCoverageGoal goal = bf.getBranchGoal();
-				int type = SeedingApplicationEvaluator.evaluate(goal.getBranch());
-				BranchSeedInfo info = new BranchSeedInfo(goal.getBranch(), type);
+				BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(goal.getBranch());
 				
 				if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
 					infoSet.add(info);	
@@ -37,6 +36,9 @@ public class SmartSeedBranchUpdateManager {
 		uncoveredApplicableBranchInfo = infoSet;
 		if(infoSet.isEmpty()) {
 			Properties.PRIMITIVE_POOL = 0.1;
+		}
+		else {
+			Properties.PRIMITIVE_POOL = oldPrimitivePool;
 		}
 	}
 

@@ -33,6 +33,7 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.Randomness;
@@ -120,7 +121,7 @@ public class ClassPrimitiveStatement extends PrimitiveStatement<Class<?>> {
 		if (!assignableClasses.isEmpty()) {
 			value = Randomness.choice(assignableClasses);
 		} else {
-			org.objectweb.asm.Type type = ConstantPoolManager.getInstance().getConstantPool().getRandomType();
+			org.objectweb.asm.Type type = ConstantPoolManager.getInstance().getConstantPool(BranchSeedInfo.OTHER).getRandomType();
 			try {
 				value = getType(type);
 			} catch (ClassNotFoundException e) {
