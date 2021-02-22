@@ -16,8 +16,8 @@ import sf100.CommonTestUtil;
 public class SF100OverallTest {
 	@Before
 	public void beforeTest() {
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 //		Properties.APPLY_OBJECT_RULE = true;
@@ -46,7 +46,7 @@ public class SF100OverallTest {
 //		String projectId = "58_fps370";
 //		String projectId = "24_saxpath";
 //		String projectId = "60_sugar";
-		String projectId = SF100Project.P41;
+		String projectId = SF100Project.P29;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -55,7 +55,14 @@ public class SF100OverallTest {
 //				"com.soops.CEN4010.JMCA.JParser.JavaCharStream#AdjustBuffSize()V" //19 
 //				"com.soops.CEN4010.JMCA.JParser.SimpleNode#dump(Ljava/lang/String;Ljava/io/Writer;)V"//19
 //				"jigcell.sbml2.ConservationRelationFinder#validateConservationRelations(Ljava/util/List;)Z"//34
-				"ghm.follow.font.FontSelectionPanel#getSelectedFontSize()I"//41
+//				"ghm.follow.font.FontSelectionPanel#getSelectedFontSize()I"//41
+//				"glengineer.agents.ParallelGroupAgent#containsGapsOnly()Z"//40
+//				"com.mytdev.resources4j.ResourcesInjector#setLocale(Ljava/util/Locale;)Lcom/mytdev/resources4j/ResourcesInjector;"//48
+//				"ghm.follow.font.FontSelectionPanel#setSelectedFontFamily(Ljava/lang/String;)V"//41
+//				"macaw.util.ValidationUtility#isEmptyValue(Ljava/lang/String;)Z"//69
+				"apbs_mem_gui.FileEditor#getEnergy(Ljava/lang/String;)[Ljava/lang/String;"//29
+
+
 		};
 		
 		int repeatTime = 1;
