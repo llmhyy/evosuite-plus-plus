@@ -279,13 +279,75 @@ public class SeedingApplicationEvaluator {
 	}
 
 	private static String getDynamicDataType(ComputationPath otherPath) {
-		// TODO Auto-generated method stub
+		List<String> fastpathTypes = new ArrayList<>();
+		List<DepVariable> computationNodes = otherPath.getComputationNodes();
+		BytecodeInstruction input = computationNodes.get(0).getInstruction();
+		BytecodeInstruction oprand = computationNodes.get(computationNodes.size() - 1).getInstruction();
+		BytecodeInstruction oprates = computationNodes.get(computationNodes.size() - 2).getInstruction();
+		
+		if(computationNodes.get(0).isParameter()) {
+			String inputTypes = input.getVariableName();
+			int i = Integer.parseInt(inputTypes.split("LV_")[1]);
+			String[] separateTypes = MethodUtil.parseSignature(input.getMethodName());
+			String inputType = separateTypes[i - 1];
+			fastpathTypes.add(inputType);
+			System.currentTimeMillis();
+		}
+		if(oprand.isInvokeSpecial() || oprand.isInvokeStatic()) {
+			DepVariable lastNode = computationNodes.get(computationNodes.size() - 2);
+			int i = relationNum(lastNode);
+			String[] outputTypes = MethodUtil.parseSignature(oprand.getMethodName());
+			String outputType = outputTypes[i];
+			fastpathTypes.add(outputType);
+			return finalType(outputType);
+		}
+		
+		
+		
 		return null;
 	}
 
+	private static int relationNum(DepVariable lastNode) {
+		List<DepVariable>[] relations = lastNode.getRelations();
+		for(int i = 0; i < relations.length; i++) {
+			if(relations[i] != null)
+				return i;
+		}
+		return 0;
+	}
+
 	private static String getConstantDataType(ComputationPath otherPath) {
-		// TODO Auto-generated method stub
+		BytecodeInstruction ins = otherPath.getInstruction(0);
+		String types[] = ins.getASMNodeString().split(" ");
+		for(String i : types) {
+			if(i.equals("LDC")) {
+				LdcInsnNode node =  (LdcInsnNode)ins.getASMNode();
+				Object cst = node.cst;
+				return finalType(cst.getClass().getName());
+			}
+			switch(i){
+				case "BYTE":
+				case "DOUBLE":
+				case "FLOAT":
+				case "INT":
+				case "LONG":
+				case "SHORT":
+				case "STRING":
+					return i.toLowerCase();
+				default:
+					return "OTHER".toLowerCase();
+				}
+		}
+			
 		return null;
+	}
+
+	private static String finalType(String name) {
+		String type[] =  name.split("\\.");
+		if(type[type.length - 1].equals("Integer"))
+			return "int";
+		else
+			return type[type.length - 1].toLowerCase();
 	}
 
 	private static void removeRedundancy(List<ComputationPath> pathList) {
