@@ -247,7 +247,7 @@ public class SeedingApplicationEvaluator {
 						cache.put(b, branchInfo);
 						return branchInfo;
 					} else {
-						
+						ComputationPath fastPath = path2.isFastChannel() ? path2 : path1;
 						ComputationPath otherPath = path2.isFastChannel() ? path1 : path2;
 
 						if (otherPath.getInstruction(0).isConstant() 
@@ -260,7 +260,7 @@ public class SeedingApplicationEvaluator {
 							}
 						} 
 						else{
-							String dataType = getDynamicDataType(otherPath);
+							String dataType = getDynamicDataType(fastPath);
 							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
 							cache.put(b, branchInfo);
 							return branchInfo;
