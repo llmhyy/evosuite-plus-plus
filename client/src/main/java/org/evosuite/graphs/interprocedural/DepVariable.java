@@ -12,6 +12,7 @@ import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
 /**
@@ -659,7 +660,7 @@ public class DepVariable {
 
 	public String getDataType() {
 		if(this.referenceToThis()) {
-			return this.className;
+			return MethodUtil.convertType(this.className);
 		}
 		else if(this.isParameter()) {
 			String methodSig = this.instruction.getMethodName();
@@ -674,21 +675,23 @@ public class DepVariable {
 			}
 		}
 		else if(this.isStaticField()) {
-			return this.instruction.getFieldType();
+			return MethodUtil.convertType(this.instruction.getFieldType());
 		}
 		else if(this.isInstaceField()) {
-			return this.instruction.getFieldType();
+			return MethodUtil.convertType(this.instruction.getFieldType());
 		}
 		else if(this.isLoadArrayElement()) {
 			return BranchSeedInfo.OTHER;
 		}
 		else if(this.isMethodCall()){
-			if(this.getInstruction().getCalledMethodsClass().contains("StringHelper") ||
-					this.getInstruction().getCalledMethodsClass().contains("BooleanHelper") ||
-					this.getInstruction().getCalledMethodsClass().contains("ContainerHelper")) {
-				return BranchSeedInfo.OTHER;
+			if(this.getInstruction().getCalledMethodsClass().contains("StringHelper")) {
+				return "java.lang.String";
 			}
 			
+			if(this.getInstruction().getCalledMethodsClass().contains("BooleanHelper") ||
+					this.getInstruction().getCalledMethodsClass().contains("ContainerHelper")) {
+				return "java.lang.Object";
+			}
 			
 			String methodSig = this.getInstruction().getCalledMethod();
 			String[] splitted = MethodUtil.parseSignature(methodSig);
@@ -704,9 +707,243 @@ public class DepVariable {
 				if(slotNum < paramNum) {
 					return splitted[slotNum];
 				}
-				
+				else {
+					BytecodeInstruction ins = extractedDefinition(slotNum);
+					if(ins != null) {
+						List<BytecodeInstruction> sourceInsList = ins.getSourceOfStackInstructionList(0);
+						if(sourceInsList != null && !sourceInsList.isEmpty()) {
+							BytecodeInstruction sourceIns = sourceInsList.get(0);
+							DepVariable node = new DepVariable(sourceIns);
+							String type = node.getDataType();
+							return type;
+						}
+					}
+				}
 			}
 			
+			String type = inferType(this.getInstruction().getInstructionType());
+			return type;
+			
+		}
+	}
+
+	private BytecodeInstruction extractedDefinition(int slotNum) {
+		BytecodeInstruction ins = this.getInstruction();
+		while(ins != null) {
+			if(ins.explain().toLowerCase().contains("store")) {
+				int storeSlot = ins.getLocalVariableSlot();
+				if(storeSlot == slotNum) {
+					return ins;
+				}
+			}
+			ins = ins.getPreviousInstruction();
+		}
+		return null;
+	}
+
+
+	private String inferType(String instructionType) {
+		switch(instructionType) {
+		case "ALOAD":
+		case "ASTORE":
+		case "AALOAD":
+		case "AASTORE":
+		case "ACONST_NULL":
+		case "ALOAD_0":
+		case "ALOAD_1":
+		case "ALOAD_2":
+		case "ALOAD_3":
+		case "ANEWARRAY":
+		case "ARETURN":
+		case "ARRAYLENGTH":
+		case "ASTORE_0":
+		case "ASTORE_1":
+		case "ASTORE_2":
+		case "ASTORE_3":
+		case "BREAKPOINT":
+		case "ATHROW":
+			return BranchSeedInfo.OTHER;
+		case "BLOAD":
+		case "BSTORE":
+			return "byte";
+		case "BIPUSH":
+			return "int";
+		case "CALOAD":
+			return "char";
+		case "CASTORE":
+			return "char";
+		case "CHECKCAST":
+			AbstractInsnNode node = this.instruction.getASMNode();
+			if(node instanceof TypeInsnNode) {
+				TypeInsnNode tN = (TypeInsnNode)node;
+				String type = tN.desc.contains("/") ? "L" + tN.desc : tN.desc;
+				return MethodUtil.convertType(type);
+			}
+			return BranchSeedInfo.OTHER;
+		case "D2F":
+			return "doube";
+		case "D2I":
+			return "int";
+		case "D2L":
+			return "long";
+		case "DADD":
+			return "double";
+		case "DASTORE":
+			return "double";
+		case "DCMPG":
+		case "DCMPL":
+		case "DCONST_0":
+		case "DCONST_1":
+		case "DDIV":
+		case "DLOAD":
+		case "DLOAD_0":
+		case "DLOAD_1":
+		case "DLOAD_2":
+		case "DLOAD_3":
+		case "DMUL":
+		case "DNEG":
+		case "DREM":
+		case "DRETURN":
+		case "DSTORE":
+		case "DSTORE_0":
+		case "DSTORE_1":
+		case "DSTORE_2":
+		case "DSTORE_3":
+		case "DSUB":
+			return "double";
+		case "DUP":
+		case "DUP_X1":
+		case "DUP_X2":
+		case "DUP2":
+		case "DUP2_X1":
+		case "DUP2_X2":
+			return BranchSeedInfo.OTHER;
+		case "F2D":
+			return "double";
+		case "F2I":
+			return "int";
+		case "F2L":
+			return "long";
+		case "FADD":
+		case "FALOAD":
+		case "FASTORE":
+		case "FCMPG":
+		case "FCMPL":
+		case "FCONST_0":
+		case "FCONST_1":
+		case "FCONST_2":
+		case "FDIV":
+		case "FLOAD":
+		case "FLOAD_0":
+		case "FLOAD_1":
+		case "FLOAD_2":
+		case "FLOAD_3":
+		case "FMUL":
+		case "FNEG":
+		case "FREM":
+		case "FRETURN":
+		case "FSTORE":
+		case "FSTORE_0":
+		case "FSTORE_1":
+		case "FSTORE_2":
+		case "FSTORE_3":
+		case "FSUB":
+			return "float";
+		case "I2B":
+			return "byte";
+		case "I2C":
+			return "char";
+		case "I2D":
+			return "double";
+		case "I2F":
+			return "float";
+		case "I2L":
+			return "long";
+		case "I2S":
+			return "short";
+		case "IADD":
+		case "IALOAD":
+		case "IAND":
+		case "IASTORE":
+		case "ICONST_M1":
+		case "ICONST_0":
+		case "ICONST_1":
+		case "ICONST_2":
+		case "ICONST_3":
+		case "ICONST_4":
+		case "ICONST_5":
+		case "IDIV":
+		case "IINC":
+		case "ILOAD":
+		case "ILOAD_0":
+		case "ILOAD_1":
+		case "ILOAD_2":
+		case "ILOAD_3":
+		case "IMPDEP1":
+		case "IMPDEP2":
+		case "IMUL":
+		case "INEG":
+			return "int";
+		case "IOR":
+		case "IREM":
+		case "ISHL":
+		case "ISHR":
+		case "ISTORE":
+		case "ISTORE_0":
+		case "ISTORE_1":
+		case "ISTORE_2":
+		case "ISTORE_3":
+		case "ISUB":
+		case "IUSHR":
+		case "IXOR":
+			return "int";
+		case "L2D":
+			return "double";
+		case "L2F":
+			return "float";
+		case "L2I":
+			return "int";
+		case "LADD":
+		case "LALOAD":
+		case "LAND":
+		case "LASTORE":
+		case "LCMP":
+		case "LCONST_0":
+		case "LCONST_1":
+			return "long";
+		case "LDC":
+		case "LDC_W":
+		case "LDC2_W":
+			node = this.instruction.getASMNode();
+			if(node instanceof LdcInsnNode) {
+				LdcInsnNode lNode = (LdcInsnNode)node;
+				Class<?> clazz = lNode.cst.getClass();
+				return clazz.getCanonicalName();
+			}
+			return "java.lang.Object";
+		case "LDIV":
+		case "LLOAD":
+		case "LLOAD_0":
+		case "LLOAD_1":
+		case "LLOAD_2":
+		case "LLOAD_3":
+		case "LMUL":
+		case "LNEG":
+		case "LOR":
+		case "LREM":
+		case "LSHL":
+		case "LSHR":
+		case "LSTORE":
+		case "LSTORE_0":
+		case "LSTORE_1":
+		case "LSTORE_2":
+		case "LSTORE_3":
+		case "LSUB":
+		case "LUSHR":
+		case "LXOR":
+			return "long";
+		case "SALOAD":
+			return "short";
 		}
 		
 		return BranchSeedInfo.OTHER;

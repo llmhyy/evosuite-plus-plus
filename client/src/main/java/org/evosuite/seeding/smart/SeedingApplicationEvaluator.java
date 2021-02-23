@@ -246,11 +246,11 @@ public class SeedingApplicationEvaluator {
 //					if(b.getInstruction().getLineNumber()==310) {
 //						System.currentTimeMillis();
 //					}
-					System.currentTimeMillis();
+//					System.currentTimeMillis();
 					ComputationPath path1 = list.side1.getSimplestChannel();
 					ComputationPath path2 = list.side2.getSimplestChannel();
 					if (!path1.isFastChannel() && !path2.isFastChannel()) {
-//						System.currentTimeMillis();
+						System.currentTimeMillis();
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
 						cache.put(b, branchInfo);
 						return branchInfo;

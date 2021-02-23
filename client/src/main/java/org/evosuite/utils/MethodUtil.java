@@ -28,6 +28,13 @@ import org.slf4j.LoggerFactory;
 public class MethodUtil {
 	private static Logger log = LoggerFactory.getLogger(MethodUtil.class);
 
+	
+	public static String convertType(String headType) {
+		String sig = "(" + headType + ")V";
+		String[] array = parseSignature(sig);
+		return array[0];
+	}
+	
 	/**
 	 * 
 	 * return a list of parameter types followed by the return type.
@@ -266,4 +273,6 @@ public class MethodUtil {
 //		.toString();
 		return str.replace(".", "/");
 	}
+
+	
 }

@@ -6,6 +6,8 @@ import java.util.List;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.seeding.smart.BranchSeedInfo;
+import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
@@ -50,8 +52,63 @@ public class ComputationPath {
 		boolean isParameter = isStartWithMethodInput(this);
 		if(!isParameter) return 0;
 		
-		return 1;
+//		return 1;
 		
+		if(this.computationNodes.size() == 1) return 1.0;
+		
+		DepVariable head = this.computationNodes.get(0);
+		/**
+		 * tail is operand
+		 */
+		String tailType = null;
+		DepVariable tail = this.computationNodes.get(this.computationNodes.size()-1);
+		if(tail.isMethodCall()) {
+			DepVariable prevNode = this.computationNodes.get(this.computationNodes.size()-2);
+			int order = tail.getInputOrder(prevNode);
+			
+			if(!tail.getInstruction().isInvokeStatic()) {
+				order--;
+			}
+			
+			if(order != -1) {
+				String methodDesc = tail.getInstruction().getCalledMethod();
+				String[] parameters = MethodUtil.parseSignature(methodDesc);
+				tailType = parameters[order];
+			}
+			else {				
+				tail = this.computationNodes.get(this.computationNodes.size()-2);
+			}
+		}
+		
+		String headType = head.getDataType();
+		if(headType.contains("[")) {
+			headType = headType.substring(0, headType.indexOf("["));			
+		}
+//		headType = MethodUtil.convertType(headType);
+		if(tailType == null) {
+			tailType = tail.getDataType();			
+		}
+		if(tailType.contains("[")) {
+			tailType = tailType.substring(0, tailType.indexOf("["));
+			tailType = MethodUtil.convertType(tailType);
+		}
+		if(tailType.equals(BranchSeedInfo.OTHER)) {
+			return 0;
+		}
+		
+		if(isCompatible(headType, tailType)) {
+			
+			double base = 6;
+			
+			double factor = Math.max(0, this.computationNodes.size() - base);
+			double score = 1 -  factor/(factor+1);
+			
+			return score;
+		}
+		
+		return 0;
+		
+		//TODO later, we need a better way to evaluate the semantics of a path.
 //		double value = 1;
 //		
 //		DepVariable prevNode = null;
@@ -67,6 +124,69 @@ public class ComputationPath {
 //		}
 //		
 //		return value;
+	}
+
+	private boolean isCompatible(String headType, String tailType) {
+		
+		if(headType.equals(tailType)) {
+			return true;
+		}
+		
+		if(isPrimitiveNumber(headType) && isPrimitiveNumber(tailType)) {
+			return true;
+		}
+		else if(isPrimitiveNumber(headType) ^ isPrimitiveNumber(tailType)) {
+			return false;
+		}
+		
+		if(isPrimitiveBoolean(headType) && isPrimitiveBoolean(tailType)) {
+			return true;
+		}
+		else if(isPrimitiveBoolean(headType) ^ isPrimitiveBoolean(tailType)){
+			return false;
+		}
+		
+		if(headType.equals("java.lang.Object") || tailType.equals("java.lang.Object")) {
+			return true;
+		}
+		
+		if(headType.equals(BranchSeedInfo.OTHER) || tailType.equals(BranchSeedInfo.OTHER)) {
+			return false;
+		}
+		
+		ClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		try {
+			Class<?> headClass = loader.loadClass(headType);
+			Class<?> tailClass = loader.loadClass(tailType);
+			
+			
+			if(headClass.isAssignableFrom(tailClass) || tailClass.isAssignableFrom(headClass)) {
+				return true;
+			}
+			
+			Class<?> containerClass = loader.loadClass("java.util.Collection");
+			if(containerClass.isAssignableFrom(headClass)) {
+				return true;
+			}
+			
+			
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+
+	private boolean isPrimitiveBoolean(String typeString) {
+		String[] primitiveNums = new String[] {"boolean",  
+				"java.lang.Boolean"};
+		return ArrayUtil.contains(primitiveNums, typeString);
+	}
+
+	private boolean isPrimitiveNumber(String typeString) {
+		String[] primitiveNums = new String[] {"int", "byte", "float", "double", "short", "long", "char", 
+				"java.lang.Integer", "java.lang.Byte", "java.lang.Float", "java.lang.Double", "java.lang.Float", "java.lang.Short", "java.lang.Long", "java.,lang.Character"};
+		return ArrayUtil.contains(primitiveNums, typeString);
 	}
 
 	public static boolean isStartWithMethodInput(ComputationPath computationPath) {
