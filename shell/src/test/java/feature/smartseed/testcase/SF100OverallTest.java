@@ -46,7 +46,7 @@ public class SF100OverallTest {
 //		String projectId = "58_fps370";
 //		String projectId = "24_saxpath";
 //		String projectId = "60_sugar";
-		String projectId = SF100Project.P29;
+		String projectId = SF100Project.P19;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -60,13 +60,20 @@ public class SF100OverallTest {
 //				"com.mytdev.resources4j.ResourcesInjector#setLocale(Ljava/util/Locale;)Lcom/mytdev/resources4j/ResourcesInjector;"//48
 //				"ghm.follow.font.FontSelectionPanel#setSelectedFontFamily(Ljava/lang/String;)V"//41
 //				"macaw.util.ValidationUtility#isEmptyValue(Ljava/lang/String;)Z"//69
-				"apbs_mem_gui.FileEditor#getEnergy(Ljava/lang/String;)[Ljava/lang/String;"//29
-
+//				"apbs_mem_gui.FileEditor#getEnergy(Ljava/lang/String;)[Ljava/lang/String;"//29
+//				"com.densebrain.rif.server.transport.WebServiceDescriptor#equals(Ljava/lang/Object;)Z"//4
+//				"com.mytdev.resources4j.ResourcesInjector#setLocale(Ljava/util/Locale;)Lcom/mytdev/resources4j/ResourcesInjector;"//48
+//				"de.huxhorn.lilith.swing.ApplicationPreferences#resolveGroovyConditionScriptFile(Ljava/lang/String;)Ljava/io/File;"//43
+//				"com.werken.saxpath.XPathReader#match(I)Lcom/werken/saxpath/Token;"//24
+//				"Codes#getKeywordCode(Ljava/lang/String;)B"//50
+//				"com.werken.saxpath.XPathReader#match(I)Lcom/werken/saxpath/Token;"//24
+//				"com.mentorgen.tools.profile.instrument.PerfMethodAdapter#visitInsn(I)V"//51
+				"com.soops.CEN4010.JMCA.JParser.SimpleNode#dump(Ljava/lang/String;Ljava/io/Writer;)V"//19
 
 		};
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 60;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

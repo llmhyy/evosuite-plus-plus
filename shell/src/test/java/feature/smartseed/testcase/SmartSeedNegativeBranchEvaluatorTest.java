@@ -95,34 +95,7 @@ public class SmartSeedNegativeBranchEvaluatorTest {
 	}
 	
 	
-	@Test
-	public void testSmartSeedBranch5() throws ClassNotFoundException, RuntimeException {
-		//multiple paths
-		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
-		String methodName = "stratWithExample";
-		int parameterNum = 2;
-		int lineNumber = 84;
-
-		Properties.TARGET_CLASS = clazz.getCanonicalName();
-		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
-		
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
-		
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
-		
-		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-		
-		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
-		
-		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
-		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
-		
-		assert type == SeedingApplicationEvaluator.NO_POOL;
-		
-	}
+	
 //	
 	
 	@Test
