@@ -13,6 +13,7 @@ import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.DynamicConstantPool;
 import org.evosuite.seeding.StaticConstantPool;
+import org.evosuite.utils.Randomness;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
@@ -46,17 +47,26 @@ public class BranchwiseConstantPoolManager {
 //		Class<?> type = analyzeType(b);
 		
 		if(b.getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL) {
-			if(STATIC_POOL_CACHE.containsKey(b.getBranch().getActualBranchId())) {
-				return STATIC_POOL_CACHE.get(b.getBranch().getActualBranchId());
+			
+			double r = Randomness.nextDouble(0, 1);
+			if(r > 0.2) {
+				if(STATIC_POOL_CACHE.containsKey(b.getBranch().getActualBranchId())) {
+					return STATIC_POOL_CACHE.get(b.getBranch().getActualBranchId());
+				}
+				
+				ConstantPool pool = new StaticConstantPool(false);
+				Set<Object> relevantConstants = parseRelevantConstants(b);
+				for(Object obj: relevantConstants) {
+					pool.add(obj);				
+				}
+				STATIC_POOL_CACHE.put(b.getBranch().getActualBranchId(), pool);
+				return pool;				
+			}
+			else {
+				ConstantPool pool = getBranchwiseDynamicConstantPool(b.getBranch().getActualBranchId());
+				return pool;
 			}
 			
-			ConstantPool pool = new StaticConstantPool(false);
-			Set<Object> relevantConstants = parseRelevantConstants(b);
-			for(Object obj: relevantConstants) {
-				pool.add(obj);				
-			}
-			STATIC_POOL_CACHE.put(b.getBranch().getActualBranchId(), pool);
-			return pool;
 		}
 		else if(b.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL) {
 			ConstantPool pool = getBranchwiseDynamicConstantPool(b.getBranch().getActualBranchId());
