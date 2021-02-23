@@ -199,6 +199,15 @@ public class SeedingApplicationEvaluator {
 			list.add(path);
 			sides.put(anchor, list);
 		}
+		else {
+			anchor = path.getComputationNodes().get(path.size()-1).getInstruction();
+			List<ComputationPath> list = sides.get(anchor);
+			if(list==null) {
+				list = new ArrayList<>();
+			}
+			list.add(path);
+			sides.put(anchor, list);
+		}
 	}
 	
 	public static BranchSeedInfo evaluate(Branch b) {
