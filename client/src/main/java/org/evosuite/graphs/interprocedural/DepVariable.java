@@ -949,4 +949,17 @@ public class DepVariable {
 		return BranchSeedInfo.OTHER;
 	}
 
+
+	public boolean incurZeroInformation() {
+		if(this.isLoadArrayElement() || 
+				this.getInstruction().explain().toLowerCase().contains("load") ||
+				this.getInstruction().explain().toLowerCase().contains("cast") ||
+				this.getInstruction().explain().toLowerCase().contains("store") ||
+				this.getInstruction().explain().toLowerCase().contains("dup")) {
+			return true;
+		}
+		
+		return false;
+	}
+
 }

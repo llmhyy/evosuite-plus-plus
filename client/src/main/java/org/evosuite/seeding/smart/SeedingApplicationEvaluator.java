@@ -75,6 +75,11 @@ public class SeedingApplicationEvaluator {
 		Map<BytecodeInstruction, List<ComputationPath>> sides = new HashMap<>();
 		
 		for(ComputationPath path: pathList) {
+			
+			if(path.shouldIgnore()) {
+				continue;
+			}
+			
 			BytecodeInstruction anchor = null;
 			if(operands.size() == 1) {
 				if(sides.isEmpty()) {
@@ -89,7 +94,7 @@ public class SeedingApplicationEvaluator {
 					else {
 						Pair<BytecodeInstruction, BytecodeInstruction> pair 
 							= findAnchorSharingCommonNodes(sides, path);
-						
+						System.currentTimeMillis();
 						if(pair != null) {
 							BytecodeInstruction anchorSharingCommonNode = pair.getLeft();
 							BytecodeInstruction commonNode = pair.getRight();
@@ -215,6 +220,12 @@ public class SeedingApplicationEvaluator {
 			return cache.get(b);
 		}
 
+		if(b.getInstruction().isTableSwitch()) {
+			BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, "int");
+			cache.put(b, branchInfo);
+			return branchInfo;
+		}
+		
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 		if (branchesInTargetMethod == null) {
@@ -232,7 +243,7 @@ public class SeedingApplicationEvaluator {
 			if (methodInputs != null && operands != null) {
 				List<ComputationPath> pathList = new ArrayList<>();
 				for (DepVariable input : methodInputs) {
-					List<ComputationPath> computationPathList = ComputationPath.computePath(input, operands);
+					List<ComputationPath> computationPathList = ComputationPath.computePath(input, operands, b);
 					pathList.addAll(computationPathList);
 				}
 				removeRedundancy(pathList);
@@ -266,14 +277,13 @@ public class SeedingApplicationEvaluator {
 						ComputationPath fastPath = path2.isFastChannel() ? path2 : path1;
 						ComputationPath otherPath = path2.isFastChannel() ? path1 : path2;
 
-						if (otherPath.getInstruction(0).isConstant() 
-								&& otherPath.size()<=2) {
+						if (otherPath.isPureConstantPath()) {
 							if(otherPath.isHardConstant(operands)) {
 								String dataType = getConstantDataType(otherPath);
 								BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
 								cache.put(b, branchInfo);
 								return branchInfo;
-							}
+							}								
 						} 
 						else{
 							String dataType = getDynamicDataType(fastPath);
