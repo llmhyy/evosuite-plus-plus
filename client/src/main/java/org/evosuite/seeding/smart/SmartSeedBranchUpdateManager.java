@@ -36,14 +36,7 @@ public class SmartSeedBranchUpdateManager {
 		uncoveredApplicableBranchInfo = infoSet;
 		
 		double ratio = infoSet.size()*1.0 / uncoveredGoals.size()*1.0 ;
-		double base = 0.1;
-		
-		if(infoSet.isEmpty()) {
-			Properties.PRIMITIVE_POOL = base;
-		}
-		else {
-			Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + ratio);
-		}
+		Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + ratio);
 	}
 
 }
