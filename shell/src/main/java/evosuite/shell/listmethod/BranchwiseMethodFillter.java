@@ -1,5 +1,7 @@
 package evosuite.shell.listmethod;
 
+import static evosuite.shell.EvosuiteForMethod.projectId;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.slf4j.Logger;
 
 import evosuite.shell.EvosuiteForMethod;
+import evosuite.shell.FileUtils;
 import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.listmethod.FlagMethodProfilesFilter.MethodContent;
@@ -62,11 +65,11 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		if (newFile.exists()) {
 			newFile.delete();
 		}
-		writer = new ExcelWriter(new File(statisticFile));
+		writer = new ExcelWriter(FileUtils.newFile("D:\\linyun\\git_space\\SF100-clean\\evoTest-reports\\14_omjstate_branchwiseMethods.xlsx"));
+//		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data",
-				new String[] { "ProjectId", "ProjectName", "Target Method", "Branch", "Type" },
+				new String[] { "ProjectId", "Class","Method", "Type" },
 				0);
-		
 	}
 	
 	@Override
@@ -108,30 +111,35 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					validStaticMethods.add(className + "#" + methodName);
 					System.out.println("type:STATIC_POOL");
-					logToExcel(br, className, methodName, 1);
+					logToExcel(className, methodName, "STATIC_POOL");
 					return true;
 				}
 				else if (type == SeedingApplicationEvaluator.DYNAMIC_POOL) {
 					validDynamicMethods.add(className + "#" + methodName);
 					System.out.println("type:DYNAMIC_POOL");
-					logToExcel(br, className, methodName, 2);
+					logToExcel(className, methodName, "DYNAMIC_POOL");
 					return true;
 					}
 				}
 			}
 //		System.out.println("type:NO_POOL");
+		logToExcel(className, methodName, "NO_POOL");
 		return false;
 			
 	}
 	
-	protected void logToExcel(Branch br, String className, String methodName, int type) throws IOException {
+	protected void logToExcel(String className, String methodName, String type) throws IOException {
 		List<List<Object>> data = new ArrayList<>();
 		String methodFullName = className + "#" + methodName;
 		List<Object> rowData = new ArrayList<>();
-		rowData.add(EvosuiteForMethod.projectId);
-		rowData.add(EvosuiteForMethod.projectName);
-		rowData.add(methodFullName);
-		rowData.add(br.toString());
+//		rowData.add(EvosuiteForMethod.projectId);
+		String pId = EvosuiteForMethod.projectId.toString().split("_")[0];
+		rowData.add(pId);
+		rowData.add(Properties.TARGET_CLASS);
+		rowData.add(Properties.TARGET_METHOD);
+//		rowData.add(EvosuiteForMethod.projectName);
+//		rowData.add(methodFullName);
+//		rowData.add(br.toString());
 		rowData.add(type);
 		data.add(rowData);
 		writer.writeSheet("data", data);
