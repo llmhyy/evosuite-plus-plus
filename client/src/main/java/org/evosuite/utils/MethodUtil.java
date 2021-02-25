@@ -57,7 +57,12 @@ public class MethodUtil {
 
 		String[] inputTypes = input.split(";");
 		List<String> allTypes = new ArrayList<>();
-		prase(allTypes, inputTypes);
+		if(inputTypes.length>=1) {
+			if(!(inputTypes.length==1 && inputTypes[0].equals(""))) {			
+				prase(allTypes, inputTypes);
+			}			
+		}
+		
 		prase(allTypes, outputTypes);
 		String[] localSeparateTypes = allTypes.toArray(new String[0]);
 
