@@ -75,6 +75,9 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 	@Override
 	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,
 			ClassNode cn) throws AnalyzerException, IOException, ClassNotFoundException {
+		
+		Properties.COMPUTATION_GRAPH_METHOD_CALL_DEPTH = 0;
+		
 		log.debug(String.format("#Method %s#%s", className, methodName));
 		DependencyAnalysis.clear();
 		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();	
