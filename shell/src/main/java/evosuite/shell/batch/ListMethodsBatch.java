@@ -17,6 +17,7 @@ import org.junit.Test;
 import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelUtils;
+import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.excel.MergeExcels;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.TestUtils;
@@ -25,6 +26,8 @@ import evosuite.shell.listmethod.MethodFilterOption;
 import evosuite.shell.utils.TargetMethodIOUtils;
 
 public class ListMethodsBatch {
+	private ExcelWriter excelWriter;
+	public static List<List<Object>> data = new ArrayList<List<Object>>();
 
 	@Test
 	public void justRun() throws IOException {
@@ -46,9 +49,9 @@ public class ListMethodsBatch {
 //		runListMethod(MethodFilterOption.PRIMITIVE_ARRAY_CONDITION_RELATED_METHOD);
 //		runListMethod(MethodFilterOption.MAIN_METHOD);
 //		runListMethod(MethodFilterOption.CALLS_INT_METHOD);
-//		runListMethod(MethodFilterOption.CALLS_RECURSIVE_METHOD);
+		runListMethod(MethodFilterOption.CALLS_RECURSIVE_METHOD);
 //		runListMethod(MethodFilterOption.OBJECT_CONSTRUCTION);
-		runListMethod(MethodFilterOption.BRANCHWISE_METHOD);
+//		runListMethod(MethodFilterOption.BRANCHWISE_METHOD);
 
 //	}
 	}
@@ -113,6 +116,20 @@ public class ListMethodsBatch {
 		MergeExcels.excelSuffix = FlagMethodProfilesFilter.excelProfileSubfix;
 		List<String> inputFiles = evosuite.shell.FileUtils.toFilePath(MergeExcels.listExcels(Settings.getReportFolder()));
 		ExcelUtils.mergeExcel(Settings.getReportFolder() + "/flag-methods-profiles.xlsx", inputFiles, 0);
+		
+		excelWriter = new ExcelWriter(evosuite.shell.FileUtils.newFile(Settings.getReportFolder(), "all_method_info.xlsx"));
+		List<String> header = new ArrayList<>();
+		header.add("Class");
+		header.add("Method");
+		header.add("# If Branches");
+		header.add("# Parameters");
+		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
+		
+		try {
+			excelWriter.writeSheet("data", data);
+		} catch (IOException e) {
+			System.out.println(e);
+		}
 		
 		System.out.println("Done!");
 	}

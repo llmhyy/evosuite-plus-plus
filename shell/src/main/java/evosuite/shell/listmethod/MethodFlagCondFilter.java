@@ -25,6 +25,7 @@ import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -33,6 +34,7 @@ import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 
+import evosuite.shell.batch.ListMethodsBatch;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.OpcodeUtils;
 
@@ -43,9 +45,11 @@ import evosuite.shell.utils.OpcodeUtils;
  */
 public class MethodFlagCondFilter implements IMethodFilter {
 	private static Logger log = LoggerUtils.getLogger(MethodFlagCondFilter.class);
-	
+	String excelFilePath = "D:\\Projects\\SF106-windows\\evoTest-reports\\numIfBranches.xls";
+
 	@Override
-	public List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException, AnalyzerException {
+	public List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader)
+			throws IOException, AnalyzerException {
 		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 				.getClassAsStream(targetClass.getName());
 		List<String> validMethods = new ArrayList<String>();
@@ -54,51 +58,61 @@ public class MethodFlagCondFilter implements IMethodFilter {
 			ClassNode cn = new ClassNode();
 			reader.accept(cn, ClassReader.SKIP_FRAMES);
 			List<MethodNode> l = cn.methods;
-			// Filter out abstract class
-			if ((cn.access & Opcodes.ACC_ABSTRACT) == Opcodes.ACC_ABSTRACT) {
-				return new ArrayList<String>();
-			}
+//			// Filter out abstract class
+//			if ((cn.access & Opcodes.ACC_ABSTRACT) == Opcodes.ACC_ABSTRACT) {
+//				return new ArrayList<String>();
+//			}
 			for (MethodNode m : l) {
-				/* methodName should be the same as declared in evosuite: String methodName = method.getName() + Type.getMethodDescriptor(method); */
+				/*
+				 * methodName should be the same as declared in evosuite: String methodName =
+				 * method.getName() + Type.getMethodDescriptor(method);
+				 */
 				String methodName = CommonUtility.getMethodName(m);
-	
+
 				if ((m.access & Opcodes.ACC_PUBLIC) == Opcodes.ACC_PUBLIC
 						|| (m.access & Opcodes.ACC_PROTECTED) == Opcodes.ACC_PROTECTED
 						|| (m.access & Opcodes.ACC_PRIVATE) == 0 /* default */ ) {
-					
-                    if (methodName.contains("<init>") || methodName.contains("<clinit>")) {
-                        continue;
-                    }
 
-                    String className = targetClass.getName();
-                    ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className,
-                            methodName);
-                    if (cfg == null) {
-                        BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
-                        bytecodeAnalyzer.analyze(classLoader, className, methodName, m);
-                        bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
-                        cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-                    }
-                    
-                    if (getIfBranchesInMethod(cfg).isEmpty()) {
-                    	continue;
-                    }
-
-					try {
-						if (checkMethod(classLoader, targetClass.getName(), methodName, m, cn)) {
-							validMethods.add(methodName);
-						}
-					} catch (Exception e) {
-						log.info("error!!", e);
+					if (methodName.contains("<init>") || methodName.contains("<clinit>")) {
+						continue;
 					}
-				} 
+
+					String className = targetClass.getName();
+					ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+					if (cfg == null) {
+						BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+						bytecodeAnalyzer.analyze(classLoader, className, methodName, m);
+						bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+						cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+					}
+
+					int numIfBranches = getIfBranchesInMethod(cfg).size();
+					List<Object> rowData = new ArrayList<Object>();
+					rowData.add(className);
+					rowData.add(methodName);
+					rowData.add(numIfBranches);
+					rowData.add(Type.getArgumentTypes(m.desc).length);
+					ListMethodsBatch.data.add(rowData);
+
+//                    if (getIfBranchesInMethod(cfg).isEmpty()) {
+//                    	continue;
+//                    }
+
+//					try {
+//						if (checkMethod(classLoader, targetClass.getName(), methodName, m, cn)) {
+//							validMethods.add(methodName);
+//						}
+//					} catch (Exception e) {
+//						log.info("error!!", e);
+//					}
+				}
 			}
 		} finally {
-			is.close(); 
+			is.close();
 		}
 		return validMethods;
 	}
-	
+
 	protected Set<BytecodeInstruction> getIfBranchesInMethod(ActualControlFlowGraph cfg) {
 		Set<BytecodeInstruction> ifBranches = new HashSet<BytecodeInstruction>();
 		for (BytecodeInstruction b : cfg.getBranches()) {
@@ -113,7 +127,7 @@ public class MethodFlagCondFilter implements IMethodFilter {
 	}
 
 	/**
-	 * @throws ClassNotFoundException 
+	 * @throws ClassNotFoundException
 	 * 
 	 */
 	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,
@@ -127,16 +141,14 @@ public class MethodFlagCondFilter implements IMethodFilter {
 			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 		}
-		
+
 		boolean defuseAnalyzed = false;
 		Map<String, Boolean> methodValidityMap = new HashMap<String, Boolean>();
 		for (BytecodeInstruction insn : getIfBranchesInMethod(cfg)) {
 			AbstractInsnNode insnNode = insn.getASMNode();
-			if (CollectionUtil.existIn(insnNode .getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
-				StringBuilder sb = new StringBuilder()
-							.append(OpcodeUtils.getCode(insnNode.getOpcode()))
-							.append(", prev -- ")
-							.append(OpcodeUtils.getCode(insnNode.getPrevious().getOpcode()));
+			if (CollectionUtil.existIn(insnNode.getOpcode(), Opcodes.IFEQ, Opcodes.IFNE)) {
+				StringBuilder sb = new StringBuilder().append(OpcodeUtils.getCode(insnNode.getOpcode()))
+						.append(", prev -- ").append(OpcodeUtils.getCode(insnNode.getPrevious().getOpcode()));
 				log.info(sb.toString());
 				CFGFrame frame = insn.getFrame();
 				Value value = frame.getStack(0);
@@ -178,8 +190,8 @@ public class MethodFlagCondFilter implements IMethodFilter {
 		return false;
 	}
 
-	protected boolean checkInvokedMethod(ClassLoader classLoader, AbstractInsnNode condDefinition, Map<String, Boolean> methodValidityMap)
-			throws AnalyzerException, IOException {
+	protected boolean checkInvokedMethod(ClassLoader classLoader, AbstractInsnNode condDefinition,
+			Map<String, Boolean> methodValidityMap) throws AnalyzerException, IOException {
 		return true;
 	}
 
