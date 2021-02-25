@@ -34,6 +34,11 @@ public class ListMethods {
 	public static int execute(String[] targetClasses, ClassLoader classLoader, MethodFilterOption mFilterOpt,
 			String targetMethodFilePath, String targetClassFilePath)
 			throws ClassNotFoundException, IOException {
+		
+		
+		//TODO Cheng Yan, read the excel/csv file to include a method list
+		List<String> interestedMethods = readCSVFile();
+		
 		StringBuilder headerSb = new StringBuilder();
 //		headerSb.append("\n");
 		headerSb.append("#------------------------------------------------------------------------\n")
@@ -71,7 +76,14 @@ public class ListMethods {
 				total += CollectionUtil.getSize(testableMethods);
 				tMethodSb = new StringBuilder();
 				for (String methodName : testableMethods) {
-					tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
+					//TODO Cheng Yan shall comment this code later
+					String methodSig = className + "#" + methodName;
+					if(interestedMethods.contains(methodSig)) {
+						tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
+					}
+					
+					//TODO Cheng Yan shall comment this code later
+					//tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
 				}
 				
 				System.currentTimeMillis();
@@ -90,6 +102,11 @@ public class ListMethods {
 		return total;
 	}
 	
+	private static List<String> readCSVFile() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	//test
 	public static int execute(String[] targetClasses, ClassLoader classLoader, MethodFilterOption mFilterOpt,
 			String cp )
