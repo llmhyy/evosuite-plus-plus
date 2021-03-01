@@ -2,6 +2,7 @@ package org.evosuite.testcase;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,11 +14,19 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.ComputationPath;
+import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 
 public class MutationPositionDiscriminator <T extends Chromosome> {
+	public static List<List<Object>> data = new ArrayList<List<Object>>();
+	public static int iter = 0;
+	
 	@SuppressWarnings("rawtypes")
 	public static MutationPositionDiscriminator discriminator = new MutationPositionDiscriminator<Chromosome>();
 	
@@ -67,27 +76,131 @@ public class MutationPositionDiscriminator <T extends Chromosome> {
 			
 			//TODO aaron
 			Object diff = parseMutation(newTest, oldTest);
-			
-			Set<FitnessFunction<?>> relvantBranches = analyzeRelevantBranch(diff, newTest.getFitnessValues().keySet());
+			Set<FitnessFunction<?>> relevantBranches = analyzeRelevantBranch(newTest, oldTest, newTest.getFitnessValues().keySet());
 			Map<Branch, List<ComputationPath>> map = parseComputationPath(newTest);
+			iter++;
 			
 			updateChangeRelevanceMap(changedFitnesses, newTest.getTestCase());
 			updateChangeRelevanceMap(changedFitnesses, oldTest.getTestCase());
 		}
 	}
+	
+	private static Object parseMutation(TestChromosome newTest, TestChromosome oldTest) {
+		List<Integer> changedPositions = newTest.getChangedPositionsInOldTest();
+//		System.out.println(changedPositions);
+		return null;
+	}
+
+	private static Set<FitnessFunction<?>> analyzeRelevantBranch(TestChromosome newTest, TestChromosome oldTest, Set<FitnessFunction<?>> keySet) {
+		Map<Branch, List<ComputationPath>> map = new HashMap<>();
+		
+		List<Integer> changedPositions = newTest.getChangedPositionsInOldTest();
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+		
+		// Loop through changed statements
+		for (Integer i : changedPositions) {
+			Statement statement = newTest.getTestCase().getStatement(i);
+			if (!(statement instanceof MethodStatement)) {
+				continue;
+			}
+			
+			MethodStatement ms = (MethodStatement) statement;
+			String methodName = ms.getMethod().getNameWithDescriptor();
+			
+			if (methodName.equals(Properties.TARGET_METHOD)) {
+				// Find parameters that changed
+				List<VariableReference> newParams = ms.getParameterReferences();
+				List<VariableReference> oldParams = ((MethodStatement) oldTest.getTestCase().getStatement(i)).getParameterReferences();
+				
+				for (int j = 0; j < newParams.size(); j++) {
+					VariableReference newParam = newParams.get(j);
+					VariableReference oldParam = oldParams.get(j);
+					// Parameter changed, find the branches it affects
+					if (newParam.getStPosition() != oldParam.getStPosition()) {
+						
+						HashSet<String> searchedBranches = new HashSet<>();
+						for (Branch branch : branchesInTargetMethod.keySet()) {
+							if (searchedBranches.contains(branch.getInstruction().toString())) {
+								continue;
+							}
+							
+							System.out.println(branchesInTargetMethod.keySet().size());
+							Set<DepVariable> rootVariables = branchesInTargetMethod.get(branch);
+							List<BytecodeInstruction> operands = branch.getInstruction().getOperands();
+							
+							// Get the correct parameter root variable
+							for (DepVariable param : rootVariables) {
+								if (param.isParameter() && param.getParamOrder() == j) {
+									List<ComputationPath> computationPathList = ComputationPath.computePath(param, operands);
+									HashSet<String> searchedPaths = new HashSet<>();
+									for (ComputationPath path : computationPathList) {
+										if (searchedPaths.contains(path.getComputationNodes().toString())) {
+											continue;
+										}
+										
+										if (path.getComputationNodes().size() > 1) {
+											// Changed parameter affects this branch, store in map
+											
+											map.put(branch, computationPathList);
+											System.out.println(branch);
+											
+											
+											for (FitnessFunction<?> ff : newTest.getFitnessValues().keySet()) {
+												if (ff.toString().contains(branch.toString())) {
+													System.out.println(newTest.getFitnessValues().get(ff));
+													List<Object> rowData = new ArrayList<>();
+													rowData.add(branch.getClassName());
+													rowData.add(branch.getMethodName());
+													rowData.add(branch.getInstruction().toString());
+													rowData.add(path.getComputationNodes().toString());
+													rowData.add(newTest.getFitnessValues().get(ff));
+													rowData.add(iter);
+													data.add(rowData);
+													
+													continue;
+												}
+											}
+//											System.out.println(newTest.getFitnessValues());
+											continue;
+										}
+										searchedPaths.add(path.getComputationNodes().toString());
+									}
+									continue;
+								}
+							}
+							
+							searchedBranches.add(branch.getInstruction().toString());
+						}
+					}
+				}
+				
+				System.currentTimeMillis();
+			}
+		}
+		
+//		Set<DepVariable> rootVariables = branchesInTargetMethod.get(targetBranch);
+//		List<BytecodeInstruction> operands = targetBranch.getInstruction().getOperands();
+
+//		Map<String, String> results = new HashMap<String, String>();
+//		for (DepVariable root : rootVariables) {
+//			if (!root.isParameter()) {
+//				continue;
+//			}
+//
+//			List<ComputationPath> computationPathList = ComputationPath.computePath(root, operands);
+//			String pathString = "";
+//			for (ComputationPath path : computationPathList) {
+//				pathString += path.getComputationNodes().toString() + "\n";
+//			}
+//			results.put(root.getName(), pathString);
+//		}
+		return null;
+	}
 
 	private static Map<Branch, List<ComputationPath>> parseComputationPath(TestChromosome newTest) {
 		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private static Set<FitnessFunction<?>> analyzeRelevantBranch(Object diff, Set<FitnessFunction<?>> keySet) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private static Object parseMutation(TestChromosome newTest, TestChromosome oldTest) {
-		// TODO Auto-generated method stub
+//		System.out.println("3333333333333333333333333333333333");
 		return null;
 	}
 
