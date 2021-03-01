@@ -585,6 +585,7 @@ public class TestCaseLegitimizer {
 //		return null;
 //	}
 	
+	@SuppressWarnings("rawtypes")
 	private List<TestChromosome> breedOffSpring(List<TestChromosome> population) {
 		
 		List<TestChromosome> newPop = new ArrayList<>();
@@ -600,7 +601,7 @@ public class TestCaseLegitimizer {
 //			relevantBranches.forEach(fitnessFunction -> fitnessFunction.getFitness(offspring));
 			updateLegitimacyDistance(offspring);
 			
-			MutationPositionDiscriminator.identifyRelevantMutations(offspring, parent);
+			new MutationPositionDiscriminator().identifyRelevantMutations(offspring, parent);
 			
 			newPop.add(offspring);
 		}

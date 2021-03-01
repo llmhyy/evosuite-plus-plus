@@ -34,7 +34,7 @@ public class MutationPositionDiscriminator<T extends Chromosome> {
 
 	public Set<FitnessFunction<T>> currentGoals = new java.util.HashSet<>();
 
-	private MutationPositionDiscriminator() {
+	public MutationPositionDiscriminator() {
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class MutationPositionDiscriminator<T extends Chromosome> {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static void identifyRelevantMutations(Chromosome offspring, Chromosome parent) {
+	public void identifyRelevantMutations(Chromosome offspring, Chromosome parent) {
 		if (offspring instanceof TestChromosome && parent instanceof TestChromosome) {
 			TestChromosome newTest = (TestChromosome) offspring;
 			TestChromosome oldTest = (TestChromosome) parent;
@@ -75,10 +75,7 @@ public class MutationPositionDiscriminator<T extends Chromosome> {
 //			System.currentTimeMillis();
 
 			// TODO aaron
-			Object diff = parseMutation(newTest, oldTest);
-			Set<FitnessFunction<?>> relevantBranches = analyzeRelevantBranch(newTest, oldTest,
-					changedFitnesses);
-			Map<Branch, List<ComputationPath>> map = parseComputationPath(newTest);
+			recordRelevantBranch(offspring, parent, changedFitnesses);
 			iter++;
 
 			updateChangeRelevanceMap(changedFitnesses, newTest.getTestCase());
@@ -86,13 +83,8 @@ public class MutationPositionDiscriminator<T extends Chromosome> {
 		}
 	}
 
-	private static Object parseMutation(TestChromosome newTest, TestChromosome oldTest) {
-		List<Integer> changedPositions = newTest.getChangedPositionsInOldTest();
-//		System.out.println(changedPositions);
-		return null;
-	}
 
-	private static MethodStatement parseTargetMethodCall(TestChromosome test) {
+	private MethodStatement parseTargetMethodCall(TestChromosome test) {
 		TestCase testcase = test.getTestCase();
 		Statement statement = testcase.getStatement(testcase.size() - 1);
 		if (statement instanceof MethodStatement) {
@@ -108,13 +100,11 @@ public class MutationPositionDiscriminator<T extends Chromosome> {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private static Set<FitnessFunction<?>> analyzeRelevantBranch(TestChromosome newTest, TestChromosome oldTest,
+	private void recordRelevantBranch(Chromosome offspring, Chromosome parent,
 			Map<FitnessFunction, Boolean> changedFitnesses) {
-		Map<Branch, List<ComputationPath>> map = new HashMap<>();
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 
-		
 		Map<Branch, List<ComputationPath>> branchWithBDChanged = parseBranchWithBDChanged(changedFitnesses, branchesInTargetMethod);
 		
 		for(Branch branch: branchWithBDChanged.keySet()) {
@@ -122,7 +112,7 @@ public class MutationPositionDiscriminator<T extends Chromosome> {
 			for(ComputationPath path: paths) {
 				DepVariable rootVariable = path.getComputationNodes().get(0);
 				
-				if(isChangedInSourceCode(rootVariable, newTest, oldTest)) {
+				if(isChangedInSourceCode(rootVariable, offspring, parent)) {
 					List<Object> rowData = new ArrayList<>();
 					rowData.add(branch.getClassName());
 					rowData.add(branch.getMethodName());
@@ -135,6 +125,8 @@ public class MutationPositionDiscriminator<T extends Chromosome> {
 			}
 			
 		}
+		
+		System.currentTimeMillis();
 		
 //		MethodStatement callInNewTest = parseTargetMethodCall(newTest);
 //		MethodStatement callInOldTest = parseTargetMethodCall(oldTest);
@@ -205,16 +197,49 @@ public class MutationPositionDiscriminator<T extends Chromosome> {
 //
 //		}
 
-		return null;
 	}
 
-	private static boolean isChangedInSourceCode(DepVariable rootVariable, TestChromosome newTest, TestChromosome oldTest) {
-		// TODO Auto-generated method stub
+	private boolean isChangedInSourceCode(DepVariable rootVariable, Chromosome offspring, Chromosome parent) {
+		
+		TestChromosome child = (TestChromosome)offspring;
+		TestChromosome par = (TestChromosome)parent;
+		
+//		List<TestMutationHistoryEntry> mutationList = child.mutationHistory.getMutations();
+		
+		MethodStatement callInNewTest = parseTargetMethodCall(child);
+		MethodStatement callInOldTest = parseTargetMethodCall(par);
+		
+		if(rootVariable.isParameter()) {
+			int parameterOrder = rootVariable.getParamOrder();
+			List<VariableReference> newParams = callInNewTest.getParameterReferences();
+			VariableReference varRef1 = newParams.get(parameterOrder);
+			Statement statement1 = varRef1.getTestCase().getStatement(varRef1.getStPosition());
+			
+			List<VariableReference> oldParams = callInOldTest.getParameterReferences();
+			VariableReference varRef2 = oldParams.get(parameterOrder);
+			Statement statement2 = varRef2.getTestCase().getStatement(varRef2.getStPosition());
+			
+			if(statement1.equals(statement2)) {
+				System.currentTimeMillis();
+			}
+			
+			System.currentTimeMillis();
+			
+		}
+		else if(rootVariable.isInstaceField()) {
+			
+		}
+		else if(rootVariable.isStaticField()) {
+			
+		}
+		
+		
+		
 		return false;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static Map<Branch, List<ComputationPath>> parseBranchWithBDChanged(
+	private Map<Branch, List<ComputationPath>> parseBranchWithBDChanged(
 			Map<FitnessFunction, Boolean> changedFitnesses, Map<Branch, Set<DepVariable>> branchesInTargetMethod) {
 		
 		Map<Branch, List<ComputationPath>> map = new HashMap<>();
@@ -248,14 +273,9 @@ public class MutationPositionDiscriminator<T extends Chromosome> {
 		return map;
 	}
 
-	private static Map<Branch, List<ComputationPath>> parseComputationPath(TestChromosome newTest) {
-		// TODO Auto-generated method stub
-//		System.out.println("3333333333333333333333333333333333");
-		return null;
-	}
 
 	@SuppressWarnings("rawtypes")
-	private static void updateChangeRelevanceMap(Map<FitnessFunction, Boolean> changedFitnesses, TestCase test) {
+	private void updateChangeRelevanceMap(Map<FitnessFunction, Boolean> changedFitnesses, TestCase test) {
 		for (int pos = 0; pos < test.size() - 1; pos++) {
 			Statement statement = test.getStatement(pos);
 			if (statement.isChanged()) {

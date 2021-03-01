@@ -143,7 +143,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	 * 
 	 * @return offspring population
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected List<T> breedNextGeneration() {
 		
 		EventSequence.enableRecord();
@@ -191,7 +191,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
 				EventSequence.addEvent(e);
 				
-				MutationPositionDiscriminator.identifyRelevantMutations(offspring1, parent1);
+				new MutationPositionDiscriminator().identifyRelevantMutations(offspring1, parent1);
 				offspringPopulation.add(offspring1);
 			}
 
@@ -206,7 +206,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
 				EventSequence.addEvent(e);
 				
-				MutationPositionDiscriminator.identifyRelevantMutations(offspring2, parent2);
+				new MutationPositionDiscriminator().identifyRelevantMutations(offspring2, parent2);
 				offspringPopulation.add(offspring2);
 			}
 		}

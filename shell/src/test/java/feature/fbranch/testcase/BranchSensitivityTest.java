@@ -21,6 +21,7 @@ public class BranchSensitivityTest extends FBranchTestSetup{
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
 		Properties.ADOPT_SMART_MUTATION = true;
+		Properties.APPLY_GRADEINT_ANALYSIS = true;
 	}
 
 	@Test
