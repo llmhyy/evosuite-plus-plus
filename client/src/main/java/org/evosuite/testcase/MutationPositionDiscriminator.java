@@ -23,179 +23,229 @@ import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 
-public class MutationPositionDiscriminator <T extends Chromosome> {
+public class MutationPositionDiscriminator<T extends Chromosome> {
 	public static List<List<Object>> data = new ArrayList<List<Object>>();
 	public static int iter = 0;
-	
+
 	@SuppressWarnings("rawtypes")
 	public static MutationPositionDiscriminator discriminator = new MutationPositionDiscriminator<Chromosome>();
-	
+
 	public int frozenIteration = Properties.PRE_ONLINE_LEARNING_ITERATION;
-	
+
 	public Set<FitnessFunction<T>> currentGoals = new java.util.HashSet<>();
-	
-	private MutationPositionDiscriminator() {}
-	
+
+	private MutationPositionDiscriminator() {
+	}
+
 	/**
-	 * Use this constant to calculate the relevance of statement. 
+	 * Use this constant to calculate the relevance of statement.
 	 */
 	private static final double MAX_POWER = 100;
-	
-	
+
 	public void resetFrozenIteartion() {
 		frozenIteration = Properties.PRE_ONLINE_LEARNING_ITERATION;
 	}
-	
+
 	public void decreaseFrozenIteration() {
-		if(frozenIteration>0) {
-			frozenIteration--;			
+		if (frozenIteration > 0) {
+			frozenIteration--;
 		}
 	}
-	
+
 	public boolean isFrozen() {
 		return frozenIteration > 0;
 	}
-	
+
 //	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setPurpose(Set<FitnessFunction<T>> dominateUncoveredGoals) {
 		currentGoals.clear();
-		for(FitnessFunction<T> ff: dominateUncoveredGoals) {
+		for (FitnessFunction<T> ff : dominateUncoveredGoals) {
 			currentGoals.add(ff);
 		}
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public static void identifyRelevantMutations(Chromosome offspring, Chromosome parent) {
-		if(offspring instanceof TestChromosome && parent instanceof TestChromosome) {
-			TestChromosome newTest = (TestChromosome)offspring;
-			TestChromosome oldTest = (TestChromosome)parent;
-			
+		if (offspring instanceof TestChromosome && parent instanceof TestChromosome) {
+			TestChromosome newTest = (TestChromosome) offspring;
+			TestChromosome oldTest = (TestChromosome) parent;
+
 			Map<FitnessFunction, Boolean> changedFitnesses = identifyChangedFitness(newTest, oldTest);
-			
+
 //			System.currentTimeMillis();
-			
-			//TODO aaron
+
+			// TODO aaron
 			Object diff = parseMutation(newTest, oldTest);
-			Set<FitnessFunction<?>> relevantBranches = analyzeRelevantBranch(newTest, oldTest, newTest.getFitnessValues().keySet());
+			Set<FitnessFunction<?>> relevantBranches = analyzeRelevantBranch(newTest, oldTest,
+					changedFitnesses);
 			Map<Branch, List<ComputationPath>> map = parseComputationPath(newTest);
 			iter++;
-			
+
 			updateChangeRelevanceMap(changedFitnesses, newTest.getTestCase());
 			updateChangeRelevanceMap(changedFitnesses, oldTest.getTestCase());
 		}
 	}
-	
+
 	private static Object parseMutation(TestChromosome newTest, TestChromosome oldTest) {
 		List<Integer> changedPositions = newTest.getChangedPositionsInOldTest();
 //		System.out.println(changedPositions);
 		return null;
 	}
 
-	private static Set<FitnessFunction<?>> analyzeRelevantBranch(TestChromosome newTest, TestChromosome oldTest, Set<FitnessFunction<?>> keySet) {
-		Map<Branch, List<ComputationPath>> map = new HashMap<>();
-		
-		List<Integer> changedPositions = newTest.getChangedPositionsInOldTest();
-		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
-				.get(Properties.TARGET_METHOD);
-		
-		// Loop through changed statements
-		for (Integer i : changedPositions) {
-			Statement statement = newTest.getTestCase().getStatement(i);
-			if (!(statement instanceof MethodStatement)) {
-				continue;
-			}
-			
+	private static MethodStatement parseTargetMethodCall(TestChromosome test) {
+		TestCase testcase = test.getTestCase();
+		Statement statement = testcase.getStatement(testcase.size() - 1);
+		if (statement instanceof MethodStatement) {
 			MethodStatement ms = (MethodStatement) statement;
 			String methodName = ms.getMethod().getNameWithDescriptor();
-			
+
 			if (methodName.equals(Properties.TARGET_METHOD)) {
-				// Find parameters that changed
-				List<VariableReference> newParams = ms.getParameterReferences();
-				List<VariableReference> oldParams = ((MethodStatement) oldTest.getTestCase().getStatement(i)).getParameterReferences();
+				return ms;
+			}
+		}
+
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static Set<FitnessFunction<?>> analyzeRelevantBranch(TestChromosome newTest, TestChromosome oldTest,
+			Map<FitnessFunction, Boolean> changedFitnesses) {
+		Map<Branch, List<ComputationPath>> map = new HashMap<>();
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Map<Branch, List<ComputationPath>> branchWithBDChanged = parseBranchWithBDChanged(changedFitnesses, branchesInTargetMethod);
+		
+		for(Branch branch: branchWithBDChanged.keySet()) {
+			List<ComputationPath> paths = branchWithBDChanged.get(branch);
+			for(ComputationPath path: paths) {
+				DepVariable rootVariable = path.getComputationNodes().get(0);
 				
-				for (int j = 0; j < newParams.size(); j++) {
-					VariableReference newParam = newParams.get(j);
-					VariableReference oldParam = oldParams.get(j);
-					// Parameter changed, find the branches it affects
-					if (newParam.getStPosition() != oldParam.getStPosition()) {
-						
-						HashSet<String> searchedBranches = new HashSet<>();
-						for (Branch branch : branchesInTargetMethod.keySet()) {
-							if (searchedBranches.contains(branch.getInstruction().toString())) {
-								continue;
-							}
-							
-							System.out.println(branchesInTargetMethod.keySet().size());
-							Set<DepVariable> rootVariables = branchesInTargetMethod.get(branch);
-							List<BytecodeInstruction> operands = branch.getInstruction().getOperands();
-							
-							// Get the correct parameter root variable
-							for (DepVariable param : rootVariables) {
-								if (param.isParameter() && param.getParamOrder() == j) {
-									List<ComputationPath> computationPathList = ComputationPath.computePath(param, operands);
-									HashSet<String> searchedPaths = new HashSet<>();
-									for (ComputationPath path : computationPathList) {
-										if (searchedPaths.contains(path.getComputationNodes().toString())) {
-											continue;
-										}
-										
-										if (path.getComputationNodes().size() > 1) {
-											// Changed parameter affects this branch, store in map
-											
-											map.put(branch, computationPathList);
-											System.out.println(branch);
-											
-											
-											for (FitnessFunction<?> ff : newTest.getFitnessValues().keySet()) {
-												if (ff.toString().contains(branch.toString())) {
-													System.out.println(newTest.getFitnessValues().get(ff));
-													List<Object> rowData = new ArrayList<>();
-													rowData.add(branch.getClassName());
-													rowData.add(branch.getMethodName());
-													rowData.add(branch.getInstruction().toString());
-													rowData.add(path.getComputationNodes().toString());
-													rowData.add(newTest.getFitnessValues().get(ff));
-													rowData.add(iter);
-													data.add(rowData);
-													
-													continue;
-												}
-											}
-//											System.out.println(newTest.getFitnessValues());
-											continue;
-										}
-										searchedPaths.add(path.getComputationNodes().toString());
-									}
-									continue;
-								}
-							}
-							
-							searchedBranches.add(branch.getInstruction().toString());
-						}
-					}
+				if(isChangedInSourceCode(rootVariable, newTest, oldTest)) {
+					List<Object> rowData = new ArrayList<>();
+					rowData.add(branch.getClassName());
+					rowData.add(branch.getMethodName());
+					rowData.add(branch.getInstruction().toString());
+					rowData.add(path.getComputationNodes().toString());
+					rowData.add(branch);
+					rowData.add(iter);
+					data.add(rowData);
 				}
+			}
+			
+		}
+		
+//		MethodStatement callInNewTest = parseTargetMethodCall(newTest);
+//		MethodStatement callInOldTest = parseTargetMethodCall(oldTest);
+//
+//		if (callInNewTest != null && callInOldTest != null) {
+//			List<VariableReference> newParams = callInNewTest.getParameterReferences();
+//			List<VariableReference> oldParams = callInOldTest.getParameterReferences();
+//
+//			for (int j = 0; j < newParams.size(); j++) {
+//				VariableReference newParam = newParams.get(j);
+//				VariableReference oldParam = oldParams.get(j);
+//				// Parameter changed, find the branches it affects
+//				HashSet<String> searchedBranches = new HashSet<>();
+//				for (Branch branch : branchesInTargetMethod.keySet()) {
+//					
+//					if(!isBranchDistanceChanged(changedFitnesses, branch)) {
+//						continue;
+//					}
+//					
+//					System.out.println(branchesInTargetMethod.keySet().size());
+//					Set<DepVariable> rootVariables = branchesInTargetMethod.get(branch);
+//					List<BytecodeInstruction> operands = branch.getInstruction().getOperands();
+//
+//					// Get the correct parameter root variable
+//					for (DepVariable param : rootVariables) {
+//						if (param.isParameter() && param.getParamOrder() == j) {
+//							List<ComputationPath> computationPathList = ComputationPath.computePath(param,
+//									operands);
+//							HashSet<String> searchedPaths = new HashSet<>();
+//							for (ComputationPath path : computationPathList) {
+//								if (searchedPaths.contains(path.getComputationNodes().toString())) {
+//									continue;
+//								}
+//
+//								if (path.getComputationNodes().size() > 1) {
+//									// Changed parameter affects this branch, store in map
+//
+//									map.put(branch, computationPathList);
+//									System.out.println(branch);
+//
+//									for (FitnessFunction<?> ff : newTest.getFitnessValues().keySet()) {
+//										if (ff.toString().contains(branch.toString())) {
+//											System.out.println(newTest.getFitnessValues().get(ff));
+//											List<Object> rowData = new ArrayList<>();
+//											rowData.add(branch.getClassName());
+//											rowData.add(branch.getMethodName());
+//											rowData.add(branch.getInstruction().toString());
+//											rowData.add(path.getComputationNodes().toString());
+//											rowData.add(newTest.getFitnessValues().get(ff));
+//											rowData.add(iter);
+//											data.add(rowData);
+//
+//											continue;
+//										}
+//									}
+////									System.out.println(newTest.getFitnessValues());
+//									continue;
+//								}
+//								searchedPaths.add(path.getComputationNodes().toString());
+//							}
+//							continue;
+//						}
+//					}
+//
+//					searchedBranches.add(branch.getInstruction().toString());
+//				}
+//			}
+//
+//		}
+
+		return null;
+	}
+
+	private static boolean isChangedInSourceCode(DepVariable rootVariable, TestChromosome newTest, TestChromosome oldTest) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static Map<Branch, List<ComputationPath>> parseBranchWithBDChanged(
+			Map<FitnessFunction, Boolean> changedFitnesses, Map<Branch, Set<DepVariable>> branchesInTargetMethod) {
+		
+		Map<Branch, List<ComputationPath>> map = new HashMap<>();
+		
+		for(FitnessFunction<Chromosome> ff: changedFitnesses.keySet()) {
+			if(ff instanceof BranchFitness) {
+				BranchFitness bf = (BranchFitness)ff;
 				
-				System.currentTimeMillis();
+				Branch b = bf.getBranchGoal().getBranch();
+				Set<DepVariable> rootVaribles = branchesInTargetMethod.get(b);
+				for(DepVariable rootVar: rootVaribles) {
+					List<ComputationPath> paths = ComputationPath.computePath(rootVar, b);
+					
+					for(ComputationPath path: paths) {
+						List<ComputationPath> pathList = map.get(b);
+						if(pathList == null) {
+							pathList = new ArrayList<>();
+						}
+						
+						if(!pathList.contains(path)) {
+							pathList.add(path);
+						}
+						
+						map.put(b, pathList);
+					}
+					
+				}
 			}
 		}
 		
-//		Set<DepVariable> rootVariables = branchesInTargetMethod.get(targetBranch);
-//		List<BytecodeInstruction> operands = targetBranch.getInstruction().getOperands();
-
-//		Map<String, String> results = new HashMap<String, String>();
-//		for (DepVariable root : rootVariables) {
-//			if (!root.isParameter()) {
-//				continue;
-//			}
-//
-//			List<ComputationPath> computationPathList = ComputationPath.computePath(root, operands);
-//			String pathString = "";
-//			for (ComputationPath path : computationPathList) {
-//				pathString += path.getComputationNodes().toString() + "\n";
-//			}
-//			results.put(root.getName(), pathString);
-//		}
-		return null;
+		return map;
 	}
 
 	private static Map<Branch, List<ComputationPath>> parseComputationPath(TestChromosome newTest) {
@@ -206,20 +256,19 @@ public class MutationPositionDiscriminator <T extends Chromosome> {
 
 	@SuppressWarnings("rawtypes")
 	private static void updateChangeRelevanceMap(Map<FitnessFunction, Boolean> changedFitnesses, TestCase test) {
-		for(int pos=0; pos<test.size()-1; pos++) {
+		for (int pos = 0; pos < test.size() - 1; pos++) {
 			Statement statement = test.getStatement(pos);
-			if(statement.isChanged()) {
-				for(FitnessFunction ff: changedFitnesses.keySet()) {
+			if (statement.isChanged()) {
+				for (FitnessFunction ff : changedFitnesses.keySet()) {
 					Pair<Double, Double> pair = statement.getChangeRelevanceMap().get(ff);
-					if(pair==null) {
+					if (pair == null) {
 						pair = MutablePair.of(0d, 0d);
 					}
-					
-					if(changedFitnesses.get(ff)) {
-						pair = MutablePair.of(pair.getLeft()+1, pair.getRight());
-					}
-					else {
-						pair = MutablePair.of(pair.getLeft(), pair.getRight()+1);
+
+					if (changedFitnesses.get(ff)) {
+						pair = MutablePair.of(pair.getLeft() + 1, pair.getRight());
+					} else {
+						pair = MutablePair.of(pair.getLeft(), pair.getRight() + 1);
 					}
 					statement.getChangeRelevanceMap().put(ff, pair);
 				}
@@ -228,83 +277,86 @@ public class MutationPositionDiscriminator <T extends Chromosome> {
 	}
 
 	/**
-	 * Lin Yun: If the new test is better than the old test, we record the map <fitness, true>, 
-	 * else we record the map <fitness, false>. 
+	 * Lin Yun: If the new test is better than the old test, we record the map
+	 * <fitness, true>, else we record the map <fitness, false>.
 	 * 
-	 * We distinguish the positive/negative effect because we would like to know whether the
-	 * mutation on specific position always has negative effect. by our observation, the negative
-	 * effect happens because of local optima, i.e., the mutation causes that we can no longer
-	 * cover the parent branch. If it does, we can cancel out such mutation during search.
+	 * We distinguish the positive/negative effect because we would like to know
+	 * whether the mutation on specific position always has negative effect. by our
+	 * observation, the negative effect happens because of local optima, i.e., the
+	 * mutation causes that we can no longer cover the parent branch. If it does, we
+	 * can cancel out such mutation during search.
 	 * 
 	 * @param newTest
 	 * @param oldTest
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static Map<FitnessFunction, Boolean> identifyChangedFitness(TestChromosome newTest, TestChromosome oldTest) {
+	private static Map<FitnessFunction, Boolean> identifyChangedFitness(TestChromosome newTest,
+			TestChromosome oldTest) {
 		Map<FitnessFunction, Boolean> map = new HashMap<>();
-		
-		for(FitnessFunction changedFit: newTest.getFitnessValues().keySet()) {
+
+		for (FitnessFunction changedFit : newTest.getFitnessValues().keySet()) {
 			double d1 = newTest.getFitness(changedFit);
 			double d2 = oldTest.getFitness(changedFit);
-			
-			if(d1 != d2) {
+
+			if (d1 != d2) {
 				map.put(changedFit, d1 < d2);
 			}
 		}
-		
+
 		return map;
 	}
-	
-	@SuppressWarnings({ "unchecked"})
+
+	@SuppressWarnings({ "unchecked" })
 	/**
-	 * generate a mutation probability matrix, return a relevance matrix on how likely a statement is going to change.
+	 * generate a mutation probability matrix, return a relevance matrix on how
+	 * likely a statement is going to change.
+	 * 
 	 * @param size
 	 * @return
 	 */
 	public static double[] calculateMutationProbability(TestChromosome test) {
 		int size = test.size() - 1;
-		if(size<=0) {
+		if (size <= 0) {
 			return new double[0];
 		}
-		
+
 		Set<FitnessFunction<? extends Chromosome>> currentGoalSet = MutationPositionDiscriminator.discriminator.currentGoals;
-		
-		if(currentGoalSet.isEmpty()) {
+
+		if (currentGoalSet.isEmpty()) {
 			double[] distribution = new double[size];
-			for(int i=0; i<size; i++) {
-				distribution[i] = 1d/size;
+			for (int i = 0; i < size; i++) {
+				distribution[i] = 1d / size;
 			}
 			return distribution;
 		}
-		
+
 		List<FitnessFunction<? extends Chromosome>> currentGoals = new ArrayList<>(currentGoalSet);
-		
+
 		double[][] relevanceMatrix = constructRelevanceMatrix(size, test, currentGoals);
 		List<List<Integer>> clusters = clusterGoals(relevanceMatrix);
-		
+
 //		System.currentTimeMillis();
-		
-		List<double[]> mutationProbabilityList = extractMutationProbabilityList(size, test,
-				currentGoals, clusters);
-		
+
+		List<double[]> mutationProbabilityList = extractMutationProbabilityList(size, test, currentGoals, clusters);
+
 		/**
 		 * The distribution correspond to the size of cluster.
 		 */
 		double[] probabilityDistribution = deriveProbabilityDistributionFromClusters(clusters);
-		
+
 		int index = pickRandomIndex(probabilityDistribution);
-		
+
 		return mutationProbabilityList.get(index);
 	}
 
 	private static int pickRandomIndex(double[] probabilityDistribution) {
 		double random = Randomness.nextDouble();
 		int index = 0;
-		for(int i=0; i<probabilityDistribution.length; i++) {
-			double lowerBound = (i==0) ? 0 : probabilityDistribution[i-1];
+		for (int i = 0; i < probabilityDistribution.length; i++) {
+			double lowerBound = (i == 0) ? 0 : probabilityDistribution[i - 1];
 			double upperBound = probabilityDistribution[i];
-			if(lowerBound < random && random <= upperBound) {
+			if (lowerBound < random && random <= upperBound) {
 				index = i;
 				break;
 			}
@@ -314,23 +366,24 @@ public class MutationPositionDiscriminator <T extends Chromosome> {
 
 	/**
 	 * The distribution correspond to the size of cluster.
+	 * 
 	 * @param clusters
 	 * @return
 	 */
 	private static double[] deriveProbabilityDistributionFromClusters(List<List<Integer>> clusters) {
 		double[] probability = new double[clusters.size()];
 		double sum = 0d;
-		for(int i=0; i<probability.length; i++) {
+		for (int i = 0; i < probability.length; i++) {
 			probability[i] = (double) (clusters.get(i).size());
 			sum += probability[i];
 		}
-		
-		for(int i=0; i<probability.length; i++) {
+
+		for (int i = 0; i < probability.length; i++) {
 			probability[i] /= sum;
 		}
-		
-		for(int i=0; i<probability.length-1; i++) {
-			probability[i+1] += probability[i];
+
+		for (int i = 0; i < probability.length - 1; i++) {
+			probability[i + 1] += probability[i];
 		}
 		return probability;
 	}
@@ -338,59 +391,55 @@ public class MutationPositionDiscriminator <T extends Chromosome> {
 	private static List<List<Integer>> clusterGoals(double[][] relevanceMatrix) {
 		List<List<Integer>> clusters = new ArrayList<>();
 		List<Integer> markedGoals = new ArrayList<>();
-		
-		int totalGoalNum = relevanceMatrix[0].length; 
-		while(markedGoals.size() < totalGoalNum) {
+
+		int totalGoalNum = relevanceMatrix[0].length;
+		while (markedGoals.size() < totalGoalNum) {
 			List<Integer> cluster = new ArrayList<>();
-			for(int j=0; j<totalGoalNum; j++) {
-				if(markedGoals.contains(j)) {
+			for (int j = 0; j < totalGoalNum; j++) {
+				if (markedGoals.contains(j)) {
 					continue;
 				}
-				
-				if(cluster.isEmpty()) {
+
+				if (cluster.isEmpty()) {
 					cluster.add(j);
 					markedGoals.add(j);
-				}
-				else {
+				} else {
 					int goalIndex = cluster.get(0);
 					boolean isSimilar = compareSimilarity(goalIndex, j, relevanceMatrix);
-					if(isSimilar) {
+					if (isSimilar) {
 						cluster.add(j);
 						markedGoals.add(j);
 					}
-					
+
 				}
-			}		
-			
+			}
+
 			clusters.add(cluster);
 		}
-		
+
 		return clusters;
 	}
 
 	private static boolean compareSimilarity(int goalIndex, int j, double[][] relevanceMatrix) {
 		double delta = 0.1;
-		
-		for(int i=0; i<relevanceMatrix.length; i++) {
+
+		for (int i = 0; i < relevanceMatrix.length; i++) {
 			double goalIndexValue = relevanceMatrix[i][goalIndex];
 			double jValue = relevanceMatrix[i][j];
-			
-			if(1-delta<goalIndexValue && goalIndexValue < 1+delta &&
-					1-delta<jValue && jValue < 1+delta) {
+
+			if (1 - delta < goalIndexValue && goalIndexValue < 1 + delta && 1 - delta < jValue && jValue < 1 + delta) {
 				continue;
-			}
-			else if(goalIndexValue>1 && jValue<1) {
+			} else if (goalIndexValue > 1 && jValue < 1) {
+				return false;
+			} else if (goalIndexValue < 1 && jValue > 1) {
 				return false;
 			}
-			else if(goalIndexValue<1 && jValue>1) {
-				return false;
-			}
-			
+
 		}
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * we choose the two largest position as force mutation position
 	 * 
@@ -400,154 +449,150 @@ public class MutationPositionDiscriminator <T extends Chromosome> {
 	public static List<Integer> checkForceMutationPosition(double[] mutationProbability) {
 		List<Integer> indexes = new ArrayList<Integer>();
 		List<Double> values = new ArrayList<Double>();
-		
-		for(int i=0; i<mutationProbability.length; i++) {
-			if(values.size() < 2) {
+
+		for (int i = 0; i < mutationProbability.length; i++) {
+			if (values.size() < 2) {
 				indexes.add(i);
 				values.add(mutationProbability[i]);
 			}
-			
-			if(values.size()==2) {
-				if(values.get(0) < values.get(1)) {
+
+			if (values.size() == 2) {
+				if (values.get(0) < values.get(1)) {
 					Double tmp = values.get(1);
 					values.set(1, values.get(0));
 					values.set(0, tmp);
-					
+
 					Integer iTemp = indexes.get(1);
 					indexes.set(1, indexes.get(0));
 					indexes.set(0, iTemp);
 				}
-				
-				if(i>=2 && mutationProbability[i] > values.get(1)) {
+
+				if (i >= 2 && mutationProbability[i] > values.get(1)) {
 					indexes.set(1, i);
 					values.set(1, mutationProbability[i]);
 				}
 			}
 		}
-		
+
 		return indexes;
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static List<double[]> extractMutationProbabilityList(int lastMutatableStatement,
-			TestChromosome test, List<FitnessFunction<? extends Chromosome>> currentGoals, List<List<Integer>> clusters) {
+	public static List<double[]> extractMutationProbabilityList(int lastMutatableStatement, TestChromosome test,
+			List<FitnessFunction<? extends Chromosome>> currentGoals, List<List<Integer>> clusters) {
 		List<double[]> mutationProbabilityList = new ArrayList<>();
-		for(List<Integer> cluster: clusters) {
-			double[] mutationProbabililty = new double[lastMutatableStatement+1];
-			
+		for (List<Integer> cluster : clusters) {
+			double[] mutationProbabililty = new double[lastMutatableStatement + 1];
+
 			Double sum = 0d;
-			for(int i=0; i<lastMutatableStatement+1; i++) {
+			for (int i = 0; i < lastMutatableStatement + 1; i++) {
 				mutationProbabililty[i] = 1;
-				
+
 				Statement statement = test.getTestCase().getStatement(i);
 				Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
-				for(Integer index: cluster) {
+				for (Integer index : cluster) {
 					FitnessFunction<?> ff = currentGoals.get(index);
 					Pair<Double, Double> effectFrequency = map.get(ff);
-					if(effectFrequency != null) {
+					if (effectFrequency != null) {
 						Double positiveEffect = effectFrequency.getLeft();
 						Double negativeEffect = effectFrequency.getRight();
-						
+
 						double base = positiveEffect + negativeEffect;
 						double alpha = 1;
-						if(base > 10) {
-							if(negativeEffect==0 && positiveEffect != 0) {
+						if (base > 10) {
+							if (negativeEffect == 0 && positiveEffect != 0) {
 								alpha = MAX_POWER;
-							}
-							else {
+							} else {
 								alpha = positiveEffect / negativeEffect;
 							}
 						}
-						
+
 						mutationProbabililty[i] += base * alpha * alpha;
 						sum += mutationProbabililty[i];
 					}
 				}
 			}
-			
-			if(sum==0) {
-				sum = (double) (lastMutatableStatement+1);
+
+			if (sum == 0) {
+				sum = (double) (lastMutatableStatement + 1);
 			}
-			
-			for(int i=0; i<lastMutatableStatement+1; i++) {
-				mutationProbabililty[i] =  mutationProbabililty[i] / sum;
+
+			for (int i = 0; i < lastMutatableStatement + 1; i++) {
+				mutationProbabililty[i] = mutationProbabililty[i] / sum;
 			}
-			
+
 			mutationProbabilityList.add(mutationProbabililty);
 		}
 		return mutationProbabilityList;
 	}
 
 	@SuppressWarnings("rawtypes")
-	private static double[][] constructRelevanceMatrix(int testcaseSize,
-			TestChromosome test, List<FitnessFunction<? extends Chromosome>> currentGoals) {
+	private static double[][] constructRelevanceMatrix(int testcaseSize, TestChromosome test,
+			List<FitnessFunction<? extends Chromosome>> currentGoals) {
 		double[][] relevanceMatrix = new double[test.size()][currentGoals.size()];
-		
-		for(int i=0; i<testcaseSize; i++) {
+
+		for (int i = 0; i < testcaseSize; i++) {
 			Statement statement = test.getTestCase().getStatement(i);
 			Map<FitnessFunction, Pair<Double, Double>> map = statement.getChangeRelevanceMap();
-			for(int j=0; j<currentGoals.size(); j++) {
+			for (int j = 0; j < currentGoals.size(); j++) {
 				FitnessFunction<?> ff = currentGoals.get(j);
 				Pair<Double, Double> effectFrequency = map.get(ff);
-				if(effectFrequency != null) {
+				if (effectFrequency != null) {
 					Double positiveEffect = effectFrequency.getLeft();
 					Double negativeEffect = effectFrequency.getRight();
-					
+
 					double base = positiveEffect + negativeEffect;
-					if(base > 10) {
-						if(negativeEffect==0 && positiveEffect != 0) {
+					if (base > 10) {
+						if (negativeEffect == 0 && positiveEffect != 0) {
 							relevanceMatrix[i][j] = MAX_POWER;
-						}
-						else {
+						} else {
 							relevanceMatrix[i][j] = positiveEffect / negativeEffect;
 						}
-					}
-					else {
+					} else {
 						relevanceMatrix[i][j] = 1;
 					}
-					
+
 				}
 			}
 		}
 		return relevanceMatrix;
 	}
-	
+
 	public static double[] normalizeProbability(double[] mutationProbabililty) {
-		
+
 		double max = max(mutationProbabililty);
-		double ratio = 1/max;
-		
+		double ratio = 1 / max;
+
 		Double sum = 0d;
-		for(int i=0; i<mutationProbabililty.length; i++) {
+		for (int i = 0; i < mutationProbabililty.length; i++) {
 			double v = Math.pow(Math.E, mutationProbabililty[i] * ratio * 5);
 			mutationProbabililty[i] = v;
 			sum += mutationProbabililty[i];
 		}
-		
+
 		/**
 		 * get software max results
 		 */
-		for(int i=0; i<mutationProbabililty.length; i++) {
-			mutationProbabililty[i] = mutationProbabililty[i]/sum;
+		for (int i = 0; i < mutationProbabililty.length; i++) {
+			mutationProbabililty[i] = mutationProbabililty[i] / sum;
 		}
-		
+
 		/**
 		 * normalize
 		 */
 		double newMax = max(mutationProbabililty);
-		double newRatio = 1/newMax;
-		for(int i=0; i<mutationProbabililty.length; i++) {
+		double newRatio = 1 / newMax;
+		for (int i = 0; i < mutationProbabililty.length; i++) {
 			mutationProbabililty[i] = mutationProbabililty[i] * newRatio;
 		}
-		
-		
+
 		return mutationProbabililty;
 	}
 
 	private static double max(double[] mutationProbabililty) {
 		double max = 0;
-		for(int i=0; i<mutationProbabililty.length; i++) {
-			if(max < mutationProbabililty[i]) {
+		for (int i = 0; i < mutationProbabililty.length; i++) {
+			if (max < mutationProbabililty[i]) {
 				max = mutationProbabililty[i];
 			}
 		}
@@ -556,14 +601,14 @@ public class MutationPositionDiscriminator <T extends Chromosome> {
 
 	public void setPurpose(Map<FitnessFunction<T>, Double> fitnessValues) {
 		currentGoals.clear();
-		for(FitnessFunction<T> ff: fitnessValues.keySet()) {
-			if(fitnessValues.get(ff) != 0) {
-				if(ff instanceof BranchFitness) {
-					BranchFitness bf = (BranchFitness)ff;
+		for (FitnessFunction<T> ff : fitnessValues.keySet()) {
+			if (fitnessValues.get(ff) != 0) {
+				if (ff instanceof BranchFitness) {
+					BranchFitness bf = (BranchFitness) ff;
 					currentGoals.add(ff);
 				}
 			}
 		}
-		
+
 	}
 }

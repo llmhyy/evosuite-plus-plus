@@ -44,12 +44,6 @@ public class FBranchTest {
 			resultT = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "fbranch");
 		}
 		
-		try {
-			resultF = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");
-		} catch (NullPointerException e) {
-			resultF = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");
-		}
-
 		int ageT = resultT.getAge();
 		int timeT = resultT.getTime();
 		double coverageT = resultT.getCoverage();

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -702,6 +703,12 @@ public class ComputationPath {
 		return "string";
 	}
 
+	public static List<ComputationPath> computePath(DepVariable root, Branch branch){
+		List<BytecodeInstruction> operands = branch.getInstruction().getOperands();
+		return computePath(root, operands);
+	}
+	
+	
 	public static List<ComputationPath> computePath(DepVariable root, List<BytecodeInstruction> operands) {
 		List<ComputationPath> computationPath = new ArrayList<>();
 		List<DepVariable> nodes = new ArrayList<>(); 
