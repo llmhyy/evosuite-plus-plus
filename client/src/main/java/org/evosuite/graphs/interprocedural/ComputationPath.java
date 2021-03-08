@@ -20,6 +20,9 @@ import org.objectweb.asm.tree.LdcInsnNode;
 public class ComputationPath {
 	private double score = -1;
 	private List<DepVariable> computationNodes;
+	private Branch branch;
+	
+	private ComputationPath(Branch branch) {this.branch = branch;}
 
 	public double getScore() {
 		if(score == -1) {
@@ -705,23 +708,23 @@ public class ComputationPath {
 
 	public static List<ComputationPath> computePath(DepVariable root, Branch branch){
 		List<BytecodeInstruction> operands = branch.getInstruction().getOperands();
-		return computePath(root, operands);
-	}
-	
-	
-	public static List<ComputationPath> computePath(DepVariable root, List<BytecodeInstruction> operands) {
 		List<ComputationPath> computationPath = new ArrayList<>();
 		List<DepVariable> nodes = new ArrayList<>(); 
 		//traverse input to oprands
 		nodes.add(root);
-		dfsRoot(root, operands, computationPath, nodes);
+		dfsRoot(root, operands, computationPath, nodes, branch);
 		return computationPath;
-		
-//		return null;
 	}
+	
+	
+//	private static List<ComputationPath> computePath(DepVariable root, List<BytecodeInstruction> operands) {
+//		
+//		
+////		return null;
+//	}
 
 	private static void dfsRoot(DepVariable root, List<BytecodeInstruction> operands,
-			List<ComputationPath> computationPath, List<DepVariable> nodes) {
+			List<ComputationPath> computationPath, List<DepVariable> nodes, Branch branch2) {
 		DepVariable node = root;
 //		Boolean isVisted = true;
 		int n = node.getInstruction().getOperandNum();
@@ -738,7 +741,7 @@ public class ComputationPath {
 //						&& operands.contains(node.getInstruction().getLineNumber())
 						)) {
 					nodes.add(node);
-					dfsRoot(node,operands,computationPath,nodes);
+					dfsRoot(node,operands,computationPath,nodes, branch2);
 				}
 				else {
 					nodes.add(node);
@@ -752,7 +755,7 @@ public class ComputationPath {
 			for(int i = 0; i< nodes.size();i++) {
 				computationNodes.add(nodes.get(i));
 			}
-			ComputationPath pathRecord = new ComputationPath();
+			ComputationPath pathRecord = new ComputationPath(branch2);
 			pathRecord.setComputationNodes(computationNodes);
 //			pathRecord.setScore(computationNodes.size());
 			computationPath.add(pathRecord);
@@ -779,6 +782,14 @@ public class ComputationPath {
 
 	public BytecodeInstruction getInstruction(int i) {
 		return this.computationNodes.get(i).getInstruction();
+	}
+
+	public Branch getBranch() {
+		return branch;
+	}
+
+	public void setBranch(Branch branch) {
+		this.branch = branch;
 	}
 
 }

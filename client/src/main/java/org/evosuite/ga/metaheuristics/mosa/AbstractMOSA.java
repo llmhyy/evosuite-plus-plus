@@ -55,6 +55,7 @@ import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.seeding.smart.SmartSeedBranchUpdateManager;
 import org.evosuite.testcase.MutationPositionDiscriminator;
+import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -159,6 +160,11 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			this.removeUnusedVariables(parent1);
 			this.removeUnusedVariables(parent2);
 			
+			if(Properties.APPLY_GRADEINT_ANALYSIS) {
+				SensitivityMutator.testSensitity(parent1);
+				SensitivityMutator.testSensitity(parent2);				
+			}
+			
 			T offspring1 = (T) parent1.clone();
 			T offspring2 = (T) parent2.clone();
 			// apply crossover
@@ -182,6 +188,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			// apply mutation on offspring1
 			Set<?> uncoveredGoals = getUncoveredGoals();
 			SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
+			
 			this.mutate(offspring1, parent1);
 			if (offspring1.isChanged()) {
 				

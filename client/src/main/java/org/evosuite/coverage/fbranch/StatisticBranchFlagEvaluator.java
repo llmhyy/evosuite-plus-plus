@@ -85,7 +85,7 @@ public class StatisticBranchFlagEvaluator {
 				continue;
 			}
 
-			List<ComputationPath> computationPathList = ComputationPath.computePath(root, operands);
+			List<ComputationPath> computationPathList = ComputationPath.computePath(root, b);
 			ComputationPath bestPath = findPathWithMostEntropyLoss(computationPathList);
 			if (bestPath != null) {
 				pathList.add(bestPath);

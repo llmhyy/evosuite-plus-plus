@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.testcase.MutationPositionDiscriminator;
+import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class BranchSensitivityTest extends FBranchTestSetup{
 		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
 		
 		try {
-			excelWriter.writeSheet("data", MutationPositionDiscriminator.data);
+			excelWriter.writeSheet("data", SensitivityMutator.data);
 		} catch (IOException e) {
 			System.out.println(e);
 		}
@@ -59,7 +59,7 @@ public class BranchSensitivityTest extends FBranchTestSetup{
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/test-classes" + File.pathSeparator + "target/classes";
 
-		int timeBudget = 20;
+		int timeBudget = 1000000;
 		EvoTestResult result = null;
 		
 		result = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");

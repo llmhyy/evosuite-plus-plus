@@ -9,6 +9,7 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.testcase.MutationPositionDiscriminator;
+import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
@@ -160,7 +161,7 @@ public class ProjectOverallTest extends TestUtility{
 		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
 		
 		try {
-			excelWriter.writeSheet("data", MutationPositionDiscriminator.data);
+			excelWriter.writeSheet("data", SensitivityMutator.data);
 		} catch (IOException e) {
 			System.out.println(e);
 		}

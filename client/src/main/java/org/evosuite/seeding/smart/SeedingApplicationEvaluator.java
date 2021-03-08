@@ -219,7 +219,7 @@ public class SeedingApplicationEvaluator {
 			if (methodInputs != null && operands != null) {
 				List<ComputationPath> pathList = new ArrayList<>();
 				for (DepVariable input : methodInputs) {
-					List<ComputationPath> computationPathList = ComputationPath.computePath(input, operands);
+					List<ComputationPath> computationPathList = ComputationPath.computePath(input, b);
 					pathList.addAll(computationPathList);
 				}
 				removeRedundancy(pathList);
