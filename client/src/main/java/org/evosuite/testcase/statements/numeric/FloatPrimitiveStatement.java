@@ -32,6 +32,7 @@ import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.result.seedexpr.SearchEvent;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.utils.Randomness;
 import org.objectweb.asm.commons.GeneratorAdapter;
@@ -140,7 +141,7 @@ public class FloatPrimitiveStatement extends NumericalPrimitiveStatement<Float> 
 			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.FLOAT, String.valueOf(value)));
 		}
 		else {
-			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();
+			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool(BranchSeedInfo.FLOAT);
 			value = constantPool.getRandomFloat();
 		}
 	}

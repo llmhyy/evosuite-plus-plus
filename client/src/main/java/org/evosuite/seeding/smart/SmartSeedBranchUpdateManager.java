@@ -17,7 +17,6 @@ public class SmartSeedBranchUpdateManager {
 		if(!Properties.APPLY_SMART_SEED)
 			return;
 		
-		
 		uncoveredApplicableBranchInfo.clear();
 		
 		Set<BranchSeedInfo> infoSet = new HashSet<>();
@@ -25,20 +24,19 @@ public class SmartSeedBranchUpdateManager {
 			if(obj instanceof BranchFitness) {
 				BranchFitness bf = (BranchFitness)obj;
 				BranchCoverageGoal goal = bf.getBranchGoal();
-				
-				int type = SeedingApplicationEvaluator.evaluate(goal.getBranch());
-				BranchSeedInfo info = new BranchSeedInfo(goal.getBranch(), type, null);
+				BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(goal.getBranch());
 				
 				if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
-					infoSet.add(info);					
+					infoSet.add(info);	
 				}
 			}
 		}
 		
+//		oldUncoveredApplicableBranchInfo = oldSet;
 		uncoveredApplicableBranchInfo = infoSet;
-		if(infoSet.isEmpty()) {
-			Properties.PRIMITIVE_POOL = 0.1;
-		}
+		
+		double ratio = infoSet.size()*1.0 / uncoveredGoals.size()*1.0 ;
+		Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + ratio);
 	}
 
 }

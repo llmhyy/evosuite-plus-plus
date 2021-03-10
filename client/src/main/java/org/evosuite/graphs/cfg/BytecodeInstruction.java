@@ -43,6 +43,7 @@ import org.evosuite.graphs.cdg.ControlDependenceGraph;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.utils.CollectionUtil;
+import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -1437,38 +1438,54 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	public int getParameterPosition(){
 		if (isLocalVariableUse()) {
 			int slot = getLocalVariableSlot();
-			String methodName = getRawCFG().getMethodName();
-			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
-			org.objectweb.asm.Type[] typeArgs = org.objectweb.asm.Type.getArgumentTypes(methodDesc);
-			int paramNum = typeArgs.length;
+//			String methodName = getRawCFG().getMethodName();
+//			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
 			
-			org.apache.bcel.classfile.Method realMethod = null;
-			JavaClass clazz = getBCELClass();
 			
-			if (clazz != null) {
-				realMethod = findMethod(realMethod, clazz);
-				if (realMethod == null || realMethod.getLocalVariableTable() == null) {
-					if(this.getRawCFG().isStaticMethod()) {
-						return slot < paramNum ? slot : -1;
-					}
-					else {
-						return slot < paramNum+1 && slot != 0 ? slot : -1;				
-					}
-				}
-	
-				LocalVariable[] lvt = realMethod.getLocalVariableTable().getLocalVariableTable();
-				LocalVariable[] lvtCopy = lvt.clone();
-				Arrays.sort(lvtCopy, Comparator.comparing(LocalVariable::getIndex));
-				
-				int start = this.getRawCFG().isStaticMethod() ? 0 : 1;
-				int end = this.getRawCFG().isStaticMethod() ? paramNum - 1 : paramNum;
-				
-				for (int pos = start; pos <= end; pos++) {
-					if (slot == lvtCopy[pos].getIndex()) {
-						return this.getRawCFG().isStaticMethod() ? pos : pos - 1;
-					}
-				}
+			String[] parameters = MethodUtil.parseSignature(methodName);
+			int paramNum = parameters.length - 1;
+			if(!this.getActualCFG().isStaticMethod()) {
+				slot--;
 			}
+			
+			System.currentTimeMillis();
+			
+			if(slot == -1) return -1;
+			if(slot > paramNum - 1) return -1;
+			
+			return slot;
+			
+			
+//			org.objectweb.asm.Type[] typeArgs = org.objectweb.asm.Type.getArgumentTypes(methodDesc);
+//			int paramNum = typeArgs.length;
+//			
+//			org.apache.bcel.classfile.Method realMethod = null;
+//			JavaClass clazz = getBCELClass();
+//			
+//			if (clazz != null) {
+//				realMethod = findMethod(realMethod, clazz);
+//				if (realMethod == null || realMethod.getLocalVariableTable() == null) {
+//					if(this.getRawCFG().isStaticMethod()) {
+//						return slot < paramNum ? slot : -1;
+//					}
+//					else {
+//						return slot < paramNum+1 && slot != 0 ? slot : -1;				
+//					}
+//				}
+//	
+//				LocalVariable[] lvt = realMethod.getLocalVariableTable().getLocalVariableTable();
+//				LocalVariable[] lvtCopy = lvt.clone();
+//				Arrays.sort(lvtCopy, Comparator.comparing(LocalVariable::getIndex));
+//				
+//				int start = this.getRawCFG().isStaticMethod() ? 0 : 1;
+//				int end = this.getRawCFG().isStaticMethod() ? paramNum - 1 : paramNum;
+//				
+//				for (int pos = start; pos <= end; pos++) {
+//					if (slot == lvtCopy[pos].getIndex()) {
+//						return this.getRawCFG().isStaticMethod() ? pos : pos - 1;
+//					}
+//				}
+//			}
 		}
 		
 		return -1;

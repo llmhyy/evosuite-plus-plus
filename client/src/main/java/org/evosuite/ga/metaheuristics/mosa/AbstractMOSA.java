@@ -149,6 +149,9 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		
 		EventSequence.enableRecord();
 		
+		Set<?> uncoveredGoals = getUncoveredGoals();
+		SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
+		
 		List<T> offspringPopulation = new ArrayList<T>(Properties.POPULATION);
 		// we apply only Properties.POPULATION/2 iterations since in each generation
 		// we generate two offsprings
@@ -186,9 +189,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 //			this.removeUnusedVariables(offspring2);
 			
 			// apply mutation on offspring1
-			Set<?> uncoveredGoals = getUncoveredGoals();
-			SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
-			
 			this.mutate(offspring1, parent1);
 			if (offspring1.isChanged()) {
 				
@@ -203,8 +203,8 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			}
 
 			// apply mutation on offspring2
-			uncoveredGoals = getUncoveredGoals();
-			SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
+//			uncoveredGoals = getUncoveredGoals();
+//			SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
 			this.mutate(offspring2, parent2);
 			if (offspring2.isChanged()) {
 				this.clearCachedResults(offspring2);

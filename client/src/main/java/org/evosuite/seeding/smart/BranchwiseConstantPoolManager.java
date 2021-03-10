@@ -13,6 +13,7 @@ import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.DynamicConstantPool;
 import org.evosuite.seeding.StaticConstantPool;
+import org.evosuite.utils.Randomness;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
@@ -43,20 +44,29 @@ public class BranchwiseConstantPoolManager {
 	
 	public static ConstantPool evaluate(BranchSeedInfo b) {
 		
-		Class<?> type = analyzeType(b);
+//		Class<?> type = analyzeType(b);
 		
 		if(b.getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL) {
-			if(STATIC_POOL_CACHE.containsKey(b.getBranch().getActualBranchId())) {
-				return STATIC_POOL_CACHE.get(b.getBranch().getActualBranchId());
+			
+			double r = Randomness.nextDouble(0, 1);
+			if(r > 0.2) {
+				if(STATIC_POOL_CACHE.containsKey(b.getBranch().getActualBranchId())) {
+					return STATIC_POOL_CACHE.get(b.getBranch().getActualBranchId());
+				}
+				
+				ConstantPool pool = new StaticConstantPool(false);
+				Set<Object> relevantConstants = parseRelevantConstants(b);
+				for(Object obj: relevantConstants) {
+					pool.add(obj);				
+				}
+				STATIC_POOL_CACHE.put(b.getBranch().getActualBranchId(), pool);
+				return pool;				
+			}
+			else {
+				ConstantPool pool = getBranchwiseDynamicConstantPool(b.getBranch().getActualBranchId());
+				return pool;
 			}
 			
-			ConstantPool pool = new StaticConstantPool(false);
-			Set<Object> relevantConstants = parseRelevantConstants(b, type);
-			for(Object obj: relevantConstants) {
-				pool.add(obj);				
-			}
-			STATIC_POOL_CACHE.put(b.getBranch().getActualBranchId(), pool);
-			return pool;
 		}
 		else if(b.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL) {
 			ConstantPool pool = getBranchwiseDynamicConstantPool(b.getBranch().getActualBranchId());
@@ -66,7 +76,7 @@ public class BranchwiseConstantPoolManager {
 		return null;
 	}
 
-	private static Set<Object> parseRelevantConstants(BranchSeedInfo b, Class<?> type) {
+	private static Set<Object> parseRelevantConstants(BranchSeedInfo b) {
 		Set<Object> constantValues = new HashSet<>();
 		
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
@@ -140,13 +150,8 @@ public class BranchwiseConstantPoolManager {
 				System.currentTimeMillis();				
 			}
 		}		
+		
 		return constantValues;
 	}
 
-	private static Class<?> analyzeType(BranchSeedInfo b) {
-		// TODO Cheng Yan
-		
-		return null;
-	}
-	
 }

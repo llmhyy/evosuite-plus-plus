@@ -24,6 +24,7 @@ import org.evosuite.runtime.testdata.EvoSuiteRemoteAddress;
 import org.evosuite.runtime.vnet.EndPointInfo;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
@@ -101,7 +102,7 @@ public class RemoteAddressPrimitiveStatement extends EnvironmentDataStatement<Ev
                 indeed valid. However, as this is kind of special case,
                 and likely not so common, it doesn't have high priority.
              */
-            ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();
+            ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool(BranchSeedInfo.OTHER);
             String host = constantPool.getRandomString();
             int port = constantPool.getRandomInt();
             port = getPort(port);

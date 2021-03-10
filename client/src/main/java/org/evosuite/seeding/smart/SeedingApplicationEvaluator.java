@@ -17,6 +17,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
@@ -74,6 +75,11 @@ public class SeedingApplicationEvaluator {
 		Map<BytecodeInstruction, List<ComputationPath>> sides = new HashMap<>();
 		
 		for(ComputationPath path: pathList) {
+			
+			if(path.shouldIgnore()) {
+				continue;
+			}
+			
 			BytecodeInstruction anchor = null;
 			if(operands.size() == 1) {
 				if(sides.isEmpty()) {
@@ -88,7 +94,7 @@ public class SeedingApplicationEvaluator {
 					else {
 						Pair<BytecodeInstruction, BytecodeInstruction> pair 
 							= findAnchorSharingCommonNodes(sides, path);
-						
+						System.currentTimeMillis();
 						if(pair != null) {
 							BytecodeInstruction anchorSharingCommonNode = pair.getLeft();
 							BytecodeInstruction commonNode = pair.getRight();
@@ -198,17 +204,35 @@ public class SeedingApplicationEvaluator {
 			list.add(path);
 			sides.put(anchor, list);
 		}
+		else {
+			anchor = path.getComputationNodes().get(path.size()-1).getInstruction();
+			List<ComputationPath> list = sides.get(anchor);
+			if(list==null) {
+				list = new ArrayList<>();
+			}
+			list.add(path);
+			sides.put(anchor, list);
+		}
 	}
 	
-	public static int evaluate(Branch b) {
+	public static BranchSeedInfo evaluate(Branch b) {
 		if (cache.containsKey(b)) {
-			return cache.get(b).getBenefiticalType();
+			return cache.get(b);
 		}
 
+		if(b.getInstruction().isTableSwitch()) {
+			BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, "int");
+			cache.put(b, branchInfo);
+			return branchInfo;
+		}
+		
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
-		if (branchesInTargetMethod == null)
-			return NO_POOL;
+		if (branchesInTargetMethod == null) {
+			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+			cache.put(b, branchInfo);
+			return branchInfo;
+		}
 		b = compileBranch(branchesInTargetMethod, b);
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
 		methodInputs = compileInputs(methodInputs);
@@ -226,28 +250,46 @@ public class SeedingApplicationEvaluator {
 
 				TwoSidePathList list = separateList(pathList, operands);
 				if (list.side1.isEmpty() || list.side2.isEmpty()) {
-					return NO_POOL;
+					BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+					cache.put(b, branchInfo);
+					return branchInfo;
 				} else {
+//					if(b.getInstruction().getLineNumber()==310) {
+//						System.currentTimeMillis();
+//					}
+//					System.currentTimeMillis();
 					ComputationPath path1 = list.side1.getSimplestChannel();
 					ComputationPath path2 = list.side2.getSimplestChannel();
-					if (path1.isFastChannel() && path2.isFastChannel()
-							|| !path1.isFastChannel() && !path2.isFastChannel()) {
-						return NO_POOL;
-					} else {
-//						ComputationPath fastPath = path1.isFastChannel(operands) ? path1 : path2;
+					if (!path1.isFastChannel() && !path2.isFastChannel()) {
+						System.currentTimeMillis();
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+						cache.put(b, branchInfo);
+						return branchInfo;
+					} 
+					else if(path1.isFastChannel() && path2.isFastChannel()) {
+						ComputationPath fastPath = path2.size() < path1.size() ? path2 : path1;
+						String dataType = getDynamicDataType(fastPath);
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
+						cache.put(b, branchInfo);
+						return branchInfo;
+					}
+					else {
+						ComputationPath fastPath = path2.isFastChannel() ? path2 : path1;
 						ComputationPath otherPath = path2.isFastChannel() ? path1 : path2;
 
-						if (otherPath.getInstruction(0).isConstant() 
-								&& otherPath.size()<=2) {
+						if (otherPath.isPureConstantPath()) {
 							if(otherPath.isHardConstant(operands)) {
-								cache.put(b, new BranchSeedInfo(b, STATIC_POOL,
-										otherPath.getComputationNodes().get(0).getClass()));
-								return STATIC_POOL;								
-							}
+								String dataType = getConstantDataType(otherPath);
+								BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
+								cache.put(b, branchInfo);
+								return branchInfo;
+							}								
 						} 
 						else{
-							cache.put(b, new BranchSeedInfo(b, DYNAMIC_POOL, null));
-							return DYNAMIC_POOL;
+							String dataType = getDynamicDataType(fastPath);
+							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
+							cache.put(b, branchInfo);
+							return branchInfo;
 						}
 					}
 				}
@@ -257,8 +299,97 @@ public class SeedingApplicationEvaluator {
 			e.printStackTrace();
 		}
 
-		cache.put(b, new BranchSeedInfo(b, NO_POOL, null));
-		return NO_POOL;
+		BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+		cache.put(b, branchInfo);
+		return branchInfo;
+	}
+
+	private static String getDynamicDataType(ComputationPath otherPath) {
+		List<DepVariable> computationNodes = otherPath.getComputationNodes();
+		
+		List<String> list = new ArrayList<String>();
+		for(DepVariable n: computationNodes) {
+			String str = n.getDataType();
+			if(!str.equals(BranchSeedInfo.OTHER)) {
+				str = finalType(str);
+				list.add(str);
+			}
+		}
+		
+		if(list.isEmpty()) {
+			return BranchSeedInfo.OTHER;
+		}
+		
+		return list.get(list.size()-1);
+//		System.currentTimeMillis();
+//		List<String> fastpathTypes = new ArrayList<>();
+//		BytecodeInstruction input = computationNodes.get(0).getInstruction();
+//		BytecodeInstruction oprand = computationNodes.get(computationNodes.size() - 1).getInstruction();
+//		BytecodeInstruction oprates = computationNodes.get(computationNodes.size() - 2).getInstruction();
+//		
+//		if(computationNodes.get(0).isParameter()) {
+//			String inputTypes = input.getVariableName();
+//			int i = Integer.parseInt(inputTypes.split("LV_")[1]);
+//			String[] separateTypes = MethodUtil.parseSignature(input.getMethodName());
+//			String inputType = separateTypes[i - 1];
+//			fastpathTypes.add(inputType);
+//			System.currentTimeMillis();
+//		}
+//		if(oprand.isInvokeSpecial() || oprand.isInvokeStatic()) {
+//			DepVariable lastNode = computationNodes.get(computationNodes.size() - 2);
+//			int i = relationNum(lastNode);
+//			String[] outputTypes = MethodUtil.parseSignature(oprand.getMethodName());
+//			String outputType = outputTypes[i];
+//			fastpathTypes.add(outputType);
+//			return finalType(outputType);
+//		}
+		
+		
+		
+//		return null;
+	}
+
+	private static int relationNum(DepVariable lastNode) {
+		List<DepVariable>[] relations = lastNode.getRelations();
+		for(int i = 0; i < relations.length; i++) {
+			if(relations[i] != null)
+				return i;
+		}
+		return 0;
+	}
+
+	private static String getConstantDataType(ComputationPath otherPath) {
+		BytecodeInstruction ins = otherPath.getInstruction(0);
+		String types[] = ins.getASMNodeString().split(" ");
+		for(String i : types) {
+			if(i.equals("LDC")) {
+				LdcInsnNode node =  (LdcInsnNode)ins.getASMNode();
+				Object cst = node.cst;
+				return finalType(cst.getClass().getName());
+			}
+			switch(i){
+				case "BYTE":
+				case "DOUBLE":
+				case "FLOAT":
+				case "INT":
+				case "LONG":
+				case "SHORT":
+				case "STRING":
+					return i.toLowerCase();
+				default:
+					return "OTHER".toLowerCase();
+				}
+		}
+			
+		return null;
+	}
+
+	private static String finalType(String name) {
+		String type[] =  name.split("\\.");
+		if(type[type.length - 1].equals("Integer"))
+			return "int";
+		else
+			return type[type.length - 1].toLowerCase();
 	}
 
 	private static void removeRedundancy(List<ComputationPath> pathList) {
@@ -398,7 +529,7 @@ public class SeedingApplicationEvaluator {
 					if (ComputationPath.isStartWithMethodInput(path)) {
 						localPathList.add(pathNext);
 					} else {
-						if (path.getScore() <= pathNext.getScore())
+						if (size <= sizeNext)
 							localPathList.add(pathNext);
 					}
 				}
@@ -420,7 +551,7 @@ public class SeedingApplicationEvaluator {
 
 			}
 			// constant
-			if (path.getScore() < 3) {
+			if (path.getComputationNodes().size() < 3) {
 				if (path.getComputationNodes().get(0).isConstant()) {
 					constant.add(path);
 					for (ComputationPath cons : localPathList) {
@@ -430,7 +561,7 @@ public class SeedingApplicationEvaluator {
 						}
 					}
 					for (ComputationPath small : constant) {
-						if (small.getScore() < path.getScore()) {
+						if (small.getComputationNodes().size() < path.getComputationNodes().size()) {
 							localPathList.add(path);
 						}
 					}
@@ -493,10 +624,10 @@ public class SeedingApplicationEvaluator {
 				targetMethod);
 
 		for (Branch branch : branches) {
-			int type = evaluate(branch);
-			Class<?> cla = cache.get(branch).getTargetType();
-			if (type != NO_POOL) {
-				interestedBranches.add(new BranchSeedInfo(branch, type, cla));
+			BranchSeedInfo info = evaluate(branch);
+//			Class<?> cla = cache.get(branch).getTargetType();
+			if (info.getBenefiticalType() != NO_POOL) {
+				interestedBranches.add(info);
 			}
 		}
 

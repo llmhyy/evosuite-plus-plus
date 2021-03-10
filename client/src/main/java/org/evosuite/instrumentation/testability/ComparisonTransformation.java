@@ -32,11 +32,15 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.IntInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 /**
- * <p>ComparisonTransformation class.</p>
+ * <p>
+ * ComparisonTransformation class.
+ * </p>
  *
  * @author Gordon Fraser
  */
@@ -45,7 +49,9 @@ public class ComparisonTransformation {
 	private final ClassNode cn;
 
 	/**
-	 * <p>Constructor for ComparisonTransformation.</p>
+	 * <p>
+	 * Constructor for ComparisonTransformation.
+	 * </p>
 	 *
 	 * @param cn a {@link org.objectweb.asm.tree.ClassNode} object.
 	 */
@@ -54,7 +60,9 @@ public class ComparisonTransformation {
 	}
 
 	/**
-	 * <p>transform</p>
+	 * <p>
+	 * transform
+	 * </p>
 	 *
 	 * @return a {@link org.objectweb.asm.tree.ClassNode} object.
 	 */
@@ -62,84 +70,134 @@ public class ComparisonTransformation {
 	public ClassNode transform() {
 		List<MethodNode> methodNodes = cn.methods;
 		for (MethodNode mn : methodNodes) {
-			transformMethod(mn);
+			transformMethod(cn, mn);
 		}
 		return cn;
 	}
 
 	/**
-	 * <p>transformMethod</p>
+	 * <p>
+	 * transformMethod
+	 * </p>
 	 *
 	 * @param mn a {@link org.objectweb.asm.tree.MethodNode} object.
 	 */
-	public void transformMethod(MethodNode mn) {
+	public void transformMethod(ClassNode cn, MethodNode mn) {
 		AbstractInsnNode node = mn.instructions.getFirst();
+		int index = 0;
 		while (node != mn.instructions.getLast()) {
+			index++;
 			AbstractInsnNode next = node.getNext();
 			if (node instanceof InsnNode) {
 				InsnNode in = (InsnNode) node;
+//				LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc); 
+//				mn.instructions.insertBefore(node, methodSig);
+//				
+//				IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index-1);
+//				mn.instructions.insertBefore(node, indexNode);
+
 				if (in.getOpcode() == Opcodes.LCMP) {
-					insertLongComparison(in, mn.instructions);
+					insertLongComparison(in, mn.instructions, cn, mn, index, node);
 					TransformationStatistics.transformedComparison();
 				} else if (in.getOpcode() == Opcodes.DCMPG) {
+					insertDoubleComparisonG(in, mn.instructions, cn, mn, index, node);
 					TransformationStatistics.transformedComparison();
-					insertDoubleComparisonG(in, mn.instructions);
 				} else if (in.getOpcode() == Opcodes.DCMPL) {
+					insertDoubleComparisonL(in, mn.instructions, cn, mn, index, node);
 					TransformationStatistics.transformedComparison();
-					insertDoubleComparisonL(in, mn.instructions);
 				} else if (in.getOpcode() == Opcodes.FCMPG) {
+					insertFloatComparisonG(in, mn.instructions, cn, mn, index, node);
 					TransformationStatistics.transformedComparison();
-					insertFloatComparisonG(in, mn.instructions);
 				} else if (in.getOpcode() == Opcodes.FCMPL) {
+					insertFloatComparisonL(in, mn.instructions, cn, mn, index, node);
 					TransformationStatistics.transformedComparison();
-					insertFloatComparisonL(in, mn.instructions);
 				}
 			}
 			node = next;
 		}
 	}
 
-	private void insertLongComparison(AbstractInsnNode position, InsnList list) {
-		MethodInsnNode get = new MethodInsnNode(Opcodes.INVOKESTATIC,
-		        Type.getInternalName(BooleanHelper.class), "longSub",
-		        Type.getMethodDescriptor(Type.INT_TYPE, new Type[] { Type.LONG_TYPE,
-		                Type.LONG_TYPE }), false);
+	private void insertLongComparison(AbstractInsnNode position, InsnList list, ClassNode cn, MethodNode mn, int index,
+			AbstractInsnNode node) {
+		LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc);
+		mn.instructions.insertBefore(node, methodSig);
+
+		IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index - 1);
+		mn.instructions.insertBefore(node, indexNode);
+
+		MethodInsnNode get = new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(BooleanHelper.class),
+				"longSub",
+				Type.getMethodDescriptor(Type.INT_TYPE,
+						new Type[] { Type.LONG_TYPE, Type.LONG_TYPE, Type.getType(String.class), Type.INT_TYPE }),
+				false);
 		list.insert(position, get);
 		list.remove(position);
 	}
 
-	private void insertFloatComparisonG(AbstractInsnNode position, InsnList list) {
-		MethodInsnNode get = new MethodInsnNode(Opcodes.INVOKESTATIC,
-		        Type.getInternalName(BooleanHelper.class), "floatSubG",
-		        Type.getMethodDescriptor(Type.INT_TYPE, new Type[] { Type.FLOAT_TYPE,
-		                Type.FLOAT_TYPE }), false);
+	private void insertFloatComparisonG(AbstractInsnNode position, InsnList list, ClassNode cn, MethodNode mn,
+			int index, AbstractInsnNode node) {
+		LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc);
+		mn.instructions.insertBefore(node, methodSig);
+
+		IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index - 1);
+		mn.instructions.insertBefore(node, indexNode);
+
+		MethodInsnNode get = new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(BooleanHelper.class),
+				"floatSubG",
+				Type.getMethodDescriptor(Type.INT_TYPE,
+						new Type[] { Type.FLOAT_TYPE, Type.FLOAT_TYPE, Type.getType(String.class), Type.INT_TYPE }),
+				false);
 		list.insert(position, get);
 		list.remove(position);
 	}
 
-	private void insertFloatComparisonL(AbstractInsnNode position, InsnList list) {
-		MethodInsnNode get = new MethodInsnNode(Opcodes.INVOKESTATIC,
-				Type.getInternalName(BooleanHelper.class), "floatSubL",
-				Type.getMethodDescriptor(Type.INT_TYPE, new Type[] { Type.FLOAT_TYPE,
-						Type.FLOAT_TYPE }), false);
+	private void insertFloatComparisonL(AbstractInsnNode position, InsnList list, ClassNode cn, MethodNode mn,
+			int index, AbstractInsnNode node) {
+		LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc);
+		mn.instructions.insertBefore(node, methodSig);
+
+		IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index - 1);
+		mn.instructions.insertBefore(node, indexNode);
+
+		MethodInsnNode get = new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(BooleanHelper.class),
+				"floatSubL",
+				Type.getMethodDescriptor(Type.INT_TYPE,
+						new Type[] { Type.FLOAT_TYPE, Type.FLOAT_TYPE, Type.getType(String.class), Type.INT_TYPE }),
+				false);
 		list.insert(position, get);
 		list.remove(position);
 	}
 
-	private void insertDoubleComparisonG(AbstractInsnNode position, InsnList list) {
-		MethodInsnNode get = new MethodInsnNode(Opcodes.INVOKESTATIC,
-		        Type.getInternalName(BooleanHelper.class), "doubleSubG",
-		        Type.getMethodDescriptor(Type.INT_TYPE, new Type[] { Type.DOUBLE_TYPE,
-		                Type.DOUBLE_TYPE }), false);
+	private void insertDoubleComparisonG(AbstractInsnNode position, InsnList list, ClassNode cn, MethodNode mn,
+			int index, AbstractInsnNode node) {
+		LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc);
+		mn.instructions.insertBefore(node, methodSig);
+
+		IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index - 1);
+		mn.instructions.insertBefore(node, indexNode);
+
+		MethodInsnNode get = new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(BooleanHelper.class),
+				"doubleSubG",
+				Type.getMethodDescriptor(Type.INT_TYPE,
+						new Type[] { Type.DOUBLE_TYPE, Type.DOUBLE_TYPE, Type.getType(String.class), Type.INT_TYPE }),
+				false);
 		list.insert(position, get);
 		list.remove(position);
 	}
 
-	private void insertDoubleComparisonL(AbstractInsnNode position, InsnList list) {
-		MethodInsnNode get = new MethodInsnNode(Opcodes.INVOKESTATIC,
-				Type.getInternalName(BooleanHelper.class), "doubleSubL",
-				Type.getMethodDescriptor(Type.INT_TYPE, new Type[] { Type.DOUBLE_TYPE,
-						Type.DOUBLE_TYPE }), false);
+	private void insertDoubleComparisonL(AbstractInsnNode position, InsnList list, ClassNode cn, MethodNode mn,
+			int index, AbstractInsnNode node) {
+		LdcInsnNode methodSig = new LdcInsnNode(cn.name + "#" + mn.name + mn.desc);
+		mn.instructions.insertBefore(node, methodSig);
+
+		IntInsnNode indexNode = new IntInsnNode(Opcodes.SIPUSH, index - 1);
+		mn.instructions.insertBefore(node, indexNode);
+
+		MethodInsnNode get = new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(BooleanHelper.class),
+				"doubleSubL",
+				Type.getMethodDescriptor(Type.INT_TYPE,
+						new Type[] { Type.DOUBLE_TYPE, Type.DOUBLE_TYPE, Type.getType(String.class), Type.INT_TYPE }),
+				false);
 		list.insert(position, get);
 		list.remove(position);
 	}

@@ -27,62 +27,77 @@ import org.slf4j.LoggerFactory;
 
 public class MethodUtil {
 	private static Logger log = LoggerFactory.getLogger(MethodUtil.class);
+
 	
+	public static String convertType(String headType) {
+		String sig = "(" + headType + ")V";
+		String[] array = parseSignature(sig);
+		return array[0];
+	}
 	
 	/**
-	 * return class name such as com.a.b.Class
-	 * return primitive type such as int, double, etc.
+	 * 
+	 * return a list of parameter types followed by the return type.
+	 * 
+	 * class name such as com.a.b.Class primitive type such as int, double, etc.
+	 * 
 	 * @param desc
-	 * @param ins 
+	 * @param ins
 	 * @return
 	 */
 	public static String[] parseSignature(String desc) {
-		// TODO Cheng Yan, also need to parse primitive type like int, char, boolea, etc.
-		
-		//input:()
+		// TODO Cheng Yan, also need to parse primitive type like int, char, boolea,
+		// etc.
+
+		// input:()
 		String input = desc.split("[)]")[0];
 		input = input.substring(input.indexOf('(') + 1, input.length());
-		//output:after ')'
+		// output:after ')'
 		String[] outputTypes = desc.split("[)]")[1].split(";");
-		
+
 		String[] inputTypes = input.split(";");
 		List<String> allTypes = new ArrayList<>();
-		prase(allTypes,inputTypes);
-		prase(allTypes,outputTypes);	
-		String[] localSeparateTypes  = allTypes.toArray(new String[0]);
-				
-		for(int i=0; i<localSeparateTypes.length; i++) {
-			if(localSeparateTypes[i].startsWith("L")) {
+		if(inputTypes.length>=1) {
+			if(!(inputTypes.length==1 && inputTypes[0].equals(""))) {			
+				prase(allTypes, inputTypes);
+			}			
+		}
+		
+		prase(allTypes, outputTypes);
+		String[] localSeparateTypes = allTypes.toArray(new String[0]);
+
+		for (int i = 0; i < localSeparateTypes.length; i++) {
+			if (localSeparateTypes[i].startsWith("L")) {
 				localSeparateTypes[i] = localSeparateTypes[i].substring(1, localSeparateTypes[i].length());
 				localSeparateTypes[i] = localSeparateTypes[i].replace("/", ".");
 			}
-			}
+		}
 		return localSeparateTypes;
 	}
-	
+
 	private static void prase(List<String> inputs, String[] inputTypes) {
-		if(inputTypes.length == 1) {//void
-			if(inputTypes[0].equals("") || inputTypes[0].equals("V")) {
+		if (inputTypes.length == 1) {// void
+			if (inputTypes[0].equals("") || inputTypes[0].equals("V")) {
 				inputs.add("void");
 				return;
 			}
 		}
-		for(int i = 0;i < inputTypes.length ;i++) {
-			if(!inputTypes[i].startsWith("L")) {
-				//&& !inputTypes[i].startsWith("[L")
-				//start with primitive type || '[' type
+		for (int i = 0; i < inputTypes.length; i++) {
+			if (!inputTypes[i].startsWith("L")) {
+				// && !inputTypes[i].startsWith("[L")
+				// start with primitive type || '[' type
 				char[] charList = inputTypes[i].toCharArray();
 				boolean isList = false;
 				int startIndex = 0;
-				for(int j = 0;j < charList.length ;j++) {
+				for (int j = 0; j < charList.length; j++) {
 					char c = charList[j];
 					String clas = null;
-					if(!isList && c == '[') {
+					if (!isList && c == '[') {
 						startIndex = j;
 						isList = true;
 						continue;
 					}
-					switch(c) {
+					switch (c) {
 					case '[':
 						continue;
 					case 'I':
@@ -106,34 +121,34 @@ public class MethodUtil {
 					case 'B':
 						clas = "byte";
 						break;
-					case 'S':{
+					case 'S': {
 						clas = "short";
 						break;
 					}
-					case 'L':{
+					case 'L': {
 						clas = inputTypes[i].substring(j, charList.length);
 						j = charList.length - 1;
 						break;
-						}
+					}
 					}
 					String type = praseInstructionType(isList, j, clas, startIndex);
 					inputs.add(type);
 					isList = false;
 				}
-			}else
-				//start with 'L'
+			} else
+				// start with 'L'
 				inputs.add(inputTypes[i]);
 		}
-		
+
 	}
 
-	private static String praseInstructionType(boolean isList, int j, String string, int startIndex) {		
-		if(isList) {
-			if(j - startIndex == 2)
+	private static String praseInstructionType(boolean isList, int j, String string, int startIndex) {
+		if (isList) {
+			if (j - startIndex == 2)
 				return string + "[][]";
 			else
 				return string + "[]";
-		}else
+		} else
 			return string;
 	}
 
@@ -151,7 +166,7 @@ public class MethodUtil {
 					return n;
 				}
 			}
-			
+
 			// Can't find the method in current class
 			// Check its parent class
 			try {
@@ -170,20 +185,19 @@ public class MethodUtil {
 
 		return null;
 	}
-	
+
 	public static ActualControlFlowGraph registerMethod(String className, String methodName) {
 		Class<?> clazz;
 		try {
-			clazz = TestGenerationContext.getInstance().getClassLoaderForSUT()
-					.loadClass(className);
+			clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
 			return registerMethod(clazz, methodName);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
-	
+
 	public static ActualControlFlowGraph registerMethod(Class<?> fieldDeclaringClass, String methodName) {
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		String className = fieldDeclaringClass.getName();
@@ -205,10 +219,10 @@ public class MethodUtil {
 				return null;
 			}
 		}
-		
+
 		return cfg;
 	}
-	
+
 	public static List<String> getInvokedMethods(String targetClass, String methodName) {
 		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 				.getClassAsStream(targetClass);
@@ -220,12 +234,13 @@ public class MethodUtil {
 			List<MethodNode> methods = cn.methods;
 			for (MethodNode method : methods) {
 				if (methodName.equals(CommonUtility.getMethodName(method))) {
-					for (Iterator<AbstractInsnNode> it = method.instructions.iterator(); it.hasNext(); ) {
+					for (Iterator<AbstractInsnNode> it = method.instructions.iterator(); it.hasNext();) {
 						AbstractInsnNode insnNode = it.next();
 						if (CommonUtility.isInvokeMethodInsn(insnNode)) {
 							if (insnNode instanceof MethodInsnNode) {
 								MethodInsnNode invokedNode = (MethodInsnNode) insnNode;
-								validMethods.add(CommonUtility.getMethodId(invokedNode.owner, invokedNode.name + invokedNode.desc));
+								validMethods.add(CommonUtility.getMethodId(invokedNode.owner,
+										invokedNode.name + invokedNode.desc));
 							}
 						}
 					}
@@ -236,7 +251,7 @@ public class MethodUtil {
 		}
 		return validMethods;
 	}
-	
+
 	public static String getSignature(Method m) {
 		String sig;
 		StringBuilder sb = new StringBuilder("(");
@@ -248,7 +263,7 @@ public class MethodUtil {
 				.toString();
 		return str.replace(".", "/");
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public static String getSignature(Constructor m) {
 		String sig;
@@ -257,10 +272,12 @@ public class MethodUtil {
 		for (Class<?> c : m.getParameterTypes())
 			sb.append((sig = Array.newInstance(c, 0).toString()).substring(1, sig.indexOf('@')));
 		String str = sb.append(')').append("V").toString();
-		
+
 //		.append(m.getReturnType() == void.class ? "V"
 //				: (sig = Array.newInstance(m.getReturnType(), 0).toString()).substring(1, sig.indexOf('@')))
 //		.toString();
 		return str.replace(".", "/");
 	}
+
+	
 }

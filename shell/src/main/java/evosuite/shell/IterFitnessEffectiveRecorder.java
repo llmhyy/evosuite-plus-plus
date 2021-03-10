@@ -47,6 +47,7 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		header.add("Age of Best Coverage");
 		header.add("Avg Initial Coverage");
 		header.add("Avg Initialization Overhead");
+		header.add("Age Age");
 		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
 	}
 
@@ -88,6 +89,8 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		double ageOfBestCvg = 0;
 		double totalInitialCoverage = 0.0;
 		double totalInitializationOverhead = 0.0;
+		
+		double totalAge = 0;
 		for (int i = 0; i < iterator; i++) {
 			EvoTestResult r = currentResult.get(i);
 			rowData.add(r.getTime());
@@ -118,6 +121,7 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 			totalTime += r.getTime();
 			totalInitialCoverage += r.getInitialCoverage();
 			totalInitializationOverhead += r.getInitializationOverhead();
+			totalAge += r.getAge();
 		}
 		rowData.add(currentResult.get(0).getRatio());
 		rowData.add(totalTime / successR);
@@ -126,6 +130,7 @@ public class IterFitnessEffectiveRecorder extends FitnessEffectiveRecorder {
 		rowData.add(ageOfBestCvg);
 		rowData.add(totalInitialCoverage / successR);
 		rowData.add(totalInitializationOverhead / successR);
+		rowData.add(totalAge / successR);
 		try {
 			excelWriter.writeSheet("data", Arrays.asList(rowData));
 		} catch (IOException e) {

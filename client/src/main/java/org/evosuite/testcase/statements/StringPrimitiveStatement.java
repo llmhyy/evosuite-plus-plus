@@ -35,6 +35,7 @@ import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.result.seedexpr.SearchEvent;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.execution.CodeUnderTestException;
 import org.evosuite.testcase.execution.Scope;
@@ -239,7 +240,7 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.STRING, String.valueOf(value)));			
 		}
 		else {
-			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool();
+			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool(BranchSeedInfo.STRING);
 			String candidateString = constantPool.getRandomString();
 			if(Properties.MAX_STRING > 0 && candidateString.length() < Properties.MAX_STRING)
 				value = candidateString;

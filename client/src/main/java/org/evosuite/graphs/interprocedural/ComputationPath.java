@@ -7,13 +7,18 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.instrumentation.testability.StringHelper;
+import org.evosuite.seeding.smart.BranchSeedInfo;
+import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.MethodUtil;
+import org.hibernate.internal.util.collections.CollectionHelper;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 
 /**
  * each computation path starts with a method input, ends with an operand
+ * 
  * @author Yun Lin
  *
  */
@@ -25,10 +30,10 @@ public class ComputationPath {
 	private ComputationPath(Branch branch) {this.branch = branch;}
 
 	public double getScore() {
-		if(score == -1) {
+		if (score == -1) {
 			this.score = this.evaluateFastChannelScore();
 		}
-		
+
 		return score;
 	}
 
@@ -45,61 +50,201 @@ public class ComputationPath {
 	}
 
 	/**
-	 * (1) the start node should be a method input/parameter.
-	 * (2) the path from the start node to the brand operand is "simple".
+	 * (1) the start node should be a method input/parameter. (2) the path from the
+	 * start node to the brand operand is "simple".
+	 * 
 	 * @param operands
 	 * @return
 	 */
 	public double evaluateFastChannelScore() {
 		boolean isParameter = isStartWithMethodInput(this);
-		if(!isParameter) return 0;
-		
-		double value = 1;
-		
-		DepVariable prevNode = null;
-		for(int i=0; i<this.computationNodes.size()-1; i++) {
-			DepVariable node = computationNodes.get(i);
-			/**
-			 * conq is between (0, 1).
-			 */
-			double conq = evaluateConsequence(node, prevNode);
-			value = value * conq;
+		if (!isParameter)
+			return 0;
+
+//		return 1;
+
+		if (this.computationNodes.size() == 1)
+			return 1.0;
+
+		DepVariable head = this.computationNodes.get(0);
+		/**
+		 * tail is operand
+		 */
+		String tailType = null;
+		DepVariable tail = this.computationNodes.get(this.computationNodes.size() - 1);
+		if (tail.isMethodCall()) {
+			String methodDesc = tail.getInstruction().getCalledMethod();
+			String[] parameters = MethodUtil.parseSignature(methodDesc);
+
+//			String returnType = parameters[parameters.length - 1];
+			if(this.branch.getInstruction().getOperandNum() == 1) {
+				DepVariable prevNode = this.computationNodes.get(this.computationNodes.size() - 2);
+				int order = tail.getInputOrder(prevNode);
+
+				if (!tail.getInstruction().isInvokeStatic()) {
+					order--;
+				}
+
+				if (order != -1) {
+					tailType = parameters[order];
+				} else {
+					tail = this.computationNodes.get(this.computationNodes.size() - 2);
+				}
+			}
 			
-			prevNode = node;
+
+			
+		}
+
+		String headType = head.getDataType();
+		if (headType.contains("[")) {
+			headType = headType.substring(0, headType.indexOf("["));
+		}
+//		headType = MethodUtil.convertType(headType);
+		if (tailType == null) {
+			tailType = tail.getDataType();
+		}
+		if (tailType.contains("[")) {
+			tailType = tailType.substring(0, tailType.indexOf("["));
+			tailType = MethodUtil.convertType(tailType);
+		}
+		if (tailType.equals(BranchSeedInfo.OTHER)) {
+			return 0;
+		}
+		System.currentTimeMillis();
+		if (isCompatible(headType, tailType)) {
+
+			double base = 6;
+
+			double effectiveNodeNumber = calculateEffectiveNodeNumber();
+			
+			double factor = Math.max(0, effectiveNodeNumber - base);
+			double score = 1 - factor / (factor + 1);
+
+			return score;
+		}
+
+		return 0;
+
+		// TODO later, we need a better way to evaluate the semantics of a path.
+//		double value = 1;
+//		
+//		DepVariable prevNode = null;
+//		for(int i=0; i<this.computationNodes.size()-1; i++) {
+//			DepVariable node = computationNodes.get(i);
+//			/**
+//			 * conq is between (0, 1).
+//			 */
+//			double conq = evaluateConsequence(node, prevNode);
+//			value = value * conq;
+//			
+//			prevNode = node;
+//		}
+//		
+//		return value;
+	}
+
+	private double calculateEffectiveNodeNumber() {
+		int count = 0;
+		for(DepVariable node: this.computationNodes) {
+			if(node.incurZeroInformation()) {
+				continue;
+			}
+			
+			count++;
 		}
 		
-		return value;
+		return count;
+	}
+
+	private boolean isCompatible(String headType, String tailType) {
+
+		if (headType.equals(tailType)) {
+			return true;
+		}
+
+		if (isPrimitiveNumber(headType) && isPrimitiveNumber(tailType)) {
+			return true;
+		} else if (isPrimitiveNumber(headType) ^ isPrimitiveNumber(tailType)) {
+			return false;
+		}
+
+		if (isPrimitiveBoolean(headType) && isPrimitiveBoolean(tailType)) {
+			return true;
+		} else if (isPrimitiveBoolean(headType) ^ isPrimitiveBoolean(tailType)) {
+			return false;
+		}
+
+		if (headType.equals("java.lang.Object") || tailType.equals("java.lang.Object")) {
+			return true;
+		}
+
+		if (headType.equals(BranchSeedInfo.OTHER) || tailType.equals(BranchSeedInfo.OTHER)) {
+			return false;
+		}
+
+		ClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		try {
+			Class<?> headClass = loader.loadClass(headType);
+			Class<?> tailClass = loader.loadClass(tailType);
+
+			if (headClass.isAssignableFrom(tailClass) || tailClass.isAssignableFrom(headClass)) {
+				return true;
+			}
+
+			Class<?> containerClass = loader.loadClass("java.util.Collection");
+			if (containerClass.isAssignableFrom(headClass)) {
+				return true;
+			}
+
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		return false;
+	}
+
+	private boolean isPrimitiveBoolean(String typeString) {
+		String[] primitiveNums = new String[] { "boolean", "java.lang.Boolean" };
+		return ArrayUtil.contains(primitiveNums, typeString);
+	}
+
+	private boolean isPrimitiveNumber(String typeString) {
+		String[] primitiveNums = new String[] { "int", "byte", "float", "double", "short", "long", "char",
+				"java.lang.Integer", "java.lang.Byte", "java.lang.Float", "java.lang.Double", "java.lang.Float",
+				"java.lang.Short", "java.lang.Long", "java.,lang.Character" };
+		return ArrayUtil.contains(primitiveNums, typeString);
 	}
 
 	public static boolean isStartWithMethodInput(ComputationPath computationPath) {
-		if(computationPath.getComputationNodes().isEmpty()) {
+		if (computationPath.getComputationNodes().isEmpty()) {
 			return false;
 		}
-		
+
 		DepVariable node = computationPath.getComputationNodes().get(0);
-		if(node.isParameter()) {
+		if (node.isParameter()) {
 			return true;
-		}
-		else if(node.isInstaceField()) {
+		} else if (node.isInstaceField()) {
 			String className = node.getInstruction().getClassName();
-			if(className.equals(Properties.TARGET_CLASS)) {
+			if (className.equals(Properties.TARGET_CLASS)) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 
 	private double evaluateConsequence(DepVariable node, DepVariable prevNode) {
-		if(prevNode!=null && prevNode.equals(node)) return 1;
-		
+		if (prevNode != null && prevNode.equals(node))
+			return 1;
+
 		BytecodeInstruction ins = node.getInstruction();
 
 //		if(operands.contains(ins)) {
 //			return 1;
 //		}
-		
-		switch(ins.getInstructionType()) {
+
+		switch (ins.getInstructionType()) {
 		case "ALOAD":
 			return 1;
 		case "ASTORE":
@@ -506,211 +651,179 @@ public class ComputationPath {
 		case "TABLESWITCH":
 			return 0.9;
 		case "WIDE":
-			return 1;	
+			return 1;
 		}
-		
+
 		return 0;
 	}
 
-
 	private double estimateMethodCall(DepVariable node, DepVariable prevNode) {
-		if(prevNode == null) return 1;
+		if (prevNode == null)
+			return 1;
 
 		int inputOrder = node.getInputOrder(prevNode);
-		if(inputOrder >= 0) {
+		if (inputOrder >= 0) {
 			BytecodeInstruction ins = node.getInstruction();
-			
+
 			String desc = ins.getMethodCallDescriptor();
 			String[] separateTypes = MethodUtil.parseSignature(desc);
-			if(!ins.isInvokeStatic()) {
+			if (!ins.isInvokeStatic()) {
 				inputOrder--;
 			}
-			
-			if(inputOrder == -1) {
+
+			if (inputOrder == -1) {
 				/**
-				 *  It means the input is the caller object of the method, to be conservative, 
-				 *  we make its sensitivity score to be 0. Nevertheless, we can attach some sensitivity 
-				 *  for some String type. 
+				 * It means the input is the caller object of the method, to be conservative, we
+				 * make its sensitivity score to be 0. Nevertheless, we can attach some
+				 * sensitivity for some String type.
 				 */
-				//TODO Cheng Yan/Lin Yun we can be smarter if we can analyze the method body
-				/** input -> obj
-				 * string b = obj.m() // m() can be getName(); obj can be string; ...
-				 * if(b.length()>10){...}
+				// TODO Cheng Yan/Lin Yun we can be smarter if we can analyze the method body
+				/**
+				 * input -> obj string b = obj.m() // m() can be getName(); obj can be string;
+				 * ... if(b.length()>10){...}
 				 */
-				
-				//TODO for Cheng Yan, we can add rules here
-				if(ins.getCalledMethodName().equals("toString")) {
-					return 1;
-				}
-				if(ins.getCalledMethodName().equals("replace")) {
-					return 0.9;
-				}
-				if(ins.getCalledMethodName().equals("equals")) {
-					return 0.9;
-				}
-				if(ins.getCalledMethodName().equals("length")) {
-					return 1;
-				}
-				if(ins.getCalledMethodName().equals("toLowerCase")) {
-					return 0.9;
-				}
-				if(ins.getCalledMethodName().equals("toUpperCase")) {
-					return 0.9;
-				}
-				if(ins.getCalledMethodName().equals("getFirst")) {
-					return 0.9;
-				}
-				if(ins.getCalledMethodName().equals("split")) {
-					return 0.9;
-				}
-				return 0;
+
+				String callerObjectType = ins.getCalledMethodsClass();
+				String methodName = ins.getCalledMethodName();
+
+				// TODO for Cheng Yan, we can add rules here
+				double value = SensitiveCallRules.getSensitivity(callerObjectType, methodName);
+				return value;
 			}
-			
+
 			String inputType = separateTypes[inputOrder];
-			String outType = separateTypes[separateTypes.length-1];			
-			
+			String outType = separateTypes[separateTypes.length - 1];
+
 			double score = estimateInformationSensitivity(inputType, outType);
 			return score;
 		}
-		
-		
+
 		System.err.println("DepVariable cannot locate its input");
 		return 0.7;
 	}
 
 	public static double estimateInformationSensitivity(String inputType, String outputType) {
-		if(inputType.equals(outputType)) {
+		if (inputType.equals(outputType)) {
 			return 1;
 		}
-		
-		if(isPrimitive(inputType) && isPrimitive(outputType)) {
+
+		if (isPrimitive(inputType) && isPrimitive(outputType)) {
 			return 0.8;
 		}
-		
-		if(isPrimitive(inputType) && !isPrimitive(outputType)) {
+
+		if (isPrimitive(inputType) && !isPrimitive(outputType)) {
 			return 0;
 		}
-		
-		if(!isPrimitive(inputType) && isPrimitive(outputType)) {
+
+		if (!isPrimitive(inputType) && isPrimitive(outputType)) {
 			return 0;
 		}
-		
+
 		ClassLoader loader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		try {
 			String input = inputType.contains("[") ? inputType.substring(0, inputType.indexOf("[")) : inputType;
 			String output = outputType.contains("[") ? outputType.substring(0, outputType.indexOf("[")) : outputType;
-			
+
 			Class<?> inputClazz = loader.loadClass(input);
 			Class<?> outputClazz = loader.loadClass(output);
-			
-			if(inputClazz.isAssignableFrom(outputClazz) || outputClazz.isAssignableFrom(inputClazz)) {
+
+			if (inputClazz.isAssignableFrom(outputClazz) || outputClazz.isAssignableFrom(inputClazz)) {
 				return 0.8;
-			}
-			else{
+			} else {
 				double score = getRelevanceWithHeuristics(inputClazz, outputClazz);
 				return score;
 			}
-			
+
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		
+
 		return 0;
 	}
 
 	private static double getRelevanceWithHeuristics(Class<?> inputClazz, Class<?> outputClazz) {
 		String className1 = inputClazz.getCanonicalName();
 		String className2 = outputClazz.getCanonicalName();
-		
+
 		String common = greatestCommonPrefix(className1, className2);
 		double numerator = common.length();
 		double denominator = Math.min(className1.length(), className2.length());
-		return numerator/denominator;
+		return numerator / denominator;
 	}
-	
+
 	private static String greatestCommonPrefix(String a, String b) {
-	    int minLength = Math.min(a.length(), b.length());
-	    for (int i = 0; i < minLength; i++) {
-	        if (a.charAt(i) != b.charAt(i)) {
-	            return a.substring(0, i);
-	        }
-	    }
-	    return a.substring(0, minLength);
+		int minLength = Math.min(a.length(), b.length());
+		for (int i = 0; i < minLength; i++) {
+			if (a.charAt(i) != b.charAt(i)) {
+				return a.substring(0, i);
+			}
+		}
+		return a.substring(0, minLength);
 	}
 
 	private static boolean isPrimitive(String inputType) {
-		if(inputType.equals(int.class.toString()) || inputType.equals(long.class.toString())//LONG
-				|| inputType.equals(float.class.toString())
-				|| inputType.equals(double.class.toString())
-				|| inputType.equals(char.class.toString())
-				|| inputType.equals(boolean.class.toString())//BOOLEAN
-				|| inputType.equals(byte.class.toString())
-				|| inputType.equals(short.class.toString())
-				) {
-			return true;			
+		if (inputType.equals(int.class.toString()) || inputType.equals(long.class.toString())// LONG
+				|| inputType.equals(float.class.toString()) || inputType.equals(double.class.toString())
+				|| inputType.equals(char.class.toString()) || inputType.equals(boolean.class.toString())// BOOLEAN
+				|| inputType.equals(byte.class.toString()) || inputType.equals(short.class.toString())) {
+			return true;
 		}
-		
+
 		return false;
 	}
-
-	
 
 	public boolean isHardConstant(List<BytecodeInstruction> operands) {
 		boolean isConstant = false;
 		/**
-		 * We assume that each path can only have two nodes, one for operand, and the other for the constant
+		 * We assume that each path can only have two nodes, one for operand, and the
+		 * other for the constant
 		 * 
-		 * x == 34500000
-		 * computationNodes.size() == 1
+		 * x == 34500000 computationNodes.size() == 1
 		 * 
 		 */
-		if(computationNodes.size() == 2 || computationNodes.size() == 1) {
-			BytecodeInstruction ins = computationNodes.get(0).getInstruction();
-			if(!ins.isConstant()) {
-				isConstant = false;
-				return isConstant;
-			}
-			else {
-				if(ins.getASMNode().getType() == AbstractInsnNode.LDC_INSN)
-					return true;
-				
-				Object obj = getConstantValue(ins);
-				//TODO Cheng Yan non-string value should be larger 100?
-				if(obj instanceof Double) {
-					return (Double)obj > 100;
-				}
-				else {
-					return false;
-				}
+		BytecodeInstruction ins = computationNodes.get(0).getInstruction();
+		if (!ins.isConstant()) {
+			isConstant = false;
+			return isConstant;
+		} else {
+			if (ins.getASMNode().getType() == AbstractInsnNode.LDC_INSN)
+				return true;
+
+			Object obj = getConstantValue(ins);
+			// TODO Cheng Yan non-string value should be larger 100?
+			if (obj instanceof Double) {
+				return (Double) obj > 100;
+			} else {
+				return false;
 			}
 		}
-		
-		return isConstant;
+
+//		return isConstant;
 	}
-	
+
 	private Object getConstantValue(BytecodeInstruction ins) {
 		AbstractInsnNode node = ins.getASMNode();
-		if(node.getType() == AbstractInsnNode.INT_INSN) {
-			IntInsnNode iins = (IntInsnNode)node;
+		if (node.getType() == AbstractInsnNode.INT_INSN) {
+			IntInsnNode iins = (IntInsnNode) node;
 			return Double.valueOf(iins.operand);
-		}else if(node.getType() == AbstractInsnNode.INSN) {
-			//small value
+		} else if (node.getType() == AbstractInsnNode.INSN) {
+			// small value
 			return 5.0;
-		}else if(node.getType() == AbstractInsnNode.LDC_INSN) {
-			LdcInsnNode ldc = (LdcInsnNode)node;
-			if(ldc.cst.getClass() != String.class) {
+		} else if (node.getType() == AbstractInsnNode.LDC_INSN) {
+			LdcInsnNode ldc = (LdcInsnNode) node;
+			if (ldc.cst.getClass() != String.class) {
 				return Double.valueOf(ldc.cst.toString());
 			}
 		}
-		
+
 		return "string";
 	}
 
 	public static List<ComputationPath> computePath(DepVariable root, Branch branch){
 		List<BytecodeInstruction> operands = branch.getInstruction().getOperands();
 		List<ComputationPath> computationPath = new ArrayList<>();
-		List<DepVariable> nodes = new ArrayList<>(); 
-		//traverse input to oprands
+		List<DepVariable> nodes = new ArrayList<>();
+		// traverse input to oprands
 		nodes.add(root);
 		dfsRoot(root, operands, computationPath, nodes, branch);
 		return computationPath;
@@ -726,20 +839,19 @@ public class ComputationPath {
 	private static void dfsRoot(DepVariable root, List<BytecodeInstruction> operands,
 			List<ComputationPath> computationPath, List<DepVariable> nodes, Branch branch2) {
 		DepVariable node = root;
-//		Boolean isVisted = true;
-		int n = node.getInstruction().getOperandNum();
-		if(n == 0)
-			n += 1;
-		for(int i = 0; i < node.getRelations().length;i++) {
+//		int n = node.getInstruction().getOperandNum();
+//		if(n == 0)
+//			n += 1;
+		for (int i = 0; i < node.getRelations().length; i++) {
 			List<DepVariable> nodeList = node.getRelations()[i];
-			if(nodeList == null) {
+			if (nodeList == null) {
 				continue;
 			}
-			for(int j = 0;j < nodeList.size();j++) {
+			for (int j = 0; j < nodeList.size(); j++) {
 				node = nodeList.get(j);
-				if(!(operands.contains(node.getInstruction()) 
+				if (!(operands.contains(node.getInstruction())
 //						&& operands.contains(node.getInstruction().getLineNumber())
-						)) {
+				)) {
 					nodes.add(node);
 					dfsRoot(node,operands,computationPath,nodes, branch2);
 				}
@@ -749,10 +861,10 @@ public class ComputationPath {
 				}
 			}
 		}
-		
-		if(operands.contains(nodes.get(nodes.size() - 1).getInstruction())) {
+
+		if (operands.contains(nodes.get(nodes.size() - 1).getInstruction())) {
 			List<DepVariable> computationNodes = new ArrayList<>();
-			for(int i = 0; i< nodes.size();i++) {
+			for (int i = 0; i < nodes.size(); i++) {
 				computationNodes.add(nodes.get(i));
 			}
 			ComputationPath pathRecord = new ComputationPath(branch2);
@@ -768,21 +880,28 @@ public class ComputationPath {
 	}
 
 	public boolean containsInstruction(BytecodeInstruction ins) {
-		for(DepVariable node: this.computationNodes) {
-			if(node.getInstruction().equals(ins)) {
+		for (DepVariable node : this.computationNodes) {
+			if (node.getInstruction().equals(ins)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
+	private Boolean isFastChannel = null;
+
 	public boolean isFastChannel() {
-		return this.evaluateFastChannelScore() > Properties.FAST_CHANNEL_SCORE_THRESHOLD;
+		if (isFastChannel == null) {
+			isFastChannel = this.evaluateFastChannelScore() > Properties.FAST_CHANNEL_SCORE_THRESHOLD;
+		}
+
+		return isFastChannel;
 	}
 
 	public BytecodeInstruction getInstruction(int i) {
 		return this.computationNodes.get(i).getInstruction();
 	}
+
 
 	public Branch getBranch() {
 		return branch;
@@ -790,6 +909,48 @@ public class ComputationPath {
 
 	public void setBranch(Branch branch) {
 		this.branch = branch;
+	}
+	
+	public boolean shouldIgnore() {
+		
+		if(this.computationNodes.size() == 0) return true;
+		
+		if(this.computationNodes.size() == 1) return false;
+		
+		DepVariable operand = this.computationNodes.get(this.computationNodes.size()-1);
+		if(operand.getInstruction().isMethodCall()) {
+			String className = operand.getInstruction().getCalledMethodsClass();
+			if(className.equals(StringHelper.class.getCanonicalName()) || 
+					className.equals(CollectionHelper.class.getCanonicalName())) {
+				DepVariable prevNode = this.computationNodes.get(this.computationNodes.size()-2);
+				
+				int position = operand.getInputOrder(prevNode);
+				if(position > 1) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+
+	public boolean isPureConstantPath() {
+		if(this.getInstruction(0).isConstant()) {
+			
+			if(this.computationNodes.size() <= 2) return true;
+			
+			for(int i=1; i<this.computationNodes.size()-1; i++) {
+				DepVariable node = this.computationNodes.get(i);
+				
+				if(!node.incurZeroInformation()) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
+		
+		return false;
 	}
 
 }

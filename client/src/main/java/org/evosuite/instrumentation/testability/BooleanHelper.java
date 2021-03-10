@@ -27,7 +27,13 @@ import java.util.Map;
 import java.util.Stack;
 
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchPool;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.smart.BranchwiseConstantPoolManager;
 import org.objectweb.asm.Opcodes;
 
 /**
@@ -150,6 +156,24 @@ public class BooleanHelper {
 		}
 	}
 
+	public static int doubleSubG(double d1, double d2,String methodSig, int index) {
+		if (d1 == d2) {
+			if(Properties.APPLY_SMART_SEED) {
+        		int branch = parseBranchId(methodSig, index);
+    			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, d1);
+    		}
+			ConstantPoolManager.getInstance().addDynamicConstant(d1);
+			return 0;
+		} else {
+			// Bytecode spec: If either number is NaN, the integer 1 is pushed onto the stack
+			if(Double.isNaN(d1) || Double.isNaN(d2)) {
+				return 1;
+			}
+
+			return doubleSubHelper(d1, d2,methodSig,index);
+		}
+	}
+	
 	public static int doubleSubL(double d1, double d2) {
 		if (d1 == d2) {
 			ConstantPoolManager.getInstance().addDynamicConstant(d1);
@@ -161,6 +185,24 @@ public class BooleanHelper {
 			}
 
 			return doubleSubHelper(d1, d2);
+		}
+	}
+	
+	public static int doubleSubL(double d1, double d2,String methodSig, int index) {
+		if (d1 == d2) {
+			if(Properties.APPLY_SMART_SEED) {
+        		int branch = parseBranchId(methodSig, index);
+    			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, d1);
+    		}
+			ConstantPoolManager.getInstance().addDynamicConstant(d1);
+			return 0;
+		} else {
+			// Bytecode spec: If either number is NaN, the integer -1 is pushed onto the stack
+			if(Double.isNaN(d1) || Double.isNaN(d2)) {
+				return -1;
+			}
+
+			return doubleSubHelper(d1, d2, methodSig, index);
 		}
 	}
 
@@ -182,6 +224,30 @@ public class BooleanHelper {
 		ConstantPoolManager.getInstance().addDynamicConstant(d2);
 		return d3;
 	}
+	
+	private static int doubleSubHelper(double d1, double d2,String methodSig, int index) {
+		if(Double.isInfinite(d1) || Double.isInfinite(d2)) {
+			return Double.compare(d1, d2);
+		}
+
+		double diff = d1 - d2;
+		double diff2 = diff / (1.0 + Math.abs(diff));
+		//			int d3 = (int) Math.round(Integer.MAX_VALUE * diff2);
+		int d3 = (int) (diff2 < 0 ? Math.floor(Integer.MAX_VALUE * diff2)
+				: Math.ceil(Integer.MAX_VALUE * diff2));
+		if(d3 == 0)
+			d3 = (int)Math.signum(diff);
+
+		if(Properties.APPLY_SMART_SEED) {
+    		int branch = parseBranchId(methodSig, index);
+			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, d1);
+			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, d2);
+		}
+		ConstantPoolManager.getInstance().addDynamicConstant(d1);
+		ConstantPoolManager.getInstance().addDynamicConstant(d2);
+		return d3;
+	}
+	
 	/**
 	 * Replacement function for float comparison
 	 * 
@@ -217,6 +283,41 @@ public class BooleanHelper {
 			return floatSubHelper(f1, f2);
 		}
 	}
+	
+	public static int floatSubG(float f1, float f2,String methodSig, int index) {
+		if (f1 == f2) {
+			if(Properties.APPLY_SMART_SEED) {
+	    		int branch = parseBranchId(methodSig, index);
+				BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, f1);
+			}
+			ConstantPoolManager.getInstance().addDynamicConstant(f1);
+			return 0;
+		} else {
+			// Bytecode spec: If either number is NaN, the integer 1 is pushed onto the stack
+			if(Float.isNaN(f1) || Float.isNaN(f2)) {
+				return 1;
+			}
+
+			return floatSubHelper(f1, f2, methodSig, index);
+		}
+	}
+
+	public static int floatSubL(float f1, float f2,String methodSig, int index) {
+		if (f1 == f2) {
+			if(Properties.APPLY_SMART_SEED) {
+	    		int branch = parseBranchId(methodSig, index);
+				BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, f1);
+			}
+			ConstantPoolManager.getInstance().addDynamicConstant(f1);
+			return 0;
+		} else {
+			// Bytecode spec: If either number is NaN, the integer -1 is pushed onto the stack
+			if(Float.isNaN(f1) || Float.isNaN(f2)) {
+				return -1;
+			}
+			return floatSubHelper(f1, f2, methodSig, index);
+		}
+	}
 
 	private static int floatSubHelper(float f1, float f2) {
 
@@ -233,6 +334,25 @@ public class BooleanHelper {
 		return d3;
 	}
 
+	private static int floatSubHelper(float f1, float f2,String methodSig, int index) {
+
+		if(Float.isInfinite(f1) || Float.isInfinite(f2)) {
+			return Float.compare(f1, f2);
+		}
+		double diff = (double)f1 - (double)f2;
+		double diff2 = Math.signum(diff) * Math.abs(diff) / (1.0F + Math.abs(diff));
+		int d3 = (int) Math.ceil(Integer.MAX_VALUE * diff2);
+		if(d3 == 0)
+			d3 = (int)Math.signum(diff);
+		if(Properties.APPLY_SMART_SEED) {
+    		int branch = parseBranchId(methodSig, index);
+			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, f1);
+			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, f2);
+		}
+		ConstantPoolManager.getInstance().addDynamicConstant(f1);
+		ConstantPoolManager.getInstance().addDynamicConstant(f2);
+		return d3;
+	}
 
 	/**
 	 * <p>
@@ -271,6 +391,29 @@ public class BooleanHelper {
 			double diff = (double)l1 - (double)l2;
 			double diff2 = Math.signum(diff) * Math.abs(diff) / (1.0 + Math.abs(diff));
 			int d3 = (int) Math.ceil(Integer.MAX_VALUE * diff2);
+			ConstantPoolManager.getInstance().addDynamicConstant(l1);
+			ConstantPoolManager.getInstance().addDynamicConstant(l2);
+			return d3;
+		}
+	}
+	
+	public static int longSub(long l1, long l2,String methodSig, int index) {
+		if (l1 == l2) {
+			if(Properties.APPLY_SMART_SEED) {
+	    		int branch = parseBranchId(methodSig, index);
+				BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, l1);
+			}
+			ConstantPoolManager.getInstance().addDynamicConstant(l1);
+			return 0;
+		} else {
+			double diff = (double)l1 - (double)l2;
+			double diff2 = Math.signum(diff) * Math.abs(diff) / (1.0 + Math.abs(diff));
+			int d3 = (int) Math.ceil(Integer.MAX_VALUE * diff2);
+			if(Properties.APPLY_SMART_SEED) {
+	    		int branch = parseBranchId(methodSig, index);
+				BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, l1);
+				BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, l2);
+			}
 			ConstantPoolManager.getInstance().addDynamicConstant(l1);
 			ConstantPoolManager.getInstance().addDynamicConstant(l2);
 			return d3;
@@ -890,4 +1033,31 @@ public class BooleanHelper {
 	public static void pushParameter(Object o) {
 		parametersObject.push(o);
 	}
+	
+	 private static int parseBranchId(String methodSig, int index) {
+	    	String className = methodSig.substring(0, methodSig.indexOf("#"));
+	    	className = className.replace("/", ".");
+	    	String methodName = methodSig.substring(methodSig.indexOf("#")+1, methodSig.length());
+	    	
+	    	ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+			BytecodeInstruction instruction = BytecodeInstructionPool.getInstance(classLoader).
+				getInstruction(className, methodName, index);
+			
+			while(!instruction.isBranch()) {
+				instruction = instruction.getNextInstruction();
+			}
+			
+			if(instruction != null) {
+				if (BranchPool.getInstance(classLoader).isKnownAsBranch(instruction)) {
+					Branch b = BranchPool.getInstance(classLoader).getBranchForInstruction(instruction);
+					if (b == null)
+						return -1;
+
+					return b.getActualBranchId();
+				}
+			}
+			
+			return -1;
+		}
+	 
 }
