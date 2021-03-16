@@ -24,11 +24,16 @@ public class SmartSeedBranchUpdateManager {
 			if(obj instanceof BranchFitness) {
 				BranchFitness bf = (BranchFitness)obj;
 				BranchCoverageGoal goal = bf.getBranchGoal();
-				BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(goal.getBranch());
-				
-				if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
-					infoSet.add(info);	
+				//TODO
+				if(goal.getBranch().getClassName().equals(Properties.TARGET_CLASS) &&
+						goal.getBranch().getMethodName().equals( Properties.TARGET_METHOD)) {
+					BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(goal.getBranch());
+					
+					if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
+						infoSet.add(info);	
+					}
 				}
+				
 			}
 		}
 		

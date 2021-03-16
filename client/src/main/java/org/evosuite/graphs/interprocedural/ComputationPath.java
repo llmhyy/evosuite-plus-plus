@@ -157,7 +157,7 @@ public class ComputationPath {
 		return count;
 	}
 
-	private boolean isCompatible(String headType, String tailType) {
+	public static boolean isCompatible(String headType, String tailType) {
 
 		if (headType.equals(tailType)) {
 			return true;
@@ -204,12 +204,12 @@ public class ComputationPath {
 		return false;
 	}
 
-	private boolean isPrimitiveBoolean(String typeString) {
+	private static boolean isPrimitiveBoolean(String typeString) {
 		String[] primitiveNums = new String[] { "boolean", "java.lang.Boolean" };
 		return ArrayUtil.contains(primitiveNums, typeString);
 	}
 
-	private boolean isPrimitiveNumber(String typeString) {
+	private static boolean isPrimitiveNumber(String typeString) {
 		String[] primitiveNums = new String[] { "int", "byte", "float", "double", "short", "long", "char",
 				"java.lang.Integer", "java.lang.Byte", "java.lang.Float", "java.lang.Double", "java.lang.Float",
 				"java.lang.Short", "java.lang.Long", "java.,lang.Character" };

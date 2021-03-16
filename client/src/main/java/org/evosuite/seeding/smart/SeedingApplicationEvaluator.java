@@ -384,7 +384,7 @@ public class SeedingApplicationEvaluator {
 		return null;
 	}
 
-	private static String finalType(String name) {
+	public static String finalType(String name) {
 		String type[] =  name.split("\\.");
 		if(type[type.length - 1].equals("Integer"))
 			return "int";

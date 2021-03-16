@@ -210,7 +210,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				this.clearCachedResults(offspring2);
 				this.calculateFitness(offspring2);
 				
-				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
+				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring2, parent2, uncoveredGoals);
 				EventSequence.addEvent(e);
 				
 				new MutationPositionDiscriminator().identifyRelevantMutations(offspring2, parent2);

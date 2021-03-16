@@ -24,6 +24,7 @@ public class SmartSeedRuntimeTest {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 		Properties.TIMEOUT = 10000000;
+		Properties.ENABLE_TRACEING_EVENT = true;
 	}
 	
 	@Test
@@ -408,8 +409,8 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
-		int budget = 100;
+		int repeatTime = 1;
+		int budget = 10000;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -768,7 +769,7 @@ public class SmartSeedRuntimeTest {
 	public void testConsturctingDynamicPool4UncoveredBranch9() {
 		Class<?> clazz = SmartSeedExample.class;
 		String methodName = "endWithExample";
-		int parameterNum = 1;
+		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -928,8 +929,8 @@ public class SmartSeedRuntimeTest {
 	@Test
 	public void testConsturctingDynamicPool4UncoveredBranch12() {
 		Class<?> clazz = SmartSeedExample.class;
-		String methodName = "equalsExample";
-		int parameterNum = 2;
+		String methodName = "combinationExample";
+		int parameterNum = 1;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
