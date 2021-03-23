@@ -50,6 +50,7 @@ import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.ga.metaheuristics.SearchListener;
 import org.evosuite.ga.operators.mutation.MutationHistory;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.result.BranchDynamicAnalyze;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.EventSequence;
@@ -197,6 +198,9 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				
 				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
 				EventSequence.addEvent(e);
+				
+				BranchDynamicAnalyze.analyzeBranch(offspring1, parent1, uncoveredGoals);
+				
 				
 				new MutationPositionDiscriminator().identifyRelevantMutations(offspring1, parent1);
 				offspringPopulation.add(offspring1);

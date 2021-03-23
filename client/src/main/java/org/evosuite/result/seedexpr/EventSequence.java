@@ -84,9 +84,10 @@ public class EventSequence {
 					isCovered);
 //			addEvent(e);
 			
-			analyzeEvent(e,b,offspring,isCovered);
+//			analyzeEvent(e,b,offspring,isCovered);
 		}
 	}
+	
 
 	private static void analyzeEvent(BranchCoveringEvent e, Branch b, TestChromosome offspring, boolean isCovered) {
 		// TODO 
@@ -114,14 +115,8 @@ public class EventSequence {
 		
 		//find branch input type
 		List<String> inputsType = new ArrayList<String>();
-		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
-				.get(Properties.TARGET_METHOD);
-		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
-		for(DepVariable input : methodInputs) {
-			if(input.isMethodInput()) {
-				inputsType.add(input.getDataType());
-			}
-		}
+		findBranchInputType(inputsType,b);
+		
 		
 		//find target event
 		for(int i = 1; i < eventsList.size();i++) {
@@ -146,28 +141,11 @@ public class EventSequence {
 								break;
 							
 							if(statementType.toLowerCase().contains("string") && statementValue.contains(eventsList.get(i).getValue().toString())) {
-								System.out.println("Find target event");
-								System.out.println(eventsList.get(i).getDataType());
-								System.out.println(eventsList.get(i).getValue());
 								
 								//analyze the branch type
 								int branchType = findBranchType(i,eventsList);
-								switch(branchType) {
-								case Event.staticPoolSampling:
-								case Event.staticContextPoolSampling:
-									recordType(localBranchType,Event.staticContextPoolSampling);	
-									System.out.println("STATIC_POOL");
-									break;
-								case Event.dynamicPoolSampling:
-									recordType(localBranchType,Event.dynamicPoolSampling);
-									System.out.println("DYNAMIC_POOL");
-									break;
-								case Event.randomSampling:
-									recordType(localBranchType,Event.randomSampling);
-									System.out.println("NO_POOL");
-									break;
-								}
-								System.currentTimeMillis();
+								analyzeBranchType(branchType,localBranchType);
+								
 							}
 						}
 						
@@ -183,43 +161,49 @@ public class EventSequence {
 									break;
 								
 								if(ComputationPath.isCompatible(statementType,str) && statementValue.contains(eventsList.get(i).getValue().toString())) {
-									System.out.println("Find target event");
-									System.out.println(eventsList.get(i).getDataType());
-									System.out.println(eventsList.get(i).getValue());
-									
+								
 									//analyze the branch type
 									int branchType = findBranchType(i,eventsList);
-									switch(branchType) {
-									case Event.staticPoolSampling:
-									case Event.staticContextPoolSampling:
-										recordType(localBranchType,Event.staticContextPoolSampling);	
-										System.out.println("STATIC_POOL");
-										break;
-									case Event.dynamicPoolSampling:
-										recordType(localBranchType,Event.dynamicPoolSampling);
-										System.out.println("DYNAMIC_POOL");
-										break;
-									case Event.randomSampling:
-										recordType(localBranchType,Event.randomSampling);
-										System.out.println("NO_POOL");
-										break;
-									}
-									System.currentTimeMillis();
+									analyzeBranchType(branchType,localBranchType);
 								}
 							}
 							
 						}
-					}
-					
-					
-						
+					}		
 				}
 			}
 			
+		}		
+	}
+
+	private static void analyzeBranchType(int branchType, HashMap<Integer, Integer> localBranchType) {
+		switch(branchType) {
+		case Event.staticPoolSampling:
+		case Event.staticContextPoolSampling:
+			recordType(localBranchType,Event.staticContextPoolSampling);	
+			System.out.println("STATIC_POOL");
+			break;
+		case Event.dynamicPoolSampling:
+			recordType(localBranchType,Event.dynamicPoolSampling);
+			System.out.println("DYNAMIC_POOL");
+			break;
+		case Event.randomSampling:
+			recordType(localBranchType,Event.randomSampling);
+			System.out.println("NO_POOL");
+			break;
 		}
-		
-		System.out.println();
-		
+		System.currentTimeMillis();
+	}
+
+	private static void findBranchInputType(List<String> inputsType, Branch b) {
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
+		for(DepVariable input : methodInputs) {
+			if(input.isMethodInput()) {
+				inputsType.add(input.getDataType());
+			}
+		}
 	}
 
 	private static void recordType(HashMap<Integer, Integer> localBranchType, int type) {

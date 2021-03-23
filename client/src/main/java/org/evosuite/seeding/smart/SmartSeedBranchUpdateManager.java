@@ -11,6 +11,7 @@ public class SmartSeedBranchUpdateManager {
 
 	public static Set<BranchSeedInfo> uncoveredApplicableBranchInfo = new HashSet<>();
 	public static double oldPrimitivePool = Properties.PRIMITIVE_POOL;
+	public static Set<BranchSeedInfo> totalUncoveredGoals = new HashSet<>();
 	
 	public static void updateUncoveredBranchInfo(Set<?> uncoveredGoals){
 		
@@ -18,8 +19,10 @@ public class SmartSeedBranchUpdateManager {
 			return;
 		
 		uncoveredApplicableBranchInfo.clear();
+		totalUncoveredGoals.clear();
 		
 		Set<BranchSeedInfo> infoSet = new HashSet<>();
+		Set<BranchSeedInfo> uncoveredGoal = new HashSet<>();
 		for(Object obj: uncoveredGoals) {
 			if(obj instanceof BranchFitness) {
 				BranchFitness bf = (BranchFitness)obj;
@@ -28,7 +31,7 @@ public class SmartSeedBranchUpdateManager {
 				if(goal.getBranch().getClassName().equals(Properties.TARGET_CLASS) &&
 						goal.getBranch().getMethodName().equals( Properties.TARGET_METHOD)) {
 					BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(goal.getBranch());
-					
+					uncoveredGoal.add(info);
 					if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
 						infoSet.add(info);	
 					}
@@ -37,11 +40,13 @@ public class SmartSeedBranchUpdateManager {
 			}
 		}
 		
-//		oldUncoveredApplicableBranchInfo = oldSet;
 		uncoveredApplicableBranchInfo = infoSet;
+		totalUncoveredGoals = uncoveredGoal;
 		
 		double ratio = infoSet.size()*1.0 / uncoveredGoals.size()*1.0 ;
 		Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + ratio);
+		
 	}
+	
 
 }
