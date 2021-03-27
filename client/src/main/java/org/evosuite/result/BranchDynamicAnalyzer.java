@@ -1,6 +1,5 @@
 package org.evosuite.result;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,19 +7,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchFitness;
-import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
-import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.variable.VariableReference;
 
-public class BranchDynamicAnalyze {
+public class BranchDynamicAnalyzer {
 	public static HashMap<Branch,HashMap<Object,Integer>> branchHead = new HashMap<Branch,HashMap<Object,Integer>>();
 	
 	public static final String Parameter = "Parameter";

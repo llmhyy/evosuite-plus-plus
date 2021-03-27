@@ -41,6 +41,10 @@ public class SmartSeedExample {
 		if (x.equals("34500000")) {
 			System.currentTimeMillis();
 		}
+		
+		if(x != x) {
+			System.currentTimeMillis();
+		}
 	}
 
 	public void staticExample3(String x, int y) {

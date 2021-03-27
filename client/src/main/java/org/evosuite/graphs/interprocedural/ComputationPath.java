@@ -9,9 +9,12 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.instrumentation.testability.StringHelper;
 import org.evosuite.seeding.smart.BranchSeedInfo;
+import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.statements.Statement;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.MethodUtil;
 import org.hibernate.internal.util.collections.CollectionHelper;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
@@ -47,6 +50,16 @@ public class ComputationPath {
 
 	public void setComputationNodes(List<DepVariable> computationNodes) {
 		this.computationNodes = computationNodes;
+	}
+	
+	public String toString() {
+		StringBuffer buffer = new StringBuffer();
+		int count = 1;
+		for(DepVariable var: computationNodes) {
+			buffer.append(count++ + ":" + var.getInstruction() + "\n");
+		}
+		
+		return buffer.toString();
 	}
 
 	/**
@@ -902,7 +915,6 @@ public class ComputationPath {
 		return this.computationNodes.get(i).getInstruction();
 	}
 
-
 	public Branch getBranch() {
 		return branch;
 	}
@@ -951,6 +963,37 @@ public class ComputationPath {
 		}
 		
 		return false;
+	}
+
+	public BytecodeInstruction getRelevantTailInstruction() {
+		DepVariable node = this.computationNodes.get(this.computationNodes.size()-1);
+		
+		if(node.getInstruction().getASMNode().getOpcode() == Opcodes.FCMPG ||
+				node.getInstruction().getASMNode().getOpcode() == Opcodes.FCMPL ||
+				node.getInstruction().getASMNode().getOpcode() == Opcodes.DCMPG ||
+				node.getInstruction().getASMNode().getOpcode() == Opcodes.DCMPL) {
+			DepVariable prevNode = this.computationNodes.get(this.computationNodes.size()-2);
+			return prevNode.getInstruction();
+		}
+		else {
+			if(node.getInstruction().isMethodCall()) {
+				if(branch.getInstruction().getOperandNum() == 1) {
+					DepVariable prevNode = this.computationNodes.get(this.computationNodes.size()-2);
+					return prevNode.getInstruction();
+					
+//					String methodSig = node.getInstruction().getCalledMethod();
+//					String[] types = MethodUtil.parseSignature(methodSig);
+//					String returnType = types[types.length-1];
+//					if(returnType.equals("boolean")) {
+//						
+//					}
+				}
+				
+			}
+		}
+		
+		
+		return node.getInstruction();	
 	}
 
 }

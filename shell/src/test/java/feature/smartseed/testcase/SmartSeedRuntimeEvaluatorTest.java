@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.result.BranchDynamicAnalyze;
+import org.evosuite.result.BranchDynamicAnalyzer;
 import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.seeding.smart.SmartSeedBranchUpdateManager;
 import org.evosuite.utils.MethodUtil;
@@ -32,10 +32,14 @@ public class SmartSeedRuntimeEvaluatorTest {
 		Properties.TIMEOUT = 10000000;
 //		Properties.ENABLE_TRACEING_EVENT = true;
 		//Properties.RUNTIMEBRANCH = true;
+		
+		Properties.APPLY_GRADEINT_ANALYSIS = true;
+		Properties.CHROMOSOME_LENGTH = 5;
 	}
 	
 	@Test
 	public void testFindBranchHeadInfo0() throws IOException {
+		
 		Class<?> clazz = SmartSeedExample.class;
 		String methodName = "dynamicExample1";
 		int parameterNum = 2;
@@ -49,7 +53,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 5;
+		int budget = 1000000;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -64,7 +68,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -100,7 +104,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -136,7 +140,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -158,7 +162,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 5;
+		int budget = 10000;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -172,7 +176,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -210,7 +214,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -248,7 +252,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -285,7 +289,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -321,7 +325,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -357,7 +361,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -393,7 +397,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -429,7 +433,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -465,7 +469,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -501,7 +505,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -537,7 +541,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -572,7 +576,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -607,7 +611,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -643,7 +647,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}
@@ -679,7 +683,7 @@ public class SmartSeedRuntimeEvaluatorTest {
 			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
 					b.getMethodName().equals( Properties.TARGET_METHOD)))
 				continue;
-			if(BranchDynamicAnalyze.branchHead.containsKey(b)) {
+			if(BranchDynamicAnalyzer.branchHead.containsKey(b)) {
 				hasBranchHead = true;
 			}
 		}

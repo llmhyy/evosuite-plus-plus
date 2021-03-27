@@ -26,21 +26,27 @@ import org.evosuite.PackageInfo;
 import org.evosuite.Properties;
 import org.evosuite.assertion.CheapPurityAnalyzer;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.CFGClassAdapter;
 import org.evosuite.instrumentation.error.ErrorConditionClassAdapter;
 import org.evosuite.instrumentation.testability.BooleanTestabilityTransformation;
-import org.evosuite.instrumentation.testability.ComparisonTransformation;
 import org.evosuite.instrumentation.testability.ContainerTransformation;
 import org.evosuite.instrumentation.testability.StringTransformation;
+import org.evosuite.instrumentation.testability.ValueRetrievalTransform;
 import org.evosuite.junit.writer.TestSuiteWriterUtils;
 import org.evosuite.runtime.RuntimeSettings;
-import org.evosuite.runtime.instrumentation.*;
+import org.evosuite.runtime.instrumentation.AnnotatedClassNode;
+import org.evosuite.runtime.instrumentation.CreateClassResetClassAdapter;
+import org.evosuite.runtime.instrumentation.LoopCounterClassAdapter;
+import org.evosuite.runtime.instrumentation.MethodCallReplacementClassAdapter;
+import org.evosuite.runtime.instrumentation.RemoveFinalClassAdapter;
+import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
+import org.evosuite.runtime.util.ComputeClassWriter;
 import org.evosuite.seeding.PrimitiveClassAdapter;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.setup.TestCluster;
 import org.evosuite.testcarver.instrument.Instrumenter;
 import org.evosuite.testcarver.instrument.TransformerUtil;
-import org.evosuite.runtime.util.ComputeClassWriter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -69,6 +75,12 @@ public class BytecodeInstrumentation {
 	 */
 	public BytecodeInstrumentation() {
 		this.testCarvingInstrumenter = new Instrumenter();
+	}
+
+	private BytecodeInstruction checkedInstruction;
+	public BytecodeInstrumentation(BytecodeInstruction ins) {
+		this.testCarvingInstrumenter = new Instrumenter();
+		this.checkedInstruction = ins;
 	}
 
 	private static String[] getEvoSuitePackages() {
@@ -231,7 +243,7 @@ public class BytecodeInstrumentation {
 		if (Properties.RESET_STATIC_FIELDS) {
 			cv = handleStaticReset(className, cv);
 		}
-
+		
 		// Mock instrumentation (eg File and TCP).
 		if (TestSuiteWriterUtils.needToUseAgent()) {
 			cv = new MethodCallReplacementClassAdapter(cv, className);
@@ -271,7 +283,7 @@ public class BytecodeInstrumentation {
 				ContainerTransformation ct = new ContainerTransformation(cn);
 				cn = ct.transform();
 			}
-
+			
 			if (shouldTransform(classNameWithDots)) {
 				logger.info("Testability Transforming " + className);
 
@@ -282,6 +294,13 @@ public class BytecodeInstrumentation {
 					throw new Error(t);
 				}
 				logger.info("Testability Transformation done: " + className);
+			}
+			
+			if(this.checkedInstruction != null) {
+				ValueRetrievalTransform st = new ValueRetrievalTransform(cn, this.checkedInstruction);
+				cn = st.transform();
+				
+//				cv = new CheckingInstructionClassAdapter(cv, className, this.checkedInstruction);
 			}
 
 			// -----

@@ -36,6 +36,7 @@ import javax.persistence.Entity;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.runtime.javaee.db.DBManager;
 import org.evosuite.setup.DependencyAnalysis;
@@ -82,6 +83,11 @@ public class InstrumentingClassLoader extends ClassLoader {
 		setClassAssertionStatus(Properties.TARGET_CLASS, true);
 		this.isRegression  = isRegression;
 		logger.debug("REGRESSION classloader running now");
+	}
+	
+	public InstrumentingClassLoader(BytecodeInstruction ins) {
+		this(new BytecodeInstrumentation(ins));
+		logger.debug("dynamic instrumentator classloader running now");
 	}
 
 	/**
