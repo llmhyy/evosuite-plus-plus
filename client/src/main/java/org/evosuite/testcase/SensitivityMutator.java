@@ -65,6 +65,7 @@ public class SensitivityMutator {
 					valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
 					
 					boolean sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
+					System.currentTimeMillis();
 //					Branch targetBranch = path.getBranch();
 //					FitnessFunction<Chromosome> newRelevantFitness = searchForRelevantFitness(targetBranch,
 //							newTestChromosome);

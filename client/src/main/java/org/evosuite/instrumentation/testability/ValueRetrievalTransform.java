@@ -49,7 +49,6 @@ public class ValueRetrievalTransform {
 	 * 
 	 * @return a {@link org.objectweb.asm.tree.ClassNode} object.
 	 */
-	@SuppressWarnings("unchecked")
 	public ClassNode transform() {
 		List<MethodNode> methodNodes = cn.methods;
 		for (MethodNode mn : methodNodes) {
@@ -98,8 +97,18 @@ public class ValueRetrievalTransform {
 //				handleMethodCall();
 			}
 			else if(node instanceof VarInsnNode) {
+				VarInsnNode originalNode = new VarInsnNode(node.getOpcode(), ((VarInsnNode)node).var);
 				
-				VarInsnNode recoveredNode = new VarInsnNode(node.getOpcode(), ((VarInsnNode)node).var);
+				if(node.getOpcode() == Opcodes.ILOAD) {
+					//TODO
+				}
+				else if(node.getOpcode() == Opcodes.DLOAD) {
+					//TODO
+				}
+				else if(node.getOpcode() == Opcodes.FLOAD) {
+					//TODO
+				}
+				
 				MethodInsnNode setTailValue = new MethodInsnNode(
 				        Opcodes.INVOKESTATIC,
 				        Type.getInternalName(RuntimeSensitiveVariable.class),
@@ -110,7 +119,7 @@ public class ValueRetrievalTransform {
 				        						}), 
 				        false);
 				
-				mn.instructions.insertBefore(node, recoveredNode);
+				mn.instructions.insertBefore(node, originalNode);
 				mn.instructions.insertBefore(node, setTailValue);
 			}
 			
