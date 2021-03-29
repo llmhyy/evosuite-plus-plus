@@ -10,6 +10,7 @@ import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.Chromosome;
+import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.ComputationPath;
@@ -20,24 +21,56 @@ import org.evosuite.seeding.RuntimeSensitiveVariable;
 import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
+import org.evosuite.testcase.statements.EntityWithParametersStatement;
 import org.evosuite.testcase.statements.MethodStatement;
+import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.variable.VariableReference;
+import org.evosuite.utils.Randomness;
 
 public class SensitivityMutator {
 	public static List<List<Object>> data = new ArrayList<List<Object>>();
 //	public static int iter = 0;
 
-	public static void testSensitity(Chromosome oldTest) {
+	public static TestCase initializeTest(Branch b, TestFactory testFactory, boolean allowNullValue) {
+		TestCase test = new DefaultTestCase();
+		int success = -1;
+		while (test.size() == 0 || success == -1) {
+			test = new DefaultTestCase();
+			success = testFactory.insertRandomStatement(test, 0);
+			if (test.size() != 0 && success != -1 && !allowNullValue) {
+				mutateNullStatements(test);
+			}
+		}
+
+		return test;
+	}
+	
+	public static void mutateNullStatements(TestCase test) {
+		for (int i = 0; i < test.size(); i++) {
+			Statement s = test.getStatement(i);
+			if (s instanceof NullStatement) {
+				TestFactory.getInstance().changeNullStatement(test, s);
+				System.currentTimeMillis();
+			}
+		}
+	}
+	
+	public static void testSensitity(Set<FitnessFunction<?>> fitnessValues) throws ClassNotFoundException, ConstructionFailedException {
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 
-		TestChromosome oldTestChromosome = (TestChromosome) oldTest;
-		Map<Branch, List<ComputationPath>> branchWithBDChanged = parseComputationPaths(
-				oldTestChromosome.getFitnessValues().keySet(), branchesInTargetMethod);
 
-		for (Branch branch : branchWithBDChanged.keySet()) {
+		for (Branch branch : branchesInTargetMethod.keySet()) {
+			TestCase test = SensitivityMutator.initializeTest(branch, TestFactory.getInstance(), false);
+			
+			TestChromosome oldTestChromosome = new TestChromosome();
+			oldTestChromosome.setTestCase(test);
+			
+			Map<Branch, List<ComputationPath>> branchWithBDChanged = parseComputationPaths(
+					fitnessValues, branchesInTargetMethod);
+			
 			List<ComputationPath> paths = branchWithBDChanged.get(branch);
 			for (ComputationPath path : paths) {
 				
@@ -133,15 +166,156 @@ public class SensitivityMutator {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static FitnessFunction<Chromosome> searchForRelevantFitness(Branch targetBranch,
 			TestChromosome newTestChromosome) {
-		// TODO Aaron
-		return (FitnessFunction<Chromosome>) newTestChromosome.getFitnessValues().keySet().iterator().next();
+		Map<FitnessFunction<?>, Double> fitnessValues = newTestChromosome.getFitnessValues();
+		for (FitnessFunction<?> ff : fitnessValues.keySet()) {
+			if (ff instanceof BranchFitness) {
+				BranchFitness bf = (BranchFitness) ff;
+				if (bf.getBranchGoal().getBranch().equals(targetBranch)) {
+					return (FitnessFunction<Chromosome>) ff;
+				}
+			}
+		}
+
+		return null;
 	}
 
+	// Returns the statement in the test case that modifies rootVariable
 	private static Statement locateRelevantStatement(DepVariable rootVariable, TestChromosome newTestChromosome) {
-		// TODO Aaron
-		return newTestChromosome.getTestCase().getStatement(1);
+		TestCase tc = newTestChromosome.getTestCase();
+
+		if (rootVariable.isParameter()) {
+			MethodStatement callStatement = parseTargetMethodCall(tc);
+			if (callStatement == null) {
+				return null;
+			}
+
+			int paramIndex = rootVariable.getParamOrder() - 1;
+			List<VariableReference> newParams = callStatement.getParameterReferences();
+			VariableReference paramRef = newParams.get(paramIndex);
+			Statement relevantStatement = getStatementModifyVariable(paramRef);
+			Statement rootValueStatement = getRootValueStatement(tc, relevantStatement);
+
+			return rootValueStatement;
+
+		} else if (rootVariable.isInstaceField() || rootVariable.isStaticField()) {
+			Statement fieldStatement = getFieldStatement(tc, rootVariable);
+			Statement rootValueStatement = getRootValueStatement(tc, fieldStatement);
+
+			return rootValueStatement;
+		}
+
+		return null;
+	}
+	
+	private static Statement getRootValueStatement(TestCase testCase, Statement statement) {
+		// 1. PrimitiveStatement: int int0 = (-2236);
+		if (statement == null || statement instanceof PrimitiveStatement) {
+			return statement;
+		}
+
+		// 2. ArrayStatement: int[] intArray0 = new int[0];
+		if (statement instanceof ArrayStatement) {
+			// mutate one random element
+			
+			// get array variable name
+			ArrayStatement as = (ArrayStatement) statement;
+			String code = as.getCode();
+			int start = code.indexOf("[] ");
+			int end = code.indexOf(" = ");
+			String varName = as.getCode().substring(start + 3, end);
+			
+			// array dimension > 1 or array length == 0
+			List<Integer> lengths = as.getLengths();
+			if (lengths.size() != 1 || lengths.get(0) == 0) {
+				return statement;
+			}
+			
+			int indexToMutate = Randomness.nextInt(lengths.get(0));
+			// chance to return array statement to mutate to change its length
+			if (indexToMutate == lengths.get(0)) {
+				return statement;
+			}
+
+			// return 1 random element root statement to mutate
+			for (int i = 0; i < testCase.size(); i++) {
+				Statement st = testCase.getStatement(i);
+				if (st instanceof AssignmentStatement
+						&& st.getCode().contains(varName + "[" + indexToMutate + "] =")) {
+					return getRootValueStatement(testCase, st);
+				}
+			}
+
+			return statement;
+		}
+
+		// 3. ConstructorStatement: BooleanFlagExample1 booleanFlagExample1_0 = new BooleanFlagExample1();
+		// 4. MethodStatement: Integer integer11 = booleanFlagExample1_0.targetM2(intArray0, int5);
+		if (statement instanceof ConstructorStatement || statement instanceof MethodStatement) {
+			// modify 1 random parameter
+			EntityWithParametersStatement ps = (EntityWithParametersStatement) statement;
+			List<VariableReference> params = ps.getParameterReferences();
+			
+			if (params.size() == 0) {
+				return statement;
+			}
+			
+			int indexToMutate = Randomness.nextInt(params.size());
+			// chance to return whole constructor/method statement
+			if (indexToMutate == params.size()) {
+				return statement;
+			}
+			
+			// return 1 random parameter root statement to mutate
+			return getRootValueStatement(testCase, getStatementModifyVariable(params.get(indexToMutate)));
+		}
+
+		// 5. AssignmentStatement: booleanFlagExample1_0.hashValues = intArray0;
+		if (statement instanceof AssignmentStatement) {
+			AssignmentStatement as = (AssignmentStatement) statement;
+			VariableReference rightVar = as.getValue();
+			Statement rightVarStatement = testCase.getStatement(rightVar.getStPosition());
+
+			return getRootValueStatement(testCase, rightVarStatement);
+		}
+
+		return statement;
+	}
+	
+	private static Statement getStatementModifyVariable(VariableReference varRef) {
+		return varRef.getTestCase().getStatement(varRef.getStPosition());
+	}
+	
+	private static MethodStatement parseTargetMethodCall(TestCase testCase) {
+		Statement statement = testCase.getStatement(testCase.size() - 1);
+		if (statement instanceof MethodStatement) {
+			MethodStatement ms = (MethodStatement) statement;
+			String methodName = ms.getMethod().getNameWithDescriptor();
+
+			if (methodName.equals(Properties.TARGET_METHOD)) {
+				return ms;
+			}
+		}
+
+		return null;
+	}
+
+	private static Statement getFieldStatement(TestCase testCase, DepVariable rootVariable) {
+		for (int i = testCase.size() - 1; i >= 0; i--) {
+			Statement statement = testCase.getStatement(i);
+			if (statementModifiesVar(statement, rootVariable)) {
+				return statement;
+			}
+		}
+		return null;
+	}
+
+	private static boolean statementModifiesVar(Statement statement, DepVariable rootVariable) {
+		String statementFieldName = statement.getReturnValue().getName();
+		String rootVarName = rootVariable.getName();
+		return statementFieldName.equals(rootVarName) || statementFieldName.endsWith("." + rootVarName);
 	}
 
 	private static Map<Branch, List<ComputationPath>> parseComputationPaths(Set<FitnessFunction<?>> changedFitnesses,
@@ -280,68 +454,5 @@ public class SensitivityMutator {
 
 	private Statement getStatementFromVariable(VariableReference varRef) {
 		return varRef.getTestCase().getStatement(varRef.getStPosition());
-	}
-
-	private boolean isChangedInSourceCode(DepVariable rootVariable, Chromosome offspring, Chromosome parent) {
-		TestChromosome child = (TestChromosome) offspring;
-		TestChromosome par = (TestChromosome) parent;
-
-//		List<TestMutationHistoryEntry> mutationList = child.mutationHistory.getMutations();
-
-		MethodStatement callInNewTest = parseTargetMethodCall(child);
-		MethodStatement callInOldTest = parseTargetMethodCall(par);
-
-		if (rootVariable.isParameter()) {
-			int paramIndex = rootVariable.getParamOrder() - 1;
-			List<VariableReference> newParams = callInNewTest.getParameterReferences();
-			VariableReference varRef1 = newParams.get(paramIndex);
-			Statement statement1 = getStatementFromVariable(varRef1);
-
-			List<VariableReference> oldParams = callInOldTest.getParameterReferences();
-			VariableReference varRef2 = oldParams.get(paramIndex);
-			Statement statement2 = getStatementFromVariable(varRef2);
-
-			if (!statementsEqual(statement1, statement2)) {
-				return true;
-			}
-			System.currentTimeMillis();
-			System.currentTimeMillis();
-
-		} else if (rootVariable.isInstaceField()) {
-			// Have to check 'set' methods
-			System.currentTimeMillis();
-
-		} else if (rootVariable.isStaticField()) {
-			System.currentTimeMillis();
-		}
-
-		return false;
-	}
-
-	private MethodStatement parseTargetMethodCall(TestChromosome test) {
-		TestCase testcase = test.getTestCase();
-		Statement statement = testcase.getStatement(testcase.size() - 1);
-		if (statement instanceof MethodStatement) {
-			MethodStatement ms = (MethodStatement) statement;
-			String methodName = ms.getMethod().getNameWithDescriptor();
-
-			if (methodName.equals(Properties.TARGET_METHOD)) {
-				return ms;
-			}
-		}
-
-		return null;
-	}
-
-	private FitnessFunction getFitness(Branch branch, Map<FitnessFunction, Boolean> changedFitnesses) {
-		for (FitnessFunction<Chromosome> ff : changedFitnesses.keySet()) {
-			if (ff instanceof BranchFitness) {
-				BranchFitness bf = (BranchFitness) ff;
-				if (bf.getBranchGoal().getBranch().equals(branch)) {
-					return ff;
-				}
-			}
-		}
-		return null;
 	}
 }

@@ -38,6 +38,7 @@ public class BranchSensitivityTest extends FBranchTestSetup{
 		header.add("Path");
 		header.add("Branch");
 		header.add("Fitness Value");
+		header.add("Iteration");
 		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
 		
 		try {
@@ -59,7 +60,7 @@ public class BranchSensitivityTest extends FBranchTestSetup{
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/test-classes" + File.pathSeparator + "target/classes";
 
-		int timeBudget = 1000000;
+		int timeBudget = 30;
 		EvoTestResult result = null;
 		
 		result = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");
@@ -85,7 +86,7 @@ public class BranchSensitivityTest extends FBranchTestSetup{
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/test-classes" + File.pathSeparator + "target/classes";
 
-		int timeBudget = 20;
+		int timeBudget = 30;
 		EvoTestResult result = null;
 		
 		result = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");
@@ -111,7 +112,59 @@ public class BranchSensitivityTest extends FBranchTestSetup{
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/test-classes" + File.pathSeparator + "target/classes";
 
-		int timeBudget = 20;
+		int timeBudget = 30;
+		EvoTestResult result = null;
+		
+		result = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");
+		
+		System.currentTimeMillis();
+		
+		int ageT = result.getAge();
+		int timeT = result.getTime();
+		double coverageT = result.getCoverage();
+
+		writeResults();
+	}
+	
+	@Test
+	public void testFlagEffectExample5() {
+		Class<?> clazz = feature.fbranch.example.FlagEffectExample.class;
+		String methodName = "example5";
+		int parameterNum = 2;
+
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/test-classes" + File.pathSeparator + "target/classes";
+
+		int timeBudget = 30;
+		EvoTestResult result = null;
+		
+		result = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");
+		
+		System.currentTimeMillis();
+		
+		int ageT = result.getAge();
+		int timeT = result.getTime();
+		double coverageT = result.getCoverage();
+
+		writeResults();
+	}
+	
+	@Test
+	public void testFlagEffectExample6() {
+		Class<?> clazz = feature.fbranch.example.FlagEffectExample.class;
+		String methodName = "example9";
+		int parameterNum = 2;
+
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/test-classes" + File.pathSeparator + "target/classes";
+
+		int timeBudget = 300000;
 		EvoTestResult result = null;
 		
 		result = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");

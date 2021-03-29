@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.ProgressMonitor;
 import org.evosuite.Properties;
 import org.evosuite.Properties.SelectionFunction;
@@ -42,6 +41,7 @@ import org.evosuite.coverage.exception.ExceptionCoverageSuiteFitness;
 import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
+import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.comparators.DominanceComparator;
@@ -165,8 +165,15 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			this.removeUnusedVariables(parent2);
 			
 			if(Properties.APPLY_GRADEINT_ANALYSIS) {
-				SensitivityMutator.testSensitity(parent1);
-				SensitivityMutator.testSensitity(parent2);				
+				try {
+					SensitivityMutator.testSensitity(parent1.getFitnessValues().keySet());
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ConstructionFailedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
 			T offspring1 = (T) parent1.clone();
