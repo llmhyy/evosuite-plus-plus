@@ -3,6 +3,8 @@ package feature.smartseed.example;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.evosuite.runtime.Random;
+
 public class SmartSeedExample {
 	
 	public static String[] noise = 
@@ -138,5 +140,68 @@ public class SmartSeedExample {
 		}
 	}
 	
+	public void iregExample(int x) {
+		int n = Random.nextInt();
+		if(n % x == 5356) {
+			System.currentTimeMillis();
+		}
+	}
 	
+	public float ff = 8236.115f;
+	public void fieldExample(float x) {
+		float n = Random.nextFloat();
+		if(ff == n + 2000) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void dloadExample(double x) {
+		double n = Random.nextDouble();
+		if(n * x == 0.97) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public void switchcaseExample(String x,String y) {
+		char[] x1 = x.toCharArray();
+		char[] y1 = y.toCharArray();
+		for(char c : x1) {
+			switch(c) {
+			case 'A':
+			case 'a':
+				break;
+			case ':':
+				break;
+			case '!':
+				break;
+			case ' ':
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	
+	public int compareNum = 55;
+	
+	public boolean singalOprand() {
+		if(compareNum > 100)
+			return false;
+		return true;
+	}
+	
+	public int getCompareNum() {
+		if(compareNum != 0)
+			return compareNum;
+		else 
+			return compareNum = 1000;
+	}
+	
+	public void invokeDiffOprand() {
+		if(singalOprand()) {
+			int num = 1000;
+			if(getCompareNum() == 1000)
+				return;
+		}
+	}
 }

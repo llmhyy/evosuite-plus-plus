@@ -199,7 +199,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
 				EventSequence.addEvent(e);
 				
-				BranchDynamicAnalyzer.analyzeBranch(offspring1, parent1, uncoveredGoals);
+//				BranchDynamicAnalyzer.analyzeBranch(offspring1, parent1, uncoveredGoals);
 				
 				new MutationPositionDiscriminator().identifyRelevantMutations(offspring1, parent1);
 				offspringPopulation.add(offspring1);
