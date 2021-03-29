@@ -78,6 +78,21 @@ public class ValueRetrievalTransform {
 		boolean changed = false;
 		ListIterator<AbstractInsnNode> iterator = mn.instructions.iterator();
 		int index = 0;
+		
+		int normalizedIndex = ins.getInstructionId();
+		
+		List<BytecodeInstruction> list = ins.getActualCFG().getAllInstructions();
+		for(int i=0; i<ins.getInstructionId(); i++) {
+			BytecodeInstruction ins0 = list.get(i);
+			if(ins0.getASMNode().getOpcode() == Opcodes.PUTSTATIC) {
+				if(ins0.getASMNodeString().contains("EnterMethodCallSite")) {
+					normalizedIndex = normalizedIndex -2;
+				}
+			}
+		}
+		
+		System.currentTimeMillis();
+		
 		while (iterator.hasNext()) {
 			AbstractInsnNode node = iterator.next();
 			index++;
@@ -86,7 +101,7 @@ public class ValueRetrievalTransform {
 				continue;
 			}
 			
-			if(index-1 != ins.getInstructionId()) {
+			if(index-1 != normalizedIndex) {
 				continue;
 			}
 			

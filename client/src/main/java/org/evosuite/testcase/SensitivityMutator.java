@@ -18,6 +18,7 @@ import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.seeding.RuntimeSensitiveVariable;
+import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
@@ -57,7 +58,7 @@ public class SensitivityMutator {
 		}
 	}
 	
-	public static void testSensitity(Set<FitnessFunction<?>> fitnessValues) throws ClassNotFoundException, ConstructionFailedException {
+	public static void testSensitity(Set<FitnessFunction<?>> fitness) throws ClassNotFoundException, ConstructionFailedException {
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 
@@ -67,9 +68,12 @@ public class SensitivityMutator {
 			
 			TestChromosome oldTestChromosome = new TestChromosome();
 			oldTestChromosome.setTestCase(test);
+			for(FitnessFunction<?> ff: fitness) {
+				oldTestChromosome.addFitness(ff);
+			}
 			
 			Map<Branch, List<ComputationPath>> branchWithBDChanged = parseComputationPaths(
-					fitnessValues, branchesInTargetMethod);
+					fitness, branchesInTargetMethod);
 			
 			List<ComputationPath> paths = branchWithBDChanged.get(branch);
 			for (ComputationPath path : paths) {
@@ -141,6 +145,7 @@ public class SensitivityMutator {
 		BytecodeInstruction tailInstruction = path.getRelevantTailInstruction();
 		FitnessFunction<Chromosome> fitness = searchForRelevantFitness(path.getBranch(), newTestChromosome);
 		InstrumentingClassLoader newClassLoader = new InstrumentingClassLoader(tailInstruction);
+		DependencyAnalysis.addTargetClass(tailInstruction.getClassName());
 		try {
 			newClassLoader.loadClass(tailInstruction.getClassName());
 		} catch (ClassNotFoundException e) {
