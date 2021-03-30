@@ -38,7 +38,7 @@ public class SensitivityMutatorExample {
 		return false;
 	}
 	
-	//iload_1 ??
+	//iload_1 
 	public void iload_1Example(char a) {
 		char c = '\\';
 		a = (char) (a + c);
@@ -58,16 +58,17 @@ public class SensitivityMutatorExample {
 	
 	//caload
 	public void caloadExample(char[] clist) {
+		char[] local = clist.clone();
 		int i = (int) (Math.random() * 2230);
 		int length = clist.length;
-		clist[length - 1] = (char) (clist[length - 1] + i);
-		if(clist.equals(noiseChar)) {
+		local[length - 1] = (char) (clist[length - 1] + i);
+		if(local[length - 1] == noiseChar[noiseChar.length - 1]) {
 			System.currentTimeMillis();
 		}
 	}
 	
 	
-	//invokevirtual toSting
+	//invokevirtual 
 	public void invokevirtualExample(String x) {
 		List<String> y = new ArrayList<String>();
 		y.add(x);
