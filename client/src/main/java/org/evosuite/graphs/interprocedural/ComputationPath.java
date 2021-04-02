@@ -971,7 +971,8 @@ public class ComputationPath {
 		if(node.getInstruction().getASMNode().getOpcode() == Opcodes.FCMPG ||
 				node.getInstruction().getASMNode().getOpcode() == Opcodes.FCMPL ||
 				node.getInstruction().getASMNode().getOpcode() == Opcodes.DCMPG ||
-				node.getInstruction().getASMNode().getOpcode() == Opcodes.DCMPL) {
+				node.getInstruction().getASMNode().getOpcode() == Opcodes.DCMPL ||
+				node.getInstruction().getASMNode().getOpcode() == Opcodes.LCMP ) {
 			DepVariable prevNode = this.computationNodes.get(this.computationNodes.size()-2);
 			return prevNode.getInstruction();
 		}
