@@ -138,7 +138,7 @@ public class BranchSensitivityTest extends FBranchTestSetup{
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String cp = "target/test-classes" + File.pathSeparator + "target/classes";
 
-		int timeBudget = 30;
+		int timeBudget = 300000;
 		EvoTestResult result = null;
 		
 		result = TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, "branch");

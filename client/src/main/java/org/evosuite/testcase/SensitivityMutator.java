@@ -64,72 +64,59 @@ public class SensitivityMutator {
 
 
 		for (Branch branch : branchesInTargetMethod.keySet()) {
-			TestCase test = SensitivityMutator.initializeTest(branch, TestFactory.getInstance(), false);
-			
-			TestChromosome oldTestChromosome = new TestChromosome();
-			oldTestChromosome.setTestCase(test);
-			for(FitnessFunction<?> ff: fitness) {
-				oldTestChromosome.addFitness(ff);
-			}
-			
-			Map<Branch, List<ComputationPath>> branchWithBDChanged = parseComputationPaths(
-					fitness, branchesInTargetMethod);
-			
-			List<ComputationPath> paths = branchWithBDChanged.get(branch);
-			for (ComputationPath path : paths) {
-				
-				TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
-				DepVariable rootVariable = path.getComputationNodes().get(0);
-				Statement relevantStartment = locateRelevantStatement(rootVariable, newTestChromosome);
+			testBranchSensitivity(fitness, branchesInTargetMethod, branch);
+		}
 
-				Object headValue = retrieveHeadValue(relevantStartment);
-				Object tailValue = evaluateTailValue(path, newTestChromosome);
-				boolean valuePreserving = checkValuePreserving(headValue, tailValue);
+		System.currentTimeMillis();
+	}
+
+	public static boolean testBranchSensitivity(Set<FitnessFunction<?>> fitness,
+			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch) {
+		TestCase test = SensitivityMutator.initializeTest(branch, TestFactory.getInstance(), false);
+		
+		TestChromosome oldTestChromosome = new TestChromosome();
+		oldTestChromosome.setTestCase(test);
+		for(FitnessFunction<?> ff: fitness) {
+			oldTestChromosome.addFitness(ff);
+		}
+		
+		Map<Branch, List<ComputationPath>> branchWithBDChanged = parseComputationPaths(
+				fitness, branchesInTargetMethod);
+		
+		List<ComputationPath> paths = branchWithBDChanged.get(branch);
+		for (ComputationPath path : paths) {
+			
+			TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
+			DepVariable rootVariable = path.getComputationNodes().get(0);
+			Statement relevantStartment = locateRelevantStatement(rootVariable, newTestChromosome);
+
+			Object headValue = retrieveHeadValue(relevantStartment);
+			Object tailValue = evaluateTailValue(path, newTestChromosome);
+			boolean valuePreserving = checkValuePreserving(headValue, tailValue);
 
 //				Object headValue = retrieveRuntimeValueForHead(newTestChromosome);
 //				Object tailValue = retrieveRuntimeValueForTail(newTestChromosome);
 
-				if (relevantStartment == null)
-					continue;
+			if (relevantStartment == null)
+				continue;
 
-				boolean isSuccessful = relevantStartment.mutate(newTestChromosome.getTestCase(),
-						TestFactory.getInstance());
-				if (isSuccessful) {
-					relevantStartment = locateRelevantStatement(rootVariable, newTestChromosome);
-					Object newHeadValue = retrieveHeadValue(relevantStartment);
-					Object newTailValue = evaluateTailValue(path, newTestChromosome);
-					
-					valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
-					
-					boolean sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
-					System.currentTimeMillis();
-//					Branch targetBranch = path.getBranch();
-//					FitnessFunction<Chromosome> newRelevantFitness = searchForRelevantFitness(targetBranch,
-//							newTestChromosome);
-//					newTestChromosome.clearCachedResults();
-//					double newFit = newRelevantFitness.getFitness(newTestChromosome);
-//
-//					FitnessFunction<Chromosome> oldRelevantFitness = searchForRelevantFitness(targetBranch,
-//							oldTestChromosome);
-//					double oldFit = oldRelevantFitness.getFitness(oldTestChromosome);
-//
-//					double changedFitness = newFit - oldFit;
-				}
-
-//				if(isChangedInSourceCode(rootVariable, offspring, oldTest)) {
-//					List<Object> rowData = new ArrayList<>();
-//					rowData.add(branch.getClassName());
-//					rowData.add(branch.getMethodName());
-//					rowData.add(path.getComputationNodes().toString());
-//					rowData.add(branch.getInstruction().toString());
-//					rowData.add(oldTest.getFitnessValues().get(getFitness(branch, changedFitnesses)));
-//					rowData.add(iter);
-//					data.add(rowData);
-//				}
+			boolean isSuccessful = relevantStartment.mutate(newTestChromosome.getTestCase(),
+					TestFactory.getInstance());
+			if (isSuccessful) {
+				relevantStartment = locateRelevantStatement(rootVariable, newTestChromosome);
+				Object newHeadValue = retrieveHeadValue(relevantStartment);
+				Object newTailValue = evaluateTailValue(path, newTestChromosome);
+				
+				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
+				
+				boolean sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
+				
+				return sensivityPreserving;
 			}
-		}
 
-		System.currentTimeMillis();
+		}
+		
+		return false;
 	}
 
 	private static boolean checkValuePreserving(Object headValue, Object tailValue) {

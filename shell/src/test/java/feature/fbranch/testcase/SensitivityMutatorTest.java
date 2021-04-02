@@ -1,4 +1,4 @@
-package feature.smartseed.testcase;
+package feature.fbranch.testcase;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import common.TestUtility;
 import evosuite.shell.EvoTestResult;
-import feature.smartseed.example.SensitivityMutatorExample;
+import feature.fbranch.example.SensitivityMutatorExample;
 import feature.smartseed.example.empirical.EmpiricalStudyExample;
 
 public class SensitivityMutatorTest {
