@@ -6,7 +6,8 @@ public class IMenuItem {
 	private Object myObject;
 	private Object myParent;
 	private IMenuItem parent;
-	private String name;
+	public String name;
+	public static String staticValue;
 //	private IMenuItemRenderer renderer;
 	private boolean leaf = true;
 	
@@ -65,4 +66,10 @@ public class IMenuItem {
 		this.depth = depth;
 	}
 	
+	public String getStaticValue() {
+		return staticValue;
+	}
+	public void setStaticValue(String staticValue) {
+		this.staticValue = staticValue;
+	}
 }
