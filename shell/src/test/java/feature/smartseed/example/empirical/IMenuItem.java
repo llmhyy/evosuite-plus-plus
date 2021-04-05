@@ -72,4 +72,11 @@ public class IMenuItem {
 	public void setStaticValue(String staticValue) {
 		this.staticValue = staticValue;
 	}
+	
+	public static String staticInvokeMethod(String s) {
+		if(s.startsWith("static")) {
+			return s + "static";
+		}
+		return s;
+	}
 }

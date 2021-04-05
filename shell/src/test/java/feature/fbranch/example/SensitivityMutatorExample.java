@@ -2,6 +2,7 @@ package feature.fbranch.example;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import org.evosuite.runtime.Random;
 
@@ -292,7 +293,24 @@ public class SensitivityMutatorExample {
 			System.currentTimeMillis();
 		}
 	}
-
+	
+	//i2b
+	public void i2bExample(int x) {
+		x = (x/1000) ^ (x >>> 20);
+		if((byte) x > 99999) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	//i2c
+	public void i2cExample(int x) {
+		int index = (int) (Math.random() * noiseChar.length);
+		x = x - noiseChar[index];
+		if((char) x > noiseChar[index] >>> 2) {
+			System.currentTimeMillis();
+		}
+	}
+	
 	// i2d
 	public void i2dExample(int x, int y) {
 		double z = Math.floor((y + 999999) / 1333);
@@ -300,8 +318,86 @@ public class SensitivityMutatorExample {
 			System.currentTimeMillis();
 		}
 	}
+	
+	//i2f、i2l、i2s
+	public void i2flsExample(int x,int y) {
+		int index = (int) (Math.random() * noiseLong.length);
+		float f = Random.nextFloat();
+		if((float) (x * 333) >= (float) Math.pow(10, y)) {//i2f
+			System.currentTimeMillis();
+		}
+		if((long) y > noiseLong[index] >>> 4) {//i2l
+			y = y * y * y;
+			if((short) y <= (short)f) {//i2s
+				System.currentTimeMillis();
+			}
+		}
+	}
+	
+	//iadd、idiv、imul、ineg、isub
+	public void iaddExample(int x,int y,int z) {
+		int x0 = x + y;
+		int y0 = y * z;
+		int z0 = z / (Math.abs(x) >>> 33);
+		if(z0 + x < 233) {//iadd
+			y0 = y0 - z0;
+			if(y0 / z0 > 18888) {//idiv
+				x = x << 10;
+				if(x0 * y >= 189009) {//imul
+					y = y * y;
+					if(-y >= x + z0) {//ineg
+						System.currentTimeMillis();
+					}
+				}
+			}
+		}
+		
+		if(y - y0 > z0) {//isub
+			System.currentTimeMillis();
+		}
+	}
+	
+	//iaload、iload
+	public void ialoadExample(int[] x,int y) {
+		int[] x0 = x.clone();
+		y = y * x0[0] - 999992;
+		for(int i = 0;i < x0.length - 1;i++) {
+			if(x[i] == y) {//iload
+				System.currentTimeMillis();
+			}else {
+				x[i] += y;
+				if(x[i] >= 99999999) {//iaload
+					System.currentTimeMillis();
+				}
+			}
+		}
+	}
+	
+	//iand、ior、ixor
+	public void iandExample(int x,int y,int z) {
+		int x0 = x * z;
+		int y0 = Math.abs(y);
+		if((x0 & y0) > 167776512) {//iand
+			x = x + 167776512;
+			if((x | y0) > 167776512) {//ior
+				System.currentTimeMillis();
+			}else {
+				if((x ^ z) > y + y0) {//ixor
+					System.currentTimeMillis();
+				}
+			}
+		}
+	}
+		
+	//iinc、irem
+	public void iremExample(int x,int y) {
+		x = x & y;
+		if(x % 33 > 32) {//irem
+			System.currentTimeMillis();
+		}
+	}
 
-	// iload_0
+	// iload_0 ??
 	public boolean iload_0Example(String x) {
 		List<String> y = new ArrayList<String>();
 		int index = (int) (Math.random() * noiseChar.length);
@@ -330,6 +426,37 @@ public class SensitivityMutatorExample {
 			System.currentTimeMillis();
 		}
 	}
+	
+	//instanceof
+	public void instanceofExample(Object c) {
+		String local = "stringAbc";
+		int x = 12;
+		if(c instanceof String) {
+			System.currentTimeMillis();
+		}
+	}
+	
+	//invokeinterface、invokespecial、invokestatic
+	public void invokeinterfaceExample(String s) {
+		List<String> y = new ArrayList<String>();
+		if(!y.add(s)) {//invokeinterface
+			System.currentTimeMillis();
+		}
+		String x = "random" + s;
+		IMenuItem imenu = new IMenuItem(s);
+		if(specialMethod(x).equals("str")) {//invokespecial
+			System.currentTimeMillis();
+			if(imenu.staticInvokeMethod(s).contains("with")) {//invokestatic
+				System.currentTimeMillis();
+			}
+		}
+	}
+	
+	private String specialMethod(String x) {
+		x = x + "end";
+		return x;
+	}
+	
 
 	// invokevirtual
 	public void invokevirtualExample(String x) {
@@ -342,5 +469,141 @@ public class SensitivityMutatorExample {
 			System.currentTimeMillis();
 		}
 	}
+	
+	//ishl、ishr、iushr
+	public void ishlExample(int x,int y,int z) {
+		int x0 = x * z;
+		int y0 = y / 1333;
+		if((x0 << 10) > 55555) {//ishl
+			x0 = x0 << 3;
+			if((x0 >> 10) == 9999999) {//ishr
+				System.currentTimeMillis();
+			}
+			if(x0 >>> 10 == 9999999) {//iushr
+				System.currentTimeMillis();
+			}
+		}
+	}
+	
+	//l2d、l2f、l2i
+	public void l2dExample(long x,long y,long z) {
+		int index = (int) (Math.random() * noiseLong.length);
+		x = x + 10;
+		if((int) x > index) {//l2i
+			y = y + x;
+			if((double)y <= (-23.5) * z) {//l2d
+				System.currentTimeMillis();
+			}
+			z = Math.abs(z + 89);
+			if((float) z >= (float)noiseLong[index]){//l2f
+				System.currentTimeMillis();
+			}
+		}
+	}
+	
+	//ladd、ldiv、lmul、lneg、lsub、lrem
+	public void laddExample(long x,long y) {
+		long z = x + y - 2233l;
+		if((x + z) > 1119999l) {//ladd
+			x += 1119999l;
+			if((x / 1199) == 20) {//ldiv
+				y = y >> 2;
+				if(y * z ==20) {//lmul
+					System.currentTimeMillis();
+				}
+			}else if(-x < -1l) {//lneg
+				x = -x;
+				if(x - y >= 1119999l)//lsub
+					System.currentTimeMillis();
+			}
+			if(x % 900 == 371)//lrem
+				System.currentTimeMillis();
+		}
+	}
+	
+	//laload、lload、lload_0
+	public void laloadExample(long[] x,long y) {
+		long[] x0 = x.clone();
+		long y0 = y * x0[0] - 999992;
+		for(int i = 0;i < x0.length - 1;i++) {
+			if(y0 == y) {//lload
+				System.currentTimeMillis();
+			}else {
+				x[i] += y;
+				if(x[i] >= 99999999l) {//laload
+					System.currentTimeMillis();
+				}
+			}
+		}
+	}
+	
+	//land、lor、lxor
+	public void landExample(long x,long y,long z) {
+		long x0 = x * z;
+		long y0 = Math.abs(y);
+		if((x0 & y0) > 167776512l) {//land
+			x = x + 167776512;
+			if((x | y0) > 167776512l) {//lor
+				System.currentTimeMillis();
+			}else {
+				if((x ^ z) > y + y0) {//lxor
+					System.currentTimeMillis();
+				}
+			}
+		}
+	}
+	
 
+	//lookupswitch ??
+	public void lookupswitchExample(String x,String y) {
+		char[] x1 = x.toCharArray();
+		char[] y1 = y.toCharArray();
+		for(char c : x1) {
+			switch(c) {
+			case 'A':
+			case 'a':
+				for(char c2:y1) {
+					switch(c2) {
+					case 's':
+					case 'S':
+						break;
+					}
+				}
+				break;
+			case ':':
+				break;
+			case '!':
+				break;
+			case ' ':
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	
+	//lshl、lshr、lushr
+	public void lshlExample(long x,long y,long z) {
+		long x0 = x * z;
+		long y0 = y / 1333;
+		if((x0 << 10) > 55555l) {//lshl
+			x0 = x0 << 3;
+			if((x0 >> 10) == 9999999l) {//lshr
+				System.currentTimeMillis();
+			}
+			if(x0 >>> 10 == 9999999l) {//lushr
+				System.currentTimeMillis();
+			}
+		}
+	}
+		
+	//saload
+	public void saloadExample(short[] s) {
+		short[] s0 = s.clone();
+		s0[0] += 1011;
+		if(s0[0] > (short) 9989) {
+			System.currentTimeMillis();
+		}
+	}
+	
 }

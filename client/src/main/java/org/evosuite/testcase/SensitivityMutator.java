@@ -110,7 +110,7 @@ public class SensitivityMutator {
 				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
 				
 				boolean sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
-				
+				//Only one path was detected
 				return sensivityPreserving;
 			}
 
