@@ -84,27 +84,38 @@ public class SensitivityMutator {
 				fitness, branchesInTargetMethod);
 		
 		List<ComputationPath> paths = branchWithBDChanged.get(branch);
+		if (paths == null) {
+			return false;
+		}
 		for (ComputationPath path : paths) {
 			
 			TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
 			DepVariable rootVariable = path.getComputationNodes().get(0);
-			Statement relevantStartment = locateRelevantStatement(rootVariable, newTestChromosome);
+			Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome);
 
-			Object headValue = retrieveHeadValue(relevantStartment);
+			Object headValue = retrieveHeadValue(relevantStatement);
 			Object tailValue = evaluateTailValue(path, newTestChromosome);
 			boolean valuePreserving = checkValuePreserving(headValue, tailValue);
+			
+			if (tailValue == null) {
+				return false;
+			}
+			List<Object> row = new ArrayList<Object>();
+			row.add(path.getComputationNodes().toString());
+			row.add(tailValue.toString());
+			data.add(row);
 
 //				Object headValue = retrieveRuntimeValueForHead(newTestChromosome);
 //				Object tailValue = retrieveRuntimeValueForTail(newTestChromosome);
 
-			if (relevantStartment == null)
+			if (relevantStatement == null)
 				continue;
 
-			boolean isSuccessful = relevantStartment.mutate(newTestChromosome.getTestCase(),
+			boolean isSuccessful = relevantStatement.mutate(newTestChromosome.getTestCase(),
 					TestFactory.getInstance());
 			if (isSuccessful) {
-				relevantStartment = locateRelevantStatement(rootVariable, newTestChromosome);
-				Object newHeadValue = retrieveHeadValue(relevantStartment);
+				relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome);
+				Object newHeadValue = retrieveHeadValue(relevantStatement);
 				Object newTailValue = evaluateTailValue(path, newTestChromosome);
 				
 				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
@@ -145,6 +156,7 @@ public class SensitivityMutator {
 		fitness.getFitness(newTestChromosome);
 
 		Object tailValue = RuntimeSensitiveVariable.tailValue;
+		System.out.println("Tail Value: " + tailValue);
 		return tailValue;
 	}
 
