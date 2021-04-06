@@ -84,6 +84,7 @@ public class SensitivityMutator {
 				fitness, branchesInTargetMethod);
 		
 		List<ComputationPath> paths = branchWithBDChanged.get(branch);
+		Map<Branch, List<ComputationPath>> fastChannel = new HashMap();
 		if (paths == null) {
 			return false;
 		}
@@ -121,6 +122,9 @@ public class SensitivityMutator {
 				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
 				
 				boolean sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
+				
+				isFastChannel(branch,path,valuePreserving,sensivityPreserving,fastChannel);
+				
 				//Only one path was detected
 				return sensivityPreserving;
 			}
@@ -130,13 +134,82 @@ public class SensitivityMutator {
 		return false;
 	}
 
+	private static void isFastChannel(Branch branch, ComputationPath path, boolean valuePreserving,
+			boolean sensivityPreserving, Map<Branch, List<ComputationPath>> fastChannel) {
+		//1.if path is valuePreserving
+		if(valuePreserving) {
+			addPath2FastChannel(fastChannel,branch,path);
+		}else if(sensivityPreserving) {
+		//2.if path is not valuePreserving,but it is sensivityPreserving
+			addPath2FastChannel(fastChannel,branch,path);
+		}
+	}
+	
+	private static void addPath2FastChannel(Map<Branch, List<ComputationPath>> fastChannel, Branch branch,
+			ComputationPath path) {
+		//record fast channel
+			if(fastChannel.containsKey(branch)) {
+				List<ComputationPath> paths = fastChannel.get(branch);
+				paths.add(path);
+			}else {
+				List<ComputationPath> paths = new ArrayList<ComputationPath>();
+				paths.add(path);
+				fastChannel.put(branch, paths);
+			}
+	}
+
 	private static boolean checkValuePreserving(Object headValue, Object tailValue) {
 		// TODO need to define the similarity of different value
 		if(headValue == null || tailValue == null) {
 			return false;
+			}
+		if(headValue.equals(tailValue))
+			return true;
+		//if headValue and tailValue are primitive type,compare the data value
+		if((headValue.getClass().isPrimitive() || isPrimitiveClass(headValue)) &&
+				(tailValue.getClass().isPrimitive() || isPrimitiveClass(tailValue))) {
+			if(headValue instanceof Character) {
+				headValue = (int)Integer.parseInt(String.valueOf(tailValue));
+			}
+			if(tailValue instanceof Character) {
+				tailValue = (int)Integer.parseInt(String.valueOf(tailValue));
+			}
+			Number head = (Number)headValue;
+			Number tail = (Number)tailValue;
+			if(Math.abs(head.longValue() - tail.longValue()) <= 10) {
+				return true;
+			}
+			if(Math.abs(head.doubleValue() - tail.doubleValue()) <= 10) {
+				return true;
+			}
+			return false;
 		}
-		
+		//compare the similarity of string
+		String head = headValue.toString();
+		String tail = tailValue.toString();
+		if(Math.abs(getSimilarityRatio(head,tail)) >= 0.9) {
+			return true;
+		}
 		return headValue.equals(tailValue);
+	}
+
+	private static boolean isPrimitiveClass(Object object) {
+		if(object instanceof Byte ||
+		   object instanceof Short ||
+		   object instanceof Integer ||
+		   object instanceof Long ||
+		   object instanceof Float ||
+		   object instanceof Double ||
+		   object instanceof Character
+				) {
+			return true;
+		}
+		return false;
+	}
+
+	private static int getSimilarityRatio(String head, String tail) {
+		// TODO Edit Distance?
+		return 0;
 	}
 
 	private static Object evaluateTailValue(ComputationPath path, TestChromosome newTestChromosome) {
