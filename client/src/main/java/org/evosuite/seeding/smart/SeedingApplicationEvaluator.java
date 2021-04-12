@@ -220,7 +220,7 @@ public class SeedingApplicationEvaluator {
 			return cache.get(b);
 		}
 
-		if(b.getInstruction().isTableSwitch()) {
+		if(b.getInstruction().isSwitch()) {//b.getInstruction().isTableSwitch()
 			BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, "int");
 			cache.put(b, branchInfo);
 			return branchInfo;

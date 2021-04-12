@@ -1,7 +1,9 @@
 package feature.smartseed.testcase;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,12 +15,15 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
 import org.evosuite.setup.DependencyAnalysis;
+import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
 import common.TestUtil;
 import common.TestUtility;
+import evosuite.shell.Settings;
+import evosuite.shell.excel.ExcelWriter;
 
 /**
  * This test is for checking applicable branch for branchwise smart seed strategy.
@@ -36,6 +41,34 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Properties.APPLY_SMART_SEED = true;
 		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
+		Properties.APPLY_GRADEINT_ANALYSIS = true;
+	}
+	
+	public void writeResults() {
+		ExcelWriter excelWriter = new ExcelWriter(evosuite.shell.FileUtils.newFile(Settings.getReportFolder(), "fastchannel_info.xlsx"));
+		List<String> header = new ArrayList<>();
+		header.add("Class");
+		header.add("Method");
+		header.add("Branch");
+		header.add("Path");
+//		header.add("Fitness Value");
+		header.add("Testcase");
+		header.add("HeadValue");
+		header.add("TailValue");
+		header.add("NewTestcase");
+		header.add("NewHeadValue");
+		header.add("NewTailValue");
+		header.add("ValuePreserving");
+		header.add("SensivityPreserving");
+		header.add("FastChannel");
+//		header.add("Iteration");
+		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
+		
+		try {
+			excelWriter.writeSheet("data", SensitivityMutator.data);
+		} catch (IOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	@Test
@@ -44,7 +77,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "dynamicExample1";
 		int parameterNum = 2;
-		int lineNumber = 23;
+		int lineNumber = 25;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -63,13 +96,15 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
+		writeResults();
+		
 		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
 		
 	}
 	
 	@Test
 	public void testSmartSeedBranch20() throws ClassNotFoundException, RuntimeException {
-		//both fast channel
+		//tail value is null
 		Class<?> clazz = feature.smartseed.example.empirical.ResourcesDirectory.class;
 		String methodName = "addResource";
 		int parameterNum = 2;
@@ -92,17 +127,19 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
-		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
+		writeResults();
+		
+		assert type == SeedingApplicationEvaluator.NO_POOL;//DYNAMIC_POOL
 		
 	}
 	
 	@Test
 	public void testSmartSeedBranch2() throws ClassNotFoundException, RuntimeException {
-		
+		//one path is not sensitive,another path head value is null,both are not fastchannel
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "staticExample";
 		int parameterNum = 2;
-		int lineNumber = 29;
+		int lineNumber = 31;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -121,7 +158,9 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
-		assert type == SeedingApplicationEvaluator.STATIC_POOL;
+		writeResults();
+		
+		assert type == SeedingApplicationEvaluator.STATIC_POOL;//STATIC_POOL
 		
 	}
 	
@@ -131,7 +170,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "staticExample1";
 		int parameterNum = 2;
-		int lineNumber = 35;
+		int lineNumber = 37;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -149,6 +188,8 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		
+		writeResults();
 		
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 		
@@ -160,7 +201,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "staticExample2";
 		int parameterNum = 2;
-		int lineNumber = 41;
+		int lineNumber = 44;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -179,7 +220,9 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
-		assert type == SeedingApplicationEvaluator.STATIC_POOL;
+		writeResults();
+		
+		assert type == SeedingApplicationEvaluator.NO_POOL;
 		
 	}
 	
@@ -208,7 +251,9 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
-		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
+		writeResults();
+		
+		assert type == SeedingApplicationEvaluator.NO_POOL;//DYNAMIC_POOL
 		
 	}
 	
@@ -236,6 +281,8 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
+		writeResults();
+		
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 		
 	}
@@ -246,7 +293,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "staticExample3";
 		int parameterNum = 2;
-		int lineNumber = 48;
+		int lineNumber = 55;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -264,6 +311,8 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		
+		writeResults();
 		
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 		
@@ -274,7 +323,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "equalsIgnoreCaseExample";
 		int parameterNum = 2;
-		int lineNumber = 76;
+		int lineNumber = 83;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -292,6 +341,8 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		
+		writeResults();
 		
 		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
 		
@@ -302,7 +353,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "stratWithExample";
 		int parameterNum = 1;
-		int lineNumber = 92;
+		int lineNumber = 99;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -320,6 +371,8 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		
+		writeResults();
 		
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 		
@@ -330,7 +383,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "endWithExample";
 		int parameterNum = 2;
-		int lineNumber = 100;
+		int lineNumber = 107;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -348,6 +401,8 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		
+		writeResults();
 		
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 		
@@ -359,7 +414,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "stratWithExample";
 		int parameterNum = 2;
-		int lineNumber = 84;
+		int lineNumber = 91;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -388,7 +443,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "matchesExample";
 		int parameterNum = 1;
-		int lineNumber = 108;
+		int lineNumber = 115;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -416,7 +471,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "patternMatchesExample";
 		int parameterNum = 1;
-		int lineNumber = 115;
+		int lineNumber = 122;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -444,7 +499,36 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "combinationExample";
 		int parameterNum = 1;
-		int lineNumber = 132;
+		int lineNumber = 139;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		
+		assert type == SeedingApplicationEvaluator.NO_POOL;//STATIC_POOL
+		
+	}
+	
+	@Test
+	public void testSwitchCase() throws ClassNotFoundException, RuntimeException {
+		//TODO Cheng Yan
+		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		String methodName = "switchcaseExample";
+		int parameterNum = 2;
+		int lineNumber = 170;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -464,27 +548,6 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
-		
 	}
 	
-	@Test
-	public void testSwitchCase() {
-		//TODO Cheng Yan
-	}
-	
-	@Test
-	public void testMethodReturnValueAsSingtelOperand() {
-		//TODO Cheng Yan
-		/**
-		 * if(isOk()){...}
-		 */
-	}
-	
-	@Test
-	public void testMethodReturnValueAsOneOfOperands() {
-		//TODO Cheng Yan
-		/**
-		 * if(isOk() == 3){...}
-		 */
-	}
 }

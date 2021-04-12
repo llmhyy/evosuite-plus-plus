@@ -104,9 +104,8 @@ public class DynamicSensitivityEvaluatorTest {
 		Set<FitnessFunction<?>> set = new HashSet<>();
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		writeResults();
 		assert flagValue;
@@ -142,9 +141,8 @@ public class DynamicSensitivityEvaluatorTest {
 		Set<FitnessFunction<?>> set = new HashSet<>();
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -180,9 +178,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		writeResults();
 		assert flagValue;
 	}
@@ -218,10 +215,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -257,9 +252,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -295,9 +289,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -333,9 +326,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -371,9 +363,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -409,9 +400,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		//TODO
 		writeResults();
 		Object oldHeadValue = SensitivityMutator.HeadValue;
@@ -452,9 +442,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		//TODO 
 		Object oldHeadValue = SensitivityMutator.HeadValue;
 		assert oldHeadValue == null;
@@ -494,9 +483,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -532,9 +520,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -570,9 +557,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -608,9 +594,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -618,9 +603,9 @@ public class DynamicSensitivityEvaluatorTest {
 	@Test
 	public void testI2sExample() throws ClassNotFoundException, RuntimeException {		
 		Class<?> clazz = feature.fbranch.example.SensitivityMutatorExample.class;
-		String methodName = "i2flsExample";//i2sExample,i2flsExample
+		String methodName = "i2sExample";//i2sExample,i2flsExample
 		int parameterNum = 2;
-		int lineNumber = 331;//617,331
+		int lineNumber = 617;//617,331
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -646,9 +631,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		//TODO 
 		writeResults();
 		assert flagValue;
@@ -685,9 +669,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -724,9 +707,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -762,9 +744,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		 
 		assert flagValue;
 	}
@@ -800,9 +781,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -838,9 +818,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -876,9 +855,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		//TODO
 		assert flagValue;
 	}
@@ -914,9 +892,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		//TODO
 		assert flagValue;
 	}
@@ -952,9 +929,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -990,9 +966,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		 
 		assert flagValue;
 	}
@@ -1029,9 +1004,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1067,9 +1041,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -1106,9 +1079,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -1144,9 +1116,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -1183,9 +1154,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		//TODO 
 		writeResults();
 		
@@ -1228,9 +1198,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -1266,9 +1235,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -1304,9 +1272,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1342,9 +1309,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1380,9 +1346,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -1418,9 +1383,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1456,9 +1420,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -1494,9 +1457,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -1532,9 +1494,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1570,9 +1531,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1608,9 +1568,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -1646,9 +1605,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1684,9 +1642,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1722,9 +1679,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1760,9 +1716,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1798,9 +1753,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1836,9 +1790,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		writeResults();
 		
 		assert flagValue;
@@ -1876,9 +1829,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -1914,9 +1866,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1952,9 +1903,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -1990,9 +1940,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -2029,9 +1978,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 
 		assert flagValue;
 	}
@@ -2067,9 +2015,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -2105,9 +2052,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}
@@ -2143,9 +2089,8 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		
-//		List<ComputationPath> paths = null;
-//		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
 		
 		assert flagValue;
 	}

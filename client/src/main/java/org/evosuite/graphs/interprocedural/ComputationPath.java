@@ -1,15 +1,22 @@
 package org.evosuite.graphs.interprocedural;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.instrumentation.testability.StringHelper;
 import org.evosuite.seeding.smart.BranchSeedInfo;
+import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.SensitivityMutator.preservingList;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.MethodUtil;
@@ -905,6 +912,17 @@ public class ComputationPath {
 
 	public boolean isFastChannel() {
 		if (isFastChannel == null) {
+			if(Properties.APPLY_GRADEINT_ANALYSIS = true) {
+				Set<FitnessFunction<?>> set = new HashSet<>();
+				BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(this.branch, true);
+				set.add(ff);
+				preservingList preservingList = new preservingList();
+				
+				preservingList = SensitivityMutator.testBranchSensitivity(set, InterproceduralGraphAnalysis.branchInterestedVarsMap
+					.get(Properties.TARGET_METHOD), this.branch,this);
+				isFastChannel = preservingList.valuePreserving || preservingList.sensivityPreserving;
+				return isFastChannel;
+			}
 			isFastChannel = this.evaluateFastChannelScore() > Properties.FAST_CHANNEL_SCORE_THRESHOLD;
 		}
 

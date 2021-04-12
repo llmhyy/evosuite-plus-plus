@@ -35,6 +35,13 @@ public class SensitivityMutator {
 	public static Object HeadValue;
 	public static Object TailValue;
 //	public static int iter = 0;
+	
+	public static class preservingList{
+		public boolean valuePreserving = false;
+		public boolean sensivityPreserving = false;
+		public int valuePreservingNum = 0;
+		public int sensivityPreservingNum = 0;
+	}
 
 	public static TestCase initializeTest(Branch b, TestFactory testFactory, boolean allowNullValue) {
 		TestCase test = new DefaultTestCase();
@@ -64,15 +71,18 @@ public class SensitivityMutator {
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 
+		ComputationPath path = null;
 		for (Branch branch : branchesInTargetMethod.keySet()) {
-			testBranchSensitivity(fitness, branchesInTargetMethod, branch);
+			testBranchSensitivity(fitness, branchesInTargetMethod, branch,path);
 		}
 
 		System.currentTimeMillis();
 	}
 
-	public static boolean testBranchSensitivity(Set<FitnessFunction<?>> fitness,
-			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch) {
+	public static preservingList testBranchSensitivity(Set<FitnessFunction<?>> fitness,
+			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch, ComputationPath path0) {
+		preservingList preservingList = new preservingList();
+		
 		TestCase test = SensitivityMutator.initializeTest(branch, TestFactory.getInstance(), false);
 		data.clear();
 		TestChromosome oldTestChromosome = new TestChromosome();
@@ -84,10 +94,16 @@ public class SensitivityMutator {
 		Map<Branch, List<ComputationPath>> branchWithBDChanged = parseComputationPaths(
 				fitness, branchesInTargetMethod);
 		
-		List<ComputationPath> paths = branchWithBDChanged.get(branch);
+		List<ComputationPath> paths = new ArrayList<ComputationPath>();
+		if(path0 != null) {
+			paths.add(path0);
+		}else {
+			paths = branchWithBDChanged.get(branch);
+		}
+		
 		
 		if (paths == null) {
-			return false;
+			return preservingList;
 		}
 		for (ComputationPath path : paths) {
 			TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
@@ -102,7 +118,7 @@ public class SensitivityMutator {
 			TailValue = tailValue;
 			
 			if (tailValue == null) {
-				return false;
+				return preservingList;
 			}
 //			List<Object> row = new ArrayList<Object>();
 //			row.add(path.getComputationNodes().toString());
@@ -114,7 +130,6 @@ public class SensitivityMutator {
 
 			if (relevantStatement == null)
 				continue;
-			int sensivityNum = 0;
 			for(int i = 0; i < 3;i++){
 				boolean isSuccessful = relevantStatement.mutate(newTestChromosome.getTestCase(),
 						TestFactory.getInstance());
@@ -131,14 +146,18 @@ public class SensitivityMutator {
 					}else
 						 sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
 					
+					preservingList.valuePreserving = valuePreserving;
+					if(valuePreserving)
+						preservingList.valuePreservingNum += 1;
 					recordList(branch,path,headValue,tailValue,newHeadValue,newTailValue,
 							valuePreserving,sensivityPreserving,oldTestChromosome,newTestChromosome);
 					
 	
 					if(sensivityPreserving) {
-						sensivityNum += 1;
-						if(sensivityNum >= 2) {	
-							return true;
+						preservingList.sensivityPreservingNum += 1;
+						if(preservingList.sensivityPreservingNum >= 2) {
+							preservingList.sensivityPreserving = true;
+							return preservingList;
 						}		
 					}
 						
@@ -146,7 +165,7 @@ public class SensitivityMutator {
 		}
 		}
 		
-		return false;
+		return preservingList;
 	}
 
 	private static void countNumInfo(Map<Integer, Integer> num, int i, boolean valuePreserving) {
