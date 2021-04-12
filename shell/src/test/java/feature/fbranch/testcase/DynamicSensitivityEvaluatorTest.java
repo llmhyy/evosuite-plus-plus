@@ -414,6 +414,10 @@ public class DynamicSensitivityEvaluatorTest {
 		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
 		//TODO
 		writeResults();
+		Object oldHeadValue = SensitivityMutator.HeadValue;
+		assert oldHeadValue == null;
+		//assert oldHeadValue != null;
+
 		assert flagValue;
 	}
 	
@@ -452,6 +456,9 @@ public class DynamicSensitivityEvaluatorTest {
 //		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
 		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
 		//TODO 
+		Object oldHeadValue = SensitivityMutator.HeadValue;
+		assert oldHeadValue == null;
+		
 		writeResults();
 		assert flagValue;
 	}
@@ -611,9 +618,9 @@ public class DynamicSensitivityEvaluatorTest {
 	@Test
 	public void testI2sExample() throws ClassNotFoundException, RuntimeException {		
 		Class<?> clazz = feature.fbranch.example.SensitivityMutatorExample.class;
-		String methodName = "i2sExample";//i2sExample,i2flsExample
+		String methodName = "i2flsExample";//i2sExample,i2flsExample
 		int parameterNum = 2;
-		int lineNumber = 617;//617,331
+		int lineNumber = 331;//617,331
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -643,6 +650,7 @@ public class DynamicSensitivityEvaluatorTest {
 //		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,paths)[2];
 		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
 		//TODO 
+		writeResults();
 		assert flagValue;
 	}
 	
@@ -1180,6 +1188,12 @@ public class DynamicSensitivityEvaluatorTest {
 		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch);
 		//TODO 
 		writeResults();
+		
+		Object oldHeadValue = SensitivityMutator.HeadValue;
+		Object oldTailValue = SensitivityMutator.TailValue;
+		assert oldTailValue != oldHeadValue;
+		//assert oldHeadValue == oldHeadValue;
+
 		assert flagValue;
 	}
 	

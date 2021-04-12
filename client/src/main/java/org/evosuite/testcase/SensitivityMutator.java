@@ -32,6 +32,8 @@ import org.evosuite.utils.Randomness;
 
 public class SensitivityMutator {
 	public static List<List<Object>> data = new ArrayList<List<Object>>();
+	public static Object HeadValue;
+	public static Object TailValue;
 //	public static int iter = 0;
 
 	public static TestCase initializeTest(Branch b, TestFactory testFactory, boolean allowNullValue) {
@@ -95,6 +97,9 @@ public class SensitivityMutator {
 			Object headValue = retrieveHeadValue(relevantStatement);
 			Object tailValue = evaluateTailValue(path, newTestChromosome);
 			boolean valuePreserving = checkValuePreserving(headValue, tailValue);
+			
+			HeadValue = headValue;
+			TailValue = tailValue;
 			
 			if (tailValue == null) {
 				return false;
