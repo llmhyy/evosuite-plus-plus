@@ -62,7 +62,6 @@ public class SensitivityMutator {
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 
-
 		for (Branch branch : branchesInTargetMethod.keySet()) {
 			testBranchSensitivity(fitness, branchesInTargetMethod, branch);
 		}
@@ -73,7 +72,7 @@ public class SensitivityMutator {
 	public static boolean testBranchSensitivity(Set<FitnessFunction<?>> fitness,
 			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch) {
 		TestCase test = SensitivityMutator.initializeTest(branch, TestFactory.getInstance(), false);
-		
+		data.clear();
 		TestChromosome oldTestChromosome = new TestChromosome();
 		oldTestChromosome.setTestCase(test);
 		for(FitnessFunction<?> ff: fitness) {
@@ -84,12 +83,11 @@ public class SensitivityMutator {
 				fitness, branchesInTargetMethod);
 		
 		List<ComputationPath> paths = branchWithBDChanged.get(branch);
-		Map<Branch, List<ComputationPath>> fastChannel = new HashMap();
+		
 		if (paths == null) {
 			return false;
 		}
 		for (ComputationPath path : paths) {
-			
 			TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
 			DepVariable rootVariable = path.getComputationNodes().get(0);
 			Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome);
@@ -101,63 +99,80 @@ public class SensitivityMutator {
 			if (tailValue == null) {
 				return false;
 			}
-			List<Object> row = new ArrayList<Object>();
-			row.add(path.getComputationNodes().toString());
-			row.add(tailValue.toString());
-			data.add(row);
+//			List<Object> row = new ArrayList<Object>();
+//			row.add(path.getComputationNodes().toString());
+//			row.add(tailValue.toString());
+//			data.add(row);
 
 //				Object headValue = retrieveRuntimeValueForHead(newTestChromosome);
 //				Object tailValue = retrieveRuntimeValueForTail(newTestChromosome);
 
 			if (relevantStatement == null)
 				continue;
-
-			boolean isSuccessful = relevantStatement.mutate(newTestChromosome.getTestCase(),
-					TestFactory.getInstance());
-			if (isSuccessful) {
-				relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome);
-				Object newHeadValue = retrieveHeadValue(relevantStatement);
-				Object newTailValue = evaluateTailValue(path, newTestChromosome);
-				
-				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
-				
-				boolean sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
-				
-				isFastChannel(branch,path,valuePreserving,sensivityPreserving,fastChannel);
-				
-				//Only one path was detected
-				return sensivityPreserving;
-			}
-
+			int sensivityNum = 0;
+			for(int i = 0; i < 3;i++){
+				boolean isSuccessful = relevantStatement.mutate(newTestChromosome.getTestCase(),
+						TestFactory.getInstance());
+				if (isSuccessful) {
+					relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome);
+					Object newHeadValue = retrieveHeadValue(relevantStatement);
+					Object newTailValue = evaluateTailValue(path, newTestChromosome);
+					
+					valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
+					
+					boolean sensivityPreserving = false;
+					if(newTailValue == null && tailValue == null) {
+						 sensivityPreserving = false;
+					}else
+						 sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
+					
+					recordList(branch,path,headValue,tailValue,newHeadValue,newTailValue,
+							valuePreserving,sensivityPreserving,oldTestChromosome,newTestChromosome);
+					
+	
+					if(sensivityPreserving) {
+						sensivityNum += 1;
+						if(sensivityNum >= 2) {	
+							return true;
+						}		
+					}
+						
+				}
+		}
 		}
 		
 		return false;
 	}
 
-	private static void isFastChannel(Branch branch, ComputationPath path, boolean valuePreserving,
-			boolean sensivityPreserving, Map<Branch, List<ComputationPath>> fastChannel) {
-		//1.if path is valuePreserving
-		if(valuePreserving) {
-			addPath2FastChannel(fastChannel,branch,path);
-		}else if(sensivityPreserving) {
-		//2.if path is not valuePreserving,but it is sensivityPreserving
-			addPath2FastChannel(fastChannel,branch,path);
+	private static void countNumInfo(Map<Integer, Integer> num, int i, boolean valuePreserving) {
+		if(num.containsKey(i)) {
+			if(valuePreserving)
+				num.put(i, num.get(i) + 1);
+		}else {
+			if(valuePreserving)
+				num.put(i, 1);
 		}
 	}
-	
-	private static void addPath2FastChannel(Map<Branch, List<ComputationPath>> fastChannel, Branch branch,
-			ComputationPath path) {
-		//record fast channel
-			if(fastChannel.containsKey(branch)) {
-				List<ComputationPath> paths = fastChannel.get(branch);
-				paths.add(path);
-			}else {
-				List<ComputationPath> paths = new ArrayList<ComputationPath>();
-				paths.add(path);
-				fastChannel.put(branch, paths);
-			}
-	}
 
+	private static void recordList(Branch branch, ComputationPath path, Object headValue, Object tailValue,
+			Object newHeadValue, Object newTailValue, boolean valuePreserving, boolean sensivityPreserving, TestChromosome oldTestChromosome, TestChromosome newTestChromosome) {
+		List<Object> row = new ArrayList<Object>();
+		row.add(Properties.TARGET_CLASS);
+		row.add(Properties.TARGET_METHOD);
+		row.add(branch.toString());
+		row.add(path.getComputationNodes().toString());
+		row.add(oldTestChromosome.toString());
+		row.add(headValue.toString());
+		row.add(tailValue.toString());
+		row.add(newTestChromosome.toString());
+		row.add(newHeadValue.toString());
+		row.add(newTailValue.toString());
+		row.add(valuePreserving);
+		row.add(sensivityPreserving);
+		row.add(valuePreserving || sensivityPreserving);
+		data.add(row);
+	}
+	
 	private static boolean checkValuePreserving(Object headValue, Object tailValue) {
 		// TODO need to define the similarity of different value
 		if(headValue == null || tailValue == null) {
@@ -169,10 +184,10 @@ public class SensitivityMutator {
 		if((headValue.getClass().isPrimitive() || isPrimitiveClass(headValue)) &&
 				(tailValue.getClass().isPrimitive() || isPrimitiveClass(tailValue))) {
 			if(headValue instanceof Character) {
-				headValue = (int)Integer.parseInt(String.valueOf(tailValue));
+				headValue = Character.getNumericValue((char) headValue);
 			}
 			if(tailValue instanceof Character) {
-				tailValue = (int)Integer.parseInt(String.valueOf(tailValue));
+				tailValue = Character.getNumericValue((char) tailValue);
 			}
 			Number head = (Number)headValue;
 			Number tail = (Number)tailValue;
@@ -207,9 +222,44 @@ public class SensitivityMutator {
 		return false;
 	}
 
-	private static int getSimilarityRatio(String head, String tail) {
-		// TODO Edit Distance?
-		return 0;
+	private static float getSimilarityRatio(String head, String tail) {
+		// TODO Edit Distance
+		int max = Math.max(head.length(), tail.length());
+		return 1 - (float) compare(head, tail) / max;
+	}
+
+	private static float compare(String head, String tail) {
+		char ch1,ch2; 
+		int temp; 
+		if (head.length() == 0) {
+			return tail.length();
+		}else if (tail.length() == 0) {
+			return head.length();
+		}
+		int d[][] = new int[head.length() + 1][tail.length() + 1];
+		for (int i = 0; i <= head.length(); i++) {
+			d[i][0] = i;
+		}
+		for (int j = 0; j <= tail.length(); j++) {
+			d[0][j] = j;
+		}
+		for (int i = 1; i <= head.length(); i++) {
+			ch1 = head.charAt(i - 1);
+			for (int j = 1; j <= tail.length(); j++) {
+				ch2 = tail.charAt(j - 1);
+				if (ch1 == ch2 || ch1 == ch2 + 32 || ch1 + 32 == ch2) {
+					temp = 0;
+				} else {
+					temp = 1;
+				}
+				d[i][j] = min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + temp);
+		}
+		}
+			return d[head.length()][tail.length()];
+	}
+
+	private static int min(int one, int two, int three) {
+		return (one = one < two ? one : two) < three ? one : three;
 	}
 
 	private static Object evaluateTailValue(ComputationPath path, TestChromosome newTestChromosome) {
