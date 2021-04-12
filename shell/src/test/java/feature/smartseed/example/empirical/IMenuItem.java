@@ -15,6 +15,11 @@ public class IMenuItem {
 	{
 	setContained(containedObject);
 	}
+	public IMenuItem()
+	{
+		this.setName("primitive");
+		this.setStaticValue("sta");
+	}
 	public void setContained(Object myObject)
 	{
 	 this.setMyObject(myObject);

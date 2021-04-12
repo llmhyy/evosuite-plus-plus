@@ -21,7 +21,7 @@ public class SensitivityMutatorExample {
 		String local = noiseString[index] + noiseChar.toString();
 
 		index = (int) (Math.random() * x.length);
-		if (x[index].equalsIgnoreCase(local)) {
+		if (x[index].compareTo(local) >= 2) {
 			System.currentTimeMillis();
 		}
 	}
@@ -46,12 +46,12 @@ public class SensitivityMutatorExample {
 //	}
 
 	// baload
-	public void baloadExample(boolean[] blist) {
-		boolean[] local = blist.clone();
+	public void baloadExample(byte[] blist) {
+		byte[] local = blist.clone();
 		int i = (int) (Math.random() * blist.length);
-		int length = blist.length;
-		local[i] = false;
-		if (local[i]) {
+		for(int j = 0;j < blist.length;j++)
+			local[j] = (byte) (local[j] * 13 + 5);
+		if (local[i] >= (byte)(140>>2)) {
 			System.currentTimeMillis();
 		}
 	}
@@ -59,10 +59,10 @@ public class SensitivityMutatorExample {
 	// caload
 	public void caloadExample(char[] clist) {
 		char[] local = clist.clone();
-		int i = (int) (Math.random() * 2230);
+		int i = (int) (Math.random() * (clist.length-1));
 		int length = clist.length;
-		local[length - 1] = (char) (clist[length - 1] + i);
-		if (local[length - 1] == noiseChar[noiseChar.length - 1]) {
+		local[i] = (char) (local[i] + '2');
+		if (local[i] >= '*') {
 			System.currentTimeMillis();
 		}
 	}
@@ -94,10 +94,10 @@ public class SensitivityMutatorExample {
 	}
 
 	// dadd
-	public double daddExample(int[] x) {
-		int index = (int) (Math.random() * x.length);
-		double d = Random.nextDouble();
-		if ((double) (x[index] + d) == (double) x[0] + d) {
+	public double daddExample(double x,int y) {
+		double z = x + y * (-233);
+		z = z / 2;
+		if ((double) (z + y) == 2300.0) {
 			System.currentTimeMillis();
 		}
 		return 0;
@@ -340,17 +340,17 @@ public class SensitivityMutatorExample {
 		int y0 = y * z;
 		int z0 = z / (Math.abs(x) >>> 33);
 		if(z0 + x < 233) {//iadd
-			y0 = y0 - z0;
+			y0 = y0 - z0;}
 			if(y0 / z0 > 18888) {//idiv
-				x = x << 10;
+				x = x << 10;}
 				if(x0 * y >= 189009) {//imul
-					y = y * y;
+					y = y * y;}
 					if(-y >= x + z0) {//ineg
 						System.currentTimeMillis();
 					}
-				}
-			}
-		}
+//				}
+//			}
+//		}
 		
 		if(y - y0 > z0) {//isub
 			System.currentTimeMillis();
@@ -378,7 +378,7 @@ public class SensitivityMutatorExample {
 		int x0 = x * z;
 		int y0 = Math.abs(y);
 		if((x0 & y0) > 167776512) {//iand
-			x = x + 167776512;
+			x = x + 167776512;}
 			if((x | y0) > 167776512) {//ior
 				System.currentTimeMillis();
 			}else {
@@ -386,7 +386,7 @@ public class SensitivityMutatorExample {
 					System.currentTimeMillis();
 				}
 			}
-		}
+//		}
 	}
 		
 	//iinc、irem
@@ -445,11 +445,11 @@ public class SensitivityMutatorExample {
 		String x = "random" + s;
 		IMenuItem imenu = new IMenuItem(s);
 		if(specialMethod(x).equals("str")) {//invokespecial
-			System.currentTimeMillis();
+			System.currentTimeMillis();}
 			if(imenu.staticInvokeMethod(s).contains("with")) {//invokestatic
 				System.currentTimeMillis();
 			}
-		}
+//		}
 	}
 	
 	private String specialMethod(String x) {
@@ -460,12 +460,12 @@ public class SensitivityMutatorExample {
 
 	// invokevirtual
 	public void invokevirtualExample(String x) {
+		int index = (int) (Math.random() * noiseString.length);
+		x = x + noiseString[index];
+		index = 0;
 		List<String> y = new ArrayList<String>();
 		y.add(x);
-		int index = (int) (Math.random() * noiseString.length);
-		String cons = noiseString[index];
-		index = (int) (Math.random() * noiseChar.length);
-		if (y.contains(cons + noiseChar[index])) {
+		if (x.substring(index).contains("su")) {
 			System.currentTimeMillis();
 		}
 	}
@@ -475,14 +475,14 @@ public class SensitivityMutatorExample {
 		int x0 = x * z;
 		int y0 = y / 1333;
 		if((x0 << 10) > 55555) {//ishl
-			x0 = x0 << 3;
+			x0 = x0 << 3;}
 			if((x0 >> 10) == 9999999) {//ishr
 				System.currentTimeMillis();
 			}
 			if(x0 >>> 10 == 9999999) {//iushr
 				System.currentTimeMillis();
 			}
-		}
+//		}
 	}
 	
 	//l2d、l2f、l2i
@@ -490,42 +490,42 @@ public class SensitivityMutatorExample {
 		int index = (int) (Math.random() * noiseLong.length);
 		x = x + 10;
 		if((int) x > index) {//l2i
-			y = y + x;
-			if((double)y <= (-23.5) * z) {//l2d
-				System.currentTimeMillis();
-			}
-			z = Math.abs(z + 89);
-			if((float) z >= (float)noiseLong[index]){//l2f
-				System.currentTimeMillis();
-			}
+			y = y + x;}
+		if((double)y <= (-23.5) * z) {//l2d
+			System.currentTimeMillis();
 		}
+		z = Math.abs(z + 89) - 332231;
+		if((float) (z + 23000) >= (float) (x - y)){//l2f
+			System.currentTimeMillis();
+		}
+//		}
 	}
 	
 	//ladd、ldiv、lmul、lneg、lsub、lrem
 	public void laddExample(long x,long y) {
 		long z = x + y - 2233l;
 		if((x + z) > 1119999l) {//ladd
-			x += 1119999l;
-			if((x / 1199) == 20) {//ldiv
-				y = y >> 2;
-				if(y * z ==20) {//lmul
-					System.currentTimeMillis();
-				}
-			}else if(-x < -1l) {//lneg
-				x = -x;
-				if(x - y >= 1119999l)//lsub
-					System.currentTimeMillis();
+			x += 1119999l;}
+			if((x / 19) > 200) {//ldiv
+				y = y >> 2;}
+			if((y + 233l) * z <= -2000230l) {//lmul
+				System.currentTimeMillis();
 			}
+			if(-x < -1l) {//lneg
+				x = -x;
+				}
+			if(x - y >= 1119999l)//lsub
+				System.currentTimeMillis();
 			if(x % 900 == 371)//lrem
 				System.currentTimeMillis();
-		}
+//		}
 	}
 	
 	//laload、lload、lload_0
 	public void laloadExample(long[] x,long y) {
-		long[] x0 = x.clone();
-		long y0 = y * x0[0] - 999992;
-		for(int i = 0;i < x0.length - 1;i++) {
+		long y0 = y * x[0];
+		y0 = y0 % (Math.abs(y) + 9) - 343;
+		for(int i = 0;i < x.length - 1;i++) {
 			if(y0 == y) {//lload
 				System.currentTimeMillis();
 			}else {
@@ -540,9 +540,9 @@ public class SensitivityMutatorExample {
 	//land、lor、lxor
 	public void landExample(long x,long y,long z) {
 		long x0 = x * z;
-		long y0 = Math.abs(y);
+		long y0 = Math.abs(y) + 3333333;
 		if((x0 & y0) > 167776512l) {//land
-			x = x + 167776512;
+			x = x + 167776512;}
 			if((x | y0) > 167776512l) {//lor
 				System.currentTimeMillis();
 			}else {
@@ -550,7 +550,7 @@ public class SensitivityMutatorExample {
 					System.currentTimeMillis();
 				}
 			}
-		}
+//		}
 	}
 	
 
@@ -599,9 +599,22 @@ public class SensitivityMutatorExample {
 		
 	//saload
 	public void saloadExample(short[] s) {
-		short[] s0 = s.clone();
-		s0[0] += 1011;
-		if(s0[0] > (short) 9989) {
+		int i = (int) (Math.random() * s.length);
+		s[i] = (short) (s[i] + 1100);
+		if(s[i] > (short) 99999999) {//TODO
+			System.currentTimeMillis();
+		}
+	}
+	
+	//i2s
+	public void i2sExample(int x,int y) {
+		int index = (int) (Math.random() * noiseLong.length);
+		float f = Random.nextFloat();
+		if((float) (x * 333) >= (float) Math.pow(10, y)) {//i2f
+			System.currentTimeMillis();
+		}
+		y = y * y * y;
+		if((short) y <= (short)f) {//i2s
 			System.currentTimeMillis();
 		}
 	}
