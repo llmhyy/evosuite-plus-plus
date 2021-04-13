@@ -27,6 +27,8 @@ import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
+import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 
@@ -35,6 +37,9 @@ public class SensitivityMutator {
 	public static Object HeadValue;
 	public static Object TailValue;
 //	public static int iter = 0;
+	public static String projectId;
+	public static String className;
+	public static String methodName;
 	
 	public static class preservingList{
 		public boolean valuePreserving = false;
@@ -42,7 +47,7 @@ public class SensitivityMutator {
 		public int valuePreservingNum = 0;
 		public int sensivityPreservingNum = 0;
 	}
-
+	
 	public static TestCase initializeTest(Branch b, TestFactory testFactory, boolean allowNullValue) {
 		TestCase test = new DefaultTestCase();
 		int success = -1;
@@ -85,6 +90,17 @@ public class SensitivityMutator {
 		
 		TestCase test = SensitivityMutator.initializeTest(branch, TestFactory.getInstance(), false);
 		data.clear();
+
+		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
+		try {
+			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
+		
 		TestChromosome oldTestChromosome = new TestChromosome();
 		oldTestChromosome.setTestCase(test);
 		for(FitnessFunction<?> ff: fitness) {
@@ -107,8 +123,9 @@ public class SensitivityMutator {
 		}
 		for (ComputationPath path : paths) {
 			TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
+//			TestChromosome newTestChromosome = oldTestChromosome;
 			DepVariable rootVariable = path.getComputationNodes().get(0);
-			Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome);
+			Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
 
 			Object headValue = retrieveHeadValue(relevantStatement);
 			Object tailValue = evaluateTailValue(path, newTestChromosome);
@@ -120,21 +137,18 @@ public class SensitivityMutator {
 			if (tailValue == null) {
 				return preservingList;
 			}
-//			List<Object> row = new ArrayList<Object>();
-//			row.add(path.getComputationNodes().toString());
-//			row.add(tailValue.toString());
-//			data.add(row);
 
-//				Object headValue = retrieveRuntimeValueForHead(newTestChromosome);
-//				Object tailValue = retrieveRuntimeValueForTail(newTestChromosome);
+//			Object headValue = retrieveRuntimeValueForHead(newTestChromosome);
+//			Object tailValue = retrieveRuntimeValueForTail(newTestChromosome);
 
 			if (relevantStatement == null)
 				continue;
 			for(int i = 0; i < 3;i++){
+
 				boolean isSuccessful = relevantStatement.mutate(newTestChromosome.getTestCase(),
 						TestFactory.getInstance());
 				if (isSuccessful) {
-					relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome);
+					relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
 					Object newHeadValue = retrieveHeadValue(relevantStatement);
 					Object newTailValue = evaluateTailValue(path, newTestChromosome);
 					
@@ -162,7 +176,8 @@ public class SensitivityMutator {
 					}
 						
 				}
-		}
+			}
+
 		}
 		
 		return preservingList;
@@ -303,7 +318,6 @@ public class SensitivityMutator {
 		fitness.getFitness(newTestChromosome);
 
 		Object tailValue = RuntimeSensitiveVariable.tailValue;
-		System.out.println("Tail Value: " + tailValue);
 		return tailValue;
 	}
 
@@ -334,8 +348,25 @@ public class SensitivityMutator {
 	}
 
 	// Returns the statement in the test case that modifies rootVariable
-	private static Statement locateRelevantStatement(DepVariable rootVariable, TestChromosome newTestChromosome) {
+	private static Statement locateRelevantStatement(DepVariable rootVariable, TestChromosome newTestChromosome,
+			Map<DepVariableWrapper, List<VariableReference>> map) {
 		TestCase tc = newTestChromosome.getTestCase();
+
+		DepVariableWrapper rootVarWrapper = new DepVariableWrapper(rootVariable);
+		List<VariableReference> varRefs = map.get(rootVarWrapper);
+		if (varRefs != null) {
+			int minPos = tc.size();
+			for (VariableReference varRef : varRefs) {
+				int pos = varRef.getStPosition();
+				if (pos < minPos) {
+					minPos = pos;
+				}
+			}
+			
+			return tc.getStatement(minPos);
+		}
+
+		
 
 		if (rootVariable.isParameter()) {
 			MethodStatement callStatement = parseTargetMethodCall(tc);

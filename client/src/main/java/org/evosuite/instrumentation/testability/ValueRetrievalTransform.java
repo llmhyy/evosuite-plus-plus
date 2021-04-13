@@ -11,6 +11,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -95,108 +96,29 @@ public class ValueRetrievalTransform {
 		}
 		
 		// 1. Duplicate value
+		Type instructionType = getInstructionType(node);
 		InsnNode dupNode;
-		
-		if (isPrimitiveDouble(node) || isPrimitiveLong(node)) {
-			// dup2 because doubles and longs take up 2 words
+		if (instructionType == Type.DOUBLE_TYPE || instructionType == Type.LONG_TYPE) {
 			dupNode = new InsnNode(Opcodes.DUP2);
 		} else {
 			dupNode = new InsnNode(Opcodes.DUP);
 		}
-		
 		mn.instructions.insertBefore(nextNode, dupNode);
 		
-		// 2. Cast primitive type values to its object type
-		if(isPrimitiveInt(node)) {					
-			// Integer.valueOf()
-			MethodInsnNode integerValueOf = new MethodInsnNode(
+		// 2. Instruction is primitive typed - cast value to its Object type
+		if (instructionType != Type.VOID_TYPE) {
+			Class<?> typeObjectClass = getTypeObjectClass(instructionType);
+			
+			MethodInsnNode valueOf = new MethodInsnNode(
 			        Opcodes.INVOKESTATIC,
-			        Type.getInternalName(Integer.class),
+			        Type.getInternalName(typeObjectClass),
 			        "valueOf",
-			        Type.getMethodDescriptor(Type.getType(Integer.class),
+			        Type.getMethodDescriptor(Type.getType(typeObjectClass),
 			                                 new Type[] {
-			                                         Type.getType(int.class), 
+			                                         instructionType, 
 			        						}), 
 			        false);
-			mn.instructions.insertBefore(nextNode, integerValueOf);
-		}
-		else if(isPrimitiveLong(node)) {
-			// Long.valueOf()
-			MethodInsnNode longValueOf = new MethodInsnNode(
-			        Opcodes.INVOKESTATIC,
-			        Type.getInternalName(Long.class),
-			        "valueOf",
-			        Type.getMethodDescriptor(Type.getType(Long.class),
-			                                 new Type[] {
-			                                         Type.getType(long.class), 
-			        						}), 
-			        false);
-			mn.instructions.insertBefore(nextNode, longValueOf);
-		}
-		else if(isPrimitiveDouble(node)) {
-			// Double.valueOf()
-			MethodInsnNode doubleValueOf = new MethodInsnNode(
-			        Opcodes.INVOKESTATIC,
-			        Type.getInternalName(Double.class),
-			        "valueOf",
-			        Type.getMethodDescriptor(Type.getType(Double.class),
-			                                 new Type[] {
-			                                         Type.getType(double.class), 
-			        						}), 
-			        false);
-			mn.instructions.insertBefore(nextNode, doubleValueOf);
-		}
-		else if(isPrimitiveFloat(node)) {
-			// Float.valueOf()
-			MethodInsnNode floatValueOf = new MethodInsnNode(
-			        Opcodes.INVOKESTATIC,
-			        Type.getInternalName(Float.class),
-			        "valueOf",
-			        Type.getMethodDescriptor(Type.getType(Float.class),
-			                                 new Type[] {
-			                                         Type.getType(float.class), 
-			        						}), 
-			        false);
-			mn.instructions.insertBefore(nextNode, floatValueOf);
-		}
-		else if(isPrimitiveByte(node)) {			
-			// Byte.valueOf()
-			MethodInsnNode byteValueOf = new MethodInsnNode(
-			        Opcodes.INVOKESTATIC,
-			        Type.getInternalName(Byte.class),
-			        "valueOf",
-			        Type.getMethodDescriptor(Type.getType(Byte.class),
-			                                 new Type[] {
-			                                         Type.getType(byte.class), 
-			        						}), 
-			        false);
-			mn.instructions.insertBefore(nextNode, byteValueOf);
-		}
-		else if(isPrimitiveShort(node)) {			
-			// Short.valueOf()
-			MethodInsnNode shortValueOf = new MethodInsnNode(
-			        Opcodes.INVOKESTATIC,
-			        Type.getInternalName(Short.class),
-			        "valueOf",
-			        Type.getMethodDescriptor(Type.getType(Short.class),
-			                                 new Type[] {
-			                                         Type.getType(short.class), 
-			        						}), 
-			        false);
-			mn.instructions.insertBefore(nextNode, shortValueOf);
-		}
-		else if(isPrimitiveChar(node)) {			
-			// Char.valueOf()
-			MethodInsnNode charValueOf = new MethodInsnNode(
-			        Opcodes.INVOKESTATIC,
-			        Type.getInternalName(Character.class),
-			        "valueOf",
-			        Type.getMethodDescriptor(Type.getType(Character.class),
-			                                 new Type[] {
-			                                         Type.getType(char.class), 
-			        						}), 
-			        false);
-			mn.instructions.insertBefore(nextNode, charValueOf);
+			mn.instructions.insertBefore(nextNode, valueOf);
 		}
 		
 		// 3. Insert RuntimeSensitiveVariable.setTailValue()
@@ -215,13 +137,54 @@ public class ValueRetrievalTransform {
 		return true;
 	}
 	
-	private boolean isPrimitiveInt(AbstractInsnNode node) {
-		if (node instanceof MethodInsnNode) {
-			MethodInsnNode min = (MethodInsnNode) node;
-			Type t = Type.getReturnType(min.desc);
-			return t.equals(Type.INT_TYPE);
+	private Class<?> getTypeObjectClass(Type instructionType) {
+		if (instructionType == Type.BOOLEAN_TYPE) {
+			return Boolean.class;
 		}
 		
+		if (instructionType == Type.BYTE_TYPE) {
+			return Byte.class;
+		}
+		
+		if (instructionType == Type.CHAR_TYPE) {
+			return Character.class;
+		}
+		
+		if (instructionType == Type.DOUBLE_TYPE) {
+			return Double.class;
+		}
+		
+		if (instructionType == Type.FLOAT_TYPE) {
+			return Float.class;
+		}
+		
+		if (instructionType == Type.INT_TYPE) {
+			return Integer.class;
+		}
+		
+		if (instructionType == Type.LONG_TYPE) {
+			return Long.class;
+		}
+		
+		if (instructionType == Type.SHORT_TYPE) {
+			return Short.class;
+		}
+		
+		return Void.class;
+	}
+
+	private Type getInstructionType(AbstractInsnNode node) {
+		if (node instanceof MethodInsnNode) {
+			MethodInsnNode min = (MethodInsnNode) node;
+			return Type.getReturnType(min.desc);
+		}
+		
+		if (node instanceof FieldInsnNode) {
+			return Type.VOID_TYPE;
+		}
+		
+		int nodeOpcode = node.getOpcode();
+		// Integer
 		Set<Integer> opcodes = new HashSet<Integer>();
 		opcodes.addAll(Arrays.asList(new Integer[] {
 				Opcodes.IADD, Opcodes.IALOAD, Opcodes.IAND, Opcodes.IDIV, 
@@ -231,94 +194,76 @@ public class ValueRetrievalTransform {
 				Opcodes.L2I, Opcodes.ICONST_0, Opcodes.ICONST_1, Opcodes.ICONST_2,
 				Opcodes.ICONST_3, Opcodes.ICONST_4, Opcodes.ICONST_5, Opcodes.ICONST_M1,
 				Opcodes.INSTANCEOF}));
-		return opcodes.contains(node.getOpcode());
-	}
-	
-	private boolean isPrimitiveLong(AbstractInsnNode node) {
-		if (node instanceof MethodInsnNode) {
-			MethodInsnNode min = (MethodInsnNode) node;
-			Type t = Type.getReturnType(min.desc);
-			return t.equals(Type.LONG_TYPE);
+		if (opcodes.contains(nodeOpcode)) {
+			return Type.INT_TYPE;
 		}
 		
-		Set<Integer> opcodes = new HashSet<Integer>();
+		// Long
+		opcodes = new HashSet<Integer>();
 		opcodes.addAll(Arrays.asList(new Integer[] {
 				Opcodes.LADD, Opcodes.LALOAD, Opcodes.LAND, Opcodes.LDIV, 
 				Opcodes.LLOAD, Opcodes.LMUL, Opcodes.LNEG, Opcodes.LOR,
 				Opcodes.LREM, Opcodes.LSHL, Opcodes.LSHR, Opcodes.LSUB,
 				Opcodes.LUSHR, Opcodes.LXOR, Opcodes.D2L, Opcodes.F2L,
 				Opcodes.I2L, Opcodes.LCONST_0, Opcodes.LCONST_1}));
-		return opcodes.contains(node.getOpcode());
-	}
-	
-	private boolean isPrimitiveDouble(AbstractInsnNode node) {
-		if (node instanceof MethodInsnNode) {
-			MethodInsnNode min = (MethodInsnNode) node;
-			Type t = Type.getReturnType(min.desc);
-			return t.equals(Type.DOUBLE_TYPE);
+		if (opcodes.contains(nodeOpcode)) {
+			return Type.LONG_TYPE;
 		}
 		
-		Set<Integer> opcodes = new HashSet<Integer>();
+		// Double
+		opcodes = new HashSet<Integer>();
 		opcodes.addAll(Arrays.asList(new Integer[] {
 				Opcodes.DADD, Opcodes.DALOAD, Opcodes.DDIV, Opcodes.DLOAD, 
 				Opcodes.DMUL, Opcodes.DNEG, Opcodes.DREM, Opcodes.DSUB,
 				Opcodes.F2D, Opcodes.I2D, Opcodes.L2D, Opcodes.DCONST_0,
 				Opcodes.DCONST_1}));
-		return opcodes.contains(node.getOpcode());
-	}
-	
-	private boolean isPrimitiveFloat(AbstractInsnNode node) {
-		if (node instanceof MethodInsnNode) {
-			MethodInsnNode min = (MethodInsnNode) node;
-			Type t = Type.getReturnType(min.desc);
-			return t.equals(Type.FLOAT_TYPE);
+		if (opcodes.contains(nodeOpcode)) {
+			return Type.DOUBLE_TYPE;
 		}
 		
-		Set<Integer> opcodes = new HashSet<Integer>();
+		// Float
+		opcodes = new HashSet<Integer>();
 		opcodes.addAll(Arrays.asList(new Integer[] {
 				Opcodes.FADD, Opcodes.FALOAD, Opcodes.FDIV, Opcodes.FLOAD, 
 				Opcodes.FMUL, Opcodes.FNEG, Opcodes.FREM, Opcodes.FSUB,
 				Opcodes.I2F, Opcodes.D2F, Opcodes.L2F, Opcodes.FCONST_0,
 				Opcodes.FCONST_1, Opcodes.FCONST_2}));
-		return opcodes.contains(node.getOpcode());
-	}
-	
-	private boolean isPrimitiveChar(AbstractInsnNode node) {
-		if (node instanceof MethodInsnNode) {
-			MethodInsnNode min = (MethodInsnNode) node;
-			Type t = Type.getReturnType(min.desc);
-			return t.equals(Type.CHAR_TYPE);
+		if (opcodes.contains(nodeOpcode)) {
+			return Type.FLOAT_TYPE;
 		}
 		
-		Set<Integer> opcodes = new HashSet<Integer>();
+		// Char
+		opcodes = new HashSet<Integer>();
 		opcodes.addAll(Arrays.asList(new Integer[] {
 				Opcodes.CALOAD, Opcodes.I2C}));
-		return opcodes.contains(node.getOpcode());
-	}
-	
-	private boolean isPrimitiveByte(AbstractInsnNode node) {
-		if (node instanceof MethodInsnNode) {
-			MethodInsnNode min = (MethodInsnNode) node;
-			Type t = Type.getReturnType(min.desc);
-			return t.equals(Type.BYTE_TYPE);
+		if (opcodes.contains(nodeOpcode)) {
+			return Type.CHAR_TYPE;
 		}
 		
-		Set<Integer> opcodes = new HashSet<Integer>();
+		// Byte
+		opcodes = new HashSet<Integer>();
 		opcodes.addAll(Arrays.asList(new Integer[] {
 				Opcodes.BIPUSH, Opcodes.BALOAD, Opcodes.I2B}));
-		return opcodes.contains(node.getOpcode());
-	}
-	
-	private boolean isPrimitiveShort(AbstractInsnNode node) {
-		if (node instanceof MethodInsnNode) {
-			MethodInsnNode min = (MethodInsnNode) node;
-			Type t = Type.getReturnType(min.desc);
-			return t.equals(Type.SHORT_TYPE);
+		if (opcodes.contains(nodeOpcode)) {
+			return Type.BYTE_TYPE;
 		}
 		
-		Set<Integer> opcodes = new HashSet<Integer>();
+		// Short
+		opcodes = new HashSet<Integer>();
 		opcodes.addAll(Arrays.asList(new Integer[] {
 				Opcodes.SIPUSH, Opcodes.SALOAD, Opcodes.I2S}));		
-		return opcodes.contains(node.getOpcode());
+		if (opcodes.contains(nodeOpcode)) {
+			return Type.SHORT_TYPE;
+		}
+		
+		// Boolean
+		opcodes = new HashSet<Integer>();
+		opcodes.addAll(Arrays.asList(new Integer[] {
+				Opcodes.INSTANCEOF}));		
+		if (opcodes.contains(nodeOpcode)) {
+			return Type.BOOLEAN_TYPE;
+		}
+		
+		return Type.VOID_TYPE;
 	}
 }
