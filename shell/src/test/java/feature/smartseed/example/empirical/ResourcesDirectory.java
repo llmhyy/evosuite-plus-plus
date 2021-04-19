@@ -5,13 +5,13 @@ import java.util.TreeMap;
 
 public class ResourcesDirectory {
 	private String folderName;
-	private final TreeMap<String, ResourceDescriptor> subResources = new TreeMap();
-    private final TreeMap<String, ResourcesDirectory> subdirs = new TreeMap();
+	private TreeMap<String, ResourceDescriptor> subResources = new TreeMap<String, ResourceDescriptor>();
+    private TreeMap<String, ResourcesDirectory> subdirs = new TreeMap<String, ResourcesDirectory>();
 
 	public ResourcesDirectory(String folderName)
 	 {
-		 this.folderName = folderName;
-		 }
+		 this.setFolderName(folderName);
+	}
 	
 //	public void addResource(ResourceDescriptor resource)
 //	{
@@ -48,4 +48,28 @@ public class ResourcesDirectory {
         ((ResourcesDirectory)subdirs.get(nextFolder)).addResource(resource, path);
       }
     }
+
+	public String getFolderName() {
+		return folderName;
+	}
+
+	public void setFolderName(String folderName) {
+		this.folderName = folderName;
+	}
+	
+	public TreeMap<String, ResourceDescriptor> getSubResources() {
+		return subResources;
+	}
+
+	public void setSubResources(TreeMap<String, ResourceDescriptor> subResources) {
+		this.subResources = subResources;
+	}
+	
+	public TreeMap<String, ResourcesDirectory> getSubdirs() {
+		return subdirs;
+	}
+
+	public void setSubdirs(TreeMap<String, ResourcesDirectory> subdirs) {
+		this.subdirs = subdirs;
+	}
 }

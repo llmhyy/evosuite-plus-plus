@@ -129,7 +129,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		writeResults();
 		
-		assert type == SeedingApplicationEvaluator.NO_POOL;//DYNAMIC_POOL
+		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;//DYNAMIC_POOL
 		
 	}
 	
@@ -222,7 +222,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		writeResults();
 		
-		assert type == SeedingApplicationEvaluator.NO_POOL;
+		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 		
 	}
 	
@@ -252,8 +252,8 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
 		writeResults();
-		
-		assert type == SeedingApplicationEvaluator.NO_POOL;//DYNAMIC_POOL
+		System.out.print(type);
+		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;//DYNAMIC_POOL
 		
 	}
 	
@@ -432,7 +432,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
-		
+		System.out.print(type);
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 		
 	}
@@ -518,7 +518,8 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
-		assert type == SeedingApplicationEvaluator.NO_POOL;//STATIC_POOL
+		writeResults();
+		assert type == SeedingApplicationEvaluator.STATIC_POOL;//STATIC_POOL
 		
 	}
 	

@@ -920,7 +920,8 @@ public class ComputationPath {
 				
 				preservingList = SensitivityMutator.testBranchSensitivity(set, InterproceduralGraphAnalysis.branchInterestedVarsMap
 					.get(Properties.TARGET_METHOD), this.branch,this);
-				isFastChannel = preservingList.valuePreserving || preservingList.sensivityPreserving;
+				isFastChannel = (preservingList.valuePreserving && preservingList.valuePreservingNum >= 3) 
+						|| preservingList.sensivityPreserving;
 				return isFastChannel;
 			}
 			isFastChannel = this.evaluateFastChannelScore() > Properties.FAST_CHANNEL_SCORE_THRESHOLD;

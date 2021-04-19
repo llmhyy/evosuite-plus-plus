@@ -89,7 +89,8 @@ public class SensitivityMutator {
 		preservingList preservingList = new preservingList();
 		
 		TestCase test = SensitivityMutator.initializeTest(branch, TestFactory.getInstance(), false);
-		data.clear();
+		if(data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
+			data.clear();
 
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
@@ -143,7 +144,7 @@ public class SensitivityMutator {
 
 			if (relevantStatement == null)
 				continue;
-			for(int i = 0; i < 3;i++){
+			for(int i = 0; i < 5;i++){
 
 				boolean isSuccessful = relevantStatement.mutate(newTestChromosome.getTestCase(),
 						TestFactory.getInstance());
@@ -155,8 +156,10 @@ public class SensitivityMutator {
 					valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
 					
 					boolean sensivityPreserving = false;
-					if(newTailValue == null && tailValue == null) {
+					if(newTailValue == null || tailValue == null) {
 						 sensivityPreserving = false;
+					}else if(newHeadValue == null && headValue == null) {
+						sensivityPreserving = !newTailValue.equals(tailValue);
 					}else
 						 sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
 					
@@ -169,7 +172,7 @@ public class SensitivityMutator {
 	
 					if(sensivityPreserving) {
 						preservingList.sensivityPreservingNum += 1;
-						if(preservingList.sensivityPreservingNum >= 2) {
+						if(preservingList.sensivityPreservingNum >= 3) {
 							preservingList.sensivityPreserving = true;
 							return preservingList;
 						}		
@@ -196,6 +199,16 @@ public class SensitivityMutator {
 	private static void recordList(Branch branch, ComputationPath path, Object headValue, Object tailValue,
 			Object newHeadValue, Object newTailValue, boolean valuePreserving, boolean sensivityPreserving, TestChromosome oldTestChromosome, TestChromosome newTestChromosome) {
 		List<Object> row = new ArrayList<Object>();
+		
+		if(newHeadValue == null)
+			newHeadValue = "NULL";
+		if(newTailValue == null)
+			newTailValue = "NULL";
+		if(headValue == null)
+			headValue = "NULL";
+		if(tailValue == null)
+			tailValue = "NULL";
+		
 		row.add(Properties.TARGET_CLASS);
 		row.add(Properties.TARGET_METHOD);
 		row.add(branch.toString());

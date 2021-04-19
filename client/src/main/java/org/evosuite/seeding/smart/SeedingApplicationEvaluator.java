@@ -40,21 +40,33 @@ public class SeedingApplicationEvaluator {
 		
 		public ComputationPath getSimplestChannel() {
 			ComputationPath simplestPath = null;
-			double score = -1;
+//			double score = -1;
 			
 			for(ComputationPath path: list) {
 				if(simplestPath == null) {
 					simplestPath = path;
-					score = path.evaluateFastChannelScore();
 				}
 				else {
-					double newScore = path.evaluateFastChannelScore();
-					if(newScore < score) {
+					if(simplestPath.isFastChannel())
+						break;
+					if(path.isFastChannel())
 						simplestPath = path;
-						score = newScore;
-					}
 				}
 			}
+			
+//			for(ComputationPath path: list) {
+//				if(simplestPath == null) {
+//					simplestPath = path;
+//					score = path.evaluateFastChannelScore();
+//				}
+//				else {
+//					double newScore = path.evaluateFastChannelScore();
+//					if(newScore < score) {
+//						simplestPath = path;
+//						score = newScore;
+//					}
+//				}
+//			}
 			
 			return simplestPath;
 		}

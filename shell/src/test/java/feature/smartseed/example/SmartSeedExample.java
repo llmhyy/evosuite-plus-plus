@@ -107,7 +107,7 @@ public class SmartSeedExample {
 			if (a.endsWith(endString)) {
 				System.currentTimeMillis();
 				return a;}}
-		return null;
+		return "NULL";
 	}
 	
 	public void matchesExample(String x) {
