@@ -1761,7 +1761,7 @@ public class ConstructionPathSynthesizer {
 		int insertionPosition = (parentVarRef != null) ? 
 				parentVarRef.getStPosition() + 1 : mStat.getPosition() - 1; 
 		
-		if(insertionPosition >= mStat.getPosition()) {
+		if(insertionPosition > mStat.getPosition()) {
 			insertionPosition = mStat.getPosition() - 1;
 		}
 		
