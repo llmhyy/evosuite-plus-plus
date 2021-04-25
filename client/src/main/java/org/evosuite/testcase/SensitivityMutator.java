@@ -363,8 +363,10 @@ public class SensitivityMutator {
 	// Returns the statement in the test case that modifies rootVariable
 	private static Statement locateRelevantStatement(DepVariable rootVariable, TestChromosome newTestChromosome,
 			Map<DepVariableWrapper, List<VariableReference>> map) {
+		Statement rootValueStatement = null;
 		TestCase tc = newTestChromosome.getTestCase();
 
+		// Find root statement using object map
 		DepVariableWrapper rootVarWrapper = new DepVariableWrapper(rootVariable);
 		List<VariableReference> varRefs = map.get(rootVarWrapper);
 		if (varRefs != null) {
@@ -376,35 +378,56 @@ public class SensitivityMutator {
 				}
 			}
 			
-			return tc.getStatement(minPos);
+			rootValueStatement = getRootValueStatement(tc, tc.getStatement(minPos));
 		}
-
 		
-
 		if (rootVariable.isParameter()) {
-			MethodStatement callStatement = parseTargetMethodCall(tc);
-			if (callStatement == null) {
-				return null;
-			}
-
 			int paramIndex = rootVariable.getParamOrder() - 1;
-			List<VariableReference> newParams = callStatement.getParameterReferences();
-			VariableReference paramRef = newParams.get(paramIndex);
+			List<VariableReference> methodCallParams = getMethodCallParams(tc);
+			VariableReference paramRef = methodCallParams.get(paramIndex);
 			Statement relevantStatement = getStatementModifyVariable(paramRef);
-			Statement rootValueStatement = getRootValueStatement(tc, relevantStatement);
-
-			return rootValueStatement;
-
+			rootValueStatement = getRootValueStatement(tc, relevantStatement);
+			
 		} else if (rootVariable.isInstaceField() || rootVariable.isStaticField()) {
 			Statement fieldStatement = getFieldStatement(tc, rootVariable);
-			Statement rootValueStatement = getRootValueStatement(tc, fieldStatement);
-
-			return rootValueStatement;
+			rootValueStatement = getRootValueStatement(tc, fieldStatement);
+		}
+		
+		// rootVariable's statement not in test case, return root value statement of
+		// a target method parameter
+		if (rootValueStatement == null) {
+			List<VariableReference> methodCallParams = getMethodCallParams(tc);
+			for (VariableReference paramRef: methodCallParams) {
+				Statement relevantStatement = getStatementModifyVariable(paramRef);
+				rootValueStatement = getRootValueStatement(tc, relevantStatement);
+				
+				if (rootValueStatement != null) {
+					break;
+				}
+			}
 		}
 
-		return null;
+
+		return rootValueStatement;
 	}
 	
+	private static List<VariableReference> getMethodCallParams(TestCase testCase) {
+		List<VariableReference> params = new ArrayList<>();
+		
+		Statement methodStatement = testCase.getStatement(testCase.size() - 1);
+		if (methodStatement instanceof MethodStatement) {
+			MethodStatement ms = (MethodStatement) methodStatement;
+			
+			// Ensure last statement is target method call
+			String methodName = ms.getMethod().getNameWithDescriptor();
+			if (methodName.equals(Properties.TARGET_METHOD)) {
+				params = ms.getParameterReferences();
+			}
+		}
+
+		return params;
+	}
+
 	private static Statement getRootValueStatement(TestCase testCase, Statement statement) {
 		// 1. PrimitiveStatement: int int0 = (-2236);
 		if (statement == null || statement instanceof PrimitiveStatement) {
@@ -482,20 +505,6 @@ public class SensitivityMutator {
 	private static Statement getStatementModifyVariable(VariableReference varRef) {
 		return varRef.getTestCase().getStatement(varRef.getStPosition());
 	}
-	
-	private static MethodStatement parseTargetMethodCall(TestCase testCase) {
-		Statement statement = testCase.getStatement(testCase.size() - 1);
-		if (statement instanceof MethodStatement) {
-			MethodStatement ms = (MethodStatement) statement;
-			String methodName = ms.getMethod().getNameWithDescriptor();
-
-			if (methodName.equals(Properties.TARGET_METHOD)) {
-				return ms;
-			}
-		}
-
-		return null;
-	}
 
 	private static Statement getFieldStatement(TestCase testCase, DepVariable rootVariable) {
 		for (int i = testCase.size() - 1; i >= 0; i--) {
@@ -545,109 +554,5 @@ public class SensitivityMutator {
 		}
 
 		return map;
-	}
-
-	private boolean statementsEqual(Statement statement1, Statement statement2) {
-		if (statement1 == null || statement2 == null) {
-			return false;
-		}
-
-		// 1. ArrayStatement
-		if (statement1 instanceof ArrayStatement && statement2 instanceof ArrayStatement) {
-			ArrayStatement as1 = (ArrayStatement) statement1;
-			ArrayStatement as2 = (ArrayStatement) statement2;
-
-			if (as1.getClass() != as2.getClass())
-				return false;
-			if (!as1.getLengths().equals(as2.getLengths()))
-				return false;
-		}
-
-		// 2. PrimitiveStatement
-		if (statement1 instanceof PrimitiveStatement && statement2 instanceof PrimitiveStatement) {
-			PrimitiveStatement ps1 = (PrimitiveStatement) statement1;
-			PrimitiveStatement ps2 = (PrimitiveStatement) statement2;
-
-			if (ps1.getClass() != ps2.getClass())
-				return false;
-			if (!ps1.getValue().equals(ps2.getValue()))
-				return false;
-		}
-
-		// 3. MethodStatement
-		if (statement1 instanceof MethodStatement && statement2 instanceof MethodStatement) {
-			MethodStatement ms1 = (MethodStatement) statement1;
-			MethodStatement ms2 = (MethodStatement) statement2;
-
-			if (ms1.getClass() != ms2.getClass())
-				return false;
-			if (!ms1.getMethod().equals(ms2.getMethod()))
-				return false;
-
-			// Check if callee is the same
-			if ((ms1.getCallee() == null && ms2.getCallee() != null)
-					|| (ms1.getCallee() != null && ms2.getCallee() == null)) {
-				return false;
-			} else {
-				if (ms1.getCallee() == null)
-					return true;
-
-				Statement stmt1 = getStatementFromVariable(ms1.getCallee());
-				Statement stmt2 = getStatementFromVariable(ms2.getCallee());
-				if (!statementsEqual(stmt1, stmt2)) {
-					return false;
-				}
-			}
-
-			// Check if all the method arguments are the same
-			List<VariableReference> params1 = ms1.getParameterReferences();
-			List<VariableReference> params2 = ms2.getParameterReferences();
-
-			if (params1.size() != params2.size())
-				return false;
-
-			for (int i = 0; i < params1.size(); i++) {
-				Statement stmt1 = getStatementFromVariable(params1.get(i));
-				Statement stmt2 = getStatementFromVariable(params2.get(i));
-
-				if (!statementsEqual(stmt1, stmt2))
-					return false;
-			}
-		}
-
-		// 4. ConstructorStatement
-		if (statement1 instanceof ConstructorStatement && statement2 instanceof ConstructorStatement) {
-			ConstructorStatement cs1 = (ConstructorStatement) statement1;
-			ConstructorStatement cs2 = (ConstructorStatement) statement2;
-
-			if (cs1.getClass() != cs2.getClass())
-				return false;
-			if (cs1.getParameterReferences().size() != cs2.getParameterReferences().size())
-				return false;
-
-			if (!cs1.getConstructor().equals(cs2.getConstructor()))
-				return false;
-
-			// Check if all the method arguments are the same
-			List<VariableReference> params1 = cs1.getParameterReferences();
-			List<VariableReference> params2 = cs2.getParameterReferences();
-
-			if (params1.size() != params2.size())
-				return false;
-
-			for (int i = 0; i < params1.size(); i++) {
-				Statement stmt1 = getStatementFromVariable(params1.get(i));
-				Statement stmt2 = getStatementFromVariable(params2.get(i));
-
-				if (!statementsEqual(stmt1, stmt2))
-					return false;
-			}
-		}
-
-		return true;
-	}
-
-	private Statement getStatementFromVariable(VariableReference varRef) {
-		return varRef.getTestCase().getStatement(varRef.getStPosition());
 	}
 }
