@@ -88,6 +88,10 @@ public class ValueRetrievalTransform {
 			return false;
 		}
 		
+		if (instructions[normalizedIndex].getOpcode() == Opcodes.INSTANCEOF) {
+			normalizedIndex -= 1;
+		}
+		
 		AbstractInsnNode node = instructions[normalizedIndex];
 		AbstractInsnNode nextNode = instructions[normalizedIndex+1];
 		
