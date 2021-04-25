@@ -122,6 +122,19 @@ public class SensitivityMutator {
 		if (paths == null) {
 			return preservingList;
 		}
+		
+		// Favor 'field' root variables
+		List<ComputationPath> sortedPaths = new ArrayList<ComputationPath>();
+		for (ComputationPath path: paths) {
+			DepVariable rootVariable = path.getComputationNodes().get(0);
+			if (rootVariable.isInstaceField() || rootVariable.isStaticField()) {
+				sortedPaths.add(0, path);
+			} else {
+				sortedPaths.add(path);
+			}
+		}
+		paths = sortedPaths;
+		
 		for (ComputationPath path : paths) {
 			TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
 //			TestChromosome newTestChromosome = oldTestChromosome;
