@@ -38,7 +38,7 @@ public class StatisticalFlagBranchEvaluatorTest {
 		Class<?> clazz = feature.fbranch.example.FlagEffectExample.class;
 		String methodName = "example1";
 		int parameterNum = 2;
-		int lineNumber = 6;
+		int lineNumber = 8;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -67,7 +67,7 @@ public class StatisticalFlagBranchEvaluatorTest {
 		Class<?> clazz = feature.fbranch.example.FlagEffectExample.class;
 		String methodName = "example2";
 		int parameterNum = 2;
-		int lineNumber = 23;
+		int lineNumber = 25;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -96,7 +96,7 @@ public class StatisticalFlagBranchEvaluatorTest {
 		Class<?> clazz = feature.fbranch.example.FlagEffectExample.class;
 		String methodName = "example3";
 		int parameterNum = 2;
-		int lineNumber = 32;
+		int lineNumber = 34;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -125,7 +125,7 @@ public class StatisticalFlagBranchEvaluatorTest {
 		Class<?> clazz = feature.fbranch.example.FlagEffectExample.class;
 		String methodName = "example4";
 		int parameterNum = 2;
-		int lineNumber = 40;
+		int lineNumber = 42;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -154,7 +154,7 @@ public class StatisticalFlagBranchEvaluatorTest {
 		Class<?> clazz = feature.fbranch.example.FlagEffectExample.class;
 		String methodName = "example5";
 		int parameterNum = 2;
-		int lineNumber = 53;
+		int lineNumber = 55;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
