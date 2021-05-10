@@ -30,7 +30,7 @@ public class SF100OverallTest {
 		
 		Properties.TIMEOUT = 1000;
 		
-//		Properties.ENABLE_TRACEING_EVENT = true;
+		Properties.ENABLE_TRACEING_EVENT = true;
 		Properties.APPLY_SMART_SEED = true;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
@@ -46,7 +46,7 @@ public class SF100OverallTest {
 //		String projectId = "58_fps370";
 //		String projectId = "24_saxpath";
 //		String projectId = "60_sugar";
-		String projectId = SF100Project.P19;
+		String projectId = SF100Project.P8;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -68,20 +68,25 @@ public class SF100OverallTest {
 //				"Codes#getKeywordCode(Ljava/lang/String;)B"//50
 //				"com.werken.saxpath.XPathReader#match(I)Lcom/werken/saxpath/Token;"//24
 //				"com.mentorgen.tools.profile.instrument.PerfMethodAdapter#visitInsn(I)V"//51
-				"com.soops.CEN4010.JMCA.JParser.SimpleNode#dump(Ljava/lang/String;Ljava/io/Writer;)V"//19
-
+//				"com.soops.CEN4010.JMCA.JParser.SimpleNode#dump(Ljava/lang/String;Ljava/io/Writer;)V"//19
+//				"wheel.asm.ClassWriter#newFieldItem(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lwheel/asm/Item;"//80
+//				"com.ib.client.EReader#readIntMax()I"//1
+				"fr.unice.gfarce.interGraph.SimpleTableDemo#getLigne(Ljava/lang/Object;)Ljava/lang/Object;"//8
+//				"de.paragon.explorer.model.ObjectModel#isStringObject()Z"//63
+//				"com.objectmentors.state.Transition#willTrigger(Lcom/objectmentors/state/IState;Lcom/objectmentors/state/Event;)Z"//14
+//				"net.sourceforge.schemaspy.model.ForeignKeyConstraint#isCascadeOnDelete()Z"//36
 		};
 		
-		int repeatTime = 1;
-		int budget = 60;
+		int repeatTime = 2;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
 		boolean aor = false;
-		boolean ass = true;
+		boolean ass = false;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
+				seed, aor, "generateSuite", "Evosuite", "MONOTONIC_GA", 0, 0, ass);
 		
 		double coverage = 0;
 		double initCoverage = 0;

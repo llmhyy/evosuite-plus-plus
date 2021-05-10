@@ -30,7 +30,7 @@ public class SmartSeedNegativeBranchEvaluatorTest {
 		
 		Properties.APPLY_SMART_SEED = true;
 		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
-		Properties.APPLY_GRADEINT_ANALYSIS = true;
+		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 	}
 	
 	//TODO for Cheng Yan, add 10 test cases
@@ -217,5 +217,95 @@ public class SmartSeedNegativeBranchEvaluatorTest {
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
 		assert type == SeedingApplicationEvaluator.NO_POOL;
+	}
+	
+	@Test
+	public void testSmartSeedBranch1() throws ClassNotFoundException, RuntimeException {
+		//tail value not sensitive 
+		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		String methodName = "staticExample";
+		int parameterNum = 2;
+		int lineNumber = 31;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		
+		assert type == SeedingApplicationEvaluator.NO_POOL;
+		
+	}
+	
+	@Test
+	public void testSmartSeedBranch9() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.smartseed.example.empirical.EmpiricalStudyExample.class;
+		String methodName = "parse";
+		int parameterNum = 1;
+		int lineNumber = 115;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		
+//		writeResults();
+		System.out.print(type);
+		assert type == SeedingApplicationEvaluator.NO_POOL;//DYNAMIC_POOL
+		
+	}
+	
+	@Test
+	public void testSmartSeedBranch20() throws ClassNotFoundException, RuntimeException {
+		
+		Class<?> clazz = feature.smartseed.example.empirical.ResourcesDirectory.class;
+		String methodName = "addResource";
+		int parameterNum = 2;
+		int lineNumber = 31;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		
+//		writeResults();
+		
+		assert type == SeedingApplicationEvaluator.NO_POOL;//DYNAMIC_POOL
+		
 	}
 }

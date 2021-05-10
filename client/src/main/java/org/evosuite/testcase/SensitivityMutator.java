@@ -31,6 +31,7 @@ import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
+import org.objectweb.asm.tree.LdcInsnNode;
 
 public class SensitivityMutator {
 	public static List<List<Object>> data = new ArrayList<List<Object>>();
@@ -41,7 +42,7 @@ public class SensitivityMutator {
 	public static String className;
 	public static String methodName;
 	
-	public static class preservingList{
+	public static class PreservingList{
 		public boolean valuePreserving = false;
 		public boolean sensivityPreserving = false;
 		public int valuePreservingNum = 0;
@@ -84,9 +85,9 @@ public class SensitivityMutator {
 		System.currentTimeMillis();
 	}
 
-	public static preservingList testBranchSensitivity(Set<FitnessFunction<?>> fitness,
+	public static PreservingList testBranchSensitivity(Set<FitnessFunction<?>> fitness,
 			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch, ComputationPath path0) {
-		preservingList preservingList = new preservingList();
+		PreservingList preservingList = new PreservingList();
 		
 		TestCase test = SensitivityMutator.initializeTest(branch, TestFactory.getInstance(), false);
 		if(data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
@@ -140,7 +141,7 @@ public class SensitivityMutator {
 //			TestChromosome newTestChromosome = oldTestChromosome;
 			DepVariable rootVariable = path.getComputationNodes().get(0);
 			Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
-
+			
 			Object headValue = retrieveHeadValue(relevantStatement);
 			Object tailValue = evaluateTailValue(path, newTestChromosome);
 			boolean valuePreserving = checkValuePreserving(headValue, tailValue);
@@ -157,7 +158,7 @@ public class SensitivityMutator {
 
 			if (relevantStatement == null)
 				continue;
-			for(int i = 0; i < 5;i++){
+			for(int i = 0; i < 10;i++){
 
 				boolean isSuccessful = relevantStatement.mutate(newTestChromosome.getTestCase(),
 						TestFactory.getInstance());
@@ -185,7 +186,7 @@ public class SensitivityMutator {
 	
 					if(sensivityPreserving) {
 						preservingList.sensivityPreservingNum += 1;
-						if(preservingList.sensivityPreservingNum >= 3) {
+						if(preservingList.sensivityPreservingNum >= 5) {
 							preservingList.sensivityPreserving = true;
 							return preservingList;
 						}		
