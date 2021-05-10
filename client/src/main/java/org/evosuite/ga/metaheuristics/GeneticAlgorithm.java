@@ -28,6 +28,7 @@ import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -127,6 +128,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	
 	protected long intializationOverhead;
 	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
+	private Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
 	
 	protected double initialCoverage = 0; 
 	
@@ -1337,6 +1339,14 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 
 	public void setMissingBranches(List<BranchInfo> missingBranches) {
 		this.missingBranches = missingBranches;
+	}
+
+	public Map<BranchInfo, String> getCoveredBranchWithTest() {
+		return coveredBranchWithTest;
+	}
+
+	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest) {
+		this.coveredBranchWithTest = coveredBranchWithTest;
 	}
 
 }

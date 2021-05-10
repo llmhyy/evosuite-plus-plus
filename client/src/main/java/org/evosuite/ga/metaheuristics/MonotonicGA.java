@@ -40,6 +40,7 @@ import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.FitnessReplacementFunction;
 import org.evosuite.ga.ReplacementFunction;
+import org.evosuite.result.BranchInfo;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
@@ -428,6 +429,22 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		Map<Integer, Double> uncoveredBranchDistribution = DistributionUtil.computeBranchDistribution(distributionMap,
 				branchGoals);
 		this.setUncoveredBranchDistribution(uncoveredBranchDistribution);
+		
+		Set<BranchCoverageGoal> missingBranchesSet = getUncoveredBranches(getBestIndividual(),branchGoals);
+		List<BranchInfo> missingBranches = new ArrayList<>();
+		for(BranchCoverageGoal goal:missingBranchesSet) {
+			goal.getBranch();
+			BranchInfo branchInfo = new BranchInfo(goal.getBranch(),goal.getValue());
+			if(!(goal.getMethodName().equals(Properties.TARGET_METHOD) && 
+					goal.getClassName().equals(Properties.TARGET_CLASS))) {
+				continue;	
+			}
+			missingBranches.add(branchInfo);
+		}
+		this.setMissingBranches(missingBranches);
+		
+		Map<BranchInfo, String> coveredBranchWithTest = getCoveredBranchWithTest(getBestIndividual(),branchGoals);
+		this.setCoveredBranchWithTest(coveredBranchWithTest);
 
 		// this.setCallUninstrumentedMethod(true);
 
@@ -449,6 +466,44 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 	}
 
 	
+	private Map<BranchInfo, String> getCoveredBranchWithTest(T bestIndividual,
+			List<BranchCoverageTestFitness> branchGoals) {
+		if (bestIndividual instanceof TestSuiteChromosome) {
+			
+			Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
+			
+			TestSuiteChromosome testsuite = (TestSuiteChromosome) bestIndividual;
+			
+			for(TestChromosome test: testsuite.getTestChromosomes()) {
+				ExecutionResult result = test.getLastExecutionResult();
+				if (result != null) {
+					for (BranchCoverageTestFitness tf : branchGoals) {
+						int branchID = tf.getBranch().getActualBranchId();
+						boolean value = tf.getValue();
+
+						if (value) {
+							Double distance = result.getTrace().getTrueDistances().get(branchID);
+							if (distance != null && distance == 0) {
+								BranchInfo branch = new BranchInfo(tf.getBranch(),value);
+								coveredBranchWithTest.put(branch, test.getTestCase().toString());
+							} 
+						} else {
+							Double distance = result.getTrace().getFalseDistances().get(branchID);
+							if (distance != null && distance == 0) {
+								BranchInfo branch = new BranchInfo(tf.getBranch(),value);
+								coveredBranchWithTest.put(branch, test.getTestCase().toString());
+							}
+						}
+					}
+				}
+			}
+			
+			return coveredBranchWithTest;
+			
+		}
+		return null;
+	}
+
 	private Set<BranchCoverageGoal> getUncoveredBranches(T bestIndividual, List<BranchCoverageTestFitness> branchGoals) {
 		if (bestIndividual instanceof TestSuiteChromosome) {
 

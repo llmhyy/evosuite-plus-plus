@@ -16,7 +16,7 @@ import org.evosuite.instrumentation.testability.StringHelper;
 import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testcase.SensitivityMutator.preservingList;
+import org.evosuite.testcase.SensitivityMutator.PreservingList;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.MethodUtil;
@@ -869,8 +869,9 @@ public class ComputationPath {
 			}
 			for (int j = 0; j < nodeList.size(); j++) {
 				node = nodeList.get(j);
-				if (!(operands.contains(node.getInstruction())
-//						&& operands.contains(node.getInstruction().getLineNumber())
+				if (!(nodes.contains(node) ||  
+						operands.contains(node.getInstruction()) 
+//						&& nodes.contains(node)
 				)) {
 					nodes.add(node);
 					dfsRoot(node,operands,computationPath,nodes, branch2);
@@ -912,15 +913,15 @@ public class ComputationPath {
 
 	public boolean isFastChannel() {
 		if (isFastChannel == null) {
-			if(Properties.APPLY_GRADEINT_ANALYSIS = true) {
+			if(Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true) {
 				Set<FitnessFunction<?>> set = new HashSet<>();
 				BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(this.branch, true);
 				set.add(ff);
-				preservingList preservingList = new preservingList();
+				PreservingList preservingList = new PreservingList();
 				
 				preservingList = SensitivityMutator.testBranchSensitivity(set, InterproceduralGraphAnalysis.branchInterestedVarsMap
 					.get(Properties.TARGET_METHOD), this.branch,this);
-				isFastChannel = (preservingList.valuePreserving && preservingList.valuePreservingNum >= 3) 
+				isFastChannel = (preservingList.valuePreserving && preservingList.valuePreservingNum >= 5) 
 						|| preservingList.sensivityPreserving;
 				return isFastChannel;
 			}
