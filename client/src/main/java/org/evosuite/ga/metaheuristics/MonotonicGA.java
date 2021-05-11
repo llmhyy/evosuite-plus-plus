@@ -41,6 +41,8 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.FitnessReplacementFunction;
 import org.evosuite.ga.ReplacementFunction;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.seedexpr.BranchCoveringEvent;
+import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
@@ -160,9 +162,19 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 			offspring2.mutate();
 
 			if (offspring1.isChanged()) {
+				if(Properties.ENABLE_TRACEING_EVENT) {
+					BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
+					EventSequence.addEvent(e);
+				}
+				
 				offspring1.updateAge(currentIteration);
 			}
 			if (offspring2.isChanged()) {
+				if(Properties.ENABLE_TRACEING_EVENT) {
+					BranchCoveringEvent e = EventSequence.deriveCoveredBranch(offspring1, parent1, uncoveredGoals);
+					EventSequence.addEvent(e);
+				}
+				
 				offspring2.updateAge(currentIteration);
 			}
 //			t11 = System.currentTimeMillis();
@@ -431,19 +443,12 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		this.setUncoveredBranchDistribution(uncoveredBranchDistribution);
 		
 		Set<BranchCoverageGoal> missingBranchesSet = getUncoveredBranches(getBestIndividual(),branchGoals);
-		List<BranchInfo> missingBranches = new ArrayList<>();
-		for(BranchCoverageGoal goal:missingBranchesSet) {
-			goal.getBranch();
-			BranchInfo branchInfo = new BranchInfo(goal.getBranch(),goal.getValue());
-			if(!(goal.getMethodName().equals(Properties.TARGET_METHOD) && 
-					goal.getClassName().equals(Properties.TARGET_CLASS))) {
-				continue;	
-			}
-			missingBranches.add(branchInfo);
-		}
+		
+		List<BranchInfo> missingBranches = getMissingBranches(population,branchGoals);
+//				getBestIndividual().getMissingBranches();
 		this.setMissingBranches(missingBranches);
 		
-		Map<BranchInfo, String> coveredBranchWithTest = getCoveredBranchWithTest(getBestIndividual(),branchGoals);
+		Map<BranchInfo, String> coveredBranchWithTest = getCoveredBranchWithTest(population,branchGoals);
 		this.setCoveredBranchWithTest(coveredBranchWithTest);
 
 		// this.setCallUninstrumentedMethod(true);
@@ -466,13 +471,57 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 	}
 
 	
-	private Map<BranchInfo, String> getCoveredBranchWithTest(T bestIndividual,
+	private List<BranchInfo> getMissingBranches(List<T> population,List<BranchCoverageTestFitness> branchGoals) {
+		List<BranchInfo> missingBranches = new ArrayList<>();
+		for (BranchCoverageTestFitness tf : branchGoals) {
+			int branchID = tf.getBranch().getActualBranchId();
+			boolean value = tf.getValue();
+			BranchInfo branchInfo = new BranchInfo(tf.getBranch(),value);
+			missingBranches.add(branchInfo);
+		}
+		
+		for(int i = 0;i < population.size();i++) {
+			
+			TestSuiteChromosome testsuite = (TestSuiteChromosome) population.get(i);
+			
+			for(TestChromosome test: testsuite.getTestChromosomes()) {
+				ExecutionResult result = test.getLastExecutionResult();
+				if (result != null) {
+					for (BranchCoverageTestFitness tf : branchGoals) {
+						int branchID = tf.getBranch().getActualBranchId();
+						boolean value = tf.getValue();
+						BranchInfo branchInfo = new BranchInfo(tf.getBranch(),value);
+
+						if (value) {
+							Double distance = result.getTrace().getTrueDistances().get(branchID);
+							if (distance != null && distance == 0) {
+								if(missingBranches.contains(branchInfo))
+									missingBranches.remove(branchInfo);
+							} else {
+								continue;
+							}
+						} else {
+							Double distance = result.getTrace().getFalseDistances().get(branchID);
+							if (distance != null && distance == 0) {
+								if(missingBranches.contains(branchInfo))
+									missingBranches.remove(branchInfo);
+							}else {
+								continue;
+							}
+						}
+					}
+				}
+			}
+					
+		}
+		return missingBranches;
+		}
+
+	private Map<BranchInfo, String> getCoveredBranchWithTest(List<T> population,
 			List<BranchCoverageTestFitness> branchGoals) {
-		if (bestIndividual instanceof TestSuiteChromosome) {
-			
-			Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
-			
-			TestSuiteChromosome testsuite = (TestSuiteChromosome) bestIndividual;
+		Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
+		for(int i = 0;i < population.size();i++) {
+			TestSuiteChromosome testsuite = (TestSuiteChromosome) population.get(i);
 			
 			for(TestChromosome test: testsuite.getTestChromosomes()) {
 				ExecutionResult result = test.getLastExecutionResult();
@@ -485,23 +534,25 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 							Double distance = result.getTrace().getTrueDistances().get(branchID);
 							if (distance != null && distance == 0) {
 								BranchInfo branch = new BranchInfo(tf.getBranch(),value);
-								coveredBranchWithTest.put(branch, test.getTestCase().toString());
+								if(!coveredBranchWithTest.containsKey(branch))
+									coveredBranchWithTest.put(branch, test.getTestCase().toString());
 							} 
 						} else {
 							Double distance = result.getTrace().getFalseDistances().get(branchID);
 							if (distance != null && distance == 0) {
 								BranchInfo branch = new BranchInfo(tf.getBranch(),value);
-								coveredBranchWithTest.put(branch, test.getTestCase().toString());
+								if(!coveredBranchWithTest.containsKey(branch))
+									coveredBranchWithTest.put(branch, test.getTestCase().toString());
 							}
 						}
 					}
 				}
 			}
 			
-			return coveredBranchWithTest;
 			
 		}
-		return null;
+		return coveredBranchWithTest;
+//		return null;
 	}
 
 	private Set<BranchCoverageGoal> getUncoveredBranches(T bestIndividual, List<BranchCoverageTestFitness> branchGoals) {

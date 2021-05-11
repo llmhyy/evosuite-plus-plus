@@ -1338,6 +1338,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	}
 
 	public void setMissingBranches(List<BranchInfo> missingBranches) {
+		this.missingBranches.clear();
 		this.missingBranches = missingBranches;
 	}
 
@@ -1346,6 +1347,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	}
 
 	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest) {
+		this.coveredBranchWithTest.clear();
 		this.coveredBranchWithTest = coveredBranchWithTest;
 	}
 
