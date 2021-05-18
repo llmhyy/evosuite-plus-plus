@@ -32,21 +32,14 @@ public class SF100OverallTest {
 		
 		Properties.ENABLE_TRACEING_EVENT = true;
 		Properties.APPLY_SMART_SEED = true;
+		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
 
 	@Test
 	public void testBugExample1() {
-		
-//		String projectId = "84_ifx-framework";
-//		String projectId = "27_gangup";
-//		String projectId = "83_xbus";
-//		String projectId = "80_wheelwebtool";
-//		String projectId = "58_fps370";
-//		String projectId = "24_saxpath";
-//		String projectId = "60_sugar";
-		String projectId = SF100Project.P8;
+		String projectId = SF100Project.P36;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -71,23 +64,116 @@ public class SF100OverallTest {
 //				"com.soops.CEN4010.JMCA.JParser.SimpleNode#dump(Ljava/lang/String;Ljava/io/Writer;)V"//19
 //				"wheel.asm.ClassWriter#newFieldItem(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lwheel/asm/Item;"//80
 //				"com.ib.client.EReader#readIntMax()I"//1
-				"fr.unice.gfarce.interGraph.SimpleTableDemo#getLigne(Ljava/lang/Object;)Ljava/lang/Object;"//8
-//				"de.paragon.explorer.model.ObjectModel#isStringObject()Z"//63
-//				"com.objectmentors.state.Transition#willTrigger(Lcom/objectmentors/state/IState;Lcom/objectmentors/state/Event;)Z"//14
-//				"net.sourceforge.schemaspy.model.ForeignKeyConstraint#isCascadeOnDelete()Z"//36
+//				"fr.unice.gfarce.interGraph.SimpleTableDemo#getLigne(Ljava/lang/Object;)Ljava/lang/Object;"//8
+//				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
+//				"com.werken.saxpath.XPathLexer#nextToken()Lcom/werken/saxpath/Token;"//82
+				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
+//				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"//43
+//				"glengineer.blocks.Scheme#recognizeVerticalGapsAtLines()V"//40
+//				"ghm.follow.font.FontSelectionPanel#getSelectedFontSize()I"//41
+				
 		};
 		
-		int repeatTime = 2;
-		int budget = 100;
+		int repeatTime = 5;
+		int budget = 10000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
 		boolean aor = false;
-		boolean ass = false;
+		boolean ass = true;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
-				seed, aor, "generateSuite", "Evosuite", "MONOTONIC_GA", 0, 0, ass);
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
+//		"generateMOSuite", "MOSUITE", "DynaMOSA",
+//		"generateSuite", "Evosuite", "MONOTONIC_GA",
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
 		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
+	}
+	
+	@Test
+	public void testBugExample7() {
+		String projectId = SF100Project.P22;
+		String[] targetMethods = new String[]{
+				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
+				
+		};
+		
+		int repeatTime = 5;
+		int budget = 10000;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		boolean aor = false;
+		boolean ass = true;
+		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
+//		"generateMOSuite", "MOSUITE", "DynaMOSA",
+//		"generateSuite", "Evosuite", "MONOTONIC_GA",
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
+	}
+	
+	@Test
+	public void testBugExample8() {
+		String projectId = SF100Project.P43;
+		String[] targetMethods = new String[]{
+				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"//43 
+				
+		};
+		
+		int repeatTime = 5;
+		int budget = 10000;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		boolean aor = false;
+		boolean ass = true;
+		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
+//		"generateMOSuite", "MOSUITE", "DynaMOSA",
+//		"generateSuite", "Evosuite", "MONOTONIC_GA",
 		double coverage = 0;
 		double initCoverage = 0;
 		double time = 0;

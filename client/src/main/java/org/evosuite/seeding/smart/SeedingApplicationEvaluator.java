@@ -266,9 +266,12 @@ public class SeedingApplicationEvaluator {
 					cache.put(b, branchInfo);
 					return branchInfo;
 				} else {
-//					if(b.getInstruction().getLineNumber()==310) {
-//						System.currentTimeMillis();
-//					}
+					if(b.getInstruction().getLineNumber()==304) {
+						System.currentTimeMillis();
+					}
+					if(b.getInstruction().getLineNumber()==284) {
+						System.currentTimeMillis();
+					}
 //					System.currentTimeMillis();
 					ComputationPath path1 = list.side1.getSimplestChannel();
 					ComputationPath path2 = list.side2.getSimplestChannel();

@@ -914,6 +914,9 @@ public class ComputationPath {
 	public boolean isFastChannel() {
 		if (isFastChannel == null) {
 			if(Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true) {
+				if(!this.getComputationNodes().get(0).isParameter())
+					return false;
+				
 				Set<FitnessFunction<?>> set = new HashSet<>();
 				BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(this.branch, true);
 				set.add(ff);

@@ -31,6 +31,7 @@ public class EventSequence {
 	public static boolean LOCAL_ENABLE = false;
 	
 	public static void addEvent(Event e) {
+		enableRecord();
 		if(Properties.ENABLE_TRACEING_EVENT && LOCAL_ENABLE && e != null) {
 			events.add(e);			
 		}
@@ -82,7 +83,7 @@ public class EventSequence {
 					offspring.getTestCase().toCode(),
 					parent.getTestCase().toCode(),
 					isCovered);
-//			addEvent(e);
+			addEvent(e);
 			
 //			analyzeEvent(e,b,offspring,isCovered);
 		}
