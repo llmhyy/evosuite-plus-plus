@@ -33,6 +33,7 @@ public class SF100OverallTest {
 		Properties.ENABLE_TRACEING_EVENT = true;
 		Properties.APPLY_SMART_SEED = true;
 		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
+		Properties.APPLY_GRADEINT_ANALYSIS = true;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
@@ -74,7 +75,7 @@ public class SF100OverallTest {
 				
 		};
 		
-		int repeatTime = 5;
+		int repeatTime = 1;
 		int budget = 10000;
 		Long seed = null;
 		

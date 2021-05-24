@@ -447,7 +447,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(set, branchesInTargetMethod, targetBranch,path).sensivityPreserving;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}

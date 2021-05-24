@@ -13,15 +13,27 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
+import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
+import org.evosuite.graphs.GraphPool;
+import org.evosuite.graphs.cdg.ControlDependenceGraph;
+import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.graphs.interprocedural.ComputationPath;
+import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
+import org.evosuite.setup.DependencyAnalysis;
+import org.evosuite.testcase.SensitivityMutator;
+import org.evosuite.testcase.SensitivityPreservance;
 import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 
 public class SeedingApplicationEvaluator {
 
@@ -227,6 +239,7 @@ public class SeedingApplicationEvaluator {
 		}
 	}
 	
+
 	public static BranchSeedInfo evaluate(Branch b) {
 		if (cache.containsKey(b)) {
 			return cache.get(b);
@@ -249,6 +262,7 @@ public class SeedingApplicationEvaluator {
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
 		methodInputs = compileInputs(methodInputs);
 
+		List<Object> constants = collectConstants(methodInputs);
 		try {
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
 
@@ -258,8 +272,14 @@ public class SeedingApplicationEvaluator {
 					List<ComputationPath> computationPathList = ComputationPath.computePath(input, b);
 					pathList.addAll(computationPathList);
 				}
+				
 				removeRedundancy(pathList);
 
+				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
+				
+				// FIXME if there is a fast channel, we observe if there is any constants? if yes, it is static, otherwise, it is dynamic
+				
+				
 				TwoSidePathList list = separateList(pathList, operands);
 				if (list.side1.isEmpty() || list.side2.isEmpty()) {
 					BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
@@ -267,9 +287,6 @@ public class SeedingApplicationEvaluator {
 					return branchInfo;
 				} else {
 					if(b.getInstruction().getLineNumber()==304) {
-						System.currentTimeMillis();
-					}
-					if(b.getInstruction().getLineNumber()==284) {
 						System.currentTimeMillis();
 					}
 //					System.currentTimeMillis();
@@ -317,6 +334,120 @@ public class SeedingApplicationEvaluator {
 		BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
 		cache.put(b, branchInfo);
 		return branchInfo;
+	}
+
+	private static List<Object> collectConstants(Set<DepVariable> methodInputs) {
+		// FIXME Cheng Yan
+		return null;
+	}
+
+	private static List<ComputationPath> analyzeFastChannels(List<ComputationPath> pathList) {
+		List<ComputationPath> paths = new ArrayList<>();
+		for(ComputationPath path: pathList) {
+			if(path.isFastChannel()) {
+				paths.add(path);
+			}
+			else {
+				for(int i=path.size()-1; i>=0; i--) {
+					DepVariable var = path.getComputationNodes().get(i);
+					BytecodeInstruction ins = var.getInstruction();
+					if(ins.isMethodCall()) {
+						String method = ins.getCalledMethod();
+						
+						if(!isBooleanReturnType(method)) {
+							break;
+						}
+						
+						if(isMethodInStopList(method)) {
+							continue;
+						}
+						
+						String clazz = ins.getCalledMethodsClass();
+						if(clazz.equals("java.util.List")) {
+							clazz = "java.util.ArrayList";
+						}
+						
+						InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+						String className = clazz;
+						String methodName = ins.getCalledMethod();
+						ActualControlFlowGraph graph = GraphPool.getInstance(classLoader).getActualCFG(clazz, methodName);
+						
+						if(graph == null) {
+							Properties.ALWAYS_REGISTER_BRANCH = true;
+							GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+							graph = GraphPool.getInstance(classLoader).getActualCFG(clazz, methodName);
+							
+							ControlDependenceGraph cdg = GraphPool.getInstance(classLoader).getCDG(className, methodName);
+							if(cdg == null) {
+								GraphPool.getInstance(classLoader).registerActualCFG(graph);
+								cdg = GraphPool.getInstance(classLoader).getCDG(className, methodName);
+							}
+							Properties.ALWAYS_REGISTER_BRANCH = false;
+						}
+						
+						if(graph != null) {
+							List<Branch> relevantBranches = analyzeRelevantBranches(graph);
+							for(Branch branch: relevantBranches) {
+								List<BytecodeInstruction> ops = branch.getInstruction().getOperands();
+								for(BytecodeInstruction op: ops) {					
+									DepVariable header = path.getComputationNodes().get(0);
+									SensitivityPreservance sp = SensitivityMutator.testBranchSensitivity(header, op, branch);
+									
+									if(sp.isSensitivityPreserving() || sp.isValuePreserving()) {
+										paths.add(path);
+									}
+								}
+								
+							}
+						}
+						
+					}
+				}
+				
+				System.currentTimeMillis();
+			}
+		}
+		
+		return paths;
+	}
+
+	private static List<Branch> analyzeRelevantBranches(ActualControlFlowGraph graph) {
+		List<BytecodeInstruction> insList = graph.getAllInstructions();
+		List<BytecodeInstruction> returnInsList = findAllReturnIns(insList);
+		
+		List<Branch> branches = new ArrayList<>();
+		for(BytecodeInstruction returnIns: returnInsList) {
+			for(ControlDependency dep: returnIns.getControlDependencies()) {
+				if(dep != null && !branches.contains(dep.getBranch())) {
+					branches.add(dep.getBranch());
+				}
+			}
+		}
+		
+		System.currentTimeMillis();
+		return branches;
+	}
+
+	private static List<BytecodeInstruction> findAllReturnIns(List<BytecodeInstruction> insList) {
+		List<BytecodeInstruction> returnInsList = new ArrayList<>();
+		for(BytecodeInstruction ins: insList) {
+			if(ins.isReturn()) {
+				returnInsList.add(ins);
+			}
+		}
+		return returnInsList;
+	}
+
+	private static boolean isMethodInStopList(String method) {
+		if(method.equals("booleanValue()Z") || method.equals("valueOf(Z)Ljava/lang/Boolean;")) {
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean isBooleanReturnType(String method) {
+		String returnType = method.substring(method.indexOf(")")+1, method.length());
+		return returnType.equals("Z") || returnType.equals("Ljava/lang/Boolean;");
 	}
 
 	private static String getDynamicDataType(ComputationPath otherPath) {

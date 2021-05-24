@@ -93,7 +93,7 @@ public class ConstructionPathSynthesizer {
 		graph.setBranch(b);
 		
 		if(variables == null) {
-			System.currentTimeMillis();
+			return graph;
 		}
 		
 		for(DepVariable source: variables) {

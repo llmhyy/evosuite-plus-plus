@@ -15,9 +15,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.instrumentation.testability.StringHelper;
 import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.testcase.SensitivityMutator;
-import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testcase.SensitivityMutator.PreservingList;
-import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.SensitivityPreservance;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.MethodUtil;
 import org.hibernate.internal.util.collections.CollectionHelper;
@@ -917,15 +915,8 @@ public class ComputationPath {
 				if(!this.getComputationNodes().get(0).isParameter())
 					return false;
 				
-				Set<FitnessFunction<?>> set = new HashSet<>();
-				BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(this.branch, true);
-				set.add(ff);
-				PreservingList preservingList = new PreservingList();
-				
-				preservingList = SensitivityMutator.testBranchSensitivity(set, InterproceduralGraphAnalysis.branchInterestedVarsMap
-					.get(Properties.TARGET_METHOD), this.branch,this);
-				isFastChannel = (preservingList.valuePreserving && preservingList.valuePreservingNum >= 5) 
-						|| preservingList.sensivityPreserving;
+				SensitivityPreservance preservingList = SensitivityMutator.testBranchSensitivity(this);
+				isFastChannel = preservingList.isValuePreserving() || preservingList.isSensitivityPreserving();
 				return isFastChannel;
 			}
 			isFastChannel = this.evaluateFastChannelScore() > Properties.FAST_CHANNEL_SCORE_THRESHOLD;

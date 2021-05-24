@@ -162,6 +162,9 @@ public class Properties {
 	@Parameter(key = "apply_smart_seed", group = "Test Creation", description = "let evosuite++ sample seed from dynamically generated seeds")
 	public static boolean APPLY_SMART_SEED = false;
 	
+	@Parameter(key = "dynamic_sensitivity_threshold", group = "Test Creation", description = "the number of times to test sensitivity and value change of an operand regarding a method input")
+	public static final int DYNAMIC_SENSITIVITY_THRESHOLD = 10;
+	
 	@Parameter(key = "fast_channel_score_threshold", group = "Test Creation", description = "evaluate whether a computation path is fast channel")
 	public static double FAST_CHANNEL_SCORE_THRESHOLD = 0.7;
 	
@@ -2579,6 +2582,11 @@ public class Properties {
 	
 	
 	public static final int OBJECT_CONSTRUCTION_DEPTH = 2;
+
+	public static final double VALUE_PRESERVING_THRESHOLD = 0.5;
+
+	public static final double SENSITIVITY_PRESERVING_THRESHOLD = 0.5;
+
 	public static boolean PRINT_FITNESS = true;
 
 	/*
