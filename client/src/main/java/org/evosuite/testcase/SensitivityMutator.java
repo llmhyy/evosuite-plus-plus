@@ -2,12 +2,15 @@ package org.evosuite.testcase;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ConstructionFailedException;
@@ -41,6 +44,7 @@ public class SensitivityMutator {
 	public static String className;
 	public static String methodName;
 
+	
 	public static TestCase initializeTest(TestFactory testFactory, boolean allowNullValue) {
 		TestCase test = new DefaultTestCase();
 		int success = -1;
@@ -80,7 +84,7 @@ public class SensitivityMutator {
 	
 	public static SensitivityPreservance testBranchSensitivity(ComputationPath path) {
 		Branch branch = path.getBranch();
-
+		
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
 			data.clear();
@@ -101,14 +105,14 @@ public class SensitivityMutator {
 		DepVariable rootVariable = path.getComputationNodes().get(0);
 		BytecodeInstruction tailInstruction = path.getRelevantTailInstruction();
 
-		preservingList = testHeadTailValue(newTestChromosome, rootVariable, tailInstruction, synthensizer);
+		preservingList = testHeadTailValue(branch, newTestChromosome, rootVariable, tailInstruction, synthensizer);
 		return preservingList;
 	}
 	
 	public static SensitivityPreservance testBranchSensitivity(DepVariable rootVariable,
 			BytecodeInstruction tailInstruction, Branch branch) {
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
-
+		
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
@@ -123,13 +127,13 @@ public class SensitivityMutator {
 
 		TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
 
-		preservingList = testHeadTailValue(newTestChromosome, rootVariable, tailInstruction, synthensizer);
+		preservingList = testHeadTailValue(branch, newTestChromosome, rootVariable, tailInstruction, synthensizer);
 		return preservingList;
 	}
 
 	public static SensitivityPreservance testBranchSensitivity(/* Set<FitnessFunction<?>> fitness, */
 			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch, ComputationPath path0) {
-
+		
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
 			data.clear();
@@ -179,19 +183,19 @@ public class SensitivityMutator {
 			DepVariable rootVariable = path.getComputationNodes().get(0);
 			BytecodeInstruction tailInstruction = path.getRelevantTailInstruction();
 
-			preservingList = testHeadTailValue(newTestChromosome, rootVariable, tailInstruction, synthensizer);
+			preservingList = testHeadTailValue(branch, newTestChromosome, rootVariable, tailInstruction, synthensizer);
 		}
 
 		return preservingList;
 	}
 
-	private static SensitivityPreservance testHeadTailValue(TestChromosome newTestChromosome, DepVariable rootVariable,
+	private static SensitivityPreservance testHeadTailValue(Branch branch, TestChromosome newTestChromosome, DepVariable rootVariable,
 			BytecodeInstruction tailInstruction, ConstructionPathSynthesizer synthensizer) {
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
 		Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
 		Object headValue = retrieveHeadValue(relevantStatement);
-		Object tailValue = evaluateTailValue(tailInstruction, newTestChromosome);
-
+		Object tailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
+		
 		boolean valuePreserving = checkValuePreserving(headValue, tailValue);
 
 		HeadValue = headValue;
@@ -214,7 +218,7 @@ public class SensitivityMutator {
 			if (isSuccessful) {
 				relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
 				Object newHeadValue = retrieveHeadValue(relevantStatement);
-				Object newTailValue = evaluateTailValue(tailInstruction, newTestChromosome);
+				Object newTailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
 
 				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
 
@@ -372,9 +376,16 @@ public class SensitivityMutator {
 		return (one = one < two ? one : two) < three ? one : three;
 	}
 
-	private static Object evaluateTailValue(BytecodeInstruction tailInstruction, TestChromosome newTestChromosome) {
+	private static Object evaluateTailValue(Branch branch, BytecodeInstruction tailInstruction, TestChromosome newTestChromosome) {
 
-//		FitnessFunction<Chromosome> fitness = searchForRelevantFitness(path.getBranch(), newTestChromosome);
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(branch, true);
+		set.add(ff);
+		for(FitnessFunction<?> f: set) {
+			newTestChromosome.addFitness(f);
+		}
+		FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, newTestChromosome);
+		
 		InstrumentingClassLoader newClassLoader = new InstrumentingClassLoader(tailInstruction);
 		DependencyAnalysis.addTargetClass(tailInstruction.getClassName());
 		try {
@@ -384,12 +395,13 @@ public class SensitivityMutator {
 		}
 
 		((DefaultTestCase) newTestChromosome.getTestCase()).changeClassLoader(newClassLoader);
-//		newTestChromosome.addFitness(fitness);
-//		newTestChromosome.clearCachedResults();
-//		fitness.getFitness(newTestChromosome);
-
+		newTestChromosome.addFitness(fitness);
+		newTestChromosome.clearCachedResults();
+		fitness.getFitness(newTestChromosome);
+		
 		Object tailValue = RuntimeSensitiveVariable.tailValue;
 		return tailValue;
+
 	}
 
 	@SuppressWarnings("rawtypes")

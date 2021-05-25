@@ -278,53 +278,82 @@ public class SeedingApplicationEvaluator {
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
 				
 				// FIXME if there is a fast channel, we observe if there is any constants? if yes, it is static, otherwise, it is dynamic
-				
-				
-				TwoSidePathList list = separateList(pathList, operands);
-				if (list.side1.isEmpty() || list.side2.isEmpty()) {
-					BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
-					cache.put(b, branchInfo);
-					return branchInfo;
-				} else {
-					if(b.getInstruction().getLineNumber()==304) {
-						System.currentTimeMillis();
+				if(fastChannels.size() != 0) {
+					List<ComputationPath> lastPathList = new ArrayList<>();
+					for(ComputationPath p : pathList) {
+						if(!fastChannels.contains(p))
+							lastPathList.add(p);
 					}
-//					System.currentTimeMillis();
-					ComputationPath path1 = list.side1.getSimplestChannel();
-					ComputationPath path2 = list.side2.getSimplestChannel();
-					if (!path1.isFastChannel() && !path2.isFastChannel()) {
-						System.currentTimeMillis();
+					if(lastPathList.size() == 0) {
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
 						cache.put(b, branchInfo);
 						return branchInfo;
-					} 
-					else if(path1.isFastChannel() && path2.isFastChannel()) {
-						ComputationPath fastPath = path2.size() < path1.size() ? path2 : path1;
-						String dataType = getDynamicDataType(fastPath);
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
+					}
+					if(constants.size() != 0) {
+						for(ComputationPath p : lastPathList) {
+							if(p.isPureConstantPath() && p.isHardConstant(operands)) {
+								BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, null);
+								cache.put(b, branchInfo);
+								return branchInfo;
+							}
+						}
+						
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, null);
 						cache.put(b, branchInfo);
 						return branchInfo;
 					}
 					else {
-						ComputationPath fastPath = path2.isFastChannel() ? path2 : path1;
-						ComputationPath otherPath = path2.isFastChannel() ? path1 : path2;
-
-						if (otherPath.isPureConstantPath()) {
-							if(otherPath.isHardConstant(operands)) {
-								String dataType = getConstantDataType(otherPath);
-								BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
-								cache.put(b, branchInfo);
-								return branchInfo;
-							}								
-						} 
-						else{
-							String dataType = getDynamicDataType(fastPath);
-							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
-							cache.put(b, branchInfo);
-							return branchInfo;
-						}
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, null);
+						cache.put(b, branchInfo);
+						return branchInfo;
 					}
 				}
+				
+//				TwoSidePathList list = separateList(pathList, operands);
+//				if (list.side1.isEmpty() || list.side2.isEmpty()) {
+//					BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+//					cache.put(b, branchInfo);
+//					return branchInfo;
+//				} else {
+//					if(b.getInstruction().getLineNumber()==304) {
+//						System.currentTimeMillis();
+//					}
+////					System.currentTimeMillis();
+//					ComputationPath path1 = list.side1.getSimplestChannel();
+//					ComputationPath path2 = list.side2.getSimplestChannel();
+//					if (!path1.isFastChannel() && !path2.isFastChannel()) {
+//						System.currentTimeMillis();
+//						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+//						cache.put(b, branchInfo);
+//						return branchInfo;
+//					} 
+//					else if(path1.isFastChannel() && path2.isFastChannel()) {
+//						ComputationPath fastPath = path2.size() < path1.size() ? path2 : path1;
+//						String dataType = getDynamicDataType(fastPath);
+//						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
+//						cache.put(b, branchInfo);
+//						return branchInfo;
+//					}
+//					else {
+//						ComputationPath fastPath = path2.isFastChannel() ? path2 : path1;
+//						ComputationPath otherPath = path2.isFastChannel() ? path1 : path2;
+//
+//						if (otherPath.isPureConstantPath()) {
+//							if(otherPath.isHardConstant(operands)) {
+//								String dataType = getConstantDataType(otherPath);
+//								BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
+//								cache.put(b, branchInfo);
+//								return branchInfo;
+//							}								
+//						} 
+//						else{
+//							String dataType = getDynamicDataType(fastPath);
+//							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
+//							cache.put(b, branchInfo);
+//							return branchInfo;
+//						}
+//					}
+//				}
 
 			}
 		} catch (Exception e) {
@@ -338,7 +367,14 @@ public class SeedingApplicationEvaluator {
 
 	private static List<Object> collectConstants(Set<DepVariable> methodInputs) {
 		// FIXME Cheng Yan
-		return null;
+		List<Object> constants = new ArrayList<>();
+		for(DepVariable var : methodInputs) {
+			if(var.getInstruction().isConstant()) {
+				constants.add(var);
+			}
+				
+		}
+		return constants;
 	}
 
 	private static List<ComputationPath> analyzeFastChannels(List<ComputationPath> pathList) {
@@ -386,6 +422,8 @@ public class SeedingApplicationEvaluator {
 						}
 						
 						if(graph != null) {
+							System.currentTimeMillis();
+							
 							List<Branch> relevantBranches = analyzeRelevantBranches(graph);
 							for(Branch branch: relevantBranches) {
 								List<BytecodeInstruction> ops = branch.getInstruction().getOperands();
@@ -424,7 +462,6 @@ public class SeedingApplicationEvaluator {
 			}
 		}
 		
-		System.currentTimeMillis();
 		return branches;
 	}
 
@@ -504,8 +541,38 @@ public class SeedingApplicationEvaluator {
 		return 0;
 	}
 
-	private static String getConstantDataType(ComputationPath otherPath) {
-		BytecodeInstruction ins = otherPath.getInstruction(0);
+//	private static String getConstantDataType(ComputationPath otherPath) {
+//		BytecodeInstruction ins = otherPath.getInstruction(0);
+//		String types[] = ins.getASMNodeString().split(" ");
+//		for(String i : types) {
+//			if(i.equals("LDC")) {
+//				LdcInsnNode node =  (LdcInsnNode)ins.getASMNode();
+//				Object cst = node.cst;
+//				return finalType(cst.getClass().getName());
+//			}
+//			switch(i){
+//				case "BYTE":
+//				case "DOUBLE":
+//				case "FLOAT":
+//				case "INT":
+//				case "LONG":
+//				case "SHORT":
+//				case "STRING":
+//					return i.toLowerCase();
+//				default:
+//					return "OTHER".toLowerCase();
+//				}
+//		}
+//			
+//		return null;
+//	}
+	
+	private static String getConstantDataType(Object obj) {
+		if(!(obj instanceof DepVariable)) {
+			return "OTHER".toLowerCase();
+		}
+		DepVariable var = (DepVariable) obj;
+		BytecodeInstruction ins = var.getInstruction();
 		String types[] = ins.getASMNodeString().split(" ");
 		for(String i : types) {
 			if(i.equals("LDC")) {

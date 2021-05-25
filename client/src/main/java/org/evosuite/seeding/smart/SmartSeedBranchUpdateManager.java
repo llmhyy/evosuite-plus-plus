@@ -21,6 +21,8 @@ public class SmartSeedBranchUpdateManager {
 		uncoveredApplicableBranchInfo.clear();
 		totalUncoveredGoals.clear();
 		
+		boolean hasDynamicPool = false;
+		
 		Set<BranchSeedInfo> infoSet = new HashSet<>();
 		Set<BranchSeedInfo> uncoveredGoal = new HashSet<>();
 		for(Object obj: uncoveredGoals) {
@@ -33,6 +35,8 @@ public class SmartSeedBranchUpdateManager {
 					BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(goal.getBranch());
 					uncoveredGoal.add(info);
 					if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
+						if(info.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL)
+							hasDynamicPool = true;
 						infoSet.add(info);	
 					}
 				}
@@ -45,6 +49,8 @@ public class SmartSeedBranchUpdateManager {
 		
 		double ratio = infoSet.size()*1.0 / uncoveredGoals.size()*1.0 ;
 		Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + ratio);
+		if(!hasDynamicPool)
+			Properties.DYNAMIC_POOL_SIZE = 50;
 		
 	}
 	
