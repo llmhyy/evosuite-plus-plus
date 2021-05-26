@@ -1,61 +1,45 @@
 package feature.smartseed.testcase;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.Map.Entry;
 
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
-import org.evosuite.Properties.Criterion;
 import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.classpath.ClassPathHandler;
-import org.evosuite.coverage.branch.Branch;
-import org.evosuite.coverage.branch.BranchPool;
-import org.evosuite.result.BranchDynamicAnalyzer;
-import org.evosuite.seeding.smart.BranchSeedInfo;
-import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
-import org.evosuite.seeding.smart.SmartSeedBranchUpdateManager;
-import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import common.TestUtil;
 import common.TestUtility;
 import evosuite.shell.EvoTestResult;
 import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelWriter;
-import feature.smartseed.example.SmartSeedExample;
 import feature.smartseed.example.empirical.Config;
-import feature.smartseed.example.empirical.EmpiricalStudyExample;
-import feature.smartseed.example.empirical.ResourcesDirectory;
-import sf100.CommonTestUtil;
 
 public class EmpricalMethodEvaluatorTest {
 	@Before
 	public void init() {
-		Properties.TIMEOUT = 300000000;
-//		Properties.RANDOM_SEED = 1606757586999l;
-//		Properties.INSTRUMENT_CONTEXT = true;
-//		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
-		
-		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
-		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
-		
-		Properties.APPLY_SMART_SEED = true;
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.ENABLE_TRACEING_EVENT = true;
+
+		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
+//		Properties.APPLY_OBJECT_RULE = true;
+		Properties.ADOPT_SMART_MUTATION = false;
 		
+		Properties.INSTRUMENT_CONTEXT = true;
+		Properties.CHROMOSOME_LENGTH = 200;
+		
+		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 0;
+		
+		Properties.TIMEOUT = 1000;
+		
+		Properties.ENABLE_TRACEING_EVENT = true;
+		Properties.APPLY_SMART_SEED = true;
+		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 		Properties.APPLY_GRADEINT_ANALYSIS = true;
-		Properties.CHROMOSOME_LENGTH = 5;
+//		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
 	public void writeResults() {
@@ -100,7 +84,7 @@ public class EmpricalMethodEvaluatorTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 100000;
 		Long seed = null;
 				
 		boolean aor = false;

@@ -61,20 +61,24 @@ public class InterproceduralGraphAnalyzer {
 		}
 		
 		ActualControlFlowGraph calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-		MethodNode innerNode = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
+//		MethodNode innerNode = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
 		
 		if (calledCfg == null) {
-			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
-			try {
-				bytecodeAnalyzer.analyze(classLoader, className, methodName, innerNode);
-			} catch (Exception e) {
-				/**
-				 * the cfg (e.g., jdk/library class) is out of our consideration
-				 */
-				return new HashMap<>();
-			}
 			Properties.ALWAYS_REGISTER_BRANCH = true;
-			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).
+				registerClass(className);
+//			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+//			try {
+//				bytecodeAnalyzer.analyze(classLoader, className, methodName, innerNode);
+//			} catch (Exception e) {
+//				/**
+//				 * the cfg (e.g., jdk/library class) is out of our consideration
+//				 */
+//				return new HashMap<>();
+//			}
+//			
+//			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+			System.currentTimeMillis();
 			calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			Properties.ALWAYS_REGISTER_BRANCH = false;
 		}

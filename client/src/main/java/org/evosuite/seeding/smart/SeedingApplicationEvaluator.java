@@ -277,6 +277,8 @@ public class SeedingApplicationEvaluator {
 
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
 				
+				System.currentTimeMillis();
+				
 				// FIXME if there is a fast channel, we observe if there is any constants? if yes, it is static, otherwise, it is dynamic
 				if(fastChannels.size() != 0) {
 					List<ComputationPath> lastPathList = new ArrayList<>();
@@ -408,21 +410,18 @@ public class SeedingApplicationEvaluator {
 						String methodName = ins.getCalledMethod();
 						ActualControlFlowGraph graph = GraphPool.getInstance(classLoader).getActualCFG(clazz, methodName);
 						
+						Properties.ALWAYS_REGISTER_BRANCH = true;
 						if(graph == null) {
-							Properties.ALWAYS_REGISTER_BRANCH = true;
 							GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
 							graph = GraphPool.getInstance(classLoader).getActualCFG(clazz, methodName);
-							
+						}
+						
+						if(graph != null) {
 							ControlDependenceGraph cdg = GraphPool.getInstance(classLoader).getCDG(className, methodName);
 							if(cdg == null) {
 								GraphPool.getInstance(classLoader).registerActualCFG(graph);
 								cdg = GraphPool.getInstance(classLoader).getCDG(className, methodName);
 							}
-							Properties.ALWAYS_REGISTER_BRANCH = false;
-						}
-						
-						if(graph != null) {
-							System.currentTimeMillis();
 							
 							List<Branch> relevantBranches = analyzeRelevantBranches(graph);
 							for(Branch branch: relevantBranches) {
@@ -438,6 +437,8 @@ public class SeedingApplicationEvaluator {
 								
 							}
 						}
+						
+						Properties.ALWAYS_REGISTER_BRANCH = false;
 						
 					}
 				}

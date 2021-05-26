@@ -21,7 +21,7 @@ public class TestUtility {
 	static List<EvoTestResult> re = new ArrayList<EvoTestResult>();
 	public static List<EvoTestResult> evoTestSmartSeedMethod(String targetClass, String targetMethod, String cp,
 			String fitnessApproach, int iteration, 
-			long seconds, boolean ass,boolean context, Long seed, 
+			long seconds, boolean ass, boolean context, Long seed, 
 			boolean applyObjectRule,
 			String option,
 			String strategy,
