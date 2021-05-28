@@ -41,6 +41,9 @@ import org.evosuite.graphs.interprocedural.ConstructionPath;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.GraphVisualizer;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.interestednode.SmartSeedInterestedNodeFilter;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -88,7 +91,16 @@ public class ConstructionPathSynthesizer {
 	public PartialGraph constructPartialComputationGraph(Branch b) {
 		PartialGraph graph = new PartialGraph();
 		
-		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
+		Map<Branch, Set<DepVariable>> map;
+		if(Properties.APPLY_SMART_SEED) {
+			InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+			ActualControlFlowGraph sgraph = GraphPool.getInstance(classLoader).getActualCFG(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+			IInterestedNodeFilter interestedNodeFilter = new SmartSeedInterestedNodeFilter();
+			map = InterproceduralGraphAnalysis.analyzeIndividualMethod(sgraph, interestedNodeFilter);
+		}
+		else
+			map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
+		
 		Set<DepVariable> variables = map.get(b);
 		graph.setBranch(b);
 		
@@ -366,7 +378,8 @@ public class ConstructionPathSynthesizer {
 		} else if (node.var.getType() == DepVariable.THIS) {
 			if(node.parents.isEmpty()) {
 				MethodStatement mStat = test.findTargetMethodCallStatement();
-				generatedVariable = mStat.getCallee();				
+				if(mStat != null)
+					generatedVariable = mStat.getCallee();
 			}
 			else {
 				for(DepVariableWrapper parentNode: node.parents) {
@@ -1411,7 +1424,11 @@ public class ConstructionPathSynthesizer {
 			 */
 			MethodStatement mStat = test.findTargetMethodCallStatement();
 			int paramPosition = node.var.getParamOrder();
-			VariableReference paramRef = mStat.getParameterReferences().get(paramPosition - 1);
+			VariableReference paramRef = null;
+			if(paramPosition > 1)
+				paramRef = mStat.getParameterReferences().get(paramPosition - 1);
+			else
+				return paramRef;
 			
 			/**
 			 * make sure the parameter obj is not null

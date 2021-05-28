@@ -21,6 +21,7 @@ import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.seeding.RuntimeSensitiveVariable;
+import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
@@ -133,7 +134,7 @@ public class SensitivityMutator {
 
 	public static SensitivityPreservance testBranchSensitivity(/* Set<FitnessFunction<?>> fitness, */
 			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch, ComputationPath path0) {
-		
+		TestFactory.getInstance().reset();
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
 			data.clear();
@@ -155,7 +156,8 @@ public class SensitivityMutator {
 		Map<Branch, List<ComputationPath>> branchWithBDChanged = parseComputationPaths(branch, branchesInTargetMethod);
 
 		List<ComputationPath> paths = new ArrayList<ComputationPath>();
-		if (path0 != null) {
+		if (path0 != null && SeedingApplicationEvaluator.CLA == Properties.TARGET_CLASS
+				&& SeedingApplicationEvaluator.MED == Properties.TARGET_METHOD) {
 			paths.add(path0);
 		} else {
 			paths = branchWithBDChanged.get(branch);
@@ -169,6 +171,12 @@ public class SensitivityMutator {
 		// Favor 'field' root variables
 		List<ComputationPath> sortedPaths = new ArrayList<ComputationPath>();
 		for (ComputationPath path : paths) {
+			
+			//filed to parameter path
+//			double ratio = isStaticPath(path,preservingList);
+//			if(ratio > 0)
+//				return preservingList;
+			
 			DepVariable rootVariable = path.getComputationNodes().get(0);
 			if (rootVariable.isInstaceField() || rootVariable.isStaticField()) {
 				sortedPaths.add(0, path);
@@ -184,9 +192,35 @@ public class SensitivityMutator {
 			BytecodeInstruction tailInstruction = path.getRelevantTailInstruction();
 
 			preservingList = testHeadTailValue(branch, newTestChromosome, rootVariable, tailInstruction, synthensizer);
+			if(preservingList.isSensitivityPreserving() || preservingList.isValuePreserving()) {
+				return preservingList;
+			}
 		}
 
 		return preservingList;
+	}
+	
+	private static double isStaticPath(ComputationPath path, SensitivityPreservance preservingList) {
+		if (SeedingApplicationEvaluator.CLA != Properties.TARGET_CLASS
+				&& SeedingApplicationEvaluator.MED != Properties.TARGET_METHOD) {
+			if(path.size() == 3) {
+				boolean hasField = false;
+				boolean isEqual = false;
+				for (DepVariable var : path.getComputationNodes()) {
+					if (var.isInstaceField() || var.isStaticField()) {
+						hasField = true;
+					} else if (var.isMethodCall()) {
+						if (var.getInstruction().getCalledMethodName().toLowerCase().contains("equals"))
+							isEqual = true;
+					}
+				}
+				if(hasField && isEqual) {
+					return preservingList.sensivityPreserRatio = 0.6;
+				}
+			}
+			
+		}
+		return 0;
 	}
 
 	private static SensitivityPreservance testHeadTailValue(Branch branch, TestChromosome newTestChromosome, DepVariable rootVariable,
@@ -452,6 +486,8 @@ public class SensitivityMutator {
 		}
 
 		if (rootVariable.isParameter()) {
+			if(newTestChromosome.getTestCase().size() == 0)
+				return rootValueStatement;
 			int paramIndex = rootVariable.getParamOrder() - 1;
 			List<VariableReference> methodCallParams = getMethodCallParams(tc);
 			VariableReference paramRef = methodCallParams.get(paramIndex);

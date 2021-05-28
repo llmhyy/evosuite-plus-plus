@@ -78,9 +78,23 @@ public class InterproceduralGraphAnalyzer {
 //			}
 //			
 //			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
-			System.currentTimeMillis();
 			calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 			Properties.ALWAYS_REGISTER_BRANCH = false;
+			
+			if (calledCfg == null) {
+				MethodNode innerNode = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
+				BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+				try {
+					bytecodeAnalyzer.analyze(classLoader, className, methodName, innerNode);
+				} catch (Exception e) {
+					/**
+					 * the cfg (e.g., jdk/library class) is out of our consideration
+					 */
+					return new HashMap<>();
+				}
+
+				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+			}
 		}
 		
 		GraphPool.getInstance(classLoader).alwaysRegisterActualCFG(calledCfg);

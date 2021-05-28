@@ -61,7 +61,7 @@ public class SmartSeedNegativeBranchEvaluatorTest {
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
-		assert type == SeedingApplicationEvaluator.NO_POOL;
+		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
 		
 	}
 	

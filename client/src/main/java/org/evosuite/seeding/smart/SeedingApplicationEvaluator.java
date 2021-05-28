@@ -24,6 +24,8 @@ import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.interestednode.SmartSeedInterestedNodeFilter;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.SensitivityMutator;
@@ -40,6 +42,8 @@ public class SeedingApplicationEvaluator {
 	public static int STATIC_POOL = 1;
 	public static int DYNAMIC_POOL = 2;
 	public static int NO_POOL = 3;
+	public static String CLA;//under test target class
+	public static String MED;//under test target method
 
 	public static Map<Branch, BranchSeedInfo> cache = new HashMap<>();
 
@@ -287,27 +291,35 @@ public class SeedingApplicationEvaluator {
 							lastPathList.add(p);
 					}
 					if(lastPathList.size() == 0) {
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
-						cache.put(b, branchInfo);
-						return branchInfo;
+						if(!b.toString().contains("NULL"))
+							return branchInfo(fastChannels, b, DYNAMIC_POOL);
+						return branchInfo(fastChannels, b, NO_POOL);
 					}
-					if(constants.size() != 0) {
-						for(ComputationPath p : lastPathList) {
-							if(p.isPureConstantPath() && p.isHardConstant(operands)) {
-								BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, null);
-								cache.put(b, branchInfo);
-								return branchInfo;
+					if (constants.size() != 0) {
+						for (ComputationPath p : lastPathList) {
+							if (p.isPureConstantPath() && p.isHardConstant(operands)) {
+								return branchInfo(fastChannels, b, STATIC_POOL);
 							}
+							if (p.size() > 1) {
+								DepVariable var = p.getComputationNodes().get(p.size() - 1);
+								BytecodeInstruction ins = var.getInstruction();
+								if (ins.isMethodCall()) {
+									String method = ins.getCalledMethod();
+									if (isBooleanReturnType(method)) {
+										DepVariable typeVar = (DepVariable) constants.get(0);
+										String dataType = finalType(typeVar.getDataType());
+										BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
+										cache.put(b, branchInfo);
+										System.out.println("STATIC_POOL:" + b);
+										return branchInfo;
+									}
+								}
+							}
+
 						}
-						
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, null);
-						cache.put(b, branchInfo);
-						return branchInfo;
-					}
-					else {
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, null);
-						cache.put(b, branchInfo);
-						return branchInfo;
+						return branchInfo(fastChannels, b, DYNAMIC_POOL);
+					} else {
+						return branchInfo(fastChannels, b, DYNAMIC_POOL);
 					}
 				}
 				
@@ -364,7 +376,31 @@ public class SeedingApplicationEvaluator {
 
 		BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
 		cache.put(b, branchInfo);
+		System.out.println("NO_POOL_1:" + b);
 		return branchInfo;
+	}
+	
+	private static BranchSeedInfo branchInfo(List<ComputationPath> fastChannels, Branch b, int type) {
+		if(type == NO_POOL) {
+			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+			cache.put(b, branchInfo);
+			System.out.println("type:" + b + ":" + type);
+			return branchInfo;
+		}
+		
+		String dataType = getDynamicDataType(fastChannels.get(0));
+		BranchSeedInfo branchInfo = new BranchSeedInfo(b, type, dataType);
+		cache.put(b, branchInfo);
+		System.out.println("type:" + b + ":" + type);
+		return branchInfo;
+	}
+
+	private static boolean isBooleanMethod(ComputationPath p) {
+		if (p.size() == 2 && p.getComputationNodes().get(0).isMethodInput()
+				&& p.getComputationNodes().get(1).toString().contains("java/lang/Boolean.booleanValue()Z")) {
+			return true;
+		}
+		return false;
 	}
 
 	private static List<Object> collectConstants(Set<DepVariable> methodInputs) {
@@ -410,6 +446,12 @@ public class SeedingApplicationEvaluator {
 						String methodName = ins.getCalledMethod();
 						ActualControlFlowGraph graph = GraphPool.getInstance(classLoader).getActualCFG(clazz, methodName);
 						
+						CLA = Properties.TARGET_CLASS;
+						MED = Properties.TARGET_METHOD;
+						
+						Properties.TARGET_CLASS = className;
+						Properties.TARGET_METHOD = methodName;
+						
 						Properties.ALWAYS_REGISTER_BRANCH = true;
 						if(graph == null) {
 							GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
@@ -424,18 +466,27 @@ public class SeedingApplicationEvaluator {
 							}
 							
 							List<Branch> relevantBranches = analyzeRelevantBranches(graph);
-							for(Branch branch: relevantBranches) {
+							for (Branch branch : relevantBranches) {
 								List<BytecodeInstruction> ops = branch.getInstruction().getOperands();
-								for(BytecodeInstruction op: ops) {					
+								for (BytecodeInstruction op : ops) {
 									DepVariable header = path.getComputationNodes().get(0);
-									SensitivityPreservance sp = SensitivityMutator.testBranchSensitivity(header, op, branch);
-									
-									if(sp.isSensitivityPreserving() || sp.isValuePreserving()) {
+
+									IInterestedNodeFilter interestedNodeFilter = new SmartSeedInterestedNodeFilter();
+									Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis
+											.analyzeIndividualMethod(graph, interestedNodeFilter);
+									SensitivityPreservance sp = SensitivityMutator
+											.testBranchSensitivity(branchesInTargetMethod, branch, path);
+
+									if (sp.isSensitivityPreserving() || sp.isValuePreserving()) {
 										paths.add(path);
 									}
 								}
-								
+								if(!paths.isEmpty())
+									break;
 							}
+							
+							Properties.TARGET_CLASS = CLA;
+							Properties.TARGET_METHOD = MED;
 						}
 						
 						Properties.ALWAYS_REGISTER_BRANCH = false;
