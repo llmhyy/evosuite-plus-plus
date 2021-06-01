@@ -28,7 +28,6 @@ import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.utils.DefaultRandomAccessQueue;
 import org.evosuite.utils.RandomAccessQueue;
-import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Type;
 
 /**
@@ -73,41 +72,6 @@ public class DynamicConstantPool implements ConstantPool {
 	@Override
 	public String getRandomString() {
 		String value = stringPool.getRandomValue();
-		if(Randomness.nextDouble() >= Properties.PRIMITIVE_POOL && Properties.APPLY_SMART_SEED == true) {
-			char value_char = getRandomChar();
-			double r = Randomness.nextDouble(0, 1);
-			int stringSize = value.length();
-			if (r > 0.7 && stringSize > 1) {
-				char[] charList = value.toCharArray();
-				if (r > 0.9) {
-					// repalce
-					value.replace(value.charAt(Randomness.nextInt(stringSize)), value_char);
-				} else if (r > 0.8) {
-					// remove
-					for (int i = 0; i < stringSize; i++) {
-						if (charList[i] == value_char) {
-							if(i == 0) {
-								value = value.substring(i + 1);
-							}else if(i == stringSize - 1) {
-								value = value.substring(0, i);
-							}else
-								value = value.substring(0, i) + value.substring(i + 1);
-							break;
-						}
-					}
-				} else{
-					// add
-					int position = Randomness.nextInt(0, stringSize + 1);
-					if(position == 0) {
-						value = value_char + value;
-					}else if(position == stringSize) {
-						value = value + value_char;
-					}else
-						value = value.substring(0, position) + value_char + value.substring(position);
-				}
-
-			}
-		}
 		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.STRING, stringPool.size(), value));
 		return value;
 	}
@@ -161,14 +125,9 @@ public class DynamicConstantPool implements ConstantPool {
 	
 	@Override
 	public char getRandomChar() {
-		if(Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
-			int va = intPool.getRandomValue();
-			char value = (char) va;
-			EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.INT,
-					intPool.size(), String.valueOf(value)));
-			return value;
-		}
-		return (char) (Randomness.nextChar());
+		char value = charPool.getRandomValue();
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.CHARACTER, charPool.size(), String.valueOf(value)));
+		return value;
 	}
 
 	/* (non-Javadoc)
@@ -199,6 +158,12 @@ public class DynamicConstantPool implements ConstantPool {
 				if (Math.abs(val) < Properties.MAX_INT) {
 					intPool.restrictedAdd((Integer) object);
 				}
+				
+				if(val >=0 && val <= 255) {
+					char c = (char)val;
+					charPool.restrictedAdd(c);
+				}
+				
 			} else {
 				intPool.restrictedAdd((Integer) object);
 			}
@@ -229,16 +194,7 @@ public class DynamicConstantPool implements ConstantPool {
 			} else {
 				doublePool.restrictedAdd((Double) object);
 			}
-		} else if (object instanceof Character) {
-			if (Properties.RESTRICT_POOL) {
-				double val = (Character) object;
-				if (Math.abs(val) < Properties.MAX_INT) {
-					charPool.restrictedAdd((Character) object);
-				}
-			} else {
-				charPool.restrictedAdd((Character) object);
-			}
-		}
+		} 
 	}
 
 	@Override
@@ -249,7 +205,7 @@ public class DynamicConstantPool implements ConstantPool {
 		res += "intPool=" + intPool.toString() + " ; ";
 		res += "longPool=" + longPool.toString() + " ; ";
 		res += "floatPool=" + floatPool.toString() + " ; ";
-		res += "charPool=" + charPool.toString() + " ; ";
+//		res += "charPool=" + charPool.toString() + " ; ";
 		res += "doublePool=" + doublePool.toString() + "}";	
 		return res;
 	}

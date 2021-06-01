@@ -127,6 +127,17 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 		
 		final double P2 = 1d / 3d;
 		double random = Randomness.nextDouble();
+		
+		char randomChar;
+		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
+			randomChar = Randomness.nextChar();
+		}
+		else {
+			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool(BranchSeedInfo.STRING);
+			randomChar = constantPool.getRandomChar();
+		}
+		
+		
 //		double P = 1d / s.length();
 		// Delete
 		if (random < P2) {
@@ -145,13 +156,12 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 		}
 //		P = 1d / s.length();
 		// Change
-		
 		else if (random >= P2 && random < 2*P2) {
 			if(s.length() > 0) {
 				int pos = (int )(s.length() * Math.random());
 				char character = s.charAt(pos);
 				
-				char replaceChar = Randomness.nextChar();
+				char replaceChar = randomChar;
 				if(Randomness.nextDouble() < 0.9) {
 					try {
 						int step = (int) (3*Math.random());
@@ -193,7 +203,7 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 			if(pos > s.length()) {
 				pos--;
 			}
-			s = insertCharAt(s, pos, Randomness.nextChar());
+			s = insertCharAt(s, pos, randomChar);
 //			s = StringInsert(s, pos);
 			System.currentTimeMillis();
 			// }
