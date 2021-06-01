@@ -284,6 +284,8 @@ public class SeedingApplicationEvaluator {
 
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
 				
+				//TODO 
+				
 				System.currentTimeMillis();
 				
 				// FIXME if there is a fast channel, we observe if there is any constants? if yes, it is static, otherwise, it is dynamic

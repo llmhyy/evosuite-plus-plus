@@ -976,6 +976,22 @@ public class ConstructionPathSynthesizer {
 					 * the target object reference as the field is now only relevant to o_new.
 					 */
 					if(s instanceof ConstructorStatement) {
+						ConstructorStatement cStat = (ConstructorStatement)s;
+						VariableReference relevantParam = null;
+						if(cStat.getParameterReferences().size() == 1) {
+							relevantParam = cStat.getParameterReferences().get(0);
+						}
+						
+						for(VariableReference vRef: cStat.getParameterReferences()) {
+							if(vRef.getType().equals(field.getGenericType())) {
+								relevantParam = vRef;
+							}
+						}
+						
+						if(relevantParam != null) {
+							return relevantParam;
+						}
+						
 						targetObjectReference = fieldSetter;
 					}
 				}
