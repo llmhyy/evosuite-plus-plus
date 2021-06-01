@@ -28,6 +28,7 @@ import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.utils.DefaultRandomAccessQueue;
 import org.evosuite.utils.RandomAccessQueue;
+import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Type;
 
 /**
@@ -125,7 +126,10 @@ public class DynamicConstantPool implements ConstantPool {
 	
 	@Override
 	public char getRandomChar() {
-		char value = charPool.getRandomValue();
+		Character value = charPool.getRandomValue();
+		if(value == null) {
+			value = Randomness.nextChar();
+		}
 		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.CHARACTER, charPool.size(), String.valueOf(value)));
 		return value;
 	}

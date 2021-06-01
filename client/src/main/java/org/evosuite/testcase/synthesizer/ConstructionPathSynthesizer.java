@@ -41,9 +41,6 @@ import org.evosuite.graphs.interprocedural.ConstructionPath;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.GraphVisualizer;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
-import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
-import org.evosuite.graphs.interprocedural.interestednode.SmartSeedInterestedNodeFilter;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
@@ -88,20 +85,27 @@ public class ConstructionPathSynthesizer {
 		this.testFactory = testFactory;
 	}
 
+	/**
+	 * 
+	 * @param b
+	 * @param isBranchInTargetMethod
+	 * @return
+	 */
 	public PartialGraph constructPartialComputationGraph(Branch b) {
 		PartialGraph graph = new PartialGraph();
 		
-		Map<Branch, Set<DepVariable>> map;
-		if(Properties.APPLY_SMART_SEED) {
-			InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-			ActualControlFlowGraph sgraph = GraphPool.getInstance(classLoader).getActualCFG(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
-			IInterestedNodeFilter interestedNodeFilter = new SmartSeedInterestedNodeFilter();
-			map = InterproceduralGraphAnalysis.analyzeIndividualMethod(sgraph, interestedNodeFilter);
-		}
-		else
-			map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
+		System.currentTimeMillis();
 		
+		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 		Set<DepVariable> variables = map.get(b);
+//		if(variables == null) {
+//			InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+//			ActualControlFlowGraph sgraph = GraphPool.getInstance(classLoader).getActualCFG(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+//			IInterestedNodeFilter interestedNodeFilter = new OCGInterestedNodeFilter();
+//			map = InterproceduralGraphAnalysis.analyzeIndividualBranch(sgraph, b, interestedNodeFilter);
+//			variables = map.get(b);
+//		}
+		
 		graph.setBranch(b);
 		
 		if(variables == null) {
@@ -155,7 +159,7 @@ public class ConstructionPathSynthesizer {
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
 		if(isDebugger) {
 			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");			
@@ -164,6 +168,8 @@ public class ConstructionPathSynthesizer {
 		logTest(test, b, isDebugger, 0, null);
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+		
+		System.currentTimeMillis();
 		
 		/**
 		 * track what variable reference can be reused. Note that, one node can corresponding to multiple statements.
@@ -812,19 +818,25 @@ public class ConstructionPathSynthesizer {
 					
 					calleeVarRef = paramRefMap.get(0);
 					if (calleeVarRef != null) {
-						GenericMethod genericMethod = new GenericMethod(call, call.getDeclaringClass());
-						VariableReference varRef = testFactory.addMethodFor(test, calleeVarRef, genericMethod,
-								calleeVarRef.getStPosition() + 1, allowNullValue);
-						MethodStatement statement = (MethodStatement) test.getStatement(varRef.getStPosition());
-						for (int i = 0; i < statement.getParameterReferences().size();i ++) {
-							VariableReference oldParam = statement.getParameterReferences().get(i);
-							VariableReference newParam = paramRefMap.get(i + 1);
-							if (newParam != null) {
-								statement.replace(oldParam, newParam);
-								replaceMapFromNode2Code(map, oldParam, newParam);
+						
+						Class<?> calleeType = calleeVarRef.getType().getClass();
+						Class<?> callObjectType = call.getDeclaringClass();
+						
+						if(calleeType.isAssignableFrom(callObjectType)) {
+							GenericMethod genericMethod = new GenericMethod(call, call.getDeclaringClass());
+							VariableReference varRef = testFactory.addMethodFor(test, calleeVarRef, genericMethod,
+									calleeVarRef.getStPosition() + 1, allowNullValue);
+							MethodStatement statement = (MethodStatement) test.getStatement(varRef.getStPosition());
+							for (int i = 0; i < statement.getParameterReferences().size();i ++) {
+								VariableReference oldParam = statement.getParameterReferences().get(i);
+								VariableReference newParam = paramRefMap.get(i + 1);
+								if (newParam != null) {
+									statement.replace(oldParam, newParam);
+									replaceMapFromNode2Code(map, oldParam, newParam);
+								}
 							}
+							return varRef;
 						}
-						return varRef;
 					}
 				}
 
@@ -978,7 +990,7 @@ public class ConstructionPathSynthesizer {
 //			return fieldSetter;
 //		}
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 		int insertionPostion = -1;
 		if(fieldSetter != null) {

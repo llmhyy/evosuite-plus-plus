@@ -38,6 +38,19 @@ public class UsedReferenceSearcher {
 						}
 					}
 				}
+				else if(stat instanceof ConstructorStatement) {
+					ConstructorStatement constructorStat = (ConstructorStatement) stat;
+					if(constructorStat.getReturnValue().equals(targetObject)) {
+						List<VariableReference> params = constructorStat.getParameterReferences();
+						String className = constructorStat.getDeclaringClassName();
+						String methodName = constructorStat.getMethodName() + constructorStat.getDescriptor();
+						if (!params.isEmpty()) {
+							List<VariableReference> paramRefs = searchRelevantParameterOfSetterInTest(params, className, methodName, field);
+							relevantRefs.addAll(paramRefs);
+							System.currentTimeMillis();
+						}
+					}
+				}
 			}
 		}
 

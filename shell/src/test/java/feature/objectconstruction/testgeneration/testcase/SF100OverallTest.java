@@ -16,8 +16,8 @@ import sf100.CommonTestUtil;
 public class SF100OverallTest {
 	@Before
 	public void beforeTest() {
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = true;
@@ -78,8 +78,8 @@ public class SF100OverallTest {
 
 				};
 		
-		int repeatTime = 5;
-		int budget = 100;
+		int repeatTime = 1;
+		int budget = 100000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
@@ -87,7 +87,7 @@ public class SF100OverallTest {
 		boolean aor = false;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
-				seed, aor, "generateSuite", "Evosuite", "MONOTONIC_GA");
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
 		
 		double coverage = 0;
 		double initCoverage = 0;

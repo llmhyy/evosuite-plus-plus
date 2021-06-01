@@ -296,7 +296,7 @@ public class BytecodeInstrumentation {
 				logger.info("Testability Transformation done: " + className);
 			}
 			
-			if(this.checkedInstruction != null) {
+			if(this.checkedInstruction != null && this.checkedInstruction.getClassName().equals(classNameWithDots)) {
 				ValueRetrievalTransform st = new ValueRetrievalTransform(cn, this.checkedInstruction);
 				cn = st.transform();
 				

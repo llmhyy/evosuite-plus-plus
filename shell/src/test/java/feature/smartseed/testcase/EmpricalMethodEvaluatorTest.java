@@ -33,7 +33,7 @@ public class EmpricalMethodEvaluatorTest {
 		
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 0;
 		
-		Properties.TIMEOUT = 1000;
+		Properties.TIMEOUT = 100000;
 		
 		Properties.ENABLE_TRACEING_EVENT = true;
 		Properties.APPLY_SMART_SEED = true;
@@ -67,6 +67,29 @@ public class EmpricalMethodEvaluatorTest {
 		} catch (IOException e) {
 			System.out.println(e);
 		}
+	}
+	
+	@Test 
+	public void testHQ() {
+		String[] stringArray0 = new String[7];
+		String string0 = "0";
+		stringArray0[0] = string0;
+		String string1 = "0iia3dc|> Us%2";
+		stringArray0[1] = string1;
+		String string2 = ">16q M=`";
+		stringArray0[2] = string2;
+		String string3 = "9!ngC>!#ne_NFZ:zk/";
+		stringArray0[3] = string3;
+		String string4 = "iDwi!K";
+		stringArray0[4] = string4;
+		String string5 = "\"$J!Z";
+		stringArray0[5] = string5;
+		String string6 = "+";
+		stringArray0[6] = string6;
+		Config config0 = new Config(stringArray0);
+		boolean boolean0 = config0.isHighQuality();
+
+
 	}
 		
 	@Test

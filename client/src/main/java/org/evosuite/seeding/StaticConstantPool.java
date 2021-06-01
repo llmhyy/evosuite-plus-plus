@@ -174,7 +174,10 @@ public class StaticConstantPool implements ConstantPool {
 	 */
 	@Override
 	public char getRandomChar() {
-		char value = Randomness.choice(charPool);
+		Character value = Randomness.choice(charPool);
+		if(value == null) {
+			value = Randomness.nextChar();
+		}
 		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.CHARACTER, charPool.size(), String.valueOf(value)));
 		return value;
 	}

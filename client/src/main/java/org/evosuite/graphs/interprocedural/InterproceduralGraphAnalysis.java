@@ -178,6 +178,29 @@ public class InterproceduralGraphAnalysis {
 		
 		return map;
 	}
+	
+	@SuppressWarnings("rawtypes")
+	public static Map<Branch, Set<DepVariable>> analyzeIndividualBranch(ActualControlFlowGraph cfg, Branch branch, IInterestedNodeFilter interestedNodeFilter) {
+		Map<Branch, Set<DepVariable>> map = new HashMap<>();
+		
+		InterproceduralGraphAnalyzer graphAnalyzer = new InterproceduralGraphAnalyzer(branch, interestedNodeFilter);
+		Set<DepVariable> inputRootVars = new HashSet<DepVariable>();
+		Set<BytecodeInstruction> visitedIns = new HashSet<BytecodeInstruction>();
+		if (!branch.isInstrumented()) {
+			Frame frame = branch.getInstruction().getFrame();
+			for (int i = 0; i < branch.getInstruction().getOperandNum(); i++) {
+				int index = frame.getStackSize() - i - 1;
+				Value val = frame.getStack(index);
+				
+				graphAnalyzer.searchDependantVariables(val, cfg, inputRootVars, visitedIns, 
+						Properties.COMPUTATION_GRAPH_METHOD_CALL_DEPTH);
+			}
+		}
+		
+		map.put(branch, inputRootVars);
+		
+		return map;
+	}
 
 	private static boolean isCUT(String className) {
 		if (!Properties.TARGET_CLASS.equals("") && !(className.equals(Properties.TARGET_CLASS)

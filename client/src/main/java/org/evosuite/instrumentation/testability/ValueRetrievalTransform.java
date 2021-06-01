@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.seeding.RuntimeSensitiveVariable;
 import org.objectweb.asm.Opcodes;
@@ -110,9 +111,9 @@ public class ValueRetrievalTransform {
 		mn.instructions.insertBefore(nextNode, dupNode);
 		
 		// 2. Instruction is primitive typed - cast value to its Object type
-		if (instructionType != Type.VOID_TYPE) {
+		if (isPrimitive(instructionType)) {
 			Class<?> typeObjectClass = getTypeObjectClass(instructionType);
-			
+			System.currentTimeMillis();
 			MethodInsnNode valueOf = new MethodInsnNode(
 			        Opcodes.INVOKESTATIC,
 			        Type.getInternalName(typeObjectClass),
@@ -124,6 +125,8 @@ public class ValueRetrievalTransform {
 			        false);
 			mn.instructions.insertBefore(nextNode, valueOf);
 		}
+		
+//		System.currentTimeMillis();
 		
 		// 3. Insert RuntimeSensitiveVariable.setTailValue()
 		MethodInsnNode setTailValue = new MethodInsnNode(
@@ -141,6 +144,41 @@ public class ValueRetrievalTransform {
 		return true;
 	}
 	
+	private boolean isPrimitive(Type instructionType) {
+		if(instructionType.equals(Type.INT_TYPE) ||
+				instructionType.equals(Type.DOUBLE_TYPE) ||
+				instructionType.equals(Type.LONG_TYPE) ||
+				instructionType.equals(Type.BYTE_TYPE) ||
+				instructionType.equals(Type.CHAR_TYPE) ||
+				instructionType.equals(Type.SHORT_TYPE) ||
+				instructionType.equals(Type.FLOAT_TYPE) ||
+				instructionType.equals(Type.BOOLEAN_TYPE)
+				) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	
+	private boolean isPrimitiveComplexType(Type instructionType) {
+		String clazz = instructionType.getClassName();
+		
+		if(clazz.equals("java.lang.Integer") || 
+				clazz.equals("java.lang.Double") ||
+				clazz.equals("java.lang.Long") ||
+				clazz.equals("java.lang.Byte") ||
+				clazz.equals("java.lang.Character") ||
+				clazz.equals("java.lang.Short") ||
+				clazz.equals("java.lang.Float") ||
+				clazz.equals("java.lang.Boolean") 
+				) {
+			return true;
+		}
+		
+		return false;
+	}
+
 	private Class<?> getTypeObjectClass(Type instructionType) {
 		if (instructionType == Type.BOOLEAN_TYPE) {
 			return Boolean.class;
@@ -173,7 +211,12 @@ public class ValueRetrievalTransform {
 		if (instructionType == Type.SHORT_TYPE) {
 			return Short.class;
 		}
-		
+		try {
+			Class<?> clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(instructionType.getClassName());
+			return clazz;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		return Void.class;
 	}
 
@@ -184,7 +227,14 @@ public class ValueRetrievalTransform {
 		}
 		
 		if (node instanceof FieldInsnNode) {
-			return Type.VOID_TYPE;
+			
+			if(node.getOpcode() == Opcodes.GETFIELD || node.getOpcode() == Opcodes.GETSTATIC) {
+				FieldInsnNode fNode = (FieldInsnNode)node;
+				return Type.getType(fNode.desc);
+			}
+			else {
+				return Type.VOID_TYPE;				
+			}
 		}
 		
 		int nodeOpcode = node.getOpcode();
