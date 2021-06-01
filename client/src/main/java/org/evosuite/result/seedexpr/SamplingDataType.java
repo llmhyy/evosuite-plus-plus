@@ -10,4 +10,5 @@ public class SamplingDataType {
 	public final static String LONG = "LONG";
 	public final static String SHORT = "SHORT";
 	public static final String ENUM = "ENUM";
+	public static final String CHARACTER = "CHARACTER";
 }

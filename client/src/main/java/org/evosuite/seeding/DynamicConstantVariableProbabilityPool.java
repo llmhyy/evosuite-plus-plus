@@ -40,6 +40,8 @@ public class DynamicConstantVariableProbabilityPool implements ConstantPool {
     private final RandomAccessQueue<Long> longPool = new FrequencyBasedRandomAccessQueue<>();
 
     private final RandomAccessQueue<Float> floatPool = new FrequencyBasedRandomAccessQueue<>();
+    
+    private final RandomAccessQueue<Character> charPool = new FrequencyBasedRandomAccessQueue<>();
 
     public DynamicConstantVariableProbabilityPool() {
 		/*
@@ -103,6 +105,15 @@ public class DynamicConstantVariableProbabilityPool implements ConstantPool {
     }
 
     /* (non-Javadoc)
+     * @see org.evosuite.primitives.ConstantPool#getRandomChar()
+     */
+    @Override
+    public char getRandomChar() {
+    	int i = intPool.getRandomValue();
+    	return (char)i;
+    }
+    
+    /* (non-Javadoc)
      * @see org.evosuite.primitives.ConstantPool#add(java.lang.Object)
      */
     @Override
@@ -152,15 +163,24 @@ public class DynamicConstantVariableProbabilityPool implements ConstantPool {
                 floatPool.restrictedAdd((Float) object);
             }
         } else if (object instanceof Double) {
-            if (Properties.RESTRICT_POOL) {
-                double val = (Double) object;
-                if (Math.abs(val) < Properties.MAX_INT) {
-                    doublePool.restrictedAdd((Double) object);
-                }
-            } else {
-                doublePool.restrictedAdd((Double) object);
-            }
-        }
+			if (Properties.RESTRICT_POOL) {
+				double val = (Double) object;
+				if (Math.abs(val) < Properties.MAX_INT) {
+					doublePool.restrictedAdd((Double) object);
+				}
+			} else {
+				doublePool.restrictedAdd((Double) object);
+			}
+		} else if (object instanceof Character) {
+			if (Properties.RESTRICT_POOL) {
+				double val = (Character) object;
+				if (Math.abs(val) < Properties.MAX_INT) {
+					charPool.restrictedAdd((Character) object);
+				}
+			} else {
+				charPool.restrictedAdd((Character) object);
+			}
+		}
     }
 
     @Override

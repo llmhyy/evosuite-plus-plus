@@ -52,6 +52,8 @@ public class StaticConstantPool implements ConstantPool {
 
 	private final Set<Float> floatPool = Collections.synchronizedSet(new LinkedHashSet<Float>());
 	
+	private final Set<Character> charPool = Collections.synchronizedSet(new LinkedHashSet<Character>());
+	
 	private boolean isContextual;
 
 	public StaticConstantPool(boolean isContextual) {
@@ -96,6 +98,41 @@ public class StaticConstantPool implements ConstantPool {
 	@Override
 	public String getRandomString() {
 		String value = Randomness.choice(stringPool);
+		if(Randomness.nextDouble() >= Properties.PRIMITIVE_POOL && Properties.APPLY_SMART_SEED == true) {
+			char value_char = getRandomChar();
+			double r = Randomness.nextDouble(0, 1);
+			int stringSize = value.length();
+			if (r > 0.7 && stringSize > 1) {
+				char[] charList = value.toCharArray();
+				if (r > 0.9) {
+					// repalce
+					value.replace(value.charAt(Randomness.nextInt(stringSize)), value_char);
+				} else if (r > 0.8) {
+					// remove
+					for (int i = 0; i < stringSize; i++) {
+						if (charList[i] == value_char) {
+							if(i == 0) {
+								value = value.substring(i + 1);
+							}else if(i == stringSize - 1) {
+								value = value.substring(0, i);
+							}else
+								value = value.substring(0, i) + value.substring(i + 1);
+							break;
+						}
+					}
+				} else{
+					// add
+					int position = Randomness.nextInt(0, stringSize + 1);
+					if(position == 0) {
+						value = value_char + value;
+					}else if(position == stringSize) {
+						value = value + value_char;
+					}else
+						value = value.substring(0, position) + value_char + value.substring(position);
+				}
+
+			}
+		}
 		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.STRING, stringPool.size(), String.valueOf(value)));
 		return value;
 	}
@@ -161,6 +198,25 @@ public class StaticConstantPool implements ConstantPool {
 		long value = Randomness.choice(longPool);
 		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.LONG, longPool.size(), String.valueOf(value)));
 		return value;
+	}
+	
+	/**
+	 * <p>
+	 * getRandomChar
+	 * </p>
+	 * 
+	 * @return a Character.
+	 */
+	@Override
+	public char getRandomChar() {
+		if(Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
+			int va = Randomness.choice(intPool);
+			char value = (char) va;
+			EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(),
+					SamplingDataType.INT, intPool.size(), String.valueOf(value)));
+			return value;
+		}
+		return (char) (Randomness.nextChar());
 	}
 
 	/**
@@ -229,9 +285,17 @@ public class StaticConstantPool implements ConstantPool {
 			} else {
 				doublePool.add((Double) object);
 			}
+		} else if (object instanceof Character) {
+			if (Properties.RESTRICT_POOL) {
+				int val = (Character) object;
+				if (Math.abs(val) < Properties.MAX_INT) {
+					charPool.add((Character) object);
+				}
+			} else {
+				charPool.add((Character) object);
+			}
 		} else {
-			LoggingUtils.getEvoLogger().info("Constant of unknown type: "
-			                                         + object.getClass());
+			LoggingUtils.getEvoLogger().info("Constant of unknown type: " + object.getClass());
 		}
 	}
 

@@ -40,6 +40,8 @@ public class StaticConstantVariableProbabilityPool implements ConstantPool {
     private final FrequencyBasedPool<Long> longPool = new FrequencyBasedPool<>();
 
     private final FrequencyBasedPool<Float> floatPool = new FrequencyBasedPool<>();
+    
+    private final FrequencyBasedPool<Character> charPool = new FrequencyBasedPool<>();
 
     public StaticConstantVariableProbabilityPool() {
 		/*
@@ -135,6 +137,18 @@ public class StaticConstantVariableProbabilityPool implements ConstantPool {
     public long getRandomLong() {
         return longPool.getRandomConstant();
     }
+    
+    /**
+     * <p>
+     * getRandomChar
+     * </p>
+     *
+     * @return a char.
+     */
+    @Override
+    public char getRandomChar() {
+        return charPool.getRandomConstant();
+    }
 
     /**
      * <p>
@@ -200,12 +214,20 @@ public class StaticConstantVariableProbabilityPool implements ConstantPool {
                     doublePool.addConstant((Double) object);
                 }
             } else {
-                doublePool.addConstant((Double) object);
-            }
-        } else {
-            LoggingUtils.getEvoLogger().info("Constant of unknown type: "
-                    + object.getClass());
-        }
-    }
+				doublePool.addConstant((Double) object);
+			}
+		} else if (object instanceof Character) {
+			if (Properties.RESTRICT_POOL) {
+				double val = (Character) object;
+				if (Math.abs(val) < Properties.MAX_INT) {
+					charPool.addConstant((Character) object);
+				}
+			} else {
+				charPool.addConstant((Character) object);
+			}
+		} else {
+			LoggingUtils.getEvoLogger().info("Constant of unknown type: " + object.getClass());
+		}
+	}
 
 }
