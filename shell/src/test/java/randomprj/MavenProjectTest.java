@@ -10,7 +10,7 @@ import org.evosuite.result.TestGenerationResult;
 import org.junit.Before;
 import org.junit.Test;
 
-public class RandomProjectTest{
+public class MavenProjectTest{
 	
 	@Before
 	public void beforeTest() {
