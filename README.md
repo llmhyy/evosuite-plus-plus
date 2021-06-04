@@ -11,7 +11,7 @@ Here is the relevant publication:
 - Yun Lin, Jun Sun, Gordon Fraser, Ziheng Xiu, Ting Liu, and Jin Song Dong. Recovering Fitness Gradients for Interprocedural Boolean Flags in Search-Based Testing (ISSTA 2020), 440--451. (Acknowledge*: Thanks Lyly Tran's contribution to set up our experiment despite her name is not list on the paper.)
 - Yun Lin, You Sheng Ang, Jun Sun, Gordon Fraser, and Jin Song Dong. Graph-based Seed Object Synthesis for Search-Based Unit Testing (ESEC/FSE 2021).
 
-You may refer to our website for more information on this project and how to run the experiment demonstrated in our paper: https://sites.google.com/view/evoipf/home
+You may refer to our website for more information on this project and how to run the experiment demonstrated in our paper: https://sites.google.com/view/evoipf/home and https://sites.google.com/view/evoobj/home
 
 # Building EvoSuite
 
