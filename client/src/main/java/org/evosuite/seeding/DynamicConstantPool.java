@@ -162,14 +162,22 @@ public class DynamicConstantPool implements ConstantPool {
 				if (Math.abs(val) < Properties.MAX_INT) {
 					intPool.restrictedAdd((Integer) object);
 				}
-				
-				if(val >=0 && val <= 255) {
-					char c = (char)val;
-					charPool.restrictedAdd(c);
+				if (Properties.APPLY_SMART_SEED) {
+					if (val >= 0 && val <= 255) {
+						char c = (char) val;
+						charPool.restrictedAdd((Character) c);
+					}
 				}
 				
 			} else {
 				intPool.restrictedAdd((Integer) object);
+				if (Properties.APPLY_SMART_SEED) {
+					int val = (Integer) object;
+					if (val >= 0 && val <= 255) {
+						char c = (char) val;
+						charPool.restrictedAdd((Character) c);
+					}
+				}
 			}
 		} else if (object instanceof Long) {
 			if (Properties.RESTRICT_POOL) {

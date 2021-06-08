@@ -39,7 +39,7 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample1() {
-		String projectId = SF100Project.P36;
+		String projectId = SF100Project.P13;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -67,15 +67,15 @@ public class SF100OverallTest {
 //				"fr.unice.gfarce.interGraph.SimpleTableDemo#getLigne(Ljava/lang/Object;)Ljava/lang/Object;"//8
 //				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
 //				"com.werken.saxpath.XPathLexer#nextToken()Lcom/werken/saxpath/Token;"//82
-				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
-//				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"//43
-//				"glengineer.blocks.Scheme#recognizeVerticalGapsAtLines()V"//40
-//				"ghm.follow.font.FontSelectionPanel#getSelectedFontSize()I"//41
-				
+//				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
+				"org.databene.jdbacl.model.DefaultDBColumn#isEquivalent(Lorg/databene/jdbacl/model/DBObject;)Z"//13
+//				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
+//				"org.exolab.jms.selector.parser.SelectorTreeParser#expression(Lantlr/collections/AST;)Lorg/exolab/jms/selector/Expression;"//66
+//				"com.momed.parser.MCSVParser#parseAsMap(Ljava/lang/String;)Ljava/util/HashMap;"//11
 		};
 		
-		int repeatTime = 2;
-		int budget = 100;
+		int repeatTime = 1;
+		int budget = 1000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
@@ -112,13 +112,15 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testBugExample7() {
-		String projectId = SF100Project.P22;
+		String projectId = SF100Project.P33;
 		String[] targetMethods = new String[]{
-				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
+//				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
+//				"org.exolab.jms.selector.parser.SelectorTreeParser#literal(Lantlr/collections/AST;)Lorg/exolab/jms/selector/Expression;"//66
+				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
 				
 		};
 		
-		int repeatTime = 2;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 		

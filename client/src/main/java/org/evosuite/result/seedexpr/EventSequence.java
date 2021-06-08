@@ -72,8 +72,11 @@ public class EventSequence {
 			TestChromosome offspring, TestChromosome parent, Set<?> uncoveredGoals) {
 		for(Integer branchId: diffTrueBranches) {
 			Branch b = BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getBranch(branchId);
-			if(!(b.getClassName().equals(Properties.TARGET_CLASS) &&
-					b.getMethodName().equals( Properties.TARGET_METHOD)))
+			if(b == null)
+				continue;
+			if ((b.getClassName() == null || b.getMethodName() == null)
+					|| !(b.getClassName().equals(Properties.TARGET_CLASS)
+							&& b.getMethodName().equals(Properties.TARGET_METHOD)))
 				continue;
 			BranchInfo branchInfo = new BranchInfo(b, conditionValue);
 			
@@ -83,6 +86,9 @@ public class EventSequence {
 					offspring.getTestCase().toCode(),
 					parent.getTestCase().toCode(),
 					isCovered);
+			if(b.toString().contains("I15 Branch 55 TABLESWITCH L377 Case 4") && conditionValue == true) {
+				System.currentTimeMillis();
+			}
 			addEvent(e);
 			
 //			analyzeEvent(e,b,offspring,isCovered);

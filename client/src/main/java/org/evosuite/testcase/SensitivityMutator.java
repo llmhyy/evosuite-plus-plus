@@ -87,9 +87,14 @@ public class SensitivityMutator {
 		Branch branch = path.getBranch();
 		
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
-		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
-			data.clear();
-
+		String methodCall = test.getStatement(test.size() - 1).toString();
+		while(!methodCall.equals(Properties.TARGET_METHOD)) {
+			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
+			methodCall = test.getStatement(test.size() - 1).toString();
+		}
+//		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
+//			data.clear();
+		System.currentTimeMillis();
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, true);
@@ -113,7 +118,12 @@ public class SensitivityMutator {
 	public static SensitivityPreservance testBranchSensitivity(DepVariable rootVariable,
 			BytecodeInstruction tailInstruction, Branch branch) {
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
-		
+		String methodCall = test.getStatement(test.size() - 1).toString();
+		while(!methodCall.equals(Properties.TARGET_METHOD)) {
+			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
+			methodCall = test.getStatement(test.size() - 1).toString();
+		}
+			
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
@@ -136,13 +146,16 @@ public class SensitivityMutator {
 
 	public static SensitivityPreservance testBranchSensitivity(/* Set<FitnessFunction<?>> fitness, */
 			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch, ComputationPath path0) {
-		TestFactory.getInstance().reset();
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
-		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
-			data.clear();
-
-		System.currentTimeMillis();
+//		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
+//			data.clear();
 		
+		System.currentTimeMillis();
+		String methodCall = test.getStatement(test.size() - 1).toString();
+		while(!methodCall.equals(Properties.TARGET_METHOD)) {
+			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
+			methodCall = test.getStatement(test.size() - 1).toString();
+		}
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
@@ -232,7 +245,7 @@ public class SensitivityMutator {
 		Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
 		Object headValue = retrieveHeadValue(relevantStatement);
 		Object tailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
-		
+//		TestChromosome oldTestChromosome = newTestChromosome;
 //		System.currentTimeMillis();
 		
 		boolean valuePreserving = checkValuePreserving(headValue, tailValue);
@@ -264,7 +277,7 @@ public class SensitivityMutator {
 				boolean sensivityPreserving = false;
 				if (newTailValue == null || tailValue == null) {
 					sensivityPreserving = false;
-				} else if (newHeadValue == null && headValue == null) {
+				} else if (newHeadValue == null || headValue == null) {
 					sensivityPreserving = !newTailValue.equals(tailValue);
 				} else {
 					sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
@@ -278,7 +291,7 @@ public class SensitivityMutator {
 					sensivityPreservingNum += 1;
 				}
 
-//				recordList(branch, path, headValue,tailValue,newHeadValue,newTailValue,
+//				recordList(branch, tailInstruction, headValue,tailValue,newHeadValue,newTailValue,
 //						valuePreserving,sensivityPreserving,oldTestChromosome,newTestChromosome);
 			}
 		}
@@ -302,7 +315,7 @@ public class SensitivityMutator {
 		}
 	}
 
-	private static void recordList(Branch branch, ComputationPath path, Object headValue, Object tailValue,
+	private static void recordList(Branch branch, BytecodeInstruction tailInstruction, Object headValue, Object tailValue,
 			Object newHeadValue, Object newTailValue, boolean valuePreserving, boolean sensivityPreserving,
 			TestChromosome oldTestChromosome, TestChromosome newTestChromosome) {
 		List<Object> row = new ArrayList<Object>();
@@ -319,7 +332,8 @@ public class SensitivityMutator {
 		row.add(Properties.TARGET_CLASS);
 		row.add(Properties.TARGET_METHOD);
 		row.add(branch.toString());
-		row.add(path.getComputationNodes().toString());
+//		row.add(path.getComputationNodes().toString());
+		row.add(tailInstruction.toString());
 		row.add(oldTestChromosome.toString());
 		row.add(headValue.toString());
 		row.add(tailValue.toString());
@@ -377,6 +391,7 @@ public class SensitivityMutator {
 
 	private static float getSimilarityRatio(String head, String tail) {
 		// TODO Edit Distance
+		if(head == null || tail == null) return 0;
 		int max = Math.max(head.length(), tail.length());
 		return 1 - (float) compare(head, tail) / max;
 	}

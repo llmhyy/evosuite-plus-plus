@@ -100,15 +100,12 @@ public class CharPrimitiveStatement extends NumericalPrimitiveStatement<Characte
 	/** {@inheritDoc} */
 	@Override
 	public void randomize() {
-//		value = (char) (Randomness.nextChar());
-		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
-			value = (char) (Randomness.nextChar());
-			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.CHARACTER, String.valueOf(value)));
-		}
-		else {
-			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool(BranchSeedInfo.INT);
-			value =  (char) constantPool.getRandomInt();
-		}
+//		if(Properties.APPLY_SMART_SEED) {
+//			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool(BranchSeedInfo.CHARACTER);
+//			value =  (char) constantPool.getRandomChar();
+//		}else
+		value = (char) (Randomness.nextChar());
+		
 	}
 
 	/* (non-Javadoc)

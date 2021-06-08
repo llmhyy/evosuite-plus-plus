@@ -109,8 +109,7 @@ public class DynamicConstantVariableProbabilityPool implements ConstantPool {
      */
     @Override
     public char getRandomChar() {
-    	int i = intPool.getRandomValue();
-    	return (char)i;
+    	return charPool.getRandomValue();
     }
     
     /* (non-Javadoc)
@@ -141,8 +140,22 @@ public class DynamicConstantVariableProbabilityPool implements ConstantPool {
                 if (Math.abs(val) < Properties.MAX_INT) {
                     intPool.restrictedAdd((Integer) object);
                 }
+				if (Properties.APPLY_SMART_SEED) {
+					if (val >= 0 && val <= 255) {
+						char c = (char) val;
+						charPool.restrictedAdd((Character) c);
+					}
+				}
+				
             } else {
                 intPool.restrictedAdd((Integer) object);
+				if (Properties.APPLY_SMART_SEED) {
+					int val = (Integer) object;
+					if (val >= 0 && val <= 255) {
+						char c = (char) val;
+						charPool.restrictedAdd((Character) c);
+					}
+				}
             }
         } else if (object instanceof Long) {
             if (Properties.RESTRICT_POOL) {

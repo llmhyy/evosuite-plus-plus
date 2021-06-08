@@ -252,8 +252,9 @@ public class SeedingApplicationEvaluator {
 			return cache.get(b);
 		}
 
-		if(b.getInstruction().isSwitch()) {//b.getInstruction().isTableSwitch()
+		if(b.getInstruction().isSwitch()) {
 			BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, "int");
+//			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
@@ -265,7 +266,7 @@ public class SeedingApplicationEvaluator {
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
-		b = compileBranch(branchesInTargetMethod, b);
+//		b = compileBranch(branchesInTargetMethod, b);
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
 		methodInputs = compileInputs(methodInputs);
 
@@ -301,28 +302,39 @@ public class SeedingApplicationEvaluator {
 						return branchInfo(fastChannels, b, NO_POOL);
 					}
 					if (constants.size() != 0) {
-						for (ComputationPath p : lastPathList) {
-							if (p.isPureConstantPath() && p.isHardConstant(operands)) {
-								return branchInfo(fastChannels, b, STATIC_POOL);
-							}
-							if (p.size() > 1) {
-								DepVariable var = p.getComputationNodes().get(p.size() - 1);
-								BytecodeInstruction ins = var.getInstruction();
-								if (ins.isMethodCall()) {
-									String method = ins.getCalledMethod();
-									if (isBooleanReturnType(method)) {
-										DepVariable typeVar = (DepVariable) constants.get(0);
-										String dataType = finalType(typeVar.getDataType());
-										BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
-										cache.put(b, branchInfo);
-										System.out.println("STATIC_POOL:" + b);
-										return branchInfo;
+						//add path
+//						for(ComputationPath p : lastPathList) {
+//							if(p.isPureConstantPath() && p.isHardConstant(operands)) {
+//								String dataType = finalType(p.getComputationNodes().get(0).getDataType());
+//								BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
+//								cache.put(b, branchInfo);
+//								return branchInfo;
+//							}
+//						}
+						
+						
+						//add all constants
+						BranchSeedInfo branchInfo = null;
+						for(Object v :constants) {
+							if(v instanceof DepVariable) {
+								DepVariable typeVar = (DepVariable) v;
+								
+								if(typeVar.getInstruction().getASMNode().getType() != AbstractInsnNode.LDC_INSN) {
+									BytecodeInstruction ins = typeVar.getInstruction();
+									Object obj = ComputationPath.getConstantValue(ins);
+									Double va = (Double)obj;
+									if (Math.abs(va) < 100) {
+										continue;
 									}
 								}
+								
+								String dataType = finalType(typeVar.getDataType());
+								branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
+								cache.put(b, branchInfo);
+								System.out.println("STATIC_POOL:" + b);
 							}
-
 						}
-						return branchInfo(fastChannels, b, DYNAMIC_POOL);
+						return branchInfo;
 					} else {
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);
 					}
@@ -477,9 +489,7 @@ public class SeedingApplicationEvaluator {
 								DepVariable header = path.getComputationNodes().get(0);
 								
 								for (BytecodeInstruction op : ops) {
-//									IInterestedNodeFilter interestedNodeFilter = new SmartSeedInterestedNodeFilter();
-//									Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis
-//											.analyzeIndividualMethod(graph, interestedNodeFilter);
+									
 									SensitivityPreservance sp = SensitivityMutator
 											.testBranchSensitivity(header, op, path.getBranch());
 

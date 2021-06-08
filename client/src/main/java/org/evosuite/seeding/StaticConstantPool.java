@@ -218,13 +218,21 @@ public class StaticConstantPool implements ConstantPool {
 				if (Math.abs(val) < Properties.MAX_INT) {
 					intPool.add((Integer) object);
 				}
-				
-				if(val >=0 && val <= 255) {
-					char c = (char)val;
-					charPool.add(c);
+				if (Properties.APPLY_SMART_SEED) {
+					if (val >= 0 && val <= 255) {
+						char c = (char) val;
+						charPool.add((Character) c);
+					}
 				}
 			} else {
 				intPool.add((Integer) object);
+				if (Properties.APPLY_SMART_SEED) {
+					int val = (Integer) object;
+					if (val >= 0 && val <= 255) {
+						char c = (char) val;
+						charPool.add((Character) c);
+					}
+				}
 			}
 		} else if (object instanceof Long) {
 			if (Properties.RESTRICT_POOL) {
