@@ -36,14 +36,17 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.Frame;
+import org.objectweb.asm.tree.analysis.SourceValue;
+import org.objectweb.asm.tree.analysis.Value;
 
 public class SeedingApplicationEvaluator {
 
 	public static int STATIC_POOL = 1;
 	public static int DYNAMIC_POOL = 2;
 	public static int NO_POOL = 3;
-	public static String CLA;//under test target class
-	public static String MED;//under test target method
+//	public static String CLA;//under test target class
+//	public static String MED;//under test target method
 
 	public static Map<Branch, BranchSeedInfo> cache = new HashMap<>();
 
@@ -281,6 +284,8 @@ public class SeedingApplicationEvaluator {
 
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
 				
+				//TODO 
+				
 				System.currentTimeMillis();
 				
 				// FIXME if there is a fast channel, we observe if there is any constants? if yes, it is static, otherwise, it is dynamic
@@ -446,12 +451,6 @@ public class SeedingApplicationEvaluator {
 						String methodName = ins.getCalledMethod();
 						ActualControlFlowGraph graph = GraphPool.getInstance(classLoader).getActualCFG(clazz, methodName);
 						
-						CLA = Properties.TARGET_CLASS;
-						MED = Properties.TARGET_METHOD;
-						
-						Properties.TARGET_CLASS = className;
-						Properties.TARGET_METHOD = methodName;
-						
 						Properties.ALWAYS_REGISTER_BRANCH = true;
 						if(graph == null) {
 							GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
@@ -468,14 +467,21 @@ public class SeedingApplicationEvaluator {
 							List<Branch> relevantBranches = analyzeRelevantBranches(graph);
 							for (Branch branch : relevantBranches) {
 								List<BytecodeInstruction> ops = branch.getInstruction().getOperands();
+								
+								if(ops.get(0).getLineNumber() == 551) {
+									System.currentTimeMillis();
+								}
+								
+								ops = reanalyze(ops, branch);
+								
+								DepVariable header = path.getComputationNodes().get(0);
+								
 								for (BytecodeInstruction op : ops) {
-									DepVariable header = path.getComputationNodes().get(0);
-
-									IInterestedNodeFilter interestedNodeFilter = new SmartSeedInterestedNodeFilter();
-									Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis
-											.analyzeIndividualMethod(graph, interestedNodeFilter);
+//									IInterestedNodeFilter interestedNodeFilter = new SmartSeedInterestedNodeFilter();
+//									Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis
+//											.analyzeIndividualMethod(graph, interestedNodeFilter);
 									SensitivityPreservance sp = SensitivityMutator
-											.testBranchSensitivity(branchesInTargetMethod, branch, path);
+											.testBranchSensitivity(header, op, path.getBranch());
 
 									if (sp.isSensitivityPreserving() || sp.isValuePreserving()) {
 										paths.add(path);
@@ -485,8 +491,6 @@ public class SeedingApplicationEvaluator {
 									break;
 							}
 							
-							Properties.TARGET_CLASS = CLA;
-							Properties.TARGET_METHOD = MED;
 						}
 						
 						Properties.ALWAYS_REGISTER_BRANCH = false;
@@ -499,6 +503,46 @@ public class SeedingApplicationEvaluator {
 		}
 		
 		return paths;
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static List<BytecodeInstruction> reanalyze(List<BytecodeInstruction> ops, Branch branch) {
+		if(ops.size() > 1) {
+			return ops;
+		}
+		else if(ops.size() == 1){
+			BytecodeInstruction ins = ops.get(0);
+			
+			Frame frame = ins.getFrame();
+			
+			if(frame.getStackSize() == 2 && ins.isMethodCall()) {
+				
+				List<BytecodeInstruction> list = new ArrayList<>();
+				for(int i=0; i<2; i++) {
+					int index = frame.getStackSize() - i - 1;
+					Value val = frame.getStack(index);
+					
+					if(val instanceof SourceValue) {
+						SourceValue sValue = (SourceValue)val;
+						InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+						MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, ins.getClassName(), ins.getMethodName());
+						
+						ActualControlFlowGraph cfg = ins.getActualCFG(); 
+						for(AbstractInsnNode insNode: sValue.insns) {
+							BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
+							list.add(defIns);
+						}
+						
+					}
+					
+				}
+				
+				return list;
+			}
+	
+		}
+		
+		return ops;
 	}
 
 	private static List<Branch> analyzeRelevantBranches(ActualControlFlowGraph graph) {

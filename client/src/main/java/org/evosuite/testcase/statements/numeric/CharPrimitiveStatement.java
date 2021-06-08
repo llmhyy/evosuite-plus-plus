@@ -24,8 +24,12 @@ package org.evosuite.testcase.statements.numeric;
 
 import org.evosuite.Properties;
 import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.result.seedexpr.RandomSamplingEvent;
 import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.result.seedexpr.SearchEvent;
+import org.evosuite.seeding.ConstantPool;
+import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.utils.Randomness;
 
@@ -96,7 +100,15 @@ public class CharPrimitiveStatement extends NumericalPrimitiveStatement<Characte
 	/** {@inheritDoc} */
 	@Override
 	public void randomize() {
-		value = (char) (Randomness.nextChar());
+//		value = (char) (Randomness.nextChar());
+		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
+			value = (char) (Randomness.nextChar());
+			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.CHARACTER, String.valueOf(value)));
+		}
+		else {
+			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool(BranchSeedInfo.INT);
+			value =  (char) constantPool.getRandomInt();
+		}
 	}
 
 	/* (non-Javadoc)

@@ -95,4 +95,13 @@ public interface ConstantPool {
 	public void add(Object object);
 	
 	public String toString();
+	
+	/**
+	 * <p>
+	 * getRandomChar
+	 * </p>
+	 * 
+	 * @return a Character.
+	 */
+	public char getRandomChar();
 }

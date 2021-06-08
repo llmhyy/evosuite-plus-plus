@@ -28,6 +28,7 @@ import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.result.seedexpr.SamplingDataType;
 import org.evosuite.utils.DefaultRandomAccessQueue;
 import org.evosuite.utils.RandomAccessQueue;
+import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Type;
 
 /**
@@ -47,6 +48,8 @@ public class DynamicConstantPool implements ConstantPool {
 	private final RandomAccessQueue<Long> longPool = new DefaultRandomAccessQueue<Long>();
 
 	private final RandomAccessQueue<Float> floatPool = new DefaultRandomAccessQueue<Float>();
+	
+	private final RandomAccessQueue<Character> charPool = new DefaultRandomAccessQueue<Character>();
 
 	public DynamicConstantPool() {
 		/*
@@ -120,6 +123,16 @@ public class DynamicConstantPool implements ConstantPool {
 		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.LONG, longPool.size(), String.valueOf(value)));
 		return value;
 	}
+	
+	@Override
+	public char getRandomChar() {
+		Character value = charPool.getRandomValue();
+		if(value == null) {
+			value = Randomness.nextChar();
+		}
+		EventSequence.addEvent(new DynamicPoolEvent(System.currentTimeMillis(), SamplingDataType.CHARACTER, charPool.size(), String.valueOf(value)));
+		return value;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.evosuite.primitives.ConstantPool#add(java.lang.Object)
@@ -149,6 +162,12 @@ public class DynamicConstantPool implements ConstantPool {
 				if (Math.abs(val) < Properties.MAX_INT) {
 					intPool.restrictedAdd((Integer) object);
 				}
+				
+				if(val >=0 && val <= 255) {
+					char c = (char)val;
+					charPool.restrictedAdd(c);
+				}
+				
 			} else {
 				intPool.restrictedAdd((Integer) object);
 			}
@@ -179,7 +198,7 @@ public class DynamicConstantPool implements ConstantPool {
 			} else {
 				doublePool.restrictedAdd((Double) object);
 			}
-		}
+		} 
 	}
 
 	@Override
@@ -190,6 +209,7 @@ public class DynamicConstantPool implements ConstantPool {
 		res += "intPool=" + intPool.toString() + " ; ";
 		res += "longPool=" + longPool.toString() + " ; ";
 		res += "floatPool=" + floatPool.toString() + " ; ";
+//		res += "charPool=" + charPool.toString() + " ; ";
 		res += "doublePool=" + doublePool.toString() + "}";	
 		return res;
 	}

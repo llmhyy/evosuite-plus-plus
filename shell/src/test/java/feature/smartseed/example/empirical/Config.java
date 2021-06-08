@@ -1,24 +1,23 @@
 package feature.smartseed.example.empirical;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Config {
 	private Boolean highQuality;
-	private final ArrayList<String> options;
+	private final ArrayList0<String> options;
 //	private final List<String> options;
 	private boolean helpRequired;
 	private boolean dbHelpRequired;
 	
 	public Config()
     {
-        options = new ArrayList<String>();
+        options = new ArrayList0<String>();
     }
 	
 	public Config(String[] argv)
     {
-        options = (ArrayList<String>) fixupArgs(Arrays.asList(argv));
+        options = (ArrayList0<String>) fixupArgs(Arrays.asList(argv));
 
         helpRequired =  options.remove("-?") ||
                         options.remove("/?") ||
@@ -30,7 +29,7 @@ public class Config {
     }
 	
     protected List<String> fixupArgs(List<String> list) {
-        List<String> expandedArgs = new ArrayList<String>();
+        List<String> expandedArgs = new ArrayList0<String>();
 
         for (String arg : list) {
             int indexOfEquals = arg.indexOf('=');
@@ -45,7 +44,7 @@ public class Config {
         // some OSes/JVMs do filename expansion with runtime.exec() and some don't,
         // so MultipleSchemaAnalyzer has to surround params with double quotes...
         // strip them here for the OSes/JVMs that don't do anything with the params
-        List<String> unquotedArgs = new ArrayList<String>();
+        List<String> unquotedArgs = new ArrayList0<String>();
 
         for (String arg : expandedArgs) {
             if (arg.startsWith("\"") && arg.endsWith("\""))  // ".*" becomes .*

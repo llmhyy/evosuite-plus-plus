@@ -52,6 +52,8 @@ public class StaticConstantPool implements ConstantPool {
 
 	private final Set<Float> floatPool = Collections.synchronizedSet(new LinkedHashSet<Float>());
 	
+	private final Set<Character> charPool = Collections.synchronizedSet(new LinkedHashSet<Character>());
+	
 	private boolean isContextual;
 
 	public StaticConstantPool(boolean isContextual) {
@@ -162,6 +164,23 @@ public class StaticConstantPool implements ConstantPool {
 		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.LONG, longPool.size(), String.valueOf(value)));
 		return value;
 	}
+	
+	/**
+	 * <p>
+	 * getRandomChar
+	 * </p>
+	 * 
+	 * @return a Character.
+	 */
+	@Override
+	public char getRandomChar() {
+		Character value = Randomness.choice(charPool);
+		if(value == null) {
+			value = Randomness.nextChar();
+		}
+		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.CHARACTER, charPool.size(), String.valueOf(value)));
+		return value;
+	}
 
 	/**
 	 * <p>
@@ -199,6 +218,11 @@ public class StaticConstantPool implements ConstantPool {
 				if (Math.abs(val) < Properties.MAX_INT) {
 					intPool.add((Integer) object);
 				}
+				
+				if(val >=0 && val <= 255) {
+					char c = (char)val;
+					charPool.add(c);
+				}
 			} else {
 				intPool.add((Integer) object);
 			}
@@ -229,9 +253,17 @@ public class StaticConstantPool implements ConstantPool {
 			} else {
 				doublePool.add((Double) object);
 			}
+		} else if (object instanceof Character) {
+			if (Properties.RESTRICT_POOL) {
+				int val = (Character) object;
+				if (Math.abs(val) < Properties.MAX_INT) {
+					charPool.add((Character) object);
+				}
+			} else {
+				charPool.add((Character) object);
+			}
 		} else {
-			LoggingUtils.getEvoLogger().info("Constant of unknown type: "
-			                                         + object.getClass());
+			LoggingUtils.getEvoLogger().info("Constant of unknown type: " + object.getClass());
 		}
 	}
 
