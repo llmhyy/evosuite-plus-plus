@@ -16,8 +16,8 @@ import sf100.CommonTestUtil;
 public class SF100OverallTest {
 	@Before
 	public void beforeTest() {
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = true;
@@ -108,6 +108,103 @@ public class SF100OverallTest {
 		System.out.println("iteration: " + iteration/repeatTime);
 	}
 	
+	@Test
+	public void testJiggler() {
+		String projectId = SF100Project.P89;
+		String[] targetMethods = new String[]{
+				// "jigl.image.MIPMap#get(FFF)[F",
+				"jigl.image.levelSetTool.LevelSetSmooth#apply(IIIIZZ)Ljigl/image/RealColorImage;",
+				// "jigl.signal.ops.levelOps.ClipNeg#apply(Ljigl/signal/RealSignal;Ljigl/signal/ROI;)Ljigl/signal/Signal;"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 5;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testIfxFramework() {
+		String projectId = SF100Project.P84;
+		String[] targetMethods = new String[]{
+				// "net.sourceforge.ifxfv3.beans.USA_ACHProf#equals(Ljava/lang/Object;)Z",
+				// "net.sourceforge.ifxfv3.beans.Term#equals(Ljava/lang/Object;)Z",
+				"net.sourceforge.ifxfv3.beans.PmtAckInfo#equals(Ljava/lang/Object;)Z",
+				// "net.sourceforge.ifxfv3.beans.TotalFeeCharge_Type#equals(Ljava/lang/Object;)Z"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 5;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testJcviJavaCommon() {
+		String projectId = SF100Project.P92;
+		String[] targetMethods = new String[]{
+				"org.jcvi.trace.fourFiveFour.flowgram.sff.NewblerSuffixNameConverter#getSuffixedRangeFrom(Ljava/lang/String;)Lorg/jcvi/Range;"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 5;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testQuickServer() {
+		String projectId = SF100Project.P93;
+		String[] targetMethods = new String[]{
+				// "org.quickserver.net.server.QuickServer#run()V",
+				"org.quickserver.util.io.ByteBufferInputStream#dumpContent()V"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 5;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
 	
 	@Test
 	public void testProtectedExample() {
@@ -117,7 +214,7 @@ public class SF100OverallTest {
 				};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 1;
+		int repeatTime = 5;
 		int budget = 100;
 		Long seed = null;
 		
