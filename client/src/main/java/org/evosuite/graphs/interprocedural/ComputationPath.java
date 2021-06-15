@@ -819,7 +819,7 @@ public class ComputationPath {
 //		return isConstant;
 	}
 
-	private Object getConstantValue(BytecodeInstruction ins) {
+	public static Object getConstantValue(BytecodeInstruction ins) {
 		AbstractInsnNode node = ins.getASMNode();
 		if (node.getType() == AbstractInsnNode.INT_INSN) {
 			IntInsnNode iins = (IntInsnNode) node;
@@ -912,9 +912,11 @@ public class ComputationPath {
 	public boolean isFastChannel() {
 		if (isFastChannel == null) {
 			if(Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true) {
-				if(!this.getComputationNodes().get(0).isParameter())
+				if (!(this.getComputationNodes().get(0).isParameter()
+						|| this.getComputationNodes().get(0).isStaticField()
+						|| this.getComputationNodes().get(0).isInstaceField()))
 					return false;
-				
+
 				SensitivityPreservance preservingList = SensitivityMutator.testBranchSensitivity(this);
 				isFastChannel = preservingList.isValuePreserving() || preservingList.isSensitivityPreserving();
 				return isFastChannel;

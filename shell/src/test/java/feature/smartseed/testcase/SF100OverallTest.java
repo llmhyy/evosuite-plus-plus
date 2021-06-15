@@ -39,7 +39,7 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample1() {
-		String projectId = SF100Project.P13;
+		String projectId = SF100Project.P36;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -67,15 +67,15 @@ public class SF100OverallTest {
 //				"fr.unice.gfarce.interGraph.SimpleTableDemo#getLigne(Ljava/lang/Object;)Ljava/lang/Object;"//8
 //				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
 //				"com.werken.saxpath.XPathLexer#nextToken()Lcom/werken/saxpath/Token;"//82
-//				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
-				"org.databene.jdbacl.model.DefaultDBColumn#isEquivalent(Lorg/databene/jdbacl/model/DBObject;)Z"//13
+				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
+//				"org.databene.jdbacl.model.DefaultDBColumn#isEquivalent(Lorg/databene/jdbacl/model/DBObject;)Z"//13
 //				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
 //				"org.exolab.jms.selector.parser.SelectorTreeParser#expression(Lantlr/collections/AST;)Lorg/exolab/jms/selector/Expression;"//66
 //				"com.momed.parser.MCSVParser#parseAsMap(Ljava/lang/String;)Ljava/util/HashMap;"//11
 		};
 		
-		int repeatTime = 1;
-		int budget = 1000;
+		int repeatTime = 10;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
@@ -112,11 +112,20 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testBugExample7() {
-		String projectId = SF100Project.P33;
+		String projectId = SF100Project.P80;
 		String[] targetMethods = new String[]{
 //				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
 //				"org.exolab.jms.selector.parser.SelectorTreeParser#literal(Lantlr/collections/AST;)Lorg/exolab/jms/selector/Expression;"//66
-				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
+//				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
+//				"wheel.components.ActionExpression#extractComponent()Ljava/lang/String;"
+				"wheel.enhance.WheelAnnotatedField#getGetterName()Ljava/lang/String;"//80
+//				"wheel.json.JSONTokener#dehexchar(C)I"//80
+//				"org.javathena.core.utiles.Functions#e_mail_check(Ljava/lang/String;)Z"//81
+//				"net.sf.xbus.technical.ftp.FTPConnection#getWorkingDirectory(Ljava/lang/String;)Ljava/lang/String;"//83
+
+//				"umd.cs.shop.JSPredicateForm#JSPredicateFormInit(Ljava/io/StreamTokenizer;)V"//85
+				
+//				"net.virtualinfinity.atrobots.measures.AbsoluteAngle#getNormalizedRadians()D"//86
 				
 		};
 		
@@ -158,14 +167,22 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testBugExample8() {
-		String projectId = SF100Project.P43;
+		String projectId = SF100Project.P81;
 		String[] targetMethods = new String[]{
-				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"//43 
-				
+//				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"//43 
+//				"wheel.json.JSONTokener#next(I)Ljava/lang/String;"//80
+
+//				"com.ib.client.EClientSocket#send(Ljava/lang/String;)V"//1
+//				"umd.cs.shop.JSPredicateForm#JSPredicateFormInit(Ljava/io/StreamTokenizer;)V"//85
+//				"wheel.json.JSONTokener#next(I)Ljava/lang/String;"//80
+//				"wheel.util.ActionRegistry#needsRebuilding(Lwheel/components/Component;Ljava/lang/String;)Z"//80
+//				"org.javathena.login.UserManagement#charServerToAuthentify(Lorg/javathena/core/data/Socket_data;[B)V"//81
+				"org.javathena.login.UserManagement#charif_sendallwos(I[B)I"//81
+//				"net.sf.xbus.technical.file.FileReceiverThread#run()V"//83
 		};
 		
-		int repeatTime = 2;
-		int budget = 40000;
+		int repeatTime = 1;
+		int budget = 1000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

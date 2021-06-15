@@ -625,6 +625,10 @@ public class TestFactory {
 		position += (newLength - length);
 
 		Statement st = new MethodStatement(test, method, callee, parameters);
+		while (position > test.size()) {
+			test.addStatement(st, test.size());
+			st = new MethodStatement(test, method, callee, parameters);
+		}
 		VariableReference ret = test.addStatement(st, position);
 		if (callee != null)
 			ret.setDistance(callee.getDistance() + 1);
@@ -1323,6 +1327,10 @@ public class TestFactory {
 		}
 		Statement st = PrimitiveStatement.getRandomStatement(test, clazz,
 		                                                              position);
+		while (test.size() < position) {
+			test.addStatement(st, test.size());
+			st = PrimitiveStatement.getRandomStatement(test, clazz, position);
+		}
 		VariableReference ret = test.addStatement(st, position);
 		ret.setDistance(recursionDepth);
 		return ret;
@@ -1351,6 +1359,10 @@ public class TestFactory {
 			type = genericType.getGenericInstantiation().getType();
 		}
 		Statement st = new NullStatement(test, type);
+		while(position > test.size()) {
+			test.addStatement(st, test.size());
+			st = new NullStatement(test, type);
+		}
 		test.addStatement(st, position);
 		VariableReference ret = test.getStatement(position).getReturnValue();
 		ret.setDistance(recursionDepth);

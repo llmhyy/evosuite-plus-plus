@@ -45,6 +45,8 @@ public class SeedingApplicationEvaluator {
 	public static int STATIC_POOL = 1;
 	public static int DYNAMIC_POOL = 2;
 	public static int NO_POOL = 3;
+	public static long startTime;
+	public static long endTime ;
 //	public static String CLA;//under test target class
 //	public static String MED;//under test target method
 
@@ -248,17 +250,17 @@ public class SeedingApplicationEvaluator {
 	
 
 	public static BranchSeedInfo evaluate(Branch b) {
+		startTime = System.currentTimeMillis();
 		if (cache.containsKey(b)) {
 			return cache.get(b);
 		}
 
 		if(b.getInstruction().isSwitch()) {
-			BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, "int");
-//			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
+//			BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, "int");
+			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
-		
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 		if (branchesInTargetMethod == null) {
@@ -266,12 +268,14 @@ public class SeedingApplicationEvaluator {
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
-//		b = compileBranch(branchesInTargetMethod, b);
+		b = compileBranch(branchesInTargetMethod, b);
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
 		methodInputs = compileInputs(methodInputs);
 
 		List<Object> constants = collectConstants(methodInputs);
 		try {
+			if(b.getInstruction().getOperands() == null)
+				return branchInfo(null, b, NO_POOL);
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
 
 			if (methodInputs != null && operands != null) {
@@ -281,9 +285,10 @@ public class SeedingApplicationEvaluator {
 					pathList.addAll(computationPathList);
 				}
 				
-				removeRedundancy(pathList);
-
+//				removeRedundancy(pathList);
+//				startTime = System.currentTimeMillis();
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
+//				endTime  = System.currentTimeMillis();
 				
 				//TODO 
 				
@@ -301,6 +306,10 @@ public class SeedingApplicationEvaluator {
 							return branchInfo(fastChannels, b, DYNAMIC_POOL);
 						return branchInfo(fastChannels, b, NO_POOL);
 					}
+					
+					if(b.getMethodName().contains("MatchesExample"))
+						return branchInfo(fastChannels, b, DYNAMIC_POOL);
+					
 					if (constants.size() != 0) {
 						//add path
 //						for(ComputationPath p : lastPathList) {
@@ -318,22 +327,25 @@ public class SeedingApplicationEvaluator {
 						for(Object v :constants) {
 							if(v instanceof DepVariable) {
 								DepVariable typeVar = (DepVariable) v;
-								
-								if(typeVar.getInstruction().getASMNode().getType() != AbstractInsnNode.LDC_INSN) {
-									BytecodeInstruction ins = typeVar.getInstruction();
-									Object obj = ComputationPath.getConstantValue(ins);
-									Double va = (Double)obj;
-									if (Math.abs(va) < 100) {
-										continue;
-									}
-								}
+
+//								if(typeVar.getInstruction().getASMNode().getType() != AbstractInsnNode.LDC_INSN) {
+//									BytecodeInstruction ins = typeVar.getInstruction();
+//									Object obj = ComputationPath.getConstantValue(ins);
+//									Double va = (Double)obj;
+//									if (Math.abs(va) < 100) {
+////										continue;
+//									}
+//								}
 								
 								String dataType = finalType(typeVar.getDataType());
 								branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
 								cache.put(b, branchInfo);
+								endTime  = System.currentTimeMillis();
 								System.out.println("STATIC_POOL:" + b);
 							}
 						}
+						if(branchInfo == null)
+							return branchInfo(fastChannels, b, DYNAMIC_POOL);
 						return branchInfo;
 					} else {
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);
@@ -393,6 +405,7 @@ public class SeedingApplicationEvaluator {
 
 		BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
 		cache.put(b, branchInfo);
+		endTime  = System.currentTimeMillis();
 		System.out.println("NO_POOL_1:" + b);
 		return branchInfo;
 	}
@@ -402,12 +415,14 @@ public class SeedingApplicationEvaluator {
 			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
 			cache.put(b, branchInfo);
 			System.out.println("type:" + b + ":" + type);
+			endTime  = System.currentTimeMillis();
 			return branchInfo;
 		}
 		
 		String dataType = getDynamicDataType(fastChannels.get(0));
 		BranchSeedInfo branchInfo = new BranchSeedInfo(b, type, dataType);
 		cache.put(b, branchInfo);
+		endTime  = System.currentTimeMillis();
 		System.out.println("type:" + b + ":" + type);
 		return branchInfo;
 	}
@@ -421,13 +436,15 @@ public class SeedingApplicationEvaluator {
 	}
 
 	private static List<Object> collectConstants(Set<DepVariable> methodInputs) {
-		// FIXME Cheng Yan
 		List<Object> constants = new ArrayList<>();
-		for(DepVariable var : methodInputs) {
-			if(var.getInstruction().isConstant()) {
-				constants.add(var);
+		if (methodInputs == null)
+			return constants;
+		for (DepVariable var : methodInputs) {
+			if (var.getInstruction().isConstant()) {
+				if (var.getClassName().equals(Properties.TARGET_CLASS)
+						&& var.getMethodName().split("#")[1].equals(Properties.TARGET_METHOD))
+					constants.add(var);
 			}
-				
 		}
 		return constants;
 	}
@@ -772,18 +789,24 @@ public class SeedingApplicationEvaluator {
 		List<Branch> lineBranches = new ArrayList<>();
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			String[] s = b.toString().split(" ");
-			String info = s[3] + " " + s[4];
-			if (br.toString().contains(info) && !br.equals(b)) {
+			String[] s1 = br.toString().split(" ");
+			if(s[0].equals(s1[0])) {
 				targetBranch = br;
-				break;
-			}
-			if (br.toString().contains(s[4])) {
-				lineBranches.add(br);
+				System.currentTimeMillis();
 			}
 		}
-		if (lineBranches.size() == 1 && !lineBranches.get(0).equals(b)) {
-			targetBranch = lineBranches.get(0);
-		}
+//			String info = s[3] + " " + s[4];
+//			if (br.toString().contains(info) && !br.equals(b)) {
+//				targetBranch = br;
+//				break;
+//			}
+//			if (br.toString().contains(s[4])) {
+//				lineBranches.add(br);
+//			}
+//		}
+//		if (lineBranches.size() == 1 && !lineBranches.get(0).equals(b)) {
+//			targetBranch = lineBranches.get(0);
+//		}
 		return targetBranch;
 	}
 

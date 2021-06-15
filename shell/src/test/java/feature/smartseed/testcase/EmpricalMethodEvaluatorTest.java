@@ -70,6 +70,50 @@ public class EmpricalMethodEvaluatorTest {
 		}
 	}
 	
+	public void writeTime(List<EvoTestResult> results,String set) {
+		ExcelWriter excelWriter = new ExcelWriter(evosuite.shell.FileUtils.newFile(Settings.getReportFolder(), "isHighQuality.xlsx"));
+		List<String> header = new ArrayList<>();
+		header.add("Class");
+		header.add("Method");
+//		header.add("Path");
+//		header.add("Fitness Value");
+		
+		header.add("Coverage");
+		header.add("InitCoverage");
+		header.add("Time");
+		header.add("Iteration");
+		header.add("Testcases");
+		header.add("Missing Branch");
+		header.add("Set");
+//		header.add("ValuePreserving");
+//		header.add("SensivityPreserving");
+//		header.add("FastChannel");
+//		header.add("Iteration");
+		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
+		
+		try {
+			List<List<Object>> data = new ArrayList<List<Object>>();
+			for(EvoTestResult res: results) {
+				List<Object> row = new ArrayList<Object>();
+
+				row.add(Properties.TARGET_CLASS);
+				row.add(Properties.TARGET_METHOD);
+//				row.add(path.getComputationNodes().toString());
+				row.add(res.getCoverage());
+				row.add(res.getInitialCoverage());
+				row.add(res.getTime());
+				row.add(res.getAge());
+				row.add(res.getCoveredBranchWithTest().toString());
+				row.add(res.getMissingBranches().toString());
+				row.add(set);
+				data.add(row);
+			}
+			excelWriter.writeSheet("data", data);
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+	}
+	
 	@Test 
 	public void testHQ() {
 		String[] stringArray0 = new String[7];
@@ -108,7 +152,7 @@ public class EmpricalMethodEvaluatorTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -118,6 +162,7 @@ public class EmpricalMethodEvaluatorTest {
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
 		writeResults();
+		writeTime(results,"120smart");
 		double coverage = 0;
 		double initCoverage = 0;
 		double time = 0;

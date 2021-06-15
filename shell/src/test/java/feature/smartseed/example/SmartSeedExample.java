@@ -107,11 +107,11 @@ public class SmartSeedExample {
 			if (a.endsWith(endString)) {
 				System.currentTimeMillis();
 				return a;}}
-		return "NULL";
+		return args.length != 0 ? args[args.length - 1] : "NULL";
 	}
 	
-	public void matchesExample(String x) {
-		String regex = "^tr[A-F0-3]";
+	public void matchesExample(String x,String regex) {
+//		String regex = "^tr[A-F0-3]";
 		if(x.matches(regex)) {
 			System.currentTimeMillis();
 		}
@@ -186,7 +186,7 @@ public class SmartSeedExample {
 	public int compareNum = 55;
 	
 	public boolean singalOprand() {
-		if(compareNum > 100)
+		if(compareNum > 100) 
 			return false;
 		return true;
 	}
@@ -204,5 +204,9 @@ public class SmartSeedExample {
 			if(getCompareNum() == 1000)
 				return;
 		}
+	}
+	
+	public void setCompareNum(int compareNum) {
+		this.compareNum = compareNum;
 	}
 }

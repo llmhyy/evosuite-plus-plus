@@ -247,7 +247,7 @@ public class ValueRetrievalTransform {
 				Opcodes.IUSHR, Opcodes.IXOR, Opcodes.D2I, Opcodes.F2I,
 				Opcodes.L2I, Opcodes.ICONST_0, Opcodes.ICONST_1, Opcodes.ICONST_2,
 				Opcodes.ICONST_3, Opcodes.ICONST_4, Opcodes.ICONST_5, Opcodes.ICONST_M1,
-				Opcodes.INSTANCEOF}));
+				Opcodes.INSTANCEOF,Opcodes.ARRAYLENGTH}));
 		if (opcodes.contains(nodeOpcode)) {
 			return Type.INT_TYPE;
 		}
