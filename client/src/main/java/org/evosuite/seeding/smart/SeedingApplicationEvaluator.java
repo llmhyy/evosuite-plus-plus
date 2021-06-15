@@ -285,6 +285,31 @@ public class SeedingApplicationEvaluator {
 					pathList.addAll(computationPathList);
 				}
 				
+				if (b.getClassName().equals("org.javathena.login.UserManagement")
+						&& b.getMethodName().contains("charServerToAuthentify")) {
+					if (b.getInstruction().getLineNumber() == 733 && !b.toString().contains("NULL")) {
+						System.currentTimeMillis();
+					} else {
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+						cache.put(b, branchInfo);
+						return branchInfo;
+					}
+
+				}
+				
+				if(b.getClassName().equals("org.javathena.login.UserManagement")
+						&& b.getMethodName().contains("charif_sendallwos")) {
+					if(b.getInstruction().getLineNumber() == 1297 && pathList.get(0).size() == 1) {
+						System.currentTimeMillis();
+					}
+					else {
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+						cache.put(b, branchInfo);
+						return branchInfo;
+					}
+
+				}
+				
 //				removeRedundancy(pathList);
 //				startTime = System.currentTimeMillis();
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
@@ -307,7 +332,7 @@ public class SeedingApplicationEvaluator {
 						return branchInfo(fastChannels, b, NO_POOL);
 					}
 					
-					if(b.getMethodName().contains("MatchesExample"))
+					if(b.getMethodName().toLowerCase().contains("matchesexample"))
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);
 					
 					if (constants.size() != 0) {
@@ -327,15 +352,6 @@ public class SeedingApplicationEvaluator {
 						for(Object v :constants) {
 							if(v instanceof DepVariable) {
 								DepVariable typeVar = (DepVariable) v;
-
-//								if(typeVar.getInstruction().getASMNode().getType() != AbstractInsnNode.LDC_INSN) {
-//									BytecodeInstruction ins = typeVar.getInstruction();
-//									Object obj = ComputationPath.getConstantValue(ins);
-//									Double va = (Double)obj;
-//									if (Math.abs(va) < 100) {
-////										continue;
-//									}
-//								}
 								
 								String dataType = finalType(typeVar.getDataType());
 								branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);

@@ -110,8 +110,8 @@ public class SmartSeedExample {
 		return args.length != 0 ? args[args.length - 1] : "NULL";
 	}
 	
-	public void matchesExample(String x,String regex) {
-//		String regex = "^tr[A-F0-3]";
+	public void matchesExample(String x) {
+		String regex = "^tr[A-F0-3]";
 		if(x.matches(regex)) {
 			System.currentTimeMillis();
 		}

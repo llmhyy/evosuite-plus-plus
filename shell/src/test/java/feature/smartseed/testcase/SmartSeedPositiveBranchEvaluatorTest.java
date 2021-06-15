@@ -81,7 +81,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 	}
 	
 	@Test
-	public void testSmartSeedBranch1() throws ClassNotFoundException, RuntimeException {
+	public void testDynamicExample1() throws ClassNotFoundException, RuntimeException {
 		//Static or dynamic
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "dynamicExample1";
@@ -301,10 +301,10 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 	
 	
 	@Test
-	public void testSmartSeedBranch15() throws ClassNotFoundException, RuntimeException {
+	public void testMatchesExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "matchesExample";
-		int parameterNum = 2;//1
+		int parameterNum = 1;
 		int lineNumber = 115;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
@@ -544,7 +544,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 	}
 	
 	@Test
-	public void testSmartSeedBranch2() throws ClassNotFoundException, RuntimeException {
+	public void testSingalOprand() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
 		String methodName = "singalOprand";
 		int parameterNum = 0;

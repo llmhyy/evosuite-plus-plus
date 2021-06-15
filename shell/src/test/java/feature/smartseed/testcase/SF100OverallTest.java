@@ -218,6 +218,92 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testCharServerToAuthentify() {
+		String projectId = SF100Project.P81;
+		String[] targetMethods = new String[]{
+				"org.javathena.login.UserManagement#charServerToAuthentify(Lorg/javathena/core/data/Socket_data;[B)V"//81
+		};
+		
+		int repeatTime = 1;
+		int budget = 1000;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		boolean aor = false;
+		boolean ass = true;
+		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
+//		"generateMOSuite", "MOSUITE", "DynaMOSA",
+//		"generateSuite", "Evosuite", "MONOTONIC_GA",
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
+	}
+	
+	@Test
+	public void testCharif() {
+		String projectId = SF100Project.P81;
+		String[] targetMethods = new String[]{
+				"org.javathena.login.UserManagement#charif_sendallwos(I[B)I"//81
+		};
+		
+		int repeatTime = 1;
+		int budget = 1000;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		boolean aor = false;
+		boolean ass = true;
+		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
+//		"generateMOSuite", "MOSUITE", "DynaMOSA",
+//		"generateSuite", "Evosuite", "MONOTONIC_GA",
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
+	}
+	
+	@Test
 	public void testBugExample2() {
 		
 //		String projectId = "84_ifx-framework";
