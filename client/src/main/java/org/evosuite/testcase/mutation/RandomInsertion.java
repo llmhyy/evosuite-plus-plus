@@ -81,7 +81,8 @@ public class RandomInsertion implements InsertionStrategy {
 			// Insert a call to the UUT at the end
 			position = test.size();
 			try {
-				success = TestFactory.getInstance().insertRandomCall(test, lastPosition + 1);				
+				if(position != 0)
+					success = TestFactory.getInstance().insertRandomCall(test, lastPosition + 1);				
 			}
 			catch(Exception e) {
 				e.printStackTrace();

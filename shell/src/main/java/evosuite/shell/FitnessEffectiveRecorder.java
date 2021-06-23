@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.Properties;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.Event;
@@ -32,6 +33,7 @@ import evosuite.shell.utils.LoggerUtils;
 public class FitnessEffectiveRecorder extends ExperimentRecorder {
 	private Logger log = LoggerUtils.getLogger(FitnessEffectiveRecorder.class);
 	private ExcelWriter excelWriter;
+	private ExcelWriter evoSeedWriter;
 	private OutputStreamWriter jsonWriter;
 
 	public FitnessEffectiveRecorder() throws IOException {
@@ -43,16 +45,24 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 						"IP Flag Coverage", "Uncovered IF Flag", "Random Seed", "Unavailable Call", "Initial Coverage",
 						"Initialization Overhead", "CoveredBranchWithTest","Missing Branches","Missing InstructID"},
 				0);
+		
+		evoSeedWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), "evoseedTime.xlsx"));
+		evoSeedWriter.getSheet("data",
+				new String[] { "PID","Class", "Method", "Execution Time", "Coverage", "Age", "Initial Coverage",
+						"Initialization Overhead", "BranchNum", "PathNum", "SmartSeedAnalyzeTime", "GetFirstTailValueTime",
+						"10MutateTime", "CascadeAnalysisTime", "EvolveTime", "Parent1EvolveTime",
+						"Parent2EvolveTime", "RandomTestcaseTime","GenerateTime" },
+				0);
 			    
 		//json
-		File jsonFile = null;
-		jsonFile = new File(Settings.getReportFolder().toString() + '\\'+projectId + "_evotest.json");
-		jsonFile.createNewFile();
-		if (jsonFile.isFile()) {
-		    // create jsonWriter
-			System.out.println("file:" + jsonFile);
-			jsonWriter = new OutputStreamWriter(new FileOutputStream(jsonFile), "UTF-8");
-		}
+//		File jsonFile = null;
+//		jsonFile = new File(Settings.getReportFolder().toString() + '\\'+projectId + "_evotest.json");
+//		jsonFile.createNewFile();
+//		if (jsonFile.isFile()) {
+//		    // create jsonWriter
+//			System.out.println("file:" + jsonFile);
+//			jsonWriter = new OutputStreamWriter(new FileOutputStream(jsonFile), "UTF-8");
+//		}
 	    
 	}
 
@@ -181,5 +191,35 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		}
 	}
 	
+	@Override
+	public void recordEvoSeedTime(String className, String methodName, EvoTestResult r) {
+		List<Object> rowData = new ArrayList<Object>();
+		rowData.add(projectId);
+		rowData.add(className);
+		rowData.add(methodName);
+		rowData.add(r.getTime());
+		rowData.add(r.getCoverage());
+		rowData.add(r.getAge());
+		rowData.add(r.getInitialCoverage());
+		rowData.add(r.getInitializationOverhead());
+		rowData.add(r.getBranchNum());
+		rowData.add(r.getPathNum());
+		rowData.add(r.getSmartSeedAnalyzeTime());
+		rowData.add(r.getGetFirstTailValueTime());
+		rowData.add(r.getAll10MutateTime());
+		rowData.add(r.getCascadeAnalysisTime());
+		rowData.add(r.getEvolveTime());
+		rowData.add(r.getParent1EvolveTime());
+		rowData.add(r.getParent2EvolveTime());
+		rowData.add(r.getRandomTestcaseTime());
+		rowData.add(r.getGenerateTime());
+		
+		try {
+			evoSeedWriter.writeSheet("data", Arrays.asList(rowData));
+			logSuccessfulMethods(className, methodName);
+		} catch (IOException e) {
+			log.error("Error", e);
+		}
+	}
 	
 }

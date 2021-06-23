@@ -94,6 +94,8 @@ public class TestGenerationResultBuilder {
 		result.setCoveredBranchWithTest(testSuite.getCoveredBranchWithTest());
 		result.setEventSequence(EventSequence.events);
 		
+		result.setEvoSeedTime(result,testSuite);
+		
 		return result;
 	}
 	

@@ -112,7 +112,8 @@ public class ConstantPoolManager {
 	}
 
 	public ConstantPool getConstantPool(String dataType) {
-		if(Properties.APPLY_SMART_SEED) {
+//		if(Properties.APPLY_SMART_SEED && Properties.END_INITIALIZATION) {
+			if(Properties.APPLY_SMART_SEED) {
 			Set<BranchSeedInfo> uncoveredBranches = SmartSeedBranchUpdateManager.uncoveredApplicableBranchInfo;
 			if(!uncoveredBranches.isEmpty()) {
 				BranchSeedInfo interestedBranchInfo = Randomness.choice(uncoveredBranches);

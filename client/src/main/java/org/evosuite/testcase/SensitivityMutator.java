@@ -15,6 +15,7 @@ import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DepVariable;
@@ -244,9 +245,10 @@ public class SensitivityMutator {
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
 		Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
 		Object headValue = retrieveHeadValue(relevantStatement);
+		long t1 = System.currentTimeMillis();
 		Object tailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
-//		TestChromosome oldTestChromosome = newTestChromosome;
-//		System.currentTimeMillis();
+		long t2 = System.currentTimeMillis();
+		AbstractMOSA.getFirstTailValueTime += t2 - t1;
 		
 		boolean valuePreserving = checkValuePreserving(headValue, tailValue);
 
@@ -270,7 +272,10 @@ public class SensitivityMutator {
 			if (isSuccessful) {
 				relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
 				Object newHeadValue = retrieveHeadValue(relevantStatement);
+				t1 = System.currentTimeMillis();
 				Object newTailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
+				t2 = System.currentTimeMillis();
+				AbstractMOSA.all10MutateTime += t2 - t1;
 
 				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
 
@@ -293,9 +298,18 @@ public class SensitivityMutator {
 
 //				recordList(branch, tailInstruction, headValue,tailValue,newHeadValue,newTailValue,
 //						valuePreserving,sensivityPreserving,oldTestChromosome,newTestChromosome);
+				
+//				if (i > Properties.DYNAMIC_SENSITIVITY_THRESHOLD / 2
+//						&& (valuePreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) < 0.1
+//						&& (sensivityPreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) < 0.1)
+//					break;
+//				if (i > Properties.DYNAMIC_SENSITIVITY_THRESHOLD / 2
+//						&& ((valuePreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) > 0.5
+//								|| (sensivityPreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) > 0.5))
+//					break;
 			}
 		}
-
+//		AbstractMOSA.avg10MutateTime = AbstractMOSA.avg10MutateTime / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
 		double vpRatio = valuePreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
 		double spRatio = sensivityPreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
 

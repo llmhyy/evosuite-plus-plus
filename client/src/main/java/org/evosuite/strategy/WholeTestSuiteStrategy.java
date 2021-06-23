@@ -167,10 +167,26 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 		testSuite.setInitialCoverage(algorithm.getInitialCoverage());
 		testSuite.setInitializationOverhead(algorithm.getIntializationOverhead());
 		testSuite.setMissingBranches(algorithm.getMissingBranches());
+		
+//		if(Properties.APPLY_SMART_SEED)
+		getEvoSeedTime(testSuite,algorithm);
+		
 		return testSuite;
 	}
 	
-    private List<TestFitnessFunction> getGoals(boolean verbose) {
+    private void getEvoSeedTime(TestSuiteChromosome testSuite, GeneticAlgorithm<TestSuiteChromosome> algorithm) {
+    	testSuite.setIntializationTime();
+    	testSuite.setBranchNum(algorithm.getBranchNum());
+    	testSuite.setAvgPathNum(algorithm.getAvgPathNum());
+    	testSuite.setAvgGetFirstTailValueTime(algorithm.getAvgGetFirstTailValueTime());
+    	testSuite.setAvg10MutateTime(algorithm.getAvg10MutateTime());
+    	testSuite.setCascadeAnalysisTime(algorithm.getCascadeAnalysisTime());
+    	testSuite.setAvgEvolveTime(algorithm.getAvgEvolveTime());
+    	testSuite.setAvgParent1EvolveTime(algorithm.getAvgParent1EvolveTime());
+    	testSuite.setAvgParent2EvolveTime(algorithm.getAvgParent2EvolveTime());		
+	}
+
+	private List<TestFitnessFunction> getGoals(boolean verbose) {
         List<TestFitnessFactory<? extends TestFitnessFunction>> goalFactories = getFitnessFactories();
         List<TestFitnessFunction> goals = new ArrayList<>();
 

@@ -162,6 +162,15 @@ public class Properties {
 	@Parameter(key = "apply_smart_seed", group = "Test Creation", description = "let evosuite++ sample seed from dynamically generated seeds")
 	public static boolean APPLY_SMART_SEED = false;
 	
+	@Parameter(key = "apply_smart_dynamic_pool", group = "Test Creation", description = "let evosuite++ add constants to smart dynamic pool")
+	public static boolean APPLY_SMART_DYNAMIC_POOL = false;
+	
+	@Parameter(key = "apply_char_pool", group = "Test Creation", description = "let evosuite++ apply char pool")
+	public static boolean APPLY_CHAR_POOL = false;
+	
+	@Parameter(key = "end_initialization", group = "Test Creation", description = "evosuite++ end initialization")
+	public static boolean END_INITIALIZATION = false;
+	
 	@Parameter(key = "dynamic_sensitivity_threshold", group = "Test Creation", description = "the number of times to test sensitivity and value change of an operand regarding a method input")
 	public static final int DYNAMIC_SENSITIVITY_THRESHOLD = 10;
 	

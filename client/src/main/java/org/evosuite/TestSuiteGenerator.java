@@ -99,6 +99,7 @@ public class TestSuiteGenerator {
 
 	private static final String FOR_NAME = "forName";
 	private static Logger logger = LoggerFactory.getLogger(TestSuiteGenerator.class);
+	public static long startTime;
 
 	private void initializeTargetClass() throws Throwable {
 		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
@@ -136,7 +137,7 @@ public class TestSuiteGenerator {
 	 * @return a {@link java.lang.String} object.
 	 */
 	public TestGenerationResult generateTestSuite() {
-
+		startTime = System.currentTimeMillis();
 		LoggingUtils.getEvoLogger().info("* " + ClientProcess.getPrettyPrintIdentifier() + "Analyzing classpath: ");
 
 		ClientServices.getInstance().getClientNode().changeState(ClientState.INITIALIZATION);

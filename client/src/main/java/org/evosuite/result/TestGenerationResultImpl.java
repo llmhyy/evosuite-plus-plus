@@ -30,9 +30,11 @@ import java.util.Set;
 import org.evosuite.BranchDistributionInformation;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.result.seedexpr.Event;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testsuite.TestSuiteChromosome;
 
 class TestGenerationResultImpl implements TestGenerationResult {
 
@@ -120,6 +122,22 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	private List<BranchDistributionInformation> branchInformation;
 	
 	private Map<String, Boolean> methodCallAvailabilityMap = new HashMap<>();
+	
+	/** EvoSeed Time **/
+	private int branchNum = 0;
+	private int pathNum = 0;
+	private long getFirstTailValueTime = 0;
+	private long all10MutateTime = 0;
+	private long cascadeAnalysisTime = 0;
+	private long evolveTime = 0;
+	private long parent1EvolveTime = 0;
+	private long parent2EvolveTime = 0;
+	
+	private long smartSeedAnalyzeTime = 0;
+
+	private long randomTestcaseTime = 0;
+
+	private long generateTime = 0;
 	
 	/** Did test generation succeed? */
 	public Status getTestGenerationStatus() {
@@ -499,6 +517,109 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	@Override
 	public void setEventSequence(List<Event> eventList) {
 		this.eventSequence = eventList;
+	}
+
+	public int getBranchNum() {
+		return branchNum;
+	}
+
+	public void setBranchNum(int branchNum) {
+		this.branchNum = branchNum;
+	}
+
+	public int getPathNum() {
+		return pathNum;
+	}
+
+	public void setPathNum(int pathNum) {
+		this.pathNum = pathNum;
+	}
+
+	public long getGetFirstTailValueTime() {
+		return getFirstTailValueTime;
+	}
+
+	public void setGetFirstTailValueTime(long getFirstTailValueTime) {
+		this.getFirstTailValueTime = getFirstTailValueTime;
+	}
+
+	public long getAll10MutateTime() {
+		return all10MutateTime;
+	}
+
+	public void setAll10MutateTime(long all10MutateTime) {
+		this.all10MutateTime = all10MutateTime;
+	}
+
+	public long getCascadeAnalysisTime() {
+		return cascadeAnalysisTime;
+	}
+
+	public void setCascadeAnalysisTime(long cascadeAnalysisTime) {
+		this.cascadeAnalysisTime = cascadeAnalysisTime;
+	}
+
+	public long getEvolveTime() {
+		return evolveTime;
+	}
+
+	public void setEvolveTime(long evolveTime) {
+		this.evolveTime = evolveTime;
+	}
+
+	public long getParent1EvolveTime() {
+		return parent1EvolveTime;
+	}
+
+	public void setParent1EvolveTime(long parent1EvolveTime) {
+		this.parent1EvolveTime = parent1EvolveTime;
+	}
+
+	public long getParent2EvolveTime() {
+		return parent2EvolveTime;
+	}
+
+	public void setParent2EvolveTime(long parent2EvolveTime) {
+		this.parent2EvolveTime = parent2EvolveTime;
+	}
+
+	public long getSmartSeedAnalyzeTime() {
+		return smartSeedAnalyzeTime;
+	}
+
+	public void setSmartSeedAnalyzeTime(long smartSeedAnalyzeTime) {
+		this.smartSeedAnalyzeTime = smartSeedAnalyzeTime;
+	}
+
+	public long getRandomTestcaseTime() {
+		return randomTestcaseTime;
+	}
+
+	public void setRandomTestcaseTime(long randomTestcaseTime) {
+		this.randomTestcaseTime = randomTestcaseTime;
+	}
+
+	public long getGenerateTime() {
+		return generateTime;
+	}
+
+	public void setGenerateTime(long generateTime) {
+		this.generateTime = generateTime;
+	}
+
+	public void setEvoSeedTime(TestGenerationResultImpl result, TestSuiteChromosome testSuite) {
+	      result.setBranchNum(AbstractMOSA.branchNum);
+	      result.setPathNum(AbstractMOSA.pathNum);
+	      result.setGetFirstTailValueTime(AbstractMOSA.getFirstTailValueTime);
+	      result.setAll10MutateTime(AbstractMOSA.all10MutateTime);
+	      result.setCascadeAnalysisTime(AbstractMOSA.cascadeAnalysisTime);
+	      result.setEvolveTime(AbstractMOSA.evolveTime);
+	      result.setParent1EvolveTime(AbstractMOSA.parent1EvolveTime);
+	      result.setParent2EvolveTime(AbstractMOSA.parent2EvolveTime);
+	      result.setSmartSeedAnalyzeTime(AbstractMOSA.smartSeedAnalyzeTime);
+	      result.setRandomTestcaseTime(AbstractMOSA.getRandomTestcaseTime());
+	      result.setGenerateTime(AbstractMOSA.generateTime);
+	      AbstractMOSA.clear();
 	}
 	
 }

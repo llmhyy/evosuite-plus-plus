@@ -463,6 +463,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		this.setAvailabilityRatio(availabilityRatio);
 		this.setAvailableCalls(getAvailableCalls());
 		this.setUnavailableCalls(getUnavailableCalls());
+		
+		if(Properties.APPLY_SMART_SEED)
+			getEvoSeedTime();
 
 		// archive
 		TimeController.execute(this::updateBestIndividualFromArchive, "update from archive", 5_000);
@@ -471,6 +474,18 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 	}
 
 	
+	private void getEvoSeedTime() {
+		this.setIntializationTime();
+		this.setBranchNum(getBranchNum());
+		this.setAvgPathNum(getAvgPathNum());
+		this.setAvgGetFirstTailValueTime(getAvgGetFirstTailValueTime());
+		this.setAvg10MutateTime(getAvg10MutateTime());
+		this.setCascadeAnalysisTime(getCascadeAnalysisTime());
+		this.setAvgEvolveTime(getAvgEvolveTime());
+		this.setAvgParent1EvolveTime(getAvgParent1EvolveTime());
+		this.setAvgParent2EvolveTime(getAvgParent2EvolveTime());
+	}
+
 	private List<BranchInfo> getMissingBranches(List<T> population,List<BranchCoverageTestFitness> branchGoals) {
 		List<BranchInfo> missingBranches = new ArrayList<>();
 		for (BranchCoverageTestFitness tf : branchGoals) {

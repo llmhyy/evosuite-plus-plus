@@ -24,6 +24,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.seedexpr.Event;
@@ -95,7 +96,7 @@ public class EvosuiteForMethod {
 	public static String projectName;
 	public static String projectId; // ex: 1_tullibee (project folder name)
 	public static FilterConfiguration filter;
-
+	
 	private URLClassLoader evoTestClassLoader;
 
 	public static void main(String[] args) {
@@ -676,10 +677,12 @@ public class EvosuiteForMethod {
 					result.setCoveredBranchWithTest(r.getCoveredBranchWithTest());
 					result.setEventSequence(r.getEventSequence());
 					
+					setEvoSeedTime(result,r);
 
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
-						recorder.recordSeedingToJson(className, methodName, result);
+//						recorder.recordSeedingToJson(className, methodName, result);
+						recorder.recordEvoSeedTime(className, methodName, result);
 						
 					}
 				}
@@ -691,6 +694,34 @@ public class EvosuiteForMethod {
 		}
 
 		return result;
+	}
+	
+	private void setEvoSeedTime(EvoTestResult result, TestGenerationResult r) {
+		result.setBranchNum(r.getBranchNum());
+		result.setPathNum(r.getPathNum());
+		result.setGetFirstTailValueTime(r.getGetFirstTailValueTime());
+		result.setAll10MutateTime(r.getAll10MutateTime());
+		result.setCascadeAnalysisTime(r.getCascadeAnalysisTime());
+		result.setEvolveTime(r.getEvolveTime());
+		result.setParent1EvolveTime(r.getParent1EvolveTime());
+		result.setParent2EvolveTime(r.getParent2EvolveTime());
+		result.setSmartSeedAnalyzeTime(r.getSmartSeedAnalyzeTime());
+		result.setRandomTestcaseTime(r.getRandomTestcaseTime());
+		result.setGenerateTime(r.getGenerateTime());
+		
+		
+//		result.setBranchNum(AbstractMOSA.branchNum);
+//		result.setPathNum(AbstractMOSA.pathNum);
+//		result.setGetFirstTailValueTime(AbstractMOSA.getFirstTailValueTime);
+//		result.setAll10MutateTime(AbstractMOSA.all10MutateTime);
+//		result.setCascadeAnalysisTime(AbstractMOSA.cascadeAnalysisTime);
+//		result.setEvolveTime(AbstractMOSA.evolveTime);
+//		result.setParent1EvolveTime(AbstractMOSA.parent1EvolveTime);
+//		result.setParent2EvolveTime(AbstractMOSA.parent2EvolveTime);
+//		result.setSmartSeedAnalyzeTime(AbstractMOSA.smartSeedAnalyzeTime);
+//		result.setRandomTestcaseTime(AbstractMOSA.getRandomTestcaseTime());
+//		result.setGenerateTime(AbstractMOSA.generateTime);
+//		AbstractMOSA.clear();
 	}
 
 	public static void printResult(TestGenerationResult r) {

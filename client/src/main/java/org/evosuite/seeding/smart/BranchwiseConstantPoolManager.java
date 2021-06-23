@@ -40,8 +40,7 @@ public class BranchwiseConstantPoolManager {
 		Properties.DYNAMIC_POOL_SIZE = 10;
 		ConstantPool pool = getBranchwiseDynamicConstantPool(branchId);
 		pool.add(obj);
-		if(SmartSeedBranchUpdateManager.uncoveredApplicableBranchInfo.isEmpty())
-			Properties.DYNAMIC_POOL_SIZE = 50;
+		Properties.DYNAMIC_POOL_SIZE = 50;
 	}
 	
 	public static ConstantPool evaluate(BranchSeedInfo b) {
@@ -50,8 +49,8 @@ public class BranchwiseConstantPoolManager {
 		
 		if(b.getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL) {
 			
-			double r = Randomness.nextDouble(0, 1);
-			if(r > 0.2) {
+//			double r = Randomness.nextDouble(0, 1);
+//			if(r > 0.2) {
 				if(STATIC_POOL_CACHE.containsKey(b.getBranch().getActualBranchId())) {
 					return STATIC_POOL_CACHE.get(b.getBranch().getActualBranchId());
 				}
@@ -63,14 +62,15 @@ public class BranchwiseConstantPoolManager {
 				}
 				STATIC_POOL_CACHE.put(b.getBranch().getActualBranchId(), pool);
 				return pool;				
-			}
-			else {
-				ConstantPool pool = getBranchwiseDynamicConstantPool(b.getBranch().getActualBranchId());
-				return pool;
-			}
+//			}
+//			else {
+//				ConstantPool pool = getBranchwiseDynamicConstantPool(b.getBranch().getActualBranchId());
+//				return pool;
+//			}
 			
 		}
 		else if(b.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL) {
+			Properties.APPLY_SMART_DYNAMIC_POOL = true;
 			ConstantPool pool = getBranchwiseDynamicConstantPool(b.getBranch().getActualBranchId());
 			return pool;
 		}

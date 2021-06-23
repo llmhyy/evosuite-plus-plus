@@ -78,6 +78,19 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
 	
 	private Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
+	
+	
+	/** EvoSeed Time **/
+	
+	private long intializationTime;
+	private int branchNum;
+	private int avgPathNum;
+	private long avgGetFirstTailValueTime;
+	private long avg10MutateTime;
+	private long CascadeAnalysisTime;
+	private long avgEvolveTime;
+	private long avgParent1EvolveTime;
+	private long avgParent2EvolveTime;
 
 	/**
 	 * Add an additional secondary objective to the end of the list of
@@ -472,6 +485,76 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 		this.coveredBranchWithTest = coveredBranchWithTest;
 	}
 
-	
+	public long getIntializationTime() {
+		return intializationTime;
+	}
+
+	public void setIntializationTime() {
+		this.intializationTime = initializationOverhead;
+	}
+
+	public int getBranchNum() {
+		return branchNum;
+	}
+
+	public void setBranchNum(int branchNum) {
+		this.branchNum = branchNum;
+	}
+
+	public int getAvgPathNum() {
+		return avgPathNum;
+	}
+
+	public void setAvgPathNum(int avgPathNum) {
+		this.avgPathNum = avgPathNum;
+	}
+
+	public long getAvgGetFirstTailValueTime() {
+		return avgGetFirstTailValueTime;
+	}
+
+	public void setAvgGetFirstTailValueTime(long avgGetFirstTailValueTime) {
+		this.avgGetFirstTailValueTime = avgGetFirstTailValueTime;
+	}
+
+	public long getAvg10MutateTime() {
+		return avg10MutateTime;
+	}
+
+	public void setAvg10MutateTime(long avg10MutateTime) {
+		this.avg10MutateTime = avg10MutateTime;
+	}
+
+	public long getCascadeAnalysisTime() {
+		return CascadeAnalysisTime;
+	}
+
+	public void setCascadeAnalysisTime(long cascadeAnalysisTime) {
+		CascadeAnalysisTime = cascadeAnalysisTime;
+	}
+
+	public long getAvgEvolveTime() {
+		return avgEvolveTime;
+	}
+
+	public void setAvgEvolveTime(long avgEvolveTime) {
+		this.avgEvolveTime = avgEvolveTime;
+	}
+
+	public long getAvgParent2EvolveTime() {
+		return avgParent2EvolveTime;
+	}
+
+	public void setAvgParent2EvolveTime(long avgParent2EvolveTime) {
+		this.avgParent2EvolveTime = avgParent2EvolveTime;
+	}
+
+	public long getAvgParent1EvolveTime() {
+		return avgParent1EvolveTime;
+	}
+
+	public void setAvgParent1EvolveTime(long avgParent1EvolveTime) {
+		this.avgParent1EvolveTime = avgParent1EvolveTime;
+	}
 
 }

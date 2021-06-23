@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
+import org.evosuite.TestSuiteGenerator;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
@@ -55,6 +56,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	private static final long serialVersionUID = 146182080947267628L;
 
 	private static final Logger logger = LoggerFactory.getLogger(DynaMOSA.class);
+	
+	public static long endTime;
 
 	/** Manager to determine the test goals to consider at each generation */
 	protected MultiCriteriaManager<T> goalsManager = null;
@@ -260,7 +263,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		}
 		long t2 = System.currentTimeMillis();
 		this.initializationOverhead = t2 - t1;
-		
+//		Properties.END_INITIALIZATION = true;
 		// update current goals
 		this.calculateFitness(true);
 		T suite = getBestIndividual();
@@ -277,6 +280,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		}
 
 		// next generations
+		TestCaseLegitimizer.startTime = System.currentTimeMillis();
 		while (!isFinished() && this.goalsManager.getUncoveredGoals().size() > 0) {
 			MutationPositionDiscriminator.discriminator.setPurpose(this.goalsManager.getCurrentGoals());
 
@@ -285,11 +289,17 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 				exceptionBranchEnhancer.updatePopulation(population);
 				exceptionBranchEnhancer.enhanceBranchGoals();				
 			}
-			
+			t1 = System.currentTimeMillis();
 			this.evolve();
+			t2 = System.currentTimeMillis();
+//			System.out.println("!!!!!----!!!!!");
+//			System.out.println("evolve time:" + (t2-t1));
+//			System.out.println("````````");
 			this.notifyIteration();
 		}
-
+//		endTime = System.currentTimeMillis();
+//		System.out.println("all time:" + (endTime - TestCaseLegitimizer.startTime)/1000);
+		
 		logger.warn("legitimizationSuccess: " + RandomLengthTestFactory.legitimizationSuccess);
 		logger.warn("legitimizationTrials: " + RandomLengthTestFactory.legitimizationTrials);
 		

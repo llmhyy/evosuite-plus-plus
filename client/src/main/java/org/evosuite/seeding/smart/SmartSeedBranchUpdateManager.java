@@ -6,6 +6,7 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchFitness;
+import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 
 public class SmartSeedBranchUpdateManager {
 
@@ -17,10 +18,12 @@ public class SmartSeedBranchUpdateManager {
 		
 		if(!Properties.APPLY_SMART_SEED)
 			return;
+		long nowtime = System.currentTimeMillis();
+		Properties.APPLY_CHAR_POOL = true;
 		
 		uncoveredApplicableBranchInfo.clear();
 		totalUncoveredGoals.clear();
-		
+//		System.out.println("Enter analyze!");
 		boolean hasDynamicPool = false;
 		
 		Set<BranchSeedInfo> infoSet = new HashSet<>();
@@ -35,8 +38,6 @@ public class SmartSeedBranchUpdateManager {
 					BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(goal.getBranch());
 					uncoveredGoal.add(info);
 					if(info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
-						if(info.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL)
-							hasDynamicPool = true;
 						infoSet.add(info);	
 					}
 				}
@@ -45,12 +46,12 @@ public class SmartSeedBranchUpdateManager {
 		}
 		
 		uncoveredApplicableBranchInfo = infoSet;
+//		if(uncoveredApplicableBranchInfo.size() == 0)
+//			Properties.APPLY_SMART_SEED = false;
 		totalUncoveredGoals = uncoveredGoal;
 		
 		double ratio = infoSet.size()*1.0 / uncoveredGoals.size()*1.0 ;
 		Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 - ratio);
-		if(!hasDynamicPool)
-			Properties.DYNAMIC_POOL_SIZE = 50;
 		
 	}
 	

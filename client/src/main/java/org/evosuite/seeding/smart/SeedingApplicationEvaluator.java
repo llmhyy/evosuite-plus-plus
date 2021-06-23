@@ -1,6 +1,8 @@
 package org.evosuite.seeding.smart;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,9 +13,12 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.TestSuiteGenerator;
+import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
+import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
@@ -45,10 +50,6 @@ public class SeedingApplicationEvaluator {
 	public static int STATIC_POOL = 1;
 	public static int DYNAMIC_POOL = 2;
 	public static int NO_POOL = 3;
-	public static long startTime;
-	public static long endTime ;
-//	public static String CLA;//under test target class
-//	public static String MED;//under test target method
 
 	public static Map<Branch, BranchSeedInfo> cache = new HashMap<>();
 
@@ -250,11 +251,15 @@ public class SeedingApplicationEvaluator {
 	
 
 	public static BranchSeedInfo evaluate(Branch b) {
-		startTime = System.currentTimeMillis();
 		if (cache.containsKey(b)) {
 			return cache.get(b);
 		}
-
+		long usedTime = System.currentTimeMillis();
+		if(b.toString().contains("NULL")) {
+			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
+			cache.put(b, branchInfo);
+			return branchInfo;
+		}
 		if(b.getInstruction().isSwitch()) {
 //			BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, "int");
 			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
@@ -274,8 +279,8 @@ public class SeedingApplicationEvaluator {
 
 		List<Object> constants = collectConstants(methodInputs);
 		try {
-			if(b.getInstruction().getOperands() == null)
-				return branchInfo(null, b, NO_POOL);
+//			if(b.getInstruction().getOperands() == null)
+//				return branchInfo(null, b, NO_POOL);
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
 
 			if (methodInputs != null && operands != null) {
@@ -285,35 +290,34 @@ public class SeedingApplicationEvaluator {
 					pathList.addAll(computationPathList);
 				}
 				
-				if (b.getClassName().equals("org.javathena.login.UserManagement")
-						&& b.getMethodName().contains("charServerToAuthentify")) {
-					if (b.getInstruction().getLineNumber() == 733 && !b.toString().contains("NULL")) {
-						System.currentTimeMillis();
-					} else {
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
-						cache.put(b, branchInfo);
-						return branchInfo;
-					}
-
-				}
+//				if (b.getClassName().equals("org.javathena.login.UserManagement")
+//						&& b.getMethodName().contains("charServerToAuthentify")) {
+//					if (b.getInstruction().getLineNumber() == 733 && !b.toString().contains("NULL")) {
+//						System.currentTimeMillis();
+//					} else {
+//						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+//						cache.put(b, branchInfo);
+//						return branchInfo;
+//					}
+//
+//				}
+//				
+//				if(b.getClassName().equals("org.javathena.login.UserManagement")
+//						&& b.getMethodName().contains("charif_sendallwos")) {
+//					if(b.getInstruction().getLineNumber() == 1297 && pathList.get(0).size() == 1) {
+//						System.currentTimeMillis();
+//					}
+//					else {
+//						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+//						cache.put(b, branchInfo);
+//						return branchInfo;
+//					}
+//
+//				}
 				
-				if(b.getClassName().equals("org.javathena.login.UserManagement")
-						&& b.getMethodName().contains("charif_sendallwos")) {
-					if(b.getInstruction().getLineNumber() == 1297 && pathList.get(0).size() == 1) {
-						System.currentTimeMillis();
-					}
-					else {
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
-						cache.put(b, branchInfo);
-						return branchInfo;
-					}
-
-				}
-				
-//				removeRedundancy(pathList);
-//				startTime = System.currentTimeMillis();
+				removeRedundancy(pathList);
+				AbstractMOSA.pathNum += pathList.size();
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
-//				endTime  = System.currentTimeMillis();
 				
 				//TODO 
 				
@@ -355,8 +359,10 @@ public class SeedingApplicationEvaluator {
 								
 								String dataType = finalType(typeVar.getDataType());
 								branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
+								if (cache.containsKey(b)) {
+									return cache.get(b);
+								}
 								cache.put(b, branchInfo);
-								endTime  = System.currentTimeMillis();
 								System.out.println("STATIC_POOL:" + b);
 							}
 						}
@@ -421,7 +427,6 @@ public class SeedingApplicationEvaluator {
 
 		BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
 		cache.put(b, branchInfo);
-		endTime  = System.currentTimeMillis();
 		System.out.println("NO_POOL_1:" + b);
 		return branchInfo;
 	}
@@ -431,14 +436,14 @@ public class SeedingApplicationEvaluator {
 			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
 			cache.put(b, branchInfo);
 			System.out.println("type:" + b + ":" + type);
-			endTime  = System.currentTimeMillis();
 			return branchInfo;
 		}
 		
 		String dataType = getDynamicDataType(fastChannels.get(0));
+		if(dataType.equals("boolean"))
+			type = 3;
 		BranchSeedInfo branchInfo = new BranchSeedInfo(b, type, dataType);
 		cache.put(b, branchInfo);
-		endTime  = System.currentTimeMillis();
 		System.out.println("type:" + b + ":" + type);
 		return branchInfo;
 	}
@@ -472,6 +477,7 @@ public class SeedingApplicationEvaluator {
 				paths.add(path);
 			}
 			else {
+				boolean visitedTargetMethod = false;
 				for(int i=path.size()-1; i>=0; i--) {
 					DepVariable var = path.getComputationNodes().get(i);
 					BytecodeInstruction ins = var.getInstruction();
@@ -486,6 +492,9 @@ public class SeedingApplicationEvaluator {
 							continue;
 						}
 						
+						if(visitedTargetMethod)
+							continue;
+						visitedTargetMethod = true;
 						String clazz = ins.getCalledMethodsClass();
 						if(clazz.equals("java.util.List")) {
 							clazz = "java.util.ArrayList";
@@ -508,14 +517,13 @@ public class SeedingApplicationEvaluator {
 								GraphPool.getInstance(classLoader).registerActualCFG(graph);
 								cdg = GraphPool.getInstance(classLoader).getCDG(className, methodName);
 							}
-							
+							long t1 = System.currentTimeMillis();
 							List<Branch> relevantBranches = analyzeRelevantBranches(graph);
 							for (Branch branch : relevantBranches) {
 								List<BytecodeInstruction> ops = branch.getInstruction().getOperands();
 								
-								if(ops.get(0).getLineNumber() == 551) {
-									System.currentTimeMillis();
-								}
+								if(branch.toString().contains("NULL"))
+									continue;
 								
 								ops = reanalyze(ops, branch);
 								
@@ -533,7 +541,8 @@ public class SeedingApplicationEvaluator {
 								if(!paths.isEmpty())
 									break;
 							}
-							
+							long t2 = System.currentTimeMillis();
+							AbstractMOSA.cascadeAnalysisTime += t2 - t1; 
 						}
 						
 						Properties.ALWAYS_REGISTER_BRANCH = false;
@@ -806,10 +815,20 @@ public class SeedingApplicationEvaluator {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			String[] s = b.toString().split(" ");
 			String[] s1 = br.toString().split(" ");
-			if(s[0].equals(s1[0])) {
-				targetBranch = br;
-				System.currentTimeMillis();
+			
+			for(int i = 0;i < s.length;i++) {
+				if(s[0].equals(s1[0]) && i == 2) {
+					String less0 = b.toString().split(s[i].toString(),0)[1];
+					String less1 =br.toString().split(s1[i].toString(),0)[1];
+					if(less0.equals(less1)) {
+						targetBranch = br;
+					}
+				}
 			}
+//			if(s[0].equals(s1[0])) {
+//				targetBranch = br;
+//				System.currentTimeMillis();
+//			}
 		}
 //			String info = s[3] + " " + s[4];
 //			if (br.toString().contains(info) && !br.equals(b)) {

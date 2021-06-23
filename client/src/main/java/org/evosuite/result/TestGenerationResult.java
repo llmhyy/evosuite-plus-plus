@@ -150,4 +150,38 @@ public interface TestGenerationResult extends Serializable {
 	
 	public List<Event> getEventSequence();
 	public void setEventSequence(List<Event> events);
+
+	public void setBranchNum(int branchNum);
+	public int getBranchNum();
+	
+	public void setPathNum(int pathNum);
+	public int getPathNum();
+	
+	public void setGetFirstTailValueTime(long getFirstTailValueTime);
+	public long getGetFirstTailValueTime();
+	
+	public void setAll10MutateTime(long all10MutateTime);
+	public long getAll10MutateTime();
+	
+	public void setCascadeAnalysisTime(long cascadeAnalysisTime);
+	public long getCascadeAnalysisTime();
+	
+	public void setEvolveTime(long evolveTime);
+	public long getEvolveTime();
+	
+	public long getParent1EvolveTime();
+	public void setParent1EvolveTime(long parent1EvolveTime);
+
+	public long getParent2EvolveTime();
+	public void setParent2EvolveTime(long parent2EvolveTime);
+
+	public long getSmartSeedAnalyzeTime();
+	public void setSmartSeedAnalyzeTime(long smartSeedAnalyzeTime);
+
+	public long getRandomTestcaseTime();
+
+	public void setRandomTestcaseTime(long randomTestcaseTime);
+
+	public long getGenerateTime();
+	public void setGenerateTime(long generateTime);
 }

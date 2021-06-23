@@ -85,6 +85,7 @@ public class DefaultTestCase implements TestCase, Serializable {
 
 	/** The statements */
 	protected final ListenableList<Statement> statements;
+	protected static ListenableList<Statement> oldStatements = null;
 
 	/** Coverage goals this test covers */
 	private transient Set<TestFitnessFunction> coveredGoals = new LinkedHashSet<TestFitnessFunction>();
@@ -369,7 +370,7 @@ public class DefaultTestCase implements TestCase, Serializable {
 			return null;
 		}
 		*/
-
+		oldStatements = statements;
 		for (Statement s : statements) {
 			Statement copy = s.clone(t);
 			t.statements.add(copy);
@@ -817,11 +818,14 @@ public class DefaultTestCase implements TestCase, Serializable {
 	@Override
 	public Statement getStatement(int position) {
 		if(position<0 || position>=statements.size()){
-			throw new IllegalArgumentException("Cannot access statement due to wrong position "
-					+position+", where total number of statements is "+statements.size());
+			if (oldStatements != null) {
+				return oldStatements.get(position);
+			}
+			throw new IllegalArgumentException("Cannot access statement due to wrong position " + position
+					+ ", where total number of statements is " + statements.size());
 		}
 		return statements.get(position);
-		
+
 	}
 	
 	/* (non-Javadoc)
