@@ -107,7 +107,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		writeResults();
 		
-		assert type != SeedingApplicationEvaluator.NO_POOL;
+		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
 		
 	}
 	
@@ -410,48 +410,11 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
 		
-		assert type == SeedingApplicationEvaluator.NO_POOL;
+		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 	}
 	
 	
-//	1.sensitive mutator
-	@Test
-	public void testIandExample() throws ClassNotFoundException, RuntimeException {		
-		Class<?> clazz = feature.fbranch.example.SensitivityMutatorExample.class;
-		String methodName = "iandExample";
-		int parameterNum = 3;
-		int lineNumber = 380;
 
-		Properties.TARGET_CLASS = clazz.getCanonicalName();
-		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
-
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
-
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
-
-		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-
-		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
-				Properties.TARGET_METHOD);
-
-		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
-		
-		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
-				.get(Properties.TARGET_METHOD);
-
-		
-		Set<FitnessFunction<?>> set = new HashSet<>();
-		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
-		set.add(ff);
-		
-		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
-
-		assert flagValue;
-	}
-	
 //	2. type 
 	@Test
 	public void testSmartSeedBranch11() throws ClassNotFoundException, RuntimeException {
@@ -489,36 +452,6 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		String methodName = "stratWithExample";
 		int parameterNum = 1;
 		int lineNumber = 99;
-
-		Properties.TARGET_CLASS = clazz.getCanonicalName();
-		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
-		
-		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
-		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
-		
-		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
-		
-		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-		
-		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
-		
-		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
-		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
-		
-		writeResults();
-		
-		assert type == SeedingApplicationEvaluator.STATIC_POOL;
-		
-	}
-	
-	@Test
-	public void testSmartSeedBranch17() throws ClassNotFoundException, RuntimeException {
-		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
-		String methodName = "staticExample2";
-		int parameterNum = 2;
-		int lineNumber = 48;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);

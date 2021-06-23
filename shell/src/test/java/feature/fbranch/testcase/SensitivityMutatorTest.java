@@ -1,14 +1,32 @@
 package feature.fbranch.testcase;
 
+import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.Properties.StatisticsBackend;
+import org.evosuite.classpath.ClassPathHandler;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.coverage.branch.BranchPool;
+import org.evosuite.ga.FitnessFunction;
+import org.evosuite.graphs.interprocedural.ComputationPath;
+import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.setup.DependencyAnalysis;
+import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
+import common.TestUtil;
 import common.TestUtility;
 import evosuite.shell.EvoTestResult;
 import feature.fbranch.example.SensitivityMutatorExample;
@@ -26,6 +44,46 @@ public class SensitivityMutatorTest {
 		Properties.APPLY_GRADEINT_ANALYSIS = true;
 		Properties.CHROMOSOME_LENGTH = 5;
 	}
+	
+	
+//	1.sensitive mutator //TODO Cheng Yan
+	@Test
+	public void testIandExample() throws ClassNotFoundException, RuntimeException {		
+		Class<?> clazz = feature.fbranch.example.SensitivityMutatorExample.class;
+		String methodName = "iandExample";
+		int parameterNum = 3;
+		int lineNumber = 380;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
+	}
+	
 	
 	@Test
 	public void testAloadExample() {

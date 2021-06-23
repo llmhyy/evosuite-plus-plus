@@ -16,6 +16,7 @@ public class MavenProjectTest{
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.JEE = false;
 
 //		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 //		Properties.APPLY_OBJECT_RULE = true;
