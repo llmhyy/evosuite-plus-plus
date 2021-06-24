@@ -50,7 +50,11 @@ public class SensitivityMutator {
 	public static TestCase initializeTest(TestFactory testFactory, boolean allowNullValue) {
 		TestCase test = new DefaultTestCase();
 		int success = -1;
+		long t1 = System.currentTimeMillis();
 		while (test.size() == 0 || success == -1) {
+			long t2 = System.currentTimeMillis();
+			if((t2 - t1)/1000 > 10)
+				return null;
 			test = new DefaultTestCase();
 			success = testFactory.insertRandomStatement(test, 0);
 			if (test.size() != 0 && success != -1 && !allowNullValue) {
@@ -88,6 +92,9 @@ public class SensitivityMutator {
 		Branch branch = path.getBranch();
 		
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
+		if(test == null) {
+			return new SensitivityPreservance();
+		}
 		String methodCall = test.getStatement(test.size() - 1).toString();
 		while(!methodCall.equals(Properties.TARGET_METHOD)) {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
@@ -119,6 +126,9 @@ public class SensitivityMutator {
 	public static SensitivityPreservance testBranchSensitivity(DepVariable rootVariable,
 			BytecodeInstruction tailInstruction, Branch branch) {
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
+		if(test == null) {
+			return new SensitivityPreservance();
+		}
 		String methodCall = test.getStatement(test.size() - 1).toString();
 		while(!methodCall.equals(Properties.TARGET_METHOD)) {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
@@ -148,6 +158,9 @@ public class SensitivityMutator {
 	public static SensitivityPreservance testBranchSensitivity(/* Set<FitnessFunction<?>> fitness, */
 			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch, ComputationPath path0) {
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
+		if(test == null) {
+			return new SensitivityPreservance();
+		}
 //		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
 //			data.clear();
 		
@@ -249,7 +262,7 @@ public class SensitivityMutator {
 		Object tailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
 		long t2 = System.currentTimeMillis();
 		AbstractMOSA.getFirstTailValueTime += t2 - t1;
-		
+		AbstractMOSA.clear();
 		boolean valuePreserving = checkValuePreserving(headValue, tailValue);
 
 		HeadValue = headValue;
@@ -276,7 +289,7 @@ public class SensitivityMutator {
 				Object newTailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
 				t2 = System.currentTimeMillis();
 				AbstractMOSA.all10MutateTime += t2 - t1;
-
+				AbstractMOSA.clear();
 				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
 
 				boolean sensivityPreserving = false;

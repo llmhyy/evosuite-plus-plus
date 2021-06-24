@@ -317,6 +317,7 @@ public class SeedingApplicationEvaluator {
 				
 				removeRedundancy(pathList);
 				AbstractMOSA.pathNum += pathList.size();
+				AbstractMOSA.clear();
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
 				
 				//TODO 
@@ -543,6 +544,7 @@ public class SeedingApplicationEvaluator {
 							}
 							long t2 = System.currentTimeMillis();
 							AbstractMOSA.cascadeAnalysisTime += t2 - t1; 
+							AbstractMOSA.clear();
 						}
 						
 						Properties.ALWAYS_REGISTER_BRANCH = false;
