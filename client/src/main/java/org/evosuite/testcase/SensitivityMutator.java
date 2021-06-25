@@ -102,7 +102,7 @@ public class SensitivityMutator {
 		}
 //		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
 //			data.clear();
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, true);
@@ -255,6 +255,7 @@ public class SensitivityMutator {
 
 	private static SensitivityPreservance testHeadTailValue(Branch branch, TestChromosome newTestChromosome, DepVariable rootVariable,
 			BytecodeInstruction tailInstruction, ConstructionPathSynthesizer synthensizer) {
+		SensitivityPreservance preservance = new SensitivityPreservance();
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
 		Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
 		Object headValue = retrieveHeadValue(relevantStatement);
@@ -266,15 +267,15 @@ public class SensitivityMutator {
 
 		HeadValue = headValue;
 		TailValue = tailValue;
-
-		SensitivityPreservance pList = new SensitivityPreservance();
+		preservance.addHead(headValue);
+		preservance.addTail(tailValue);
 
 		if (tailValue == null) {
-			return pList;
+			return preservance;
 		}
 
 		if (relevantStatement == null) {
-			return pList;
+			return preservance;
 		}
 
 		double valuePreservingNum = 0;
@@ -288,6 +289,9 @@ public class SensitivityMutator {
 				Object newTailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
 				t2 = System.currentTimeMillis();
 				AbstractMOSA.all10MutateTime += t2 - t1;
+				preservance.addHead(newHeadValue);
+				preservance.addTail(newTailValue);
+				
 				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
 
 				boolean sensivityPreserving = false;
@@ -324,10 +328,10 @@ public class SensitivityMutator {
 		double vpRatio = valuePreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
 		double spRatio = sensivityPreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
 
-		pList.sensivityPreserRatio = spRatio;
-		pList.valuePreservingRatio = vpRatio;
+		preservance.sensivityPreserRatio = spRatio;
+		preservance.valuePreservingRatio = vpRatio;
 
-		return pList;
+		return preservance;
 	}
 
 	private static void countNumInfo(Map<Integer, Integer> num, int i, boolean valuePreserving) {

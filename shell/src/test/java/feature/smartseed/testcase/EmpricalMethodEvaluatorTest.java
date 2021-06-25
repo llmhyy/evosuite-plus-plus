@@ -38,7 +38,7 @@ public class EmpricalMethodEvaluatorTest {
 		
 		Properties.ENABLE_TRACEING_EVENT = true;
 		Properties.APPLY_SMART_SEED = true;
-		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
+//		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 		Properties.APPLY_GRADEINT_ANALYSIS = true;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}

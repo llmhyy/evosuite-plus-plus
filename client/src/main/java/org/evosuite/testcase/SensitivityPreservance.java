@@ -1,5 +1,8 @@
 package org.evosuite.testcase;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.evosuite.Properties;
 
 public class SensitivityPreservance {
@@ -8,6 +11,27 @@ public class SensitivityPreservance {
 	public double valuePreservingRatio = 0;
 	public double sensivityPreserRatio = 0;
 
+	private List<Object> tailValues = new ArrayList<>();
+	private List<Object> headValues = new ArrayList<>();
+	
+	public void addTail(Object value) {
+		this.tailValues.add(value);
+	}
+	
+	public void addHead(Object value) {
+		this.headValues.add(value);
+	}
+	
+//	public boolean isFastChannel() {
+//		if(isValuePreserving()) {
+//			return true;
+//		}
+//		
+//		if(isSensitivityPreserving()) {
+//			boolean isValueSimilar()
+//		}
+//	}
+	
 	public boolean isValuePreserving() {
 		return valuePreservingRatio > Properties.VALUE_PRESERVING_THRESHOLD;
 	}

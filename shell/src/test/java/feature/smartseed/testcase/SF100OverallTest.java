@@ -35,7 +35,7 @@ public class SF100OverallTest {
 		Properties.ENABLE_TRACEING_EVENT = true;
 //		Properties.APPLY_SMART_SEED = true;
 		Properties.APPLY_CHAR_POOL = true;
-		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
+//		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
