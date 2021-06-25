@@ -907,23 +907,21 @@ public class ComputationPath {
 		return false;
 	}
 
-	private Boolean isFastChannel = null;
+//	private Boolean isFastChannel = null;
+	private SensitivityPreservance preservingList = null;
 
 	public boolean isFastChannel() {
-		if (isFastChannel == null) {
-			if(Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true) {
-				if (!(this.getComputationNodes().get(0).isParameter()
-						|| this.getComputationNodes().get(0).isStaticField()
-						|| this.getComputationNodes().get(0).isInstaceField()))
-					return false;
+		if (preservingList == null) {
+			if (!(this.getComputationNodes().get(0).isParameter()
+					|| this.getComputationNodes().get(0).isStaticField()
+					|| this.getComputationNodes().get(0).isInstaceField()))
+				return false;
 
-				SensitivityPreservance preservingList = SensitivityMutator.testBranchSensitivity(this);
-				isFastChannel = preservingList.isValuePreserving() || preservingList.isSensitivityPreserving();
-				return isFastChannel;
-			}
-			isFastChannel = this.evaluateFastChannelScore() > Properties.FAST_CHANNEL_SCORE_THRESHOLD;
+			preservingList = SensitivityMutator.testBranchSensitivity(this);
+//			isFastChannel = this.evaluateFastChannelScore() > Properties.FAST_CHANNEL_SCORE_THRESHOLD;
 		}
 
+		boolean isFastChannel = preservingList.isValuePreserving() && preservingList.isSensitivityPreserving();
 		return isFastChannel;
 	}
 
