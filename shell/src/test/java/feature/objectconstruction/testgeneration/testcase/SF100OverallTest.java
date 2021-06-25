@@ -118,8 +118,8 @@ public class SF100OverallTest {
 		};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 5;
-		int budget = 150;
+		int repeatTime = 1;
+		int budget = 60;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

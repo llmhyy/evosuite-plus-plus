@@ -35,6 +35,9 @@ public class EvoTestResult {
 	private String uncoveredFlags;
 	
 	private Map<String, Boolean> methodCallAvailability;
+	
+	private int numberOfInMethodExceptions;
+	private int numberOfOutMethodExceptions;
 
 	public EvoTestResult(int time, double coverage, int age, double ratio, List<Double> progress, double IPFlagCoverage,
 			String uncoveredFlag, Map<Integer, Integer> distributionMap,
@@ -50,6 +53,9 @@ public class EvoTestResult {
 		this.setUncoveredBranchDistribution(unCoveredBranchDistribution);
 		this.randomSeed = randomSeed;
 		this.setMethodCallAvailability(map);
+		
+		this.numberOfInMethodExceptions = 0;
+		this.numberOfOutMethodExceptions = 0;
 		
 		int count = 0;
 		for (String key : map.keySet()) {
@@ -223,5 +229,24 @@ public class EvoTestResult {
 	public List<Event> getEventSequence(){
 		return eventSequence;
 	}
-
+	
+	public void setNumberOfInMethodExceptions(int number)
+	{
+		numberOfInMethodExceptions = number;
+	}
+	
+	public int getNumberOfInMethodExceptions()
+	{
+		return numberOfInMethodExceptions;
+	}
+	
+	public void setNumberOfOutMethodExceptions(int number)
+	{
+		numberOfOutMethodExceptions = number;
+	}
+	
+	public int getNumberOfOutMethodExceptions()
+	{
+		return numberOfOutMethodExceptions;
+	}
 }

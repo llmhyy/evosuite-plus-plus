@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -25,6 +26,7 @@ import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.Failure;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.seedexpr.Event;
 import org.evosuite.utils.LoggingUtils;
@@ -676,7 +678,42 @@ public class EvosuiteForMethod {
 					result.setCoveredBranchWithTest(r.getCoveredBranchWithTest());
 					result.setEventSequence(r.getEventSequence());
 					
-
+					// Exception-based code
+					int numberOfInMethodExceptions = 0;
+					int numberOfOutMethodExceptions = 0;
+					
+					// Hacky method in lieu of a better way
+					// without exposing TestGenerationResult internals
+					// this assumes that test cases are named in consecutive order
+					for (int i = 0; ; i++) {
+						String testCaseName = "test" + i;
+						boolean isTestCaseExists = (r.getTestCase(testCaseName) != null);
+						if (!isTestCaseExists) {
+							break;
+						}
+						
+						Set<Failure> contractViolations = r.getContractViolations(testCaseName);
+						boolean isContractViolationsExists = (contractViolations != null);
+						if (!isContractViolationsExists) {
+							break;
+						}
+						
+						for (Failure failure : contractViolations) {
+							boolean isInMethodException = isInMethodException(failure, className, methodName);
+							if (isInMethodException) {
+								numberOfInMethodExceptions++;
+							} else {
+								numberOfOutMethodExceptions++;
+							}
+						}
+					}
+					
+					result.setNumberOfInMethodExceptions(numberOfInMethodExceptions);
+					result.setNumberOfOutMethodExceptions(numberOfOutMethodExceptions);
+					
+					System.out.println("Number of in-method exceptions: " + numberOfInMethodExceptions);
+					System.out.println("Number of out-method exceptions: " + numberOfOutMethodExceptions);
+					
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
 						recorder.recordSeedingToJson(className, methodName, result);
@@ -719,5 +756,24 @@ public class EvosuiteForMethod {
 		for(Event e: r.getEventSequence()) {
 			System.out.print(e.toString() + ", ");
 		}
+		
+		System.out.println("Errors:" + r.getErrorMessage());
+	}
+	
+	private boolean isInMethodException(Failure failure, String className, String methodName) {
+		// The method name passed in usually has some additional decorators, we need to strip those off
+		// to do a comparison against the one in the Failure.
+		boolean isMethodNameContainsAdditionalDecorators = methodName.contains("(");
+		if (isMethodNameContainsAdditionalDecorators) {
+			methodName = methodName.split(Pattern.quote("("))[0];
+		}
+		
+		String failureClassName = failure.getClassName();
+		String failureMethodName = failure.getMethodName();
+		
+		boolean isClassNameMatch = failureClassName.equals(className);
+		boolean isMethodNameMatch = failureMethodName.equals(methodName);
+		
+		return isClassNameMatch && isMethodNameMatch;
 	}
 }

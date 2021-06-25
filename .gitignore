@@ -25,3 +25,11 @@ master/dependency-reduced-pom.xml
 shaded/dependency-reduced-pom.xml
 standalone_runtime/dependency-reduced-pom.xml
 /.metadata/
+shell/META-INF/maven/net.sf.tullibee/tullibee-api/pom.xml
+shell/META-INF/maven/net.sf.tullibee/tullibee-api/pom.properties
+shell/META-INF/MANIFEST.MF
+shell/.tmp_file_needed_by_mock_of_FileHandler.4
+shell/.tmp_file_needed_by_mock_of_FileHandler.3
+shell/.tmp_file_needed_by_mock_of_FileHandler.2
+shell/.tmp_file_needed_by_mock_of_FileHandler
+shell/.tmp_file_needed_by_mock_of_FileHandler.1
