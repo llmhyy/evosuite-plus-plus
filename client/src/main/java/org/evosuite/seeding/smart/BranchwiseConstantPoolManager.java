@@ -84,10 +84,8 @@ public class BranchwiseConstantPoolManager {
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b.getBranch());
 		if (b.getBranch().isSwitchCaseBranch()) {
-			b.getBranch().getTargetCaseValue();
 			if(b.getBranch().getTargetCaseValue() != null)
 				constantValues.add(b.getBranch().getTargetCaseValue());
-//			System.currentTimeMillis();
 		}
 		for(DepVariable input: methodInputs) {
 			if(input.getInstruction().isConstant()) {

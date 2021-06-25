@@ -175,8 +175,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		long t2 = System.currentTimeMillis();
 		AbstractMOSA.smartSeedAnalyzeTime = (t2 - t1) > AbstractMOSA.smartSeedAnalyzeTime ? (t2 - t1)
 				: AbstractMOSA.smartSeedAnalyzeTime;
-		AbstractMOSA.clear();
-//		System.out.println("1111updateUncoveredBranchInfo:" + (t2 - t1));
 
 		List<T> offspringPopulation = new ArrayList<T>(Properties.POPULATION);
 		// we apply only Properties.POPULATION/2 iterations since in each generation
@@ -229,7 +227,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			this.mutate(offspring1, parent1);
 			long parent_time2 =  System.currentTimeMillis();
 			AbstractMOSA.parent1EvolveTime += parent_time2 -parent_time1;
-			AbstractMOSA.clear();
 			if (offspring1.isChanged()) {
 				
 				this.clearCachedResults(offspring1);
@@ -251,7 +248,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			this.mutate(offspring2, parent2);
 			parent_time2 =  System.currentTimeMillis();
 			AbstractMOSA.parent2EvolveTime += parent_time2 -parent_time1;
-			AbstractMOSA.clear();
 			if (offspring2.isChanged()) {
 				this.clearCachedResults(offspring2);
 				this.calculateFitness(offspring2);
@@ -291,7 +287,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		}
 		
 		t2 = System.currentTimeMillis();
-//		System.out.println("every evolve time:" + (t2 - t1));
 		AbstractMOSA.evolveTime += t2 - t1;
 		AbstractMOSA.setGenerateTime(AbstractMOSA.getGenerateTime() + randomTestcaseTime - t1);
 		AbstractMOSA.randomTestcaseTime += t2 - randomTestcaseTime;
@@ -299,7 +294,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		AbstractMOSA.branchNum = SmartSeedBranchUpdateManager.totalUncoveredGoals.size() > this.getBranchNum()
 				? SmartSeedBranchUpdateManager.totalUncoveredGoals.size()
 				: this.getBranchNum();
-				AbstractMOSA.clear();
 		logger.info("Number of offsprings = {}", offspringPopulation.size());
 		return offspringPopulation;
 	}

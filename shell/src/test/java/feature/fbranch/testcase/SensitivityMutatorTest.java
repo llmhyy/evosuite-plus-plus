@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.Properties.Criterion;
 import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
@@ -33,16 +34,28 @@ import feature.fbranch.example.SensitivityMutatorExample;
 import feature.smartseed.example.empirical.EmpiricalStudyExample;
 
 public class SensitivityMutatorTest {
+//	@Before
+//	public void init() {
+//		Properties.APPLY_SMART_SEED = true;
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//		Properties.TIMEOUT = 10000000;
+//		Properties.ENABLE_TRACEING_EVENT = false;
+//		
+//		Properties.APPLY_GRADEINT_ANALYSIS = true;
+//		Properties.CHROMOSOME_LENGTH = 5;
+//	}
+	
 	@Before
 	public void init() {
-		Properties.APPLY_SMART_SEED = true;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-		Properties.TIMEOUT = 10000000;
-		Properties.ENABLE_TRACEING_EVENT = true;
+		Properties.TIMEOUT = 300000000;
+//		Properties.RANDOM_SEED = 1606757586999l;
+		Properties.INSTRUMENT_CONTEXT = true;
+		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 		
-		Properties.APPLY_GRADEINT_ANALYSIS = true;
-		Properties.CHROMOSOME_LENGTH = 5;
+		Properties.APPLY_SMART_SEED = true;
+		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
+		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 	}
 	
 	
@@ -52,7 +65,7 @@ public class SensitivityMutatorTest {
 		Class<?> clazz = feature.fbranch.example.SensitivityMutatorExample.class;
 		String methodName = "iandExample";
 		int parameterNum = 3;
-		int lineNumber = 380;
+		int lineNumber = 371;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -86,178 +99,262 @@ public class SensitivityMutatorTest {
 	
 	
 	@Test
-	public void testAloadExample() {
+	public void testAloadExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "aloadExample";
 		int parameterNum = 2;
+		int lineNumber = 32;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testInvokevirtual0Example() {
+	public void testInvokevirtual0Example() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "invokevirtualExample";
 		int parameterNum = 1;
+		int lineNumber = 459;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testAaloadExample() {
+	public void testAaloadExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "aaloadExample";
 		int parameterNum = 2;
+		int lineNumber = 24;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testIload_0Example() {
+	public void testIload_0Example() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "iload_0Example";
 		int parameterNum = 1;
+		int lineNumber = 396;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testIload_1Example() {
+	public void testIload_1Example() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "iload_1Example";
 		int parameterNum = 1;
+		int lineNumber = 407;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testIload_2Example() {
+	public void testIload_2Example() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "iload_2Example";
 		int parameterNum = 2;
+		int lineNumber = 416;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testCaloadExample() {
+	public void testCaloadExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "caloadExample";
 		int parameterNum = 1;
+		int lineNumber = 65;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 //	@Test
@@ -286,679 +383,967 @@ public class SensitivityMutatorTest {
 //	}
 	
 	@Test
-	public void testBaloadExample() {
+	public void testBaloadExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "baloadExample";
 		int parameterNum = 1;
+		int lineNumber = 54;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testI2dExample() {
+	public void testI2dExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "i2dExample";
 		int parameterNum = 2;
+		int lineNumber = 308;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testFremExample() {
+	public void testFremExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "fremExample";
 		int parameterNum = 1;
+		int lineNumber = 257;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testD2fExample() {
+	public void testD2fExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "d2fExample";
 		int parameterNum = 1;
+		int lineNumber = 74;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testD2iExample() {
+	public void testD2iExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "d2iExample";
 		int parameterNum = 2;
+		int lineNumber = 82;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testD2lExample() {
+	public void testD2lExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "d2lExample";
 		int parameterNum = 1;
+		int lineNumber = 90;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testDaddExample() {
+	public void testDaddExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "daddExample";
-		int parameterNum = 1;
+		int parameterNum = 2;
+		int lineNumber = 100;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testDaloadExample() {
+	public void testDaloadExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "daloadExample";
 		int parameterNum = 1;
+		int lineNumber = 111;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;	
 	}
 	
 	@Test
-	public void testDdivExample() {
+	public void testDdivExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "ddivExample";
 		int parameterNum = 1;
+		int lineNumber = 120;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testDloadExample() {
+	public void testDloadExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "dloadExample";
 		int parameterNum = 1;
+		int lineNumber = 129;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
-//	@Test
-//	public void testDload_0Example() {
-//		Class<?> clazz = SensitivityMutatorExample.class;
-//		String methodName = "dload_0Example";
-//		int parameterNum = 1;
-//		
-//		String targetClass = clazz.getCanonicalName();
-//		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-//
-//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-//		String cp = "target/classes;target/test-classes";
-//
-//		String fitnessApproach = "branch";
-//		
-//		int repeatTime = 10;
-//		int budget = 10000;
-//		Long seed = null;
-//				
-//		boolean aor = false;
-//		boolean ass = true;
-//		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-//				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-//				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
-//	}
 	
 	@Test
-	public void testDmulExample() {
+	public void testDmulExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "dmulExample";
 		int parameterNum = 2;
+		int lineNumber = 140;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;	
 	}
 	
 	@Test
-	public void testDnegExample() {
+	public void testDnegExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "dnegExample";
 		int parameterNum = 1;
+		int lineNumber = 149;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testDremExample() {
+	public void testDremExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "dremExample";
 		int parameterNum = 1;
+		int lineNumber = 159;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	
 	@Test
-	public void testDsubExample() {
+	public void testDsubExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "dsubExample";
 		int parameterNum = 1;
+		int lineNumber = 167;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testF2dExample() {
+	public void testF2dExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "f2dExample";
 		int parameterNum = 1;
+		int lineNumber = 175;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testF2iExample() {
+	public void testF2iExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "f2iExample";
 		int parameterNum = 2;
+		int lineNumber = 184;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 	
 	@Test
-	public void testF2lExample() {
+	public void testF2lExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "f2lExample";
 		int parameterNum = 0;
+		int lineNumber = 192;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		//relevantValue null
+		assert flagValue;
 	}
 	
 	@Test
-	public void testFaddExample() {
+	public void testFaddExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "faddExample";
 		int parameterNum = 0;
+		int lineNumber = 201;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		//relevantValue null
+		assert flagValue;
 	}
 	
 	@Test
-	public void testFaloadExample() {
+	public void testFaloadExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "faloadExample";
 		int parameterNum = 0;
+		int lineNumber = 211;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		//relevantValue null
+		assert flagValue;
 	}
 	
 	@Test
-	public void testFdivExample() {
+	public void testFdivExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "fdivExample";
 		int parameterNum = 1;
+		int lineNumber = 221;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;	
 	}
 	
 	@Test
-	public void testFloadExample() {
+	public void testFloadExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "floadExample";
 		int parameterNum = 0;
+		int lineNumber = 231;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		////relevantValue null
+		assert flagValue;
 	}
 	
 	@Test
-	public void testFmulExample() {
+	public void testFmulExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "fmulExample";
 		int parameterNum = 1;
+		int lineNumber = 241;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;	
 	}
 	
 	@Test
-	public void testFnegExample() {
+	public void testFnegExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "fnegExample";
 		int parameterNum = 1;
+		int lineNumber = 249;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;	
 	}
 	
 	@Test
-	public void testFsubExample() {
+	public void testFsubExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "fsubExample";
 		int parameterNum = 0;
+		int lineNumber = 267;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		//relevantStatement null
+		assert flagValue == false;	
 	}
 	
 	@Test
-	public void testGetfieldExample() {
+	public void testGetfieldExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "getfieldExample";
 		int parameterNum = 1;
+		int lineNumber = 275;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		////relevantValue null
+		assert flagValue;
 	}
 	
 	@Test
-	public void testGetstaticExample() {
+	public void testGetstaticExample() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = SensitivityMutatorExample.class;
 		String methodName = "getstaticExample";
 		int parameterNum = 1;
+		int lineNumber = 283;
 		
-		String targetClass = clazz.getCanonicalName();
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
 
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 
-		String fitnessApproach = "branch";
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS,
+				Properties.TARGET_METHOD);
+
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int repeatTime = 10;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+
+		
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
+		set.add(ff);
+		
+		ComputationPath path = null;
+		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+
+		assert flagValue;
 	}
 
 }

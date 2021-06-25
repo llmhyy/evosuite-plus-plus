@@ -24,7 +24,8 @@ public enum MethodFilterOption {
 	CALLS_RECURSIVE_METHOD("callsRecursiveMethod"),
 	OBJECT_CONSTRUCTION("objectConstruction"),
 	EQUALS_METHOD("equalsMethod"),
-	BRANCHWISE_METHOD("branchwiseMethod");
+	BRANCHWISE_METHOD("branchwiseMethod"),
+	CONSTANT_METHOD("constantMethod");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -79,6 +80,8 @@ public enum MethodFilterOption {
 			return new EqualsMethodFilter();
 		case BRANCHWISE_METHOD:
 			return new BranchwiseMethodFillter();
+		case CONSTANT_METHOD:
+			return new ConstantMethodFilter();
 		}
 		return null;
 	}

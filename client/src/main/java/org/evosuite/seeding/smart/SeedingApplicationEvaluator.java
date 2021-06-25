@@ -40,10 +40,13 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
+
+import com.sun.tools.internal.ws.wsdl.parser.Constants;
 
 public class SeedingApplicationEvaluator {
 
@@ -260,12 +263,12 @@ public class SeedingApplicationEvaluator {
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
-		if(b.getInstruction().isSwitch()) {
-//			BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, "int");
-			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
-			cache.put(b, branchInfo);
-			return branchInfo;
-		}
+//		if(b.getInstruction().isSwitch()) {
+////			BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, "int");
+//			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
+//			cache.put(b, branchInfo);
+//			return branchInfo;
+//		}
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 		if (branchesInTargetMethod == null) {
@@ -278,9 +281,9 @@ public class SeedingApplicationEvaluator {
 		methodInputs = compileInputs(methodInputs);
 
 		List<Object> constants = collectConstants(methodInputs);
+		addSwitchConstants(b,constants);
+		
 		try {
-//			if(b.getInstruction().getOperands() == null)
-//				return branchInfo(null, b, NO_POOL);
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
 
 			if (methodInputs != null && operands != null) {
@@ -317,7 +320,6 @@ public class SeedingApplicationEvaluator {
 				
 				removeRedundancy(pathList);
 				AbstractMOSA.pathNum += pathList.size();
-				AbstractMOSA.clear();
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
 				
 				//TODO 
@@ -331,13 +333,18 @@ public class SeedingApplicationEvaluator {
 						if(!fastChannels.contains(p))
 							lastPathList.add(p);
 					}
-					if(lastPathList.size() == 0) {
-						if(!b.toString().contains("NULL"))
+					if (lastPathList.size() == 0) {
+						if (!b.toString().contains("NULL")) {
+							//switch
+							if (b.getInstruction().isSwitch())
+								return new BranchSeedInfo(b, STATIC_POOL, "int");
+							
 							return branchInfo(fastChannels, b, DYNAMIC_POOL);
+						}
 						return branchInfo(fastChannels, b, NO_POOL);
 					}
-					
-					if(b.getMethodName().toLowerCase().contains("matchesexample"))
+
+					if (b.getMethodName().toLowerCase().contains("matchesexample"))
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);
 					
 					if (constants.size() != 0) {
@@ -432,6 +439,18 @@ public class SeedingApplicationEvaluator {
 		return branchInfo;
 	}
 	
+	private static void addSwitchConstants(Branch b, List<Object> constants) {
+		if(b.getInstruction().isSwitch()) {
+			DepVariable var = new DepVariable(b.getInstruction());
+			if(var.getInstruction().getASMNode().getType() == AbstractInsnNode.LOOKUPSWITCH_INSN) {
+				LookupSwitchInsnNode lNode = (LookupSwitchInsnNode)var.getInstruction().getASMNode();
+				for(int i : lNode.keys) {
+					constants.add(i);
+				}
+			}
+		}		
+	}
+
 	private static BranchSeedInfo branchInfo(List<ComputationPath> fastChannels, Branch b, int type) {
 		if(type == NO_POOL) {
 			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
@@ -544,7 +563,6 @@ public class SeedingApplicationEvaluator {
 							}
 							long t2 = System.currentTimeMillis();
 							AbstractMOSA.cascadeAnalysisTime += t2 - t1; 
-							AbstractMOSA.clear();
 						}
 						
 						Properties.ALWAYS_REGISTER_BRANCH = false;

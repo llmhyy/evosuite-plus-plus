@@ -262,7 +262,6 @@ public class SensitivityMutator {
 		Object tailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
 		long t2 = System.currentTimeMillis();
 		AbstractMOSA.getFirstTailValueTime += t2 - t1;
-		AbstractMOSA.clear();
 		boolean valuePreserving = checkValuePreserving(headValue, tailValue);
 
 		HeadValue = headValue;
@@ -289,7 +288,6 @@ public class SensitivityMutator {
 				Object newTailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
 				t2 = System.currentTimeMillis();
 				AbstractMOSA.all10MutateTime += t2 - t1;
-				AbstractMOSA.clear();
 				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
 
 				boolean sensivityPreserving = false;

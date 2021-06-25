@@ -244,5 +244,23 @@ public class StaticConstantVariableProbabilityPool implements ConstantPool {
 			LoggingUtils.getEvoLogger().info("Constant of unknown type: " + object.getClass());
 		}
 	}
+    
+    public long poolSize() {
+    	long num = 0;
+    	num += this.stringPool.numConstants;
+    	num += this.typePool.numConstants;
+    	num += this.intPool.numConstants;
+    	num += this.doublePool.numConstants;
+    	num += this.longPool.numConstants;
+    	num += this.floatPool.numConstants;
+    	num += this.charPool.numConstants;
+    	
+    	return num;
+    }
+    
+    public static long getPoolSize(StaticConstantVariableProbabilityPool pool) {
+    	return pool.poolSize();
+    }
 
+    
 }

@@ -57,6 +57,7 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		Properties.INSTRUMENT_CONTEXT = true;
 		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 		Properties.APPLY_SMART_SEED = true;
+		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
 		
 		String statisticFile = new StringBuilder(Settings.getReportFolder()).append(File.separator)
@@ -65,7 +66,7 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		if (newFile.exists()) {
 			newFile.delete();
 		}
-		writer = new ExcelWriter(FileUtils.newFile("D:\\linyun\\git_space\\SF100-clean\\evoTest-reports\\14_omjstate_branchwiseMethods.xlsx"));
+		writer = new ExcelWriter(FileUtils.newFile("D:\\linyun\\git_space\\SF100-clean\\evoTest-reports\\all_branchwiseMethods.xlsx"));
 //		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data",
 				new String[] { "ProjectId", "Class","Method", "Type" },
@@ -105,11 +106,10 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 
 		// Write your filter logic here
 		// Return true if the method passes your filter	
-		MethodContent mc = new MethodContent();
 		for (BytecodeInstruction b : getIfBranchesInMethod(cfg)) {
 			Branch br = b.toBranch();		
 			
-			if(b.getOperandNum() <= 2 && br != null && b.getOperandNum() > 0) {					
+			if(br != null && b.getOperandNum() > 0 && b.getLineNumber() != -1) {					
 				int type = SeedingApplicationEvaluator.evaluate(br).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					validStaticMethods.add(className + "#" + methodName);

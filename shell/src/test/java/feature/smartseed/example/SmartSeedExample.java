@@ -99,14 +99,14 @@ public class SmartSeedExample {
 		if (a.startsWith("Find the right String")) {
 			System.currentTimeMillis();
 		}
-	}
-	
+	}	
 	public String endWithExample(String args[],String suffix) {
 		String endString = "end";
 		for(String a : args) {
 			if (a.endsWith(endString)) {
 				System.currentTimeMillis();
-				return a;}}
+				return a;}
+			}
 		return args.length != 0 ? args[args.length - 1] : "NULL";
 	}
 	

@@ -274,5 +274,36 @@ public class StaticConstantPool implements ConstantPool {
 			LoggingUtils.getEvoLogger().info("Constant of unknown type: " + object.getClass());
 		}
 	}
+	
+    public long poolSize() {
+    	long num = 0;
+    	num += this.stringPool.size();
+    	num += this.typePool.size();
+    	num += this.intPool.size();
+    	num += this.doublePool.size();
+    	num += this.longPool.size();
+    	num += this.floatPool.size();
+    	num += this.charPool.size();
+    	
+    	return num;
+    }
+    
+    public static long getPoolSize(StaticConstantPool pool) {
+    	return pool.poolSize();
+    }
+    
+    public void clear() {
+    	this.stringPool.clear();
+    	this.typePool.clear();
+    	this.intPool.clear();
+    	this.doublePool.clear();
+    	this.longPool.clear();
+    	this.floatPool.clear();
+    	this.charPool.clear();
+    }
+    
+    public static void poolClear(StaticConstantPool pool) {
+    	pool.clear();
+    }
 
 }

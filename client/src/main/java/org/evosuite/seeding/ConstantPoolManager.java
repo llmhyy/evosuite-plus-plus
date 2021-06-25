@@ -39,7 +39,7 @@ public class ConstantPoolManager {
 
 	private static ConstantPoolManager instance = new ConstantPoolManager();
 
-	private ConstantPool[] pools;
+	public static ConstantPool[] pools;
 	/**
 	 * by default, [0] is for static, [1] is for contextual static, and [2] is for dynamic 
 	 */

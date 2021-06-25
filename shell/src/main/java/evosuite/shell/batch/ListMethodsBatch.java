@@ -49,6 +49,7 @@ public class ListMethodsBatch {
 //		runListMethod(MethodFilterOption.CALLS_RECURSIVE_METHOD);
 //		runListMethod(MethodFilterOption.OBJECT_CONSTRUCTION);
 		runListMethod(MethodFilterOption.BRANCHWISE_METHOD);
+//		runListMethod(MethodFilterOption.CONSTANT_METHOD);
 
 //	}
 	}
