@@ -257,18 +257,13 @@ public class SeedingApplicationEvaluator {
 		if (cache.containsKey(b)) {
 			return cache.get(b);
 		}
-		long usedTime = System.currentTimeMillis();
+		
+		long t1 = System.currentTimeMillis();
 		if(b.toString().contains("NULL")) {
 			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
-//		if(b.getInstruction().isSwitch()) {
-////			BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, "int");
-//			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
-//			cache.put(b, branchInfo);
-//			return branchInfo;
-//		}
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 		if (branchesInTargetMethod == null) {
@@ -280,7 +275,7 @@ public class SeedingApplicationEvaluator {
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
 		methodInputs = compileInputs(methodInputs);
 
-		List<Object> constants = collectConstants(methodInputs, b);
+		List<DepVariable> constants = collectConstants(methodInputs, b);
 		
 		try {
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
@@ -292,141 +287,32 @@ public class SeedingApplicationEvaluator {
 					pathList.addAll(computationPathList);
 				}
 				
-//				if (b.getClassName().equals("org.javathena.login.UserManagement")
-//						&& b.getMethodName().contains("charServerToAuthentify")) {
-//					if (b.getInstruction().getLineNumber() == 733 && !b.toString().contains("NULL")) {
-//						System.currentTimeMillis();
-//					} else {
-//						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
-//						cache.put(b, branchInfo);
-//						return branchInfo;
-//					}
-//
-//				}
-//				
-//				if(b.getClassName().equals("org.javathena.login.UserManagement")
-//						&& b.getMethodName().contains("charif_sendallwos")) {
-//					if(b.getInstruction().getLineNumber() == 1297 && pathList.get(0).size() == 1) {
-//						System.currentTimeMillis();
-//					}
-//					else {
-//						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
-//						cache.put(b, branchInfo);
-//						return branchInfo;
-//					}
-//
-//				}
-				
 				removeRedundancy(pathList);
 				AbstractMOSA.pathNum += pathList.size();
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
 				
-				//TODO 
-				
-				System.currentTimeMillis();
-				
-				// FIXME if there is a fast channel, we observe if there is any constants? if yes, it is static, otherwise, it is dynamic
+				/** if there is a fast channel, we observe if there is any constants? 
+				 * if yes, it is static, otherwise, it is dynamic
+				 */
 				if(fastChannels.size() != 0) {
-					List<ComputationPath> lastPathList = new ArrayList<>();
-					for(ComputationPath p : pathList) {
-						if(!fastChannels.contains(p))
-							lastPathList.add(p);
+					if(isRelevantToRegularExpression(b)) {
+						return branchInfo(fastChannels, b, DYNAMIC_POOL);													
 					}
-					if (lastPathList.size() == 0) {
-						if (!b.toString().contains("NULL")) {
-							//switch
-							if (b.getInstruction().isSwitch())
-								return new BranchSeedInfo(b, STATIC_POOL, "int");
-							
-							return branchInfo(fastChannels, b, DYNAMIC_POOL);
-						}
-						return branchInfo(fastChannels, b, NO_POOL);
-					}
-
-					if (b.getMethodName().toLowerCase().contains("matchesexample"))
-						return branchInfo(fastChannels, b, DYNAMIC_POOL);
 					
-					if (constants.size() != 0) {
-						//add path
-//						for(ComputationPath p : lastPathList) {
-//							if(p.isPureConstantPath() && p.isHardConstant(operands)) {
-//								String dataType = finalType(p.getComputationNodes().get(0).getDataType());
-//								BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
-//								cache.put(b, branchInfo);
-//								return branchInfo;
-//							}
-//						}
-						
-						
-						//add all constants
-						BranchSeedInfo branchInfo = null;
-						for(Object v :constants) {
-							if(v instanceof DepVariable) {
-								DepVariable typeVar = (DepVariable) v;
-								
-								String dataType = finalType(typeVar.getDataType());
-								branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
-								if (cache.containsKey(b)) {
-									return cache.get(b);
-								}
-								cache.put(b, branchInfo);
-								System.out.println("STATIC_POOL:" + b);
-							}
-						}
-						if(branchInfo == null)
-							return branchInfo(fastChannels, b, DYNAMIC_POOL);
-						return branchInfo;
-					} else {
+					List<ComputationPath> nonFastChannelList = checkNonfastchannels(pathList, fastChannels);
+					if (nonFastChannelList.size() == 0) {
+						if (b.getInstruction().isSwitch())
+							return new BranchSeedInfo(b, STATIC_POOL, BranchSeedInfo.INT);
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);
+					}
+					else {
+						if (!constants.isEmpty()) {
+							return branchInfo(fastChannels, b, STATIC_POOL);
+						} else {
+							return branchInfo(fastChannels, b, DYNAMIC_POOL);
+						}
 					}
 				}
-				
-//				TwoSidePathList list = separateList(pathList, operands);
-//				if (list.side1.isEmpty() || list.side2.isEmpty()) {
-//					BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
-//					cache.put(b, branchInfo);
-//					return branchInfo;
-//				} else {
-//					if(b.getInstruction().getLineNumber()==304) {
-//						System.currentTimeMillis();
-//					}
-////					System.currentTimeMillis();
-//					ComputationPath path1 = list.side1.getSimplestChannel();
-//					ComputationPath path2 = list.side2.getSimplestChannel();
-//					if (!path1.isFastChannel() && !path2.isFastChannel()) {
-//						System.currentTimeMillis();
-//						BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
-//						cache.put(b, branchInfo);
-//						return branchInfo;
-//					} 
-//					else if(path1.isFastChannel() && path2.isFastChannel()) {
-//						ComputationPath fastPath = path2.size() < path1.size() ? path2 : path1;
-//						String dataType = getDynamicDataType(fastPath);
-//						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
-//						cache.put(b, branchInfo);
-//						return branchInfo;
-//					}
-//					else {
-//						ComputationPath fastPath = path2.isFastChannel() ? path2 : path1;
-//						ComputationPath otherPath = path2.isFastChannel() ? path1 : path2;
-//
-//						if (otherPath.isPureConstantPath()) {
-//							if(otherPath.isHardConstant(operands)) {
-//								String dataType = getConstantDataType(otherPath);
-//								BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, dataType);
-//								cache.put(b, branchInfo);
-//								return branchInfo;
-//							}								
-//						} 
-//						else{
-//							String dataType = getDynamicDataType(fastPath);
-//							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, dataType);
-//							cache.put(b, branchInfo);
-//							return branchInfo;
-//						}
-//					}
-//				}
-
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -437,7 +323,28 @@ public class SeedingApplicationEvaluator {
 		System.out.println("NO_POOL_1:" + b);
 		return branchInfo;
 	}
+
+	private static List<ComputationPath> checkNonfastchannels(List<ComputationPath> pathList,
+			List<ComputationPath> fastChannels) {
+		List<ComputationPath> nonFastChannelList = new ArrayList<>();
+		for(ComputationPath p : pathList) {
+			if(!fastChannels.contains(p))
+				nonFastChannelList.add(p);
+		}
+		return nonFastChannelList;
+	}
 	
+	//TODO Cheng Yan
+	private static boolean isRelevantToRegularExpression(Branch b) {
+		if (b.getClassName().equals("java.lang.String")) {
+			String calledMName = b.getInstruction().getCalledMethodName();
+			if(calledMName.contains("matches")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private static void addSwitchConstants(Branch b, List<Object> constants) {
 		DepVariable var = new DepVariable(b.getInstruction());
 		if(var.getInstruction().getASMNode().getType() == AbstractInsnNode.LOOKUPSWITCH_INSN) {
@@ -458,7 +365,7 @@ public class SeedingApplicationEvaluator {
 		
 		String dataType = getDynamicDataType(fastChannels.get(0));
 		if(dataType.equals("boolean"))
-			type = 3;
+			type = NO_POOL;
 		BranchSeedInfo branchInfo = new BranchSeedInfo(b, type, dataType);
 		cache.put(b, branchInfo);
 		System.out.println("type:" + b + ":" + type);
@@ -473,8 +380,8 @@ public class SeedingApplicationEvaluator {
 		return false;
 	}
 
-	private static List<Object> collectConstants(Set<DepVariable> methodInputs, Branch b) {
-		List<Object> constants = new ArrayList<>();
+	private static List<DepVariable> collectConstants(Set<DepVariable> methodInputs, Branch b) {
+		List<DepVariable> constants = new ArrayList<>();
 		if (methodInputs == null)
 			return constants;
 		for (DepVariable var : methodInputs) {
@@ -485,9 +392,9 @@ public class SeedingApplicationEvaluator {
 			}
 		}
 		
-		if(b.getInstruction().isSwitch()) {
-			addSwitchConstants(b, constants);			
-		}
+//		if(b.getInstruction().isSwitch()) {
+//			addSwitchConstants(b, constants);			
+//		}
 		
 		return constants;
 	}
@@ -556,7 +463,7 @@ public class SeedingApplicationEvaluator {
 									SensitivityPreservance sp = SensitivityMutator
 											.testBranchSensitivity(header, op, path.getBranch());
 
-									if (sp.isSensitivityPreserving() || sp.isValuePreserving()) {
+									if (sp.isSensitivityPreserving() && sp.isValuePreserving()) {
 										paths.add(path);
 									}
 								}
@@ -770,7 +677,7 @@ public class SeedingApplicationEvaluator {
 	public static String finalType(String name) {
 		String type[] =  name.split("\\.");
 		if(type[type.length - 1].equals("Integer"))
-			return "int";
+			return BranchSeedInfo.INT;
 		else
 			return type[type.length - 1].toLowerCase();
 	}
