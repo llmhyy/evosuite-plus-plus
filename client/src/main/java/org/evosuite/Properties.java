@@ -180,8 +180,8 @@ public class Properties {
 	@Parameter(key = "apply_gradient_analysis", group = "Test Creation", description = "let evosuite++ evaluate the gradients of a branch")
 	public static boolean APPLY_GRADEINT_ANALYSIS = false;
 	
-	@Parameter(key = "apply_gradient_analysis_in_smartseed", group = "Test Creation", description = "let evosuite++ evaluate the gradients of a branch")
-	public static boolean APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = false;
+//	@Parameter(key = "apply_gradient_analysis_in_smartseed", group = "Test Creation", description = "let evosuite++ evaluate the gradients of a branch")
+//	public static boolean APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = false;
 	
 	@Parameter(key = "fully_instrument_dependencies", group = "Test Creation", description = "force evosuite++ to fully instrument relevant dependent classes")
 	public static boolean FULLY_INSTRUMENT_DEPENDENCIES = false;
