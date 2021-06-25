@@ -595,9 +595,9 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 	
 	
 	@Test
-	public void testSingalOprand() throws ClassNotFoundException, RuntimeException {
+	public void testSingleOprand() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
-		String methodName = "singalOprand";
+		String methodName = "singleOprand";
 		int parameterNum = 0;
 		int lineNumber = 189;
 

@@ -280,8 +280,7 @@ public class SeedingApplicationEvaluator {
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
 		methodInputs = compileInputs(methodInputs);
 
-		List<Object> constants = collectConstants(methodInputs);
-		addSwitchConstants(b,constants);
+		List<Object> constants = collectConstants(methodInputs, b);
 		
 		try {
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
@@ -440,15 +439,13 @@ public class SeedingApplicationEvaluator {
 	}
 	
 	private static void addSwitchConstants(Branch b, List<Object> constants) {
-		if(b.getInstruction().isSwitch()) {
-			DepVariable var = new DepVariable(b.getInstruction());
-			if(var.getInstruction().getASMNode().getType() == AbstractInsnNode.LOOKUPSWITCH_INSN) {
-				LookupSwitchInsnNode lNode = (LookupSwitchInsnNode)var.getInstruction().getASMNode();
-				for(int i : lNode.keys) {
-					constants.add(i);
-				}
+		DepVariable var = new DepVariable(b.getInstruction());
+		if(var.getInstruction().getASMNode().getType() == AbstractInsnNode.LOOKUPSWITCH_INSN) {
+			LookupSwitchInsnNode lNode = (LookupSwitchInsnNode)var.getInstruction().getASMNode();
+			for(int i : lNode.keys) {
+				constants.add(i);
 			}
-		}		
+		}
 	}
 
 	private static BranchSeedInfo branchInfo(List<ComputationPath> fastChannels, Branch b, int type) {
@@ -476,7 +473,7 @@ public class SeedingApplicationEvaluator {
 		return false;
 	}
 
-	private static List<Object> collectConstants(Set<DepVariable> methodInputs) {
+	private static List<Object> collectConstants(Set<DepVariable> methodInputs, Branch b) {
 		List<Object> constants = new ArrayList<>();
 		if (methodInputs == null)
 			return constants;
@@ -487,6 +484,11 @@ public class SeedingApplicationEvaluator {
 					constants.add(var);
 			}
 		}
+		
+		if(b.getInstruction().isSwitch()) {
+			addSwitchConstants(b, constants);			
+		}
+		
 		return constants;
 	}
 

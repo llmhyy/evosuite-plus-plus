@@ -185,7 +185,7 @@ public class SmartSeedExample {
 	
 	public int compareNum = 55;
 	
-	public boolean singalOprand() {
+	public boolean singleOprand() {
 		if(compareNum > 100) 
 			return false;
 		return true;
@@ -199,7 +199,7 @@ public class SmartSeedExample {
 	}
 	
 	public void invokeDiffOprand() {
-		if(singalOprand()) {
+		if(singleOprand()) {
 			int num = 1000;
 			if(getCompareNum() == 1000)
 				return;
