@@ -100,9 +100,6 @@ public class SensitivityMutator {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 			methodCall = test.getStatement(test.size() - 1).toString();
 		}
-//		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
-//			data.clear();
-//		System.currentTimeMillis();
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, true);
@@ -142,8 +139,6 @@ public class SensitivityMutator {
 			e.printStackTrace();
 		}
 		
-//		System.currentTimeMillis();
-
 		TestChromosome oldTestChromosome = new TestChromosome();
 		oldTestChromosome.setTestCase(test);
 
@@ -161,8 +156,6 @@ public class SensitivityMutator {
 		if(test == null) {
 			return new SensitivityPreservance();
 		}
-//		if (data.size() > 0 && !branch.toString().equals(data.get(0).get(2).toString()))
-//			data.clear();
 		
 		System.currentTimeMillis();
 		String methodCall = test.getStatement(test.size() - 1).toString();
@@ -201,12 +194,6 @@ public class SensitivityMutator {
 		// Favor 'field' root variables
 		List<ComputationPath> sortedPaths = new ArrayList<ComputationPath>();
 		for (ComputationPath path : paths) {
-			
-			//filed to parameter path
-//			double ratio = isStaticPath(path,preservingList);
-//			if(ratio > 0)
-//				return preservingList;
-			
 			DepVariable rootVariable = path.getComputationNodes().get(0);
 			if (rootVariable.isInstaceField() || rootVariable.isStaticField()) {
 				sortedPaths.add(0, path);
@@ -230,29 +217,6 @@ public class SensitivityMutator {
 		return preservingList;
 	}
 	
-//	private static double isStaticPath(ComputationPath path, SensitivityPreservance preservingList) {
-//		if (SeedingApplicationEvaluator.CLA != Properties.TARGET_CLASS
-//				&& SeedingApplicationEvaluator.MED != Properties.TARGET_METHOD) {
-//			if(path.size() == 3) {
-//				boolean hasField = false;
-//				boolean isEqual = false;
-//				for (DepVariable var : path.getComputationNodes()) {
-//					if (var.isInstaceField() || var.isStaticField()) {
-//						hasField = true;
-//					} else if (var.isMethodCall()) {
-//						if (var.getInstruction().getCalledMethodName().toLowerCase().contains("equals"))
-//							isEqual = true;
-//					}
-//				}
-//				if(hasField && isEqual) {
-//					return preservingList.sensivityPreserRatio = 0.6;
-//				}
-//			}
-//			
-//		}
-//		return 0;
-//	}
-
 	private static SensitivityPreservance testHeadTailValue(Branch branch, TestChromosome newTestChromosome, DepVariable rootVariable,
 			BytecodeInstruction tailInstruction, ConstructionPathSynthesizer synthensizer) {
 		SensitivityPreservance preservance = new SensitivityPreservance();
@@ -263,7 +227,7 @@ public class SensitivityMutator {
 		Object tailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
 		long t2 = System.currentTimeMillis();
 		AbstractMOSA.getFirstTailValueTime += t2 - t1;
-		boolean valuePreserving = checkValuePreserving(headValue, tailValue);
+		boolean valuePreserving = checkValuePreserving(headValue, tailValue, preservance);
 
 		HeadValue = headValue;
 		TailValue = tailValue;
@@ -292,7 +256,7 @@ public class SensitivityMutator {
 				preservance.addHead(newHeadValue);
 				preservance.addTail(newTailValue);
 				
-				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
+				valuePreserving = checkValuePreserving(newHeadValue, newTailValue, preservance);
 
 				boolean sensivityPreserving = false;
 				if (newTailValue == null || tailValue == null) {
@@ -310,21 +274,8 @@ public class SensitivityMutator {
 				if (sensivityPreserving) {
 					sensivityPreservingNum += 1;
 				}
-
-//				recordList(branch, tailInstruction, headValue,tailValue,newHeadValue,newTailValue,
-//						valuePreserving,sensivityPreserving,oldTestChromosome,newTestChromosome);
-				
-//				if (i > Properties.DYNAMIC_SENSITIVITY_THRESHOLD / 2
-//						&& (valuePreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) < 0.1
-//						&& (sensivityPreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) < 0.1)
-//					break;
-//				if (i > Properties.DYNAMIC_SENSITIVITY_THRESHOLD / 2
-//						&& ((valuePreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) > 0.5
-//								|| (sensivityPreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) > 0.5))
-//					break;
 			}
 		}
-//		AbstractMOSA.avg10MutateTime = AbstractMOSA.avg10MutateTime / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
 		double vpRatio = valuePreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
 		double spRatio = sensivityPreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
 
@@ -361,7 +312,6 @@ public class SensitivityMutator {
 		row.add(Properties.TARGET_CLASS);
 		row.add(Properties.TARGET_METHOD);
 		row.add(branch.toString());
-//		row.add(path.getComputationNodes().toString());
 		row.add(tailInstruction.toString());
 		row.add(oldTestChromosome.toString());
 		row.add(headValue.toString());
@@ -375,7 +325,7 @@ public class SensitivityMutator {
 		data.add(row);
 	}
 
-	private static boolean checkValuePreserving(Object headValue, Object tailValue) {
+	private static boolean checkValuePreserving(Object headValue, Object tailValue, SensitivityPreservance preservance) {
 		// TODO need to define the similarity of different value
 		if (headValue == null || tailValue == null) {
 			return false;
@@ -404,8 +354,21 @@ public class SensitivityMutator {
 		// compare the similarity of string
 		String head = headValue.toString();
 		String tail = tailValue.toString();
-		if (Math.abs(getSimilarityRatio(head, tail)) >= 0.9) {
+		if (Math.abs(getSimilarityRatio(head, tail)) >= 0.5) {
 			return true;
+		}else {
+			int changedLength = 0;
+			for(int i = 0;i < preservance.headValues.size();i++) {
+				head = (String)preservance.headValues.get(i);
+				tail = (String)preservance.tailValues.get(i);
+				
+				if(i == 0)
+					changedLength = head.toCharArray().length - tail.toCharArray().length;
+				if(changedLength != head.toCharArray().length - tail.toCharArray().length)
+					return false;
+			}
+			if(preservance.headValues.size() != 0)
+				return true;			
 		}
 		return headValue.equals(tailValue);
 	}

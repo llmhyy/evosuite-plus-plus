@@ -32,6 +32,8 @@ import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
 import org.evosuite.graphs.interprocedural.interestednode.SmartSeedInterestedNodeFilter;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
+import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.StaticConstantPool;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.testcase.SensitivityPreservance;
@@ -41,6 +43,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
@@ -293,7 +296,8 @@ public class SeedingApplicationEvaluator {
 				 * if yes, it is static, otherwise, it is dynamic
 				 */
 				if(fastChannels.size() != 0) {
-					if(isRelevantToRegularExpression(b)) {
+					System.currentTimeMillis();
+					if(isRelevantToRegularExpression(fastChannels)) {
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);													
 					}
 					
@@ -304,6 +308,7 @@ public class SeedingApplicationEvaluator {
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);
 					}
 					else {
+						System.currentTimeMillis();
 						List<DepVariable> constants = collectConstants(methodInputs, b, nonFastChannelList);
 						if (!constants.isEmpty()) {
 							return branchInfo(fastChannels, b, STATIC_POOL);
@@ -334,13 +339,26 @@ public class SeedingApplicationEvaluator {
 	}
 	
 	//TODO Cheng Yan
-	private static boolean isRelevantToRegularExpression(Branch b) {
-		if (b.getClassName().equals("java.lang.String")) {
-			String calledMName = b.getInstruction().getCalledMethodName();
-			if(calledMName.contains("matches")) {
-				return true;
+	private static boolean isRelevantToRegularExpression(List<ComputationPath> fastChannels) {
+		for(ComputationPath path : fastChannels) {
+			int index = path.size() - 1;
+			DepVariable operand = path.getComputationNodes().get(index);
+			
+			if (operand.isMethodCall()) {
+				MethodInsnNode mNode = (MethodInsnNode) operand.getInstruction().getASMNode();
+				if (mNode.owner.equals("org/evosuite/instrumentation/testability/StringHelper")) {
+					String calledMName = mNode.name;
+					if (calledMName.toLowerCase().contains("matches") || calledMName.equals("StringMatchRegex"))
+						return true;
+				}
 			}
 		}
+//		if (b.getClassName().equals("java.lang.String")) {
+//			String calledMName = fastChannels.getInstruction().getCalledMethodName();
+//			if(calledMName.contains("matches")) {
+//				return true;
+//			}
+//		}
 		return false;
 	}
 
@@ -381,33 +399,36 @@ public class SeedingApplicationEvaluator {
 
 	private static List<DepVariable> collectConstants(Set<DepVariable> methodInputs, Branch b, List<ComputationPath> nonFastChannels) {
 		List<DepVariable> constants = new ArrayList<>();
-		
-		for(ComputationPath nonFastChannel: nonFastChannels) {
-			int index = nonFastChannel.size()-1;
+		System.currentTimeMillis();
+		for (ComputationPath nonFastChannel : nonFastChannels) {
+			int index = nonFastChannel.size() - 1;
 			DepVariable operand = nonFastChannel.getComputationNodes().get(index);
-			
-			if(operand.isConstant()) {
+
+			if (operand.isConstant()) {
 				constants.add(operand);
+			} else if (operand.isMethodCall()) {
+				MethodInsnNode mNode = (MethodInsnNode) operand.getInstruction().getASMNode();
+				if (mNode.owner.equals("org/evosuite/instrumentation/testability/StringHelper")) {
+					String calledMName = mNode.name;
+					if (nonFastChannel.isPureConstantPath())
+						constants.add(nonFastChannel.getComputationNodes().get(0));
+				}
+			} else if (constantPoolSize() > 200) {
+				return constants;
 			}
 		}
-		
+
 		return constants;
-		
-//		if (methodInputs == null)
-//			return constants;
-//		for (DepVariable var : methodInputs) {
-//			if (var.getInstruction().isConstant()) {
-//				if (var.getClassName().equals(Properties.TARGET_CLASS)
-//						&& var.getMethodName().split("#")[1].equals(Properties.TARGET_METHOD))
-//					constants.add(var);
-//			}
-//		}
-//		
-//		if(b.getInstruction().isSwitch()) {
-//			addSwitchConstants(b, constants);			
-//		}
-		
-//		return constants;
+	}
+
+	private static long constantPoolSize() {
+		for (int i = 0; i < 3; i++) {
+			if (ConstantPoolManager.pools[i] instanceof StaticConstantPool) {
+				StaticConstantPool pool = (StaticConstantPool) ConstantPoolManager.pools[i];
+				return pool.getPoolSize(pool);
+			}
+		}
+		return 0;
 	}
 
 	private static List<ComputationPath> analyzeFastChannels(List<ComputationPath> pathList) {

@@ -11,8 +11,8 @@ public class SensitivityPreservance {
 	public double valuePreservingRatio = 0;
 	public double sensivityPreserRatio = 0;
 
-	private List<Object> tailValues = new ArrayList<>();
-	private List<Object> headValues = new ArrayList<>();
+	public List<Object> tailValues = new ArrayList<>();
+	public List<Object> headValues = new ArrayList<>();
 	
 	public void addTail(Object value) {
 		this.tailValues.add(value);
