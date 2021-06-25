@@ -275,8 +275,6 @@ public class SeedingApplicationEvaluator {
 		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
 		methodInputs = compileInputs(methodInputs);
 
-		List<DepVariable> constants = collectConstants(methodInputs, b);
-		
 		try {
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
 
@@ -306,6 +304,7 @@ public class SeedingApplicationEvaluator {
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);
 					}
 					else {
+						List<DepVariable> constants = collectConstants(methodInputs, b, nonFastChannelList);
 						if (!constants.isEmpty()) {
 							return branchInfo(fastChannels, b, STATIC_POOL);
 						} else {
@@ -380,23 +379,35 @@ public class SeedingApplicationEvaluator {
 		return false;
 	}
 
-	private static List<DepVariable> collectConstants(Set<DepVariable> methodInputs, Branch b) {
+	private static List<DepVariable> collectConstants(Set<DepVariable> methodInputs, Branch b, List<ComputationPath> nonFastChannels) {
 		List<DepVariable> constants = new ArrayList<>();
-		if (methodInputs == null)
-			return constants;
-		for (DepVariable var : methodInputs) {
-			if (var.getInstruction().isConstant()) {
-				if (var.getClassName().equals(Properties.TARGET_CLASS)
-						&& var.getMethodName().split("#")[1].equals(Properties.TARGET_METHOD))
-					constants.add(var);
+		
+		for(ComputationPath nonFastChannel: nonFastChannels) {
+			int index = nonFastChannel.size()-1;
+			DepVariable operand = nonFastChannel.getComputationNodes().get(index);
+			
+			if(operand.isConstant()) {
+				constants.add(operand);
 			}
 		}
 		
+		return constants;
+		
+//		if (methodInputs == null)
+//			return constants;
+//		for (DepVariable var : methodInputs) {
+//			if (var.getInstruction().isConstant()) {
+//				if (var.getClassName().equals(Properties.TARGET_CLASS)
+//						&& var.getMethodName().split("#")[1].equals(Properties.TARGET_METHOD))
+//					constants.add(var);
+//			}
+//		}
+//		
 //		if(b.getInstruction().isSwitch()) {
 //			addSwitchConstants(b, constants);			
 //		}
 		
-		return constants;
+//		return constants;
 	}
 
 	private static List<ComputationPath> analyzeFastChannels(List<ComputationPath> pathList) {
