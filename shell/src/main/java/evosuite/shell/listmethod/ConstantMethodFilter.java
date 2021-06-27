@@ -87,16 +87,16 @@ public class ConstantMethodFilter extends MethodFlagCondFilter {
 		for (int i = 0; i < 3; i++) {
 			if (ConstantPoolManager.pools[i] instanceof StaticConstantPool) {
 				StaticConstantPool pool = (StaticConstantPool) ConstantPoolManager.pools[i];
-				if (pool.getPoolSize(pool) > 200)
+				if (pool.poolSize() > 200)
 				{
-					logToExcel(className, methodName, pool.getPoolSize(pool));
-					pool.poolClear(pool);
+					logToExcel(className, methodName, pool.poolSize());
+					pool.clear();
 					return true;
 				}
 			}
 		}
         
-	return false;
+		return false;
     }
     
     protected void logToExcel(String className, String methodName, long num) throws IOException {

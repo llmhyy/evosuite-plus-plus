@@ -288,10 +288,6 @@ public class StaticConstantPool implements ConstantPool {
     	return num;
     }
     
-    public static long getPoolSize(StaticConstantPool pool) {
-    	return pool.poolSize();
-    }
-    
     public void clear() {
     	this.stringPool.clear();
     	this.typePool.clear();
@@ -302,8 +298,5 @@ public class StaticConstantPool implements ConstantPool {
     	this.charPool.clear();
     }
     
-    public static void poolClear(StaticConstantPool pool) {
-    	pool.clear();
-    }
 
 }
