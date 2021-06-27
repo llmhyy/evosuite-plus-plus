@@ -14,6 +14,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.instrumentation.testability.StringHelper;
 import org.evosuite.seeding.smart.BranchSeedInfo;
+import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
 import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.testcase.SensitivityPreservance;
 import org.evosuite.utils.ArrayUtil;
@@ -933,7 +934,13 @@ public class ComputationPath {
 
 	private boolean matchStaticFastChannelRule() {
 		if(this.size() <= 2) {
-			return true;
+			DepVariable var = this.computationNodes.get(this.computationNodes.size()-1);
+			String methodName = var.getInstruction().getCalledMethod();
+			
+			if(!SeedingApplicationEvaluator.isBooleanReturnType(methodName)) {
+				return true;
+			}
+			
 		}
 		return false;
 	}
