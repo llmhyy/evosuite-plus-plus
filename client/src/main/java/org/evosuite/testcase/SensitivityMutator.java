@@ -227,7 +227,7 @@ public class SensitivityMutator {
 		Object tailValue = evaluateTailValue(branch, tailInstruction, newTestChromosome);
 		long t2 = System.currentTimeMillis();
 		AbstractMOSA.getFirstTailValueTime += t2 - t1;
-		boolean valuePreserving = checkValuePreserving(headValue, tailValue, preservance);
+		boolean valuePreserving = checkValuePreserving(headValue, tailValue);
 
 		HeadValue = headValue;
 		TailValue = tailValue;
@@ -256,7 +256,7 @@ public class SensitivityMutator {
 				preservance.addHead(newHeadValue);
 				preservance.addTail(newTailValue);
 				
-				valuePreserving = checkValuePreserving(newHeadValue, newTailValue, preservance);
+				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
 
 				boolean sensivityPreserving = false;
 				if (newTailValue == null || tailValue == null) {
@@ -325,7 +325,7 @@ public class SensitivityMutator {
 		data.add(row);
 	}
 
-	private static boolean checkValuePreserving(Object headValue, Object tailValue, SensitivityPreservance preservance) {
+	private static boolean checkValuePreserving(Object headValue, Object tailValue) {
 		// TODO need to define the similarity of different value
 		if (headValue == null || tailValue == null) {
 			return false;
@@ -354,22 +354,23 @@ public class SensitivityMutator {
 		// compare the similarity of string
 		String head = headValue.toString();
 		String tail = tailValue.toString();
-		if (Math.abs(getSimilarityRatio(head, tail)) >= 0.5) {
+		if (getSimilarityRatio(head, tail) >= Properties.VALUE_SIMILARITY_THRESHOLD) {
 			return true;
-		}else {
-			int changedLength = 0;
-			for(int i = 0;i < preservance.headValues.size();i++) {
-				head = (String)preservance.headValues.get(i);
-				tail = (String)preservance.tailValues.get(i);
-				
-				if(i == 0)
-					changedLength = head.toCharArray().length - tail.toCharArray().length;
-				if(changedLength != head.toCharArray().length - tail.toCharArray().length)
-					return false;
-			}
-			if(preservance.headValues.size() != 0)
-				return true;			
-		}
+		} 
+//		else {
+//			int changedLength = 0;
+//			for(int i = 0;i < preservance.headValues.size();i++) {
+//				head = preservance.headValues.get(i).toString();
+//				tail = preservance.tailValues.get(i).toString();
+//				
+//				if(i == 0)
+//					changedLength = head.toCharArray().length - tail.toCharArray().length;
+//				if(changedLength != head.toCharArray().length - tail.toCharArray().length)
+//					return false;
+//			}
+//			if(preservance.headValues.size() != 0)
+//				return true;			
+//		}
 		return headValue.equals(tailValue);
 	}
 
@@ -385,7 +386,17 @@ public class SensitivityMutator {
 		// TODO Edit Distance
 		if(head == null || tail == null) return 0;
 		int max = Math.max(head.length(), tail.length());
-		return 1 - (float) compare(head, tail) / max;
+		float score = 1 - (float) compare(head, tail) / max;
+		
+		/**
+		 * normalize the score when the max length is too small, which
+		 * results in that 0.5, 0.67, 0.75 are large score.
+		 */
+		if(max <= 3) {
+			score = score * (1 + 1.0f / (float)max);
+		}
+		
+		return score;
 	}
 
 	private static float compare(String head, String tail) {

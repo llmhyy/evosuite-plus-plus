@@ -1,8 +1,6 @@
 package org.evosuite.seeding.smart;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -13,31 +11,21 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
-import org.evosuite.TestSuiteGenerator;
-import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchPool;
-import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
-import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
-import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
-import org.evosuite.graphs.interprocedural.interestednode.SmartSeedInterestedNodeFilter;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
-import org.evosuite.seeding.ConstantPoolManager;
-import org.evosuite.seeding.StaticConstantPool;
-import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.testcase.SensitivityPreservance;
-import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
@@ -48,8 +36,6 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
-
-import com.sun.tools.internal.ws.wsdl.parser.Constants;
 
 public class SeedingApplicationEvaluator {
 
@@ -413,22 +399,10 @@ public class SeedingApplicationEvaluator {
 					if (nonFastChannel.isPureConstantPath())
 						constants.add(nonFastChannel.getComputationNodes().get(0));
 				}
-			} else if (constantPoolSize() > 200) {
-				return constants;
-			}
+			} 
 		}
 
 		return constants;
-	}
-
-	private static long constantPoolSize() {
-		for (int i = 0; i < 3; i++) {
-			if (ConstantPoolManager.pools[i] instanceof StaticConstantPool) {
-				StaticConstantPool pool = (StaticConstantPool) ConstantPoolManager.pools[i];
-				return pool.getPoolSize(pool);
-			}
-		}
-		return 0;
 	}
 
 	private static List<ComputationPath> analyzeFastChannels(List<ComputationPath> pathList) {
