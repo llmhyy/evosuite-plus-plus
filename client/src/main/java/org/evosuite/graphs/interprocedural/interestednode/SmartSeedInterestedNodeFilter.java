@@ -12,7 +12,7 @@ public class SmartSeedInterestedNodeFilter implements IInterestedNodeFilter {
 
 	@Override
 	public boolean isInterested(DepVariable node) {
-		return node.isMethodInput() || node.isConstant();
+		return node.isMethodInput() || node.isConstant() || node.isStateVariable();
 	}
 
 }
