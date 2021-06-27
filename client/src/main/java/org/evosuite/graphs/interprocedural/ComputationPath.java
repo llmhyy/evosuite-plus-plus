@@ -911,11 +911,17 @@ public class ComputationPath {
 	private SensitivityPreservance preservingList = null;
 
 	public boolean isFastChannel() {
+		if (!(this.getComputationNodes().get(0).isParameter()
+				|| this.getComputationNodes().get(0).isStaticField()
+				|| this.getComputationNodes().get(0).isInstaceField()))
+			return false;
+		
+		boolean staticRuleMath = matchStaticFastChannelRule();
+		if(staticRuleMath) {
+			return true;
+		}
+		
 		if (preservingList == null) {
-			if (!(this.getComputationNodes().get(0).isParameter()
-					|| this.getComputationNodes().get(0).isStaticField()
-					|| this.getComputationNodes().get(0).isInstaceField()))
-				return false;
 
 			preservingList = SensitivityMutator.testBranchSensitivity(this);
 //			isFastChannel = this.evaluateFastChannelScore() > Properties.FAST_CHANNEL_SCORE_THRESHOLD;
@@ -923,6 +929,13 @@ public class ComputationPath {
 
 		boolean isFastChannel = preservingList.isValuePreserving() && preservingList.isSensitivityPreserving();
 		return isFastChannel;
+	}
+
+	private boolean matchStaticFastChannelRule() {
+		if(this.size() <= 2) {
+			return true;
+		}
+		return false;
 	}
 
 	public BytecodeInstruction getInstruction(int i) {
