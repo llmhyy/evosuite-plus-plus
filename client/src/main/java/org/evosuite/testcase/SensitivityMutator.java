@@ -102,11 +102,11 @@ public class SensitivityMutator {
 		}
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
-			synthensizer.constructDifficultObjectStatement(test, branch, false, true);
+			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		
 		TestChromosome oldTestChromosome = new TestChromosome();
 		oldTestChromosome.setTestCase(test);
 
