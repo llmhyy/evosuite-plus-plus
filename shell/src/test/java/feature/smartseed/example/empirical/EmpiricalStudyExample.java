@@ -14,7 +14,7 @@ public class EmpiricalStudyExample {
 	private MenuItemList rootList;
 	private ArrayList<Object> orphans;
 
-	private HSSFWorkbook workbook;
+	public HSSFWorkbook wb;
 	private TemplateWorkbook tWorkbook;
 	private TemplateSheet tSheet;
 
@@ -107,10 +107,10 @@ public class EmpiricalStudyExample {
 
 	// 5 parse
 	public TemplateWorkbook parse(Set<String> excludedSheetNames) {
-		int nSheets = workbook.getNumberOfSheets();
+		int nSheets = wb.getNumberOfSheets();
 		for (int i = 0; i < nSheets; i++) {
-			HSSFSheet sheet = workbook.getSheetAt(i);
-			String sheetName = workbook.getSheetName(i);
+			HSSFSheet sheet = wb.getSheetAt(i);
+			String sheetName = wb.getSheetName(i);
 			if (excludedSheetNames != null 
 					&& !excludedSheetNames.contains(sheetName)) {
 				System.currentTimeMillis();

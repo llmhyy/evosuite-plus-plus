@@ -18,6 +18,7 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.graphs.GraphPool;
+import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
@@ -64,7 +65,7 @@ public class ListMethods {
 			Properties.CRITERION = ArrayUtils.addAll(Properties.CRITERION, Criterion.DEFUSE);
 		}
 		
-		
+		DependencyAnalysis.clear();
 		
 		/**
 		 * we clear the branch pool and graph pool when analyzing a new project.
