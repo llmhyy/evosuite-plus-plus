@@ -1,38 +1,23 @@
 package evosuite.shell.listmethod;
 
-import static evosuite.shell.EvosuiteForMethod.projectId;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.graphs.interprocedural.DepVariable;
-import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
-import org.evosuite.graphs.interprocedural.interestednode.EmptyInterestedNodeFilter;
-import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
-import org.evosuite.graphs.interprocedural.interestednode.SmartSeedInterestedNodeFilter;
 import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
 import org.evosuite.setup.DependencyAnalysis;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.slf4j.Logger;
@@ -41,7 +26,6 @@ import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.FileUtils;
 import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelWriter;
-import evosuite.shell.listmethod.FlagMethodProfilesFilter.MethodContent;
 import evosuite.shell.utils.LoggerUtils;
 
 public class BranchwiseMethodFillter extends MethodFlagCondFilter {
@@ -57,7 +41,7 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		Properties.INSTRUMENT_CONTEXT = true;
 		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 		Properties.APPLY_SMART_SEED = true;
-		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
+//		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
 		
 		String statisticFile = new StringBuilder(Settings.getReportFolder()).append(File.separator)

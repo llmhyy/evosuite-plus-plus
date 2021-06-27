@@ -70,7 +70,7 @@ public class BranchwiseConstantPoolManager {
 			
 		}
 		else if(b.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL) {
-			Properties.APPLY_SMART_DYNAMIC_POOL = true;
+//			Properties.APPLY_SMART_DYNAMIC_POOL = true;
 			ConstantPool pool = getBranchwiseDynamicConstantPool(b.getBranch().getActualBranchId());
 			return pool;
 		}
