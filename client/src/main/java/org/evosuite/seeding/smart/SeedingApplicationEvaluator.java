@@ -261,8 +261,8 @@ public class SeedingApplicationEvaluator {
 			return branchInfo;
 		}
 		b = compileBranch(branchesInTargetMethod, b);
-		Set<DepVariable> methodInputs = branchesInTargetMethod.get(b);
-		methodInputs = compileInputs(methodInputs);
+		Set<DepVariable> nodes = branchesInTargetMethod.get(b);
+		Set<DepVariable> methodInputs = compileInputs(nodes);
 
 		try {
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
@@ -274,6 +274,7 @@ public class SeedingApplicationEvaluator {
 					pathList.addAll(computationPathList);
 				}
 				
+				System.currentTimeMillis();
 				removeRedundancy(pathList);
 				AbstractMOSA.pathNum += pathList.size();
 				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
@@ -294,7 +295,7 @@ public class SeedingApplicationEvaluator {
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);
 					}
 					else {
-						System.currentTimeMillis();
+//						System.currentTimeMillis();
 						List<DepVariable> constants = collectConstants(methodInputs, b, nonFastChannelList);
 						if (!constants.isEmpty()) {
 							return branchInfo(fastChannels, b, STATIC_POOL);
@@ -367,8 +368,8 @@ public class SeedingApplicationEvaluator {
 		}
 		
 		String dataType = getDynamicDataType(fastChannels.get(0));
-		if(dataType.equals("boolean"))
-			type = NO_POOL;
+//		if(dataType.equals("boolean"))
+//			type = NO_POOL;
 		BranchSeedInfo branchInfo = new BranchSeedInfo(b, type, dataType);
 		cache.put(b, branchInfo);
 		System.out.println("type:" + b + ":" + type);
@@ -408,27 +409,28 @@ public class SeedingApplicationEvaluator {
 	private static List<ComputationPath> analyzeFastChannels(List<ComputationPath> pathList) {
 		List<ComputationPath> paths = new ArrayList<>();
 		for(ComputationPath path: pathList) {
+			
+			DepVariable head = path.getComputationNodes().get(0);
+			if(!head.isMethodInput()) {
+				continue;
+			}
+			
 			if(path.isFastChannel()) {
 				paths.add(path);
 			}
 			else {
 				boolean visitedTargetMethod = false;
+				l:
 				for(int i=path.size()-1; i>=0; i--) {
 					DepVariable var = path.getComputationNodes().get(i);
 					BytecodeInstruction ins = var.getInstruction();
 					if(ins.isMethodCall()) {
 						String method = ins.getCalledMethod();
 						
-						if(!isBooleanReturnType(method)) {
-							break;
-						}
+						if(!isBooleanReturnType(method)) break;
+						if(isMethodInStopList(method)) continue;
+						if(visitedTargetMethod) continue;
 						
-						if(isMethodInStopList(method)) {
-							continue;
-						}
-						
-						if(visitedTargetMethod)
-							continue;
 						visitedTargetMethod = true;
 						String clazz = ins.getCalledMethodsClass();
 						if(clazz.equals("java.util.List")) {
@@ -471,10 +473,10 @@ public class SeedingApplicationEvaluator {
 
 									if (sp.isSensitivityPreserving() && sp.isValuePreserving()) {
 										paths.add(path);
+										break l;
 									}
 								}
-								if(!paths.isEmpty())
-									break;
+								
 							}
 							long t2 = System.currentTimeMillis();
 							AbstractMOSA.cascadeAnalysisTime += t2 - t1; 
@@ -565,7 +567,7 @@ public class SeedingApplicationEvaluator {
 		return false;
 	}
 
-	private static boolean isBooleanReturnType(String method) {
+	public static boolean isBooleanReturnType(String method) {
 		String returnType = method.substring(method.indexOf(")")+1, method.length());
 		return returnType.equals("Z") || returnType.equals("Ljava/lang/Boolean;");
 	}
@@ -689,11 +691,10 @@ public class SeedingApplicationEvaluator {
 	}
 
 	private static void removeRedundancy(List<ComputationPath> pathList) {
-		List<ComputationPath> removeList = removeRedundancyPath(pathList);
-		if (removeList != null) {
-			for (ComputationPath path : removeList) {
-				pathList.remove(path);
-			}
+		List<ComputationPath> redundantList = getRedundantPaths(pathList);
+		System.currentTimeMillis();
+		for (ComputationPath path : redundantList) {
+			pathList.remove(path);
 		}
 	}
 
@@ -703,6 +704,9 @@ public class SeedingApplicationEvaluator {
 		if (methodInputs == null)
 			return methodInputs;
 		for (DepVariable input : methodInputs) {
+			
+			if(!(input.isConstant() || input.isMethodInput())) continue;
+			
 			AbstractInsnNode node = input.getInstruction().getASMNode();
 			if (node.getType() == AbstractInsnNode.LDC_INSN) {
 				LdcInsnNode ldc = (LdcInsnNode) node;
@@ -821,70 +825,32 @@ public class SeedingApplicationEvaluator {
 //		return null;
 //	}
 
-	private static List<ComputationPath> removeRedundancyPath(List<ComputationPath> pathList) {
+	private static List<ComputationPath> getRedundantPaths(List<ComputationPath> pathList) {
 		List<ComputationPath> localPathList = new ArrayList<>();
-		List<ComputationPath> constant = new ArrayList<>();
 		for (int i = 0; i < pathList.size(); i++) {
 			ComputationPath path = pathList.get(i);
-			int size = path.getComputationNodes().size();
+			
+			if(localPathList.contains(path)) continue;
+			l:
 			for (int j = i + 1; j < pathList.size(); j++) {
 				ComputationPath pathNext = pathList.get(j);
-				int sizeNext = pathNext.getComputationNodes().size();
-
-				// method inputs to remove
-
-				// have same input line and output line
-				if (path.getComputationNodes().get(0).getInstruction().getLineNumber() == pathNext.getComputationNodes()
-						.get(0).getInstruction().getLineNumber()
-						&& path.getComputationNodes().get(size - 1).getInstruction().getLineNumber() == pathNext
-								.getComputationNodes().get(sizeNext - 1).getInstruction().getLineNumber()) {
-					if (ComputationPath.isStartWithMethodInput(path)) {
-						localPathList.add(pathNext);
-					} else {
-						if (size <= sizeNext)
-							localPathList.add(pathNext);
+				if(localPathList.contains(pathNext)) continue;				
+				if(path.size() != pathNext.size()) continue;
+				
+				for(int k=0; k<path.size(); k++) {
+					if(path.getComputationNodes().get(k).getInstruction().getInstructionId() != 
+							pathNext.getComputationNodes().get(k).getInstruction().getInstructionId()) {
+						break l;
 					}
 				}
-
-				// have same path
-				if (size > 2 && sizeNext > 2) {
-					if (path.getComputationNodes().get(size - 2)
-							.equals(pathNext.getComputationNodes().get(sizeNext - 2)))
-						localPathList.add(pathNext);
-				}
-
-				// start with method has 0
-				if (pathNext.getComputationNodes().get(sizeNext - 1).getInstruction().explain().contains("StartsWith")
-						&& pathNext.getComputationNodes().get(0).getInstruction().explain().contains("ICONST_0")) {
-					if (!localPathList.contains(pathNext)) {
-						localPathList.add(pathNext);
-					}
-				}
+				
+				localPathList.add(pathNext);
 
 			}
-			// constant
-			if (path.getComputationNodes().size() < 3) {
-				if (path.getComputationNodes().get(0).isConstant()) {
-					constant.add(path);
-					for (ComputationPath cons : localPathList) {
-						if (cons.equals(path)) {
-							localPathList.remove(path);
-							break;
-						}
-					}
-					for (ComputationPath small : constant) {
-						if (small.getComputationNodes().size() < path.getComputationNodes().size()) {
-							localPathList.add(path);
-						}
-					}
-				}
-			}
-
+			System.currentTimeMillis();
 		}
-		if (localPathList.size() != 0) {
-			return localPathList;
-		} else
-			return null;
+		
+		return localPathList;
 	}
 
 //	private static ComputationPath findTheOtherPath(ComputationPath path, List<ComputationPath> pathList) {
