@@ -22,9 +22,11 @@
  */
 package org.evosuite;
 
+import org.evosuite.ga.metaheuristics.mosa.DynaMOSA;
 import org.evosuite.rmi.MasterServices;
 import org.evosuite.rmi.service.ClientState;
 import org.evosuite.rmi.service.ClientStateInformation;
+import org.evosuite.statistics.logToExcel;
 import org.evosuite.utils.Listener;
 
 /**
@@ -83,9 +85,20 @@ public class ConsoleProgressBar implements Listener<ClientStateInformation>{
 		}
 
 		bar.append(coverage + "%]");
+		
+		recordTime(percent,coverage);
 
 		System.out.print("\r" + bar.toString());
 		
+	}
+
+	private void recordTime(int percent, int coverage) {
+		double time = (int)percent * Properties.SEARCH_BUDGET / 1000 * 10;
+//		time = (int)time / 10 * 10;
+		if (!logToExcel.TIME_COVERAGE_CACHE.containsKey(time)) {
+			logToExcel.addTimeAndCoverage(time, coverage);
+			logToExcel.recordList(time, coverage);
+		}
 	}
 
 }

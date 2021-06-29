@@ -18,6 +18,7 @@ import org.evosuite.Properties;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.Event;
+import org.evosuite.statistics.logToExcel;
 import org.slf4j.Logger;
 
 import com.alibaba.fastjson.JSON;
@@ -219,6 +220,25 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 			logSuccessfulMethods(className, methodName);
 		} catch (IOException e) {
 			log.error("Error", e);
+		}
+	}
+	
+	@Override
+	public void recordCoverageOnDiffTime() {
+		ExcelWriter excelWriter = new ExcelWriter(evosuite.shell.FileUtils.newFile(Settings.getReportFolder(), "coverageOnDiffTime.xlsx"));
+		List<String> header = new ArrayList<>();
+		header.add("PID");
+		header.add("Class");
+		header.add("Method");
+		header.add("Execution Time");
+		header.add("Coverage");
+		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
+		
+		try {
+			excelWriter.writeSheet("data", logToExcel.data);
+			logToExcel.clear();
+		} catch (IOException e) {
+			System.out.println(e);
 		}
 	}
 	

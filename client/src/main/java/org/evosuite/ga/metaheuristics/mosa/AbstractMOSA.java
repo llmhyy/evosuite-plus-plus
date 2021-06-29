@@ -108,7 +108,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	/**
 	 * the time to initialization the population
 	 */
-	protected long initializationOverhead = 0;
+	public static long initializationOverhead = 0;
 	
 	
 	/** EvoSeed Time **/
