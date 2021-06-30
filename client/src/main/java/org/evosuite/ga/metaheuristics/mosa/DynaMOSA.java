@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.Properties;
@@ -42,6 +43,8 @@ import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import evosuite.shell.ExceptionResult;
 
 /**
  * Implementation of the DynaMOSA (Many Objective Sorting Algorithm) described
@@ -61,8 +64,9 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
 	protected CrowdingDistance<T> distance = new CrowdingDistance<T>();
 
-
 	protected ExceptionBranchEnhancer<T> exceptionBranchEnhancer = new ExceptionBranchEnhancer<T>(goalsManager);
+	
+	protected ExceptionResult<T> exceptionResult = new ExceptionResult<>();
 	
 	/**
 	 * Constructor based on the abstract class {@link AbstractMOSA}.
@@ -185,6 +189,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		 * we can debug by setting break points here.
 		 */
 		printBestFitness();
+		collectExceptionResults(this.currentIteration);
 
 		this.currentIteration++;
 		// logger.debug("N. fronts = {}", ranking.getNumberOfSubfronts());
@@ -228,6 +233,56 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			}
 		}
 
+	}
+	
+	/**
+	 * Returns a map from FitnessFunction (uncovered branch) to highest scoring TestChromosome.
+	 * 
+	 * @param bestTestMap
+	 */
+	private Map<FitnessFunction<T>, T> generateBestTestMap() {
+		Map<FitnessFunction<T>, Double> goalToBestFitnessScore = new HashMap<>();
+		Map<FitnessFunction<T>, T> goalToBestTest = new HashMap<>();
+		for (T test : this.population) {
+			boolean isTestChromosome = test instanceof TestChromosome;
+			if (isTestChromosome) {
+				// We compute the fitness functions for pair of <FitnessFunction, TestChromosome>
+				// We keep the highest scoring TestChromosome for each FitnessFunction in our map.
+				for (FitnessFunction<T> fitnessFunction : this.goalsManager.getCurrentGoals()) {
+					Double fitness = fitnessFunction.getFitness(test);
+					Double bestFitnessScoreSoFar = goalToBestFitnessScore.get(fitnessFunction);
+					
+					boolean isFirstTimeSeeingThisFitnessFunction = bestFitnessScoreSoFar == null;
+					
+					// Lower fitness score is better.
+					boolean isCurrentTestBetterThanPreviousBest = bestFitnessScoreSoFar > fitness;
+					if (isFirstTimeSeeingThisFitnessFunction || isCurrentTestBetterThanPreviousBest) {
+						goalToBestFitnessScore.put(fitnessFunction, fitness);
+						goalToBestTest.put(fitnessFunction, test);
+						continue;
+					}
+				}
+			}
+		}
+		return goalToBestTest;
+	}
+	
+	private void collectExceptionResults(int currentIteration) {
+		Map<FitnessFunction<T>, T> bestTestMap = generateBestTestMap();
+		
+		for (Entry<FitnessFunction<T>, T> entry : bestTestMap.entrySet()) {
+			FitnessFunction<T> fitnessFunction = entry.getKey();
+			T hopefullyATestChromosome = entry.getValue();
+			boolean isTestChromosome = hopefullyATestChromosome instanceof TestChromosome;
+			
+			if (!isTestChromosome) {
+				// What do we do?
+				continue;
+			}
+			
+			TestChromosome testChromosome = (TestChromosome) hopefullyATestChromosome;
+			exceptionResult.updateExceptionResult(currentIteration, fitnessFunction, testChromosome);
+		}
 	}
 
 	
