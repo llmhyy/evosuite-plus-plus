@@ -1,4 +1,4 @@
-package evosuite.shell;
+package org.evosuite.result;
 
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.Chromosome;

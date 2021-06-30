@@ -1,4 +1,4 @@
-package evosuite.shell;
+package org.evosuite.result;
 
 import java.util.HashMap;
 

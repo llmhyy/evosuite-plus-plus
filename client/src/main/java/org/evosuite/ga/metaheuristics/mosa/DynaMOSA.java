@@ -35,6 +35,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.comparators.NonduplicationComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
+import org.evosuite.result.ExceptionResult;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
@@ -43,8 +44,6 @@ import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import evosuite.shell.ExceptionResult;
 
 /**
  * Implementation of the DynaMOSA (Many Objective Sorting Algorithm) described
@@ -255,7 +254,12 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 					boolean isFirstTimeSeeingThisFitnessFunction = bestFitnessScoreSoFar == null;
 					
 					// Lower fitness score is better.
-					boolean isCurrentTestBetterThanPreviousBest = bestFitnessScoreSoFar > fitness;
+					boolean isCurrentTestBetterThanPreviousBest = false;
+					// Have to wrap this condition to avoid NullPointerExceptions when bestFitnessScoreSoFar is null.
+					if (!isFirstTimeSeeingThisFitnessFunction) {
+						isCurrentTestBetterThanPreviousBest = bestFitnessScoreSoFar > fitness;
+					}
+					
 					if (isFirstTimeSeeingThisFitnessFunction || isCurrentTestBetterThanPreviousBest) {
 						goalToBestFitnessScore.put(fitnessFunction, fitness);
 						goalToBestTest.put(fitnessFunction, test);
