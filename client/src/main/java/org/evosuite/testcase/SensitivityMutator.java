@@ -161,6 +161,10 @@ public class SensitivityMutator {
 		
 		SensitivityPreservance preservance = new SensitivityPreservance();
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
+		
+		/**
+		 * TODO for Cheng Yan, need to change it to multiple heads
+		 */
 		Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
 		Object headValue = retrieveHeadValue(relevantStatement);
 		long t1 = System.currentTimeMillis();
@@ -172,9 +176,8 @@ public class SensitivityMutator {
 			return preservance;
 		}
 		
-		//TODO for Cheng Yan
 		/**
-		 * 
+		 * TODO for Cheng Yan, need to change multiple heads to achieve the runtime results.
 		 */
 		Object tailValue = observationMap.values().iterator().next();
 		boolean valuePreserving = checkValuePreserving(headValue, tailValue);
