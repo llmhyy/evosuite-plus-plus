@@ -1,8 +1,5 @@
 package org.evosuite.seeding.smart;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.evosuite.coverage.branch.Branch;
 
 public class BranchSeedInfo {
@@ -14,10 +11,19 @@ public class BranchSeedInfo {
 	public static String LONG = "long";
 	public static String SHORT = "short";
 	public static String STRING = "string";
-	public static String OTHER = "unknown";
 	public static String CHARACTER = "character";
+	public static String TBYTE = Byte.class.getCanonicalName();
+	public static String TDOUBLE = Double.class.getCanonicalName();
+	public static String TFLOAT = Float.class.getCanonicalName();
+	public static String TINT = Integer.class.getCanonicalName();
+	public static String TLONG = Long.class.getCanonicalName();
+	public static String TSHORT = Short.class.getCanonicalName();
+	public static String TSTRING = String.class.getCanonicalName();
+	public static String TCHARACTER = Character.class.getCanonicalName();
+	public static String OTHER = "unknown";
 	
 	private Branch branch;
+	private Branch auxilaryBranch;
 	private String operandType; 
 	
 	public BranchSeedInfo(Branch branch, int benefiticalType, String operandType) {
@@ -54,6 +60,14 @@ public class BranchSeedInfo {
 
 	public void setOperandType(String operandType) {
 		this.operandType = operandType;
+	}
+
+	public Branch getAuxilaryBranch() {
+		return auxilaryBranch;
+	}
+
+	public void setAuxilaryBranch(Branch auxilaryBranch) {
+		this.auxilaryBranch = auxilaryBranch;
 	}
 
 	
