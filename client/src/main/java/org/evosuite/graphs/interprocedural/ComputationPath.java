@@ -1031,4 +1031,20 @@ public class ComputationPath {
 		return node.getInstruction();	
 	}
 
+	public DepVariable getTail() {
+		int index = this.computationNodes.size()-1;
+		return this.computationNodes.get(index);
+	}
+
+	public DepVariable getFirstPrimitiveNode() {
+		for(int i=0; i<computationNodes.size(); i++) {
+			DepVariable var = computationNodes.get(i);
+			if(var.isPrimitive()) {
+				return var;
+			}
+		}
+		
+		return computationNodes.get(0);
+	}
+
 }
