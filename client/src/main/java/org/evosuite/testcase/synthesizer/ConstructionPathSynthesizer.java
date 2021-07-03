@@ -478,7 +478,7 @@ public class ConstructionPathSynthesizer {
 			 */
 			else{
 				ArrayReference arrayRef = (ArrayReference) callerObject;
-				int index = Randomness.nextInt(10);
+				int index = Randomness.nextInt(arrayRef.getArrayLength());
 				
 //				GenericClass clazz = new GenericClass(int.class);
 //				VariableReference indexVariable = TestFactory.getInstance().
@@ -882,7 +882,7 @@ public class ConstructionPathSynthesizer {
 			if (!isPrimitiveClass(callerType)) {
 				if (!isCompatible(fieldOwner, callerType)) {
 					System.currentTimeMillis();
-					return callerObject;
+					return null;
 				}
 			}
 		}
