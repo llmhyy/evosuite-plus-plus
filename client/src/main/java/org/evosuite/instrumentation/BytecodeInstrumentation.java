@@ -21,6 +21,8 @@ package org.evosuite.instrumentation;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.evosuite.PackageInfo;
 import org.evosuite.Properties;
@@ -77,10 +79,10 @@ public class BytecodeInstrumentation {
 		this.testCarvingInstrumenter = new Instrumenter();
 	}
 
-	private BytecodeInstruction checkedInstruction;
-	public BytecodeInstrumentation(BytecodeInstruction ins) {
+	private List<BytecodeInstruction> checkedInstructions = new ArrayList<>();
+	public BytecodeInstrumentation(List<BytecodeInstruction> insList) {
 		this.testCarvingInstrumenter = new Instrumenter();
-		this.checkedInstruction = ins;
+		this.checkedInstructions = insList;
 	}
 
 	private static String[] getEvoSuitePackages() {
@@ -296,11 +298,10 @@ public class BytecodeInstrumentation {
 				logger.info("Testability Transformation done: " + className);
 			}
 			
-			if(this.checkedInstruction != null && this.checkedInstruction.getClassName().equals(classNameWithDots)) {
-				ValueRetrievalTransform st = new ValueRetrievalTransform(cn, this.checkedInstruction);
+			List<BytecodeInstruction> slice = sliceRelevantCheckingInstruction(classNameWithDots);
+			if(!slice.isEmpty()) {
+				ValueRetrievalTransform st = new ValueRetrievalTransform(cn, slice);
 				cn = st.transform();
-				
-//				cv = new CheckingInstructionClassAdapter(cv, className, this.checkedInstruction);
 			}
 
 			// -----
@@ -315,6 +316,16 @@ public class BytecodeInstrumentation {
 		}
 
 		return writer.toByteArray();
+	}
+
+	private List<BytecodeInstruction> sliceRelevantCheckingInstruction(String classNameWithDots) {
+		List<BytecodeInstruction> list = new ArrayList<>();
+		for(BytecodeInstruction ins: this.checkedInstructions) {
+			if(ins.getClassName().equals(classNameWithDots)) {
+				list.add(ins);
+			}
+		}
+		return list;
 	}
 
 	private byte[] handleCarving(String className, ClassWriter writer) {
