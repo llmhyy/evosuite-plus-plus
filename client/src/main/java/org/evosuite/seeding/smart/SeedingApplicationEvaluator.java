@@ -23,11 +23,13 @@ import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.instrumentation.BytecodeInstrumentation;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.testcase.SensitivityPreservance;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
@@ -277,7 +279,9 @@ public class SeedingApplicationEvaluator {
 				System.currentTimeMillis();
 				removeRedundancy(pathList);
 				AbstractMOSA.pathNum += pathList.size();
-				List<ComputationPath> fastChannels = analyzeFastChannels(pathList);
+				SensitivityPreservance sp = analyzeChannel(pathList, b);
+				
+				List<ComputationPath> fastChannels = new ArrayList<>();
 				
 				/** if there is a fast channel, we observe if there is any constants? 
 				 * if yes, it is static, otherwise, it is dynamic
@@ -396,7 +400,6 @@ public class SeedingApplicationEvaluator {
 			} else if (operand.isMethodCall()) {
 				MethodInsnNode mNode = (MethodInsnNode) operand.getInstruction().getASMNode();
 				if (mNode.owner.equals("org/evosuite/instrumentation/testability/StringHelper")) {
-					String calledMName = mNode.name;
 					if (nonFastChannel.isPureConstantPath())
 						constants.add(nonFastChannel.getComputationNodes().get(0));
 				}
@@ -405,97 +408,182 @@ public class SeedingApplicationEvaluator {
 
 		return constants;
 	}
+	
+	private static SensitivityPreservance analyzeChannel(List<ComputationPath> pathList, Branch targetBranch) {
+		/**
+		 * the operands corresponding to method inputs and constants
+		 */
+		List<BytecodeInstruction> auxiliaryOperands = parseRelevantOperands(targetBranch);
+		List<DepVariable> headers = retrieveHeads(pathList);
+//		System.currentTimeMillis();
+		
+//		for(BytecodeInstruction op: auxiliaryOperands) {
+//			RuntimeSensitiveVariable.observations.put(op.toString(), new ArrayList<>());
+//		}
+		
+		List<BytecodeInstruction> observations = new ArrayList<>();
+		observations.addAll(auxiliaryOperands);
+		
+		SensitivityPreservance sp = SensitivityMutator
+				.testBranchSensitivity(headers, observations, targetBranch);
+		
+		return sp;
+	}
 
-	private static List<ComputationPath> analyzeFastChannels(List<ComputationPath> pathList) {
-		List<ComputationPath> paths = new ArrayList<>();
+	private static List<DepVariable> retrieveHeads(List<ComputationPath> pathList) {
+		List<DepVariable> varList = new ArrayList<>();
 		for(ComputationPath path: pathList) {
-			
-			DepVariable head = path.getComputationNodes().get(0);
-			if(!head.isMethodInput()) {
-				continue;
-			}
-			
-			if(path.isFastChannel()) {
-				paths.add(path);
-			}
-			else {
-				boolean visitedTargetMethod = false;
-				l:
-				for(int i=path.size()-1; i>=0; i--) {
-					DepVariable var = path.getComputationNodes().get(i);
-					BytecodeInstruction ins = var.getInstruction();
-					if(ins.isMethodCall()) {
-						String method = ins.getCalledMethod();
-						
-						if(!isBooleanReturnType(method)) break;
-						if(isMethodInStopList(method)) continue;
-						if(visitedTargetMethod) continue;
-						
-						visitedTargetMethod = true;
-						String clazz = ins.getCalledMethodsClass();
-						if(clazz.equals("java.util.List")) {
-							clazz = "java.util.ArrayList";
-						}
-						
-						InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
-						String className = clazz;
-						String methodName = ins.getCalledMethod();
-						ActualControlFlowGraph graph = GraphPool.getInstance(classLoader).getActualCFG(clazz, methodName);
-						
-						Properties.ALWAYS_REGISTER_BRANCH = true;
-						if(graph == null) {
-							GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
-							graph = GraphPool.getInstance(classLoader).getActualCFG(clazz, methodName);
-						}
-						
-						if(graph != null) {
-							ControlDependenceGraph cdg = GraphPool.getInstance(classLoader).getCDG(className, methodName);
-							if(cdg == null) {
-								GraphPool.getInstance(classLoader).registerActualCFG(graph);
-								cdg = GraphPool.getInstance(classLoader).getCDG(className, methodName);
-							}
-							long t1 = System.currentTimeMillis();
-							List<Branch> relevantBranches = analyzeRelevantBranches(graph);
-							for (Branch branch : relevantBranches) {
-								List<BytecodeInstruction> ops = branch.getInstruction().getOperands();
-								
-								if(branch.toString().contains("NULL"))
-									continue;
-								
-								ops = reanalyze(ops, branch);
-								
-								DepVariable header = path.getComputationNodes().get(0);
-								
-								for (BytecodeInstruction op : ops) {
-									
-									SensitivityPreservance sp = SensitivityMutator
-											.testBranchSensitivity(header, op, path.getBranch());
-
-									if (sp.isSensitivityPreserving() && sp.isValuePreserving()) {
-										paths.add(path);
-										break l;
-									}
-								}
-								
-							}
-							long t2 = System.currentTimeMillis();
-							AbstractMOSA.cascadeAnalysisTime += t2 - t1; 
-						}
-						
-						Properties.ALWAYS_REGISTER_BRANCH = false;
-						
-					}
-				}
-				
-				System.currentTimeMillis();
+			DepVariable var = path.getFirstPrimitiveNode();
+			System.currentTimeMillis();
+			if(var != null) {
+				varList.add(var);				
 			}
 		}
 		
-		return paths;
+		return varList;
+	}
+
+	private static List<BytecodeInstruction> parseRelevantOperands(Branch targetBranch) {
+		List<BytecodeInstruction> list = new ArrayList<>();
+		parseRelevantOperands(targetBranch.getInstruction(), list);
+		
+		return list;
+	}
+	
+	
+	private static BytecodeInstruction searchFieldDefinition(BytecodeInstruction getField) {
+		
+		FieldInsnNode fNode = (FieldInsnNode) getField.getASMNode();
+		BytecodeInstruction i = getField;
+		
+		while(i != null) {
+			i = i.getPreviousInstruction();
+			
+			if(i == null) {
+				return null;
+			}
+			
+			if(i.isFieldDefinition()) {
+				FieldInsnNode iNode = (FieldInsnNode) i.getASMNode();
+				
+				
+				if(iNode.name.equals(fNode.name)) {
+					return i;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	private static void add(List<BytecodeInstruction> list, BytecodeInstruction ins) {
+		if(ins != null && !list.contains(ins)) {
+			if(!ins.isMethodCall()) {
+				list.add(ins);					
+			}
+		}
+	}
+	
+	private static void parseRelevantOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
+		
+		DepVariable var = new DepVariable(targetIns);
+		if(var.isPrimitive()) {
+			add(list, var.getInstruction());
+		}
+		
+		if(targetIns.toString().contains("NULL")){
+			return;
+		}
+		
+		if(targetIns.isMethodCall()) {
+			String methodName = targetIns.getCalledMethod();
+			if(isBooleanReturnType(methodName)) {
+				if(methodName.equals("booleanValue()Z")) {
+					BytecodeInstruction getfield = targetIns.getSourceOfMethodInvocationInstruction();
+					BytecodeInstruction setfield = searchFieldDefinition(getfield);
+					if(setfield != null) {
+						parseRelevantOperands(setfield, list);						
+					}
+				}
+				else if(methodName.equals("valueOf(Z)Ljava/lang/Boolean;")) {
+					BytecodeInstruction ins = targetIns.getOperands().get(0);
+					parseRelevantOperands(ins, list);
+				}
+				
+				String clazz = targetIns.getCalledMethodsClass();
+				
+				//TODO handle subclasses and implementation
+				if(clazz.equals("java.util.List")) {
+					clazz = "java.util.ArrayList";
+				}
+				
+				if(BytecodeInstrumentation.checkIfCanInstrument(clazz)) {
+					Properties.ALWAYS_REGISTER_BRANCH = true;
+					ActualControlFlowGraph graph = parseGraph(clazz, methodName);
+					Properties.ALWAYS_REGISTER_BRANCH = false;
+					List<BytecodeInstruction> returnInsList = findAllReturnIns(graph);
+					for (BytecodeInstruction returnIns : returnInsList) {
+						List<BytecodeInstruction> ops = returnIns.getOperands();
+						ops = reanalyze(ops);
+						for (BytecodeInstruction op : ops) {
+							if(op.isConstant()) {
+								for(Branch b: op.getControlDependentBranches()) {
+									parseRelevantOperands(b.getInstruction(), list);
+								}
+							}
+							else {
+								parseRelevantOperands(op, list);							
+							}
+						}
+					}
+				}
+				else {
+					for(BytecodeInstruction ins: targetIns.getOperands()) {
+						add(list, ins);
+					}
+					return;
+				}
+			}
+			else {
+				BytecodeInstruction ins = targetIns.getNextInstruction();
+				add(list, ins);
+				return;
+			}
+			
+			return;
+		}
+		
+		for(BytecodeInstruction ins: targetIns.getOperands()) {
+			parseRelevantOperands(ins, list);
+		}
+		
+	}
+
+	private static ActualControlFlowGraph parseGraph(String clazz,
+			String methodName) {
+		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		ActualControlFlowGraph graph = GraphPool.getInstance(classLoader).getActualCFG(clazz, methodName);
+		
+		if(graph == null) {
+			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(clazz);
+			graph = GraphPool.getInstance(classLoader).getActualCFG(clazz, methodName);
+		}
+		
+		if(graph != null) {
+			ControlDependenceGraph cdg = GraphPool.getInstance(classLoader).getCDG(clazz, methodName);
+			if(cdg == null) {
+				GraphPool.getInstance(classLoader).registerActualCFG(graph);
+				cdg = GraphPool.getInstance(classLoader).getCDG(clazz, methodName);
+			}
+			
+			return graph;
+		}
+		
+		return graph;
 	}
 
 	@SuppressWarnings("rawtypes")
-	private static List<BytecodeInstruction> reanalyze(List<BytecodeInstruction> ops, Branch branch) {
+	private static List<BytecodeInstruction> reanalyze(List<BytecodeInstruction> ops) {
 		if(ops.size() > 1) {
 			return ops;
 		}
@@ -536,10 +624,13 @@ public class SeedingApplicationEvaluator {
 
 	private static List<Branch> analyzeRelevantBranches(ActualControlFlowGraph graph) {
 		List<BytecodeInstruction> insList = graph.getAllInstructions();
-		List<BytecodeInstruction> returnInsList = findAllReturnIns(insList);
+		List<BytecodeInstruction> returnInsList = findAllReturnIns(graph);
 		
 		List<Branch> branches = new ArrayList<>();
 		for(BytecodeInstruction returnIns: returnInsList) {
+			
+			
+			
 			for(ControlDependency dep: returnIns.getControlDependencies()) {
 				if(dep != null && !branches.contains(dep.getBranch())) {
 					branches.add(dep.getBranch());
@@ -550,7 +641,8 @@ public class SeedingApplicationEvaluator {
 		return branches;
 	}
 
-	private static List<BytecodeInstruction> findAllReturnIns(List<BytecodeInstruction> insList) {
+	private static List<BytecodeInstruction> findAllReturnIns(ActualControlFlowGraph graph) {
+		List<BytecodeInstruction> insList = graph.getAllInstructions();
 		List<BytecodeInstruction> returnInsList = new ArrayList<>();
 		for(BytecodeInstruction ins: insList) {
 			if(ins.isReturn()) {
@@ -561,7 +653,8 @@ public class SeedingApplicationEvaluator {
 	}
 
 	private static boolean isMethodInStopList(String method) {
-		if(method.equals("booleanValue()Z") || method.equals("valueOf(Z)Ljava/lang/Boolean;")) {
+		if(method.equals("booleanValue()Z") || 
+				method.equals("valueOf(Z)Ljava/lang/Boolean;")) {
 			return true;
 		}
 		return false;
@@ -589,97 +682,6 @@ public class SeedingApplicationEvaluator {
 		}
 		
 		return list.get(list.size()-1);
-//		System.currentTimeMillis();
-//		List<String> fastpathTypes = new ArrayList<>();
-//		BytecodeInstruction input = computationNodes.get(0).getInstruction();
-//		BytecodeInstruction oprand = computationNodes.get(computationNodes.size() - 1).getInstruction();
-//		BytecodeInstruction oprates = computationNodes.get(computationNodes.size() - 2).getInstruction();
-//		
-//		if(computationNodes.get(0).isParameter()) {
-//			String inputTypes = input.getVariableName();
-//			int i = Integer.parseInt(inputTypes.split("LV_")[1]);
-//			String[] separateTypes = MethodUtil.parseSignature(input.getMethodName());
-//			String inputType = separateTypes[i - 1];
-//			fastpathTypes.add(inputType);
-//			System.currentTimeMillis();
-//		}
-//		if(oprand.isInvokeSpecial() || oprand.isInvokeStatic()) {
-//			DepVariable lastNode = computationNodes.get(computationNodes.size() - 2);
-//			int i = relationNum(lastNode);
-//			String[] outputTypes = MethodUtil.parseSignature(oprand.getMethodName());
-//			String outputType = outputTypes[i];
-//			fastpathTypes.add(outputType);
-//			return finalType(outputType);
-//		}
-		
-		
-		
-//		return null;
-	}
-
-	private static int relationNum(DepVariable lastNode) {
-		List<DepVariable>[] relations = lastNode.getRelations();
-		for(int i = 0; i < relations.length; i++) {
-			if(relations[i] != null)
-				return i;
-		}
-		return 0;
-	}
-
-//	private static String getConstantDataType(ComputationPath otherPath) {
-//		BytecodeInstruction ins = otherPath.getInstruction(0);
-//		String types[] = ins.getASMNodeString().split(" ");
-//		for(String i : types) {
-//			if(i.equals("LDC")) {
-//				LdcInsnNode node =  (LdcInsnNode)ins.getASMNode();
-//				Object cst = node.cst;
-//				return finalType(cst.getClass().getName());
-//			}
-//			switch(i){
-//				case "BYTE":
-//				case "DOUBLE":
-//				case "FLOAT":
-//				case "INT":
-//				case "LONG":
-//				case "SHORT":
-//				case "STRING":
-//					return i.toLowerCase();
-//				default:
-//					return "OTHER".toLowerCase();
-//				}
-//		}
-//			
-//		return null;
-//	}
-	
-	private static String getConstantDataType(Object obj) {
-		if(!(obj instanceof DepVariable)) {
-			return "OTHER".toLowerCase();
-		}
-		DepVariable var = (DepVariable) obj;
-		BytecodeInstruction ins = var.getInstruction();
-		String types[] = ins.getASMNodeString().split(" ");
-		for(String i : types) {
-			if(i.equals("LDC")) {
-				LdcInsnNode node =  (LdcInsnNode)ins.getASMNode();
-				Object cst = node.cst;
-				return finalType(cst.getClass().getName());
-			}
-			switch(i){
-				case "BYTE":
-				case "DOUBLE":
-				case "FLOAT":
-				case "INT":
-				case "LONG":
-				case "SHORT":
-				case "STRING":
-					return i.toLowerCase();
-				default:
-					return "OTHER".toLowerCase();
-				}
-		}
-			
-		return null;
 	}
 
 	public static String finalType(String name) {

@@ -1,6 +1,8 @@
 package org.evosuite.instrumentation.testability;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +16,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
@@ -23,7 +26,7 @@ public class ValueRetrievalTransform {
 	private static Logger logger = LoggerFactory.getLogger(ValueRetrievalTransform.class);
 
 	private final ClassNode cn;
-	private BytecodeInstruction ins;
+	private List<BytecodeInstruction> insList;
 
 	/**
 	 * <p>
@@ -33,9 +36,9 @@ public class ValueRetrievalTransform {
 	 * @param cn
 	 *            a {@link org.objectweb.asm.tree.ClassNode} object.
 	 */
-	public ValueRetrievalTransform(ClassNode cn, BytecodeInstruction ins) {
+	public ValueRetrievalTransform(ClassNode cn, List<BytecodeInstruction> insList) {
 		this.cn = cn;
-		this.ins = ins;
+		this.insList = insList;
 	}
 
 	/**
@@ -50,15 +53,29 @@ public class ValueRetrievalTransform {
 		for (MethodNode mn : methodNodes) {
 			
 			String methodName = mn.name + mn.desc;
-			if(methodName.equals(ins.getMethodName())) {
+			
+			List<BytecodeInstruction> list = countInstruction(this.insList, methodName);
+			int size = list.size();
+			if(size != 0) {
 				if (transformMethod(cn, mn)) {
-					mn.maxStack = mn.maxStack + 10;
+					mn.maxStack = mn.maxStack + 10 * size;
 					System.currentTimeMillis();
-				}				
+				}	
 			}
+			
 		}
 
 		return cn;
+	}
+
+	private List<BytecodeInstruction> countInstruction(List<BytecodeInstruction> insList2, String methodName) {
+		List<BytecodeInstruction> l = new ArrayList<>();
+		for(BytecodeInstruction ins: insList2) {
+			if(ins.getMethodName().equals(methodName)) {
+				l.add(ins);
+			}
+		}
+		return l;
 	}
 
 	/**
@@ -68,77 +85,102 @@ public class ValueRetrievalTransform {
 	 */
 	private boolean transformMethod(ClassNode cn, MethodNode mn) {
 		logger.info("Current method: " + mn.name);
-		if (ins.getASMNode().getOpcode() == Opcodes.LDC) {
-			return false;
-		}
 		
-		List<BytecodeInstruction> list = ins.getActualCFG().getAllInstructions();
+		String methodName = mn.name + mn.desc;
+		List<BytecodeInstruction> observationList = countInstruction(this.insList, methodName);
+		observationList.sort(new Comparator<BytecodeInstruction>() {
+			@Override
+			public int compare(BytecodeInstruction o1, BytecodeInstruction o2) {
+				return o1.getInstructionId() - o2.getInstructionId();
+			}
+		});
+		
+		
+		System.currentTimeMillis();
+		
+		List<BytecodeInstruction> allInstructions = observationList.get(0).getActualCFG().getAllInstructions();
 		AbstractInsnNode[] instructions = mn.instructions.toArray();
 		
-		int normalizedIndex = 0;
-		for(int i=0; i<ins.getInstructionId(); i++) {
-			BytecodeInstruction ins0 = list.get(i);
-			AbstractInsnNode node0 = instructions[normalizedIndex];
+		for(BytecodeInstruction observation: observationList) {
+//			if (ins.getASMNode().getOpcode() == Opcodes.LDC) {
+//				return false;
+//			}
 			
-			if (ins0.getASMNode().getOpcode() == node0.getOpcode()) {
-				normalizedIndex++;
+			int normalizedIndex = 0;
+			
+			for(int i=0; i<observation.getInstructionId(); i++) {
+				BytecodeInstruction ins = allInstructions.get(i);
+				AbstractInsnNode normalizedNode = instructions[normalizedIndex];
+				if (ins.getASMNode().getOpcode() == normalizedNode.getOpcode()) {
+					normalizedIndex++;
+				}
+				else {
+					System.currentTimeMillis();
+					System.currentTimeMillis();
+				}
 			}
-		}
-		
-		if (normalizedIndex < 0 || normalizedIndex >= instructions.length - 1) {
-			return false;
-		}
-		
-		if (instructions[normalizedIndex].getOpcode() == Opcodes.INSTANCEOF) {
-			normalizedIndex -= 1;
-		}
-		
-		AbstractInsnNode node = instructions[normalizedIndex];
-		AbstractInsnNode nextNode = instructions[normalizedIndex+1];
-		
-		if (ins.getASMNode().getOpcode() != node.getOpcode()) {
-			return false;
-		}
-		
-		// 1. Duplicate value
-		Type instructionType = getInstructionType(node);
-		InsnNode dupNode;
-		if (instructionType == Type.DOUBLE_TYPE || instructionType == Type.LONG_TYPE) {
-			dupNode = new InsnNode(Opcodes.DUP2);
-		} else {
-			dupNode = new InsnNode(Opcodes.DUP);
-		}
-		mn.instructions.insertBefore(nextNode, dupNode);
-		
-		// 2. Instruction is primitive typed - cast value to its Object type
-		if (isPrimitive(instructionType)) {
-			Class<?> typeObjectClass = getTypeObjectClass(instructionType);
-			System.currentTimeMillis();
-			MethodInsnNode valueOf = new MethodInsnNode(
+			
+			if (normalizedIndex < 0 || normalizedIndex >= instructions.length - 1) {
+				continue;
+			}
+			
+			if (instructions[normalizedIndex].getOpcode() == Opcodes.INSTANCEOF) {
+				normalizedIndex -= 1;
+			}
+			
+			AbstractInsnNode node = instructions[normalizedIndex];
+			AbstractInsnNode nextNode = instructions[normalizedIndex+1];
+			
+			if (observation.getASMNode().getOpcode() != node.getOpcode()) {
+				continue;
+			}
+			
+			// 1. Duplicate value
+			Type instructionType = getInstructionType(node);
+			InsnNode dupNode;
+			if (instructionType == Type.DOUBLE_TYPE || instructionType == Type.LONG_TYPE) {
+				dupNode = new InsnNode(Opcodes.DUP2);
+			} else {
+				dupNode = new InsnNode(Opcodes.DUP);
+			}
+			mn.instructions.insertBefore(nextNode, dupNode);
+			
+			// 2. Instruction is primitive typed - cast value to its Object type
+			if (isPrimitive(instructionType)) {
+				Class<?> typeObjectClass = getTypeObjectClass(instructionType);
+				System.currentTimeMillis();
+				MethodInsnNode valueOf = new MethodInsnNode(
+				        Opcodes.INVOKESTATIC,
+				        Type.getInternalName(typeObjectClass),
+				        "valueOf",
+				        Type.getMethodDescriptor(Type.getType(typeObjectClass),
+				                                 new Type[] {
+				                                         instructionType, 
+				        						}), 
+				        false);
+				mn.instructions.insertBefore(nextNode, valueOf);
+			}
+			
+//			System.currentTimeMillis();
+			
+			// 3. Insert RuntimeSensitiveVariable.setTailValue()
+			
+			LdcInsnNode ldcNode = new LdcInsnNode(observation.toString());
+			mn.instructions.insertBefore(nextNode, ldcNode);
+			MethodInsnNode setObservation = new MethodInsnNode(
 			        Opcodes.INVOKESTATIC,
-			        Type.getInternalName(typeObjectClass),
-			        "valueOf",
-			        Type.getMethodDescriptor(Type.getType(typeObjectClass),
+			        Type.getInternalName(RuntimeSensitiveVariable.class),
+			        "setObservation",
+			        Type.getMethodDescriptor(Type.VOID_TYPE,
 			                                 new Type[] {
-			                                         instructionType, 
+			                                		 Type.getType(Object.class),
+			                                		 Type.getType(String.class), 
 			        						}), 
 			        false);
-			mn.instructions.insertBefore(nextNode, valueOf);
+			mn.instructions.insertBefore(nextNode, setObservation);
+			
+//			break;
 		}
-		
-//		System.currentTimeMillis();
-		
-		// 3. Insert RuntimeSensitiveVariable.setTailValue()
-		MethodInsnNode setTailValue = new MethodInsnNode(
-		        Opcodes.INVOKESTATIC,
-		        Type.getInternalName(RuntimeSensitiveVariable.class),
-		        "setTailValue",
-		        Type.getMethodDescriptor(Type.VOID_TYPE,
-		                                 new Type[] {
-		                                         Type.getType(Object.class), 
-		        						}), 
-		        false);
-		mn.instructions.insertBefore(nextNode, setTailValue);
 		
 		AbstractInsnNode[] newInstructions = mn.instructions.toArray();		
 		return true;
