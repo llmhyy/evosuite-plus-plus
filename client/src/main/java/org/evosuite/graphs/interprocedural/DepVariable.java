@@ -944,6 +944,11 @@ public class DepVariable {
 			return "long";
 		case "SALOAD":
 			return "short";
+		case "GETFIELD":
+		case "GETSTATIC":
+			FieldInsnNode fNode = (FieldInsnNode) this.instruction.getASMNode();
+			String desc = fNode.desc;
+			return MethodUtil.convertType(desc);
 		}
 		
 		return BranchSeedInfo.OTHER;
@@ -956,6 +961,32 @@ public class DepVariable {
 				this.getInstruction().explain().toLowerCase().contains("cast") ||
 				this.getInstruction().explain().toLowerCase().contains("store") ||
 				this.getInstruction().explain().toLowerCase().contains("dup")) {
+			return true;
+		}
+		
+		return false;
+	}
+
+
+	public boolean isPrimitive() {
+		String type = inferType(this.getInstruction().getInstructionType());
+		
+		if(type.equals(BranchSeedInfo.BYTE) ||
+				type.equals(BranchSeedInfo.CHARACTER) ||
+				type.equals(BranchSeedInfo.DOUBLE) ||
+				type.equals(BranchSeedInfo.FLOAT) ||
+				type.equals(BranchSeedInfo.INT) ||
+				type.equals(BranchSeedInfo.LONG) ||
+				type.equals(BranchSeedInfo.SHORT) ||
+				type.equals(BranchSeedInfo.STRING) ||
+				type.equals(BranchSeedInfo.TBYTE) ||
+				type.equals(BranchSeedInfo.TCHARACTER) ||
+				type.equals(BranchSeedInfo.TDOUBLE) ||
+				type.equals(BranchSeedInfo.TFLOAT) ||
+				type.equals(BranchSeedInfo.TINT) ||
+				type.equals(BranchSeedInfo.TLONG) ||
+				type.equals(BranchSeedInfo.TSHORT) ||
+				type.equals(BranchSeedInfo.TSTRING)) {
 			return true;
 		}
 		
