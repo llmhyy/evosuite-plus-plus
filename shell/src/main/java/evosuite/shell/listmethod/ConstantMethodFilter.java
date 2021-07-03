@@ -9,9 +9,13 @@ import java.util.List;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.classpath.ClassPathHandler;
+import org.evosuite.graphs.GraphPool;
+import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.seeding.ConstantPoolManager;
 import org.evosuite.seeding.StaticConstantPool;
 import org.evosuite.setup.DependencyAnalysis;
+import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
@@ -29,9 +33,9 @@ public class ConstantMethodFilter extends MethodFlagCondFilter {
 	private ExcelWriter writer;
 
 	public ConstantMethodFilter() {
-		Properties.INSTRUMENT_CONTEXT = true;
-		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
-		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = false;
+//		Properties.INSTRUMENT_CONTEXT = true;
+//		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
+//		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = false;
 
 		String statisticFile = new StringBuilder(Settings.getReportFolder()).append(File.separator)
 				.append(EvosuiteForMethod.projectId).append(excelProfileSubfix).toString();
@@ -50,15 +54,33 @@ public class ConstantMethodFilter extends MethodFlagCondFilter {
 			ClassNode cn) throws AnalyzerException, IOException, ClassNotFoundException {
 		log.debug(String.format("#Method %s#%s", className, methodName));
 
+		DependencyAnalysis.clear();
+		poolClear();
+
+		String[] parameters = MethodUtil.parseSignature(methodName);
+		boolean hasPrimitiveTypeOrString = false;
+		if (parameters.length <= 1)
+			return false;
+		else {
+			for (int i = 0; i < parameters.length - 1; i++) {
+				if (isPrimitive(parameters[i])) {
+					hasPrimitiveTypeOrString = true;
+					break;
+				}
+			}
+		}
+
+		if (!hasPrimitiveTypeOrString)
+			return false;
+
 //        // Get actual CFG for target method
-//        ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className,
-//                methodName);
-//        if (cfg == null) {
-//            BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
-//            bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
-//            bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
-//            cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-//        }
+		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+		if (cfg == null) {
+			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+			bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
+			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+		}
 //        
 //        // Get instructions for target method
 //        BytecodeInstructionPool insPool = BytecodeInstructionPool.getInstance(classLoader);
@@ -77,15 +99,43 @@ public class ConstantMethodFilter extends MethodFlagCondFilter {
 			e.printStackTrace();
 		}
 
-		for (int i = 0; i < 3; i++) {
-			if (ConstantPoolManager.pools[i] instanceof StaticConstantPool) {
-				StaticConstantPool pool = (StaticConstantPool) ConstantPoolManager.pools[i];
-				if (pool.poolSize() > 200) {
-					logToExcel(className, methodName, pool.poolSize());
-					pool.clear();
-					return true;
+		if (getIfBranchesInMethod(cfg).size() != 0) {
+			for (int j = 0; j < 2; j++) {
+				if (ConstantPoolManager.pools[j] instanceof StaticConstantPool) {
+					StaticConstantPool pool = (StaticConstantPool) ConstantPoolManager.pools[j];
+					if (pool.poolSize() > 200) {
+						logToExcel(className, methodName, pool.poolSize());
+						poolClear();
+						return true;
+					}
 				}
 			}
+
+		}
+
+		return false;
+	}
+	
+	private void poolClear() {
+		for (int j = 0; j < 2; j++) {
+			if (ConstantPoolManager.pools[j] instanceof StaticConstantPool) {
+				StaticConstantPool pool = (StaticConstantPool) ConstantPoolManager.pools[j];
+				pool.clear();
+			}
+		}
+	}
+
+	private static boolean isPrimitive(String inputType) {
+		if (inputType.equals(int.class.toString()) || inputType.equals(long.class.toString())// LONG
+				|| inputType.equals(float.class.toString()) || inputType.equals(double.class.toString())
+				|| inputType.equals(char.class.toString()) || inputType.equals(boolean.class.toString())// BOOLEAN
+				|| inputType.equals(byte.class.toString()) || inputType.equals(short.class.toString())) {
+			return true;
+		}
+
+		// String
+		if (inputType.contains("java.lang.String")) {
+			return true;
 		}
 
 		return false;

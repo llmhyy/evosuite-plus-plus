@@ -18,7 +18,7 @@ public class SF100OverallTest {
 	public static long allConsumeTime;
 	@Before
 	public void beforeTest() {
-		Properties.CLIENT_ON_THREAD = true;
+//		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
@@ -58,7 +58,7 @@ public class SF100OverallTest {
 		};
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 200;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

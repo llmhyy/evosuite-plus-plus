@@ -47,4 +47,9 @@ public class ExperimentRecorder {
 		// TODO Auto-generated method stub
 		
 	}
+
+	public void recordCoverageOnDiffTime() {
+		// TODO Auto-generated method stub
+		
+	}
 }
