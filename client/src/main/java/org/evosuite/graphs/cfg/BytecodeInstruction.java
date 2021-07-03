@@ -441,6 +441,8 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	public List<BytecodeInstruction> getOperands() {
 		List<BytecodeInstruction> operands = new ArrayList<>();
 		Frame frame = this.getFrame();
+		
+		if(frame == null) return operands;
 
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(this.getClassName(),
