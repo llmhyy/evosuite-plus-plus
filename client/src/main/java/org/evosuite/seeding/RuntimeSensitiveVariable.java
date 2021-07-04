@@ -10,7 +10,9 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 public class RuntimeSensitiveVariable {
 //	public static Object headValue;
 //	public static Object tailValue;
-	
+	/**
+	 * map: bytecode-instruction --> list<value> (multiple iterations)
+	 */
 	public static Map<String, List<Object>> observations = new HashMap<>();
 	
 //	public static void setHeadValue(Object obj) {

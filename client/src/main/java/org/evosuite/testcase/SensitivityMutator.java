@@ -157,85 +157,41 @@ public class SensitivityMutator {
 	private static SensitivityPreservance checkPreservance(Branch branch, TestChromosome newTestChromosome, List<DepVariable> rootVariables,
 			List<BytecodeInstruction> observations, ConstructionPathSynthesizer synthensizer) {
 		
-		DepVariable rootVariable = rootVariables.get(0);
-		
 		SensitivityPreservance preservance = new SensitivityPreservance();
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
 		
+		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
+			Map<String, Object> recordInput = constructInputValues(rootVariables, newTestChromosome, map);
+			
+			long t1 = System.currentTimeMillis();
+			Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
+			long t2 = System.currentTimeMillis();
+			AbstractMOSA.getFirstTailValueTime += t2 - t1;
+			
+			ObservationRecord record = new ObservationRecord(recordInput, observationMap);
+			preservance.recordList.add(record);
+		}
+		
+		return preservance;
+	}
+
+	private static Map<String, Object> constructInputValues(List<DepVariable> rootVariables,
+			TestChromosome newTestChromosome, Map<DepVariableWrapper, List<VariableReference>> map) {
+		Map<String, Object> m = new HashMap<>();
 		/**
 		 * TODO for Cheng Yan, need to change it to multiple heads
 		 */
-		Statement relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
-		Object headValue = retrieveHeadValue(relevantStatement);
-		long t1 = System.currentTimeMillis();
-		Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
-		long t2 = System.currentTimeMillis();
-		AbstractMOSA.getFirstTailValueTime += t2 - t1;
-		
-		if(observationMap.isEmpty()) {
-			return preservance;
+		for(DepVariable var: rootVariables) {
+			Statement relevantStatement = locateRelevantStatement(var, newTestChromosome, map);
+			Object headValue = retrieveHeadValue(relevantStatement);		
+			/**
+			 * TODO what if the head value is null?
+			 */
+			m.put(var.getInstruction().toString(), headValue);
 		}
 		
-		/**
-		 * TODO for Cheng Yan, need to change multiple heads to achieve the runtime results.
-		 */
-		Object tailValue = observationMap.values().iterator().next();
-		boolean valuePreserving = checkValuePreserving(headValue, tailValue);
-
-		HeadValue = headValue;
-		TailValue = tailValue;
-		preservance.addHead(headValue);
-		preservance.addTail(tailValue);
-
-		if (tailValue == null) {
-			return preservance;
-		}
-
-		if (relevantStatement == null) {
-			return preservance;
-		}
-
-		double valuePreservingNum = 0;
-		double sensivityPreservingNum = 0;
-		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
-			boolean isSuccessful = relevantStatement.mutate(newTestChromosome.getTestCase(), TestFactory.getInstance());
-			if (isSuccessful) {
-				relevantStatement = locateRelevantStatement(rootVariable, newTestChromosome, map);
-				Object newHeadValue = retrieveHeadValue(relevantStatement);
-				t1 = System.currentTimeMillis();
-				Object newTailValue = evaluateObservations(branch, observations, newTestChromosome);
-				t2 = System.currentTimeMillis();
-				AbstractMOSA.all10MutateTime += t2 - t1;
-				preservance.addHead(newHeadValue);
-				preservance.addTail(newTailValue);
-				
-				valuePreserving = checkValuePreserving(newHeadValue, newTailValue);
-
-				boolean sensivityPreserving = false;
-				if (newTailValue == null || tailValue == null) {
-					sensivityPreserving = false;
-				} else if (newHeadValue == null || headValue == null) {
-					sensivityPreserving = !newTailValue.equals(tailValue);
-				} else {
-					sensivityPreserving = !newHeadValue.equals(headValue) && !newTailValue.equals(tailValue);
-				}
-
-				if (valuePreserving) {
-					valuePreservingNum += 1;
-				}
-
-				if (sensivityPreserving) {
-					sensivityPreservingNum += 1;
-				}
-			}
-		}
-		double vpRatio = valuePreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
-		double spRatio = sensivityPreservingNum / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
-
-		preservance.sensivityPreserRatio = spRatio;
-		preservance.valuePreservingRatio = vpRatio;
-
-		return preservance;
+		
+		return m;
 	}
 
 	public static SensitivityPreservance testBranchSensitivity(/* Set<FitnessFunction<?>> fitness, */

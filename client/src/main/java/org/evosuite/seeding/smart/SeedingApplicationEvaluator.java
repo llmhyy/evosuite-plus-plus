@@ -413,16 +413,13 @@ public class SeedingApplicationEvaluator {
 		/**
 		 * the operands corresponding to method inputs and constants
 		 */
-		List<BytecodeInstruction> auxiliaryOperands = parseRelevantOperands(targetBranch);
+		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		List<DepVariable> headers = retrieveHeads(pathList);
 //		System.currentTimeMillis();
 		
 //		for(BytecodeInstruction op: auxiliaryOperands) {
 //			RuntimeSensitiveVariable.observations.put(op.toString(), new ArrayList<>());
 //		}
-		
-		List<BytecodeInstruction> observations = new ArrayList<>();
-		observations.addAll(auxiliaryOperands);
 		
 		SensitivityPreservance sp = SensitivityMutator
 				.testBranchSensitivity(headers, observations, targetBranch);

@@ -6,37 +6,36 @@ import java.util.List;
 import org.evosuite.Properties;
 
 public class SensitivityPreservance {
-//	public boolean valuePreserving = false;
-//	public boolean sensivityPreserving = false;
 	public double valuePreservingRatio = 0;
 	public double sensivityPreserRatio = 0;
 
-	public List<Object> tailValues = new ArrayList<>();
-	public List<Object> headValues = new ArrayList<>();
+	public List<ObservationRecord> recordList = new ArrayList<>();
 	
-	public void addTail(Object value) {
-		this.tailValues.add(value);
+	public void addRecord(ObservationRecord value) {
+		this.recordList.add(value);
 	}
-	
-	public void addHead(Object value) {
-		this.headValues.add(value);
-	}
-	
-//	public boolean isFastChannel() {
-//		if(isValuePreserving()) {
-//			return true;
-//		}
-//		
-//		if(isSensitivityPreserving()) {
-//			boolean isValueSimilar()
-//		}
-//	}
 	
 	public boolean isValuePreserving() {
+		/**
+		 * TODO Cheng Yan
+		 */
 		return valuePreservingRatio > Properties.VALUE_PRESERVING_THRESHOLD;
 	}
 	
+	// String is just the bytecode instruction (toString)
+	public List<String> getUseableConstants(){
+		/**
+		 * TODO Cheng Yan
+		 */
+		return null;
+	}
+	
 	public boolean isSensitivityPreserving() {
+		/**
+		 * TODO Cheng Yan
+		 */
 		return sensivityPreserRatio > Properties.SENSITIVITY_PRESERVING_THRESHOLD;
 	}
+	
+	
 }
