@@ -33,3 +33,11 @@ shell/.tmp_file_needed_by_mock_of_FileHandler.3
 shell/.tmp_file_needed_by_mock_of_FileHandler.2
 shell/.tmp_file_needed_by_mock_of_FileHandler
 shell/.tmp_file_needed_by_mock_of_FileHandler.1
+generated/.classpath
+generated/.settings/org.eclipse.jdt.core.prefs
+generated/.classpath
+generated/.settings/org.eclipse.jdt.core.prefs
+plugins/maven/.classpath
+plugins/maven/.settings/org.eclipse.jdt.core.prefs
+generated/.settings/org.eclipse.jdt.core.prefs
+*.prefs

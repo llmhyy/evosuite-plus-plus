@@ -28,6 +28,7 @@ import org.evosuite.testcase.statements.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.*;
 
 public class ExecutionResult implements Cloneable {

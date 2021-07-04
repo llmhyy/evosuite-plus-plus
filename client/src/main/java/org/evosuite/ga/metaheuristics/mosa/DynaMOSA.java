@@ -36,6 +36,7 @@ import org.evosuite.ga.comparators.NonduplicationComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
 import org.evosuite.result.ExceptionResult;
+import org.evosuite.result.ExceptionResultBranch;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
@@ -64,8 +65,6 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	protected CrowdingDistance<T> distance = new CrowdingDistance<T>();
 
 	protected ExceptionBranchEnhancer<T> exceptionBranchEnhancer = new ExceptionBranchEnhancer<T>(goalsManager);
-	
-	protected ExceptionResult<T> exceptionResult = new ExceptionResult<>();
 	
 	/**
 	 * Constructor based on the abstract class {@link AbstractMOSA}.
@@ -188,7 +187,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		 * we can debug by setting break points here.
 		 */
 		printBestFitness();
-		collectExceptionResults(this.currentIteration);
+		collectExceptionResultsForIteration(currentIteration);
 
 		this.currentIteration++;
 		// logger.debug("N. fronts = {}", ranking.getNumberOfSubfronts());
@@ -271,7 +270,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		return goalToBestTest;
 	}
 	
-	private void collectExceptionResults(int currentIteration) {
+	private void collectExceptionResultsForIteration(int currentIteration) {
 		Map<FitnessFunction<T>, T> bestTestMap = generateBestTestMap();
 		
 		for (Entry<FitnessFunction<T>, T> entry : bestTestMap.entrySet()) {
@@ -288,7 +287,6 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			exceptionResult.updateExceptionResult(currentIteration, fitnessFunction, testChromosome);
 		}
 	}
-
 	
 	/**
 	 * {@inheritDoc}

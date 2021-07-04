@@ -762,7 +762,10 @@ public class TestSuiteGenerator {
 					+ "Writing JUnit test case '" + (name + suffix) + "' to " + testDir);
 			suiteWriter.writeTestSuite(name + suffix, testDir, testSuite.getLastExecutionResults());
 		}
-		return TestGenerationResultBuilder.buildSuccessResult(testSuite);
+		TestGenerationResult toReturn = TestGenerationResultBuilder.buildSuccessResult(testSuite);
+		toReturn.setExceptionResult(testSuite.getExceptionResult());
+		
+		return toReturn;
 	}
 
 	/**

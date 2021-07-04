@@ -33,6 +33,7 @@ import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.result.seedexpr.Event;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
 
 class TestGenerationResultImpl implements TestGenerationResult {
 
@@ -120,6 +121,17 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	private List<BranchDistributionInformation> branchInformation;
 	
 	private Map<String, Boolean> methodCallAvailabilityMap = new HashMap<>();
+	
+	private ExceptionResult<TestChromosome> exceptionResult;
+	
+	public ExceptionResult<TestChromosome> getExceptionResult() {
+		return this.exceptionResult;
+	}
+	
+	public void setExceptionResult(ExceptionResult<TestChromosome> exceptionResult) {
+		this.exceptionResult = exceptionResult;
+	}
+	
 	
 	/** Did test generation succeed? */
 	public Status getTestGenerationStatus() {

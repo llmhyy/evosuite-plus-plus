@@ -52,6 +52,7 @@ import org.evosuite.ga.operators.mutation.MutationHistory;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.result.BranchDynamicAnalyzer;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.ExceptionResult;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.seeding.smart.SmartSeedBranchUpdateManager;
@@ -110,6 +111,11 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	 */
 	protected long initializationOverhead = 0;
 
+	/**
+	 * Data object containing exception related results.
+	 */
+	protected ExceptionResult<T> exceptionResult = new ExceptionResult<>();
+	
 	/**
 	 * Constructor.
 	 * 
@@ -684,6 +690,10 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		
 		best.setIPFlagCoverage(1-IPFlagCoverage);
 
+		if (exceptionResult != null) {
+			best.setExceptionResult((ExceptionResult<TestChromosome>) exceptionResult);
+		}
+		
         return (T) best;
     }
     
@@ -818,5 +828,4 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		String r = signature.substring(signature.indexOf(")") + 1);
 		return r;
 	}
-    
 }

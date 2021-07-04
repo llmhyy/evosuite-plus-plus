@@ -6,8 +6,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -25,10 +28,15 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.ga.FitnessFunction;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.ExceptionResult;
+import org.evosuite.result.ExceptionResultBranch;
 import org.evosuite.result.Failure;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.seedexpr.Event;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.ProgramArgumentUtils;
 import org.slf4j.Logger;
@@ -665,6 +673,7 @@ public class EvosuiteForMethod {
 			for (List<TestGenerationResult> l : list) {
 				for (TestGenerationResult r : l) {
 					printResult(r);
+					printExceptionResult(r);
 					
 					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), r.getAge(), r.getAvailabilityRatio(),
 							r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
@@ -678,42 +687,6 @@ public class EvosuiteForMethod {
 					result.setCoveredBranchWithTest(r.getCoveredBranchWithTest());
 					result.setEventSequence(r.getEventSequence());
 					
-					// Exception-based code
-					int numberOfInMethodExceptions = 0;
-					int numberOfOutMethodExceptions = 0;
-					
-					// Hacky method in lieu of a better way
-					// without exposing TestGenerationResult internals
-					// this assumes that test cases are named in consecutive order
-					for (int i = 0; ; i++) {
-						String testCaseName = "test" + i;
-						boolean isTestCaseExists = (r.getTestCase(testCaseName) != null);
-						if (!isTestCaseExists) {
-							break;
-						}
-						
-						Set<Failure> contractViolations = r.getContractViolations(testCaseName);
-						boolean isContractViolationsExists = (contractViolations != null);
-						if (!isContractViolationsExists) {
-							break;
-						}
-						
-						for (Failure failure : contractViolations) {
-							boolean isInMethodException = isInMethodException(failure, className, methodName);
-							if (isInMethodException) {
-								numberOfInMethodExceptions++;
-							} else {
-								numberOfOutMethodExceptions++;
-							}
-						}
-					}
-					
-					result.setNumberOfInMethodExceptions(numberOfInMethodExceptions);
-					result.setNumberOfOutMethodExceptions(numberOfOutMethodExceptions);
-					
-					System.out.println("Number of in-method exceptions: " + numberOfInMethodExceptions);
-					System.out.println("Number of out-method exceptions: " + numberOfOutMethodExceptions);
-					
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
 						recorder.recordSeedingToJson(className, methodName, result);
@@ -722,6 +695,7 @@ public class EvosuiteForMethod {
 				}
 			}
 		} catch (Exception e) {
+			System.out.println(e.toString());
 			for (ExperimentRecorder recorder : recorders) {
 				recorder.recordError(className, methodName, e);
 			}
@@ -730,6 +704,72 @@ public class EvosuiteForMethod {
 		return result;
 	}
 
+	private static boolean isBranchCovered(FitnessFunction<TestChromosome> fitnessFunction, TestGenerationResult testGenerationResult) {
+		BranchCoverageTestFitness branchCoverageTestFitnessFunction;
+		Set<BranchInfo> coveredBranches = testGenerationResult.getCoveredBranches();
+		try {
+			branchCoverageTestFitnessFunction = (BranchCoverageTestFitness) fitnessFunction;
+		} catch (Exception e) {
+			System.out.println(e.toString());
+			return false;
+		}
+		
+		int lineNumber = branchCoverageTestFitnessFunction.getBranchGoal().getLineNumber();
+		for (BranchInfo coveredBranch : coveredBranches) {
+			if (lineNumber == coveredBranch.getLineNo()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private static Map<String, Integer> getExceptionTypesAndCount(Set<Throwable> exceptions) {
+		Map<String, Integer> toReturn = new HashMap<>();
+		
+		for (Throwable exception : exceptions) {
+			String exceptionType = exception.getClass().getCanonicalName();
+			Integer count = toReturn.get(exceptionType);
+			if (count == null) {
+				toReturn.put(exceptionType, 1);
+			} else {
+				toReturn.put(exceptionType, count + 1);
+			}		
+		}
+		
+		return toReturn;
+	}
+	
+	public static void printExceptionResult(TestGenerationResult testGenerationResult) {
+		ExceptionResult<TestChromosome> exceptionResult = testGenerationResult.getExceptionResult();
+		for (ExceptionResultBranch<TestChromosome> branch : exceptionResult.getAllResults()) {
+			String branchName = branch.getFitnessFunction().toString();
+			boolean isBranchCovered = isBranchCovered(branch.getFitnessFunction(), testGenerationResult);
+			int numberOfIterations = branch.getNumberOfIterations();
+			int numberOfExceptions = branch.getNumberOfExceptions();
+			int numberOfInMethodExceptions = branch.getNumberOfInMethodExceptions();
+			int numberOfOutMethodExceptions = branch.getNumberOfOutMethodExceptions();
+			
+			Set<Throwable> inMethodExceptions = branch.getInMethodExceptions();
+			Set<Throwable> outMethodExceptions = branch.getOutMethodExceptions();
+			Map<String, Integer> inMethodExceptionsTypeAndCount = getExceptionTypesAndCount(inMethodExceptions);
+			Map<String, Integer> outMethodExceptionsTypeAndCount = getExceptionTypesAndCount(outMethodExceptions);
+			
+			
+			System.out.println("Branch: " + branchName);
+			System.out.println("  " + "- Covered? " + (isBranchCovered ? "Yes" : "No"));
+			System.out.println("  " + "- Number of iterations: " + numberOfIterations);
+			System.out.println("  " + "- Number of exceptions: " + numberOfExceptions);
+			System.out.println("  " + "- Number of in-method exceptions: " + numberOfInMethodExceptions);
+			for (Entry<String, Integer> entry : inMethodExceptionsTypeAndCount.entrySet()) {
+				System.out.println("    " + "- " + entry.getKey() + ": " + entry.getValue());
+			}
+			System.out.println("  - Number of out-method exceptions: " + numberOfOutMethodExceptions);
+			for (Entry<String, Integer> entry : outMethodExceptionsTypeAndCount.entrySet()) {
+				System.out.println("    " + "- " + entry.getKey() + ": " + entry.getValue());
+			}
+		}
+	}
+	
 	public static void printResult(TestGenerationResult r) {
 		System.out.println("Initial Coverage: " + r.getInitialCoverage());
 		System.out.println("Initialization Time: " + r.getInitializationOverhead());
@@ -758,22 +798,5 @@ public class EvosuiteForMethod {
 		}
 		
 		System.out.println("Errors:" + r.getErrorMessage());
-	}
-	
-	private boolean isInMethodException(Failure failure, String className, String methodName) {
-		// The method name passed in usually has some additional decorators, we need to strip those off
-		// to do a comparison against the one in the Failure.
-		boolean isMethodNameContainsAdditionalDecorators = methodName.contains("(");
-		if (isMethodNameContainsAdditionalDecorators) {
-			methodName = methodName.split(Pattern.quote("("))[0];
-		}
-		
-		String failureClassName = failure.getClassName();
-		String failureMethodName = failure.getMethodName();
-		
-		boolean isClassNameMatch = failureClassName.equals(className);
-		boolean isMethodNameMatch = failureMethodName.equals(methodName);
-		
-		return isClassNameMatch && isMethodNameMatch;
 	}
 }

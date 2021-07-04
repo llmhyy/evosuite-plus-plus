@@ -35,6 +35,7 @@ import org.evosuite.ga.SecondaryObjective;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.ExceptionResult;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -78,7 +79,9 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private List<BranchInfo> missingBranches = new ArrayList<BranchInfo>();
 	
 	private Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
-
+	
+	// Used for tracking exception-related data.
+	private ExceptionResult<TestChromosome> exceptionResult;
 	/**
 	 * Add an additional secondary objective to the end of the list of
 	 * objectives
@@ -471,7 +474,12 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest) {
 		this.coveredBranchWithTest = coveredBranchWithTest;
 	}
-
 	
-
+	public void setExceptionResult(ExceptionResult<TestChromosome> exceptionResult) {
+		this.exceptionResult = exceptionResult;
+	}
+	
+	public ExceptionResult<TestChromosome> getExceptionResult() {
+		return exceptionResult;
+	}
 }

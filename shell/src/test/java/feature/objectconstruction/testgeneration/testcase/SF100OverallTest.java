@@ -110,6 +110,7 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testJiggler() {
+		System.out.println("Hello world!");
 		String projectId = SF100Project.P89;
 		String[] targetMethods = new String[]{
 				// "jigl.image.MIPMap#get(FFF)[F",
@@ -119,7 +120,7 @@ public class SF100OverallTest {
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 60;
+		int budget = 30;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
@@ -139,13 +140,13 @@ public class SF100OverallTest {
 		String[] targetMethods = new String[]{
 				// "net.sourceforge.ifxfv3.beans.USA_ACHProf#equals(Ljava/lang/Object;)Z",
 				// "net.sourceforge.ifxfv3.beans.Term#equals(Ljava/lang/Object;)Z",
-				"net.sourceforge.ifxfv3.beans.PmtAckInfo#equals(Ljava/lang/Object;)Z",
+				// "net.sourceforge.ifxfv3.beans.PmtAckInfo#equals(Ljava/lang/Object;)Z",
 				// "net.sourceforge.ifxfv3.beans.TotalFeeCharge_Type#equals(Ljava/lang/Object;)Z"
 		};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 5;
-		int budget = 150;
+		int repeatTime = 1;
+		int budget = 30;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

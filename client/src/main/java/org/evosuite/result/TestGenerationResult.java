@@ -30,6 +30,7 @@ import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.result.seedexpr.Event;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
 
 public interface TestGenerationResult extends Serializable {
 
@@ -147,7 +148,9 @@ public interface TestGenerationResult extends Serializable {
 	public Map<BranchInfo, String> getCoveredBranchWithTest();
 	public void setCoveredBranchWithTest(Map<BranchInfo, String> coveredBranchWithTest);
 
-	
 	public List<Event> getEventSequence();
 	public void setEventSequence(List<Event> events);
+	
+	public ExceptionResult<TestChromosome> getExceptionResult();
+	public void setExceptionResult(ExceptionResult<TestChromosome> exceptionResult);
 }
