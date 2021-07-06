@@ -281,6 +281,37 @@ public class SeedingApplicationEvaluator {
 				AbstractMOSA.pathNum += pathList.size();
 				SensitivityPreservance sp = analyzeChannel(pathList, b);
 				
+				if (sp.isValuePreserving()) {
+					List<String> constants = sp.getUseableConstants();
+					if (constants != null)
+						sp.useConstants = true;
+					
+					if (sp.useConstants) {
+						for (ComputationPath p : pathList) {
+							DepVariable var = p.getFirstPrimitiveNode();
+							if (var != null) {
+								String ins = var.getInstruction().toString();
+								if (constants.contains(ins.split(" Type=")[0].split(" ", 4)[3])) {
+									String type = finalType(var.getDataType());
+									BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
+									cache.put(b, branchInfo);
+									System.out.println("type:" + b + ":" + type);
+									return branchInfo;
+								}
+							}
+						}
+					} else {
+						for(Object o : sp.types) {
+							String type = finalType(o.toString());
+							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
+							cache.put(b, branchInfo);
+							System.out.println("type:" + b + ":" + type);
+							return branchInfo;
+						}
+					}
+
+				}
+				
 				List<ComputationPath> fastChannels = new ArrayList<>();
 				
 				/** if there is a fast channel, we observe if there is any constants? 

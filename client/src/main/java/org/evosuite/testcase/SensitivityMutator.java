@@ -161,15 +161,16 @@ public class SensitivityMutator {
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
 		
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
-			Map<String, Object> recordInput = constructInputValues(rootVariables, newTestChromosome, map);
 			
-			long t1 = System.currentTimeMillis();
+//			long t1 = System.currentTimeMillis();
 			Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
-			long t2 = System.currentTimeMillis();
-			AbstractMOSA.getFirstTailValueTime += t2 - t1;
+			Map<String, Object> recordInput = constructInputValues(rootVariables, newTestChromosome, map);
+//			long t2 = System.currentTimeMillis();
+//			AbstractMOSA.getFirstTailValueTime += t2 - t1;
 			
 			ObservationRecord record = new ObservationRecord(recordInput, observationMap);
-			preservance.recordList.add(record);
+//			preservance.recordList.add(record);
+			preservance.addRecord(record);
 		}
 		
 		return preservance;
@@ -187,7 +188,16 @@ public class SensitivityMutator {
 			/**
 			 * TODO what if the head value is null?
 			 */
+			if(headValue == null) {
+				headValue = "N/A";
+			}
+			if(relevantStatement != null) {
+				relevantStatement.mutate(newTestChromosome.getTestCase(), TestFactory.getInstance());
+			}
+				
 			m.put(var.getInstruction().toString(), headValue);
+			
+			
 		}
 		
 		
@@ -479,7 +489,13 @@ public class SensitivityMutator {
 		newTestChromosome.clearCachedResults();
 		fitness.getFitness(newTestChromosome);
 		
-		return RuntimeSensitiveVariable.observations;
+		Map<String, List<Object>> res = new HashMap<>();
+		for(String s:RuntimeSensitiveVariable.observations.keySet()) {
+			res.put(s, RuntimeSensitiveVariable.observations.get(s));
+		}
+		
+		RuntimeSensitiveVariable.observations.clear();
+		return res;
 
 	}
 
