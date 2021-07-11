@@ -280,32 +280,27 @@ public class SeedingApplicationEvaluator {
 				removeRedundancy(pathList);
 				AbstractMOSA.pathNum += pathList.size();
 				SensitivityPreservance sp = analyzeChannel(pathList, b);
-				
-				if (sp.isValuePreserving()) {
-					List<String> constants = sp.getUseableConstants();
-					if (constants != null)
+				System.currentTimeMillis();
+				if (sp.isValuePreserving() || sp.isSensitivityPreserving()) {
+					System.currentTimeMillis();
+					List<Class<?>> constantsClass = sp.getUseableConstants();
+					if (constantsClass.size() != 0)
 						sp.useConstants = true;
 					
 					if (sp.useConstants) {
-						for (ComputationPath p : pathList) {
-							DepVariable var = p.getFirstPrimitiveNode();
-							if (var != null) {
-								String ins = var.getInstruction().toString();
-								if (constants.contains(ins.split(" Type=")[0].split(" ", 4)[3])) {
-									String type = finalType(var.getDataType());
-									BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
-									cache.put(b, branchInfo);
-									System.out.println("type:" + b + ":" + type);
-									return branchInfo;
-								}
-							}
+						for(Class<?> cla : constantsClass) {
+							String type = finalType(cla.toString());
+							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
+							cache.put(b, branchInfo);
+							System.out.println("STATIC_POOL type:" + b + ":" + type);
+							return branchInfo;
 						}
 					} else {
 						for(Object o : sp.types) {
 							String type = finalType(o.toString());
 							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
 							cache.put(b, branchInfo);
-							System.out.println("type:" + b + ":" + type);
+							System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
 							return branchInfo;
 						}
 					}
@@ -525,7 +520,8 @@ public class SeedingApplicationEvaluator {
 		
 		if(targetIns.isMethodCall()) {
 			String methodName = targetIns.getCalledMethod();
-			if(isBooleanReturnType(methodName)) {
+			String calledClass =targetIns.getCalledMethodsClass();
+			if(isBooleanReturnType(methodName) || isBooleanReturnClass(calledClass)) {
 				if(methodName.equals("booleanValue()Z")) {
 					BytecodeInstruction getfield = targetIns.getSourceOfMethodInvocationInstruction();
 					BytecodeInstruction setfield = searchFieldDefinition(getfield);
@@ -576,6 +572,7 @@ public class SeedingApplicationEvaluator {
 				BytecodeInstruction ins = targetIns.getNextInstruction();
 				add(list, ins);
 				return;
+				
 			}
 			
 			return;
@@ -585,6 +582,13 @@ public class SeedingApplicationEvaluator {
 			parseRelevantOperands(ins, list);
 		}
 		
+		if(targetIns.getOperands().size() == 0)
+			add(list, targetIns);
+	}
+
+	private static boolean isBooleanReturnClass(String calledClass) {
+		String className = calledClass.split("\\.")[calledClass.split("\\.").length - 1];
+		return className.equals("ContainerHelper") || className.equals("StringHelper");
 	}
 
 	private static ActualControlFlowGraph parseGraph(String clazz,
@@ -689,8 +693,10 @@ public class SeedingApplicationEvaluator {
 	}
 
 	public static boolean isBooleanReturnType(String method) {
-		String returnType = method.substring(method.indexOf(")")+1, method.length());
-		return returnType.equals("Z") || returnType.equals("Ljava/lang/Boolean;");
+		String returnType = method.substring(method.indexOf(")") + 1, method.length());
+		return returnType.equals("Z") || returnType.equals("Ljava/lang/Boolean;")
+				|| method.equals("StringEquals(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;I)I")
+				|| method.equals("StringStartsWith(Ljava/lang/String;Ljava/lang/String;I)I");
 	}
 
 	private static String getDynamicDataType(ComputationPath otherPath) {

@@ -24,32 +24,62 @@ public class SensitivityPreservance {
 		/**
 		 * TODO Cheng Yan
 		 */
-		for (ObservationRecord ob : recordList) {
-			boolean valuePreserving = ob.compare();
-			if (valuePreserving) {
-				valuePreservingRatio++;
-				if (!types.contains(ob.type))
-					types.add(ob.type);
+		getInputAndObservationsNum();
+		int recordNum = getObservationRecordNum();
+		System.currentTimeMillis();
+		l: 
+		for (int i = 0; i < ObservationRecord.inputNum; i++) {
+			// input num
+			for (int j = 0; j < ObservationRecord.observationNum; j++) {
+				valuePreservingRatio = 0;
+				// observation num
+				for (ObservationRecord ob : recordList) {
+					boolean valuePreserving = ob.compare(i, j);
+					if (valuePreserving) {
+						valuePreservingRatio++;
+						if ((valuePreservingRatio == Properties.DYNAMIC_SENSITIVITY_THRESHOLD
+								|| valuePreservingRatio == recordNum) && !types.contains(ob.type)) {
+							types.add(ob.type);
+							break l;
+						}
+					}
+				}
 			}
 		}
 		valuePreservingRatio = valuePreservingRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
-		return valuePreservingRatio > Properties.VALUE_PRESERVING_THRESHOLD;
+		return valuePreservingRatio > 0;
 	}
 	
 	// String is just the bytecode instruction (toString)
-	public List<String> getUseableConstants(){
+	public List<Class<?>> getUseableConstants(){
 		/**
 		 * TODO Cheng Yan
 		 * 
 		 */
 		useConstants = false;
-		List<String> list = new ArrayList<>();
-		for(ObservationRecord ob :recordList) {
-			String li= ob.useOfConstants();
-			if(li != null && !list.contains(li))
-				list.add(li);
+		List<Class<?>> list = new ArrayList<>();
+		int recordNum = getObservationRecordNum();
+		l: 
+		for (int i = 0; i < ObservationRecord.inputNum; i++) {
+			// input num
+			for (int j = 0; j < ObservationRecord.observationNum; j++) {
+				int count = 0;
+				// observation num
+				for (ObservationRecord ob : recordList) {
+//					System.currentTimeMillis();
+					Class<?> li = ob.useOfConstants(i, j);
+					if (li != null && !list.contains(li)) {
+						count++;
+						if ((count == Properties.DYNAMIC_SENSITIVITY_THRESHOLD || count == recordNum)
+								&& !list.contains(li)) {
+							list.add(li);
+							break l;
+						}
+					}
+				}
+			}
 		}
-		
+				
 		return list;
 	}
 	
@@ -57,8 +87,50 @@ public class SensitivityPreservance {
 		/**
 		 * TODO Cheng Yan
 		 */
+		getInputAndObservationsNum();
+		l: 
+		for (int i = 0; i < ObservationRecord.inputNum; i++) {
+			// input num
+			for (int j = 0; j < ObservationRecord.observationNum; j++) {
+				sensivityPreserRatio = 0;
+				// observation num
+				for (ObservationRecord ob : recordList) {
+					boolean valuePreserving = ob.isSensitive(i, j);
+					if (valuePreserving) {
+						sensivityPreserRatio++;
+						double ratio = sensivityPreserRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
+						if (ratio > Properties.SENSITIVITY_PRESERVING_THRESHOLD
+								&& !types.contains(ob.type)) {
+							types.add(ob.type);
+							break l;
+						}
+					}
+				}
+			}
+		}
+		sensivityPreserRatio = sensivityPreserRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
 		return sensivityPreserRatio > Properties.SENSITIVITY_PRESERVING_THRESHOLD;
 	}
 	
+	public void getInputAndObservationsNum() {
+		if(recordList.size() != 0) {
+			recordList.get(0).getInputNum();
+			
+			int observationsNum = 0;
+			for(ObservationRecord r : recordList) {
+				if(r.getObservationsNum() > observationsNum)
+					observationsNum = r.getObservationsNum();
+			}
+			ObservationRecord.observationNum = observationsNum;
+		}
+	}
 	
+	public int getObservationRecordNum() {
+		int i = 0;
+		for(ObservationRecord r : recordList) {
+			if(r.observations.size() > 0)
+				i++;
+		}
+		return i;
+	}
 }

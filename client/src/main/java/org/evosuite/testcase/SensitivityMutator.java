@@ -165,15 +165,26 @@ public class SensitivityMutator {
 //			long t1 = System.currentTimeMillis();
 			Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
 			Map<String, Object> recordInput = constructInputValues(rootVariables, newTestChromosome, map);
+			Map<String, Boolean> InputConstant = constructInputType(rootVariables, newTestChromosome, map);
 //			long t2 = System.currentTimeMillis();
 //			AbstractMOSA.getFirstTailValueTime += t2 - t1;
 			
-			ObservationRecord record = new ObservationRecord(recordInput, observationMap);
+			ObservationRecord record = new ObservationRecord(recordInput, observationMap, InputConstant);
 //			preservance.recordList.add(record);
 			preservance.addRecord(record);
 		}
 		
 		return preservance;
+	}
+
+	private static Map<String, Boolean> constructInputType(List<DepVariable> rootVariables,
+			TestChromosome newTestChromosome, Map<DepVariableWrapper, List<VariableReference>> map) {
+		Map<String, Boolean> m = new HashMap<>();
+		for(DepVariable var: rootVariables) {				
+			m.put(var.getInstruction().toString(), var.getInstruction().isConstant());			
+		}
+		
+		return m;
 	}
 
 	private static Map<String, Object> constructInputValues(List<DepVariable> rootVariables,
@@ -196,7 +207,6 @@ public class SensitivityMutator {
 			}
 				
 			m.put(var.getInstruction().toString(), headValue);
-			
 			
 		}
 		
@@ -344,7 +354,7 @@ public class SensitivityMutator {
 //	}
 
 
-	private static boolean checkValuePreserving(Object headValue, Object tailValue) {
+	public static boolean checkValuePreserving(Object headValue, Object tailValue) {
 		// TODO need to define the similarity of different value
 		if (headValue == null || tailValue == null) {
 			return false;
