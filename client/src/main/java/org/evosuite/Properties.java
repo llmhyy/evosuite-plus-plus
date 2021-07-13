@@ -166,7 +166,7 @@ public class Properties {
 	public static boolean APPLY_CHAR_POOL = false;
 	
 	@Parameter(key = "value_similiarity_threshold", group = "Test Creation", description = "compare whether the tail value is simlar to the head value in smart seed application")
-	public static final double VALUE_SIMILARITY_THRESHOLD = 0.8;
+	public static final double VALUE_SIMILARITY_THRESHOLD = 0.7;
 	
 	@Parameter(key = "dynamic_sensitivity_threshold", group = "Test Creation", description = "the number of times to test sensitivity and value change of an operand regarding a method input")
 	public static final int DYNAMIC_SENSITIVITY_THRESHOLD = 10;

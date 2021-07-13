@@ -51,7 +51,7 @@ public class SmartSeedBranchUpdateManager {
 		totalUncoveredGoals = uncoveredGoal;
 		
 		double ratio = infoSet.size()*1.0 / uncoveredGoals.size()*1.0 ;
-		Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 - ratio);
+		Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + ratio);
 		
 	}
 	

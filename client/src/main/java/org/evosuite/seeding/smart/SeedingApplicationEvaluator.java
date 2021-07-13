@@ -276,13 +276,11 @@ public class SeedingApplicationEvaluator {
 					pathList.addAll(computationPathList);
 				}
 				
-				System.currentTimeMillis();
+//				System.currentTimeMillis();
 				removeRedundancy(pathList);
 				AbstractMOSA.pathNum += pathList.size();
 				SensitivityPreservance sp = analyzeChannel(pathList, b);
-				System.currentTimeMillis();
 				if (sp.isValuePreserving() || sp.isSensitivityPreserving()) {
-					System.currentTimeMillis();
 					List<Class<?>> constantsClass = sp.getUseableConstants();
 					if (constantsClass.size() != 0)
 						sp.useConstants = true;
@@ -293,6 +291,7 @@ public class SeedingApplicationEvaluator {
 							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
 							cache.put(b, branchInfo);
 							System.out.println("STATIC_POOL type:" + b + ":" + type);
+							sp.clear();
 							return branchInfo;
 						}
 					} else {
@@ -301,11 +300,13 @@ public class SeedingApplicationEvaluator {
 							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
 							cache.put(b, branchInfo);
 							System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
+							sp.clear();
 							return branchInfo;
 						}
 					}
 
 				}
+				sp.clear();
 				
 				List<ComputationPath> fastChannels = new ArrayList<>();
 				
@@ -449,7 +450,7 @@ public class SeedingApplicationEvaluator {
 		
 		SensitivityPreservance sp = SensitivityMutator
 				.testBranchSensitivity(headers, observations, targetBranch);
-		
+
 		return sp;
 	}
 

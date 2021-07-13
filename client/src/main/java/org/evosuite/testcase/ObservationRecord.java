@@ -42,22 +42,25 @@ public class ObservationRecord {
 	 * @param j 
 	 * @param i 
 	 */
-	public boolean compare(int i, int j) {
+	public boolean[] compare(int i, int j) {
+		boolean[] value = {false,false};//valuePreserving,observationIsNotNull
 		String inKey = (String)inputs.keySet().toArray()[i];
 		Object in = inputs.get(inKey);
 
 		if(observations.keySet().size() == 0)
-			return true;
+			return value;
 		
+		value[1] = true;
 		String obKey = (String)observations.keySet().toArray()[j];		
 
 		for(Object ob:observations.get(obKey)) {
 			if(in.equals(ob)) {
 				type = ob.getClass();
-				return true;
+				value[0] = true;
+				return value;
 			}
 		}
-		return false;
+		return value;
 	}
 	
 	
@@ -71,17 +74,23 @@ public class ObservationRecord {
 		if(!inputConstant.get(inKey))
 			return null;
 		String constantValue;
-		if(inKey.contains(" Type="))
+		if (inKey.contains(" Type="))
 			constantValue = inKey.split(" Type=")[0].split(" ", 4)[3];
-		else
+		else 
 			constantValue = inKey.split(" ")[2].split("_")[1];
 		
+
 		if(observations.keySet().size() == 0)
 			return null;
 		
 		String obKey = (String)observations.keySet().toArray()[j];		
 		for(Object ob:observations.get(obKey)) {
 			if(constantValue.equals(ob.toString())) {
+				if(ob instanceof Integer) {
+					int o = (int) ob;
+					if(o < 10)
+						return null;
+				}
 				return ob.getClass();
 			}
 		}
@@ -132,7 +141,7 @@ public class ObservationRecord {
 		Object in = inputs.get(inKey);
 
 		if(observations.keySet().size() == 0)
-			return true;
+			return false;
 		
 		String obKey = (String)observations.keySet().toArray()[j];		
 

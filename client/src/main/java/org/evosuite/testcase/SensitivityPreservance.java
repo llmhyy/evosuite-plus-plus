@@ -26,7 +26,10 @@ public class SensitivityPreservance {
 		 */
 		getInputAndObservationsNum();
 		int recordNum = getObservationRecordNum();
-		System.currentTimeMillis();
+		if(recordNum  == 0) {
+			System.out.println("recordNum is 0!");
+			return false;
+		}
 		l: 
 		for (int i = 0; i < ObservationRecord.inputNum; i++) {
 			// input num
@@ -34,20 +37,22 @@ public class SensitivityPreservance {
 				valuePreservingRatio = 0;
 				// observation num
 				for (ObservationRecord ob : recordList) {
-					boolean valuePreserving = ob.compare(i, j);
-					if (valuePreserving) {
+					boolean[] valuePreserving = ob.compare(i, j);
+					if (valuePreserving[0]) {
 						valuePreservingRatio++;
 						if ((valuePreservingRatio == Properties.DYNAMIC_SENSITIVITY_THRESHOLD
 								|| valuePreservingRatio == recordNum) && !types.contains(ob.type)) {
 							types.add(ob.type);
 							break l;
 						}
+					}else if(valuePreserving[1]) {
+						break;
 					}
 				}
 			}
 		}
-		valuePreservingRatio = valuePreservingRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
-		return valuePreservingRatio > 0;
+//		valuePreservingRatio = valuePreservingRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
+		return (valuePreservingRatio == Properties.DYNAMIC_SENSITIVITY_THRESHOLD || valuePreservingRatio == recordNum) ;
 	}
 	
 	// String is just the bytecode instruction (toString)
@@ -88,6 +93,11 @@ public class SensitivityPreservance {
 		 * TODO Cheng Yan
 		 */
 		getInputAndObservationsNum();
+		int recordNum = getObservationRecordNum();
+		if(recordNum  == 0) {
+			System.out.println("recordNum is 0!");
+			return false;
+		}
 		l: 
 		for (int i = 0; i < ObservationRecord.inputNum; i++) {
 			// input num
@@ -95,11 +105,12 @@ public class SensitivityPreservance {
 				sensivityPreserRatio = 0;
 				// observation num
 				for (ObservationRecord ob : recordList) {
-					boolean valuePreserving = ob.isSensitive(i, j);
-					if (valuePreserving) {
+					boolean sensivity = ob.isSensitive(i, j);
+					if (sensivity) {
 						sensivityPreserRatio++;
-						double ratio = sensivityPreserRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
-						if (ratio > Properties.SENSITIVITY_PRESERVING_THRESHOLD
+						if (((sensivityPreserRatio
+								/ Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= 0.5
+								|| sensivityPreserRatio == recordNum)
 								&& !types.contains(ob.type)) {
 							types.add(ob.type);
 							break l;
@@ -109,7 +120,7 @@ public class SensitivityPreservance {
 			}
 		}
 		sensivityPreserRatio = sensivityPreserRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
-		return sensivityPreserRatio > Properties.SENSITIVITY_PRESERVING_THRESHOLD;
+		return sensivityPreserRatio > 0;//Properties.VALUE_SIMILARITY_THRESHOLD;
 	}
 	
 	public void getInputAndObservationsNum() {
@@ -132,5 +143,10 @@ public class SensitivityPreservance {
 				i++;
 		}
 		return i;
+	}
+	
+	public void clear() {
+		this.recordList.clear();
+		this.types.clear();
 	}
 }

@@ -170,8 +170,13 @@ public class SensitivityMutator {
 //			AbstractMOSA.getFirstTailValueTime += t2 - t1;
 			
 			ObservationRecord record = new ObservationRecord(recordInput, observationMap, InputConstant);
-//			preservance.recordList.add(record);
 			preservance.addRecord(record);
+			if(observationMap.size() == 0 && i == 1) {
+				if(preservance.recordList.get(0).observations.size() == 0) {
+					System.out.println("observations is null!");
+					return preservance;
+				}		
+			}
 		}
 		
 		return preservance;

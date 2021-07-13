@@ -26,8 +26,8 @@ public class SmartSeedRuntimeTest {
 		Properties.TIMEOUT = 10000000;
 		Properties.ENABLE_TRACEING_EVENT = true;
 		
-		Properties.APPLY_GRADEINT_ANALYSIS = true;
-		Properties.CHROMOSOME_LENGTH = 5;
+//		Properties.APPLY_GRADEINT_ANALYSIS = true;
+//		Properties.CHROMOSOME_LENGTH = 5;
 	}
 	
 	@Test
@@ -736,12 +736,12 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
-		int budget = 100;
+		int repeatTime = 3;
+		int budget = 1000;
 		Long seed = null;
 				
 		boolean aor = false;
-		boolean ass = true;
+		boolean ass = false;
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
