@@ -45,14 +45,13 @@ public class SensitivityMutator {
 	public static String className;
 	public static String methodName;
 
-	
 	public static TestCase initializeTest(TestFactory testFactory, boolean allowNullValue) {
 		TestCase test = new DefaultTestCase();
 		int success = -1;
 		long t1 = System.currentTimeMillis();
 		while (test.size() == 0 || success == -1) {
 			long t2 = System.currentTimeMillis();
-			if((t2 - t1)/1000 > 10)
+			if ((t2 - t1) / 1000 > 10)
 				return null;
 			test = new DefaultTestCase();
 			success = testFactory.insertRandomStatement(test, 0);
@@ -86,16 +85,16 @@ public class SensitivityMutator {
 
 		System.currentTimeMillis();
 	}
-	
+
 	public static SensitivityPreservance testBranchSensitivity(ComputationPath path) {
 		Branch branch = path.getBranch();
-		
+
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
-		if(test == null) {
-			return new SensitivityPreservance();
+		if (test == null) {
+			return new SensitivityPreservance(0, 0);
 		}
 		String methodCall = test.getStatement(test.size() - 1).toString();
-		while(!methodCall.equals(Properties.TARGET_METHOD)) {
+		while (!methodCall.equals(Properties.TARGET_METHOD)) {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 			methodCall = test.getStatement(test.size() - 1).toString();
 		}
@@ -105,11 +104,11 @@ public class SensitivityMutator {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		TestChromosome oldTestChromosome = new TestChromosome();
 		oldTestChromosome.setTestCase(test);
 
-		SensitivityPreservance preservingList = new SensitivityPreservance();
+		SensitivityPreservance preservingList = new SensitivityPreservance(0, 0);
 
 		TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
 		DepVariable rootVariable = path.getComputationNodes().get(0);
@@ -117,32 +116,32 @@ public class SensitivityMutator {
 
 		List<BytecodeInstruction> observations = new ArrayList<>();
 		observations.add(tailInstruction);
-		
+
 		List<DepVariable> vars = new ArrayList<>();
 		vars.add(rootVariable);
 		preservingList = checkPreservance(branch, newTestChromosome, vars, observations, synthensizer);
 		return preservingList;
 	}
-	
+
 	public static SensitivityPreservance testBranchSensitivity(List<DepVariable> rootVariables,
 			List<BytecodeInstruction> observingValues, Branch branch) {
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
-		if(test == null) {
-			return new SensitivityPreservance();
+		if (test == null) {
+			return new SensitivityPreservance(0, 0);
 		}
 		String methodCall = test.getStatement(test.size() - 1).toString();
-		while(!methodCall.equals(Properties.TARGET_METHOD)) {
+		while (!methodCall.equals(Properties.TARGET_METHOD)) {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 			methodCall = test.getStatement(test.size() - 1).toString();
 		}
-			
+
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		TestChromosome oldTestChromosome = new TestChromosome();
 		oldTestChromosome.setTestCase(test);
 
@@ -150,45 +149,50 @@ public class SensitivityMutator {
 		System.currentTimeMillis();
 		TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
 
-		SensitivityPreservance preservingList = checkPreservance(branch, newTestChromosome, rootVariables, observingValues, synthensizer);
+		SensitivityPreservance preservingList = checkPreservance(branch, newTestChromosome, rootVariables,
+				observingValues, synthensizer);
 		return preservingList;
 	}
-	
-	private static SensitivityPreservance checkPreservance(Branch branch, TestChromosome newTestChromosome, List<DepVariable> rootVariables,
-			List<BytecodeInstruction> observations, ConstructionPathSynthesizer synthensizer) {
+
+	private static SensitivityPreservance checkPreservance(Branch branch, TestChromosome newTestChromosome,
+			List<DepVariable> rootVariables, List<BytecodeInstruction> observations,
+			ConstructionPathSynthesizer synthensizer) {
+
+		SensitivityPreservance preservance = new SensitivityPreservance(observations.size(), rootVariables.size());
 		
-		SensitivityPreservance preservance = new SensitivityPreservance();
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
-		
+
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
-			
+
 //			long t1 = System.currentTimeMillis();
 			Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
 			Map<String, Object> recordInput = constructInputValues(rootVariables, newTestChromosome, map);
 			Map<String, Boolean> InputConstant = constructInputType(rootVariables, newTestChromosome, map);
 //			long t2 = System.currentTimeMillis();
 //			AbstractMOSA.getFirstTailValueTime += t2 - t1;
-			
+
 			ObservationRecord record = new ObservationRecord(recordInput, observationMap, InputConstant);
 			preservance.addRecord(record);
-			if(observationMap.size() == 0 && i == 1) {
-				if(preservance.recordList.get(0).observations.size() == 0) {
+			
+			//TODO Cheng Yan refactor this, now the obsevation will always have a complete size
+			if (observationMap.size() == 0 && i == 1) {
+				if (preservance.recordList.get(0).observations.size() == 0) {
 					System.out.println("observations is null!");
 					return preservance;
-				}		
+				}
 			}
 		}
-		
+
 		return preservance;
 	}
 
 	private static Map<String, Boolean> constructInputType(List<DepVariable> rootVariables,
 			TestChromosome newTestChromosome, Map<DepVariableWrapper, List<VariableReference>> map) {
 		Map<String, Boolean> m = new HashMap<>();
-		for(DepVariable var: rootVariables) {				
-			m.put(var.getInstruction().toString(), var.getInstruction().isConstant());			
+		for (DepVariable var : rootVariables) {
+			m.put(var.getInstruction().toString(), var.getInstruction().isConstant());
 		}
-		
+
 		return m;
 	}
 
@@ -198,37 +202,36 @@ public class SensitivityMutator {
 		/**
 		 * TODO for Cheng Yan, need to change it to multiple heads
 		 */
-		for(DepVariable var: rootVariables) {
+		for (DepVariable var : rootVariables) {
 			Statement relevantStatement = locateRelevantStatement(var, newTestChromosome, map);
-			Object headValue = retrieveHeadValue(relevantStatement);		
+			Object headValue = retrieveHeadValue(relevantStatement);
 			/**
 			 * TODO what if the head value is null?
 			 */
-			if(headValue == null) {
+			if (headValue == null) {
 				headValue = "N/A";
 			}
-			if(relevantStatement != null) {
+			if (relevantStatement != null) {
 				relevantStatement.mutate(newTestChromosome.getTestCase(), TestFactory.getInstance());
 			}
-				
+
 			m.put(var.getInstruction().toString(), headValue);
-			
+
 		}
-		
-		
+
 		return m;
 	}
 
 	public static SensitivityPreservance testBranchSensitivity(/* Set<FitnessFunction<?>> fitness, */
 			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch, ComputationPath path0) {
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
-		if(test == null) {
-			return new SensitivityPreservance();
+		if (test == null) {
+			return new SensitivityPreservance(0, 0);
 		}
-		
+
 		System.currentTimeMillis();
 		String methodCall = test.getStatement(test.size() - 1).toString();
-		while(!methodCall.equals(Properties.TARGET_METHOD)) {
+		while (!methodCall.equals(Properties.TARGET_METHOD)) {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 			methodCall = test.getStatement(test.size() - 1).toString();
 		}
@@ -255,7 +258,7 @@ public class SensitivityMutator {
 			paths = branchWithBDChanged.get(branch);
 		}
 
-		SensitivityPreservance preservingList = new SensitivityPreservance();
+		SensitivityPreservance preservingList = new SensitivityPreservance(0, 0);
 		if (paths == null) {
 			return preservingList;
 		}
@@ -282,14 +285,14 @@ public class SensitivityMutator {
 			List<DepVariable> vars = new ArrayList<>();
 			vars.add(rootVariable);
 			preservingList = checkPreservance(branch, newTestChromosome, vars, observations, synthensizer);
-			if(preservingList.isSensitivityPreserving() || preservingList.isValuePreserving()) {
+			if (preservingList.isSensitivityPreserving() || preservingList.isValuePreserving()) {
 				return preservingList;
 			}
 		}
 
 		return preservingList;
 	}
-	
+
 //	private static SensitivityPreservance testHeadTailValue(Branch branch, TestChromosome newTestChromosome, DepVariable rootVariable,
 //			BytecodeInstruction tailInstruction, ConstructionPathSynthesizer synthensizer) {
 //		SensitivityPreservance preservance = new SensitivityPreservance();
@@ -358,7 +361,6 @@ public class SensitivityMutator {
 //		return preservance;
 //	}
 
-
 	public static boolean checkValuePreserving(Object headValue, Object tailValue) {
 		// TODO need to define the similarity of different value
 		if (headValue == null || tailValue == null) {
@@ -390,7 +392,7 @@ public class SensitivityMutator {
 		String tail = tailValue.toString();
 		if (getSimilarityRatio(head, tail) >= Properties.VALUE_SIMILARITY_THRESHOLD) {
 			return true;
-		} 
+		}
 //		else {
 //			int changedLength = 0;
 //			for(int i = 0;i < preservance.headValues.size();i++) {
@@ -418,18 +420,19 @@ public class SensitivityMutator {
 
 	private static float getSimilarityRatio(String head, String tail) {
 		// TODO Edit Distance
-		if(head == null || tail == null) return 0;
+		if (head == null || tail == null)
+			return 0;
 		int max = Math.max(head.length(), tail.length());
 		float score = 1 - (float) compare(head, tail) / max;
-		
+
 		/**
-		 * normalize the score when the max length is too small, which
-		 * results in that 0.5, 0.67, 0.75 are large score.
+		 * normalize the score when the max length is too small, which results in that
+		 * 0.5, 0.67, 0.75 are large score.
 		 */
-		if(max <= 3) {
-			score = score * (1 + 1.0f / (float)max);
+		if (max <= 3) {
+			score = score * (1 + 1.0f / (float) max);
 		}
-		
+
 		return score;
 	}
 
@@ -467,48 +470,55 @@ public class SensitivityMutator {
 		return (one = one < two ? one : two) < three ? one : three;
 	}
 
-	private static Map<String, List<Object>> evaluateObservations(Branch branch, List<BytecodeInstruction> observations, TestChromosome newTestChromosome) {
+	private static Map<String, List<Object>> evaluateObservations(Branch branch, List<BytecodeInstruction> observations,
+			TestChromosome newTestChromosome) {
 		Set<FitnessFunction<?>> set = new HashSet<>();
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(branch, true);
 		set.add(ff);
-		for(FitnessFunction<?> f: set) {
+		for (FitnessFunction<?> f : set) {
 			newTestChromosome.addFitness(f);
 		}
 		FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, newTestChromosome);
-		
+
 		InstrumentingClassLoader newClassLoader = new InstrumentingClassLoader(observations);
-		
-		for(BytecodeInstruction ins: observations) {
-			DependencyAnalysis.addTargetClass(ins.getClassName());			
+
+		for (BytecodeInstruction ins : observations) {
+			DependencyAnalysis.addTargetClass(ins.getClassName());
 		}
-		for(Statement s: newTestChromosome.getTestCase()) {
+		for (Statement s : newTestChromosome.getTestCase()) {
 			String className = s.getReturnType().getTypeName();
-			if(!className.contains(".")) continue;
-			if(className.contains("[")) {
+			if (!className.contains("."))
+				continue;
+			if (className.contains("[")) {
 				className = className.substring(0, className.indexOf("["));
 			}
-			
+
 			DependencyAnalysis.addTargetClass(className);
 		}
-		
+
 		try {
-			for(BytecodeInstruction ins: observations) {
+			for (BytecodeInstruction ins : observations) {
 				newClassLoader.loadClass(ins.getClassName());
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-
+		
+		RuntimeSensitiveVariable.observations.clear();
+		for(BytecodeInstruction ins: observations) {
+			RuntimeSensitiveVariable.observations.put(ins.toString(), new ArrayList<>());
+		}
+		
 		((DefaultTestCase) newTestChromosome.getTestCase()).changeClassLoader(newClassLoader);
 		newTestChromosome.addFitness(fitness);
 		newTestChromosome.clearCachedResults();
 		fitness.getFitness(newTestChromosome);
-		
+
 		Map<String, List<Object>> res = new HashMap<>();
-		for(String s:RuntimeSensitiveVariable.observations.keySet()) {
+		for (String s : RuntimeSensitiveVariable.observations.keySet()) {
 			res.put(s, RuntimeSensitiveVariable.observations.get(s));
 		}
-		
+
 		RuntimeSensitiveVariable.observations.clear();
 		return res;
 
@@ -559,12 +569,12 @@ public class SensitivityMutator {
 			}
 
 			rootValueStatement = getRootValueStatement(tc, tc.getStatement(minPos));
-			if(rootValueStatement != null)
+			if (rootValueStatement != null)
 				return rootValueStatement;
 		}
 
 		if (rootVariable.isParameter()) {
-			if(newTestChromosome.getTestCase().size() == 0)
+			if (newTestChromosome.getTestCase().size() == 0)
 				return rootValueStatement;
 			int paramIndex = rootVariable.getParamOrder() - 1;
 			List<VariableReference> methodCallParams = getMethodCallParams(tc);

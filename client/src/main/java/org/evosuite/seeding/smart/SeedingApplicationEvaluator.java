@@ -304,7 +304,7 @@ public class SeedingApplicationEvaluator {
 							return branchInfo;
 						}
 					} else {
-						for(Object o : sp.types) {
+						for(Object o : sp.pontentialBranchOperandTypes) {
 							String type = finalType(o.toString());
 							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
 							cache.put(b, branchInfo);

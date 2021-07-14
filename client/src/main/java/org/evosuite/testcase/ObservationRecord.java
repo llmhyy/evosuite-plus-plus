@@ -28,10 +28,7 @@ public class ObservationRecord {
 	/**
 	 * value types
 	 */
-	public Object type = new ArrayList<>();
-
-	public static int inputNum = 0;
-	public static int observationNum = 0;
+	public Object potentialOpernadType = new ArrayList<>();
 
 	/**
 	 * compare the value of inputs and observations
@@ -39,25 +36,20 @@ public class ObservationRecord {
 	 * @param j
 	 * @param i
 	 */
-	public boolean[] compare(int i, int j) {
-		boolean[] value = { false, false };// valuePreserving,observationIsNotNull
+	public boolean compare(int i, int j) {
 		String inKey = (String) inputs.keySet().toArray()[i];
 		Object in = inputs.get(inKey);
 
-		if (observations.keySet().size() == 0)
-			return value;
-
-		value[1] = true;
 		String obKey = (String) observations.keySet().toArray()[j];
 
 		for (Object ob : observations.get(obKey)) {
 			if (in.equals(ob)) {
-				type = ob.getClass();
-				value[0] = true;
-				return value;
+				potentialOpernadType = ob.getClass();
+				return true;
 			}
 		}
-		return value;
+		
+		return false;
 	}
 
 	/**
@@ -123,14 +115,6 @@ public class ObservationRecord {
 		return false;
 	}
 
-	public int getInputNum() {
-		return this.inputNum = this.inputs.size();
-	}
-
-	public int getObservationsNum() {
-		return this.observationNum = this.observations.size();
-	}
-
 	public boolean isSensitive(int i, int j) {
 		String inKey = (String) inputs.keySet().toArray()[i];
 		Object in = inputs.get(inKey);
@@ -142,7 +126,7 @@ public class ObservationRecord {
 
 		for (Object ob : observations.get(obKey)) {
 			if (SensitivityMutator.checkValuePreserving(in, ob)) {
-				type = ob.getClass();
+				potentialOpernadType = ob.getClass();
 				return true;
 			}
 		}

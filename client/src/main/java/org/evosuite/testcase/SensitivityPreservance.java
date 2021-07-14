@@ -6,10 +6,18 @@ import java.util.List;
 import org.evosuite.Properties;
 
 public class SensitivityPreservance {
-	public double valuePreservingRatio = 0;
-	public double sensivityPreserRatio = 0;
+	
+	private int observationSize;
+	private int inputSize;
+	
+	public SensitivityPreservance(int observationSize, int inputSize) {
+		super();
+		this.observationSize = observationSize;
+		this.inputSize = inputSize;
+	}
+
 	public boolean useConstants = false;
-	public List<Object> types = new ArrayList<>();
+	public List<Object> pontentialBranchOperandTypes = new ArrayList<>();
 
 	public List<ObservationRecord> recordList = new ArrayList<>();
 
@@ -21,31 +29,30 @@ public class SensitivityPreservance {
 		/**
 		 * TODO Cheng Yan
 		 */
-		getInputAndObservationsNum();
-		l: for (int i = 0; i < ObservationRecord.inputNum; i++) {
+		double valuePreservingRatio = 0;
+		for (int i = 0; i < inputSize; i++) {
 			// input num
-			for (int j = 0; j < ObservationRecord.observationNum; j++) {
+			for (int j = 0; j < observationSize; j++) {
 				valuePreservingRatio = 0;
 				// observation num
 				for (ObservationRecord ob : recordList) {
-					boolean[] valuePreserving = ob.compare(i, j);
-					if (valuePreserving[0]) {
+					boolean valuePreserving = ob.compare(i, j);
+					if (valuePreserving) {
 						valuePreservingRatio++;
 						if ((valuePreservingRatio
-								/ Properties.DYNAMIC_SENSITIVITY_THRESHOLD >= Properties.FAST_CHANNEL_SCORE_THRESHOLD)
-								&& !types.contains(ob.type)) {
-							types.add(ob.type);
-							break l;
+								/ Properties.DYNAMIC_SENSITIVITY_THRESHOLD >= Properties.FAST_CHANNEL_SCORE_THRESHOLD)) {
+							pontentialBranchOperandTypes.add(ob.potentialOpernadType);
+							return true;
 						}
-					} else if (valuePreserving[1]) {
-						break;
 					}
 				}
 			}
 		}
 
-		return (valuePreservingRatio
-				/ Properties.DYNAMIC_SENSITIVITY_THRESHOLD >= Properties.FAST_CHANNEL_SCORE_THRESHOLD);
+		return false;
+		
+//		return (valuePreservingRatio
+//				/ Properties.DYNAMIC_SENSITIVITY_THRESHOLD >= Properties.FAST_CHANNEL_SCORE_THRESHOLD);
 	}
 
 	// String is just the bytecode instruction (toString)
@@ -56,9 +63,9 @@ public class SensitivityPreservance {
 		 */
 		useConstants = false;
 		List<Class<?>> list = new ArrayList<>();
-		l: for (int i = 0; i < ObservationRecord.inputNum; i++) {
+		l: for (int i = 0; i < inputSize; i++) {
 			// input num
-			for (int j = 0; j < ObservationRecord.observationNum; j++) {
+			for (int j = 0; j < observationSize; j++) {
 				int count = 0;
 				// observation num
 				for (ObservationRecord ob : recordList) {
@@ -84,15 +91,15 @@ public class SensitivityPreservance {
 		/**
 		 * TODO Cheng Yan
 		 */
-		getInputAndObservationsNum();
+		double sensivityPreserRatio = 0;
 		int recordNum = getObservationRecordNum();
 		if (recordNum == 0) {
 			System.out.println("recordNum is 0!");
 			return false;
 		}
-		l: for (int i = 0; i < ObservationRecord.inputNum; i++) {
+		l: for (int i = 0; i < inputSize; i++) {
 			// input num
-			for (int j = 0; j < ObservationRecord.observationNum; j++) {
+			for (int j = 0; j < observationSize; j++) {
 				sensivityPreserRatio = 0;
 				// observation num
 				for (ObservationRecord ob : recordList) {
@@ -100,8 +107,8 @@ public class SensitivityPreservance {
 					if (sensivity) {
 						sensivityPreserRatio++;
 						if (((sensivityPreserRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= 0.5
-								|| sensivityPreserRatio == recordNum) && !types.contains(ob.type)) {
-							types.add(ob.type);
+								|| sensivityPreserRatio == recordNum) && !pontentialBranchOperandTypes.contains(ob.potentialOpernadType)) {
+							pontentialBranchOperandTypes.add(ob.potentialOpernadType);
 							break l;
 						}
 					}
@@ -110,19 +117,6 @@ public class SensitivityPreservance {
 		}
 		sensivityPreserRatio = sensivityPreserRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
 		return sensivityPreserRatio > 0;// Properties.VALUE_SIMILARITY_THRESHOLD;
-	}
-
-	public void getInputAndObservationsNum() {
-		if (recordList.size() != 0) {
-			recordList.get(0).getInputNum();
-
-			int observationsNum = 0;
-			for (ObservationRecord r : recordList) {
-				if (r.getObservationsNum() > observationsNum)
-					observationsNum = r.getObservationsNum();
-			}
-			ObservationRecord.observationNum = observationsNum;
-		}
 	}
 
 	public int getObservationRecordNum() {
@@ -136,6 +130,6 @@ public class SensitivityPreservance {
 
 	public void clear() {
 		this.recordList.clear();
-		this.types.clear();
+		this.pontentialBranchOperandTypes.clear();
 	}
 }
