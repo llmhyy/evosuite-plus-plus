@@ -355,7 +355,9 @@ public class ValueRetrievalTransform {
 		// Boolean
 		opcodes = new HashSet<Integer>();
 		opcodes.addAll(Arrays.asList(new Integer[] {
-				Opcodes.INSTANCEOF}));		
+				Opcodes.INSTANCEOF,
+				Opcodes.DCMPG,
+				Opcodes.DCMPL,}));		
 		if (opcodes.contains(nodeOpcode)) {
 			return Type.BOOLEAN_TYPE;
 		}
