@@ -279,6 +279,17 @@ public class ValueRetrievalTransform {
 			}
 		}
 		
+		if(node.getOpcode() == Opcodes.LDC) {
+			LdcInsnNode n = (LdcInsnNode)node;
+			Class<?> clazz = n.cst.getClass();
+			if(clazz.getName().equals(Integer.class.getName())) {
+				return Type.INT_TYPE;
+			}
+			else {
+				//TODO Cheng Yan
+			}
+		}
+		
 		int nodeOpcode = node.getOpcode();
 		// Integer
 		Set<Integer> opcodes = new HashSet<Integer>();
