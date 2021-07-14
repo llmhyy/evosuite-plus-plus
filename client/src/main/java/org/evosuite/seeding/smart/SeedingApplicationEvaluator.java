@@ -280,7 +280,16 @@ public class SeedingApplicationEvaluator {
 				removeRedundancy(pathList);
 				AbstractMOSA.pathNum += pathList.size();
 				SensitivityPreservance sp = analyzeChannel(pathList, b);
-				if (sp.isValuePreserving() || sp.isSensitivityPreserving()) {
+				if (sp.isValuePreserving()) {
+					if(isRelevantToRegularExpression(pathList)){
+						String type = "string";
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
+						cache.put(b, branchInfo);
+						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
+						sp.clear();
+						return branchInfo;
+					}
+					
 					List<Class<?>> constantsClass = sp.getUseableConstants();
 					if (constantsClass.size() != 0)
 						sp.useConstants = true;

@@ -25,11 +25,6 @@ public class SensitivityPreservance {
 		 * TODO Cheng Yan
 		 */
 		getInputAndObservationsNum();
-		int recordNum = getObservationRecordNum();
-		if(recordNum  == 0) {
-			System.out.println("recordNum is 0!");
-			return false;
-		}
 		l: 
 		for (int i = 0; i < ObservationRecord.inputNum; i++) {
 			// input num
@@ -40,8 +35,9 @@ public class SensitivityPreservance {
 					boolean[] valuePreserving = ob.compare(i, j);
 					if (valuePreserving[0]) {
 						valuePreservingRatio++;
-						if ((valuePreservingRatio == Properties.DYNAMIC_SENSITIVITY_THRESHOLD
-								|| valuePreservingRatio == recordNum) && !types.contains(ob.type)) {
+						if ((valuePreservingRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD 
+								>= Properties.FAST_CHANNEL_SCORE_THRESHOLD)
+								&& !types.contains(ob.type)) {
 							types.add(ob.type);
 							break l;
 						}
@@ -51,8 +47,9 @@ public class SensitivityPreservance {
 				}
 			}
 		}
-//		valuePreservingRatio = valuePreservingRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD;
-		return (valuePreservingRatio == Properties.DYNAMIC_SENSITIVITY_THRESHOLD || valuePreservingRatio == recordNum) ;
+		
+		return (valuePreservingRatio / Properties.DYNAMIC_SENSITIVITY_THRESHOLD 
+				>= Properties.FAST_CHANNEL_SCORE_THRESHOLD);
 	}
 	
 	// String is just the bytecode instruction (toString)
@@ -63,7 +60,6 @@ public class SensitivityPreservance {
 		 */
 		useConstants = false;
 		List<Class<?>> list = new ArrayList<>();
-		int recordNum = getObservationRecordNum();
 		l: 
 		for (int i = 0; i < ObservationRecord.inputNum; i++) {
 			// input num
@@ -75,7 +71,8 @@ public class SensitivityPreservance {
 					Class<?> li = ob.useOfConstants(i, j);
 					if (li != null && !list.contains(li)) {
 						count++;
-						if ((count == Properties.DYNAMIC_SENSITIVITY_THRESHOLD || count == recordNum)
+						if ((count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD 
+								>= Properties.FAST_CHANNEL_SCORE_THRESHOLD)
 								&& !list.contains(li)) {
 							list.add(li);
 							break l;
