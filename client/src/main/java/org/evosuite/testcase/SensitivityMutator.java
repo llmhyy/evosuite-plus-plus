@@ -151,6 +151,9 @@ public class SensitivityMutator {
 
 		SensitivityPreservance preservingList = checkPreservance(branch, newTestChromosome, rootVariables,
 				observingValues, synthensizer);
+		
+		System.currentTimeMillis();
+		
 		return preservingList;
 	}
 
@@ -175,12 +178,12 @@ public class SensitivityMutator {
 			preservance.addRecord(record);
 			
 			//TODO Cheng Yan refactor this, now the obsevation will always have a complete size
-			if (observationMap.size() == 0 && i == 1) {
-				if (preservance.recordList.get(0).observations.size() == 0) {
-					System.out.println("observations is null!");
-					return preservance;
-				}
-			}
+//			if (observationMap.size() == 0 && i == 1) {
+//				if (preservance.recordList.get(0).observations.size() == 0) {
+//					System.out.println("observations is null!");
+//					return preservance;
+//				}
+//			}
 		}
 
 		return preservance;
@@ -216,7 +219,7 @@ public class SensitivityMutator {
 			}
 
 			m.put(var.getInstruction().toString(), headValue);
-
+			System.currentTimeMillis();
 		}
 
 		return m;
@@ -576,7 +579,7 @@ public class SensitivityMutator {
 		if (rootVariable.isParameter()) {
 			if (newTestChromosome.getTestCase().size() == 0)
 				return rootValueStatement;
-			int paramIndex = rootVariable.getParamOrder() - 1;
+			int paramIndex = rootVariable.getParamOrder();
 			List<VariableReference> methodCallParams = getMethodCallParams(tc);
 			VariableReference paramRef = methodCallParams.get(paramIndex);
 			Statement relevantStatement = getStatementModifyVariable(paramRef);

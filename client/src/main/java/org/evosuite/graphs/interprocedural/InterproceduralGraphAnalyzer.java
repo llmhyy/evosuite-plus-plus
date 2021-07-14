@@ -354,15 +354,8 @@ public class InterproceduralGraphAnalyzer {
 						
 						DepVariable secondVar = path.getPath().get(path.size()-2);
 						if(rootVar.getType() == DepVariable.PARAMETER) {
-							int index = 0;
+							int index = rootVar.getParamOrder();
 							
-							if(defIns.getCalledCFG().isStaticMethod()) {
-								index = rootVar.getParamOrder() - 1;
-							}
-							else {
-								index = rootVar.getParamOrder();
-							}
-								
 							List<DepVariable> params = inputVarArray[index];
 							
 							for(DepVariable param: params) {

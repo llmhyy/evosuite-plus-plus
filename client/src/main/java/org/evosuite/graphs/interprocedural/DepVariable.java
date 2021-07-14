@@ -513,16 +513,22 @@ public class DepVariable {
 		return this.varName;
 	}
 
+	/**
+	 * return the exact order of the parameter regarding static method, starting at 1
+	 * @return
+	 */
 	public int getParamOrder() {
 		if(varName.contains("LV_")) {
 			String orderString = varName.substring(varName.indexOf("LV_")+3, varName.length());
 			int order = Integer.valueOf(orderString);
 			
+			assert order > 0;
+			
 			if(this.instruction.getActualCFG().isStaticMethod()) {
-				return order + 1;
+				return order;
 			}
 			else {
-				return order;
+				return order-1;
 			}
 		}
 		
