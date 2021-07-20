@@ -8,7 +8,9 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.ExceptionResult;
 import org.evosuite.result.seedexpr.Event;
+import org.evosuite.testcase.TestChromosome;
 
 public class EvoTestResult {
 	
@@ -36,8 +38,8 @@ public class EvoTestResult {
 	
 	private Map<String, Boolean> methodCallAvailability;
 	
-	private int numberOfInMethodExceptions;
-	private int numberOfOutMethodExceptions;
+	private ExceptionResult<TestChromosome> exceptionResult;
+	
 
 	public EvoTestResult(int time, double coverage, int age, double ratio, List<Double> progress, double IPFlagCoverage,
 			String uncoveredFlag, Map<Integer, Integer> distributionMap,
@@ -53,9 +55,6 @@ public class EvoTestResult {
 		this.setUncoveredBranchDistribution(unCoveredBranchDistribution);
 		this.randomSeed = randomSeed;
 		this.setMethodCallAvailability(map);
-		
-		this.numberOfInMethodExceptions = 0;
-		this.numberOfOutMethodExceptions = 0;
 		
 		int count = 0;
 		for (String key : map.keySet()) {
@@ -230,23 +229,13 @@ public class EvoTestResult {
 		return eventSequence;
 	}
 	
-	public void setNumberOfInMethodExceptions(int number)
+	public void setExceptionResult(ExceptionResult<TestChromosome> exceptionResult)
 	{
-		numberOfInMethodExceptions = number;
+		this.exceptionResult = exceptionResult;
 	}
 	
-	public int getNumberOfInMethodExceptions()
+	public ExceptionResult<TestChromosome> getExceptionResult()
 	{
-		return numberOfInMethodExceptions;
-	}
-	
-	public void setNumberOfOutMethodExceptions(int number)
-	{
-		numberOfOutMethodExceptions = number;
-	}
-	
-	public int getNumberOfOutMethodExceptions()
-	{
-		return numberOfOutMethodExceptions;
+		return exceptionResult;
 	}
 }

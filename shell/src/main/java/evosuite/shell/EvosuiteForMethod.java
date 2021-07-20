@@ -202,6 +202,7 @@ public class EvosuiteForMethod {
 				
 //				String usedStrategy = getStrategy(args);
 				FitnessEffectiveRecorder fitnessRecorder;
+				ExceptionIterationRecorder exceptionIterationRecorder;
 //				DistributionRecorder distributionRecorder;
 //				OneBranchRecorder oneBranchRecorder;
 
@@ -214,6 +215,8 @@ public class EvosuiteForMethod {
 					fitnessRecorder = new FitnessEffectiveRecorder();
 					recorderList.add(fitnessRecorder);
 				}
+				exceptionIterationRecorder = new ExceptionIterationRecorder(Settings.getIteration());
+				recorderList.add(exceptionIterationRecorder);
 				
 				String existingReport = fitnessRecorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;
@@ -686,11 +689,11 @@ public class EvosuiteForMethod {
 					result.setInitializationOverhead(r.getInitializationOverhead());
 					result.setCoveredBranchWithTest(r.getCoveredBranchWithTest());
 					result.setEventSequence(r.getEventSequence());
+					result.setExceptionResult(r.getExceptionResult());
 					
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
 						recorder.recordSeedingToJson(className, methodName, result);
-						
 					}
 				}
 			}
@@ -723,7 +726,7 @@ public class EvosuiteForMethod {
 		return false;
 	}
 	
-	private static Map<String, Integer> getExceptionTypesAndCount(Set<Throwable> exceptions) {
+	private static Map<String, Integer> getExceptionTypesAndCount(List<Throwable> exceptions) {
 		Map<String, Integer> toReturn = new HashMap<>();
 		
 		for (Throwable exception : exceptions) {
@@ -741,21 +744,23 @@ public class EvosuiteForMethod {
 	
 	public static void printExceptionResult(TestGenerationResult testGenerationResult) {
 		ExceptionResult<TestChromosome> exceptionResult = testGenerationResult.getExceptionResult();
-		for (ExceptionResultBranch<TestChromosome> branch : exceptionResult.getAllResults()) {
-			String branchName = branch.getFitnessFunction().toString();
+		List<ExceptionResultBranch<TestChromosome>> branches = exceptionResult.getAllResults();
+		for (ExceptionResultBranch<TestChromosome> branch : branches) {
+			String branchName = ((BranchCoverageTestFitness) branch.getFitnessFunction()).getBranch().toString();
+			String branchGoal = ((BranchCoverageTestFitness) branch.getFitnessFunction()).getBranchGoal().getValue() ? "true" : "false";
 			boolean isBranchCovered = isBranchCovered(branch.getFitnessFunction(), testGenerationResult);
 			int numberOfIterations = branch.getNumberOfIterations();
 			int numberOfExceptions = branch.getNumberOfExceptions();
 			int numberOfInMethodExceptions = branch.getNumberOfInMethodExceptions();
 			int numberOfOutMethodExceptions = branch.getNumberOfOutMethodExceptions();
 			
-			Set<Throwable> inMethodExceptions = branch.getInMethodExceptions();
-			Set<Throwable> outMethodExceptions = branch.getOutMethodExceptions();
+			List<Throwable> inMethodExceptions = branch.getInMethodExceptions();
+			List<Throwable> outMethodExceptions = branch.getOutMethodExceptions();
 			Map<String, Integer> inMethodExceptionsTypeAndCount = getExceptionTypesAndCount(inMethodExceptions);
 			Map<String, Integer> outMethodExceptionsTypeAndCount = getExceptionTypesAndCount(outMethodExceptions);
 			
 			
-			System.out.println("Branch: " + branchName);
+			System.out.println("Branch: " + branchName + ":" + branchGoal);
 			System.out.println("  " + "- Covered? " + (isBranchCovered ? "Yes" : "No"));
 			System.out.println("  " + "- Number of iterations: " + numberOfIterations);
 			System.out.println("  " + "- Number of exceptions: " + numberOfExceptions);

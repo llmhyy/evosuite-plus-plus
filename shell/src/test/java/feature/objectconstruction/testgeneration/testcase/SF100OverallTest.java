@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import common.SF100Project;
 import evosuite.shell.EvoTestResult;
+import jigl.image.RealGrayImage;
 import sf100.CommonTestUtil;
 
 public class SF100OverallTest {
@@ -109,18 +110,41 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testWaterSimulator() {
+		String projectId = SF100Project.P10;
+		String[] targetMethods = new String[]{
+				"simulator.CA.BehaviourReplyNeighbour#action()V"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 5;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
 	public void testJiggler() {
-		System.out.println("Hello world!");
 		String projectId = SF100Project.P89;
 		String[] targetMethods = new String[]{
+				"jigl.image.levelSetTool.LevelSetSmooth#constrainSigns(Ljigl/image/RealGrayImage;II)V",
 				// "jigl.image.MIPMap#get(FFF)[F",
 				"jigl.image.levelSetTool.LevelSetSmooth#apply(IIIIZZ)Ljigl/image/RealColorImage;",
 				// "jigl.signal.ops.levelOps.ClipNeg#apply(Ljigl/signal/RealSignal;Ljigl/signal/ROI;)Ljigl/signal/Signal;"
 		};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 1;
-		int budget = 30;
+		int repeatTime = 5;
+		int budget = 150;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
