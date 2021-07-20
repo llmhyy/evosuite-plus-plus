@@ -928,8 +928,8 @@ public class ComputationPath {
 //			isFastChannel = this.evaluateFastChannelScore() > Properties.FAST_CHANNEL_SCORE_THRESHOLD;
 		}
 
-		boolean isFastChannel = preservingList.isValuePreserving() && preservingList.isSensitivityPreserving();
-		return isFastChannel;
+//		boolean isFastChannel = preservingList.isValuePreserving() && preservingList.isSensitivityPreserving();
+		return false;
 	}
 
 	private boolean matchStaticFastChannelRule() {

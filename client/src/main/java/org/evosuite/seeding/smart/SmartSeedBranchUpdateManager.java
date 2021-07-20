@@ -44,14 +44,14 @@ public class SmartSeedBranchUpdateManager {
 				
 			}
 		}
-		
+		System.out.println("all branches analyze time :" + (System.currentTimeMillis() - nowtime)/1000);
 		uncoveredApplicableBranchInfo = infoSet;
 //		if(uncoveredApplicableBranchInfo.size() == 0)
 //			Properties.APPLY_SMART_SEED = false;
 		totalUncoveredGoals = uncoveredGoal;
 		
 		double ratio = infoSet.size()*1.0 / uncoveredGoals.size()*1.0 ;
-		Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + ratio);
+		Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 - ratio);
 		
 	}
 	

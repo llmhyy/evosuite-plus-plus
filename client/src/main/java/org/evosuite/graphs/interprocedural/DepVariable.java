@@ -522,6 +522,8 @@ public class DepVariable {
 			String orderString = varName.substring(varName.indexOf("LV_")+3, varName.length());
 			int order = Integer.valueOf(orderString);
 			
+			if(order == 0)
+				return order;
 			assert order > 0;
 			
 			if(this.instruction.getActualCFG().isStaticMethod()) {

@@ -255,6 +255,7 @@ public class SeedingApplicationEvaluator {
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
+				
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 		if (branchesInTargetMethod == null) {
@@ -279,8 +280,28 @@ public class SeedingApplicationEvaluator {
 //				System.currentTimeMillis();
 				removeRedundancy(pathList);
 				AbstractMOSA.pathNum += pathList.size();
+				
+				if (b.isSwitchCaseBranch()) {
+					String key1 = b.toString();
+					int index1 = key1.indexOf("TABLESWITCH");
+					int index2 = key1.indexOf("Case");
+					if(key1.contains("Default")) {
+						index2 = key1.indexOf("Default") - 1;
+					}
+					if (cache.size() != 0) {
+						for (Branch b0 : cache.keySet()) {
+							if (b0.isSwitchCaseBranch() && (b0.toString()
+									.contains(key1.substring(index1, index2)))) {
+								cache.put(b, cache.get(b0));
+								System.out.println(b + ":" + cache.get(b0).getBenefiticalType());
+								return cache.get(b0);
+							}
+						}
+					}
+				}
+				
 				SensitivityPreservance sp = analyzeChannel(pathList, b);
-				if (sp.isValuePreserving()) {
+				if (sp != null && sp.isValuePreserving(b)) {
 					if(isRelevantToRegularExpression(pathList)){
 						String type = "string";
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
@@ -315,7 +336,8 @@ public class SeedingApplicationEvaluator {
 					}
 
 				}
-				sp.clear();
+				if(sp != null)
+					sp.clear();
 				
 				List<ComputationPath> fastChannels = new ArrayList<>();
 				
@@ -456,6 +478,8 @@ public class SeedingApplicationEvaluator {
 //		for(BytecodeInstruction op: auxiliaryOperands) {
 //			RuntimeSensitiveVariable.observations.put(op.toString(), new ArrayList<>());
 //		}
+		if(observations.size() == 0 || headers.size() == 0)
+			return null;
 		
 		SensitivityPreservance sp = SensitivityMutator
 				.testBranchSensitivity(headers, observations, targetBranch);
@@ -468,7 +492,7 @@ public class SeedingApplicationEvaluator {
 		for(ComputationPath path: pathList) {
 			DepVariable var = path.getFirstPrimitiveNode();
 			System.currentTimeMillis();
-			if(var != null) {
+			if(var != null && !varList.contains(var)) {
 				varList.add(var);				
 			}
 		}

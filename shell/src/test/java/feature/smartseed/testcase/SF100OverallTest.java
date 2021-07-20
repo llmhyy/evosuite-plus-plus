@@ -18,7 +18,7 @@ public class SF100OverallTest {
 	public static long allConsumeTime;
 	@Before
 	public void beforeTest() {
-//		Properties.CLIENT_ON_THREAD = true;
+		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
@@ -26,7 +26,7 @@ public class SF100OverallTest {
 		Properties.ADOPT_SMART_MUTATION = false;
 		
 		Properties.INSTRUMENT_CONTEXT = true;
-		Properties.CHROMOSOME_LENGTH = 200;
+//		Properties.CHROMOSOME_LENGTH = 200;
 		
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 0;
 		
@@ -34,7 +34,7 @@ public class SF100OverallTest {
 		
 		Properties.ENABLE_TRACEING_EVENT = true;
 //		Properties.APPLY_SMART_SEED = true;
-		Properties.APPLY_CHAR_POOL = true;
+//		Properties.APPLY_CHAR_POOL = true;
 //		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
@@ -42,23 +42,25 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample1() {
-		String projectId = SF100Project.P80;
+		String projectId = SF100Project.P43;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
 //				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
-				//0621
 //				"com.browsersoft.openhre.hl7.impl.parser.HL7CheckerImpl#subComponent(Ljava/lang/String;)V"//75
 //				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"//43
-				"wheel.asm.Frame#execute(IILwheel/asm/ClassWriter;Lwheel/asm/Item;)V"//80 switch
+//				"wheel.asm.Frame#execute(IILwheel/asm/ClassWriter;Lwheel/asm/Item;)V"//80 switch
 //				"com.objectmentors.state.StringMatchesGuardCondition#evaluate(Ljava/lang/Object;)Z"//14
 //				"de.outstare.fortbattleplayer.player.Battleplan#resetToRound(I)V"//79
 //				"com.ib.client.Order#equals(Ljava/lang/Object;)Z"
-				//0622
 //				"br.com.jnfe.core.JNFe#getReboque()Lbr/com/jnfe/core/Reboque;"
+//				"com.ib.client.Order#equals(Ljava/lang/Object;)Z"//1
+//				"com.werken.saxpath.XPathLexer#nextToken()Lcom/werken/saxpath/Token;"//82
+				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"
+				
 		};
 		
 		int repeatTime = 1;
-		int budget = 200;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

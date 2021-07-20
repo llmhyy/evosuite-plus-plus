@@ -5,6 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.objectweb.asm.Opcodes;
+
 public class ObservationRecord {
 	public ObservationRecord(Map<String, Object> recordInput, Map<String, List<Object>> observationMap,
 			Map<String, Boolean> inputConstant) {
@@ -35,18 +39,51 @@ public class ObservationRecord {
 	 * 
 	 * @param j
 	 * @param i
+	 * @param b 
 	 */
-	public boolean compare(int i, int j) {
+	public boolean compare(int i, int j, Branch b) {
+		//negtive test case
+		boolean compareBranch = false;
+		if(b.getInstruction().getASMNode().getOpcode() == Opcodes.IF_ICMPNE) {
+			compareBranch = true;
+		}
+		
 		String inKey = (String) inputs.keySet().toArray()[i];
 		Object in = inputs.get(inKey);
 
 		String obKey = (String) observations.keySet().toArray()[j];
+		if(compareBranch) {
+			BytecodeInstruction op1 = b.getInstruction().getPreviousInstruction();
+			BytecodeInstruction op2 = op1.getPreviousInstruction();
+			if(op1.isConstant() && !op2.isConstant()) {
+				if(!op2.toString().equals(obKey)) {
+					return false;
+				}
+			}else if(!op1.isConstant() && op2.isConstant()) {
+				if(!op1.toString().equals(obKey)) {
+					return false;
+				}
+			}
+		}
 
 		for (Object ob : observations.get(obKey)) {
 			if (in.equals(ob)) {
 				potentialOpernadType = ob.getClass();
 				return true;
 			}
+		}
+		
+		//switch
+		if(inKey.equals(obKey)) {
+			StringBuilder sb = new StringBuilder();
+			for (Object ob : observations.get(obKey)) {
+				if (ob instanceof Integer) {
+					int value = (int) ob;
+					sb.append((char)value);
+				}
+			}
+			if(sb.toString().equals(in))
+				return true;
 		}
 		
 		return false;
@@ -67,6 +104,8 @@ public class ObservationRecord {
 			constantValue = inKey.split(" Type=")[0].split(" ", 4)[3];
 		else
 			constantValue = inKey.split(" ")[2].split("_")[1];
+		
+		
 
 		if (observations.keySet().size() == 0)
 			return null;

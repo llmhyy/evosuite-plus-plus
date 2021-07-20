@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.objectweb.asm.Opcodes;
 
 public class SensitivityPreservance {
 	
@@ -25,7 +28,7 @@ public class SensitivityPreservance {
 		this.recordList.add(value);
 	}
 
-	public boolean isValuePreserving() {
+	public boolean isValuePreserving(Branch b) {
 		/**
 		 * TODO Cheng Yan
 		 */
@@ -36,7 +39,7 @@ public class SensitivityPreservance {
 				valuePreservingRatio = 0;
 				// observation num
 				for (ObservationRecord ob : recordList) {
-					boolean valuePreserving = ob.compare(i, j);
+					boolean valuePreserving = ob.compare(i, j, b);
 					if (valuePreserving) {
 						valuePreservingRatio++;
 						if ((valuePreservingRatio
@@ -63,7 +66,7 @@ public class SensitivityPreservance {
 		 */
 		useConstants = false;
 		List<Class<?>> list = new ArrayList<>();
-		l: for (int i = 0; i < inputSize; i++) {
+		for (int i = 0; i < inputSize; i++) {
 			// input num
 			for (int j = 0; j < observationSize; j++) {
 				int count = 0;
@@ -71,13 +74,11 @@ public class SensitivityPreservance {
 				for (ObservationRecord ob : recordList) {
 //					System.currentTimeMillis();
 					Class<?> li = ob.useOfConstants(i, j);
-					if (li != null && !list.contains(li)) {
+					if (li != null) {
 						count++;
-						if ((count
-								/ Properties.DYNAMIC_SENSITIVITY_THRESHOLD >= Properties.FAST_CHANNEL_SCORE_THRESHOLD)
-								&& !list.contains(li)) {
+						if ((count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
 							list.add(li);
-							break l;
+							return list;
 						}
 					}
 				}

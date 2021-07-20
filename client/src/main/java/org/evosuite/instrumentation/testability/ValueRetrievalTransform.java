@@ -284,9 +284,14 @@ public class ValueRetrievalTransform {
 			Class<?> clazz = n.cst.getClass();
 			if(clazz.getName().equals(Integer.class.getName())) {
 				return Type.INT_TYPE;
-			}
-			else {
-				//TODO Cheng Yan
+			}else if(clazz.getName().equals(Long.class.getName())) {
+				return Type.LONG_TYPE;	
+			}else if(clazz.getName().equals(Double.class.getName())) {
+				return Type.DOUBLE_TYPE;
+			}else if(clazz.getName().equals(Float.class.getName())) {
+				return Type.FLOAT_TYPE;
+			}else {
+				return Type.VOID_TYPE;
 			}
 		}
 		
@@ -367,8 +372,9 @@ public class ValueRetrievalTransform {
 		opcodes = new HashSet<Integer>();
 		opcodes.addAll(Arrays.asList(new Integer[] {
 				Opcodes.INSTANCEOF,
-				Opcodes.DCMPG,
-				Opcodes.DCMPL,}));		
+				//TODO 
+				Opcodes.DCMPG,Opcodes.FCMPG,
+				Opcodes.DCMPL,Opcodes.FCMPL}));		
 		if (opcodes.contains(nodeOpcode)) {
 			return Type.BOOLEAN_TYPE;
 		}

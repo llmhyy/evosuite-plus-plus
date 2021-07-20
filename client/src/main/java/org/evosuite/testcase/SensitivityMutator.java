@@ -160,7 +160,7 @@ public class SensitivityMutator {
 	private static SensitivityPreservance checkPreservance(Branch branch, TestChromosome newTestChromosome,
 			List<DepVariable> rootVariables, List<BytecodeInstruction> observations,
 			ConstructionPathSynthesizer synthensizer) {
-
+		System.currentTimeMillis();
 		SensitivityPreservance preservance = new SensitivityPreservance(observations.size(), rootVariables.size());
 		
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
@@ -178,15 +178,23 @@ public class SensitivityMutator {
 			preservance.addRecord(record);
 			
 			//TODO Cheng Yan refactor this, now the obsevation will always have a complete size
-//			if (observationMap.size() == 0 && i == 1) {
-//				if (preservance.recordList.get(0).observations.size() == 0) {
-//					System.out.println("observations is null!");
-//					return preservance;
-//				}
-//			}
+			if (observationIsNull(observationMap) && i == 1) {
+				if (observationIsNull(preservance.recordList.get(0).observations)) {
+					System.out.println("observations is null!");
+					return preservance;
+				}
+			}
 		}
 
 		return preservance;
+	}
+
+	private static  boolean observationIsNull(Map<String, List<Object>> observationMap) {
+		for(String s : observationMap.keySet()) {
+			if(observationMap.get(s).size() > 0)
+				return false;
+		}
+		return true;
 	}
 
 	private static Map<String, Boolean> constructInputType(List<DepVariable> rootVariables,
@@ -288,9 +296,9 @@ public class SensitivityMutator {
 			List<DepVariable> vars = new ArrayList<>();
 			vars.add(rootVariable);
 			preservingList = checkPreservance(branch, newTestChromosome, vars, observations, synthensizer);
-			if (preservingList.isSensitivityPreserving() || preservingList.isValuePreserving()) {
-				return preservingList;
-			}
+//			if (preservingList.isSensitivityPreserving() || preservingList.isValuePreserving()) {
+//				return preservingList;
+//			}
 		}
 
 		return preservingList;
@@ -512,6 +520,7 @@ public class SensitivityMutator {
 			RuntimeSensitiveVariable.observations.put(ins.toString(), new ArrayList<>());
 		}
 		
+		System.currentTimeMillis();
 		((DefaultTestCase) newTestChromosome.getTestCase()).changeClassLoader(newClassLoader);
 		newTestChromosome.addFitness(fitness);
 		newTestChromosome.clearCachedResults();
