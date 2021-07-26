@@ -97,6 +97,10 @@ public class InterproceduralGraphAnalyzer {
 			}
 		}
 		
+		if(calledCfg == null) {
+			return new HashMap<>();
+		}
+		
 		GraphPool.getInstance(classLoader).alwaysRegisterActualCFG(calledCfg);
 		boolean canBeAnalyzed = FBranchDefUseAnalyzer.analyze(calledCfg.getRawGraph());
 		if(!canBeAnalyzed) {
