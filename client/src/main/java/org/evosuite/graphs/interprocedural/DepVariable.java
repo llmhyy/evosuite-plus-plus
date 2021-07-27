@@ -15,6 +15,8 @@ import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
+import javassist.bytecode.Opcode;
+
 /**
  * This class should detailedly describe the dependent variables, including whether it is
  * a parameter, field, global variables, etc.
@@ -1000,5 +1002,22 @@ public class DepVariable {
 		
 		return false;
 	}
+
+
+	public boolean isCompare() {
+		switch(this.instruction.getASMNode().getOpcode()) {
+		case Opcode.IF_ACMPEQ:
+		case Opcode.IF_ACMPNE:
+		case Opcode.IF_ICMPEQ:
+		case Opcode.IF_ICMPGE:
+		case Opcode.IF_ICMPGT:
+		case Opcode.IF_ICMPLE:
+		case Opcode.IF_ICMPLT:
+		case Opcode.IF_ICMPNE:
+        	return true;
+		}
+		return false;
+	}
+
 
 }

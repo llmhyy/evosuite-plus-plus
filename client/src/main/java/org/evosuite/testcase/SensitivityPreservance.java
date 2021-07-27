@@ -78,7 +78,6 @@ public class SensitivityPreservance {
 						count++;
 						if ((count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
 							list.add(li);
-							return list;
 						}
 					}
 				}

@@ -10,7 +10,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.objectweb.asm.Opcodes;
 
 public class ObservationRecord {
-	public ObservationRecord(Map<String, Object> recordInput, Map<String, List<Object>> observationMap,
+	public ObservationRecord(Map<String, List<Object>> recordInput, Map<String, List<Object>> observationMap,
 			Map<String, Boolean> inputConstant) {
 		this.inputs = recordInput;
 		this.observations = observationMap;
@@ -20,7 +20,7 @@ public class ObservationRecord {
 	/**
 	 * bytecode instruction --> value
 	 */
-	public Map<String, Object> inputs = new HashMap<>();
+	public Map<String, List<Object>> inputs = new HashMap<>();
 
 	public Map<String, Boolean> inputConstant = new HashMap<>();
 
@@ -41,37 +41,29 @@ public class ObservationRecord {
 	 * @param i
 	 * @param b 
 	 */
-	public boolean compare(int i, int j, Branch b) {
-		//negtive test case
-		boolean compareBranch = false;
-		if(b.getInstruction().getASMNode().getOpcode() == Opcodes.IF_ICMPNE) {
-			compareBranch = true;
-		}
-		
+	public boolean compare(int i, int j, Branch b) {		
 		String inKey = (String) inputs.keySet().toArray()[i];
-		Object in = inputs.get(inKey);
+		if (inputConstant.get(inKey))
+			return false;
+		List<Object> in = new ArrayList<>();
+		in.addAll(inputs.get(inKey));
 
 		String obKey = (String) observations.keySet().toArray()[j];
-		if(compareBranch) {
-			BytecodeInstruction op1 = b.getInstruction().getPreviousInstruction();
-			BytecodeInstruction op2 = op1.getPreviousInstruction();
-			if(op1.isConstant() && !op2.isConstant()) {
-				if(!op2.toString().equals(obKey)) {
-					return false;
-				}
-			}else if(!op1.isConstant() && op2.isConstant()) {
-				if(!op1.toString().equals(obKey)) {
-					return false;
-				}
-			}
-		}
 
-		for (Object ob : observations.get(obKey)) {
-			if (in.equals(ob)) {
+		in.retainAll(observations.get(obKey));
+		if (in.size() != 0) {
+			for (Object ob : in) {
 				potentialOpernadType = ob.getClass();
 				return true;
 			}
 		}
+		
+//		for (Object ob : observations.get(obKey)) {
+//			if (in.equals(ob)) {
+//				potentialOpernadType = ob.getClass();
+//				return true;
+//			}
+//		}
 		
 		//switch
 		if(inKey.equals(obKey)) {
@@ -82,8 +74,10 @@ public class ObservationRecord {
 					sb.append((char)value);
 				}
 			}
-			if(sb.toString().equals(in))
+			if(sb.toString().equals(inputs.get(inKey).get(0))) {
+				potentialOpernadType = String.class;
 				return true;
+			}
 		}
 		
 		return false;
@@ -99,11 +93,9 @@ public class ObservationRecord {
 		String inKey = (String) inputs.keySet().toArray()[i];
 		if (!inputConstant.get(inKey))
 			return null;
-		String constantValue;
-		if (inKey.contains(" Type="))
-			constantValue = inKey.split(" Type=")[0].split(" ", 4)[3];
-		else
-			constantValue = inKey.split(" ")[2].split("_")[1];
+//		String constantValue = inputs.get(inKey).toString();
+		List<Object> in = new ArrayList<>();
+		in.addAll(inputs.get(inKey));
 		
 		
 
@@ -111,16 +103,27 @@ public class ObservationRecord {
 			return null;
 
 		String obKey = (String) observations.keySet().toArray()[j];
-		for (Object ob : observations.get(obKey)) {
-			if (constantValue.equals(ob.toString())) {
-				if (ob instanceof Integer) {
-					int o = (int) ob;
-					if (o < 10)
-						return null;
-				}
+		
+		
+		if(inputs.get(inKey).toString().equals(observations.get(obKey).toString())) {
+			potentialOpernadType = observations.get(obKey).get(0).getClass();
+			return observations.get(obKey).get(0).getClass(); 
+		}
+		
+		in.retainAll(observations.get(obKey));
+		if (in.size() != 0) {
+			for (Object ob : in) {
+				potentialOpernadType = ob.getClass();
 				return ob.getClass();
 			}
 		}
+
+//		
+//		for (Object ob : observations.get(obKey)) {
+//			if (constantValue.equals(ob.toString())) {
+//				return inputs.get(inKey).getClass();
+//			}
+//		}
 		return null;
 
 	}

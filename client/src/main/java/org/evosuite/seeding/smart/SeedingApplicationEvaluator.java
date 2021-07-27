@@ -316,6 +316,14 @@ public class SeedingApplicationEvaluator {
 						sp.useConstants = true;
 					
 					if (sp.useConstants) {
+						if(constantsClass.contains(sp.pontentialBranchOperandTypes.get(0))) {
+							String type = finalType(sp.pontentialBranchOperandTypes.get(0).toString());
+							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
+							cache.put(b, branchInfo);
+							System.out.println("STATIC_POOL type:" + b + ":" + type);
+							sp.clear();
+							return branchInfo;
+						}
 						for(Class<?> cla : constantsClass) {
 							String type = finalType(cla.toString());
 							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
@@ -596,7 +604,7 @@ public class SeedingApplicationEvaluator {
 					}
 				}
 				else {
-					for(BytecodeInstruction ins: targetIns.getOperands()) {
+					for(BytecodeInstruction ins: targetIns.getOperands()) {			
 						add(list, ins);
 					}
 					return;
@@ -609,6 +617,16 @@ public class SeedingApplicationEvaluator {
 				
 			}
 			
+			return;
+		}
+		
+		if(var.isCompare()) {
+			for(BytecodeInstruction ins: targetIns.getOperands()) {
+				if(!ins.isMethodCall())
+					add(list, ins);
+				else
+					parseRelevantOperands(ins, list);
+			}
 			return;
 		}
 		
