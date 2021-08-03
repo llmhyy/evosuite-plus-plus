@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
+import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.GraphPool;
@@ -15,6 +18,10 @@ import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.StaticConstantPool;
 import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.tree.ClassNode;
@@ -26,6 +33,7 @@ import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.FileUtils;
 import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelWriter;
+import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.utils.LoggerUtils;
 
 public class BranchwiseMethodFillter extends MethodFlagCondFilter {
@@ -34,15 +42,17 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 	private static List<String> validDynamicMethods = new ArrayList<String>();
 	private static List<String> visitedClass = new ArrayList<String>();
 	
-	public static final String excelProfileSubfix = "_branchwiseMethods.xlsx";
+//	public static final String excelProfileSubfix = "_branchwiseMethods.xlsx";
+	public static final String excelProfileSubfix = "_60.xlsx";
 	private ExcelWriter writer;
 
 	public BranchwiseMethodFillter() {
 		Properties.INSTRUMENT_CONTEXT = true;
 		Properties.CRITERION = new Criterion[] { Criterion.BRANCH };
 		Properties.APPLY_SMART_SEED = true;
-//		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 		Properties.APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = true;
+		
+		Properties.CLIENT_ON_THREAD = true;
 		
 		String statisticFile = new StringBuilder(Settings.getReportFolder()).append(File.separator)
 				.append(EvosuiteForMethod.projectId).append(excelProfileSubfix).toString();
@@ -50,7 +60,8 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		if (newFile.exists()) {
 			newFile.delete();
 		}
-		writer = new ExcelWriter(FileUtils.newFile("D:\\linyun\\git_space\\SF100-clean\\evoTest-reports\\all_branchwiseMethods.xlsx"));
+		writer = new ExcelWriter(FileUtils.newFile("D:\\linyun\\git_space\\SF100-clean\\evoTest-reports\\all_60.xlsx"));
+//		writer = new ExcelWriter(FileUtils.newFile("D:\\linyun\\git_space\\SF100-clean\\evoTest-reports\\all_branchwiseMethods.xlsx"));
 //		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data",
 				new String[] { "ProjectId", "Class","Method", "Type" },
@@ -65,7 +76,9 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		
 		log.debug(String.format("#Method %s#%s", className, methodName));
 		DependencyAnalysis.clear();
-		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();	
+		poolClear();
+		
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 		cp = cp.replace('\\', '/');
 		try {
 			Properties.TARGET_METHOD = methodName;
@@ -75,25 +88,33 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 			e.printStackTrace();
 		}
 		
-		// Get actual CFG for target method
-		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-		if (cfg == null) {
-			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
-			bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
-			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
-			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
+				.get(Properties.TARGET_METHOD);
+		if(branchesInTargetMethod == null) {
+			logToExcel(className, methodName, "NO_POOL");
+			return false;
 		}
+			
+		// Get actual CFG for target method
+//		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+//		if (cfg == null) {
+//			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+//			bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
+//			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+//			cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
+//		}
 		
 		// Get instructions for target method
-		BytecodeInstructionPool insPool = BytecodeInstructionPool.getInstance(classLoader);
-		List<BytecodeInstruction> instructions = insPool.getAllInstructionsAtMethod(className, methodName);
+//		BytecodeInstructionPool insPool = BytecodeInstructionPool.getInstance(classLoader);
+//		List<BytecodeInstruction> instructions = insPool.getAllInstructionsAtMethod(className, methodName);
 
 		// Write your filter logic here
 		// Return true if the method passes your filter	
-		for (BytecodeInstruction b : getIfBranchesInMethod(cfg)) {
-			Branch br = b.toBranch();		
+//		for (BytecodeInstruction b : getIfBranchesInMethod(cfg)) {
+//			Branch br = b.toBranch();	
+		for (Branch br : branchesInTargetMethod.keySet()) {
 			
-			if(br != null && b.getOperandNum() > 0 && b.getLineNumber() != -1) {					
+			if(br != null && br.getInstruction().getLineNumber() != -1) {					
 				int type = SeedingApplicationEvaluator.evaluate(br).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					validStaticMethods.add(className + "#" + methodName);
@@ -130,5 +151,14 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		rowData.add(type);
 		data.add(rowData);
 		writer.writeSheet("data", data);
+	}
+	
+	private void poolClear() {
+		for (int j = 0; j < 2; j++) {
+			if (ConstantPoolManager.pools[j] instanceof StaticConstantPool) {
+				StaticConstantPool pool = (StaticConstantPool) ConstantPoolManager.pools[j];
+				pool.clear();
+			}
+		}
 	}
 }
