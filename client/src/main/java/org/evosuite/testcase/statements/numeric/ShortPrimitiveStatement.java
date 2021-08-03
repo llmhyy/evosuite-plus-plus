@@ -108,7 +108,7 @@ public class ShortPrimitiveStatement extends NumericalPrimitiveStatement<Short> 
 	@Override
 	public void randomize() {
 		short max = (short) Math.min(Properties.MAX_INT, 32767);
-		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
+		if (Randomness.nextDouble() <= Properties.PRIMITIVE_POOL) {
 			value = (short) ((Randomness.nextGaussian() * max));
 			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.SHORT, String.valueOf(value)));
 		}

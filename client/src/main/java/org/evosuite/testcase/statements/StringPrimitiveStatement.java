@@ -129,7 +129,7 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 		double random = Randomness.nextDouble();
 		
 		char randomChar;
-		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
+		if (Randomness.nextDouble() <= Properties.PRIMITIVE_POOL) {
 			randomChar = Randomness.nextChar();
 		}
 		else {
@@ -245,7 +245,7 @@ public class StringPrimitiveStatement extends PrimitiveStatement<String> {
 	/** {@inheritDoc} */
 	@Override
 	public void randomize() {
-		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
+		if (Randomness.nextDouble() <= Properties.PRIMITIVE_POOL) {
 			value = Randomness.nextString(Randomness.nextInt(Properties.STRING_LENGTH));
 			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.STRING, String.valueOf(value)));			
 		}
