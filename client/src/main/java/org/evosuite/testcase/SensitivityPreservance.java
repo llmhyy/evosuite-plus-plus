@@ -39,7 +39,7 @@ public class SensitivityPreservance {
 				valuePreservingRatio = 0;
 				// observation num
 				for (ObservationRecord ob : recordList) {
-					boolean valuePreserving = ob.compare(i, j, b);
+					boolean valuePreserving = ob.compare(i, j);
 					if (valuePreserving) {
 						valuePreservingRatio++;
 						if ((valuePreservingRatio

@@ -263,8 +263,11 @@ public class SeedingApplicationEvaluator {
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
-		b = compileBranch(branchesInTargetMethod, b);
+//		b = compileBranch(branchesInTargetMethod, b);
 		Set<DepVariable> nodes = branchesInTargetMethod.get(b);
+		if(nodes == null) {
+			nodes = branchesInTargetMethod.get(compileBranch(branchesInTargetMethod, b));
+		}
 		Set<DepVariable> methodInputs = compileInputs(nodes);
 
 		try {
@@ -481,7 +484,7 @@ public class SeedingApplicationEvaluator {
 		 */
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		List<DepVariable> headers = retrieveHeads(pathList);
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		
 //		for(BytecodeInstruction op: auxiliaryOperands) {
 //			RuntimeSensitiveVariable.observations.put(op.toString(), new ArrayList<>());
@@ -550,7 +553,7 @@ public class SeedingApplicationEvaluator {
 	}
 	
 	private static void parseRelevantOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
-		
+//		System.currentTimeMillis();
 		DepVariable var = new DepVariable(targetIns);
 		if(var.isPrimitive()) {
 			add(list, var.getInstruction());
@@ -604,17 +607,18 @@ public class SeedingApplicationEvaluator {
 					}
 				}
 				else {
-					for(BytecodeInstruction ins: targetIns.getOperands()) {			
-						add(list, ins);
-					}
+					getInstructionOperands(targetIns,list);
 					return;
 				}
 			}
 			else {
 				BytecodeInstruction ins = targetIns.getNextInstruction();
-				add(list, ins);
-				return;
-				
+				if(!ins.isBranch()) {
+					add(list, ins);
+				}else {
+					getInstructionOperands(ins,list);
+				}
+				return;		
 			}
 			
 			return;
@@ -625,7 +629,7 @@ public class SeedingApplicationEvaluator {
 				if(!ins.isMethodCall())
 					add(list, ins);
 				else
-					parseRelevantOperands(ins, list);
+					getInstructionOperands(ins, list);
 			}
 			return;
 		}
@@ -636,6 +640,29 @@ public class SeedingApplicationEvaluator {
 		
 		if(targetIns.getOperands().size() == 0)
 			add(list, targetIns);
+	}
+
+	private static void getInstructionOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
+		for (BytecodeInstruction ins : targetIns.getOperands()) {
+			BytecodeInstruction insCopy = ins;
+			if (insCopy.getASMNode().getOpcode() == Opcodes.PUTSTATIC) {
+				BytecodeInstruction i = insCopy.getPreviousInstruction();
+				if (!list.contains(i))
+					add(list, i);
+				continue;
+			}
+
+			if (insCopy.getType() == null && insCopy.getASMNode().getOpcode() == Opcodes.SIPUSH) {
+				BytecodeInstruction i = insCopy.getPreviousInstruction();
+				i = i.getPreviousInstruction();
+				add(list, i);
+				continue;
+			}
+			if (ins.isMethodCall())
+				getInstructionOperands(insCopy, list);
+			else
+				add(list, insCopy);
+		}
 	}
 
 	private static boolean isBooleanReturnClass(String calledClass) {
@@ -849,13 +876,27 @@ public class SeedingApplicationEvaluator {
 					String less1 =br.toString().split(s1[i].toString(),0)[1];
 					if(less0.equals(less1)) {
 						targetBranch = br;
+						return targetBranch;
 					}
 				}
 			}
-//			if(s[0].equals(s1[0])) {
-//				targetBranch = br;
-//				System.currentTimeMillis();
-//			}
+		}
+		
+		if(lineBranches.size() == 0) {
+			for (Branch br : branchesInTargetMethod.keySet()) {
+				String[] s = b.toString().split(" ");
+				String[] s1 = br.toString().split(" ");
+				
+				if(s[s.length - 1].equals(s1[s1.length - 1])) {
+					lineBranches.add(br);
+					if(s[s.length - 2].equals(s1[s1.length - 2])) {
+						targetBranch = br;
+						return targetBranch;
+					}
+				}
+			}
+			if(lineBranches.size() > 0)
+				targetBranch = lineBranches.get(0);
 		}
 //			String info = s[3] + " " + s[4];
 //			if (br.toString().contains(info) && !br.equals(b)) {

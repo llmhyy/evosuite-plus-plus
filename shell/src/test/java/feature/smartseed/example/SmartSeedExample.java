@@ -209,4 +209,21 @@ public class SmartSeedExample {
 	public void setCompareNum(int compareNum) {
 		this.compareNum = compareNum;
 	}
+	
+	/**
+	 * a = m()
+	 * if(a == true)
+	 */
+	public boolean invokeMethod(int x) {
+		if(x > noiseInt[2])
+			return true;
+		return false;
+	}
+	
+	public void compareExample(int x) {
+		boolean a = invokeMethod(x);
+		if(a == true) {
+			System.currentTimeMillis();
+		}
+	}
 }

@@ -41,7 +41,8 @@ public class ObservationRecord {
 	 * @param i
 	 * @param b 
 	 */
-	public boolean compare(int i, int j, Branch b) {		
+	public boolean compare(int i, int j) {
+		if(inputs.size() <= i || observations.size() <= j) return false;
 		String inKey = (String) inputs.keySet().toArray()[i];
 		if (inputConstant.get(inKey))
 			return false;
@@ -68,6 +69,7 @@ public class ObservationRecord {
 		//switch
 		if(inKey.equals(obKey)) {
 			StringBuilder sb = new StringBuilder();
+			if(observations.get(obKey).size() == 0) return false;
 			for (Object ob : observations.get(obKey)) {
 				if (ob instanceof Integer) {
 					int value = (int) ob;
@@ -90,6 +92,7 @@ public class ObservationRecord {
 	 * @param i
 	 */
 	public Class<?> useOfConstants(int i, int j) {
+		if(inputs.size() <= i || observations.size() <= j) return null;
 		String inKey = (String) inputs.keySet().toArray()[i];
 		if (!inputConstant.get(inKey))
 			return null;

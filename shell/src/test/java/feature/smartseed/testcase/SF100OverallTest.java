@@ -42,7 +42,7 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample1() {
-		String projectId = SF100Project.P12;
+		String projectId = SF100Project.P36;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
 //				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
@@ -57,9 +57,9 @@ public class SF100OverallTest {
 //				"com.werken.saxpath.XPathLexer#nextToken()Lcom/werken/saxpath/Token;"//82
 //				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"
 				
-				
+				"net.sourceforge.schemaspy.Config#isNumRowsEnabled()Z"
 //				"com.hf.sfm.util.Loader#getParams(Lorg/hibernate/Query;[[Ljava/lang/String;)Lorg/hibernate/Query;"//7
-				"dsachat.Main#main([Ljava/lang/String;)V"//12
+//				"dsachat.Main#main([Ljava/lang/String;)V"//12
 //				"com.soops.CEN4010.JMCA.JParser.xmlParser.IterationStatement#processState(Ljava/lang/String;)"//19
 //				"jigcell.sbml2.Compartment#setSpatialDimensions(I)V"//34
 //				"corina.graph.StandardPlot#validValue(I)Z"//35
@@ -67,8 +67,8 @@ public class SF100OverallTest {
 //				"de.huxhorn.lilith.swing.taskmanager.table.TaskTableModel#getColumnClass(I)Ljava/lang/Class;"//43
 		};
 		
-		int repeatTime = 1;
-		int budget = 100000;
+		int repeatTime = 3;
+		int budget = 1000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

@@ -33,6 +33,7 @@ import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LocalVariable;
 import org.apache.bcel.util.ClassPath;
 import org.apache.bcel.util.SyntheticRepository;
+import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
@@ -462,6 +463,17 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 				 */
 				for (AbstractInsnNode insNode : srcValue.insns) {
 					BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
+					if(defIns.getType() == null) {
+						if(defIns.getASMNode().getOpcode() == Opcodes.SIPUSH)
+							continue;
+					}
+					if(defIns.isConstant()) {
+						if(defIns.toString().replace('/', '.').contains(className)) {
+							if(defIns.toString().contains(methodName))
+								continue;
+						}
+					}
+
 					if (defIns != null) {
 						operands.add(defIns);
 					}

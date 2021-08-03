@@ -649,4 +649,35 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 	}
 	
+	@Test
+	public void testCompareExample() throws ClassNotFoundException, RuntimeException {
+		//substring
+		Class<?> clazz = feature.smartseed.example.SmartSeedExample.class;
+		String methodName = "compareExample";
+		int parameterNum = 1;
+		int lineNumber = 225;
+
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		Properties.TARGET_METHOD = method.getName() + MethodUtil.getSignature(method);
+		
+		ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
+		
+		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp.split(File.pathSeparator)));
+		
+		ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		
+		List<Branch> branches = BranchPool.getInstance(classLoader).getBranchesForMethod(Properties.TARGET_CLASS, Properties.TARGET_METHOD);
+		
+		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
+		
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		
+		writeResults();
+		
+		assert type == SeedingApplicationEvaluator.STATIC_POOL;
+		
+	}
+	
 }
