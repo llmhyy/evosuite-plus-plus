@@ -47,24 +47,24 @@ public class ObservationRecord {
 		if (inputConstant.get(inKey))
 			return false;
 		List<Object> in = new ArrayList<>();
-		in.addAll(inputs.get(inKey));
+//		in.addAll(inputs.get(inKey));
 
 		String obKey = (String) observations.keySet().toArray()[j];
 
-		in.retainAll(observations.get(obKey));
-		if (in.size() != 0) {
-			for (Object ob : in) {
+//		in.retainAll(observations.get(obKey));
+		for(Object ob:inputs.get(inKey)) {
+			if(observations.get(obKey).contains(ob)) {
 				potentialOpernadType = ob.getClass();
 				return true;
 			}
 		}
-		
-//		for (Object ob : observations.get(obKey)) {
-//			if (in.equals(ob)) {
+//		if (in.size() != 0) {
+//			for (Object ob : in) {
 //				potentialOpernadType = ob.getClass();
 //				return true;
 //			}
 //		}
+		
 		
 		//switch
 		if(inKey.equals(obKey)) {

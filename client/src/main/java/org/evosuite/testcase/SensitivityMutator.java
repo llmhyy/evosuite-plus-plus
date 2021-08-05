@@ -248,6 +248,7 @@ public class SensitivityMutator {
 		/**
 		 * TODO for Cheng Yan, need to change it to multiple heads
 		 */
+		List<Statement> relevantStatements = new ArrayList<Statement>();
 		for (DepVariable var : rootVariables) {
 			if(var.isInstaceField()) {
 				for (String s : RuntimeSensitiveVariable.observations.keySet()) {
@@ -258,7 +259,6 @@ public class SensitivityMutator {
 
 				}
 				continue;
-//				System.currentTimeMillis();
 			}
 			if(var.isConstant()) {
 				List<Object> constantValue = new ArrayList<>();
@@ -266,12 +266,16 @@ public class SensitivityMutator {
 				m.put(var.getInstruction().toString(), constantValue);
 				continue;
 			}
+			System.currentTimeMillis();
 			Statement callStatement = isArrayStatement(var, newTestChromosome, map);
 			Statement relevantStatement;
 			if(callStatement instanceof ArrayStatement) {
 				relevantStatement = callStatement;
 			}else
 				relevantStatement = locateRelevantStatement(var, newTestChromosome, map);
+			
+			relevantStatements.add(relevantStatement);
+			
 //			System.currentTimeMillis();
 			List<Object> headValues = new ArrayList<>();
 			retrieveHeadValue(relevantStatement,newTestChromosome,headValues);
@@ -281,14 +285,26 @@ public class SensitivityMutator {
 			if (headValues.size() == 0) {
 				headValues.add("N/A");
 			}
-			if (relevantStatement != null) {
-				if(relevantStatement instanceof ArrayStatement)
-					relevantStatement = getRootValueStatement(newTestChromosome.getTestCase(), callStatement);
-				relevantStatement.mutate(newTestChromosome.getTestCase(), TestFactory.getInstance());
-			}
+//			if (relevantStatement != null) {
+//				if(relevantStatement instanceof ArrayStatement)
+//					relevantStatement = getRootValueStatement(newTestChromosome.getTestCase(), callStatement);
+//				relevantStatement.mutate(newTestChromosome.getTestCase(), TestFactory.getInstance());
+//			}
 
 			m.put(var.getInstruction().toString(), headValues);
 			System.currentTimeMillis();
+		}
+		
+		//statements mutate
+		if (relevantStatements.size() != 0) {
+			for (Statement relevantStatement : relevantStatements) {
+				if (relevantStatement != null) {
+					if (relevantStatement instanceof ArrayStatement)
+						relevantStatement = getRootValueStatement(newTestChromosome.getTestCase(), relevantStatement);
+					relevantStatement.mutate(newTestChromosome.getTestCase(), TestFactory.getInstance());
+				}
+			}
+
 		}
 
 		return m;
@@ -300,7 +316,12 @@ public class SensitivityMutator {
 		TestCase tc = newTestChromosome.getTestCase();
 
 		List<VariableReference> methodCallParams = getMethodCallParams(tc);
+		
 		for (VariableReference paramRef : methodCallParams) {
+			if(var.isParameter()) {
+				if(paramRef != methodCallParams.get(var.getParamOrder()))
+					continue;
+			}
 			Statement relevantStatement = getStatementModifyVariable(paramRef);
 			return relevantStatement;
 		}

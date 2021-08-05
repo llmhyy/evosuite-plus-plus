@@ -484,7 +484,7 @@ public class SeedingApplicationEvaluator {
 		 */
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		List<DepVariable> headers = retrieveHeads(pathList);
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 //		for(BytecodeInstruction op: auxiliaryOperands) {
 //			RuntimeSensitiveVariable.observations.put(op.toString(), new ArrayList<>());
@@ -557,8 +557,7 @@ public class SeedingApplicationEvaluator {
 		DepVariable var = new DepVariable(targetIns);
 		if(var.isPrimitive()) {
 			add(list, var.getInstruction());
-		}
-		
+		}		
 		if(targetIns.toString().contains("NULL")){
 			return;
 		}
@@ -597,7 +596,7 @@ public class SeedingApplicationEvaluator {
 						for (BytecodeInstruction op : ops) {
 							if(op.isConstant()) {
 								for(Branch b: op.getControlDependentBranches()) {
-									parseRelevantOperands(b.getInstruction(), list);
+									getInstructionOperands(b.getInstruction(), list);
 								}
 							}
 							else {
@@ -615,28 +614,32 @@ public class SeedingApplicationEvaluator {
 				BytecodeInstruction ins = targetIns.getNextInstruction();
 				if(!ins.isBranch()) {
 					add(list, ins);
+					return;
 				}else {
 					getInstructionOperands(ins,list);
+					return;
 				}
-				return;		
 			}
 			
 			return;
 		}
 		
-		if(var.isCompare()) {
-			for(BytecodeInstruction ins: targetIns.getOperands()) {
-				if(!ins.isMethodCall())
+		if (var.isCompare()) {
+			for (BytecodeInstruction ins : targetIns.getOperands()) {
+				if (!ins.isMethodCall())
 					add(list, ins);
-				else
+				else {
 					getInstructionOperands(ins, list);
+				}
+					
 			}
 			return;
 		}
-		
-		for(BytecodeInstruction ins: targetIns.getOperands()) {
+
+		for (BytecodeInstruction ins : targetIns.getOperands()) {
 			parseRelevantOperands(ins, list);
 		}
+
 		
 		if(targetIns.getOperands().size() == 0)
 			add(list, targetIns);
@@ -645,6 +648,12 @@ public class SeedingApplicationEvaluator {
 	private static void getInstructionOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
 		for (BytecodeInstruction ins : targetIns.getOperands()) {
 			BytecodeInstruction insCopy = ins;
+			
+			if (insCopy.getASMNode().getOpcode() == Opcodes.CHECKCAST) {
+				getInstructionOperands(insCopy, list);
+				continue;
+			}
+			
 			if (insCopy.getASMNode().getOpcode() == Opcodes.PUTSTATIC) {
 				BytecodeInstruction i = insCopy.getPreviousInstruction();
 				if (!list.contains(i))
@@ -658,8 +667,9 @@ public class SeedingApplicationEvaluator {
 				add(list, i);
 				continue;
 			}
-			if (ins.isMethodCall())
+			if (ins.isMethodCall()) {
 				getInstructionOperands(insCopy, list);
+			}
 			else
 				add(list, insCopy);
 		}

@@ -463,16 +463,16 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 				 */
 				for (AbstractInsnNode insNode : srcValue.insns) {
 					BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
-					if(defIns.getType() == null) {
-						if(defIns.getASMNode().getOpcode() == Opcodes.SIPUSH)
-							continue;
-					}
-					if(defIns.isConstant()) {
-						if(defIns.toString().replace('/', '.').contains(className)) {
-							if(defIns.toString().contains(methodName))
-								continue;
-						}
-					}
+//					if(defIns.getType() == null) {
+//						if(defIns.getASMNode().getOpcode() == Opcodes.SIPUSH)
+//							continue;
+//					}
+//					if(defIns.isConstant()) {
+//						if(defIns.toString().replace('/', '.').contains(className)) {
+//							if(defIns.toString().contains(methodName))
+//								continue;
+//						}
+//					}
 
 					if (defIns != null) {
 						operands.add(defIns);
