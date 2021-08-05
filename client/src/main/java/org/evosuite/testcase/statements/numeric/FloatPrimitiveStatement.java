@@ -134,7 +134,7 @@ public class FloatPrimitiveStatement extends NumericalPrimitiveStatement<Float> 
 	/** {@inheritDoc} */
 	@Override
 	public void randomize() {
-		if (Randomness.nextDouble() <= Properties.PRIMITIVE_POOL) {
+		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
 			value = (float)(Randomness.nextGaussian() * Properties.MAX_INT);
 			int precision = Randomness.nextInt(7);
 			chopPrecision(precision);

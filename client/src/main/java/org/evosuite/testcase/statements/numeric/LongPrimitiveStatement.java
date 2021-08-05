@@ -107,7 +107,7 @@ public class LongPrimitiveStatement extends NumericalPrimitiveStatement<Long> {
 	/** {@inheritDoc} */
 	@Override
 	public void randomize() {
-		if (Randomness.nextDouble() <= Properties.PRIMITIVE_POOL) {
+		if (Randomness.nextDouble() >= Properties.PRIMITIVE_POOL) {
 			value = (long)(Randomness.nextGaussian() * Properties.MAX_INT);
 			EventSequence.addEvent(new RandomSamplingEvent(System.currentTimeMillis(), SamplingDataType.LONG, String.valueOf(value)));
 		}
