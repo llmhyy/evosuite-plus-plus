@@ -8,7 +8,6 @@ import java.util.List;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
@@ -17,7 +16,7 @@ import common.TestUtility;
 import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelWriter;
 import feature.objectconstruction.testgeneration.example.ObjectExample;
-import sf100.CommonTestUtil;
+import feature.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
 
 public class ProjectOverallTest extends TestUtility{
 	@Test
@@ -47,6 +46,39 @@ public class ProjectOverallTest extends TestUtility{
 		int timeBudget = 10000;
 		
 		boolean aor = true;
+		TestUtility.evoTestSingleMethod(targetClass,  
+				targetMethod, timeBudget, true, aor, cp, fitnessApproach, 
+				"generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+	}
+	
+	@Test
+	public void testBasicRules() {
+		Class<?> clazz = BasicRules.class;
+		String methodName = "checkRules";
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+//		Method method = clazz.getMethods()[0];
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/test-classes;target/classes";
+
+		// Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.DEBUG = true;
+//		Properties.PORT = 8000;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+//		Properties.TIMELINE_INTERVAL = 3000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 30;
+		
+		boolean aor = false;
 		TestUtility.evoTestSingleMethod(targetClass,  
 				targetMethod, timeBudget, true, aor, cp, fitnessApproach, 
 				"generateMOSuite", "MOSUITE", "DynaMOSA");
