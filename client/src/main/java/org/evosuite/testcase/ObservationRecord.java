@@ -1,28 +1,33 @@
 package org.evosuite.testcase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
 
 public class ObservationRecord {
-	public ObservationRecord(Map<String, Object> recordInput, Map<String, List<Object>> observationMap,
-			Map<String, Boolean> inputConstant) {
+	public ObservationRecord(Map<String, List<Object>> recordInput, Map<String, List<Object>> observationMap,
+			Map<String, Boolean> inputConstant, Map<String, Boolean> observationConstant) {
 		this.inputs = recordInput;
 		this.observations = observationMap;
 		this.inputConstant = inputConstant;
+		this.observationsConstant = observationConstant;
 	}
 
 	/**
 	 * bytecode instruction --> value
 	 */
-	public Map<String, Object> inputs = new HashMap<>();
+	public Map<String, List<Object>> inputs = new HashMap<>();
 
 	public Map<String, Boolean> inputConstant = new HashMap<>();
+	public Map<String, Boolean> observationsConstant = new HashMap<>();
 
 	/**
 	 * bytecode instruction --> list<value>
@@ -41,52 +46,127 @@ public class ObservationRecord {
 	 * @param i
 	 * @param b 
 	 */
-	public boolean compare(int i, int j, Branch b) {
-		//negtive test case
-		boolean compareBranch = false;
-		if(b.getInstruction().getASMNode().getOpcode() == Opcodes.IF_ICMPNE) {
-			compareBranch = true;
-		}
-		
+	public boolean compare(int i, int j) {
+		if(inputs.size() <= i || observations.size() <= j) return false;
 		String inKey = (String) inputs.keySet().toArray()[i];
-		Object in = inputs.get(inKey);
+//		in.addAll(inputs.get(inKey));
 
 		String obKey = (String) observations.keySet().toArray()[j];
-		if(compareBranch) {
-			BytecodeInstruction op1 = b.getInstruction().getPreviousInstruction();
-			BytecodeInstruction op2 = op1.getPreviousInstruction();
-			if(op1.isConstant() && !op2.isConstant()) {
-				if(!op2.toString().equals(obKey)) {
-					return false;
-				}
-			}else if(!op1.isConstant() && op2.isConstant()) {
-				if(!op1.toString().equals(obKey)) {
-					return false;
-				}
-			}
-		}
 
-		for (Object ob : observations.get(obKey)) {
-			if (in.equals(ob)) {
+		if (inputConstant.get(inKey) && observationsConstant.get(obKey))
+			return false;
+//		in.retainAll(observations.get(obKey));
+		
+		//numeric
+		if(numericEquals(inKey,obKey)) return true;
+
+		//String
+		if(StringEquals(inKey,obKey)) return true;
+
+		for(Object ob:inputs.get(inKey)) {
+			if(ob.getClass().equals(Boolean.class))
+				return false;
+			if(observations.get(obKey).contains(ob)) {
 				potentialOpernadType = ob.getClass();
 				return true;
 			}
 		}
 		
+		
 		//switch
 		if(inKey.equals(obKey)) {
 			StringBuilder sb = new StringBuilder();
+			if(observations.get(obKey).size() == 0) return false;
 			for (Object ob : observations.get(obKey)) {
 				if (ob instanceof Integer) {
 					int value = (int) ob;
 					sb.append((char)value);
 				}
 			}
-			if(sb.toString().equals(in))
+			if(sb.toString().equals(inputs.get(inKey).get(0))) {
+				potentialOpernadType = String.class;
 				return true;
+			}
 		}
 		
 		return false;
+	}
+
+	private boolean StringEquals(String inKey, String obKey) {
+		if(inputs.get(inKey).size() == 0 || observations.get(obKey).size() == 0) return false;
+		if (inputs.get(inKey).get(0) instanceof String && observations.get(obKey).get(0) instanceof String) {
+			List<String> list1 = new ArrayList<String>();
+			List<String> list2 = new ArrayList<String>();
+			for (Object ob : inputs.get(inKey)) {
+				list1.add(ob.toString().toLowerCase());
+			}
+			for (Object ob : observations.get(obKey)) {
+				list2.add(ob.toString().toLowerCase());
+			}
+			for (Object ob : list1) {
+				if (list2.contains(ob)) {
+					potentialOpernadType = String.class;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean numericEquals(String inKey, String obKey) {
+		if(inputs.get(inKey).isEmpty() || observations.get(obKey).isEmpty()) return false;
+		
+		Class<?> clsInput = inputs.get(inKey).get(0).getClass();
+		Class<?> clsObser = observations.get(obKey).get(0).getClass();
+
+		if ((inputs.get(inKey).get(0) instanceof Number || inputs.get(inKey).get(0) instanceof Character)
+				&& (observations.get(obKey).get(0) instanceof Number)
+				|| observations.get(obKey).get(0) instanceof Character) {
+			List<String> list1 = new ArrayList<String>();
+			List<String> list2 = new ArrayList<String>();
+			for (Object ob : inputs.get(inKey)) {
+				if (ob instanceof Character) {
+					Character c = (Character) ob;
+					Integer i = (int) c;
+					list1.add(i.toString());
+				} else
+					list1.add(ob.toString());
+			}
+			for (Object ob : observations.get(obKey)) {
+				if (ob instanceof Character) {
+					Character c = (Character) ob;
+					Integer i = (int) c;
+					list2.add(i.toString());
+				} else
+					list2.add(ob.toString());
+			}
+			for (Object ob : list1) {
+				if (list2.contains(ob)) {
+					potentialOpernadType = clsObser;
+					return true;
+				}
+			}
+		}
+
+//		if (inputs.get(inKey).get(0) instanceof Number && observations.get(obKey).get(0) instanceof Number) {
+//
+//			List<String> list1 = new ArrayList<String>();
+//			List<String> list2 = new ArrayList<String>();
+//			for (Object ob : inputs.get(inKey)) {
+//				list1.add(ob.toString());
+//			}
+//			for (Object ob : observations.get(obKey)) {
+//				list2.add(ob.toString());
+//			}
+//			for (Object ob : list1) {
+//				if (list2.contains(ob)) {
+//					potentialOpernadType = clsObser;
+//					return true;
+//				}
+//			}
+//		}
+		return false;
+		
 	}
 
 	/**
@@ -96,31 +176,58 @@ public class ObservationRecord {
 	 * @param i
 	 */
 	public Class<?> useOfConstants(int i, int j) {
+		if(inputs.size() <= i || observations.size() <= j) return null;
 		String inKey = (String) inputs.keySet().toArray()[i];
 		if (!inputConstant.get(inKey))
 			return null;
-		String constantValue;
-		if (inKey.contains(" Type="))
-			constantValue = inKey.split(" Type=")[0].split(" ", 4)[3];
-		else
-			constantValue = inKey.split(" ")[2].split("_")[1];
-		
-		
 
 		if (observations.keySet().size() == 0)
 			return null;
 
 		String obKey = (String) observations.keySet().toArray()[j];
-		for (Object ob : observations.get(obKey)) {
-			if (constantValue.equals(ob.toString())) {
-				if (ob instanceof Integer) {
-					int o = (int) ob;
-					if (o < 10)
-						return null;
-				}
+		
+		
+//		if(inputs.get(inKey).toString().equals(observations.get(obKey).toString())) {
+//			potentialOpernadType = observations.get(obKey).get(0).getClass();
+//			return observations.get(obKey).get(0).getClass(); 
+//		}
+		for(Object ob:inputs.get(inKey)) {
+			
+			if(observations.get(obKey).contains(ob)) {
+				potentialOpernadType = ob.getClass();
 				return ob.getClass();
 			}
+			
+			//class equals [Ljava/lang/Boolean;  -- java.lang.Boolean]
+			if(observations.get(obKey).isEmpty()) return null;
+			if(observations.get(obKey).get(0) instanceof Class<?>) {
+				String[] localSeparateTypes = ob.toString().split(";");
+				for (int m = 0; m < localSeparateTypes.length; m++) {
+					if (localSeparateTypes[m].startsWith("L")) {
+						localSeparateTypes[m] = localSeparateTypes[m].substring(1, localSeparateTypes[m].length());
+						localSeparateTypes[m] = localSeparateTypes[m].replace("/", ".");
+					}
+				}
+				System.currentTimeMillis();
+				for(Object clazz:observations.get(obKey)) {
+					if(clazz instanceof Class<?>) {
+						String clazzName = clazz.toString().split("class ")[1];
+						if(Arrays.asList(localSeparateTypes).contains(clazzName)) {
+							potentialOpernadType = ob.getClass();
+							return ob.getClass();
+						}
+					}
+				}
+			}
+			
+			if(numericEquals(inKey, obKey)) {
+				potentialOpernadType = ob.getClass();
+				return ob.getClass();
+			}
+			
+			
 		}
+	
 		return null;
 
 	}

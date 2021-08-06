@@ -1,10 +1,15 @@
 package feature.smartseed.example.empirical;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
@@ -129,5 +134,128 @@ public class EmpiricalStudyExample {
 			System.exit(0);
 		}
 		return true;
+	}
+	
+	//5 chooseFontFamily
+	public int chooseFontFamily(HSSFFont font, int defaultFontFamily)
+	{
+		String fontName = font.getFontName();
+		int fontFamily = defaultFontFamily;
+		if( "Arial".equals(fontName)) {	fontFamily = 1;	}
+		else if( "Courier".equals(fontName)) {	fontFamily = 0;	}
+		else if( "Courier New".equals(fontName)) {	fontFamily = 0;	}
+		else if( "Times New Roman".equals(fontName)) {	fontFamily = 2;	}
+		return fontFamily;
+	}
+	
+	//8 setColumnClass
+	public void setColumnClass(int posColonne, Class<?> type) {
+		if (type.equals(String.class)) {
+			System.currentTimeMillis();
+		} else if (type.equals(Boolean.class)) {
+			System.currentTimeMillis();
+		} else {
+			System.currentTimeMillis();
+		}
+	}
+	
+	public String[] columnNames;
+	//13 addColumn
+    public void addColumn(short ordinalPosition, String columnName) {
+        int expectedPosition = columnNames.length + 1;
+        if (ordinalPosition == expectedPosition)
+        	System.currentTimeMillis();
+        else {
+        	if (ordinalPosition > expectedPosition || !columnNames[ordinalPosition - 1].equals(columnName))
+        		throw new IllegalArgumentException("ordinalPosition is expected to be " + expectedPosition + ", " +
+                    "found: " + ordinalPosition);
+        }
+    }
+    
+    private static final String FILENAME = "org/databene/jdbacl/databene.db_dialect.properties";
+	public static void getDialectForProduct(String productName) {
+		String normalizedProductName = productName.toLowerCase().replace(' ', '_');
+		Map<String, String> mappings = Config.readProperties(FILENAME);
+		for (Map.Entry<String, String> entry : mappings.entrySet())
+			if (normalizedProductName.contains(entry.getKey())) {
+				System.currentTimeMillis();
+			}
+	}
+	
+//	public void getElement(String path) {
+//		int i = path.indexOf('.');
+//
+//		if (i == 0) {
+//			path = path.substring(1);
+//			i = path.indexOf('.');
+//		}
+//		String subName;
+//		String topName;
+//		if (i > 0) {
+//			topName = path.substring(0, i);
+//			subName = path.substring(i + 1);
+//		} else {
+//			topName = path;
+//			subName = null;
+//		}
+//
+//		for (int j = 0; j < XmlElement.subElements.size(); j++) {
+//			if (((XmlElement) XmlElement.subElements.get(j)).getName().equals(topName)) {
+//				if (subName != null) {
+//					return;
+//				}
+//				return;
+//			}
+//		}
+//	}
+//	
+//	public void removeElement(XmlElement e) {
+//		XmlElement child = null;
+//
+//		for (int i = 0; i < XmlElement.subElements.size(); i++) {
+//			child = (XmlElement) XmlElement.subElements.get(i);
+//
+//			if (child == e) {
+//				System.currentTimeMillis();
+//			}
+//		}
+//	}
+	
+	public void stringReplaceAll(StringBuffer source, char token, String replacement) {
+		for (int i = 0; i < source.length(); i++) {
+			if (source.charAt(i) == token) {
+				System.currentTimeMillis();
+			}
+		}
+	}
+ 
+//	private Set<XmlElement> accounts;
+//	public void getAuthenticationInfo(Principal subjectIdentity) throws IllegalAccessException, NoSuchMethodException,
+//			InvocationTargetException, InstantiationException, ClassNotFoundException {
+//		for (XmlElement entry : accounts) {
+//			if (entry.getUsername().equals(subjectIdentity.getName())) {
+//				System.currentTimeMillis();
+//			}
+//		}
+//		return;
+//	}
+//	
+//	public void setAccounts(Set<XmlElement> accounts) {
+//		this.accounts = accounts;
+//	}
+	
+	protected Set<AuthorizationModule> authorizationModules;
+	public void isAuthorized(AuthorizedAction action) {
+
+		for (AuthorizationModule module : authorizationModules) {
+			
+			if (module.supports(action)) {
+				System.currentTimeMillis();
+			}
+		}
+	}
+	
+	public EmpiricalStudyExample(String[] columnNames) {
+		this.columnNames = columnNames;
 	}
 }

@@ -39,7 +39,7 @@ public class SensitivityPreservance {
 				valuePreservingRatio = 0;
 				// observation num
 				for (ObservationRecord ob : recordList) {
-					boolean valuePreserving = ob.compare(i, j, b);
+					boolean valuePreserving = ob.compare(i, j);
 					if (valuePreserving) {
 						valuePreservingRatio++;
 						if ((valuePreservingRatio
@@ -78,7 +78,6 @@ public class SensitivityPreservance {
 						count++;
 						if ((count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
 							list.add(li);
-							return list;
 						}
 					}
 				}

@@ -1039,7 +1039,7 @@ public class ComputationPath {
 	public DepVariable getFirstPrimitiveNode() {
 		for(int i=0; i<computationNodes.size(); i++) {
 			DepVariable var = computationNodes.get(i);
-			if(var.isPrimitive()) {
+			if(var.isPrimitive() && !(var.getInstruction().getASMNode().getOpcode() == Opcodes.CHECKCAST)) {
 				return var;
 			}
 		}

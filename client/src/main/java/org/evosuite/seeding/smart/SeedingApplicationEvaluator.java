@@ -35,6 +35,7 @@ import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
@@ -250,7 +251,7 @@ public class SeedingApplicationEvaluator {
 		}
 		
 		long t1 = System.currentTimeMillis();
-		if(b.toString().contains("NULL")) {
+		if(b == null || b.toString().contains("NULL")) {
 			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
 			cache.put(b, branchInfo);
 			return branchInfo;
@@ -263,8 +264,11 @@ public class SeedingApplicationEvaluator {
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
-		b = compileBranch(branchesInTargetMethod, b);
+//		b = compileBranch(branchesInTargetMethod, b);
 		Set<DepVariable> nodes = branchesInTargetMethod.get(b);
+		if(nodes == null) {
+			nodes = branchesInTargetMethod.get(compileBranch(branchesInTargetMethod, b));
+		}
 		Set<DepVariable> methodInputs = compileInputs(nodes);
 
 		try {
@@ -316,6 +320,14 @@ public class SeedingApplicationEvaluator {
 						sp.useConstants = true;
 					
 					if (sp.useConstants) {
+						if(constantsClass.contains(sp.pontentialBranchOperandTypes.get(0))) {
+							String type = finalType(sp.pontentialBranchOperandTypes.get(0).toString());
+							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
+							cache.put(b, branchInfo);
+							System.out.println("STATIC_POOL type:" + b + ":" + type);
+							sp.clear();
+							return branchInfo;
+						}
 						for(Class<?> cla : constantsClass) {
 							String type = finalType(cla.toString());
 							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
@@ -473,7 +485,6 @@ public class SeedingApplicationEvaluator {
 		 */
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		List<DepVariable> headers = retrieveHeads(pathList);
-//		System.currentTimeMillis();
 		
 //		for(BytecodeInstruction op: auxiliaryOperands) {
 //			RuntimeSensitiveVariable.observations.put(op.toString(), new ArrayList<>());
@@ -535,19 +546,18 @@ public class SeedingApplicationEvaluator {
 	
 	private static void add(List<BytecodeInstruction> list, BytecodeInstruction ins) {
 		if(ins != null && !list.contains(ins)) {
-			if(!ins.isMethodCall()) {
+//			if(!ins.isMethodCall()) {
 				list.add(ins);					
-			}
+//			}
 		}
 	}
 	
 	private static void parseRelevantOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
-		
+//		System.currentTimeMillis();
 		DepVariable var = new DepVariable(targetIns);
 		if(var.isPrimitive()) {
 			add(list, var.getInstruction());
-		}
-		
+		}		
 		if(targetIns.toString().contains("NULL")){
 			return;
 		}
@@ -596,28 +606,77 @@ public class SeedingApplicationEvaluator {
 					}
 				}
 				else {
-					for(BytecodeInstruction ins: targetIns.getOperands()) {
-						add(list, ins);
-					}
+					getInstructionOperands(targetIns,list);
 					return;
 				}
 			}
 			else {
 				BytecodeInstruction ins = targetIns.getNextInstruction();
-				add(list, ins);
-				return;
-				
+				if(!ins.isBranch()) {
+					add(list, ins);
+					return;
+				}else {
+					getInstructionOperands(ins,list);
+					return;
+				}
 			}
 			
 			return;
 		}
 		
-		for(BytecodeInstruction ins: targetIns.getOperands()) {
+		if (var.isCompare()) {
+			for (BytecodeInstruction ins : targetIns.getOperands()) {
+					add(list, ins);
+					
+//				if (!ins.isMethodCall())
+//					add(list, ins);
+//				else {
+//					getInstructionOperands(ins, list);
+//				}					
+			}
+			return;
+		}
+
+		for (BytecodeInstruction ins : targetIns.getOperands()) {
 			parseRelevantOperands(ins, list);
 		}
+
 		
 		if(targetIns.getOperands().size() == 0)
 			add(list, targetIns);
+	}
+
+	private static void getInstructionOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
+		for (BytecodeInstruction ins : targetIns.getOperands()) {
+			BytecodeInstruction insCopy = ins;
+			
+			if (insCopy.getASMNode().getOpcode() == Opcodes.CHECKCAST) {
+				getInstructionOperands(insCopy, list);
+				continue;
+			}
+			
+			if (insCopy.getASMNode().getOpcode() <= Opcodes.SASTORE && insCopy.getASMNode().getOpcode() >= Opcodes.ISTORE) {
+				continue;
+			}
+			
+			if (insCopy.getASMNode().getOpcode() == Opcodes.PUTSTATIC) {
+				BytecodeInstruction i = insCopy.getPreviousInstruction();
+				add(list, i);
+				continue;
+			}
+
+//			if (insCopy.getType() == null && insCopy.getASMNode().getOpcode() == Opcodes.SIPUSH) {
+//				BytecodeInstruction i = insCopy.getPreviousInstruction();
+//				i = i.getPreviousInstruction();
+//				add(list, i);
+//				continue;
+//			}
+//			if (ins.isMethodCall()) {
+//				getInstructionOperands(insCopy, list);
+//			}
+//			else
+				add(list, insCopy);
+		}
 	}
 
 	private static boolean isBooleanReturnClass(String calledClass) {
@@ -831,13 +890,27 @@ public class SeedingApplicationEvaluator {
 					String less1 =br.toString().split(s1[i].toString(),0)[1];
 					if(less0.equals(less1)) {
 						targetBranch = br;
+						return targetBranch;
 					}
 				}
 			}
-//			if(s[0].equals(s1[0])) {
-//				targetBranch = br;
-//				System.currentTimeMillis();
-//			}
+		}
+		
+		if(lineBranches.size() == 0) {
+			for (Branch br : branchesInTargetMethod.keySet()) {
+				String[] s = b.toString().split(" ");
+				String[] s1 = br.toString().split(" ");
+				
+				if(s[s.length - 1].equals(s1[s1.length - 1])) {
+					lineBranches.add(br);
+					if(s[s.length - 2].equals(s1[s1.length - 2])) {
+						targetBranch = br;
+						return targetBranch;
+					}
+				}
+			}
+			if(lineBranches.size() > 0)
+				targetBranch = lineBranches.get(0);
 		}
 //			String info = s[3] + " " + s[4];
 //			if (br.toString().contains(info) && !br.equals(b)) {
