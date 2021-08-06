@@ -35,6 +35,7 @@ import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
@@ -250,7 +251,7 @@ public class SeedingApplicationEvaluator {
 		}
 		
 		long t1 = System.currentTimeMillis();
-		if(b.toString().contains("NULL")) {
+		if(b == null || b.toString().contains("NULL")) {
 			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
 			cache.put(b, branchInfo);
 			return branchInfo;
@@ -484,7 +485,6 @@ public class SeedingApplicationEvaluator {
 		 */
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		List<DepVariable> headers = retrieveHeads(pathList);
-//		System.currentTimeMillis();
 		
 //		for(BytecodeInstruction op: auxiliaryOperands) {
 //			RuntimeSensitiveVariable.observations.put(op.toString(), new ArrayList<>());
@@ -546,9 +546,9 @@ public class SeedingApplicationEvaluator {
 	
 	private static void add(List<BytecodeInstruction> list, BytecodeInstruction ins) {
 		if(ins != null && !list.contains(ins)) {
-			if(!ins.isMethodCall()) {
+//			if(!ins.isMethodCall()) {
 				list.add(ins);					
-			}
+//			}
 		}
 	}
 	
@@ -596,7 +596,7 @@ public class SeedingApplicationEvaluator {
 						for (BytecodeInstruction op : ops) {
 							if(op.isConstant()) {
 								for(Branch b: op.getControlDependentBranches()) {
-									getInstructionOperands(b.getInstruction(), list);
+									parseRelevantOperands(b.getInstruction(), list);
 								}
 							}
 							else {
@@ -626,12 +626,13 @@ public class SeedingApplicationEvaluator {
 		
 		if (var.isCompare()) {
 			for (BytecodeInstruction ins : targetIns.getOperands()) {
-				if (!ins.isMethodCall())
 					add(list, ins);
-				else {
-					getInstructionOperands(ins, list);
-				}
 					
+//				if (!ins.isMethodCall())
+//					add(list, ins);
+//				else {
+//					getInstructionOperands(ins, list);
+//				}					
 			}
 			return;
 		}
@@ -654,23 +655,26 @@ public class SeedingApplicationEvaluator {
 				continue;
 			}
 			
-			if (insCopy.getASMNode().getOpcode() == Opcodes.PUTSTATIC) {
-				BytecodeInstruction i = insCopy.getPreviousInstruction();
-				if (!list.contains(i))
-					add(list, i);
+			if (insCopy.getASMNode().getOpcode() <= Opcodes.SASTORE && insCopy.getASMNode().getOpcode() >= Opcodes.ISTORE) {
 				continue;
 			}
-
-			if (insCopy.getType() == null && insCopy.getASMNode().getOpcode() == Opcodes.SIPUSH) {
+			
+			if (insCopy.getASMNode().getOpcode() == Opcodes.PUTSTATIC) {
 				BytecodeInstruction i = insCopy.getPreviousInstruction();
-				i = i.getPreviousInstruction();
 				add(list, i);
 				continue;
 			}
-			if (ins.isMethodCall()) {
-				getInstructionOperands(insCopy, list);
-			}
-			else
+
+//			if (insCopy.getType() == null && insCopy.getASMNode().getOpcode() == Opcodes.SIPUSH) {
+//				BytecodeInstruction i = insCopy.getPreviousInstruction();
+//				i = i.getPreviousInstruction();
+//				add(list, i);
+//				continue;
+//			}
+//			if (ins.isMethodCall()) {
+//				getInstructionOperands(insCopy, list);
+//			}
+//			else
 				add(list, insCopy);
 		}
 	}

@@ -118,7 +118,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.empirical.EmpiricalStudyExample.class;
 		String methodName = "accept";
 		int parameterNum = 1;
-		int lineNumber = 30;
+		int lineNumber = 35;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -267,7 +267,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.empirical.EmpiricalStudyExample.class;
 		String methodName = "parse";
 		int parameterNum = 1;
-		int lineNumber = 115;
+		int lineNumber = 120;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -297,7 +297,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = feature.smartseed.example.empirical.EmpiricalStudyExample.class;
 		String methodName = "loadInstructions";
 		int parameterNum = 1;
-		int lineNumber = 128;
+		int lineNumber = 133;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -627,7 +627,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		Class<?> clazz = Config.class;
 		String methodName = "isHighQuality";
 		int parameterNum = 0;
-		int lineNumber = 63;
+		int lineNumber = 65;
 
 		Properties.TARGET_CLASS = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -676,7 +676,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		writeResults();
 		
-		assert type == SeedingApplicationEvaluator.STATIC_POOL;
+		assert type == SeedingApplicationEvaluator.NO_POOL;
 		
 	}
 	

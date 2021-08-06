@@ -1,7 +1,9 @@
 package feature.smartseed.example.empirical;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Config {
 	private Boolean highQuality;
@@ -68,5 +70,21 @@ public class Config {
 
         highQuality = true;
         return highQuality;
+    }
+
+
+	public static Map<String, String> readProperties(String filename) {
+		Map<String,String> filemaps = new HashMap<String,String>();
+		filemaps.put("m1", "value1");
+		filemaps.put("m2", "value2");
+		return filemaps;
+	}
+	
+	private Boolean logoEnabled;
+    public boolean isLogoEnabled() {
+        if (logoEnabled == null)
+            logoEnabled = !options.remove("-nologo");
+
+        return logoEnabled;
     }
 }

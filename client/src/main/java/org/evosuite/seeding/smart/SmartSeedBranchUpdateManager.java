@@ -23,8 +23,8 @@ public class SmartSeedBranchUpdateManager {
 			return;
 		long nowtime = System.currentTimeMillis();
 		//baseline run 30s
-//		if((nowtime - TestCaseLegitimizer.startTime) / 1000 < 30)
-//			return;
+		if((nowtime - TestCaseLegitimizer.startTime) / 1000 < 30)
+			return;
 		
 		Properties.APPLY_CHAR_POOL = true;
 		

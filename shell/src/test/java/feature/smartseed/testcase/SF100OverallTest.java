@@ -42,7 +42,7 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample1() {
-		String projectId = SF100Project.P36;
+		String projectId = SF100Project.P17;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
 //				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
@@ -57,14 +57,13 @@ public class SF100OverallTest {
 //				"com.werken.saxpath.XPathLexer#nextToken()Lcom/werken/saxpath/Token;"//82
 //				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"
 				
-				"net.sourceforge.schemaspy.Config#isNumRowsEnabled()Z"
-//				"com.hf.sfm.util.Loader#getParams(Lorg/hibernate/Query;[[Ljava/lang/String;)Lorg/hibernate/Query;"//7
-//				"dsachat.Main#main([Ljava/lang/String;)V"//12
-//				"com.soops.CEN4010.JMCA.JParser.xmlParser.IterationStatement#processState(Ljava/lang/String;)"//19
-//				"jigcell.sbml2.Compartment#setSpatialDimensions(I)V"//34
-//				"corina.graph.StandardPlot#validValue(I)Z"//35
-//				"bierse.view.DefaultDrinkSellView#fireModelChanged(I)V"//49
-//				"de.huxhorn.lilith.swing.taskmanager.table.TaskTableModel#getColumnClass(I)Ljava/lang/Class;"//43
+//				"com.ib.client.Util#VectorEqualsUnordered(Ljava/util/Vector;Ljava/util/Vector;)Z"//1
+//				"com.jigen.msi.ResourcesDirectory#addResource(Lcom/jigen/msi/ResourceDescriptor;Ljava/util/LinkedList;)V"//3
+//				"fr.unice.gfarce.interGraph.TableStockage#setColumnClass(ILjava/lang/Class;)V"//8
+//				"org.databene.jdbacl.model.jdbc.DBIndexInfo#addColumn(SLjava/lang/String;)V"//13
+//				"org.databene.jdbacl.DatabaseDialectManager#getDialectForProduct(Ljava/lang/String;)Lorg/databene/jdbacl/DatabaseDialect;"//13
+				"com.allenstudio.ir.util.XmlElement#getElement(Ljava/lang/String;)Lcom/allenstudio/ir/util/XmlElement;"//17
+//				"com.allenstudio.ir.util.InspirentoUtilities#stringReplaceAll(Ljava/lang/StringBuffer;CLjava/lang/String;)Ljava/lang/StringBuffer;"
 		};
 		
 		int repeatTime = 3;
@@ -106,13 +105,13 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testBugExample7() {
-		String projectId = SF100Project.P80;
+		String projectId = SF100Project.P5;
 		String[] targetMethods = new String[]{
 //				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
 //				"org.exolab.jms.selector.parser.SelectorTreeParser#literal(Lantlr/collections/AST;)Lorg/exolab/jms/selector/Expression;"//66
 //				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
 //				"wheel.components.ActionExpression#extractComponent()Ljava/lang/String;"
-				"wheel.enhance.WheelAnnotatedField#getGetterName()Ljava/lang/String;"//80
+				"org.templateit.Poi2ItextUtil#chooseFontFamily(Lorg/apache/poi/hssf/usermodel/HSSFFont;I)I"//5
 //				"wheel.json.JSONTokener#dehexchar(C)I"//80
 //				"org.javathena.core.utiles.Functions#e_mail_check(Ljava/lang/String;)Z"//81
 //				"net.sf.xbus.technical.ftp.FTPConnection#getWorkingDirectory(Ljava/lang/String;)Ljava/lang/String;"//83
@@ -124,7 +123,7 @@ public class SF100OverallTest {
 		};
 		
 		int repeatTime = 1;
-		int budget = 50;
+		int budget = 1000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

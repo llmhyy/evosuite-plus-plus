@@ -136,13 +136,8 @@ public class SensitivityMutator {
 			return new SensitivityPreservance(0, 0);
 		}
 		String methodCall = test.getStatement(test.size() - 1).toString();
-		long t1 = System.currentTimeMillis();
-		while (!methodCall.equals(Properties.TARGET_METHOD)) {
+		if (!methodCall.equals(Properties.TARGET_METHOD)) {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
-			methodCall = test.getStatement(test.size() - 1).toString();
-			long t2 = System.currentTimeMillis();
-			if ((t2 - t1) / 1000 > 3)
-				return new SensitivityPreservance(0, 0);
 		}
 
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
@@ -174,25 +169,21 @@ public class SensitivityMutator {
 		SensitivityPreservance preservance = new SensitivityPreservance(observations.size(), rootVariables.size());
 		
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
-		
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
 
 
 			Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
-			long t1 = System.currentTimeMillis();
-			while(observationIsNull(observationMap) && i == 0) {
+			if(observationIsNull(observationMap) && i == 0) {
 				newTestChromosome = createNewTestCase(branch);
 				observationMap = evaluateObservations(branch, observations, newTestChromosome);
-				long t2 = System.currentTimeMillis();
-				if((t2 - t1) / 1000 > 3) break;
 			}
 			
 			Map<String, List<Object>> recordInput = constructInputValues(rootVariables, newTestChromosome, map);
-			Map<String, Boolean> InputConstant = constructInputType(rootVariables, newTestChromosome, map);
-			
+			Map<String, Boolean> InputConstant = constructInputType(rootVariables);
+			Map<String, Boolean> observationConstant = constructObservationsType(observations);
 //			AbstractMOSA.getFirstTailValueTime += t2 - t1;
 
-			ObservationRecord record = new ObservationRecord(recordInput, observationMap, InputConstant);
+			ObservationRecord record = new ObservationRecord(recordInput, observationMap, InputConstant ,observationConstant);
 			preservance.addRecord(record);
 			
 			//TODO Cheng Yan refactor this, now the obsevation will always have a complete size
@@ -203,8 +194,15 @@ public class SensitivityMutator {
 				}
 			}
 		}
-
 		return preservance;
+	}
+
+	private static Map<String, Boolean> constructObservationsType(List<BytecodeInstruction> observations) {
+		Map<String, Boolean> m = new HashMap<>();
+		for (BytecodeInstruction ob : observations) {
+			m.put(ob.toString(), ob.isConstant());
+		}
+		return m;
 	}
 
 	private static TestChromosome createNewTestCase(Branch branch) {
@@ -232,8 +230,7 @@ public class SensitivityMutator {
 		return true;
 	}
 
-	private static Map<String, Boolean> constructInputType(List<DepVariable> rootVariables,
-			TestChromosome newTestChromosome, Map<DepVariableWrapper, List<VariableReference>> map) {
+	private static Map<String, Boolean> constructInputType(List<DepVariable> rootVariables) {
 		Map<String, Boolean> m = new HashMap<>();
 		for (DepVariable var : rootVariables) {
 			m.put(var.getInstruction().toString(), var.getInstruction().isConstant());
@@ -266,7 +263,7 @@ public class SensitivityMutator {
 				m.put(var.getInstruction().toString(), constantValue);
 				continue;
 			}
-			System.currentTimeMillis();
+//			System.currentTimeMillis();
 			Statement callStatement = isArrayStatement(var, newTestChromosome, map);
 			Statement relevantStatement;
 			if(callStatement instanceof ArrayStatement) {
@@ -774,19 +771,21 @@ public class SensitivityMutator {
 
 		// Find root statement using object map
 		DepVariableWrapper rootVarWrapper = new DepVariableWrapper(rootVariable);
-		List<VariableReference> varRefs = map.get(rootVarWrapper);
-		if (varRefs != null) {
-			int minPos = tc.size();
-			for (VariableReference varRef : varRefs) {
-				int pos = varRef.getStPosition();
-				if (pos < minPos) {
-					minPos = pos;
+		if (map != null) {
+			List<VariableReference> varRefs = map.get(rootVarWrapper);
+			if (varRefs != null) {
+				int minPos = tc.size();
+				for (VariableReference varRef : varRefs) {
+					int pos = varRef.getStPosition();
+					if (pos < minPos) {
+						minPos = pos;
+					}
 				}
-			}
 
-			rootValueStatement = getRootValueStatement(tc, tc.getStatement(minPos));
-			if (rootValueStatement != null)
-				return rootValueStatement;
+				rootValueStatement = getRootValueStatement(tc, tc.getStatement(minPos));
+				if (rootValueStatement != null)
+					return rootValueStatement;
+			}
 		}
 
 		if (rootVariable.isParameter()) {
