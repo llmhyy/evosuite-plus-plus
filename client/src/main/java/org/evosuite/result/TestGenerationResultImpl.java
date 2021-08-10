@@ -122,13 +122,18 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	
 	private Map<String, Boolean> methodCallAvailabilityMap = new HashMap<>();
 	
-	private ExceptionResult<TestChromosome> exceptionResult;
+	private ExceptionResult<TestChromosome> exceptionResult = new ExceptionResult<TestChromosome>();
 	
 	public ExceptionResult<TestChromosome> getExceptionResult() {
 		return this.exceptionResult;
 	}
 	
 	public void setExceptionResult(ExceptionResult<TestChromosome> exceptionResult) {
+		if (exceptionResult == null) {
+			System.out.println("Detected an attempt to set exception result to a null value.");
+			return;
+		}
+		
 		this.exceptionResult = exceptionResult;
 	}
 	

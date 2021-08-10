@@ -133,6 +133,51 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testByuic() {
+		String projectId = SF100Project.P22;
+		String[] targetMethods = new String[]{
+				"com.yahoo.platform.yui.compressor.ScriptOrFnScope#munge()V"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 5;
+		int budget = 10;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testJwbf() {
+		String projectId = SF100Project.P23;
+		String[] targetMethods = new String[]{
+				"net.sourceforge.jwbf.core.contentRep.Article#equals(Ljava/lang/Object;)Z"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 150;
+		int budget = 1;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
 	public void testJiggler() {
 		String projectId = SF100Project.P89;
 		String[] targetMethods = new String[]{

@@ -39,6 +39,7 @@ import org.evosuite.instrumentation.LinePool;
 import org.evosuite.result.TestGenerationResult.Status;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.LoggingUtils;
@@ -93,6 +94,8 @@ public class TestGenerationResultBuilder {
 		result.setMissingBranches(testSuite.getMissingBranches());
 		result.setCoveredBranchWithTest(testSuite.getCoveredBranchWithTest());
 		result.setEventSequence(EventSequence.events);
+		
+		result.setExceptionResult(testSuite.getExceptionResult());
 		
 		return result;
 	}

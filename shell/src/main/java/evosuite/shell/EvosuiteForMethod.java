@@ -744,6 +744,15 @@ public class EvosuiteForMethod {
 	
 	public static void printExceptionResult(TestGenerationResult testGenerationResult) {
 		ExceptionResult<TestChromosome> exceptionResult = testGenerationResult.getExceptionResult();
+
+		// Guard clause
+		// This method is just printing out debug outputs, so we don't really care
+		// if something breaks in here anyway.
+		if (exceptionResult == null) {
+			System.out.println("Exception result was null, terminating print function early.");
+			return;
+		}
+		
 		List<ExceptionResultBranch<TestChromosome>> branches = exceptionResult.getAllResults();
 		for (ExceptionResultBranch<TestChromosome> branch : branches) {
 			String branchName = ((BranchCoverageTestFitness) branch.getFitnessFunction()).getBranch().toString();

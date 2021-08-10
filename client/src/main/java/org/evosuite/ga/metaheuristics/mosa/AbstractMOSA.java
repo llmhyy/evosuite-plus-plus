@@ -658,6 +658,15 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
             best.setFitness(suiteFitness,  1.0);
           }
           best.setAge(this.currentIteration);
+          
+          if (exceptionResult == null) {
+  			System.out.println("Detected a null ExceptionResult in " + this.getClass().getCanonicalName());
+  		  }
+          
+          if (exceptionResult != null) {
+        	  best.setExceptionResult((ExceptionResult<TestChromosome>) exceptionResult);
+          }
+          
           return (T) best;
         }
 
@@ -689,7 +698,11 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			IPFlagCoverage = (double)uncoveredIPFlags.size()/IPFlags.size();
 		
 		best.setIPFlagCoverage(1-IPFlagCoverage);
-
+		
+		if (exceptionResult == null) {
+			System.out.println("Detected a null ExceptionResult in " + this.getClass().getCanonicalName());
+		}
+		
 		if (exceptionResult != null) {
 			best.setExceptionResult((ExceptionResult<TestChromosome>) exceptionResult);
 		}

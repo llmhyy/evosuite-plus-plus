@@ -30,11 +30,14 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 	private String[] dataColumnHeaders;
 	private String[] testCaseCodeColumnHeaders;
 	private String[] statisticsColumnHeaders;
+	private String[] coverageColumnHeaders;
 	private Map<String, Integer> branchIdentifierToIterationNumber = new HashMap<>();
+	private Map<String, Integer> classAndMethodNameToIterationNumber = new HashMap<>();
 	
 	private static final String DEFAULT_SHEET = "Data";
 	private static final String TEST_CASE_CODE_SHEET = "Test case code";
 	private static final String STATISTICS_SHEET = "Statistics";
+	private static final String COVERAGE_SHEET = "Coverage";
 	
 	public ExceptionIterationRecorder(int iteration) throws IOException {
 		super();
@@ -100,6 +103,18 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		return columnHeaders.toArray(new String[] {});
 	}
 	
+	private String[] generateCoverageColumnHeaders() {
+		List<String> columnHeaders = new ArrayList<>();
+		columnHeaders.add("Evosuite iteration");
+		columnHeaders.add("Class");
+		columnHeaders.add("Method");
+		columnHeaders.add("Total branches");
+		columnHeaders.add("Number of uncovered branches");
+		columnHeaders.add("Number of covered branches");
+		
+		return columnHeaders.toArray(new String[] {});
+	}
+	
 	@Override
 	public void record(String className, String methodName, EvoTestResult r) {	
 		if (excelWriter == null) {
@@ -109,14 +124,38 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		dataColumnHeaders = generateDataColumnHeaders();
 		testCaseCodeColumnHeaders = generateTestCaseCodeColumnHeaders();
 		statisticsColumnHeaders = generateStatisticsColumnHeaders();
-
+		coverageColumnHeaders = generateCoverageColumnHeaders();
+		
 		setupColumnHeadersForSheet(DEFAULT_SHEET, dataColumnHeaders);
 		setupColumnHeadersForSheet(TEST_CASE_CODE_SHEET, testCaseCodeColumnHeaders);
 		setupColumnHeadersForSheet(STATISTICS_SHEET, statisticsColumnHeaders);
+		setupColumnHeadersForSheet(COVERAGE_SHEET, coverageColumnHeaders);
 		
 		List<List<Object>> rows = new ArrayList<>();
 		List<List<Object>> comments = new ArrayList<>();
 		List<List<Object>> statistics = new ArrayList<>();
+		// Yes it's ungrammatical, but it indicates the plural state more clearly.
+		List<List<Object>> coverages = new ArrayList<>();
+		
+		// Coverage related data.
+		List<Object> rowCoverage = new ArrayList<>();
+		boolean isFirstIteration = !classAndMethodNameToIterationNumber.containsKey(className + methodName);
+		if (isFirstIteration) {
+			classAndMethodNameToIterationNumber.put(className + methodName, 0);
+		}
+		Integer evosuiteIteration = classAndMethodNameToIterationNumber.get(className + methodName);
+		classAndMethodNameToIterationNumber.put(className + methodName, evosuiteIteration + 1);
+		
+		rowCoverage.add(evosuiteIteration);
+		rowCoverage.add(className);
+		rowCoverage.add(methodName);
+		int numUncoveredBranches = r.getMissingBranches().size();
+		int numCoveredBranches = r.getCoveredBranchWithTest().size();
+		int numTotalBranches = numUncoveredBranches + numCoveredBranches;		
+		rowCoverage.add(numTotalBranches);
+		rowCoverage.add(numUncoveredBranches);
+		rowCoverage.add(numCoveredBranches);
+		coverages.add(rowCoverage);
 		
 		ExceptionResult<TestChromosome> exceptionResult = r.getExceptionResult();
 		for (ExceptionResultBranch<TestChromosome> exceptionResultBranch : exceptionResult.getAllResults()) {
@@ -289,6 +328,7 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 			excelWriter.writeSheet(DEFAULT_SHEET, rows);
 			excelWriter.writeSheet(TEST_CASE_CODE_SHEET, comments);
 		    excelWriter.writeSheet(STATISTICS_SHEET, statistics);
+		    excelWriter.writeSheet(COVERAGE_SHEET, coverages);
 		} catch (IOException ioe) {
 			log.error("IO Error\n", ioe);
 		}
