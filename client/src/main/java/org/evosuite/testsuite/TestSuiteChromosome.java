@@ -81,7 +81,7 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	private Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
 	
 	// Used for tracking exception-related data.
-	private ExceptionResult<TestChromosome> exceptionResult;
+	private ExceptionResult<TestChromosome> exceptionResult = new ExceptionResult<TestChromosome>();
 	/**
 	 * Add an additional secondary objective to the end of the list of
 	 * objectives

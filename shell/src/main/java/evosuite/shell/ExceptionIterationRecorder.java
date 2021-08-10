@@ -352,11 +352,11 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < e.getStackTrace().length; i++) {
 			StackTraceElement ste = e.getStackTrace()[i];
-			String s = "class Name: " + ste.getClassName() + ", line number:  " + ste.getLineNumber() + "\n";
+			String s = "Class Name: " + ste.getClassName() + ", line number:  " + ste.getLineNumber() + "\n";
 			sb.append(s);
 		}
 
-		rowData.add("Error:\n" + sb.toString());
+		rowData.add("Error: " + e.getClass().getCanonicalName() + " (" + e.toString() + ")\n" + sb.toString());
 		try {
 			excelWriter.writeSheet(DEFAULT_SHEET, Arrays.asList(rowData));
 		} catch (IOException ex) {
