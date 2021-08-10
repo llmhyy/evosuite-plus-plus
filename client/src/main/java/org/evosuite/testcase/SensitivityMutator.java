@@ -168,26 +168,27 @@ public class SensitivityMutator {
 		System.currentTimeMillis();
 		SensitivityPreservance preservance = new SensitivityPreservance(observations.size(), rootVariables.size());
 		
+		Map<String, Boolean> InputConstant = constructInputType(rootVariables);
+		Map<String, Boolean> observationConstant = constructObservationsType(observations);
+		
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
 
 
 			Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
-			if(observationIsNull(observationMap) && i == 0) {
+			if(i == 0 && observationIsNull(observationMap)) {
 				newTestChromosome = createNewTestCase(branch);
 				observationMap = evaluateObservations(branch, observations, newTestChromosome);
 			}
 			
 			Map<String, List<Object>> recordInput = constructInputValues(rootVariables, newTestChromosome, map);
-			Map<String, Boolean> InputConstant = constructInputType(rootVariables);
-			Map<String, Boolean> observationConstant = constructObservationsType(observations);
 //			AbstractMOSA.getFirstTailValueTime += t2 - t1;
 
 			ObservationRecord record = new ObservationRecord(recordInput, observationMap, InputConstant ,observationConstant);
 			preservance.addRecord(record);
 			
 			//TODO Cheng Yan refactor this, now the obsevation will always have a complete size
-			if (observationIsNull(observationMap) && i == 1) {
+			if (i == 1 && observationIsNull(observationMap)) {
 				if (observationIsNull(preservance.recordList.get(0).observations)) {
 					System.out.println("observations is null!");
 					return preservance;

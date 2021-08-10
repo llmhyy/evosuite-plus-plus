@@ -32,6 +32,8 @@ public class SensitivityPreservance {
 		/**
 		 * TODO Cheng Yan
 		 */
+		if(recordList.size() < 3) return false;
+		
 		double valuePreservingRatio = 0;
 		for (int i = 0; i < inputSize; i++) {
 			// input num

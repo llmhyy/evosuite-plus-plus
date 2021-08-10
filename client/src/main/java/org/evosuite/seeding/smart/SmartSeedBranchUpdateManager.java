@@ -23,7 +23,7 @@ public class SmartSeedBranchUpdateManager {
 			return;
 		long nowtime = System.currentTimeMillis();
 		//baseline run 30s
-		if((nowtime - TestCaseLegitimizer.startTime) / 1000 < 30)
+		if((nowtime - TestCaseLegitimizer.startTime) / 1000 < 20)
 			return;
 		
 		Properties.APPLY_CHAR_POOL = true;
@@ -59,7 +59,10 @@ public class SmartSeedBranchUpdateManager {
 		totalUncoveredGoals = uncoveredGoal;
 		
 		double ratio = infoSet.size()*1.0 / uncoveredGoals.size()*1.0 ;
-		Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + ratio);
+		if(!infoSet.isEmpty())
+			Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + 1);
+		else
+			Properties.PRIMITIVE_POOL = oldPrimitivePool;
 	}
 	
 

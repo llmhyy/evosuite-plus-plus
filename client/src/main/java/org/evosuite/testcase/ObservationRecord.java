@@ -64,6 +64,7 @@ public class ObservationRecord {
 		if(StringEquals(inKey,obKey)) return true;
 
 		for(Object ob:inputs.get(inKey)) {
+			if(ob == null) return false;
 			if(ob.getClass().equals(Boolean.class))
 				return false;
 			if(observations.get(obKey).contains(ob)) {
@@ -93,8 +94,14 @@ public class ObservationRecord {
 	}
 
 	private boolean StringEquals(String inKey, String obKey) {
-		if(inputs.get(inKey).size() == 0 || observations.get(obKey).size() == 0) return false;
-		if (inputs.get(inKey).get(0) instanceof String && observations.get(obKey).get(0) instanceof String) {
+		if(inputs.get(inKey).isEmpty() || observations.get(obKey).isEmpty()) return false;
+		List<Object> in = new ArrayList<>();
+		in.addAll(inputs.get(inKey));
+		
+		List<Object> obser = new ArrayList<>();
+		obser.addAll(observations.get(obKey));
+		
+		if (in.get(0) instanceof String && in.get(0) instanceof String) {
 			List<String> list1 = new ArrayList<String>();
 			List<String> list2 = new ArrayList<String>();
 			for (Object ob : inputs.get(inKey)) {
@@ -115,13 +122,17 @@ public class ObservationRecord {
 
 	private boolean numericEquals(String inKey, String obKey) {
 		if(inputs.get(inKey).isEmpty() || observations.get(obKey).isEmpty()) return false;
+		List<Object> in = new ArrayList<>();
+		in.addAll(inputs.get(inKey));
 		
-		Class<?> clsInput = inputs.get(inKey).get(0).getClass();
-		Class<?> clsObser = observations.get(obKey).get(0).getClass();
+		List<Object> obser = new ArrayList<>();
+		obser.addAll(observations.get(obKey));
+//		Class<?> clsInput = in.get(0).getClass();
+//		Class<?> clsObser = obser.get(0).getClass();
 
-		if ((inputs.get(inKey).get(0) instanceof Number || inputs.get(inKey).get(0) instanceof Character)
-				&& (observations.get(obKey).get(0) instanceof Number)
-				|| observations.get(obKey).get(0) instanceof Character) {
+		if ((in.get(0) instanceof Number || in.get(0) instanceof Character)
+				&& (obser.get(0) instanceof Number)
+				|| obser.get(0) instanceof Character) {
 			List<String> list1 = new ArrayList<String>();
 			List<String> list2 = new ArrayList<String>();
 			for (Object ob : inputs.get(inKey)) {
@@ -142,29 +153,12 @@ public class ObservationRecord {
 			}
 			for (Object ob : list1) {
 				if (list2.contains(ob)) {
-					potentialOpernadType = clsObser;
+					potentialOpernadType = obser.get(0);
 					return true;
 				}
 			}
 		}
 
-//		if (inputs.get(inKey).get(0) instanceof Number && observations.get(obKey).get(0) instanceof Number) {
-//
-//			List<String> list1 = new ArrayList<String>();
-//			List<String> list2 = new ArrayList<String>();
-//			for (Object ob : inputs.get(inKey)) {
-//				list1.add(ob.toString());
-//			}
-//			for (Object ob : observations.get(obKey)) {
-//				list2.add(ob.toString());
-//			}
-//			for (Object ob : list1) {
-//				if (list2.contains(ob)) {
-//					potentialOpernadType = clsObser;
-//					return true;
-//				}
-//			}
-//		}
 		return false;
 		
 	}
@@ -277,6 +271,14 @@ public class ObservationRecord {
 			}
 		}
 		return false;
+	}
+	
+	private static  boolean observationIsNull(Map<String, List<Object>> observationMap) {
+		for(String s : observationMap.keySet()) {
+			if(observationMap.get(s).size() > 0)
+				return false;
+		}
+		return true;
 	}
 
 }

@@ -287,7 +287,7 @@ public class SeedingApplicationEvaluator {
 				
 				if (b.isSwitchCaseBranch()) {
 					String key1 = b.toString();
-					int index1 = key1.indexOf("TABLESWITCH");
+					int index1 = key1.indexOf("SWITCH");
 					int index2 = key1.indexOf("Case");
 					if(key1.contains("Default")) {
 						index2 = key1.indexOf("Default") - 1;
