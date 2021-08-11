@@ -478,7 +478,11 @@ public class ConstructionPathSynthesizer {
 			 */
 			else{
 				ArrayReference arrayRef = (ArrayReference) callerObject;
-				int index = Randomness.nextInt(arrayRef.getArrayLength());
+				int length = arrayRef.getArrayLength();
+				if(arrayRef.getArrayLength() <= 0) {
+					length = Randomness.nextInt(10) + 1;
+				}
+				int index = Randomness.nextInt(length);
 				
 //				GenericClass clazz = new GenericClass(int.class);
 //				VariableReference indexVariable = TestFactory.getInstance().
@@ -819,7 +823,7 @@ public class ConstructionPathSynthesizer {
 					calleeVarRef = paramRefMap.get(0);
 					if (calleeVarRef != null) {
 						
-						Class<?> calleeType = calleeVarRef.getType().getClass();
+						Class<?> calleeType = calleeVarRef.getVariableClass();
 						Class<?> callObjectType = call.getDeclaringClass();
 						
 						if(calleeType.isAssignableFrom(callObjectType)) {
@@ -890,7 +894,7 @@ public class ConstructionPathSynthesizer {
 		try {
 			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 					.loadClass(fieldOwner);
-//			registerAllMethods(fieldDeclaringClass);				
+//			registerAllMethods(fieldDeclaringClass);	
 			Field field = searchForField(fieldDeclaringClass, fieldName);
 			/**
 			 * if the field is leaf, check if there is setter in the testcase
@@ -978,9 +982,9 @@ public class ConstructionPathSynthesizer {
 					if(s instanceof ConstructorStatement) {
 						ConstructorStatement cStat = (ConstructorStatement)s;
 						VariableReference relevantParam = null;
-						if(cStat.getParameterReferences().size() == 1) {
-							relevantParam = cStat.getParameterReferences().get(0);
-						}
+//						if(cStat.getParameterReferences().size() == 1) {
+//							relevantParam = cStat.getParameterReferences().get(0);
+//						}
 						
 						for(VariableReference vRef: cStat.getParameterReferences()) {
 							if(vRef.getType().equals(field.getGenericType())) {
@@ -989,6 +993,7 @@ public class ConstructionPathSynthesizer {
 						}
 						
 						if(relevantParam != null) {
+							System.currentTimeMillis();
 							return relevantParam;
 						}
 						
@@ -1453,7 +1458,7 @@ public class ConstructionPathSynthesizer {
 			MethodStatement mStat = test.findTargetMethodCallStatement();
 			int paramPosition = node.var.getParamOrder();
 			VariableReference paramRef = null;
-			if(paramPosition > 1)
+			if(paramPosition >= 1)
 				paramRef = mStat.getParameterReferences().get(paramPosition - 1);
 			else
 				return paramRef;

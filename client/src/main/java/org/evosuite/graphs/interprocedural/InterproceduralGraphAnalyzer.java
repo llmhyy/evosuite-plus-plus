@@ -79,7 +79,7 @@ public class InterproceduralGraphAnalyzer {
 //			
 //			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-			Properties.ALWAYS_REGISTER_BRANCH = false;
+			
 			
 			if (calledCfg == null) {
 				MethodNode innerNode = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
@@ -95,6 +95,8 @@ public class InterproceduralGraphAnalyzer {
 
 				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			}
+			
+			Properties.ALWAYS_REGISTER_BRANCH = false;
 		}
 		
 		if(calledCfg == null) {

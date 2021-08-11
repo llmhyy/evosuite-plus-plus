@@ -19,7 +19,6 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
-import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
@@ -28,7 +27,6 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.Type;
 
 public class DataDependencyUtil {
 	/**
@@ -281,12 +279,11 @@ public class DataDependencyUtil {
 		List<BytecodeInstruction> insList = null;
 
 //		MockFramework.disable();
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		try{
 //			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
-			insList = BytecodeInstructionPool
-					.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-					.getAllInstructionsAtMethod(className, methodName);
+			ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+			insList = BytecodeInstructionPool.getInstance(classLoader).getAllInstructionsAtMethod(className, methodName);
 			
 			//FIXME aaron try to handle Java collection field.
 			if(insList == null) {
