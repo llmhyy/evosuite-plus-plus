@@ -53,9 +53,9 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.seeding.smart.SensitivityMutator;
 import org.evosuite.seeding.smart.SmartSeedBranchUpdateManager;
 import org.evosuite.testcase.MutationPositionDiscriminator;
-import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -221,11 +221,11 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		EventSequence.enableRecord();
 
 		long t1 = System.currentTimeMillis();
-		SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(bestMap, bestTestMap);
+		TestChromosome potentialSeed = SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(bestMap, bestTestMap);
 		long t2 = System.currentTimeMillis();
 		AbstractMOSA.smartSeedAnalyzeTime = (t2 - t1) > AbstractMOSA.smartSeedAnalyzeTime ? (t2 - t1)
 				: AbstractMOSA.smartSeedAnalyzeTime;
-
+		
 		List<T> offspringPopulation = new ArrayList<T>(Properties.POPULATION);
 		// we apply only Properties.POPULATION/2 iterations since in each generation
 		// we generate two offsprings
@@ -269,15 +269,9 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			offspring2.updateAge(this.currentIteration);
 			parent2.updateAge(this.currentIteration);
 
-//			this.removeUnusedVariables(offspring1);
-//			this.removeUnusedVariables(offspring2);
-
 			// apply mutation on offspring1
-			long parent_time1 = System.currentTimeMillis();
 			this.mutate(offspring1, parent1);
-			long parent_time2 = System.currentTimeMillis();
 			Set<?> uncoveredGoals = getUncoveredGoals();
-			AbstractMOSA.parent1EvolveTime += parent_time2 - parent_time1;
 			if (offspring1.isChanged()) {
 
 				this.clearCachedResults(offspring1);
@@ -292,13 +286,11 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				offspringPopulation.add(offspring1);
 			}
 
-			// apply mutation on offspring2
-//			uncoveredGoals = getUncoveredGoals();
-//			SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(uncoveredGoals);
-			parent_time1 = System.currentTimeMillis();
 			this.mutate(offspring2, parent2);
-			parent_time2 = System.currentTimeMillis();
-			AbstractMOSA.parent2EvolveTime += parent_time2 - parent_time1;
+			if(i == 0 && potentialSeed != null) {
+				offspring2 = (T) potentialSeed;
+				offspring2.setChanged(true);
+			}
 			if (offspring2.isChanged()) {
 				this.clearCachedResults(offspring2);
 				this.calculateFitness(offspring2);
@@ -348,6 +340,7 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				? SmartSeedBranchUpdateManager.totalUncoveredGoals.size()
 				: this.getBranchNum();
 		logger.info("Number of offsprings = {}", offspringPopulation.size());
+		
 		return offspringPopulation;
 	}
 

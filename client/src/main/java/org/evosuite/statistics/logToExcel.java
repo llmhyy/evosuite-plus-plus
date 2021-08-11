@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.evosuite.Properties;
-import org.evosuite.testcase.SensitivityMutator;
+import org.evosuite.seeding.smart.SensitivityMutator;
 
 
 public class logToExcel {

@@ -25,9 +25,8 @@ import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.instrumentation.BytecodeInstrumentation;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
-import org.evosuite.testcase.SensitivityMutator;
-import org.evosuite.testcase.ValuePreservance;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -36,7 +35,6 @@ import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
@@ -306,7 +304,11 @@ public class SeedingApplicationEvaluator {
 				}
 				
 				ValuePreservance sp = analyzeChannel(pathList, b, testSeed);
-				if (sp != null && sp.isValuePreserving(b)) {
+				if (sp != null && sp.isValuePreserving()) {
+					
+					PrimitiveStatement stat0 = sp.getMatchingResult().getMatchedInputVariable();
+					PrimitiveStatement statement = (PrimitiveStatement) testSeed.getTestCase().getStatement(stat0.getPosition());
+					
 					if(isRelevantToRegularExpression(pathList)){
 						String type = "string";
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
@@ -315,38 +317,51 @@ public class SeedingApplicationEvaluator {
 						sp.clear();
 						return branchInfo;
 					}
-					System.currentTimeMillis();
-					Map<Object, Class<?>> constantsClass = sp.getUseableConstants();
-					if (!constantsClass.isEmpty()) {
-						if(constantsClass.containsValue(sp.pontentialBranchOperandTypes.get(0))) {
-							String type = finalType(sp.pontentialBranchOperandTypes.get(0).toString());
-							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
-							cache.put(b, branchInfo);
-							System.out.println("STATIC_POOL type:" + b + ":" + type);
-							sp.clear();
-							return branchInfo;
+					
+					/**
+					 * 
+					 */
+					List<ObservedConstant> observedConstants = sp.getEstiamtedConstants(); 
+					if (!observedConstants.isEmpty()) {
+						ObservedConstant obConstant = observedConstants.get(0);
+						String type = finalType(obConstant.getValue().getClass().toString());
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
+						cache.put(b, branchInfo);
+						System.out.println("STATIC_POOL type:" + b + ":" + type);
+						
+//						if(obConstant.containsValue(sp.pontentialBranchOperandTypes.get(0))) {
+//							String type = finalType(sp.pontentialBranchOperandTypes.get(0).toString());
+//							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
+//							cache.put(b, branchInfo);
+//							System.out.println("STATIC_POOL type:" + b + ":" + type);
+//							sp.clear();
+//							return branchInfo;
+//						}
+						
+						for(ObservedConstant obj : observedConstants) {
+							branchInfo.addPotentialSeed(obj);
+							try {
+								statement.setValue(obj.getValue());								
+							}
+							catch(Exception e) {
+								e.printStackTrace();
+							}
 						}
-						for(Object obj : constantsClass.keySet()) {
-							Class<?> cla = constantsClass.get(obj);
-							String type = finalType(cla.toString());
-							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
-							cache.put(b, branchInfo);
-							System.out.println("STATIC_POOL type:" + b + ":" + type);
-							sp.clear();
-							return branchInfo;
-						}
-					} else {
-						for(Object o : sp.pontentialBranchOperandTypes) {
-							String type = finalType(o.toString());
-							BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
-							cache.put(b, branchInfo);
-							System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
-							sp.clear();
-							return branchInfo;
-						}
+						sp.clear();
+						return branchInfo;
+					} 
+					else {
+						
+						String type = finalType(sp.getMatchingResult().getMatchedObservation().getClass().toString());
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
+						cache.put(b, branchInfo);
+						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
+						sp.clear();
+						return branchInfo;
 					}
 
 				}
+				
 				if(sp != null)
 					sp.clear();
 				
@@ -494,7 +509,7 @@ public class SeedingApplicationEvaluator {
 		
 		ValuePreservance sp = SensitivityMutator
 				.testBranchSensitivity(headers, observations, targetBranch, testSeed);
-
+		System.currentTimeMillis();
 		return sp;
 	}
 

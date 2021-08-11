@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.testcase.SensitivityMutator;
+import org.evosuite.seeding.smart.SensitivityMutator;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;

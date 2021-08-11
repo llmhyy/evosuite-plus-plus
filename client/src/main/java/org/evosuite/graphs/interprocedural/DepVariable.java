@@ -523,16 +523,18 @@ public class DepVariable {
 		if(varName.contains("LV_")) {
 			String orderString = varName.substring(varName.indexOf("LV_")+3, varName.length());
 			int order = Integer.valueOf(orderString);
-			
-			if(order == 0)
-				return order;
-			assert order > 0;
-			
+			/**
+			 * e.g., iload_0 in static method should be changed to the order of 1
+			 */
 			if(this.instruction.getActualCFG().isStaticMethod()) {
-				return order;
+				return order + 1;
 			}
+			/**
+			 * here, iload_0 will point to this, so here the order must be larger than 0, 
+			 * hence, there is no need to change the order
+			 */
 			else {
-				return order-1;
+				return order;
 			}
 		}
 		

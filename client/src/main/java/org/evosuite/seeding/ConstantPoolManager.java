@@ -121,6 +121,7 @@ public class ConstantPoolManager {
 					ConstantPool pool = BranchwiseConstantPoolManager.evaluate(interestedBranchInfo);
 					if(pool != null) {
 						double r = Randomness.nextDouble(0, 1);
+						System.currentTimeMillis();
 						if(r > 0.5) {
 							return pool;												
 						}

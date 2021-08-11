@@ -24,4 +24,21 @@ public class TrueExample {
 			}
 		}
 	}
+	
+	
+	public static void test(int a[]) {
+		for(int ai: a) {
+			if(ai == 123456789) {
+				System.currentTimeMillis();
+			}
+		}
+	}
+	
+	public static void test(Obj o, int a) {
+		if(a == 123456789) {
+			if(o.getAttribute() == 101312) {
+				System.currentTimeMillis();
+			}
+		}
+	}
 }

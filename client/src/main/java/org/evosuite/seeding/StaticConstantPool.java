@@ -87,6 +87,38 @@ public class StaticConstantPool implements ConstantPool {
 		doublePool.add(1.0);
 		doublePool.add(-1.0);
 	}
+	
+	public StaticConstantPool(boolean isContextual, boolean noInit) {
+		/*
+		 * all pools HAVE to be non-empty 
+		 */
+
+		this.isContextual = isContextual;
+		
+		stringPool.add("");
+
+		if (Properties.TARGET_CLASS != null && !Properties.TARGET_CLASS.isEmpty()) {
+			typePool.add(Type.getObjectType(Properties.TARGET_CLASS));
+		} else {
+			typePool.add(Type.getType(Object.class));
+		}
+
+		intPool.add(0);
+//		intPool.add(1);
+//		intPool.add(-1);
+
+		longPool.add(0L);
+//		longPool.add(1L);
+//		longPool.add(-1L);
+
+		floatPool.add(0.0f);
+//		floatPool.add(1.0f);
+//		floatPool.add(-1.0f);
+
+		doublePool.add(0.0);
+//		doublePool.add(1.0);
+//		doublePool.add(-1.0);
+	}
 
 	/**
 	 * <p>
@@ -119,6 +151,7 @@ public class StaticConstantPool implements ConstantPool {
 	@Override
 	public int getRandomInt() {
 		int value = Randomness.choice(intPool);
+//		System.currentTimeMillis();
 		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.INT, intPool.size(), String.valueOf(value)));
 		return value;
 	}

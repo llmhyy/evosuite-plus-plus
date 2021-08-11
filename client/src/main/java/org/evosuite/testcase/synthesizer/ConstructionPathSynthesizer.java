@@ -1440,7 +1440,7 @@ public class ConstructionPathSynthesizer {
 
 			MethodStatement targetStatement = test.findTargetMethodCallStatement();
 			if (targetStatement != null) {
-				VariableReference oldParamRef = targetStatement.getParameterReferences().get(node.var.getParamOrder());
+				VariableReference oldParamRef = targetStatement.getParameterReferences().get(node.var.getParamOrder() - 1);
 				targetStatement.replace(oldParamRef, newParameter);
 			}
 

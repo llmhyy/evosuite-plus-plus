@@ -20,14 +20,21 @@ public class SmartSeedBranchUpdateManager {
 	public static double oldPrimitivePool = Properties.PRIMITIVE_POOL;
 	public static Set<BranchSeedInfo> totalUncoveredGoals = new HashSet<>();
 
+	/**
+	 * if it is a static pool branch, we just set the value to further speed up the seed
+	 * 
+	 * @param bestMap
+	 * @param bestMapTest
+	 * @return
+	 */
 	@SuppressWarnings("rawtypes")
-	public static void updateUncoveredBranchInfo(Map<FitnessFunction, Double> bestMap,
+	public static TestChromosome updateUncoveredBranchInfo(Map<FitnessFunction, Double> bestMap,
 			Map<FitnessFunction, TestChromosome> bestMapTest) {
 
-		if(bestMap.isEmpty()) return;
+		if(bestMap.isEmpty()) return null;
 		
 		if (!Properties.APPLY_SMART_SEED)
-			return;
+			return null;
 		long nowtime = System.currentTimeMillis();
 		// baseline run 30s
 //		if((nowtime - TestCaseLegitimizer.startTime) / 1000 < 20)
@@ -45,11 +52,12 @@ public class SmartSeedBranchUpdateManager {
 		List<FitnessFunction> list = new ArrayList<>();
 		for(FitnessFunction ff: bestMap.keySet()) {
 			Double d = bestMap.get(ff);
-			if(d < 2) {
+			if(d < 1) {
 				list.add(ff);
 			}
 		}
 		
+		TestChromosome testSeed = null;
 		int uncoveredGoalsSize = list.size();
 		Object[] list0 = list.toArray();
 		Object ff = list0[Randomness.nextInt(0, uncoveredGoalsSize)];
@@ -59,8 +67,11 @@ public class SmartSeedBranchUpdateManager {
 			
 			if (goal.getBranch().getClassName().equals(Properties.TARGET_CLASS)
 					&& goal.getBranch().getMethodName().equals(Properties.TARGET_METHOD)) {
-				TestChromosome testSeed = bestMapTest.get(ff);
+				testSeed = bestMapTest.get(ff);
 				Branch b = goal.getBranch();
+				if(b.getInstruction().getLineNumber() == 21) {
+					System.currentTimeMillis();
+				}
 				BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(b, testSeed);
 				uncoveredGoal.add(info);
 				if (info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
@@ -79,6 +90,8 @@ public class SmartSeedBranchUpdateManager {
 			Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + 1);
 		else
 			Properties.PRIMITIVE_POOL = oldPrimitivePool;
+		
+		return testSeed;
 	}
 
 }

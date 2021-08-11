@@ -1,5 +1,8 @@
 package org.evosuite.seeding.smart;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.evosuite.coverage.branch.Branch;
 
 public class BranchSeedInfo {
@@ -25,6 +28,12 @@ public class BranchSeedInfo {
 	private Branch branch;
 	private Branch auxilaryBranch;
 	private String operandType; 
+	
+	private List<ObservedConstant> potentialSeeds = new ArrayList<>();
+	
+	public void addPotentialSeed(ObservedConstant value) {
+		this.getPotentialSeeds().add(value);
+	}
 	
 	public BranchSeedInfo(Branch branch, int benefiticalType, String operandType) {
 		super();
@@ -68,6 +77,10 @@ public class BranchSeedInfo {
 
 	public void setAuxilaryBranch(Branch auxilaryBranch) {
 		this.auxilaryBranch = auxilaryBranch;
+	}
+
+	public List<ObservedConstant> getPotentialSeeds() {
+		return potentialSeeds;
 	}
 
 	
