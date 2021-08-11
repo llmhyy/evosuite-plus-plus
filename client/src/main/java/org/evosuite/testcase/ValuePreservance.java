@@ -1,25 +1,25 @@
 package org.evosuite.testcase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.objectweb.asm.Opcodes;
 
-public class SensitivityPreservance {
+public class ValuePreservance {
 	
 	private int observationSize;
 	private int inputSize;
 	
-	public SensitivityPreservance(int observationSize, int inputSize) {
+	public ValuePreservance(int observationSize, int inputSize) {
 		super();
 		this.observationSize = observationSize;
 		this.inputSize = inputSize;
 	}
 
-	public boolean useConstants = false;
 	public List<Object> pontentialBranchOperandTypes = new ArrayList<>();
 
 	public List<ObservationRecord> recordList = new ArrayList<>();
@@ -32,7 +32,7 @@ public class SensitivityPreservance {
 		/**
 		 * TODO Cheng Yan
 		 */
-		if(recordList.size() < 3) return false;
+//		if(recordList.size() < 3) return false;
 		
 		double valuePreservingRatio = 0;
 		for (int i = 0; i < inputSize; i++) {
@@ -40,13 +40,13 @@ public class SensitivityPreservance {
 			for (int j = 0; j < observationSize; j++) {
 				valuePreservingRatio = 0;
 				// observation num
-				for (ObservationRecord ob : recordList) {
-					boolean valuePreserving = ob.compare(i, j);
+				for (ObservationRecord record : recordList) {
+					boolean valuePreserving = record.compare(i, j);
 					if (valuePreserving) {
 						valuePreservingRatio++;
 						if ((valuePreservingRatio
 								/ Properties.DYNAMIC_SENSITIVITY_THRESHOLD >= Properties.FAST_CHANNEL_SCORE_THRESHOLD)) {
-							pontentialBranchOperandTypes.add(ob.potentialOpernadType);
+							pontentialBranchOperandTypes.add(record.potentialOpernadType);
 							return true;
 						}
 					}
@@ -56,18 +56,27 @@ public class SensitivityPreservance {
 
 		return false;
 		
-//		return (valuePreservingRatio
-//				/ Properties.DYNAMIC_SENSITIVITY_THRESHOLD >= Properties.FAST_CHANNEL_SCORE_THRESHOLD);
 	}
 
-	// String is just the bytecode instruction (toString)
-	public List<Class<?>> getUseableConstants() {
+	/**
+	 *  String is just the bytecode instruction (toString)
+	 * @return
+	 */
+	public Map<Object, Class<?>> getUseableConstants() {
 		/**
-		 * TODO Cheng Yan
-		 * 
+		 *  得到所有的constant指令（在input中）
 		 */
-		useConstants = false;
-		List<Class<?>> list = new ArrayList<>();
+		List<BytecodeInstruction> constantInstructionList = getConstants(inputs);
+		for(BytecodeInstruction ins: constantInstructionList) {
+			/**
+			 *   获取constant的值， 对比observation中是否出现一样的值， 如果符合相关性，那么产生一条记录：
+			 *   <value, type>
+			 * 如果获取不到任何这样的记录，就是dynamic, 不然就是static
+			 */
+			Object value = getFrom(ins);
+		}
+		
+		Map<Object, Class<?>> list = new HashMap<>();
 		for (int i = 0; i < inputSize; i++) {
 			// input num
 			for (int j = 0; j < observationSize; j++) {
@@ -75,11 +84,11 @@ public class SensitivityPreservance {
 				// observation num
 				for (ObservationRecord ob : recordList) {
 //					System.currentTimeMillis();
-					Class<?> li = ob.useOfConstants(i, j);
-					if (li != null) {
+					Class<?> clazz = ob.useOfConstants(i, j);
+					if (clazz != null) {
 						count++;
 						if ((count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
-							list.add(li);
+							list.add(clazz);
 						}
 					}
 				}

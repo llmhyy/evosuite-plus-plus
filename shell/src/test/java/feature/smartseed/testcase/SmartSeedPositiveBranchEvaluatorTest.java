@@ -104,7 +104,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		writeResults();
 		
@@ -135,7 +135,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		assert type != SeedingApplicationEvaluator.DYNAMIC_POOL;
 		
@@ -164,7 +164,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		writeResults();
 		
@@ -195,7 +195,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		writeResults();
 		
@@ -226,7 +226,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		writeResults();
 		System.out.print(type);
 		assert type == SeedingApplicationEvaluator.NO_POOL;
@@ -256,7 +256,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 		
@@ -284,7 +284,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 //		writeResults();
 		System.out.print(type);
@@ -314,7 +314,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		writeResults();
 		
@@ -344,7 +344,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		writeResults();
 		
@@ -374,7 +374,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		writeResults();
 		
@@ -404,7 +404,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		writeResults();
 		
@@ -434,7 +434,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;//DYNAMIC_POOL
 		
@@ -462,7 +462,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 //		writeResults();
 		
@@ -492,7 +492,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		writeResults();
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;//DYNAMIC_POOL
@@ -522,7 +522,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		writeResults();
 		
@@ -557,7 +557,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;//DYNAMIC_POOL
 		
@@ -587,7 +587,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		assert type == SeedingApplicationEvaluator.DYNAMIC_POOL;
 	}
@@ -617,7 +617,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 	}
@@ -644,7 +644,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 	}
@@ -672,7 +672,7 @@ public class SmartSeedPositiveBranchEvaluatorTest {
 		
 		Branch targetBranch = TestUtil.searchBranch(branches, lineNumber);
 		
-		int type = SeedingApplicationEvaluator.evaluate(targetBranch).getBenefiticalType();
+		int type = SeedingApplicationEvaluator.evaluate(targetBranch, null).getBenefiticalType();
 		
 		writeResults();
 		

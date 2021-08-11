@@ -16,7 +16,7 @@ import org.evosuite.instrumentation.testability.StringHelper;
 import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
 import org.evosuite.testcase.SensitivityMutator;
-import org.evosuite.testcase.SensitivityPreservance;
+import org.evosuite.testcase.ValuePreservance;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.MethodUtil;
 import org.hibernate.internal.util.collections.CollectionHelper;
@@ -909,7 +909,7 @@ public class ComputationPath {
 	}
 
 //	private Boolean isFastChannel = null;
-	private SensitivityPreservance preservingList = null;
+	private ValuePreservance preservingList = null;
 
 	public boolean isFastChannel() {
 		if (!(this.getComputationNodes().get(0).isParameter()

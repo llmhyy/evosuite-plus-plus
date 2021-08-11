@@ -113,6 +113,7 @@ public class IntPrimitiveStatement extends NumericalPrimitiveStatement<Integer> 
 		}
 		else {
 			ConstantPool constantPool = ConstantPoolManager.getInstance().getConstantPool(BranchSeedInfo.INT);
+			System.currentTimeMillis();
 			value = constantPool.getRandomInt();
 		}
 	}

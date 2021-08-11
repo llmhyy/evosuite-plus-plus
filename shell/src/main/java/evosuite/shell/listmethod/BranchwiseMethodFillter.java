@@ -115,7 +115,7 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				int type = SeedingApplicationEvaluator.evaluate(br).getBenefiticalType();
+				int type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					validStaticMethods.add(className + "#" + methodName);
 					System.out.println("type:STATIC_POOL");

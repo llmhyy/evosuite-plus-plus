@@ -26,7 +26,8 @@ import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.instrumentation.BytecodeInstrumentation;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.testcase.SensitivityMutator;
-import org.evosuite.testcase.SensitivityPreservance;
+import org.evosuite.testcase.ValuePreservance;
+import org.evosuite.testcase.TestChromosome;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -245,7 +246,7 @@ public class SeedingApplicationEvaluator {
 	}
 	
 
-	public static BranchSeedInfo evaluate(Branch b) {
+	public static BranchSeedInfo evaluate(Branch b, TestChromosome testSeed) {
 		if (cache.containsKey(b)) {
 			return cache.get(b);
 		}
@@ -304,7 +305,7 @@ public class SeedingApplicationEvaluator {
 					}
 				}
 				
-				SensitivityPreservance sp = analyzeChannel(pathList, b);
+				ValuePreservance sp = analyzeChannel(pathList, b, testSeed);
 				if (sp != null && sp.isValuePreserving(b)) {
 					if(isRelevantToRegularExpression(pathList)){
 						String type = "string";
@@ -315,11 +316,8 @@ public class SeedingApplicationEvaluator {
 						return branchInfo;
 					}
 					
-					List<Class<?>> constantsClass = sp.getUseableConstants();
-					if (constantsClass.size() != 0)
-						sp.useConstants = true;
-					
-					if (sp.useConstants) {
+					Map<Object, Class<?>> constantsClass = sp.getUseableConstants();
+					if (!constantsClass.isEmpty()) {
 						if(constantsClass.contains(sp.pontentialBranchOperandTypes.get(0))) {
 							String type = finalType(sp.pontentialBranchOperandTypes.get(0).toString());
 							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
@@ -479,7 +477,8 @@ public class SeedingApplicationEvaluator {
 		return constants;
 	}
 	
-	private static SensitivityPreservance analyzeChannel(List<ComputationPath> pathList, Branch targetBranch) {
+	private static ValuePreservance analyzeChannel(List<ComputationPath> pathList, Branch targetBranch,
+			TestChromosome testSeed) {
 		/**
 		 * the operands corresponding to method inputs and constants
 		 */
@@ -492,8 +491,8 @@ public class SeedingApplicationEvaluator {
 		if(observations.size() == 0 || headers.size() == 0)
 			return null;
 		
-		SensitivityPreservance sp = SensitivityMutator
-				.testBranchSensitivity(headers, observations, targetBranch);
+		ValuePreservance sp = SensitivityMutator
+				.testBranchSensitivity(headers, observations, targetBranch, testSeed);
 
 		return sp;
 	}
@@ -1045,7 +1044,7 @@ public class SeedingApplicationEvaluator {
 				targetMethod);
 
 		for (Branch branch : branches) {
-			BranchSeedInfo info = evaluate(branch);
+			BranchSeedInfo info = evaluate(branch, null);
 //			Class<?> cla = cache.get(branch).getTargetType();
 			if (info.getBenefiticalType() != NO_POOL) {
 				interestedBranches.add(info);

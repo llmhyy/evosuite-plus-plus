@@ -92,12 +92,12 @@ public class SensitivityMutator {
 		System.currentTimeMillis();
 	}
 
-	public static SensitivityPreservance testBranchSensitivity(ComputationPath path) {
+	public static ValuePreservance testBranchSensitivity(ComputationPath path) {
 		Branch branch = path.getBranch();
 
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 		if (test == null) {
-			return new SensitivityPreservance(0, 0);
+			return new ValuePreservance(0, 0);
 		}
 		String methodCall = test.getStatement(test.size() - 1).toString();
 		while (!methodCall.equals(Properties.TARGET_METHOD)) {
@@ -114,7 +114,7 @@ public class SensitivityMutator {
 		TestChromosome oldTestChromosome = new TestChromosome();
 		oldTestChromosome.setTestCase(test);
 
-		SensitivityPreservance preservingList = new SensitivityPreservance(0, 0);
+		ValuePreservance preservingList = new ValuePreservance(0, 0);
 
 		TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
 		DepVariable rootVariable = path.getComputationNodes().get(0);
@@ -129,32 +129,38 @@ public class SensitivityMutator {
 		return preservingList;
 	}
 
-	public static SensitivityPreservance testBranchSensitivity(List<DepVariable> rootVariables,
-			List<BytecodeInstruction> observingValues, Branch branch) {
-		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
+	public static ValuePreservance testBranchSensitivity(List<DepVariable> rootVariables,
+			List<BytecodeInstruction> observingValues, Branch branch, TestChromosome testSeed) {
+		TestCase test = null;
+		if(testSeed == null) {
+			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);			
+		}
+		else {
+			test = testSeed.getTestCase();
+		}
 		if (test == null) {
-			return new SensitivityPreservance(0, 0);
+			return new ValuePreservance(0, 0);
 		}
 		String methodCall = test.getStatement(test.size() - 1).toString();
 		if (!methodCall.equals(Properties.TARGET_METHOD)) {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 		}
-
+		
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		
 		TestChromosome oldTestChromosome = new TestChromosome();
 		oldTestChromosome.setTestCase(test);
-
-//		SensitivityPreservance preservingList = new SensitivityPreservance();
-		System.currentTimeMillis();
+		
+//	SensitivityPreservance preservingList = new SensitivityPreservance();
 		TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
+		
 
-		SensitivityPreservance preservingList = checkPreservance(branch, newTestChromosome, rootVariables,
+		ValuePreservance preservingList = checkPreservance(branch, newTestChromosome, rootVariables,
 				observingValues, synthensizer);
 		
 		System.currentTimeMillis();
@@ -162,11 +168,11 @@ public class SensitivityMutator {
 		return preservingList;
 	}
 
-	private static SensitivityPreservance checkPreservance(Branch branch, TestChromosome newTestChromosome,
+	private static ValuePreservance checkPreservance(Branch branch, TestChromosome newTestChromosome,
 			List<DepVariable> rootVariables, List<BytecodeInstruction> observations,
 			ConstructionPathSynthesizer synthensizer) {
 		System.currentTimeMillis();
-		SensitivityPreservance preservance = new SensitivityPreservance(observations.size(), rootVariables.size());
+		ValuePreservance preservance = new ValuePreservance(observations.size(), rootVariables.size());
 		
 		Map<String, Boolean> InputConstant = constructInputType(rootVariables);
 		Map<String, Boolean> observationConstant = constructObservationsType(observations);
@@ -191,6 +197,7 @@ public class SensitivityMutator {
 			if (i == 1 && observationIsNull(observationMap)) {
 				if (observationIsNull(preservance.recordList.get(0).observations)) {
 					System.out.println("observations is null!");
+					System.currentTimeMillis();
 					return preservance;
 				}
 			}
@@ -368,11 +375,11 @@ public class SensitivityMutator {
 		return null;
 	}
 
-	public static SensitivityPreservance testBranchSensitivity(/* Set<FitnessFunction<?>> fitness, */
+	public static ValuePreservance testBranchSensitivity(/* Set<FitnessFunction<?>> fitness, */
 			Map<Branch, Set<DepVariable>> branchesInTargetMethod, Branch branch, ComputationPath path0) {
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 		if (test == null) {
-			return new SensitivityPreservance(0, 0);
+			return new ValuePreservance(0, 0);
 		}
 
 		System.currentTimeMillis();
@@ -404,7 +411,7 @@ public class SensitivityMutator {
 			paths = branchWithBDChanged.get(branch);
 		}
 
-		SensitivityPreservance preservingList = new SensitivityPreservance(0, 0);
+		ValuePreservance preservingList = new ValuePreservance(0, 0);
 		if (paths == null) {
 			return preservingList;
 		}

@@ -2,15 +2,9 @@ package org.evosuite.testcase;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.utils.MethodUtil;
-import org.objectweb.asm.Opcodes;
 
 public class ObservationRecord {
 	public ObservationRecord(Map<String, List<Object>> recordInput, Map<String, List<Object>> observationMap,
@@ -44,63 +38,71 @@ public class ObservationRecord {
 	 * 
 	 * @param j
 	 * @param i
-	 * @param b 
+	 * @param b
 	 */
 	public boolean compare(int i, int j) {
-		if(inputs.size() <= i || observations.size() <= j) return false;
+		if (inputs.size() <= i || observations.size() <= j)
+			return false;
 		String inKey = (String) inputs.keySet().toArray()[i];
 //		in.addAll(inputs.get(inKey));
 
 		String obKey = (String) observations.keySet().toArray()[j];
+		if(observations.get(obKey) == null) {
+			return false;
+		}
 
 		if (inputConstant.get(inKey) && observationsConstant.get(obKey))
 			return false;
 //		in.retainAll(observations.get(obKey));
-		
-		//numeric
-		if(numericEquals(inKey,obKey)) return true;
 
-		//String
-		if(StringEquals(inKey,obKey)) return true;
+		// numeric
+		if (numericEquals(inKey, obKey))
+			return true;
 
-		for(Object ob:inputs.get(inKey)) {
-			if(ob == null) return false;
-			if(ob.getClass().equals(Boolean.class))
+		// String
+		if (StringEquals(inKey, obKey))
+			return true;
+
+		for (Object ob : inputs.get(inKey)) {
+			if (ob == null)
 				return false;
-			if(observations.get(obKey).contains(ob)) {
+			if (ob.getClass().equals(Boolean.class))
+				return false;
+			if (observations.get(obKey).contains(ob)) {
 				potentialOpernadType = ob.getClass();
 				return true;
 			}
 		}
-		
-		
-		//switch
-		if(inKey.equals(obKey)) {
+
+		// switch
+		if (inKey.equals(obKey)) {
 			StringBuilder sb = new StringBuilder();
-			if(observations.get(obKey).size() == 0) return false;
+			if (observations.get(obKey).size() == 0)
+				return false;
 			for (Object ob : observations.get(obKey)) {
 				if (ob instanceof Integer) {
 					int value = (int) ob;
-					sb.append((char)value);
+					sb.append((char) value);
 				}
 			}
-			if(sb.toString().equals(inputs.get(inKey).get(0))) {
+			if (sb.toString().equals(inputs.get(inKey).get(0))) {
 				potentialOpernadType = String.class;
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 
 	private boolean StringEquals(String inKey, String obKey) {
-		if(inputs.get(inKey).isEmpty() || observations.get(obKey).isEmpty()) return false;
+		if (inputs.get(inKey).isEmpty() || observations.get(obKey).isEmpty())
+			return false;
 		List<Object> in = new ArrayList<>();
 		in.addAll(inputs.get(inKey));
-		
+
 		List<Object> obser = new ArrayList<>();
 		obser.addAll(observations.get(obKey));
-		
+
 		if (in.get(0) instanceof String && in.get(0) instanceof String) {
 			List<String> list1 = new ArrayList<String>();
 			List<String> list2 = new ArrayList<String>();
@@ -121,17 +123,17 @@ public class ObservationRecord {
 	}
 
 	private boolean numericEquals(String inKey, String obKey) {
-		if(inputs.get(inKey).isEmpty() || observations.get(obKey).isEmpty()) return false;
+		if (inputs.get(inKey).isEmpty() || observations.get(obKey).isEmpty())
+			return false;
 		List<Object> in = new ArrayList<>();
 		in.addAll(inputs.get(inKey));
-		
+
 		List<Object> obser = new ArrayList<>();
 		obser.addAll(observations.get(obKey));
 //		Class<?> clsInput = in.get(0).getClass();
 //		Class<?> clsObser = obser.get(0).getClass();
 
-		if ((in.get(0) instanceof Number || in.get(0) instanceof Character)
-				&& (obser.get(0) instanceof Number)
+		if ((in.get(0) instanceof Number || in.get(0) instanceof Character) && (obser.get(0) instanceof Number)
 				|| obser.get(0) instanceof Character) {
 			List<String> list1 = new ArrayList<String>();
 			List<String> list2 = new ArrayList<String>();
@@ -160,7 +162,7 @@ public class ObservationRecord {
 		}
 
 		return false;
-		
+
 	}
 
 	/**
@@ -170,7 +172,8 @@ public class ObservationRecord {
 	 * @param i
 	 */
 	public Class<?> useOfConstants(int i, int j) {
-		if(inputs.size() <= i || observations.size() <= j) return null;
+		if (inputs.size() <= i || observations.size() <= j)
+			return null;
 		String inKey = (String) inputs.keySet().toArray()[i];
 		if (!inputConstant.get(inKey))
 			return null;
@@ -179,22 +182,22 @@ public class ObservationRecord {
 			return null;
 
 		String obKey = (String) observations.keySet().toArray()[j];
-		
-		
+
 //		if(inputs.get(inKey).toString().equals(observations.get(obKey).toString())) {
 //			potentialOpernadType = observations.get(obKey).get(0).getClass();
 //			return observations.get(obKey).get(0).getClass(); 
 //		}
-		for(Object ob:inputs.get(inKey)) {
-			
-			if(observations.get(obKey).contains(ob)) {
+		for (Object ob : inputs.get(inKey)) {
+
+			if (observations.get(obKey).contains(ob)) {
 				potentialOpernadType = ob.getClass();
 				return ob.getClass();
 			}
-			
-			//class equals [Ljava/lang/Boolean;  -- java.lang.Boolean]
-			if(observations.get(obKey).isEmpty()) return null;
-			if(observations.get(obKey).get(0) instanceof Class<?>) {
+
+			// class equals [Ljava/lang/Boolean; -- java.lang.Boolean]
+			if (observations.get(obKey).isEmpty())
+				return null;
+			if (observations.get(obKey).get(0) instanceof Class<?>) {
 				String[] localSeparateTypes = ob.toString().split(";");
 				for (int m = 0; m < localSeparateTypes.length; m++) {
 					if (localSeparateTypes[m].startsWith("L")) {
@@ -203,25 +206,24 @@ public class ObservationRecord {
 					}
 				}
 				System.currentTimeMillis();
-				for(Object clazz:observations.get(obKey)) {
-					if(clazz instanceof Class<?>) {
+				for (Object clazz : observations.get(obKey)) {
+					if (clazz instanceof Class<?>) {
 						String clazzName = clazz.toString().split("class ")[1];
-						if(Arrays.asList(localSeparateTypes).contains(clazzName)) {
+						if (Arrays.asList(localSeparateTypes).contains(clazzName)) {
 							potentialOpernadType = ob.getClass();
 							return ob.getClass();
 						}
 					}
 				}
 			}
-			
-			if(numericEquals(inKey, obKey)) {
+
+			if (numericEquals(inKey, obKey)) {
 				potentialOpernadType = ob.getClass();
 				return ob.getClass();
 			}
-			
-			
+
 		}
-	
+
 		return null;
 
 	}
@@ -272,10 +274,10 @@ public class ObservationRecord {
 		}
 		return false;
 	}
-	
-	private static  boolean observationIsNull(Map<String, List<Object>> observationMap) {
-		for(String s : observationMap.keySet()) {
-			if(observationMap.get(s).size() > 0)
+
+	private static boolean observationIsNull(Map<String, List<Object>> observationMap) {
+		for (String s : observationMap.keySet()) {
+			if (observationMap.get(s).size() > 0)
 				return false;
 		}
 		return true;
