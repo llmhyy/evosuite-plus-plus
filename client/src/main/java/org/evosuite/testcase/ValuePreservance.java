@@ -63,37 +63,62 @@ public class ValuePreservance {
 	 * @return
 	 */
 	public Map<Object, Class<?>> getUseableConstants() {
+		Map<Object, Class<?>> list = new HashMap<>();
+		
 		/**
 		 *  得到所有的constant指令（在input中）
 		 */
-		List<BytecodeInstruction> constantInstructionList = getConstants(inputs);
-		for(BytecodeInstruction ins: constantInstructionList) {
+		List<String> constantInstructionList = new ArrayList<>();
+		for(String key : recordList.get(0).inputConstant.keySet()) {
+			if(recordList.get(0).inputConstant.get(key))
+				constantInstructionList.add(key);
+		}
+//		List<BytecodeInstruction> constantInstructionList = getConstants(inputs);
+		for(String ins: constantInstructionList) {
 			/**
 			 *   获取constant的值， 对比observation中是否出现一样的值， 如果符合相关性，那么产生一条记录：
 			 *   <value, type>
 			 * 如果获取不到任何这样的记录，就是dynamic, 不然就是static
 			 */
-			Object value = getFrom(ins);
-		}
-		
-		Map<Object, Class<?>> list = new HashMap<>();
-		for (int i = 0; i < inputSize; i++) {
-			// input num
+//			Object value = getFrom(ins);
 			for (int j = 0; j < observationSize; j++) {
 				int count = 0;
-				// observation num
-				for (ObservationRecord ob : recordList) {
-//					System.currentTimeMillis();
-					Class<?> clazz = ob.useOfConstants(i, j);
+				for (ObservationRecord record : recordList) {
+					Object value = record.inputs.get(ins).get(0);
+
+					if (record.observations.keySet().size() == 0)
+						break;
+
+					String obKey = (String) record.observations.keySet().toArray()[j];
+					Class<?> clazz = record.useOfConstants(ins, j);
 					if (clazz != null) {
 						count++;
 						if ((count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
-							list.add(clazz);
+							list.put(value, clazz);
 						}
 					}
 				}
 			}
 		}
+		
+//		Map<Object, Class<?>> list = new HashMap<>();
+//		for (int i = 0; i < inputSize; i++) {
+//			// input num
+//			for (int j = 0; j < observationSize; j++) {
+//				int count = 0;
+//				// observation num
+//				for (ObservationRecord ob : recordList) {
+////					System.currentTimeMillis();
+//					Class<?> clazz = ob.useOfConstants(i, j);
+//					if (clazz != null) {
+//						count++;
+//						if ((count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
+//							list.add(clazz);
+//						}
+//					}
+//				}
+//			}
+//		}
 
 		return list;
 	}

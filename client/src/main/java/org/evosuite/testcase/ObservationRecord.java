@@ -155,7 +155,7 @@ public class ObservationRecord {
 			}
 			for (Object ob : list1) {
 				if (list2.contains(ob)) {
-					potentialOpernadType = obser.get(0);
+					potentialOpernadType = obser.get(0).getClass();
 					return true;
 				}
 			}
@@ -169,24 +169,18 @@ public class ObservationRecord {
 	 * use of constants
 	 * 
 	 * @param j
-	 * @param i
+	 * @param ins
 	 */
-	public Class<?> useOfConstants(int i, int j) {
-		if (inputs.size() <= i || observations.size() <= j)
+	public Class<?> useOfConstants(String ins, int j) {
+		if (observations.size() <= j)
 			return null;
-		String inKey = (String) inputs.keySet().toArray()[i];
-		if (!inputConstant.get(inKey))
-			return null;
+		String inKey = ins;
 
-		if (observations.keySet().size() == 0)
+		if (observationIsNull(observations))
 			return null;
 
 		String obKey = (String) observations.keySet().toArray()[j];
 
-//		if(inputs.get(inKey).toString().equals(observations.get(obKey).toString())) {
-//			potentialOpernadType = observations.get(obKey).get(0).getClass();
-//			return observations.get(obKey).get(0).getClass(); 
-//		}
 		for (Object ob : inputs.get(inKey)) {
 
 			if (observations.get(obKey).contains(ob)) {

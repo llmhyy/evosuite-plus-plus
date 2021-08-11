@@ -315,10 +315,10 @@ public class SeedingApplicationEvaluator {
 						sp.clear();
 						return branchInfo;
 					}
-					
+					System.currentTimeMillis();
 					Map<Object, Class<?>> constantsClass = sp.getUseableConstants();
 					if (!constantsClass.isEmpty()) {
-						if(constantsClass.contains(sp.pontentialBranchOperandTypes.get(0))) {
+						if(constantsClass.containsValue(sp.pontentialBranchOperandTypes.get(0))) {
 							String type = finalType(sp.pontentialBranchOperandTypes.get(0).toString());
 							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
 							cache.put(b, branchInfo);
@@ -326,7 +326,8 @@ public class SeedingApplicationEvaluator {
 							sp.clear();
 							return branchInfo;
 						}
-						for(Class<?> cla : constantsClass) {
+						for(Object obj : constantsClass.keySet()) {
+							Class<?> cla = constantsClass.get(obj);
 							String type = finalType(cla.toString());
 							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
 							cache.put(b, branchInfo);
