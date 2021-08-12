@@ -59,8 +59,15 @@ public class SmartSeedBranchUpdateManager {
 		
 		TestChromosome testSeed = null;
 		int uncoveredGoalsSize = list.size();
+		
+		if(uncoveredGoalsSize == 0) return null;
+		
 		Object[] list0 = list.toArray();
-		Object ff = list0[Randomness.nextInt(0, uncoveredGoalsSize)];
+		Object ff = null;
+		if(uncoveredGoalsSize == 1)
+			ff = list0[0];
+		else
+			ff = list0[Randomness.nextInt(0, uncoveredGoalsSize)];
 		if (ff instanceof BranchFitness) {
 			BranchFitness bf = (BranchFitness) ff;
 			BranchCoverageGoal goal = bf.getBranchGoal();

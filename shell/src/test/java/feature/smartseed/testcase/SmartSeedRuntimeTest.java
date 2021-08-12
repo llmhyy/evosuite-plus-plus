@@ -44,12 +44,12 @@ public class SmartSeedRuntimeTest {
 
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 1;
-		int budget = 1000000;
+		int repeatTime = 10;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
-		boolean ass = false;
+		boolean ass = true;
 
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
@@ -84,7 +84,7 @@ public class SmartSeedRuntimeTest {
 	public void testTrueCase2() throws IOException {
 		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
 		String methodName = "test";
-		int parameterNum = 1;
+		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -94,8 +94,58 @@ public class SmartSeedRuntimeTest {
 
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 1;
-		int budget = 1000000;
+		int repeatTime = 10;
+		int budget = 10000;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
+		
+		
+	}
+	
+	@Test
+	public void testTrueCase3() throws IOException {
+		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
+		String methodName = "fieldTest";
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 10;
+		int budget = 10000;
 		Long seed = null;
 				
 		boolean aor = false;

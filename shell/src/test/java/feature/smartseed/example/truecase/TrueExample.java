@@ -14,6 +14,8 @@ public class TrueExample {
 			92321, 91312, 912312, 941321, 912312,934,
 			102321, 101312, 1012312, 41321, 12312,34,
 			3};
+	public static String[] noise = 
+		{"abc0", "abc1", "abc2", "abc3", "abc4", "abc5", "abc6", "abc7", "abc8", "abc9", "abc10"};
 	
 	public static void test(int x, int y, int z) {
 		if(x==123456789) {
@@ -25,18 +27,28 @@ public class TrueExample {
 		}
 	}
 	
-	
-	public static void test(int a[]) {
-		for(int ai: a) {
-			if(ai == 123456789) {
-				System.currentTimeMillis();
+	public static void testArray(int a[], int b) {
+		if (b == 38461965) {
+			for (int ai : a) {
+				if (ai == 123456789) {
+					System.currentTimeMillis();
+				}
 			}
 		}
+
 	}
 	
 	public static void test(Obj o, int a) {
 		if(a == 123456789) {
 			if(o.getAttribute() == 101312) {
+				System.currentTimeMillis();
+			}
+		}
+	}
+	
+	public static void fieldTest(Obj o, int a) {
+		if(a == 123456789) {
+			if(o.name.equals("NoIse".toLowerCase())) {
 				System.currentTimeMillis();
 			}
 		}
