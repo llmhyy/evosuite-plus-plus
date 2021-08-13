@@ -411,8 +411,8 @@ public class ConstructionPathSynthesizer {
 			}
 			
 			for(VariableReference ref: generatedVariables) {
-				if(!list.contains(ref)){
-					list.add(ref);					
+				if(ref != null && !list.contains(ref)){
+					list.add(ref);											
 				}				
 			}
 			map.put(node, list);

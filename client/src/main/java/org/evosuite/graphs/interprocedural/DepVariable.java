@@ -1057,4 +1057,29 @@ public class DepVariable {
 	}
 
 
+	public List<DepVariable> getAllChildrenNodesIncludingItself() {
+		List<DepVariable> set = new ArrayList<>();
+		
+		set.add(this);
+		collectChildren(this, set);
+		
+		return set;
+	}
+
+
+	private void collectChildren(DepVariable depVariable, List<DepVariable> set) {
+		for(List<DepVariable> children: depVariable.getRelations()) {
+			if(children == null) continue;
+			
+			for(DepVariable child: children) {
+				if(!set.contains(child)) {
+					set.add(child);
+				}
+				collectPrimitiveChildren(child, set);
+			}
+		}
+		
+	}
+
+
 }

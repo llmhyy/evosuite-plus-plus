@@ -36,6 +36,8 @@ import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.DepVariableWrapper;
+import org.evosuite.testcase.variable.ArrayIndex;
+import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Opcodes;
@@ -175,7 +177,6 @@ public class SensitivityMutator {
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
 		
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
-
 			newTestChromosome = (TestChromosome) newTestChromosome.clone();
 			MethodInputs inputs = constructInputValues(rootVariables, newTestChromosome, map);
 			inputs.mutate();
@@ -227,7 +228,6 @@ public class SensitivityMutator {
 			TestChromosome newTestChromosome, Map<DepVariableWrapper, List<VariableReference>> map) {
 		Map<String, PrimitiveStatement> inputVariables = new HashMap<>();
 		Map<String, Object> inputConstants = new HashMap<>();
-		
 		for (DepVariable rootVar : rootVariables) {
 
 			if(rootVar.isConstant()) {
@@ -235,7 +235,7 @@ public class SensitivityMutator {
 				continue;
 			}
 			
-			List<DepVariable> relevantPrimitiveChildren = rootVar.getPrimitiveChildrenIncludingItself();
+			List<DepVariable> relevantPrimitiveChildren = rootVar.getAllChildrenNodesIncludingItself();
 			List<PrimitiveStatement> relevantStatements = new ArrayList<>();
 			for(DepVariable var: relevantPrimitiveChildren) {
 				
@@ -245,6 +245,14 @@ public class SensitivityMutator {
 					Statement statement = newTestChromosome.getTestCase().getStatement(ref.getStPosition()); 
 					if(statement instanceof PrimitiveStatement) {
 						relevantStatements.add((PrimitiveStatement)statement);
+					}
+					else if(statement instanceof ArrayStatement) {
+						List<PrimitiveStatement> primitiveStatements = checkAllRelevantIndexes((ArrayStatement)statement);
+						for(PrimitiveStatement pStat: primitiveStatements) {
+							if(!relevantStatements.contains(pStat)) {
+								relevantStatements.add(pStat);
+							}
+						}
 					}
 				}
 			}
@@ -258,6 +266,35 @@ public class SensitivityMutator {
 		}
 
 		return new MethodInputs(inputVariables, inputConstants);
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static List<PrimitiveStatement> checkAllRelevantIndexes(ArrayStatement statement) {
+		
+		List<PrimitiveStatement> list = new ArrayList<>();
+		
+		TestCase test = statement.getTestCase();
+		ArrayReference ref = statement.getArrayReference();
+		for(int i=statement.getPosition(); i<test.size(); i++) {
+			Statement pState = test.getStatement(i);
+			if(pState instanceof AssignmentStatement) {
+				AssignmentStatement aStat = (AssignmentStatement)pState;
+				if(aStat.getReturnValue() instanceof ArrayIndex) {
+					
+					ArrayIndex index = (ArrayIndex)aStat.getReturnValue();
+					if(index.getArray().equals(ref)) {
+						Statement s = test.getStatement(aStat.getValue().getStPosition());
+						if(s instanceof PrimitiveStatement) {
+							list.add((PrimitiveStatement)s);
+						}
+						
+					}
+					
+				}
+			}
+		}
+		
+		return list;
 	}
 
 	private static Statement isArrayStatement(DepVariable var, TestChromosome newTestChromosome,
