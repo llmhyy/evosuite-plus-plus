@@ -160,8 +160,6 @@ public class SensitivityMutator {
 		oldTestChromosome.setTestCase(test);
 		
 		TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
-		
-
 		ValuePreservance preservingList = checkPreservance(branch, newTestChromosome, rootVariables,
 				observingValues, synthensizer);
 		
@@ -186,13 +184,7 @@ public class SensitivityMutator {
 			ObservationRecord record = new ObservationRecord(inputs, observationMap);
 			preservance.addRecord(record);
 			
-//			//TODO Cheng Yan refactor this, now the obsevation will always have a complete size
-//			if (i == 1 && observationIsNull(observationMap)) {
-//				if (observationIsNull(preservance.recordList.get(0).observationMap)) {
-//					System.out.println("observations is null!");
-//					return preservance;
-//				}
-//			}
+			System.currentTimeMillis();
 		}
 		return preservance;
 	}
@@ -236,50 +228,31 @@ public class SensitivityMutator {
 		Map<String, PrimitiveStatement> inputVariables = new HashMap<>();
 		Map<String, Object> inputConstants = new HashMap<>();
 		
-		List<Statement> relevantStatements = new ArrayList<Statement>();
-		for (DepVariable var : rootVariables) {
+		for (DepVariable rootVar : rootVariables) {
 
-			if(var.isConstant()) {
-				inputConstants.put(var.getInstruction().toString(), getConstantObject(var.getInstruction()));
+			if(rootVar.isConstant()) {
+				inputConstants.put(rootVar.getInstruction().toString(), getConstantObject(rootVar.getInstruction()));
 				continue;
 			}
 			
-			
-			Statement callStatement = isArrayStatement(var, newTestChromosome, map);
-			Statement relevantStatement;
-			if(callStatement instanceof ArrayStatement) {
-				relevantStatement = callStatement;
-			}else
-				relevantStatement = locateRelevantStatement(var, newTestChromosome, map);
-			
-			relevantStatements.add(relevantStatement);
-			
-			List<PrimitiveStatement> headValues = new ArrayList<>();
-			retrieveHeadValue(relevantStatement, newTestChromosome, headValues);
-			
-			if(!var.isPrimitive() || var.isInstaceField()) {
-				//Object Variable
+			List<DepVariable> relevantPrimitiveChildren = rootVar.getPrimitiveChildrenIncludingItself();
+			List<PrimitiveStatement> relevantStatements = new ArrayList<>();
+			for(DepVariable var: relevantPrimitiveChildren) {
 				
-				//get filed
-				for( DepVariableWrapper varRef : map.keySet()) {
-					if(varRef.var.isInstaceField()) {
-						System.currentTimeMillis();
-						//set method
-						Statement relevantStatement0 = getLastFieldStatement(newTestChromosome.getTestCase(),varRef.var);
-						retrieveHeadValue(relevantStatement0, newTestChromosome, headValues);
-//						System.currentTimeMillis();
-						
-						Statement relevantStatement1 = getFieldStatement(newTestChromosome.getTestCase(),varRef.var);
-						retrieveHeadValue(relevantStatement1, newTestChromosome, headValues);
+				List<VariableReference> varList = map.get(new DepVariableWrapper(var));
+				for(VariableReference ref: varList) {
+					Statement statement = newTestChromosome.getTestCase().getStatement(ref.getStPosition()); 
+					if(statement instanceof PrimitiveStatement) {
+						relevantStatements.add((PrimitiveStatement)statement);
 					}
 				}
 			}
 			
-			for(int i=0; i<headValues.size(); i++) {
-				PrimitiveStatement headValue = headValues.get(i);
-				if(headValue instanceof NullStatement) 
+			for(int i=0; i<relevantStatements.size(); i++) {
+				PrimitiveStatement inputStatement = relevantStatements.get(i);
+				if(inputStatement instanceof NullStatement) 
 					continue;
-				inputVariables.put(var.getInstruction().toString() + ":" + i, headValue);
+				inputVariables.put(String.valueOf(inputStatement.getPosition()), inputStatement);
 			}
 		}
 
@@ -774,6 +747,7 @@ public class SensitivityMutator {
 			}
 		}
 
+		System.currentTimeMillis();
 		return rootValueStatement;
 	}
 
