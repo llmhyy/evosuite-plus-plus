@@ -248,7 +248,17 @@ public class SeedingApplicationEvaluator {
 	@SuppressWarnings("rawtypes")
 	public static BranchSeedInfo evaluate(Branch b, TestChromosome testSeed) {
 		if (cache.containsKey(b)) {
-			return cache.get(b);
+			BranchSeedInfo info = cache.get(b);
+			if(info.getBenefiticalType() == SeedingApplicationEvaluator.NO_POOL) {
+				double value = Randomness.nextDouble(0, 1);
+				if(value < 0.1) {
+					return info;
+				}
+			}
+			else {
+				return info;
+			}
+			
 		}
 		
 		long t1 = System.currentTimeMillis();
@@ -509,9 +519,7 @@ public class SeedingApplicationEvaluator {
 		if(observations.size() == 0 || headers.size() == 0)
 			return null;
 		
-		ValuePreservance sp = SensitivityMutator
-				.testBranchSensitivity(headers, observations, targetBranch, testSeed);
-		System.currentTimeMillis();
+		ValuePreservance sp = SensitivityMutator.testBranchSensitivity(headers, observations, targetBranch, testSeed);
 		return sp;
 	}
 
