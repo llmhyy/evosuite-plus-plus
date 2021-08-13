@@ -78,7 +78,7 @@ public class ProjectOverallTest extends TestUtility{
 		
 		int timeBudget = 30;
 		
-		boolean aor = false;
+		boolean aor = true;
 		TestUtility.evoTestSingleMethod(targetClass,  
 				targetMethod, timeBudget, true, aor, cp, fitnessApproach, 
 				"generateMOSuite", "MOSUITE", "DynaMOSA");
