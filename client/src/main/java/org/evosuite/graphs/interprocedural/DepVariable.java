@@ -98,7 +98,7 @@ public class DepVariable {
 			relation = Relation.FIELD;
 		}
 		else {
-			if(instruction.getASMNode().getOpcode() == Opcodes.AALOAD && operandPosition == 0) {
+			if(instruction.isArrayLoadInstruction() && operandPosition == 0) {
 				relation = Relation.ARRAY_ELEMENT;
 			}
 			else {
@@ -475,7 +475,7 @@ public class DepVariable {
 		
 		ArrayList<DepVariable> path = new ArrayList<DepVariable>();
 		path.add(this);
-		
+		System.currentTimeMillis();
 		for(int i=0; i<this.reverseRelations.length; i++) {
 			List<DepVariable> directParents = this.reverseRelations[i];
 			if(directParents != null && !directParents.isEmpty()) {
