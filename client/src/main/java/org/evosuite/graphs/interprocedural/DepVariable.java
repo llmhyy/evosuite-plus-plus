@@ -521,22 +521,24 @@ public class DepVariable {
 	 * @return
 	 */
 	public int getParamOrder() {
-		if(varName.contains("LV_")) {
-			String orderString = varName.substring(varName.indexOf("LV_")+3, varName.length());
-			int order = Integer.valueOf(orderString);
-			/**
-			 * e.g., iload_0 in static method should be changed to the order of 1
-			 */
-			if(this.instruction.getActualCFG().isStaticMethod()) {
-				return order + 1;
-			}
-			/**
-			 * here, iload_0 will point to this, so here the order must be larger than 0, 
-			 * hence, there is no need to change the order
-			 */
-			else {
-				return order;
-			}
+		if(this.instruction.isParameter()) {
+//			String orderString = varName.substring(varName.indexOf("LV_")+3, varName.length());
+			int order = this.instruction.getParameterPosition() + 1;
+			return order;
+			
+//			/**
+//			 * e.g., iload_0 in static method should be changed to the order of 1
+//			 */
+//			if(this.instruction.getActualCFG().isStaticMethod()) {
+//				return order + 1;
+//			}
+//			/**
+//			 * here, iload_0 will point to this, so here the order must be larger than 0, 
+//			 * hence, there is no need to change the order
+//			 */
+//			else {
+//				return order;
+//			}
 		}
 		
 		return -1;
