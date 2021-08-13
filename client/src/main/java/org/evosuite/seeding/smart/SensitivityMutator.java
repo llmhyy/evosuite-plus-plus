@@ -240,6 +240,7 @@ public class SensitivityMutator {
 			for(DepVariable var: relevantPrimitiveChildren) {
 				
 				List<VariableReference> varList = map.get(new DepVariableWrapper(var));
+				if(varList == null) continue;
 				for(VariableReference ref: varList) {
 					Statement statement = newTestChromosome.getTestCase().getStatement(ref.getStPosition()); 
 					if(statement instanceof PrimitiveStatement) {
