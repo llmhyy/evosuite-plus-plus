@@ -28,11 +28,9 @@ public class TrueExample {
 	}
 	
 	public static void testArray(int a[], int b) {
-		if (b == 38461965) {
-			for (int ai : a) {
-				if (ai == 123456789) {
-					System.currentTimeMillis();
-				}
+		for (int ai : a) {
+			if (ai == 11111111) {
+				System.currentTimeMillis();
 			}
 		}
 
