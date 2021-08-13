@@ -345,6 +345,7 @@ public class ConstructionPathSynthesizer {
 			String castSubClass = checkCastClassForParameter(node);
 			if(castSubClass == null) {
 				int paramPosition = node.var.getParamOrder() - 1;
+				System.currentTimeMillis();
 				List<String> recommendations = InterproceduralGraphAnalysis.recommendedClasses.get(paramPosition);
 				if(recommendations!=null && !recommendations.isEmpty()) {
 					castSubClass = Randomness.choice(recommendations);					
@@ -357,6 +358,7 @@ public class ConstructionPathSynthesizer {
 				return false;
 			}
 			VariableReference generatedVariable = generateFieldStatement(test, node, isLeaf, callerObject, map, b, allowNullValue);
+			System.currentTimeMillis();
 			generatedVariables.add(generatedVariable);
 		} else if (node.var.getType() == DepVariable.OTHER) {
 			int opcode = node.var.getInstruction().getASMNode().getOpcode();
@@ -947,7 +949,7 @@ public class ConstructionPathSynthesizer {
 			VariableReference usedFieldInTest = isLeaf
 					? usedRefSearcher.searchRelevantFieldWritingReferenceInTest(test, field, callerObject)
 					: usedRefSearcher.searchRelevantFieldReadingReferenceInTest(test, field, callerObject);
-			System.currentTimeMillis();
+//			System.currentTimeMillis();
 			if (usedFieldInTest != null) {
 				return usedFieldInTest;
 			}
@@ -1035,8 +1037,18 @@ public class ConstructionPathSynthesizer {
 						}
 						
 						if(relevantParam != null) {
-							System.currentTimeMillis();
 							return relevantParam;
+						}
+						else {
+							List<VariableReference> pList = cStat.getParameterReferences();
+							UsedReferenceSearcher searcher = new UsedReferenceSearcher();
+							String methodName = cStat.getMethodName() + cStat.getDescriptor();
+							List<VariableReference> params = 
+									searcher.searchRelevantParameterOfSetterInTest(pList, fieldDeclaringClass.getCanonicalName(), methodName, field);
+							
+							if(!params.isEmpty()) {
+								return params.get(0);
+							}
 						}
 						
 						targetObjectReference = fieldSetter;
@@ -1049,11 +1061,6 @@ public class ConstructionPathSynthesizer {
 				e.printStackTrace();
 			}
 		}
-//		else {
-//			return fieldSetter;
-//		}
-		
-//		System.currentTimeMillis();
 		
 		int insertionPostion = -1;
 		if(fieldSetter != null) {

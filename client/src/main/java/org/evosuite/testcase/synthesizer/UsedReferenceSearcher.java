@@ -155,7 +155,7 @@ public class UsedReferenceSearcher {
 	 * @param opcode
 	 * @return
 	 */
-	private List<VariableReference> searchRelevantParameterOfSetterInTest(List<VariableReference> params, String className,
+	public List<VariableReference> searchRelevantParameterOfSetterInTest(List<VariableReference> params, String className,
 			String methodName, Field field) {
 		/**
 		 * get all the field setter bytecode instructions in the method. TODO: the field

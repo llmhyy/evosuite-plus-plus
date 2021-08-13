@@ -185,8 +185,10 @@ public class SensitivityMutator {
 			ObservationRecord record = new ObservationRecord(inputs, observationMap);
 			preservance.addRecord(record);
 			
-			System.currentTimeMillis();
+//			System.currentTimeMillis();
 		}
+		
+		System.currentTimeMillis();
 		return preservance;
 	}
 

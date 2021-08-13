@@ -254,7 +254,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
