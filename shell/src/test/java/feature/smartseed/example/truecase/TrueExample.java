@@ -51,4 +51,19 @@ public class TrueExample {
 			}
 		}
 	}
+
+	public void paralleltest(double x, int y) {
+		if (x == 35.4 * 300) {
+			System.currentTimeMillis();
+		}
+		if (y == -2147483646) {
+			System.currentTimeMillis();
+		} else if (y == 32700) {
+			System.currentTimeMillis();
+		} else if (y == 4) {
+			System.currentTimeMillis();
+		} else if (y == 120) {
+			System.currentTimeMillis();
+		}
+	}
 }

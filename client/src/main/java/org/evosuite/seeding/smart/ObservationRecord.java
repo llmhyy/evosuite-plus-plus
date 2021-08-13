@@ -45,6 +45,8 @@ public class ObservationRecord {
 		if (isConstant(inKey) && isConstant(obKey))
 			return null;
 		
+		if(!inputs.getInputVariables().containsKey(inKey)) return null;
+		
 		Object inputObj = inputs.getInputVariables().get(inKey).getValue();
 		for(Object obser: observationMap.get(obKey)) {
 			boolean isSame = checkEquals(inputObj, obser);
