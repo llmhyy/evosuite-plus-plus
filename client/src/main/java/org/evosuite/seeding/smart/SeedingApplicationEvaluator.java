@@ -27,6 +27,7 @@ import org.evosuite.instrumentation.BytecodeInstrumentation;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.statements.PrimitiveStatement;
+import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -244,6 +245,7 @@ public class SeedingApplicationEvaluator {
 	}
 	
 
+	@SuppressWarnings("rawtypes")
 	public static BranchSeedInfo evaluate(Branch b, TestChromosome testSeed) {
 		if (cache.containsKey(b)) {
 			return cache.get(b);
@@ -305,8 +307,9 @@ public class SeedingApplicationEvaluator {
 				
 				ValuePreservance sp = analyzeChannel(pathList, b, testSeed);
 				if (sp != null && sp.isValuePreserving()) {
-					
-					PrimitiveStatement stat0 = sp.getMatchingResult().getMatchedInputVariable();
+					List<MatchingResult> results = sp.getMatchingResults();
+					MatchingResult result = Randomness.choice(results);
+					PrimitiveStatement stat0 = result.getMatchedInputVariable();
 					PrimitiveStatement statement = (PrimitiveStatement) testSeed.getTestCase().getStatement(stat0.getPosition());
 					
 					if(isRelevantToRegularExpression(pathList)){
@@ -351,8 +354,7 @@ public class SeedingApplicationEvaluator {
 						return branchInfo;
 					} 
 					else {
-						
-						String type = finalType(sp.getMatchingResult().getMatchedObservation().getClass().toString());
+						String type = finalType(sp.getMatchingResults().get(0).getMatchedObservation().getClass().toString());
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
 						cache.put(b, branchInfo);
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);

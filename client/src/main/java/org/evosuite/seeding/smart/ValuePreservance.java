@@ -39,7 +39,7 @@ public class ValuePreservance {
 		this.recordList.add(value);
 	}
 	
-	private MatchingResult matchingResult = null;
+	private List<MatchingResult> matchingResults = new ArrayList<>();
 	
 	/**
 	 * return whether the branch can preserve the value of certain input to certain observation.
@@ -68,15 +68,15 @@ public class ValuePreservance {
 						valuePreservingRatio++;
 						if ((valuePreservingRatio
 								/ Properties.DYNAMIC_SENSITIVITY_THRESHOLD >= Properties.FAST_CHANNEL_SCORE_THRESHOLD)) {
-							this.matchingResult = result;
-							return true;
+							this.matchingResults.add(result);
+							break;
 						}
 					}
 				}
 			}
 		}
 		
-		return false;
+		return !matchingResults.isEmpty();
 		
 	}
 
@@ -164,7 +164,7 @@ public class ValuePreservance {
 		this.recordList.clear();
 	}
 
-	public MatchingResult getMatchingResult() {
-		return matchingResult;
+	public List<MatchingResult> getMatchingResults() {
+		return matchingResults;
 	}
 }
