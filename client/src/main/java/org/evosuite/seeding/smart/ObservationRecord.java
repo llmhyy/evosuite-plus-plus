@@ -151,8 +151,8 @@ public class ObservationRecord {
 			return false;
 
 		List<Object> valueList = observationMap.get(obKey);
-		for(Object value: valueList) {
-			boolean isEqual = checkEquals(value, constantValue);
+		for(Object value: valueList) {			
+			boolean isEqual = checkConstantEquals(value, constantValue);
 			if(!isEqual) {
 				return false;
 			}
@@ -197,6 +197,17 @@ public class ObservationRecord {
 //		return false;
 
 	}
+
+	private boolean checkConstantEquals(Object value, Object constantValue) {
+		if (value == constantValue)
+			return true;
+
+		if(value.toString().equals(constantValue.toString())) return true;
+		if (isNumberEquals(value, constantValue))
+			return true;
+		return false;
+}
+
 
 	private boolean checkEquals(Object value, Object constantValue) {
 		if(value == constantValue) return true;

@@ -48,7 +48,7 @@ public class TrueExample {
 	
 	public static void fieldTest(Obj o, int a) {
 		if(a == 123456789) {
-			if(o.name.equals("NoIse".toLowerCase())) {
+			if(o.name.equals("noise".toUpperCase())) {
 				System.currentTimeMillis();
 			}
 		}

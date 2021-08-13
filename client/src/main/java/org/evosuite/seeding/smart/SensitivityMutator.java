@@ -264,8 +264,13 @@ public class SensitivityMutator {
 				for( DepVariableWrapper varRef : map.keySet()) {
 					if(varRef.var.isInstaceField()) {
 						System.currentTimeMillis();
+						//set method
 						Statement relevantStatement0 = getLastFieldStatement(newTestChromosome.getTestCase(),varRef.var);
 						retrieveHeadValue(relevantStatement0, newTestChromosome, headValues);
+//						System.currentTimeMillis();
+						
+						Statement relevantStatement1 = getFieldStatement(newTestChromosome.getTestCase(),varRef.var);
+						retrieveHeadValue(relevantStatement1, newTestChromosome, headValues);
 					}
 				}
 			}
@@ -684,6 +689,18 @@ public class SensitivityMutator {
 					retrieveHeadValue(rootValueStatement, newTestChromosome, headValues);
 				}
 			}
+		}else if(relevantStartment instanceof AssignmentStatement) {
+			// get method statement 
+			AssignmentStatement asSta = (AssignmentStatement)relevantStartment;
+			String code = asSta.getCode();
+			
+			for (int k = 0; k < newTestChromosome.getTestCase().size(); k++) {
+				Statement ss = newTestChromosome.getTestCase().getStatement(k);
+				if (ss instanceof AssignmentStatement && ss.getCode().equals(code)) {
+					Statement rootValueStatement = getRootValueStatement(newTestChromosome.getTestCase(), ss);
+					retrieveHeadValue(rootValueStatement, newTestChromosome, headValues);
+				}
+			}
 		}
 	}
 
@@ -782,7 +799,7 @@ public class SensitivityMutator {
 			MethodStatement meSta = (MethodStatement) statement;
 			String methodName = ((MethodStatement) statement).getMethodName().toLowerCase();
 			String methodOwner = meSta.getMethod().getOwnerType().toString().split(" ")[1].replace(".", "/");
-			if(methodOwner.equals(varOwner) && methodName.contains(filedName)) {
+			if(methodOwner.equals(varOwner) && methodName.equals("set" + filedName)) {
 				return true;
 			}
 		}
