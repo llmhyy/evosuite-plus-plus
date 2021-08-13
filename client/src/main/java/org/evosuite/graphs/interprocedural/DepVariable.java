@@ -195,7 +195,8 @@ public class DepVariable {
 	}
 	
 	public boolean isLoadArrayElement() {
-		return this.instruction.getASMNode().getOpcode() == Opcodes.AALOAD;
+		return this.instruction.isArrayLoadInstruction();
+//		return this.instruction.getASMNode().getOpcode() == Opcodes.AALOAD;
 	}
 	
 	public boolean hasNoParent() {
@@ -1019,6 +1020,40 @@ public class DepVariable {
         	return true;
 		}
 		return false;
+	}
+
+
+	public List<DepVariable> getPrimitiveChildrenIncludingItself() {
+		List<DepVariable> set = new ArrayList<>();
+		
+		if(this.isPrimitive()) {
+			set.add(this);
+			return set;
+		}
+		else {
+			collectPrimitiveChildren(this, set);
+			return set;
+		}
+	}
+
+
+	private void collectPrimitiveChildren(DepVariable depVariable, List<DepVariable> set) {
+		for(List<DepVariable> children: depVariable.getRelations()) {
+			
+			if(children == null) continue;
+			
+			for(DepVariable child: children) {
+				if(child.isPrimitive()) {
+					if(!set.contains(child)) {
+						set.add(child);
+					}
+				}
+				else {
+					collectPrimitiveChildren(child, set);
+				}
+			}
+		}
+		
 	}
 
 
