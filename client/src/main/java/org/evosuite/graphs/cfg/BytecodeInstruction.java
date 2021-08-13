@@ -1450,16 +1450,37 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	 * @return
 	 */
 	public int getParameterPosition(){
+		
+		
 		if (isLocalVariableUse()) {
 			int slot = getLocalVariableSlot();
 //			String methodName = getRawCFG().getMethodName();
 //			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
 			
-			
 			String[] parameters = MethodUtil.parseSignature(methodName);
+			
 			int paramNum = parameters.length - 1;
 			if(!this.getActualCFG().isStaticMethod()) {
 				slot--;
+			}
+			
+			int cursor = 0;
+			int position = 0;
+			for(int i=0; i<paramNum; i++) {
+				String param = parameters[i];
+				if(cursor == slot) {
+					return position;
+				}
+				else {
+					position ++;
+					if(param.equals("double") || param.equals("long")) {
+						cursor += 2;
+					}
+					else {
+						cursor++;
+					}
+				}
+				
 			}
 			
 			System.currentTimeMillis();
