@@ -531,6 +531,14 @@ public class SeedingApplicationEvaluator {
 			if(var != null && !varList.contains(var)) {
 				varList.add(var);				
 			}
+			
+			//switch
+			if(path.getBranch().isSwitchCaseBranch()) {
+				var = path.getComputationNodes().get(0);
+				if(var != null && !varList.contains(var)) {
+					varList.add(var);				
+				}
+			}
 		}
 		
 		return varList;

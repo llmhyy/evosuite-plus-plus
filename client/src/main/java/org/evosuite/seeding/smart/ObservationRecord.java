@@ -63,7 +63,7 @@ public class ObservationRecord {
 			return null;
 		
 		// switch
-		if (inKey.equals(obKey)) {
+		if (inKey instanceof String) {
 			StringBuilder sb = new StringBuilder();
 			if (observationMap.get(obKey).size() == 0)
 				return null;
@@ -107,11 +107,13 @@ public class ObservationRecord {
 		Number n2 = null;
 		
 		if(obj1 instanceof Character) {
-			n1 = (int)obj1;
+			Character c = (Character) obj1;
+			n1 = (int)c;
 		}
 		
 		if(obj2 instanceof Character) {
-			n2 = (int)obj2;
+			Character c = (Character) obj2;
+			n2 = (int)c;
 		}
 		
 		if ((obj1 instanceof Number) 

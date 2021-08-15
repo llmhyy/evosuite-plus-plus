@@ -105,13 +105,13 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testBugExample7() {
-		String projectId = SF100Project.P5;
+		String projectId = SF100Project.P69;
 		String[] targetMethods = new String[]{
 //				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
 //				"org.exolab.jms.selector.parser.SelectorTreeParser#literal(Lantlr/collections/AST;)Lorg/exolab/jms/selector/Expression;"//66
 //				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
 //				"wheel.components.ActionExpression#extractComponent()Ljava/lang/String;"
-				"org.templateit.Poi2ItextUtil#chooseFontFamily(Lorg/apache/poi/hssf/usermodel/HSSFFont;I)I"//5
+//				"org.templateit.Poi2ItextUtil#chooseFontFamily(Lorg/apache/poi/hssf/usermodel/HSSFFont;I)I"//5
 //				"wheel.json.JSONTokener#dehexchar(C)I"//80
 //				"org.javathena.core.utiles.Functions#e_mail_check(Ljava/lang/String;)Z"//81
 //				"net.sf.xbus.technical.ftp.FTPConnection#getWorkingDirectory(Ljava/lang/String;)Ljava/lang/String;"//83
@@ -119,6 +119,8 @@ public class SF100OverallTest {
 //				"umd.cs.shop.JSPredicateForm#JSPredicateFormInit(Ljava/io/StreamTokenizer;)V"//85
 				
 //				"net.virtualinfinity.atrobots.measures.AbsoluteAngle#getNormalizedRadians()D"//86
+				
+				"macaw.businessLayer.AliasFilePath#validateFields(Lmacaw/businessLayer/AliasFilePath;)V"
 				
 		};
 		
@@ -128,7 +130,7 @@ public class SF100OverallTest {
 		
 		String fitnessApproach = "branch";
 		boolean aor = false;
-		boolean ass = true;
+		boolean ass = false;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
