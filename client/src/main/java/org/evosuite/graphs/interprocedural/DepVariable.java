@@ -1023,65 +1023,38 @@ public class DepVariable {
 		}
 		return false;
 	}
-
-
-	public List<DepVariable> getPrimitiveChildrenIncludingItself() {
-		List<DepVariable> set = new ArrayList<>();
+	
+	public List<DepVariable> getAllChildrenNodesIncludingItself() {
 		
-		if(this.isPrimitive()) {
-			set.add(this);
-			return set;
-		}
-		else {
-			collectPrimitiveChildren(this, set);
-			return set;
-		}
+		List<DepVariable> primitiveSet = new ArrayList<>();
+		List<DepVariable> allSet = new ArrayList<>();
+		
+		primitiveSet.add(this);
+		collectChildren(this, primitiveSet, allSet);
+		
+		return primitiveSet;
 	}
 
 
-	private void collectPrimitiveChildren(DepVariable depVariable, List<DepVariable> set) {
+	private void collectChildren(DepVariable depVariable, 
+			List<DepVariable> primitiveSet, List<DepVariable> allSet) {
+		
 		for(List<DepVariable> children: depVariable.getRelations()) {
-			
 			if(children == null) continue;
 			
 			for(DepVariable child: children) {
-				if(child.isPrimitive()) {
-					if(!set.contains(child)) {
-						set.add(child);
+				if(!allSet.contains(child)) {
+					allSet.add(child);
+					if(child.isPrimitive()) {
+						primitiveSet.add(child);
+					}
+					else {
+						collectChildren(child, primitiveSet, allSet);
 					}
 				}
-				else {
-					collectPrimitiveChildren(child, set);
-				}
 			}
 		}
 		
 	}
-
-
-	public List<DepVariable> getAllChildrenNodesIncludingItself() {
-		List<DepVariable> set = new ArrayList<>();
-		
-		set.add(this);
-		collectChildren(this, set);
-		
-		return set;
-	}
-
-
-	private void collectChildren(DepVariable depVariable, List<DepVariable> set) {
-		for(List<DepVariable> children: depVariable.getRelations()) {
-			if(children == null) continue;
-			
-			for(DepVariable child: children) {
-				if(!set.contains(child)) {
-					set.add(child);
-				}
-				collectPrimitiveChildren(child, set);
-			}
-		}
-		
-	}
-
-
+	
 }
