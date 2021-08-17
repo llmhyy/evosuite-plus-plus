@@ -15,7 +15,10 @@ import evosuite.shell.EvoTestResult;
 import feature.smartseed.example.SmartSeedExample;
 import feature.smartseed.example.empirical.Config;
 import feature.smartseed.example.empirical.EmpiricalStudyExample;
+import feature.smartseed.example.empirical.MMergeTIFF;
+import feature.smartseed.example.empirical.ResourceDescriptor;
 import feature.smartseed.example.empirical.ResourcesDirectory;
+import feature.smartseed.example.empirical.SimpleNode;
 
 public class SmartSeedRuntimeTest {
 	
@@ -45,7 +48,7 @@ public class SmartSeedRuntimeTest {
 
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -95,7 +98,7 @@ public class SmartSeedRuntimeTest {
 
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 10000;
 		Long seed = null;
 				
@@ -145,7 +148,7 @@ public class SmartSeedRuntimeTest {
 
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 10000;
 		Long seed = null;
 				
@@ -196,7 +199,7 @@ public class SmartSeedRuntimeTest {
 
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 10000;
 		Long seed = null;
 				
@@ -357,7 +360,7 @@ public class SmartSeedRuntimeTest {
 
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 10000;
 		Long seed = null;
 				
@@ -406,8 +409,8 @@ public class SmartSeedRuntimeTest {
 
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
-		int budget = 10000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -453,8 +456,8 @@ public class SmartSeedRuntimeTest {
 
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
-		int budget = 10000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -507,8 +510,8 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
-		int budget = 10000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -562,8 +565,8 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
-		int budget = 10000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -617,7 +620,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -671,7 +674,7 @@ public class SmartSeedRuntimeTest {
 		String fitnessApproach = "branch";
 		
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -726,7 +729,7 @@ public class SmartSeedRuntimeTest {
 		int timeBudget = 100;
 		
 		int repeatTime = 1;
-		int budget = 10000;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -779,7 +782,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -833,7 +836,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -887,7 +890,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -941,7 +944,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -995,7 +998,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -1049,8 +1052,8 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 3;
-		int budget = 1000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -1102,7 +1105,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -1155,7 +1158,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -1209,7 +1212,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -1263,7 +1266,7 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -1317,8 +1320,8 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
-		int budget = 10000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -1349,8 +1352,8 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
-		int budget = 10000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -1381,8 +1384,8 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
-		int budget = 10000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -1413,15 +1416,39 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
-		int budget = 10000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
 		boolean ass = true;
+		
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
 	}
 	
 	@Test
@@ -1445,8 +1472,8 @@ public class SmartSeedRuntimeTest {
 		
 		int timeBudget = 100;
 		
-		int repeatTime = 10;
-		int budget = 10000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -1455,5 +1482,287 @@ public class SmartSeedRuntimeTest {
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
 	}
+	
+	
+	@Test
+	public void testTIFF() {
+		Class<?> clazz = MMergeTIFF.class;
+		String methodName = "saveMultiPageTif";
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 100;
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+		
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
+	}
+	
+	@Test
+	public void testAddColumn() {
+		Class<?> clazz = EmpiricalStudyExample.class;
+		String methodName = "addColumn";
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 100;
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+		
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
+	}
+	
+	@Test
+	public void testDump() {
+		Class<?> clazz = SimpleNode.class;
+		String methodName = "dump";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 100;
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+		
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
+	}
+	
+	@Test
+	public void testFindLabel() {
+		Class<?> clazz = SimpleNode.class;
+		String methodName = "findLabel";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 100;
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+		
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
+	}
+	
+	@Test
+	public void testContains() {
+		Class<?> clazz = ResourceDescriptor.class;
+		String methodName = "contains";
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 100;
+		
+		int repeatTime = 1;
+		int budget = 100000;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+		
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		double coverage = 0;
+		double initCoverage = 0;
+		double time = 0;
+		double iteration  = 0;
+		for(EvoTestResult res: results) {
+			
+			if(res == null) {
+				repeatTime--;
+				continue;
+			}
+			
+			coverage += res.getCoverage();
+			initCoverage += res.getInitialCoverage();
+			time += res.getTime();
+			iteration += res.getAge();
+		}
+		
+		System.out.println("coverage: " + coverage/repeatTime);
+		System.out.println("initCoverage: " + initCoverage/repeatTime);
+		System.out.println("time: " + time/repeatTime);
+		System.out.println("iteration: " + iteration/repeatTime);
+		System.out.println("repeat: " + repeatTime);
+	}
+	
 	
 }

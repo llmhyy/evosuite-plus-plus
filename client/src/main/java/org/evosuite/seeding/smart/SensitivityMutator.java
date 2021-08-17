@@ -138,7 +138,7 @@ public class SensitivityMutator {
 			List<BytecodeInstruction> observingValues, Branch branch, TestChromosome testSeed) {
 		TestCase test = null;
 		if(testSeed == null) {
-			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);			
+			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);	
 		}
 		else {
 			test = testSeed.getTestCase();
@@ -240,7 +240,7 @@ public class SensitivityMutator {
 			List<DepVariable> relevantPrimitiveChildren = rootVar.getAllChildrenNodesIncludingItself();
 			List<PrimitiveStatement> relevantStatements = new ArrayList<>();
 			for(DepVariable var: relevantPrimitiveChildren) {
-				
+				if(map == null) continue;
 				List<VariableReference> varList = map.get(new DepVariableWrapper(var));
 				if(varList == null) continue;
 				for(VariableReference ref: varList) {

@@ -255,7 +255,11 @@ public class EmpiricalStudyExample {
 		}
 	}
 	
-	public EmpiricalStudyExample(String[] columnNames) {
+	
+	public EmpiricalStudyExample(String[] columnNames, int ordinalPosition) {
 		this.columnNames = columnNames;
+		if (ordinalPosition != 1) {
+			throw new IllegalArgumentException("ordinalPosition is expected to be 1, found: " + ordinalPosition);
+		}
 	}
 }

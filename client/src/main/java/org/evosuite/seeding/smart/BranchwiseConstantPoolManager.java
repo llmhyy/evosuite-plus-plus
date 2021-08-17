@@ -52,7 +52,9 @@ public class BranchwiseConstantPoolManager {
 				return STATIC_POOL_CACHE.get(b.getBranch().getActualBranchId());
 			}
 
-			ConstantPool pool = new StaticConstantPool(false, true);
+			StaticConstantPool pool = new StaticConstantPool(false, true);
+			pool.clear();
+			
 			for (ObservedConstant obj : b.getPotentialSeeds()) {
 				pool.add(obj.getValue());					
 			}

@@ -104,20 +104,20 @@ public class StaticConstantPool implements ConstantPool {
 		}
 
 		intPool.add(0);
-//		intPool.add(1);
-//		intPool.add(-1);
+		intPool.add(1);
+		intPool.add(-1);
 
 		longPool.add(0L);
-//		longPool.add(1L);
-//		longPool.add(-1L);
+		longPool.add(1L);
+		longPool.add(-1L);
 
 		floatPool.add(0.0f);
-//		floatPool.add(1.0f);
-//		floatPool.add(-1.0f);
+		floatPool.add(1.0f);
+		floatPool.add(-1.0f);
 
 		doublePool.add(0.0);
-//		doublePool.add(1.0);
-//		doublePool.add(-1.0);
+		doublePool.add(1.0);
+		doublePool.add(-1.0);
 	}
 
 	/**

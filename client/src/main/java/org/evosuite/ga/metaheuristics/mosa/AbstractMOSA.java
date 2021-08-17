@@ -115,22 +115,10 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	 */
 	public static long initializationOverhead = 0;
 
-	/** EvoSeed Time **/
+	/** EvoSeed Runtime Branch Type **/
 
-	public static int branchNum = 0;
-	public static int pathNum = 0;
-	public static long getFirstTailValueTime = 0;
-	public static long all10MutateTime = 0;
-	public static long cascadeAnalysisTime = 0;
-	public static long evolveTime = 0;
-	public static long parent1EvolveTime = 0;
-	public static long parent2EvolveTime = 0;
-
-	public static long smartSeedAnalyzeTime = 0;
-
-	public static long randomTestcaseTime = 0;
-
-	public static long generateTime = 0;
+	public static int smartBranchNum = 0;
+	public static Map<String,String> runtimeBranchType = new HashMap<String,String>();
 
 	/**
 	 * Constructor.
@@ -220,16 +208,11 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 
 		EventSequence.enableRecord();
 
-		long t1 = System.currentTimeMillis();
 		TestChromosome potentialSeed = SmartSeedBranchUpdateManager.updateUncoveredBranchInfo(bestMap, bestTestMap);
-		long t2 = System.currentTimeMillis();
-		AbstractMOSA.smartSeedAnalyzeTime = (t2 - t1) > AbstractMOSA.smartSeedAnalyzeTime ? (t2 - t1)
-				: AbstractMOSA.smartSeedAnalyzeTime;
 		
 		List<T> offspringPopulation = new ArrayList<T>(Properties.POPULATION);
 		// we apply only Properties.POPULATION/2 iterations since in each generation
 		// we generate two offsprings
-		t1 = System.currentTimeMillis();
 		for (int i = 0; i < Properties.POPULATION / 2 && !this.isFinished(); i++) {
 
 			// select best individuals
@@ -331,14 +314,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 			}
 		}
 
-		t2 = System.currentTimeMillis();
-		AbstractMOSA.evolveTime += t2 - t1;
-		AbstractMOSA.setGenerateTime(AbstractMOSA.getGenerateTime() + randomTestcaseTime - t1);
-		AbstractMOSA.randomTestcaseTime += t2 - randomTestcaseTime;
-		// record evoseed branchNum
-		AbstractMOSA.branchNum = SmartSeedBranchUpdateManager.totalUncoveredGoals.size() > this.getBranchNum()
-				? SmartSeedBranchUpdateManager.totalUncoveredGoals.size()
-				: this.getBranchNum();
 		logger.info("Number of offsprings = {}", offspringPopulation.size());
 		
 		return offspringPopulation;
@@ -915,34 +890,27 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		return r;
 	}
 
-	public static long getRandomTestcaseTime() {
-		return randomTestcaseTime;
-	}
-
-	public static void setRandomTestcaseTime(long randomTestcaeTime) {
-		AbstractMOSA.randomTestcaseTime = randomTestcaeTime;
-	}
 
 	public static void clear() {
-		branchNum = 0;
-		pathNum = 0;
-		getFirstTailValueTime = 0;
-		all10MutateTime = 0;
-		cascadeAnalysisTime = 0;
-		evolveTime = 0;
-		parent1EvolveTime = 0;
-		parent2EvolveTime = 0;
-		smartSeedAnalyzeTime = 0;
-		randomTestcaseTime = 0;
-		generateTime = 0;
+		runtimeBranchType = new HashMap<String,String>();
+		smartBranchNum = 0;
 	}
 
-	public static long getGenerateTime() {
-		return generateTime;
+
+	public Map<String,String> getRuntimeBranchType() {
+		return runtimeBranchType;
 	}
 
-	public static void setGenerateTime(long generateTime) {
-		AbstractMOSA.generateTime = generateTime;
+	public void setRuntimeBranchType(Map<String,String> runtimeBranchType) {
+		this.runtimeBranchType = runtimeBranchType;
+	}
+	
+	public int getSmartBranchNum() {
+		return smartBranchNum;
+	}
+
+	public void setSmartBranchNum(int smartBranchNum) {
+		this.smartBranchNum = smartBranchNum;
 	}
 
 }

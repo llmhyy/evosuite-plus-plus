@@ -47,20 +47,33 @@ public class SmartSeedBranchUpdateManager {
 
 		Set<BranchSeedInfo> infoSet = new HashSet<>();
 		Set<BranchSeedInfo> uncoveredGoal = new HashSet<>();
-		// select one branch randomly
 		// TODO select the most potential branches
+		FitnessFunction minff = null;
+		Double minVal = 99999.0;
+		
 		List<FitnessFunction> list = new ArrayList<>();
 		for(FitnessFunction ff: bestMap.keySet()) {
 			Double d = bestMap.get(ff);
 			if(d < 1) {
 				list.add(ff);
+			}else if(d < minVal) {
+				minVal = d;
+				minff = ff;
 			}
 		}
 		
 		TestChromosome testSeed = null;
 		int uncoveredGoalsSize = list.size();
 		
-		if(uncoveredGoalsSize == 0) return null;
+		if(uncoveredGoalsSize == 0 && minff == null) return null;
+		
+		if(uncoveredGoalsSize == 0) {
+			if(minff == null) return null;
+			else {
+				list.add(minff);
+				uncoveredGoalsSize += 1;
+			}
+		}
 		
 		Object[] list0 = list.toArray();
 		Object ff = null;

@@ -55,9 +55,9 @@ public class BranchWiseFilterTest {
 	
 	@Test
 	public void filterTest() throws AnalyzerException, IOException {
-		String projectId = SF100Project.P5;
+		String projectId = SF100Project.P11;
 		String[] targetMethods = new String[]{				
-				"org.templateit.Poi2ItextUtil#chooseFontFamily(Lorg/apache/poi/hssf/usermodel/HSSFFont;I)I"
+				"com.momed.main.MMergeTIFF#saveMultiPageTif([Ljava/awt/image/RenderedImage;Ljava/lang/String;)V"
 		};
 		
 		Properties.TARGET_CLASS = targetMethods[0].split("#")[0];//methodName;
@@ -99,9 +99,9 @@ public class BranchWiseFilterTest {
 	
 	@Test
 	public void filterTest1() throws AnalyzerException, IOException {
-		String projectId = SF100Project.P8;
+		String projectId = SF100Project.P13;
 		String[] targetMethods = new String[]{				
-				"fr.unice.gfarce.interGraph.TableStockage#setColumnClass(ILjava/lang/Class;)V"
+				"org.databene.jdbacl.model.jdbc.DBIndexInfo#addColumn(SLjava/lang/String;)V"
 		};
 		
 		Properties.TARGET_CLASS = targetMethods[0].split("#")[0];//methodName;
@@ -143,9 +143,9 @@ public class BranchWiseFilterTest {
 	
 	@Test
 	public void filterTest2() throws AnalyzerException, IOException {
-		String projectId = SF100Project.P13;
+		String projectId = SF100Project.P52;
 		String[] targetMethods = new String[]{				
-				"org.databene.jdbacl.model.jdbc.DBIndexInfo#addColumn(SLjava/lang/String;)V"
+				"nu.staldal.lagoon.producer.LSSIHandler#startElement(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/xml/sax/Attributes;)V"
 		};
 		
 		Properties.TARGET_CLASS = targetMethods[0].split("#")[0];//methodName;
@@ -181,7 +181,7 @@ public class BranchWiseFilterTest {
 				}
 			}
 		System.out.println("type:NO_POOL");
-		assert type == SeedingApplicationEvaluator.NO_POOL;
+		assert type == SeedingApplicationEvaluator.STATIC_POOL;
 		
 	}
 	
