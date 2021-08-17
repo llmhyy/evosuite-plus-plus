@@ -24,6 +24,7 @@ public class SmartSeedRuntimeTest {
 		Properties.APPLY_SMART_SEED = true;
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.CSV;
 		Properties.TIMEOUT = 10000000;
 		Properties.ENABLE_TRACEING_EVENT = true;
 		

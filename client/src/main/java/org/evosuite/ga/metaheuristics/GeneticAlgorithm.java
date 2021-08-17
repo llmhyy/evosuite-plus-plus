@@ -1259,12 +1259,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	public List<Double> getProgressInformation() {
 		return progressInformation;
 	}
-							  
 	
-							  
-					   
-						 
-
 	public void setProgressInformation(List<Double> progressInformation) {
 		this.progressInformation = progressInformation;
 	}

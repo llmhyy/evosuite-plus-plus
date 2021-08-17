@@ -22,7 +22,6 @@
  */
 package org.evosuite;
 
-import org.evosuite.ga.metaheuristics.mosa.DynaMOSA;
 import org.evosuite.rmi.MasterServices;
 import org.evosuite.rmi.service.ClientState;
 import org.evosuite.rmi.service.ClientStateInformation;
