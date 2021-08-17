@@ -14,7 +14,10 @@ import common.TestUtility;
 import evosuite.shell.EvoTestResult;
 import feature.smartseed.example.SmartSeedExample;
 import feature.smartseed.example.empirical.Config;
+import feature.smartseed.example.empirical.EmpiricalStudyExample;
 import feature.smartseed.example.empirical.ResourceDescriptor;
+import feature.smartseed.example.empirical.ResourcesDirectory;
+import feature.smartseed.example.empirical.SimpleNode;
 
 public class SmartSeedRuntimeTest {
 	
@@ -95,7 +98,7 @@ public class SmartSeedRuntimeTest {
 	}
 	
 	@Test
-	public void testTrueCase2() throws IOException {
+	public void testTrueCase2On() throws IOException {
 		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
 		String methodName = "test";
 		int parameterNum = 2;
@@ -118,34 +121,48 @@ public class SmartSeedRuntimeTest {
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
-		double coverage = 0;
-		double initCoverage = 0;
-		double time = 0;
-		double iteration  = 0;
-		for(EvoTestResult res: results) {
-			
-			if(res == null) {
-				repeatTime--;
-				continue;
-			}
-			
-			coverage += res.getCoverage();
-			initCoverage += res.getInitialCoverage();
-			time += res.getTime();
-			iteration += res.getAge();
-		}
 		
-		System.out.println("coverage: " + coverage/repeatTime);
-		System.out.println("initCoverage: " + initCoverage/repeatTime);
-		System.out.println("time: " + time/repeatTime);
-		System.out.println("iteration: " + iteration/repeatTime);
-		System.out.println("repeat: " + repeatTime);
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() < 5;
 		
 		
 	}
 	
 	@Test
-	public void testTrueCase3() throws IOException {
+	public void testTrueCase2Off() throws IOException {
+		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
+		String methodName = "test";
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 10000;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = false;
+
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() > 15;
+		
+		
+	}
+	
+	@Test
+	public void testTrueCase3On() throws IOException {
 		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
 		String methodName = "fieldTest";
 		int parameterNum = 2;
@@ -168,37 +185,18 @@ public class SmartSeedRuntimeTest {
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
-		double coverage = 0;
-		double initCoverage = 0;
-		double time = 0;
-		double iteration  = 0;
-		for(EvoTestResult res: results) {
-			
-			if(res == null) {
-				repeatTime--;
-				continue;
-			}
-			
-			coverage += res.getCoverage();
-			initCoverage += res.getInitialCoverage();
-			time += res.getTime();
-			iteration += res.getAge();
-		}
 		
-		System.out.println("coverage: " + coverage/repeatTime);
-		System.out.println("initCoverage: " + initCoverage/repeatTime);
-		System.out.println("time: " + time/repeatTime);
-		System.out.println("iteration: " + iteration/repeatTime);
-		System.out.println("repeat: " + repeatTime);
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() < 10;
 		
 		
 	}
 	
 	@Test
-	//array
-	public void testTrueCase4() throws IOException {
+	public void testTrueCase3Off() throws IOException {
 		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
-		String methodName = "testArray";
+		String methodName = "fieldTest";
 		int parameterNum = 2;
 		
 		String targetClass = clazz.getCanonicalName();
@@ -210,43 +208,26 @@ public class SmartSeedRuntimeTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 10000;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
-		boolean ass = true;
+		boolean ass = false;
 
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
-		double coverage = 0;
-		double initCoverage = 0;
-		double time = 0;
-		double iteration  = 0;
-		for(EvoTestResult res: results) {
-			
-			if(res == null) {
-				repeatTime--;
-				continue;
-			}
-			
-			coverage += res.getCoverage();
-			initCoverage += res.getInitialCoverage();
-			time += res.getTime();
-			iteration += res.getAge();
-		}
 		
-		System.out.println("coverage: " + coverage/repeatTime);
-		System.out.println("initCoverage: " + initCoverage/repeatTime);
-		System.out.println("time: " + time/repeatTime);
-		System.out.println("iteration: " + iteration/repeatTime);
-		System.out.println("repeat: " + repeatTime);
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() > 15;
 		
 		
 	}
 	
+	
 	@Test
-	public void parallelTest() {
+	public void testParallelOn() {
 		//parallel
 		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
 		String methodName = "paralleltest";
@@ -276,32 +257,51 @@ public class SmartSeedRuntimeTest {
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
-		double coverage = 0;
-		double initCoverage = 0;
-		double time = 0;
-		double iteration  = 0;
-		for(EvoTestResult res: results) {
-			
-			if(res == null) {
-				repeatTime--;
-				continue;
-			}
-			
-			coverage += res.getCoverage();
-			initCoverage += res.getInitialCoverage();
-			time += res.getTime();
-			iteration += res.getAge();
-		}
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() < 10;
 		
-		System.out.println("coverage: " + coverage/repeatTime);
-		System.out.println("initCoverage: " + initCoverage/repeatTime);
-		System.out.println("time: " + time/repeatTime);
-		System.out.println("iteration: " + iteration/repeatTime);
-		System.out.println("repeat: " + repeatTime);
 	}
 	
 	@Test
-	public void testHighQualityExample() {
+	public void testParallelOff() {
+		//parallel
+		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
+		String methodName = "paralleltest";
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 100;
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = false;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() > 15;
+		
+	}
+	
+	@Test
+	public void testHighQualityExampleOn() {
 		//boolean
 		Class<?> clazz = Config.class;
 		String methodName = "isHighQuality";
@@ -323,7 +323,7 @@ public class SmartSeedRuntimeTest {
 		int timeBudget = 100;
 		
 		int repeatTime = 1;
-		int budget = 100000;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
@@ -331,84 +331,18 @@ public class SmartSeedRuntimeTest {
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
-		double coverage = 0;
-		double initCoverage = 0;
-		double time = 0;
-		double iteration  = 0;
-		for(EvoTestResult res: results) {
-			
-			if(res == null) {
-				repeatTime--;
-				continue;
-			}
-			
-			coverage += res.getCoverage();
-			initCoverage += res.getInitialCoverage();
-			time += res.getTime();
-			iteration += res.getAge();
-		}
 		
-		System.out.println("coverage: " + coverage/repeatTime);
-		System.out.println("initCoverage: " + initCoverage/repeatTime);
-		System.out.println("time: " + time/repeatTime);
-		System.out.println("iteration: " + iteration/repeatTime);
-		System.out.println("repeat: " + repeatTime);
-	}
-	
-	
-	@Test
-	public void compareTwoVariablesTest() throws IOException {
-		Class<?> clazz = SmartSeedExample.class;
-		String methodName = "dynamicExample1";
-		int parameterNum = 2;
-		
-		String targetClass = clazz.getCanonicalName();
-		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
-
-		String fitnessApproach = "branch";
-		
-		int repeatTime = 1;
-		int budget = 10000;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
-		double coverage = 0;
-		double initCoverage = 0;
-		double time = 0;
-		double iteration  = 0;
-		for(EvoTestResult res: results) {
-			
-			if(res == null) {
-				repeatTime--;
-				continue;
-			}
-			
-			coverage += res.getCoverage();
-			initCoverage += res.getInitialCoverage();
-			time += res.getTime();
-			iteration += res.getAge();
-		}
-		
-		System.out.println("coverage: " + coverage/repeatTime);
-		System.out.println("initCoverage: " + initCoverage/repeatTime);
-		System.out.println("time: " + time/repeatTime);
-		System.out.println("iteration: " + iteration/repeatTime);
-		System.out.println("repeat: " + repeatTime);
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() < 10;
 	}
 	
 	@Test
-	public void testContains() {
-		Class<?> clazz = ResourceDescriptor.class;
-		String methodName = "contains";
-		int parameterNum = 2;
+	public void testHighQualityExampleOff() {
+		//boolean
+		Class<?> clazz = Config.class;
+		String methodName = "isHighQuality";
+		int parameterNum = 0;
 		
 		String targetClass = clazz.getCanonicalName();
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
@@ -426,39 +360,291 @@ public class SmartSeedRuntimeTest {
 		int timeBudget = 100;
 		
 		int repeatTime = 1;
-		int budget = 100000;
+		int budget = 100;
 		Long seed = null;
-		
+				
 		boolean aor = false;
-		boolean ass = true;
-		
+		boolean ass = false;
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
 		
-		double coverage = 0;
-		double initCoverage = 0;
-		double time = 0;
-		double iteration  = 0;
-		for(EvoTestResult res: results) {
-			
-			if(res == null) {
-				repeatTime--;
-				continue;
-			}
-			
-			coverage += res.getCoverage();
-			initCoverage += res.getInitialCoverage();
-			time += res.getTime();
-			iteration += res.getAge();
-		}
-		
-		System.out.println("coverage: " + coverage/repeatTime);
-		System.out.println("initCoverage: " + initCoverage/repeatTime);
-		System.out.println("time: " + time/repeatTime);
-		System.out.println("iteration: " + iteration/repeatTime);
-		System.out.println("repeat: " + repeatTime);
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() > 10;
 	}
 	
 	
+	@Test
+	public void testCompareTwoVariablesOn() throws IOException {
+		Class<?> clazz = SmartSeedExample.class;
+		String methodName = "dynamicExample1";
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() < 60;
+	}
+	
+	@Test
+	public void testCompareTwoVariablesOff() throws IOException {
+		Class<?> clazz = SmartSeedExample.class;
+		String methodName = "dynamicExample1";
+		int parameterNum = 2;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = false;
+
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() < 20;
+	}
+	
+//	@Test
+//	public void testLoadInstructionsOn() {
+//		Class<?> clazz = EmpiricalStudyExample.class;
+//		String methodName = "loadInstructions";
+//		int parameterNum = 1;
+//		
+//		String targetClass = clazz.getCanonicalName();
+//		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+//
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//		String cp = "target/classes;target/test-classes";
+//
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//
+//		Properties.TIMEOUT = 1000;
+//		
+//		String fitnessApproach = "branch";
+//		
+//		int timeBudget = 100;
+//		
+//		int repeatTime = 1;
+//		int budget = 100;
+//		Long seed = null;
+//				
+//		boolean aor = false;
+//		boolean ass = true;
+//		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+//				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+//				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+//		
+//		EvoTestResult res1 = results.iterator().next();
+//		assert res1.getCoverage() == 1.0;
+//		assert res1.getAge() < 5;
+//	}
+//	
+//	@Test
+//	public void testLoadInstructionsOff() {
+//		Class<?> clazz = EmpiricalStudyExample.class;
+//		String methodName = "loadInstructions";
+//		int parameterNum = 1;
+//		
+//		String targetClass = clazz.getCanonicalName();
+//		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+//
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//		String cp = "target/classes;target/test-classes";
+//
+//		Properties.CLIENT_ON_THREAD = true;
+//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+//
+//		Properties.TIMEOUT = 1000;
+//		
+//		String fitnessApproach = "branch";
+//		
+//		int repeatTime = 1;
+//		int budget = 100;
+//		Long seed = null;
+//				
+//		boolean aor = false;
+//		boolean ass = false;
+//		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+//				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+//				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+//		
+//		EvoTestResult res1 = results.iterator().next();
+//		assert res1.getCoverage() == 1.0;
+//		assert res1.getAge() > 5;
+//	}
+	
+	@Test
+	public void testMatchesExampleOn() {
+		Class<?> clazz = SmartSeedExample.class;
+		String methodName = "matchesExample";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 100;
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() < 5;
+	}
+	
+	@Test
+	public void testMatchesExampleOff() {
+		Class<?> clazz = SmartSeedExample.class;
+		String methodName = "matchesExample";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 100;
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = false;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() > 5;
+	}
+	
+	@Test
+	public void testCombinationExampleOn() {
+		Class<?> clazz = SmartSeedExample.class;
+		String methodName = "combinationExample";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 100;
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() < 5;
+	}
+	
+	@Test
+	public void testCombinationExampleOff() {
+		Class<?> clazz = SmartSeedExample.class;
+		String methodName = "combinationExample";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int timeBudget = 100;
+		
+		int repeatTime = 1;
+		int budget = 100;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = false;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() > 5;
+	}
+		
 }
