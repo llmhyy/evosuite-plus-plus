@@ -697,30 +697,9 @@ public class EvosuiteForMethod {
 	}
 	
 	private void setEvoSeedTime(EvoTestResult result, TestGenerationResult r) {
-		result.setBranchNum(r.getBranchNum());
-		result.setPathNum(r.getPathNum());
-		result.setGetFirstTailValueTime(r.getGetFirstTailValueTime());
-		result.setAll10MutateTime(r.getAll10MutateTime());
-		result.setCascadeAnalysisTime(r.getCascadeAnalysisTime());
-		result.setEvolveTime(r.getEvolveTime());
-		result.setParent1EvolveTime(r.getParent1EvolveTime());
-		result.setParent2EvolveTime(r.getParent2EvolveTime());
-		result.setSmartSeedAnalyzeTime(r.getSmartSeedAnalyzeTime());
-		result.setRandomTestcaseTime(r.getRandomTestcaseTime());
-		result.setGenerateTime(r.getGenerateTime());
+		result.setSmartBranchNum(r.getSmartBranchNum());
+		result.setRuntimeBranchType(r.getRuntimeBranchType());
 		
-		
-//		result.setBranchNum(AbstractMOSA.branchNum);
-//		result.setPathNum(AbstractMOSA.pathNum);
-//		result.setGetFirstTailValueTime(AbstractMOSA.getFirstTailValueTime);
-//		result.setAll10MutateTime(AbstractMOSA.all10MutateTime);
-//		result.setCascadeAnalysisTime(AbstractMOSA.cascadeAnalysisTime);
-//		result.setEvolveTime(AbstractMOSA.evolveTime);
-//		result.setParent1EvolveTime(AbstractMOSA.parent1EvolveTime);
-//		result.setParent2EvolveTime(AbstractMOSA.parent2EvolveTime);
-//		result.setSmartSeedAnalyzeTime(AbstractMOSA.smartSeedAnalyzeTime);
-//		result.setRandomTestcaseTime(AbstractMOSA.getRandomTestcaseTime());
-//		result.setGenerateTime(AbstractMOSA.generateTime);
 //		AbstractMOSA.clear();
 	}
 

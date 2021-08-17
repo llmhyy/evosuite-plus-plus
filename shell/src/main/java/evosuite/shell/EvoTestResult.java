@@ -36,17 +36,8 @@ public class EvoTestResult {
 	
 	private Map<String, Boolean> methodCallAvailability;
 	
-    private int branchNum;
-    private int pathNum;
-    private long getFirstTailValueTime;
-    private long all10MutateTime;
-    private long cascadeAnalysisTime;
-    private long evolveTime;
-    private long parent1EvolveTime;
-    private long parent2EvolveTime;
-    private long smartSeedAnalyzeTime;
-    private long randomTestcaseTime;
-    private long generateTime = 0;
+    private int smartBranchNum;
+    private Map<String,String> runtimeBranchType;
 
 	public EvoTestResult(int time, double coverage, int age, double ratio, List<Double> progress, double IPFlagCoverage,
 			String uncoveredFlag, Map<Integer, Integer> distributionMap,
@@ -235,94 +226,21 @@ public class EvoTestResult {
 	public List<Event> getEventSequence(){
 		return eventSequence;
 	}
-	
 
-	public int getBranchNum() {
-		return branchNum;
+	public int getSmartBranchNum() {
+		return smartBranchNum;
 	}
 
-	public void setBranchNum(int branchNum) {
-		this.branchNum = branchNum;
+	public void setSmartBranchNum(int smartBranchNum) {
+		this.smartBranchNum = smartBranchNum;
 	}
 
-	public int getPathNum() {
-		return pathNum;
+	public Map<String,String> getRuntimeBranchType() {
+		return runtimeBranchType;
 	}
 
-	public void setPathNum(int pathNum) {
-		this.pathNum = pathNum;
-	}
-
-	public long getGetFirstTailValueTime() {
-		return getFirstTailValueTime;
-	}
-
-	public void setGetFirstTailValueTime(long getFirstTailValueTime) {
-		this.getFirstTailValueTime = getFirstTailValueTime;
-	}
-
-	public long getAll10MutateTime() {
-		return all10MutateTime;
-	}
-
-	public void setAll10MutateTime(long all10MutateTime) {
-		this.all10MutateTime = all10MutateTime;
-	}
-
-	public long getCascadeAnalysisTime() {
-		return cascadeAnalysisTime;
-	}
-
-	public void setCascadeAnalysisTime(long cascadeAnalysisTime) {
-		this.cascadeAnalysisTime = cascadeAnalysisTime;
-	}
-
-	public long getEvolveTime() {
-		return evolveTime;
-	}
-
-	public void setEvolveTime(long evolveTime) {
-		this.evolveTime = evolveTime;
-	}
-
-	public long getParent1EvolveTime() {
-		return parent1EvolveTime;
-	}
-
-	public void setParent1EvolveTime(long parent1EvolveTime) {
-		this.parent1EvolveTime = parent1EvolveTime;
-	}
-
-	public long getParent2EvolveTime() {
-		return parent2EvolveTime;
-	}
-
-	public void setParent2EvolveTime(long parent2EvolveTime) {
-		this.parent2EvolveTime = parent2EvolveTime;
-	}
-
-	public long getSmartSeedAnalyzeTime() {
-		return smartSeedAnalyzeTime;
-	}
-
-	public void setSmartSeedAnalyzeTime(long smartSeedAnalyzeTime) {
-		this.smartSeedAnalyzeTime = smartSeedAnalyzeTime;
-	}
-
-	public long getRandomTestcaseTime() {
-		return randomTestcaseTime;
-	}
-
-	public void setRandomTestcaseTime(long randomTestcaseTime) {
-		this.randomTestcaseTime = randomTestcaseTime;
-	}
-
-	public long getGenerateTime() {
-		return generateTime;
-	}
-
-	public void setGenerateTime(long generateTime) {
-		this.generateTime = generateTime;
+	public void setRuntimeBranchType(Map<String,String> runtimeBranchType) {
+		this.runtimeBranchType = runtimeBranchType;
 	}
 
 

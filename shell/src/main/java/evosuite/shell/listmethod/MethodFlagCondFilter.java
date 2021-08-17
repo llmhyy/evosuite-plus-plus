@@ -142,12 +142,12 @@ public class MethodFlagCondFilter implements IMethodFilter {
 					try {
 						//TODO Cheng Yan add method filter
 						String methodSig = className + "#" + methodName;
-						if(ListMethods.interestedMethods.contains(methodSig)) {
+//						if(ListMethods.interestedMethods.contains(methodSig)) {
 //							tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
 							if (checkMethod(classLoader, targetClass.getName(), methodName, m, cn)) {
 								validMethods.add(methodName);
 							}
-						}
+//						}
 					} catch (Exception e) {
 						log.info("error!!", e);
 					}

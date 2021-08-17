@@ -261,7 +261,6 @@ public class SeedingApplicationEvaluator {
 			
 		}
 		
-		long t1 = System.currentTimeMillis();
 		if(b == null || b.toString().contains("NULL")) {
 			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
 			cache.put(b, branchInfo);
@@ -294,7 +293,6 @@ public class SeedingApplicationEvaluator {
 				
 //				System.currentTimeMillis();
 				removeRedundancy(pathList);
-				AbstractMOSA.pathNum += pathList.size();
 				
 				if (b.isSwitchCaseBranch()) {
 					String key1 = b.toString();
@@ -309,6 +307,12 @@ public class SeedingApplicationEvaluator {
 									.contains(key1.substring(index1, index2)))) {
 								cache.put(b, cache.get(b0));
 								System.out.println(b + ":" + cache.get(b0).getBenefiticalType());
+								
+								if(cache.get(b0).getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
+									AbstractMOSA.smartBranchNum += 1;
+									String branchType = cache.get(b0).getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL ? "STATIC_POOL" : "DYNAMIC_POOL";
+									AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),branchType);
+								}
 								return cache.get(b0);
 							}
 						}
@@ -320,13 +324,17 @@ public class SeedingApplicationEvaluator {
 					List<MatchingResult> results = sp.getMatchingResults();
 					MatchingResult result = Randomness.choice(results);
 					PrimitiveStatement stat0 = result.getMatchedInputVariable();
-					PrimitiveStatement statement = (PrimitiveStatement) testSeed.getTestCase().getStatement(stat0.getPosition());
+					PrimitiveStatement statement = null;
+					if(testSeed != null)
+						statement = (PrimitiveStatement) testSeed.getTestCase().getStatement(stat0.getPosition());
 					
 					if(isRelevantToRegularExpression(pathList)){
 						String type = "string";
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
 						cache.put(b, branchInfo);
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
+						AbstractMOSA.smartBranchNum += 1;
+						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"DYNAMIC_POOL");
 						sp.clear();
 						return branchInfo;
 					}
@@ -342,6 +350,9 @@ public class SeedingApplicationEvaluator {
 						cache.put(b, branchInfo);
 						System.out.println("STATIC_POOL type:" + b + ":" + type);
 						
+						AbstractMOSA.smartBranchNum += 1;
+						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"STATIC_POOL");
+						
 //						if(obConstant.containsValue(sp.pontentialBranchOperandTypes.get(0))) {
 //							String type = finalType(sp.pontentialBranchOperandTypes.get(0).toString());
 //							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
@@ -354,7 +365,8 @@ public class SeedingApplicationEvaluator {
 						for(ObservedConstant obj : observedConstants) {
 							branchInfo.addPotentialSeed(obj);
 							try {
-								statement.setValue(obj.getValue());								
+								if(statement != null)
+									statement.setValue(obj.getValue());								
 							}
 							catch(Exception e) {
 								e.printStackTrace();
@@ -368,6 +380,8 @@ public class SeedingApplicationEvaluator {
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
 						cache.put(b, branchInfo);
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
+						AbstractMOSA.smartBranchNum += 1;
+						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"DYNAMIC_POOL");
 						sp.clear();
 						return branchInfo;
 					}

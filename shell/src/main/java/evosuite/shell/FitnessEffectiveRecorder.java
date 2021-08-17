@@ -47,12 +47,9 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 						"Initialization Overhead", "CoveredBranchWithTest","Missing Branches","Missing InstructID"},
 				0);
 		
-		evoSeedWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), "evoseedTime.xlsx"));
+		evoSeedWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), "evoseedType.xlsx"));
 		evoSeedWriter.getSheet("data",
-				new String[] { "PID","Class", "Method", "Execution Time", "Coverage", "Age", "Initial Coverage",
-						"Initialization Overhead", "BranchNum", "PathNum", "SmartSeedAnalyzeTime", "GetFirstTailValueTime",
-						"10MutateTime", "CascadeAnalysisTime", "EvolveTime", "Parent1EvolveTime",
-						"Parent2EvolveTime", "RandomTestcaseTime","GenerateTime" },
+				new String[] { "PID","Class", "Method", "Branch-Type", "Num"},
 				0);
 			    
 		//json
@@ -198,22 +195,22 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		rowData.add(projectId);
 		rowData.add(className);
 		rowData.add(methodName);
-		rowData.add(r.getTime());
-		rowData.add(r.getCoverage());
-		rowData.add(r.getAge());
-		rowData.add(r.getInitialCoverage());
-		rowData.add(r.getInitializationOverhead());
-		rowData.add(r.getBranchNum());
-		rowData.add(r.getPathNum());
-		rowData.add(r.getSmartSeedAnalyzeTime());
-		rowData.add(r.getGetFirstTailValueTime());
-		rowData.add(r.getAll10MutateTime());
-		rowData.add(r.getCascadeAnalysisTime());
-		rowData.add(r.getEvolveTime());
-		rowData.add(r.getParent1EvolveTime());
-		rowData.add(r.getParent2EvolveTime());
-		rowData.add(r.getRandomTestcaseTime());
-		rowData.add(r.getGenerateTime());
+		rowData.add(r.getRuntimeBranchType().toString());
+		rowData.add(r.getSmartBranchNum());
+//		rowData.add(r.getAge());
+//		rowData.add(r.getInitialCoverage());
+//		rowData.add(r.getInitializationOverhead());
+//		rowData.add(r.getBranchNum());
+//		rowData.add(r.getPathNum());
+//		rowData.add(r.getSmartSeedAnalyzeTime());
+//		rowData.add(r.getGetFirstTailValueTime());
+//		rowData.add(r.getAll10MutateTime());
+//		rowData.add(r.getCascadeAnalysisTime());
+//		rowData.add(r.getEvolveTime());
+//		rowData.add(r.getParent1EvolveTime());
+//		rowData.add(r.getParent2EvolveTime());
+//		rowData.add(r.getRandomTestcaseTime());
+//		rowData.add(r.getGenerateTime());
 		
 		try {
 			evoSeedWriter.writeSheet("data", Arrays.asList(rowData));
