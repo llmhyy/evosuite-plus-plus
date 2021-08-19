@@ -18,7 +18,7 @@ public class SF100OverallTest {
 	@Before
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.CSV;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 		Properties.APPLY_OBJECT_RULE = true;
@@ -178,18 +178,40 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testLhamacaw() {
+		String projectId = SF100Project.P69;
+		String[] targetMethods = new String[]{
+				"macaw.presentationLayer.VariableSearchPanel#hasSearchResults()Z"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 150;
+		int budget = 1;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
 	public void testJiggler() {
 		String projectId = SF100Project.P89;
 		String[] targetMethods = new String[]{
-				"jigl.image.levelSetTool.LevelSetSmooth#constrainSigns(Ljigl/image/RealGrayImage;II)V",
+				// "jigl.image.levelSetTool.LevelSetSmooth#constrainSigns(Ljigl/image/RealGrayImage;II)V",
 				// "jigl.image.MIPMap#get(FFF)[F",
 				"jigl.image.levelSetTool.LevelSetSmooth#apply(IIIIZZ)Ljigl/image/RealColorImage;",
 				// "jigl.signal.ops.levelOps.ClipNeg#apply(Ljigl/signal/RealSignal;Ljigl/signal/ROI;)Ljigl/signal/Signal;"
 		};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 5;
-		int budget = 150;
+		int repeatTime = 2;
+		int budget = 30;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

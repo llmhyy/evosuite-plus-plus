@@ -239,6 +239,8 @@ public class CommonTestUtil {
 				"-Dprimitive_pool", "0.5",
 				"-Ddynamic_pool", "0.5",
 //				"-seed", "1556035769590"
+				"-Doutput_variables", "TARGET_CLASS,target_method,criterion,NumberOfExceptions,CoverageTimeline",
+				"-Dtimeline_interval", "1000"
 				
 		};
 		

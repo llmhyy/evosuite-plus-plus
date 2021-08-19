@@ -54,5 +54,18 @@ public class ExceptionResult<T extends Chromosome> implements Serializable {
 	public List<ExceptionResultBranch<T>> getAllResults() {
 		return new ArrayList<ExceptionResultBranch<T>>(fitnessFunctionIndexToExceptionResult.values());
 	}
+	
+	/**
+	 * Returns the number of exceptions incurred.
+	 * This *should* be the number of exceptions for a given method (uniquely identified by class + method name).
+	 * @return
+	 */
+	public int getNumberOfExceptions() {
+		int count = 0;
+		for (ExceptionResultBranch<T> exceptionResultBranch : this.getAllResults()) {
+			count += exceptionResultBranch.getNumberOfExceptions();
+		}
+		return count;
+	}
 }
 

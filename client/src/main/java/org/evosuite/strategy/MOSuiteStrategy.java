@@ -156,6 +156,8 @@ public class MOSuiteStrategy extends TestGenerationStrategy {
 		// goal are dynamically added when the generated tests trigger some exceptions
 		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Total_Goals, algorithm.getFitnessFunctions().size());
 		
+		// We send exception-related data at the end of the search.
+		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.NumberOfExceptions, testSuite.getExceptionResult().getNumberOfExceptions());
 		
 		int timeUsed = (int) (endTime - startTime);
 		testSuite.setTimeUsed(timeUsed);
