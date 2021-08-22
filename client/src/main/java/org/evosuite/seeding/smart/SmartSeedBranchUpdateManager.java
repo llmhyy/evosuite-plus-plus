@@ -95,7 +95,12 @@ public class SmartSeedBranchUpdateManager {
 				testSeed = bestMapTest.get(ff);
 				Branch b = goal.getBranch();
 				
+				long t1 = System.currentTimeMillis();
 				BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(b, testSeed);
+				long t2 = System.currentTimeMillis();
+				SensitivityMutator.total += (t2-t1);
+				
+				
 				uncoveredGoal.add(info);
 				if (info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
 					infoSet.add(info);

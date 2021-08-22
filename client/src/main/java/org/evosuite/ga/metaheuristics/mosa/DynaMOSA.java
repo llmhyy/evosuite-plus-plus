@@ -32,6 +32,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.comparators.NonduplicationComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
+import org.evosuite.seeding.smart.SensitivityMutator;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
@@ -191,6 +192,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		logger.debug("Covered goals = {}", goalsManager.getCoveredGoals().size());
 		logger.debug("Current goals = {}", goalsManager.getCurrentGoals().size());
 		logger.debug("Uncovered goals = {}", goalsManager.getUncoveredGoals().size());
+		
+		System.out.println("total time: " + SensitivityMutator.total);
 	}
 
 	/**

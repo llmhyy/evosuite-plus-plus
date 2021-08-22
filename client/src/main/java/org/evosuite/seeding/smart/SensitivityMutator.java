@@ -1,6 +1,7 @@
 package org.evosuite.seeding.smart;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -607,18 +608,42 @@ public class SensitivityMutator {
 		return (one = one < two ? one : two) < three ? one : three;
 	}
 
-	private static Map<String, List<Object>> evaluateObservations(Branch branch, List<BytecodeInstruction> observations,
-			TestChromosome newTestChromosome) {
-		Set<FitnessFunction<?>> set = new HashSet<>();
-		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(branch, true);
-		set.add(ff);
-		for (FitnessFunction<?> f : set) {
-			newTestChromosome.addFitness(f);
+	class ClassLoaderCache{
+		List<BytecodeInstruction> observations;
+		InstrumentingClassLoader classLoader;
+		public ClassLoaderCache(List<BytecodeInstruction> observations, InstrumentingClassLoader classLoader) {
+			super();
+			this.observations = observations;
+			this.classLoader = classLoader;
 		}
-		FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, newTestChromosome);
-
+		
+	}
+	
+	static List<ClassLoaderCache> list = new ArrayList<>();
+	
+	private static InstrumentingClassLoader createOrFindClassLoader(List<BytecodeInstruction> observations,
+			TestChromosome newTestChromosome) {
+		for(ClassLoaderCache cache: list) {
+			if(cache.observations.size() == observations.size()) {
+				Collections.sort(observations);
+				Collections.sort(cache.observations);
+				
+				boolean isSame = true;
+				for(int i=0; i<observations.size(); i++) {
+					if(!observations.get(i).equals(cache.observations.get(i))) {
+						isSame = false;
+						break;
+					}
+				}
+				
+				if(isSame) {
+					return cache.classLoader;
+				}
+			}
+		}
+		
 		InstrumentingClassLoader newClassLoader = new InstrumentingClassLoader(observations);
-
+		
 		for (BytecodeInstruction ins : observations) {
 			DependencyAnalysis.addTargetClass(ins.getClassName());
 		}
@@ -641,13 +666,33 @@ public class SensitivityMutator {
 			e.printStackTrace();
 		}
 		
+		ClassLoaderCache cache = new SensitivityMutator().new ClassLoaderCache(observations, newClassLoader);
+		list.add(cache);
+		
+		return newClassLoader;
+	}
+	
+	public static long total = 0;
+	
+	private static Map<String, List<Object>> evaluateObservations(Branch branch, List<BytecodeInstruction> observations,
+			TestChromosome newTestChromosome) {
+		Set<FitnessFunction<?>> set = new HashSet<>();
+		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(branch, true);
+		set.add(ff);
+		for (FitnessFunction<?> f : set) {
+			newTestChromosome.addFitness(f);
+		}
+		FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, newTestChromosome);
+
+		InstrumentingClassLoader newClassLoader = createOrFindClassLoader(observations, newTestChromosome);
+		
 		RuntimeSensitiveVariable.observations.clear();
 		for(BytecodeInstruction ins: observations) {
 			RuntimeSensitiveVariable.observations.put(ins.toString(), new ArrayList<>());
 		}
 		
-		System.currentTimeMillis();
 		((DefaultTestCase) newTestChromosome.getTestCase()).changeClassLoader(newClassLoader);
+		
 		newTestChromosome.addFitness(fitness);
 		newTestChromosome.clearCachedResults();
 		fitness.getFitness(newTestChromosome);
@@ -657,10 +702,13 @@ public class SensitivityMutator {
 			res.put(s, RuntimeSensitiveVariable.observations.get(s));
 		}
 
+		
 //		RuntimeSensitiveVariable.observations.clear();
 		return res;
 
 	}
+
+	
 
 	@SuppressWarnings("rawtypes")
 	private static void retrieveHeadValue(Statement relevantStartment, TestChromosome newTestChromosome,
