@@ -6,6 +6,7 @@ import java.util.List;
 import org.evosuite.Properties;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.testcase.TestChromosome;
 
 public class ValuePreservance {
 	
@@ -108,7 +109,7 @@ public class ValuePreservance {
 					boolean useConstant = record.isObservationUsingConstant(value, obIns.toString());
 					if (useConstant) count++;
 					
-					if ((count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
+					if (((double)count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
 						ObservedConstant constant = new ObservedConstant(value, clazz, constantIns0);
 						list.add(constant);
 						break;
@@ -116,7 +117,7 @@ public class ValuePreservance {
 				}
 			}
 		}
-		
+//		System.currentTimeMillis();
 		return list;
 	}
 
@@ -160,11 +161,17 @@ public class ValuePreservance {
 		return i;
 	}
 
-	public void clear() {
-		this.recordList.clear();
-	}
+//	public void clear() {
+//		this.recordList.clear();
+//	}
 
 	public List<MatchingResult> getMatchingResults() {
 		return matchingResults;
+	}
+	
+	private TestChromosome testSeed;
+
+	public void setTest(TestChromosome testSeed) {
+		this.testSeed = testSeed;
 	}
 }

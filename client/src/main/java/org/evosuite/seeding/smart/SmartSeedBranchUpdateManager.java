@@ -36,14 +36,14 @@ public class SmartSeedBranchUpdateManager {
 		
 		if (!Properties.APPLY_SMART_SEED)
 			return null;
-		long nowtime = System.currentTimeMillis();
+//		long nowtime = System.currentTimeMillis();
 		// baseline run 30s
-		if((nowtime - TestCaseLegitimizer.startTime) / 1000 > 50) {
-			double value = Randomness.nextDouble(0, 1);
-			if(value > 0.1) {
-				return null;
-			}	
-		}
+//		if((nowtime - TestCaseLegitimizer.startTime) / 1000 > 50) {
+//			double value = Randomness.nextDouble(0, 1);
+//			if(value > 0.1) {
+//				return null;
+//			}	
+//		}
 
 		Properties.APPLY_CHAR_POOL = true;
 
@@ -104,7 +104,7 @@ public class SmartSeedBranchUpdateManager {
 
 		}
 //		}
-		System.out.println("all branches analyze time :" + (System.currentTimeMillis() - nowtime) / 1000);
+//		System.out.println("all branches analyze time :" + (System.currentTimeMillis() - nowtime) / 1000);
 		uncoveredApplicableBranchInfo = infoSet;
 		totalUncoveredGoals = uncoveredGoal;
 

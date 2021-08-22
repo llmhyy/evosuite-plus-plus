@@ -28,6 +28,7 @@ public class BranchSeedInfo {
 	private Branch branch;
 	private Branch auxilaryBranch;
 	private String operandType; 
+	private ValuePreservance valuePreservance;
 	
 	private List<ObservedConstant> potentialSeeds = new ArrayList<>();
 	
@@ -35,11 +36,13 @@ public class BranchSeedInfo {
 		this.getPotentialSeeds().add(value);
 	}
 	
-	public BranchSeedInfo(Branch branch, int benefiticalType, String operandType) {
+	public BranchSeedInfo(Branch branch, int benefiticalType, String operandType, 
+			ValuePreservance valuePreservance) {
 		super();
 		this.branch = branch;
 		this.benefiticalType = benefiticalType;
 		this.operandType = operandType;
+		this.valuePreservance = valuePreservance;
 	}
 	
 	/**
@@ -81,6 +84,10 @@ public class BranchSeedInfo {
 
 	public List<ObservedConstant> getPotentialSeeds() {
 		return potentialSeeds;
+	}
+
+	public ValuePreservance getValuePreservance() {
+		return valuePreservance;
 	}
 
 	

@@ -164,6 +164,7 @@ public class SensitivityMutator {
 		TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
 		ValuePreservance preservingList = checkPreservance(branch, newTestChromosome, rootVariables,
 				observingValues, synthensizer);
+		preservingList.setTest(testSeed);
 		
 		System.currentTimeMillis();
 		return preservingList;

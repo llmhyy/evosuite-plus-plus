@@ -245,8 +245,18 @@ public class SeedingApplicationEvaluator {
 	}
 	
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static BranchSeedInfo evaluate(Branch b, TestChromosome testSeed) {
+		
+//		for(Branch br: cache.keySet()) {
+//			BranchSeedInfo info = cache.get(br);
+//			if(info.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL) {
+//				List<ObservedConstant> o = info.getValuePreservance().getEstiamtedConstants();
+//				System.currentTimeMillis();
+//			}
+//		}
+		
+		
 		if (cache.containsKey(b)) {
 			BranchSeedInfo info = cache.get(b);
 			if(info.getBenefiticalType() == SeedingApplicationEvaluator.NO_POOL && !b.toString().contains("NULL")) {
@@ -262,15 +272,17 @@ public class SeedingApplicationEvaluator {
 		}
 		
 		if(b == null || b.toString().contains("NULL")) {
-			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL,null);
+			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null, null);
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
-				
+		
+		System.currentTimeMillis();
+		
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 		if (branchesInTargetMethod == null) {
-			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null, null);
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
@@ -311,7 +323,7 @@ public class SeedingApplicationEvaluator {
 								if(cache.get(b0).getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
 									AbstractMOSA.smartBranchNum += 1;
 									String branchType = cache.get(b0).getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL ? "STATIC_POOL" : "DYNAMIC_POOL";
-									AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),branchType);
+									AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(), branchType);
 								}
 								return cache.get(b0);
 							}
@@ -330,12 +342,12 @@ public class SeedingApplicationEvaluator {
 					
 					if(isRelevantToRegularExpression(pathList)){
 						String type = "string";
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type, sp);
 						cache.put(b, branchInfo);
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
 						AbstractMOSA.smartBranchNum += 1;
-						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"DYNAMIC_POOL");
-						sp.clear();
+						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(), "DYNAMIC_POOL");
+//						sp.clear();
 						return branchInfo;
 					}
 					
@@ -347,7 +359,7 @@ public class SeedingApplicationEvaluator {
 					if (!observedConstants.isEmpty()) {
 						ObservedConstant obConstant = observedConstants.get(0);
 						String type = finalType(obConstant.getValue().getClass().toString());
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type, sp);
 						cache.put(b, branchInfo);
 						System.out.println("STATIC_POOL type:" + b + ":" + type);
 						
@@ -357,31 +369,34 @@ public class SeedingApplicationEvaluator {
 						for(ObservedConstant obj : observedConstants) {
 							branchInfo.addPotentialSeed(obj);
 							try {
-								if(statement != null)
-									statement.setValue(obj.getValue());								
+								if(statement != null) {
+									if(obj.isCompatible(statement.getReturnType())) {
+										statement.setValue(obj.getValue());																											
+									}
+								}
 							}
 							catch(Exception e) {
 								e.printStackTrace();
 							}
 						}
-						sp.clear();
+//						sp.clear();
 						return branchInfo;
 					} 
 					else {
 						String type = finalType(sp.getMatchingResults().get(0).getMatchedObservation().getClass().toString());
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type);
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type, sp);
 						cache.put(b, branchInfo);
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
 						AbstractMOSA.smartBranchNum += 1;
 						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"DYNAMIC_POOL");
-						sp.clear();
+//						sp.clear();
 						return branchInfo;
 					}
 
 				}
 				
-				if(sp != null)
-					sp.clear();
+//				if(sp != null)
+//					sp.clear();
 				
 				List<ComputationPath> fastChannels = new ArrayList<>();
 				
@@ -397,7 +412,7 @@ public class SeedingApplicationEvaluator {
 					List<ComputationPath> nonFastChannelList = checkNonfastchannels(pathList, fastChannels);
 					if (nonFastChannelList.size() == 0) {
 						if (b.getInstruction().isSwitch())
-							return new BranchSeedInfo(b, STATIC_POOL, BranchSeedInfo.INT);
+							return new BranchSeedInfo(b, STATIC_POOL, BranchSeedInfo.INT, sp);
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);
 					}
 					else {
@@ -415,7 +430,7 @@ public class SeedingApplicationEvaluator {
 			e.printStackTrace();
 		}
 
-		BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+		BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null, null);
 		cache.put(b, branchInfo);
 		System.out.println("NO_POOL_1:" + b);
 		return branchInfo;
@@ -467,7 +482,7 @@ public class SeedingApplicationEvaluator {
 
 	private static BranchSeedInfo branchInfo(List<ComputationPath> fastChannels, Branch b, int type) {
 		if(type == NO_POOL) {
-			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null);
+			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null, null);
 			cache.put(b, branchInfo);
 			System.out.println("type:" + b + ":" + type);
 			return branchInfo;
@@ -476,7 +491,7 @@ public class SeedingApplicationEvaluator {
 		String dataType = getDynamicDataType(fastChannels.get(0));
 //		if(dataType.equals("boolean"))
 //			type = NO_POOL;
-		BranchSeedInfo branchInfo = new BranchSeedInfo(b, type, dataType);
+		BranchSeedInfo branchInfo = new BranchSeedInfo(b, type, dataType, null);
 		cache.put(b, branchInfo);
 		System.out.println("type:" + b + ":" + type);
 		return branchInfo;

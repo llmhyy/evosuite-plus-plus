@@ -1,5 +1,7 @@
 package org.evosuite.seeding.smart;
 
+import java.lang.reflect.Type;
+
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 
 public class ObservedConstant {
@@ -36,6 +38,19 @@ public class ObservedConstant {
 
 	public void setIns(BytecodeInstruction ins) {
 		this.ins = ins;
+	}
+
+	public boolean isCompatible(Type returnType) {
+		Class<?> clazz = value.getClass();
+		
+		if(returnType.getTypeName().equals(clazz.getTypeName())) {
+			return true;
+		}
+		else {
+			System.currentTimeMillis();
+		}
+		
+		return false;
 	}
 
 }
