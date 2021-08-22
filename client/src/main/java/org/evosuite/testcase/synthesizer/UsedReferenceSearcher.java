@@ -2,6 +2,8 @@ package org.evosuite.testcase.synthesizer;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -143,7 +145,15 @@ public class UsedReferenceSearcher {
 		if (relevantRefs.isEmpty())
 			return null;
 
-		VariableReference ref = Randomness.choice(relevantRefs);
+		Collections.sort(relevantRefs, new Comparator<VariableReference>() {
+			@Override
+			public int compare(VariableReference o1, VariableReference o2) {
+				return o2.getStPosition() - o1.getStPosition();
+			}
+		});
+		
+//		VariableReference ref = Randomness.choice(relevantRefs);
+		VariableReference ref = relevantRefs.get(0);
 		return ref;
 	}
 	
