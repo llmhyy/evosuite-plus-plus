@@ -36,14 +36,6 @@ public class SmartSeedBranchUpdateManager {
 		
 		if (!Properties.APPLY_SMART_SEED)
 			return null;
-//		long nowtime = System.currentTimeMillis();
-		// baseline run 30s
-//		if((nowtime - TestCaseLegitimizer.startTime) / 1000 > 50) {
-//			double value = Randomness.nextDouble(0, 1);
-//			if(value > 0.1) {
-//				return null;
-//			}	
-//		}
 
 		Properties.APPLY_CHAR_POOL = true;
 
@@ -95,11 +87,10 @@ public class SmartSeedBranchUpdateManager {
 				testSeed = bestMapTest.get(ff);
 				Branch b = goal.getBranch();
 				
-				long t1 = System.currentTimeMillis();
+//				long t1 = System.currentTimeMillis();
 				BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(b, testSeed);
-				long t2 = System.currentTimeMillis();
-				SensitivityMutator.total += (t2-t1);
-				
+//				long t2 = System.currentTimeMillis();
+//				SensitivityMutator.total += (t2-t1);
 				
 				uncoveredGoal.add(info);
 				if (info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
@@ -108,18 +99,36 @@ public class SmartSeedBranchUpdateManager {
 			}
 
 		}
-//		}
-//		System.out.println("all branches analyze time :" + (System.currentTimeMillis() - nowtime) / 1000);
+
 		uncoveredApplicableBranchInfo = infoSet;
 		totalUncoveredGoals = uncoveredGoal;
 
 //		double ratio = infoSet.size() * 1.0 / uncoveredGoals.size() * 1.0;
-		if (!infoSet.isEmpty())
-			Properties.PRIMITIVE_POOL = oldPrimitivePool * (1.5);
-		else
+//		if (!infoSet.isEmpty())
+//			Properties.PRIMITIVE_POOL = oldPrimitivePool * (1.5);
+//		else
+//			Properties.PRIMITIVE_POOL = oldPrimitivePool;
+		
+//		if (infoSet.isEmpty()) {
+//			Properties.PRIMITIVE_POOL = oldPrimitivePool * 0.5; 
+//		}
+		
+		List<Branch> uncoveredBranches = new ArrayList<>();
+		boolean isAllUncoveredBranchNoPool = isAllUncoveredBranchNoPool(uncoveredBranches);
+		if(isAllUncoveredBranchNoPool) {
+			Properties.PRIMITIVE_POOL = 0;
+//			Properties.MAX_INT = 10000;
+		}
+		else {
 			Properties.PRIMITIVE_POOL = oldPrimitivePool;
+		}
 		
 		return testSeed;
+	}
+
+	private static boolean isAllUncoveredBranchNoPool(List<Branch> uncoveredBranches) {
+		// TODO 
+		return true;
 	}
 
 }

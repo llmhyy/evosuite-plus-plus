@@ -250,7 +250,7 @@ public class SeedingApplicationEvaluator {
 		
 //		for(Branch br: cache.keySet()) {
 //			BranchSeedInfo info = cache.get(br);
-//			if(info.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL) {
+//			if(info.getBenefiticalType() == SeedingApplicationEvaluator.NO_POOL) {
 //				List<ObservedConstant> o = info.getValuePreservance().getEstiamtedConstants();
 //				System.currentTimeMillis();
 //			}
