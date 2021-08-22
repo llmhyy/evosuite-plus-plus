@@ -12,6 +12,7 @@ import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.utils.Randomness;
 
 public class SmartSeedBranchUpdateManager {
@@ -37,8 +38,12 @@ public class SmartSeedBranchUpdateManager {
 			return null;
 		long nowtime = System.currentTimeMillis();
 		// baseline run 30s
-//		if((nowtime - TestCaseLegitimizer.startTime) / 1000 < 20)
-//			return;
+		if((nowtime - TestCaseLegitimizer.startTime) / 1000 > 50) {
+			double value = Randomness.nextDouble(0, 1);
+			if(value > 0.1) {
+				return null;
+			}	
+		}
 
 		Properties.APPLY_CHAR_POOL = true;
 
@@ -89,9 +94,7 @@ public class SmartSeedBranchUpdateManager {
 					&& goal.getBranch().getMethodName().equals(Properties.TARGET_METHOD)) {
 				testSeed = bestMapTest.get(ff);
 				Branch b = goal.getBranch();
-				if(b.getInstruction().getLineNumber() == 21) {
-					System.currentTimeMillis();
-				}
+				
 				BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(b, testSeed);
 				uncoveredGoal.add(info);
 				if (info.getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
@@ -107,7 +110,7 @@ public class SmartSeedBranchUpdateManager {
 
 //		double ratio = infoSet.size() * 1.0 / uncoveredGoals.size() * 1.0;
 		if (!infoSet.isEmpty())
-			Properties.PRIMITIVE_POOL = oldPrimitivePool * (1 + 1);
+			Properties.PRIMITIVE_POOL = oldPrimitivePool * (1.5);
 		else
 			Properties.PRIMITIVE_POOL = oldPrimitivePool;
 		

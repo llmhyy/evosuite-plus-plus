@@ -1019,6 +1019,11 @@ public class DepVariable {
 		case Opcode.IF_ICMPLE:
 		case Opcode.IF_ICMPLT:
 		case Opcode.IF_ICMPNE:
+		case Opcode.LCMP:
+		case Opcode.FCMPL:
+		case Opcode.FCMPG:
+		case Opcode.DCMPL:
+		case Opcode.DCMPG:
         	return true;
 		}
 		return false;

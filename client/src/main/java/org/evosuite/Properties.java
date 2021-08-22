@@ -172,7 +172,7 @@ public class Properties {
 	public static final int DYNAMIC_SENSITIVITY_THRESHOLD = 10;
 	
 	@Parameter(key = "fast_channel_score_threshold", group = "Test Creation", description = "evaluate whether a computation path is fast channel")
-	public static double FAST_CHANNEL_SCORE_THRESHOLD = 0.7;
+	public static double FAST_CHANNEL_SCORE_THRESHOLD = 0.5;
 	
 	@Parameter(key = "apply_gradient_analysis", group = "Test Creation", description = "let evosuite++ evaluate the gradients of a branch")
 	public static boolean APPLY_GRADEINT_ANALYSIS = false;
@@ -1062,6 +1062,9 @@ public class Properties {
 
 	@Parameter(key = "report_dir", group = "Output", description = "Directory in which to put HTML and CSV reports")
 	public static String REPORT_DIR = "evosuite-report";
+	
+	@Parameter(key = "experiment_report_dir", group = "Output", description = "Directory in which to put HTML and CSV reports")
+	public static String EXPERIMENT_REPORT_DIR = "evosuite-report";
 
 	@Parameter(key = "output_variables", group = "Output", description = "List of variables to output to CSV file. Variables are separated by commas. Null represents default values")
 	public static String OUTPUT_VARIABLES = null;

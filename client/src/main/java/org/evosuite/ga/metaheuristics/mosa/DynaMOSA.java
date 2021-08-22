@@ -215,6 +215,12 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		logger.debug("Initial Number of Goals = " + this.goalsManager.getCurrentGoals().size());
 
 		// initialize population
+		boolean turnOffSmart = false;
+		if(Properties.APPLY_SMART_SEED) {
+			Properties.APPLY_SMART_SEED = false;
+			turnOffSmart = true;
+		}
+			
 		long t1 = System.currentTimeMillis();
 		TestCaseLegitimizer.startTime = t1;
 		if (this.population.isEmpty()) {
@@ -222,6 +228,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		}
 		long t2 = System.currentTimeMillis();
 		this.initializationOverhead = t2 - t1;
+		if(turnOffSmart)
+			Properties.APPLY_SMART_SEED = true;
 //		Properties.END_INITIALIZATION = true;
 		// update current goals
 		this.calculateFitness(true);
@@ -251,13 +259,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 			t1 = System.currentTimeMillis();
 			this.evolve();
 			t2 = System.currentTimeMillis();
-//			System.out.println("!!!!!----!!!!!");
-//			System.out.println("evolve time:" + (t2-t1));
-//			System.out.println("````````");
 			this.notifyIteration();
 		}
-//		endTime = System.currentTimeMillis();
-//		System.out.println("all time:" + (endTime - TestCaseLegitimizer.startTime)/1000);
 		
 		logger.warn("legitimizationSuccess: " + RandomLengthTestFactory.legitimizationSuccess);
 		logger.warn("legitimizationTrials: " + RandomLengthTestFactory.legitimizationTrials);

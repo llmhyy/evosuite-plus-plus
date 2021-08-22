@@ -69,7 +69,8 @@ public class TestUtility {
 				"-Delite", "10",
 				"-Dprimitive_pool", String.valueOf(primitivePool),
 				"-Ddynamic_pool", String.valueOf(dynamicPool),
-				"-Doutput_variables", "TARGET_CLASS, target_method, criterion, Coverage, Generations",
+				"-Doutput_variables", "TARGET_CLASS, target_method, criterion, CoverageTimeline",
+				"-Dtimeline_interval","1000"
 //				"-Dstatistics_backend", "csv"
 //				"-Doutput_variables", "TARGET_CLASS, target_method, criterion, Coverage, Generations, Time2MaxCoverage, BranchCoverageTimeline"
 //				"-seed", "1556035769590"

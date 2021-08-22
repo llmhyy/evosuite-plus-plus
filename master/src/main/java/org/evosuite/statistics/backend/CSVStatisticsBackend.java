@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 
 import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
+import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.statistics.OutputVariable;
 import org.evosuite.utils.FileIOUtils;
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ public class CSVStatisticsBackend implements StatisticsBackend {
 	 */
 	private String getCSVHeader(Map<String, OutputVariable<?>> data) {
 		StringBuilder r = new StringBuilder();
+		
 		Iterator<Entry<String, OutputVariable<?>>> it = data.entrySet().iterator();
 		while (it.hasNext()) {
 			Entry<String, OutputVariable<?>> e = (Entry<String, OutputVariable<?>>)it.next();
@@ -87,7 +89,8 @@ public class CSVStatisticsBackend implements StatisticsBackend {
 	 * @throws RuntimeException if folder does not exist, and we cannot create it
 	 */
 	public static File getReportDir() throws RuntimeException{
-		File dir = new File(Properties.REPORT_DIR);
+//		File dir = new File(Properties.REPORT_DIR);
+		File dir = new File(Properties.EXPERIMENT_REPORT_DIR);
 		
 		if(!dir.exists()){
 			boolean created = dir.mkdirs();
@@ -103,21 +106,31 @@ public class CSVStatisticsBackend implements StatisticsBackend {
 	
 	@Override
 	public void writeData(Chromosome result, Map<String, OutputVariable<?>> data) {
+		
 		// Write to evosuite-report/statistics.csv
 		BufferedWriter out = null;
 		try {
-			File outputDir = getReportDir();			
-			File f = new File(outputDir.getAbsolutePath() + File.separator + "statistics.csv");
+			File outputDir = getReportDir();
+			String projectName = getReportDir().getAbsoluteFile().getParentFile().getName();
 			
-			if(!new File(outputDir.getAbsolutePath()).exists()) {
-				new File(outputDir.getAbsolutePath()).mkdir();
+			if(!new File(outputDir.getAbsoluteFile().getParentFile().getParentFile(), Properties.EXPERIMENT_REPORT_DIR).exists()) {
+				new File(outputDir.getAbsoluteFile().getParentFile().getParentFile(), Properties.EXPERIMENT_REPORT_DIR).mkdir();
 			}
 			
+			String clean_file = outputDir.getAbsoluteFile().getParentFile().getParentFile().getAbsolutePath() + File.separator + Properties.EXPERIMENT_REPORT_DIR;
+			File f = new File(clean_file + File.separator + projectName + "_statistics.csv");
+//			File f = new File(outputDir.getParentFile().getAbsolutePath() + File.separator + "statistics.csv");
+			
+//			if(!new File(outputDir.getAbsolutePath()).exists()) {
+//				new File(outputDir.getAbsolutePath()).mkdir();
+//			}
+
 			out = new BufferedWriter(new FileWriter(f, true));
 			if (f.length() == 0L) {
 				out.write(getCSVHeader(data) + "\n");
 			}
 			out.write(getCSVData(data) + "\n");
+//			GeneticAlgorithm.coverageTimeLine = data;
 		} catch (IOException e) {
 			logger.warn("Error while writing statistics: " + e.getMessage());
 		} finally {

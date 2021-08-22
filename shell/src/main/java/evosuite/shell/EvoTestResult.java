@@ -9,6 +9,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.seedexpr.Event;
+import org.evosuite.statistics.OutputVariable;
 
 public class EvoTestResult {
 	
@@ -35,6 +36,8 @@ public class EvoTestResult {
 	private String uncoveredFlags;
 	
 	private Map<String, Boolean> methodCallAvailability;
+	
+	private Map<String, OutputVariable<?>> coverageTimeLine = new HashMap<>();
 	
     private int smartBranchNum;
     private Map<String,String> runtimeBranchType;
@@ -243,8 +246,12 @@ public class EvoTestResult {
 		this.runtimeBranchType = runtimeBranchType;
 	}
 
+	public Map<String, OutputVariable<?>> getCoverageTimeLine() {
+		return coverageTimeLine;
+	}
 
-
-	
+	public void setCoverageTimeLine(Map<String, OutputVariable<?>> coverageTimeLine) {
+		this.coverageTimeLine = coverageTimeLine;
+	}	
 
 }

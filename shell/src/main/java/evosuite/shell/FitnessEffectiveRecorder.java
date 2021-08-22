@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.evosuite.Properties;
+import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.Event;
@@ -51,7 +52,8 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		evoSeedWriter.getSheet("data",
 				new String[] { "PID","Class", "Method", "Branch-Type", "Num"},
 				0);
-			    
+		
+		
 		//json
 //		File jsonFile = null;
 //		jsonFile = new File(Settings.getReportFolder().toString() + '\\'+projectId + "_evotest.json");
@@ -220,23 +222,46 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		}
 	}
 	
-	@Override
-	public void recordCoverageOnDiffTime() {
-		ExcelWriter excelWriter = new ExcelWriter(evosuite.shell.FileUtils.newFile(Settings.getReportFolder(), "coverageOnDiffTime.xlsx"));
-		List<String> header = new ArrayList<>();
-		header.add("PID");
-		header.add("Class");
-		header.add("Method");
-		header.add("Execution Time");
-		header.add("Coverage");
-		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
-		
-		try {
-			excelWriter.writeSheet("data", logToExcel.data);
-			logToExcel.clear();
-		} catch (IOException e) {
-			System.out.println(e);
-		}
-	}
+//	@Override
+//	public void recordCoverageOnDiffTime() {
+//		ExcelWriter excelWriter = new ExcelWriter(evosuite.shell.FileUtils.newFile(Settings.getReportFolder(), "coverageOnDiffTime.xlsx"));
+//		List<String> header = new ArrayList<>();
+//		header.add("PID");
+//		header.add("Class");
+//		header.add("Method");
+//		header.add("Execution Time");
+//		header.add("Coverage");
+//		excelWriter.getSheet("data", header.toArray(new String[header.size()]), 0);
+//		
+//		try {
+//			excelWriter.writeSheet("data", logToExcel.data);
+//			logToExcel.clear();
+//		} catch (IOException e) {
+//			System.out.println(e);
+//		}
+//	}
+	
+//	@Override
+//	public void recordCoverageOnDiffTime(String className, String methodName, EvoTestResult result) {
+//		List<Object> rowData = new ArrayList<Object>();
+//		System.currentTimeMillis();
+//		rowData.add(className);
+//		rowData.add(methodName);
+//		if(result.getCoverageTimeLine().keySet().size() == 0) return;
+//		
+//		for(String s : result.getCoverageTimeLine().keySet())
+//			rowData.add(result.getCoverageTimeLine().get(s).getValue().toString());
+//		
+//		for(String s : GeneticAlgorithm.coverageTimeLine.keySet())
+//			rowData.add(GeneticAlgorithm.coverageTimeLine.get(s).getValue().toString());
+//		
+//		System.out.println("write time!");
+//		try {
+//			execlCoverageTime.writeSheet("data", Arrays.asList(rowData));
+//			GeneticAlgorithm.coverageTimeLine.clear();
+//		} catch (IOException e) {
+//			System.out.println(e);
+//		}
+//	}
 	
 }

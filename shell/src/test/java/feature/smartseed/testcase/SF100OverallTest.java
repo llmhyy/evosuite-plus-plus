@@ -19,7 +19,7 @@ public class SF100OverallTest {
 	@Before
 	public void beforeTest() {
 		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.CSV;
 
 		Properties.ENABLE_BRANCH_ENHANCEMENT = false;
 //		Properties.APPLY_OBJECT_RULE = true;
@@ -42,8 +42,9 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample1() {
-		String projectId = SF100Project.P17;
+		String projectId = SF100Project.P62;
 		String[] targetMethods = new String[]{
+				"org.dom4j.tree.LazyList#getEntryHeader(I)Lorg/dom4j/tree/LazyList$Entry;"//62
 //				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
 //				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
 //				"com.browsersoft.openhre.hl7.impl.parser.HL7CheckerImpl#subComponent(Ljava/lang/String;)V"//75
@@ -62,17 +63,15 @@ public class SF100OverallTest {
 //				"fr.unice.gfarce.interGraph.TableStockage#setColumnClass(ILjava/lang/Class;)V"//8
 //				"org.databene.jdbacl.model.jdbc.DBIndexInfo#addColumn(SLjava/lang/String;)V"//13
 //				"org.databene.jdbacl.DatabaseDialectManager#getDialectForProduct(Ljava/lang/String;)Lorg/databene/jdbacl/DatabaseDialect;"//13
-				"com.allenstudio.ir.util.XmlElement#getElement(Ljava/lang/String;)Lcom/allenstudio/ir/util/XmlElement;"//17
-//				"com.allenstudio.ir.util.InspirentoUtilities#stringReplaceAll(Ljava/lang/StringBuffer;CLjava/lang/String;)Ljava/lang/StringBuffer;"
 		};
 		
-		int repeatTime = 3;
-		int budget = 1000;
+		int repeatTime = 1;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
 		boolean aor = false;
-		boolean ass = true;
+		boolean ass = false;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
@@ -105,7 +104,7 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testBugExample7() {
-		String projectId = SF100Project.P69;
+		String projectId = SF100Project.P26;
 		String[] targetMethods = new String[]{
 //				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
 //				"org.exolab.jms.selector.parser.SelectorTreeParser#literal(Lantlr/collections/AST;)Lorg/exolab/jms/selector/Expression;"//66
@@ -116,21 +115,18 @@ public class SF100OverallTest {
 //				"org.javathena.core.utiles.Functions#e_mail_check(Ljava/lang/String;)Z"//81
 //				"net.sf.xbus.technical.ftp.FTPConnection#getWorkingDirectory(Ljava/lang/String;)Ljava/lang/String;"//83
 
-//				"umd.cs.shop.JSPredicateForm#JSPredicateFormInit(Ljava/io/StreamTokenizer;)V"//85
-				
-//				"net.virtualinfinity.atrobots.measures.AbsoluteAngle#getNormalizedRadians()D"//86
-				
-				"macaw.businessLayer.AliasFilePath#validateFields(Lmacaw/businessLayer/AliasFilePath;)V"
+				"jipa.Main#loadInstructions(Ljava/lang/String;)Z"//26
+//				"jipa.Main#splitArguments(Ljava/lang/String;)[Ljava/lang/String;"//26
 				
 		};
 		
-		int repeatTime = 1;
-		int budget = 1000;
+		int repeatTime = 3;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
 		boolean aor = false;
-		boolean ass = false;
+		boolean ass = true;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);
@@ -162,7 +158,7 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testBugExample8() {
-		String projectId = SF100Project.P81;
+		String projectId = SF100Project.P3;
 		String[] targetMethods = new String[]{
 //				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"//43 
 //				"wheel.json.JSONTokener#next(I)Ljava/lang/String;"//80
@@ -172,12 +168,12 @@ public class SF100OverallTest {
 //				"wheel.json.JSONTokener#next(I)Ljava/lang/String;"//80
 //				"wheel.util.ActionRegistry#needsRebuilding(Lwheel/components/Component;Ljava/lang/String;)Z"//80
 //				"org.javathena.login.UserManagement#charServerToAuthentify(Lorg/javathena/core/data/Socket_data;[B)V"//81
-				"org.javathena.login.UserManagement#charif_sendallwos(I[B)I"//81
+				"com.jigen.msi.ResourcesDirectory#contains(Lcom/jigen/msi/ResourceDescriptor;Ljava/util/LinkedList;)Z"//3
 //				"net.sf.xbus.technical.file.FileReceiverThread#run()V"//83
 		};
 		
-		int repeatTime = 1;
-		int budget = 10;
+		int repeatTime = 3;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

@@ -31,17 +31,26 @@ public class BranchwiseConstantPoolManager {
 			pool = new DynamicConstantPool();
 			DYNAMIC_POOL_CACHE.put(branchId, pool);
 		}
-
+		
 		return pool;
 	}
 
 	public static void addBranchwiseDynamicConstant(Integer branchId, Object obj) {
 		// TODO Cheng Yan, we should use a separate property to control the dynamic pool
-		// size
-		Properties.DYNAMIC_POOL_SIZE = 10;
-		ConstantPool pool = getBranchwiseDynamicConstantPool(branchId);
-		pool.add(obj);
-		Properties.DYNAMIC_POOL_SIZE = 50;
+		if (SeedingApplicationEvaluator.cache.size() > 0) {
+
+			for (Branch b : SeedingApplicationEvaluator.cache.keySet()) {
+
+				if (b.getActualBranchId() == branchId && SeedingApplicationEvaluator.cache.get(b)
+						.getBenefiticalType() == SeedingApplicationEvaluator.DYNAMIC_POOL) {
+
+					Properties.DYNAMIC_POOL_SIZE = 10;
+					ConstantPool pool = getBranchwiseDynamicConstantPool(branchId);
+					pool.add(obj);
+					Properties.DYNAMIC_POOL_SIZE = 50;
+				}
+			}
+		}
 	}
 
 	public static ConstantPool evaluate(BranchSeedInfo b) {

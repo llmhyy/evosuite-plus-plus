@@ -29,6 +29,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.result.seedexpr.Event;
 import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.statistics.OutputVariable;
 import org.evosuite.testcase.TestCase;
 
 public interface TestGenerationResult extends Serializable {
@@ -156,7 +157,8 @@ public interface TestGenerationResult extends Serializable {
 	
 	public Map<String, String> getRuntimeBranchType();
 	public void setRuntimeBranchType(Map<String, String> runtimeBranchType);
-	
-	
 
+	public Map<String, OutputVariable<?>> getCoverageTimeLine();
+	public void setCoverageTimeLine(Map<String, OutputVariable<?>> coverageTimeLine);
+	
 }

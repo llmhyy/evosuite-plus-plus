@@ -33,6 +33,7 @@ import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.result.seedexpr.Event;
 import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.statistics.OutputVariable;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testsuite.TestSuiteChromosome;
 
@@ -122,6 +123,8 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	private List<BranchDistributionInformation> branchInformation;
 	
 	private Map<String, Boolean> methodCallAvailabilityMap = new HashMap<>();
+	
+	private Map<String, OutputVariable<?>> coverageTimeLine = new HashMap<>();
 	
 	/** EvoSeed Time **/
 	public int smartBranchNum = 0;
@@ -534,4 +537,15 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	public int getSmartBranchNum() {
 		return this.smartBranchNum;
 	}
+
+	@Override
+	public Map<String, OutputVariable<?>> getCoverageTimeLine() {
+		return this.coverageTimeLine;
+	}
+
+	@Override
+	public void setCoverageTimeLine(Map<String, OutputVariable<?>> coverageTimeLine) {
+		this.coverageTimeLine = coverageTimeLine;
+	}
+
 }

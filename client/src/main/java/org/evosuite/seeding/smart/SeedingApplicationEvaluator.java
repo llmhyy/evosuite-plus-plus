@@ -249,9 +249,9 @@ public class SeedingApplicationEvaluator {
 	public static BranchSeedInfo evaluate(Branch b, TestChromosome testSeed) {
 		if (cache.containsKey(b)) {
 			BranchSeedInfo info = cache.get(b);
-			if(info.getBenefiticalType() == SeedingApplicationEvaluator.NO_POOL) {
+			if(info.getBenefiticalType() == SeedingApplicationEvaluator.NO_POOL && !b.toString().contains("NULL")) {
 				double value = Randomness.nextDouble(0, 1);
-				if(value < 0.1) {
+				if(value > 0.1) {
 					return info;
 				}
 			}
@@ -342,6 +342,7 @@ public class SeedingApplicationEvaluator {
 					/**
 					 * 
 					 */
+//					System.currentTimeMillis();
 					List<ObservedConstant> observedConstants = sp.getEstiamtedConstants(); 
 					if (!observedConstants.isEmpty()) {
 						ObservedConstant obConstant = observedConstants.get(0);
@@ -352,15 +353,6 @@ public class SeedingApplicationEvaluator {
 						
 						AbstractMOSA.smartBranchNum += 1;
 						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"STATIC_POOL");
-						
-//						if(obConstant.containsValue(sp.pontentialBranchOperandTypes.get(0))) {
-//							String type = finalType(sp.pontentialBranchOperandTypes.get(0).toString());
-//							BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type);
-//							cache.put(b, branchInfo);
-//							System.out.println("STATIC_POOL type:" + b + ":" + type);
-//							sp.clear();
-//							return branchInfo;
-//						}
 						
 						for(ObservedConstant obj : observedConstants) {
 							branchInfo.addPotentialSeed(obj);
@@ -528,7 +520,7 @@ public class SeedingApplicationEvaluator {
 		List<DepVariable> headers = retrieveHeads(pathList);
 		
 //		for(BytecodeInstruction op: auxiliaryOperands) {
-//			RuntimeSensitiveVariable.observations.put(op.toString(), new ArrayList<>());
+//			RuntimeSensitiveVariable.observations.put(op.toString(), ne w ArrayList<>());
 //		}
 		if(observations.size() == 0 || headers.size() == 0)
 			return null;

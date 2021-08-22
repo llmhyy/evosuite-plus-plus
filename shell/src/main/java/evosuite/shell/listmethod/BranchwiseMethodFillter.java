@@ -23,6 +23,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.seeding.ConstantPoolManager;
 import org.evosuite.seeding.StaticConstantPool;
 import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
@@ -79,14 +80,16 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		Properties.COMPUTATION_GRAPH_METHOD_CALL_DEPTH = 0;
 		
 		log.debug(String.format("#Method %s#%s", className, methodName));
-		DependencyAnalysis.clear();
-		poolClear();
+//		DependencyAnalysis.clear();
+//		poolClear();
+	
 		SeedingApplicationEvaluator.cache.clear();
 		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 		cp = cp.replace('\\', '/');
 		try {
 			Properties.TARGET_METHOD = methodName;
 			Properties.TARGET_CLASS = className;
+
 			DependencyAnalysis.analyzeClass(className, Arrays.asList(cp.split(File.pathSeparator)));
 		} catch (ClassNotFoundException | RuntimeException e) {
 			e.printStackTrace();
@@ -98,7 +101,7 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 				.get(Properties.TARGET_METHOD);
 		
 		if(branchesInTargetMethod == null) {
-			logToExcel(className, methodName, branchTypes, branchNum);
+//			logToExcel(className, methodName, branchTypes, branchNum);
 			return false;
 		}
 			
@@ -120,7 +123,8 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 					}
 				}
 			}
-		logToExcel(className, methodName, branchTypes , branchNum);
+		if(branchNum != 0)
+			logToExcel(className, methodName, branchTypes , branchNum);
 		return false;
 			
 	}
@@ -168,10 +172,10 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		
 		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
 		
-		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
-			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
-			return null;
-		}
+//		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
+//			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
+//			return null;
+//		}
 		
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
 		file.deleteOnExit();

@@ -73,7 +73,7 @@ public class ObservationRecord {
 					sb.append((char) value);
 				}
 			}
-			if (sb.toString().equals(inputs.getInputVariables().get(inKey).getValue())) {
+			if (sb.length() > 0 &&sb.toString().equals(inputs.getInputVariables().get(inKey).getValue())) {
 				return new MatchingResult(inputs.getInputVariables().get(inKey), sb.toString());
 			}
 		}
@@ -123,7 +123,8 @@ public class ObservationRecord {
 		}
 		
 		if(n1 != null && n2 != null) {
-			return n1.toString().equals(n2.toString());			
+			return (n1.longValue() == n2.longValue() || n1.doubleValue() == n2.doubleValue());
+//			return n1.toString().equals(n2.toString());			
 		}
 		
 		return false;

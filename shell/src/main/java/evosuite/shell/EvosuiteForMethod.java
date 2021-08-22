@@ -24,10 +24,13 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.seedexpr.Event;
+import org.evosuite.statistics.SearchStatistics;
+import org.evosuite.statistics.backend.DebugStatisticsBackend;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.ProgramArgumentUtils;
 import org.slf4j.Logger;
@@ -677,12 +680,15 @@ public class EvosuiteForMethod {
 					result.setCoveredBranchWithTest(r.getCoveredBranchWithTest());
 					result.setEventSequence(r.getEventSequence());
 					
+					result.setCoverageTimeLine(GeneticAlgorithm.coverageTimeLine);
+					
 					setEvoSeedTime(result,r);
 
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
 //						recorder.recordSeedingToJson(className, methodName, result);
 						recorder.recordEvoSeedTime(className, methodName, result);
+//						recorder.recordCoverageOnDiffTime(className, methodName, result);
 						
 					}
 				}
