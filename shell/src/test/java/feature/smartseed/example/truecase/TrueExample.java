@@ -118,4 +118,88 @@ public class TrueExample {
 			System.currentTimeMillis();
 		}
 	}
+	
+	static int UNKNOWN_SOURCE = -1;
+	public static final String NATIVE_METHOD_STRING = "Native Method";
+	public static final String UNKNOWN_SOURCE_STRING = "Unknown Source";
+	public static void parseStackTraceElement(String ste)
+	{
+		if(ste == null)
+		{
+			return;
+		}
+
+		int idx = ste.lastIndexOf('(');
+		if(idx < 0)
+		{
+			return; // not a ste
+		}
+		int endIdx = ste.lastIndexOf(')');
+		if(endIdx < 0)
+		{
+			return; // not a ste
+		}
+
+		String classAndMethod = ste.substring(0, idx);
+		String source = ste.substring(idx + 1, endIdx);
+		String remainder = ste.substring(endIdx + 1);
+		idx = classAndMethod.lastIndexOf('.');
+		String clazz = classAndMethod.substring(0, idx);
+		String method = classAndMethod.substring(idx + 1, classAndMethod.length());
+		idx = source.lastIndexOf(':');
+		String file = null;
+		int lineNumber = UNKNOWN_SOURCE;
+		if(idx != -1)
+		{
+			file = source.substring(0, idx);
+			lineNumber = Integer.parseInt(source.substring(idx + 1, source.length()));
+		}
+		else
+		{
+			if(source.equals(NATIVE_METHOD_STRING))
+			{
+				System.currentTimeMillis();
+			}
+			else if(!source.equals(UNKNOWN_SOURCE_STRING))
+			{
+				file = source;
+			}
+		}
+		int vEndIdx = remainder.lastIndexOf(']');
+		if(vEndIdx >= 0)
+		{
+			boolean exact = false;
+			String versionStr = null;
+			if(remainder.startsWith(" ["))
+			{
+				exact = true;
+				versionStr = remainder.substring(2, vEndIdx);
+			}
+			else if(remainder.startsWith(" ~["))
+			{
+				exact = false;
+				versionStr = remainder.substring(3, vEndIdx);
+			}
+			if(versionStr != null)
+			{
+				int colonIdx = versionStr.indexOf(':');
+				if(colonIdx > -1)
+				{
+					String codeLocation = versionStr.substring(0, colonIdx);
+					String version = versionStr.substring(colonIdx + 1);
+					if("".equals(codeLocation) || "na".equals(codeLocation))
+					{
+						codeLocation = null;
+					}
+					if("".equals(version) || "na".equals(version))
+					{
+						version = null;
+					}
+					return;
+				}
+			}
+		}
+
+	}
+
 }

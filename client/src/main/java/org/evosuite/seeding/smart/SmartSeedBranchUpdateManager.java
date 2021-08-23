@@ -114,9 +114,10 @@ public class SmartSeedBranchUpdateManager {
 //		}
 		
 		List<Branch> uncoveredBranches = new ArrayList<>();
-		boolean isAllUncoveredBranchNoPool = isAllUncoveredBranchNoPool(uncoveredBranches);
+		boolean isAllUncoveredBranchNoPool = isAllUncoveredBranchNoPool(uncoveredBranches, list0, SeedingApplicationEvaluator.cache, bestMapTest);
 		if(isAllUncoveredBranchNoPool) {
 			Properties.PRIMITIVE_POOL = 0;
+			testSeed = null;
 //			Properties.MAX_INT = 10000;
 		}
 		else {
@@ -126,9 +127,30 @@ public class SmartSeedBranchUpdateManager {
 		return testSeed;
 	}
 
-	private static boolean isAllUncoveredBranchNoPool(List<Branch> uncoveredBranches) {
+	private static boolean isAllUncoveredBranchNoPool(List<Branch> uncoveredBranches, Object[] list0, Map<Branch, BranchSeedInfo> cache, Map<FitnessFunction, TestChromosome> bestMapTest) {
 		// TODO 
-		return true;
+		for (Object ff : list0) {
+			if (ff instanceof BranchFitness) {
+				BranchFitness bf = (BranchFitness) ff;
+				BranchCoverageGoal goal = bf.getBranchGoal();
+
+				if (goal.getBranch().getClassName().equals(Properties.TARGET_CLASS)
+						&& goal.getBranch().getMethodName().equals(Properties.TARGET_METHOD)) {
+//					testSeed = bestMapTest.get(ff);
+					Branch b = goal.getBranch();
+
+					if (cache.containsKey(b)
+							&& cache.get(b).getBenefiticalType() == SeedingApplicationEvaluator.NO_POOL) {
+						uncoveredBranches.add(b);
+					}
+				}
+			}
+		}
+		
+		if(uncoveredBranches.size() == list0.length)
+			return true;
+		
+		return false;
 	}
 
 }

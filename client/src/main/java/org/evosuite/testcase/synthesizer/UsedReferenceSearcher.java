@@ -15,6 +15,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.runtime.System;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
+import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
@@ -85,7 +86,9 @@ public class UsedReferenceSearcher {
 			VariableReference targetObject) {
 
 		List<VariableReference> relevantRefs = new ArrayList<VariableReference>();
-
+		
+		Map<Integer,VariableReference> refPostions = new HashMap<Integer,VariableReference>();
+		
 		if (targetObject != null) {
 			/**
 			 * check the variables passed as parameters to the constructor of targetObject,
@@ -109,6 +112,10 @@ public class UsedReferenceSearcher {
 				if (!params.isEmpty()) {
 					List<VariableReference> paramRefs = searchRelevantParameterOfSetterInTest(params, className, methodName, field);
 					relevantRefs.addAll(paramRefs);
+					
+					for(VariableReference vRef : paramRefs) {
+						refPostions.put(pos, vRef);
+					}
 					System.currentTimeMillis();
 				}
 			}
@@ -132,7 +139,20 @@ public class UsedReferenceSearcher {
 						for (VariableReference pRef : paramRefs) {
 							if (!relevantRefs.contains(pRef)) {
 								relevantRefs.add(pRef);
+								refPostions.put(i, pRef);
 							}
+						}
+					}
+				}else if(stat instanceof AssignmentStatement) {
+					//obj.name = string;
+					AssignmentStatement aStat = (AssignmentStatement) stat;
+					
+					if (aStat.getReturnValue().getName().split(".").equals(field.getName())
+							&& aStat.getReturnValue().getAdditionalVariableReference().equals(targetObject)) {
+						VariableReference ref = aStat.getValue();
+						if (!relevantRefs.contains(ref)) {
+							relevantRefs.add(ref);
+							refPostions.put(i, ref);
 						}
 					}
 				}
@@ -144,16 +164,23 @@ public class UsedReferenceSearcher {
 		 */
 		if (relevantRefs.isEmpty())
 			return null;
-
+		System.currentTimeMillis();
 		Collections.sort(relevantRefs, new Comparator<VariableReference>() {
+			
 			@Override
 			public int compare(VariableReference o1, VariableReference o2) {
 				return o2.getStPosition() - o1.getStPosition();
 			}
 		});
 		
+		int lastPos = 0;
+		for(Integer i :refPostions.keySet()) {
+			lastPos = i > lastPos ? i : lastPos;
+		}
+		VariableReference ref = refPostions.get(lastPos);
+		
 //		VariableReference ref = Randomness.choice(relevantRefs);
-		VariableReference ref = relevantRefs.get(0);
+//		VariableReference ref = relevantRefs.get(0);
 		return ref;
 	}
 	

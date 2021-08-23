@@ -43,13 +43,13 @@ public class ObservedConstant {
 	public boolean isCompatible(Type returnType) {
 		Class<?> clazz = value.getClass();
 		
-		if(returnType.getTypeName().equals(clazz.getTypeName())) {
+		if (returnType.getTypeName().equals(clazz.getTypeName())
+				|| clazz.getTypeName().toLowerCase().contains(returnType.getTypeName())) {
 			return true;
-		}
-		else {
+		} else {
 			System.currentTimeMillis();
 		}
-		
+
 		return false;
 	}
 
