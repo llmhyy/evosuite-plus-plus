@@ -1,6 +1,7 @@
 package feature.smartseed.example.truecase;
 
 import java.util.HashMap;
+import java.util.Vector;
 
 public class TrueExample {
 	private HashMap map = new HashMap<>();
@@ -198,6 +199,34 @@ public class TrueExample {
 					return;
 				}
 			}
+		}
+
+	}
+	
+	private int[] array;
+	public boolean elementIndex(int position) {
+		//element index
+		//no pool
+		if(position >= array.length)
+			return false;
+		if((this.array[position] & Integer.MIN_VALUE) != 0x0)
+			return true;
+		return false;
+	}
+
+	public int[] getArray() {
+		return array;
+	}
+
+	public void setArray(int[] array) {
+		this.array = array;
+	}
+	
+	private Vector _switches = new Vector();
+
+	public void JDKInstrument(String name, String value, boolean overwrite) {
+		if ((_switches.contains(name)) && (overwrite)) {
+			System.currentTimeMillis();
 		}
 
 	}

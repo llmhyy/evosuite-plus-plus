@@ -224,10 +224,11 @@ public class ObservationRecord {
 	}
 
 	private boolean isStringEquals(Object value, Object constantValue) {
-		if(value != null && constantValue != null) {
-			return value.toString().toLowerCase().equals(constantValue.toString().toLowerCase());			
+		if (value != null && constantValue != null) {
+			return value.toString().toLowerCase().equals(constantValue.toString().toLowerCase())
+					|| value.toString().toLowerCase().contains(constantValue.toString().toLowerCase());
 		}
-		
+
 		return false;
 	}
 
