@@ -12,6 +12,7 @@ import org.evosuite.testcase.statements.PrimitiveStatement;
 public class MatchingResult {
 	private PrimitiveStatement matchedInputVariable;
 	private Object matchedObservation;
+	public static boolean isCorrelation = false;
 
 	public MatchingResult(PrimitiveStatement matchedInputVariable, Object matchedObservation) {
 		super();
@@ -33,6 +34,14 @@ public class MatchingResult {
 
 	public void setMatchedObservation(Object matchedObservation) {
 		this.matchedObservation = matchedObservation;
+	}
+
+	public boolean isCorrelation() {
+		return isCorrelation;
+	}
+
+	public void setCorrelation(boolean isCorrelation) {
+		this.isCorrelation = isCorrelation;
 	}
 
 }

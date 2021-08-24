@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 
 /**
@@ -46,7 +47,6 @@ public class ObservationRecord {
 			return null;
 		
 		if(!inputs.getInputVariables().containsKey(inKey)) return null;
-		
 		Object inputObj = inputs.getInputVariables().get(inKey).getValue();
 		for(Object obser: observationMap.get(obKey)) {
 			boolean isSame = checkEquals(inputObj, obser);
@@ -74,30 +74,13 @@ public class ObservationRecord {
 				}
 			}
 			if (sb.length() > 0 &&sb.toString().equals(inputs.getInputVariables().get(inKey).getValue())) {
+				MatchingResult.isCorrelation = true;
 				return new MatchingResult(inputs.getInputVariables().get(inKey), sb.toString());
 			}
 		}
 
 		return null;
 	}
-
-//	private boolean stringEquals(String inKey, String obKey) {
-//		if (inputs.get(inKey) == null || observationMap.get(obKey).isEmpty())
-//			return false;
-//		
-//		Object inputObj = inputs.get(inKey);
-//		for(Object obser: observationMap.get(obKey)) {
-//			if(obser == null) continue;
-//			
-//			boolean isSameString = inputObj.toString().toLowerCase().equals(obser.toString().toLowerCase());
-//			if(isSameString) {
-//				potentialOpernadType = String.class;
-//				return true;
-//			}
-//		}
-//		
-//		return false;
-//	}
 	
 	
 	private static boolean isNumberEquals(Object obj1, Object obj2) {
@@ -130,21 +113,6 @@ public class ObservationRecord {
 		return false;
 	}
 
-//	private boolean numericEquals(String inKey, String obKey) {
-//		if (inputs.get(inKey) == null || observationMap.get(obKey).isEmpty())
-//			return false;
-//		
-//		Object inputObj = inputs.get(inKey);
-//		for(Object obser: observationMap.get(obKey)) {
-//			boolean isSameNumber = isNumberEquals(inputObj, obser);
-//			if(isSameNumber) {
-//				return true;
-//			}
-//		}
-//		
-//		return false;
-//	}
-
 	/**
 	 * use of constants
 	 * 
@@ -164,43 +132,6 @@ public class ObservationRecord {
 		}
 		
 		return true;
-		
-		
-//		if (observationMap.get(obKey).contains(constantValue)) {
-//			potentialOpernadType = constantValue.getClass();
-//			return true;
-//		}
-
-//		// class equals [Ljava/lang/Boolean; -- java.lang.Boolean]
-//		if (observationMap.get(obKey).isEmpty())
-//			return false;
-//		if (observationMap.get(obKey).get(0) instanceof Class<?>) {
-//			String[] localSeparateTypes = constantValue.toString().split(";");
-//			for (int m = 0; m < localSeparateTypes.length; m++) {
-//				if (localSeparateTypes[m].startsWith("L")) {
-//					localSeparateTypes[m] = localSeparateTypes[m].substring(1, localSeparateTypes[m].length());
-//					localSeparateTypes[m] = localSeparateTypes[m].replace("/", ".");
-//				}
-//			}
-//			System.currentTimeMillis();
-//			for (Object clazz : observationMap.get(obKey)) {
-//				if (clazz instanceof Class<?>) {
-//					String clazzName = clazz.toString().split("class ")[1];
-//					if (Arrays.asList(localSeparateTypes).contains(clazzName)) {
-//						potentialOpernadType = constantValue.getClass();
-//						return true;
-//					}
-//				}
-//			}
-//		}
-//
-//		if (numericEquals(inKey, obKey)) {
-//			potentialOpernadType = constantValue.getClass();
-//			return true;
-//		}
-//
-//		return false;
-
 	}
 
 	private boolean checkConstantEquals(Object value, Object constantValue) {
@@ -219,14 +150,32 @@ public class ObservationRecord {
 		
 		if(isNumberEquals(value, constantValue)) return true;
 		if(isStringEquals(value, constantValue)) return true;
-		
+		if(isStringCorrelation(value, constantValue)) {
+			MatchingResult.isCorrelation = true;
+			return true;
+		}
 		return false;
 	}
 
+	private boolean isStringCorrelation(Object value, Object constantValue) {
+		if(constantValue instanceof Character) {
+			Character c = (Character) constantValue;
+			constantValue = constantValue.toString();
+		}
+		
+		if (value != null && constantValue != null) {
+			return value.toString().toLowerCase().contains(constantValue.toString().toLowerCase())
+					|| StringEscapeUtils.unescapeJava(value.toString().toLowerCase())
+							.contains(StringEscapeUtils.unescapeJava(constantValue.toString().toLowerCase()));
+		}
+
+		return false;
+	}
+
+
 	private boolean isStringEquals(Object value, Object constantValue) {
 		if (value != null && constantValue != null) {
-			return value.toString().toLowerCase().equals(constantValue.toString().toLowerCase())
-					|| value.toString().toLowerCase().contains(constantValue.toString().toLowerCase());
+			return value.toString().toLowerCase().equals(constantValue.toString().toLowerCase());
 		}
 
 		return false;

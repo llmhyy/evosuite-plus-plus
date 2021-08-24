@@ -62,7 +62,6 @@ public class ValuePreservance {
 			for(String obKey: record0.observationMap.keySet()) {
 				valuePreservingRatio = 0;
 				for (ObservationRecord record : recordList) {
-					
 					MatchingResult result = record.checkSameValue(inputKey, obKey);
 					
 					if (result != null) {

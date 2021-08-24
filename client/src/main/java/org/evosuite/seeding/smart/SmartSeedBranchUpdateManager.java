@@ -103,20 +103,10 @@ public class SmartSeedBranchUpdateManager {
 		uncoveredApplicableBranchInfo = infoSet;
 		totalUncoveredGoals = uncoveredGoal;
 
-//		double ratio = infoSet.size() * 1.0 / uncoveredGoals.size() * 1.0;
-//		if (!infoSet.isEmpty())
-//			Properties.PRIMITIVE_POOL = oldPrimitivePool * (1.5);
-//		else
-//			Properties.PRIMITIVE_POOL = oldPrimitivePool;
-		
-//		if (infoSet.isEmpty()) {
-//			Properties.PRIMITIVE_POOL = oldPrimitivePool * 0.5; 
-//		}
-		
 		List<Branch> uncoveredBranches = new ArrayList<>();
 		boolean isAllUncoveredBranchNoPool = isAllUncoveredBranchNoPool(uncoveredBranches, list0, SeedingApplicationEvaluator.cache, bestMapTest);
 		if(isAllUncoveredBranchNoPool) {
-			Properties.PRIMITIVE_POOL = 0;
+			Properties.PRIMITIVE_POOL = oldPrimitivePool * 0.5;
 			testSeed = null;
 //			Properties.MAX_INT = 10000;
 		}

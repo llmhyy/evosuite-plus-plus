@@ -1,5 +1,6 @@
 package feature.smartseed.example.truecase;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -207,9 +208,9 @@ public class TrueExample {
 	public boolean elementIndex(int position) {
 		//element index
 		//no pool
-		if(position >= array.length)
+		if (position >= array.length)
 			return false;
-		if((this.array[position] & Integer.MIN_VALUE) != 0x0)
+		if ((this.array[position] & Integer.MIN_VALUE) != 0x0)
 			return true;
 		return false;
 	}
@@ -229,6 +230,17 @@ public class TrueExample {
 			System.currentTimeMillis();
 		}
 
+	}
+	
+	public void addVector(Collection c) {
+		_switches.addAll(c);
+	}
+	
+	public void stringContains(String s) {
+		char[] charList = s.toCharArray();
+		if (charList[charList.length - 3] == 'L') {
+			System.currentTimeMillis();
+		}
 	}
 
 }

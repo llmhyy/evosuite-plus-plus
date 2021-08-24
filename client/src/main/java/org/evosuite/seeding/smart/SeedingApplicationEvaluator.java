@@ -371,7 +371,22 @@ public class SeedingApplicationEvaluator {
 							try {
 								if(statement != null) {
 									if(obj.isCompatible(statement.getReturnType())) {
-										statement.setValue(obj.getValue());																											
+										statement.setValue(obj.getValue());
+									}
+									
+									//correlation
+									if (result.isCorrelation()) {
+										if (obj.getValue() instanceof Integer) {
+											int in = (Integer) obj.getValue();
+											Character c = (char)in;
+											String stringAddChar = statement.getValue().toString().concat(c.toString());
+											statement.setValue(stringAddChar);
+										} else {
+											String appendString = statement.getValue().toString()
+													.concat(obj.getValue().toString());
+											statement.setValue(appendString);
+										}
+
 									}
 								}
 							}

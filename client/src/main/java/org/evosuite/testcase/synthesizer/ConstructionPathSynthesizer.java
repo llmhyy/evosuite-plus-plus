@@ -919,6 +919,10 @@ public class ConstructionPathSynthesizer {
 			fieldTypeName = fieldTypeName.substring(2, fieldTypeName.length()-1);
 		}
 		String fieldName = fieldNode.name;
+		
+		//string value
+		if(fieldOwner.equals("java.lang.String") && fieldName.equals("value"))
+			return null;
 
 		if (callerObject != null) {
 			Statement stat = test.getStatement(callerObject.getStPosition());
