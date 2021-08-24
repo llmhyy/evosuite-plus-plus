@@ -311,12 +311,12 @@ public class StaticConstantPool implements ConstantPool {
     public long poolSize() {
     	long num = 0;
     	num += this.stringPool.size();
-    	num += this.typePool.size();
+//    	num += this.typePool.size();
     	num += this.intPool.size();
     	num += this.doublePool.size();
     	num += this.longPool.size();
     	num += this.floatPool.size();
-    	num += this.charPool.size();
+//    	num += this.charPool.size();
     	
     	return num;
     }
