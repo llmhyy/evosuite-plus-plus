@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.text.StringEscapeUtils;
+import org.evosuite.testcase.TestChromosome;
 
 /**
  * This class represents the execution results (i.e., observation value) given each input.
@@ -22,15 +23,20 @@ public class ObservationRecord {
 	 * bytecode instruction --> list<value>
 	 */
 	public Map<String, List<Object>> observationMap = new HashMap<>();
+
+	public TestChromosome test;
 	
 //	/**
 //	 * value types
 //	 */
 //	public Object potentialOpernadType = new ArrayList<>();
 	
-	public ObservationRecord(MethodInputs recordInput, Map<String, List<Object>> observationMap) {
+	public ObservationRecord(MethodInputs recordInput, 
+			Map<String, List<Object>> observationMap,
+			TestChromosome test) {
 		this.inputs = recordInput;
 		this.observationMap = observationMap;
+		this.test = test;
 	}
 
 	

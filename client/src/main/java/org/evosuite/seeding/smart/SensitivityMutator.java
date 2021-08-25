@@ -187,7 +187,7 @@ public class SensitivityMutator {
 			inputs.mutate();
 			Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
 			
-			ObservationRecord record = new ObservationRecord(inputs, observationMap);
+			ObservationRecord record = new ObservationRecord(inputs, observationMap, newTestChromosome);
 			preservance.addRecord(record);
 			
 			System.currentTimeMillis();

@@ -328,10 +328,10 @@ public class SeedingApplicationEvaluator {
 					}
 				}
 				
-				ValuePreservance sp = analyzeChannel(pathList, b, testSeed);
+				ValuePreservance preservance = analyzeChannel(pathList, b, testSeed);
 				System.currentTimeMillis();
-				if (sp != null && sp.isValuePreserving()) {
-					List<MatchingResult> results = sp.getMatchingResults();
+				if (preservance != null && preservance.isValuePreserving()) {
+					List<MatchingResult> results = preservance.getMatchingResults();
 					MatchingResult result = Randomness.choice(results);
 					ValueStatement stat0 = result.getMatchedInputVariable();
 					ValueStatement statement = null;
@@ -340,7 +340,7 @@ public class SeedingApplicationEvaluator {
 					
 					if(isRelevantToRegularExpression(pathList)){
 						String type = "string";
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type, sp);
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type, preservance);
 						cache.put(b, branchInfo);
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
 						AbstractMOSA.smartBranchNum += 1;
@@ -353,62 +353,26 @@ public class SeedingApplicationEvaluator {
 					 * 
 					 */
 //					System.currentTimeMillis();
-					List<ObservedConstant> observedConstants = sp.getEstiamtedConstants(); 
-					if (!observedConstants.isEmpty()) {
-						ObservedConstant obConstant = observedConstants.get(0);
+					List<ObservedConstant> staticConstants = preservance.getEstiamtedStaticConstants(); 
+					if (!staticConstants.isEmpty()) {
+						ObservedConstant obConstant = staticConstants.get(0);
 						String type = finalType(obConstant.getValue().getClass().toString());
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type, sp);
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type, preservance);
 						cache.put(b, branchInfo);
 						System.out.println("STATIC_POOL type:" + b + ":" + type);
 						
 						AbstractMOSA.smartBranchNum += 1;
 						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"STATIC_POOL");
 						
-						for(ObservedConstant obj : observedConstants) {
-							branchInfo.addPotentialSeed(obj);
-							try {
-								if(statement != null) {
-									if(obj.isCompatible(statement.getAssignmentValue())) {
-										if(statement instanceof ValueStatement) {
-											((ValueStatement)statement).setAssignmentValue(obj.getValue());
-										}
-									}
-									
-									//correlation
-									if (result.needRelaxedMutation()) {
-										if (result.getMatchedObservation() instanceof Character && obj.getValue() instanceof Integer) {
-											int in = (Integer) obj.getValue();
-											Character c = (char)in;
-											
-											Object objValue = statement.getAssignmentValue();
-											if(objValue != null) {
-												String stringAddChar = objValue.toString().concat(c.toString());
-												statement.setAssignmentValue(stringAddChar);												
-											}
-											
-										} else {
-											Object objValue = statement.getAssignmentValue();
-											if(objValue != null) {
-												String appendString = objValue.toString().concat(obj.getValue().toString());
-												statement.setAssignmentValue(appendString);
-											}
-											
-											
-										}
-
-									}
-								}
-							}
-							catch(Exception e) {
-								e.printStackTrace();
-							}
-						}
-//						sp.clear();
+						updateTestSeedWithConstantAssignment(result, statement, staticConstants, branchInfo);
+						
 						return branchInfo;
 					} 
 					else {
-						String type = finalType(sp.getMatchingResults().get(0).getMatchedObservation().getClass().toString());
-						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type, sp);
+						List<ObservedConstant> dynamicConstants = preservance.getEstiamtedDynamicConstants();
+						
+						String type = finalType(preservance.getMatchingResults().get(0).getMatchedObservation().getClass().toString());
+						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type, preservance);
 						cache.put(b, branchInfo);
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
 						AbstractMOSA.smartBranchNum += 1;
@@ -436,7 +400,7 @@ public class SeedingApplicationEvaluator {
 					List<ComputationPath> nonFastChannelList = checkNonfastchannels(pathList, fastChannels);
 					if (nonFastChannelList.size() == 0) {
 						if (b.getInstruction().isSwitch())
-							return new BranchSeedInfo(b, STATIC_POOL, BranchSeedInfo.INT, sp);
+							return new BranchSeedInfo(b, STATIC_POOL, BranchSeedInfo.INT, preservance);
 						return branchInfo(fastChannels, b, DYNAMIC_POOL);
 					}
 					else {
@@ -458,6 +422,46 @@ public class SeedingApplicationEvaluator {
 		cache.put(b, branchInfo);
 		System.out.println("NO_POOL_1:" + b);
 		return branchInfo;
+	}
+
+	private static void updateTestSeedWithConstantAssignment(MatchingResult result, ValueStatement statement,
+			List<ObservedConstant> observedConstants, BranchSeedInfo branchInfo) {
+		for(ObservedConstant obj : observedConstants) {
+			branchInfo.addPotentialSeed(obj);
+			try {
+				if(statement != null) {
+					if(obj.isCompatible(statement.getAssignmentValue())) {
+						if(statement instanceof ValueStatement) {
+							((ValueStatement)statement).setAssignmentValue(obj.getValue());
+						}
+						//correlation
+						if (result.needRelaxedMutation()) {
+							if (result.getMatchedObservation() instanceof Character && obj.getValue() instanceof Integer) {
+								int in = (Integer) obj.getValue();
+								Character c = (char)in;
+								
+								Object objValue = statement.getAssignmentValue();
+								if(objValue != null) {
+									String stringAddChar = objValue.toString().concat(c.toString());
+									statement.setAssignmentValue(stringAddChar);												
+								}
+								
+							} else {
+								Object objValue = statement.getAssignmentValue();
+								if(objValue != null) {
+									String appendString = objValue.toString().concat(obj.getValue().toString());
+									statement.setAssignmentValue(appendString);
+								}
+							}
+						}
+					}
+					
+				}
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private static List<ComputationPath> checkNonfastchannels(List<ComputationPath> pathList,

@@ -12,6 +12,36 @@ public class ValuePreservance {
 	
 	private List<BytecodeInstruction> observations;
 	private List<DepVariable> inputVariables;
+	private List<ObservationRecord> recordList = new ArrayList<>();
+	private TestChromosome testSeed;
+	
+	public List<ObservedConstant> getEstiamtedDynamicConstants() {
+		List<ObservedConstant> list = new ArrayList<>();
+		
+		/**
+		 * 1. 首先获得第一个record
+		 * 
+		 * 2. 找到这个record的所有非constant的observation值
+		 * 
+		 * 3. 随机挑选一个值，去替换record.test中对应的一个位置
+		 * 
+		 * m(x, y1, y2, ...), 如果x是fast channel， 就去设置y
+		 */
+		
+//		ObservationRecord record = recordList
+//		
+//		for(ObservationRecord record: recordList) {
+//			for(String observationIns: record.observationMap.keySet()) {
+//				if(!record.isConstant(observationIns)) {
+//					
+//				}
+//			}
+//		}
+		
+		
+		return null;
+	}
+	
 	
 	public List<BytecodeInstruction> getConstantInputVariable(){
 		List<BytecodeInstruction> list = new ArrayList<>();
@@ -33,8 +63,6 @@ public class ValuePreservance {
 	}
 
 //	public List<Object> pontentialBranchOperandTypes = new ArrayList<>();
-
-	public List<ObservationRecord> recordList = new ArrayList<>();
 
 	public void addRecord(ObservationRecord value) {
 		this.recordList.add(value);
@@ -84,7 +112,7 @@ public class ValuePreservance {
 	 *  String is just the bytecode instruction (toString)
 	 * @return
 	 */
-	public List<ObservedConstant> getEstiamtedConstants() {
+	public List<ObservedConstant> getEstiamtedStaticConstants() {
 		List<ObservedConstant> list = new ArrayList<>();
 		
 		/**
@@ -168,9 +196,8 @@ public class ValuePreservance {
 		return matchingResults;
 	}
 	
-	private TestChromosome testSeed;
-
 	public void setTest(TestChromosome testSeed) {
 		this.testSeed = testSeed;
 	}
+
 }
