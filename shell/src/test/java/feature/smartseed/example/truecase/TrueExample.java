@@ -226,7 +226,8 @@ public class TrueExample {
 	private Vector _switches = new Vector();
 
 	public void JDKInstrument(String name, String value, boolean overwrite) {
-		if ((_switches.contains(name)) && (overwrite)) {
+		boolean isRemove = _switches.contains(name);
+		if (isRemove) {
 			System.currentTimeMillis();
 		}
 

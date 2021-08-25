@@ -1,5 +1,6 @@
 package org.evosuite.seeding.smart;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -179,6 +180,7 @@ public class SensitivityMutator {
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
 		
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
+			
 			newTestChromosome = (TestChromosome) newTestChromosome.clone();
 			MethodInputs inputs = constructInputValues(rootVariables, newTestChromosome, map);
 			inputs.mutate();
@@ -257,6 +259,11 @@ public class SensitivityMutator {
 								relevantStatements.add(pStat);
 							}
 						}
+					}
+					
+					if(ref.isFieldReference()) {
+						//TODO get the value of filed and generate primitive statement
+						Type t= ref.getType();
 					}
 				}
 			}

@@ -375,65 +375,65 @@ public class SmartSeedRuntimeTest {
 	}
 	
 	
-	@Test
-	public void testCompareTwoVariablesOn() throws IOException {
-		Class<?> clazz = SmartSeedExample.class;
-		String methodName = "dynamicExample1";
-		int parameterNum = 2;
-		
-		String targetClass = clazz.getCanonicalName();
-		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
-
-		String fitnessApproach = "branch";
-		
-		int repeatTime = 1;
-		int budget = 100;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = true;
-
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
-		
-		EvoTestResult res1 = results.iterator().next();
-		assert res1.getCoverage() == 1.0;
-		assert res1.getAge() < 20;
-	}
-	
-	@Test
-	public void testCompareTwoVariablesOff() throws IOException {
-		Class<?> clazz = SmartSeedExample.class;
-		String methodName = "dynamicExample1";
-		int parameterNum = 2;
-		
-		String targetClass = clazz.getCanonicalName();
-		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/classes;target/test-classes";
-
-		String fitnessApproach = "branch";
-		
-		int repeatTime = 1;
-		int budget = 100;
-		Long seed = null;
-				
-		boolean aor = false;
-		boolean ass = false;
-
-		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
-				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
-		
-		EvoTestResult res1 = results.iterator().next();
-		assert res1.getCoverage() == 1.0;
-		assert res1.getAge() < 30;
-	}
+//	@Test
+//	public void testCompareTwoVariablesOn() throws IOException {
+//		Class<?> clazz = SmartSeedExample.class;
+//		String methodName = "dynamicExample1";
+//		int parameterNum = 2;
+//		
+//		String targetClass = clazz.getCanonicalName();
+//		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+//
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//		String cp = "target/classes;target/test-classes";
+//
+//		String fitnessApproach = "branch";
+//		
+//		int repeatTime = 1;
+//		int budget = 100;
+//		Long seed = null;
+//				
+//		boolean aor = false;
+//		boolean ass = true;
+//
+//		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+//				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+//				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+//		
+//		EvoTestResult res1 = results.iterator().next();
+//		assert res1.getCoverage() == 1.0;
+//		assert res1.getAge() < 20;
+//	}
+//	
+//	@Test
+//	public void testCompareTwoVariablesOff() throws IOException {
+//		Class<?> clazz = SmartSeedExample.class;
+//		String methodName = "dynamicExample1";
+//		int parameterNum = 2;
+//		
+//		String targetClass = clazz.getCanonicalName();
+//		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+//
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+//		String cp = "target/classes;target/test-classes";
+//
+//		String fitnessApproach = "branch";
+//		
+//		int repeatTime = 1;
+//		int budget = 100;
+//		Long seed = null;
+//				
+//		boolean aor = false;
+//		boolean ass = false;
+//
+//		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+//				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+//				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+//		
+//		EvoTestResult res1 = results.iterator().next();
+//		assert res1.getCoverage() == 1.0;
+//		assert res1.getAge() < 30;
+//	}
 	
 	@Test
 	public void testMatchesExampleOn() {

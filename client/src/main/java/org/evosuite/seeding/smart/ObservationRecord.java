@@ -158,15 +158,18 @@ public class ObservationRecord {
 	}
 
 	private boolean isStringCorrelation(Object value, Object constantValue) {
-		if(constantValue instanceof Character) {
-			Character c = (Character) constantValue;
-			constantValue = constantValue.toString();
-		}
-		
-		if (value != null && constantValue != null) {
-			return value.toString().toLowerCase().contains(constantValue.toString().toLowerCase())
-					|| StringEscapeUtils.unescapeJava(value.toString().toLowerCase())
-							.contains(StringEscapeUtils.unescapeJava(constantValue.toString().toLowerCase()));
+		if ((value instanceof String || value instanceof Character)
+				&& (constantValue instanceof String || constantValue instanceof Character)) {
+			if (constantValue instanceof Character) {
+				Character c = (Character) constantValue;
+				constantValue = constantValue.toString();
+			}
+
+			if (value != null && constantValue != null) {
+				return value.toString().toLowerCase().contains(constantValue.toString().toLowerCase())
+						|| StringEscapeUtils.unescapeJava(value.toString().toLowerCase())
+								.contains(StringEscapeUtils.unescapeJava(constantValue.toString().toLowerCase()));
+			}
 		}
 
 		return false;
@@ -175,7 +178,9 @@ public class ObservationRecord {
 
 	private boolean isStringEquals(Object value, Object constantValue) {
 		if (value != null && constantValue != null) {
-			return value.toString().toLowerCase().equals(constantValue.toString().toLowerCase());
+			return value.toString().toLowerCase().equals(constantValue.toString().toLowerCase())
+					|| StringEscapeUtils.unescapeJava(value.toString().toLowerCase())
+					.equals(StringEscapeUtils.unescapeJava(constantValue.toString().toLowerCase()));
 		}
 
 		return false;

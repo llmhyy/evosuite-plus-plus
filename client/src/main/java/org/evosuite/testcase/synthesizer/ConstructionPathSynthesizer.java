@@ -47,6 +47,7 @@ import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.AbstractStatement;
+import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
@@ -352,7 +353,12 @@ public class ConstructionPathSynthesizer {
 				}
 			}
 			VariableReference generatedVariable = generateParameterStatement(test, node, callerObject, map, castSubClass, allowNullValue);
-			generatedVariables.add(generatedVariable);
+			
+			if(generatedVariable != null && generatedVariable.isArray()) {
+				VariableReference var = test.getStatement(generatedVariable.getStPosition()).getReturnValue();
+				generatedVariables = generateArrayElementStatement(test, node, isLeaf, var);
+			}else
+				generatedVariables.add(generatedVariable);
 		} else if (node.var.getType() == DepVariable.INSTANCE_FIELD) {
 			if (callerObject == null) {
 				return false;
@@ -433,8 +439,15 @@ public class ConstructionPathSynthesizer {
 			return null;
 		}
 		
+		if(node.var.getType() == DepVariable.PARAMETER) {
+			List<VariableReference> usedArrayElementList = searchUsedArrayElementReference(test, callerObject);
+			if(!usedArrayElementList.isEmpty()) {
+				return usedArrayElementList;
+			}
+		}
+		
 		if (callerObject instanceof ArrayReference) {
-			int opcodeRead = node.var.getInstruction().getASMNode().getOpcode();
+			int opcodeRead = node.var.getInstruction().getASMNode().getOpcode();			
 			int opcodeWrite = getCorrespondingWriteOpcode(opcodeRead);
 			VariableReference realParentRef = null;
 			Statement statement = test.getStatement(callerObject.getStPosition());
@@ -510,6 +523,9 @@ public class ConstructionPathSynthesizer {
 				
 				ArrayIndex arrayIndex = new ArrayIndex(test, arrayRef, index);
 				VariableReference varRef = createArrayElementVariable(test, arrayRef);
+				if(varRef == null)
+					return null;
+				
 				AssignmentStatement assignStat = new AssignmentStatement(test, arrayIndex, varRef);
 				test.addStatement(assignStat, varRef.getStPosition() + 1);
 				VariableReference ref = assignStat.getReturnValue();
@@ -749,6 +765,9 @@ public class ConstructionPathSynthesizer {
 
 	private VariableReference createArrayElementVariable(TestCase test, ArrayReference arrayRef) {
 		Class<?> clazz = arrayRef.getComponentClass();
+		if(clazz.getConstructors().length < 1)
+			return null;
+		
 		Constructor<?> constructor = clazz.getConstructors()[0];
 		GenericConstructor gConstructor = new GenericConstructor(constructor,
 				constructor.getDeclaringClass());

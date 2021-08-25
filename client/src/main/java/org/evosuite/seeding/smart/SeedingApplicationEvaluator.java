@@ -376,7 +376,7 @@ public class SeedingApplicationEvaluator {
 									
 									//correlation
 									if (result.isCorrelation()) {
-										if (obj.getValue() instanceof Integer) {
+										if (result.getMatchedObservation() instanceof Character && obj.getValue() instanceof Integer) {
 											int in = (Integer) obj.getValue();
 											Character c = (char)in;
 											String stringAddChar = statement.getValue().toString().concat(c.toString());
@@ -624,6 +624,15 @@ public class SeedingApplicationEvaluator {
 	private static void parseRelevantOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
 //		System.currentTimeMillis();
 		DepVariable var = new DepVariable(targetIns);
+
+		// element index
+		if (var.isLoadArrayElement()) {
+			if (var.getName().equals("array index")) {
+				add(list, var.getInstruction());
+				return;
+			}
+		}
+		
 		if(var.isPrimitive()) {
 			add(list, var.getInstruction());
 		}		
@@ -695,13 +704,7 @@ public class SeedingApplicationEvaluator {
 		
 		if (var.isCompare()) {
 			for (BytecodeInstruction ins : targetIns.getOperands()) {
-					add(list, ins);
-					
-//				if (!ins.isMethodCall())
-//					add(list, ins);
-//				else {
-//					getInstructionOperands(ins, list);
-//				}					
+					add(list, ins);					
 			}
 			return;
 		}
