@@ -27,7 +27,6 @@ import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.statements.AbstractStatement;
 import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
@@ -56,7 +55,6 @@ public class SensitivityMutator {
 	public static List<List<Object>> data = new ArrayList<List<Object>>();
 	public static Object HeadValue;
 	public static Object TailValue;
-//	public static int iter = 0;
 	public static String projectId;
 	public static String className;
 	public static String methodName;

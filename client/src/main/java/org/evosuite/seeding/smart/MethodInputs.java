@@ -6,9 +6,7 @@ import java.util.Map;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ValueStatement;
-import org.evosuite.testcase.variable.ConstantValue;
 import org.evosuite.utils.Randomness;
-import org.evosuite.utils.generic.GenericClass;
 
 /**
  * 
