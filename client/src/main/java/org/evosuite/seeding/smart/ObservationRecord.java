@@ -55,7 +55,7 @@ public class ObservationRecord {
 			else {
 				if(isStringCorrelation(inputObj, obser)) {
 					MatchingResult res = new MatchingResult(inputs.getInputVariables().get(inKey), obser);
-					res.setCorrelation(true);
+					res.setNeedRelaxedMutation(true);
 					return res;
 				}
 			}
@@ -81,7 +81,7 @@ public class ObservationRecord {
 			}
 			if (sb.length() > 0 &&sb.toString().equals(inputs.getInputVariables().get(inKey).getAssignmentValue())) {
 				MatchingResult res = new MatchingResult(inputs.getInputVariables().get(inKey), sb.toString());
-				res.setCorrelation(true);
+				res.setNeedRelaxedMutation(true);
 				return res;
 			}
 		}

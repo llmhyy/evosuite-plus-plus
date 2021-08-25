@@ -11,7 +11,7 @@ import org.evosuite.testcase.statements.ValueStatement;
 public class MatchingResult {
 	private ValueStatement matchedInputVariable;
 	private Object matchedObservation;
-	public boolean isCorrelation = false;
+	public boolean needRelaxedMutation = false;
 
 	public MatchingResult(ValueStatement matchedInputVariable, Object matchedObservation) {
 		super();
@@ -35,12 +35,12 @@ public class MatchingResult {
 		this.matchedObservation = matchedObservation;
 	}
 
-	public boolean isCorrelation() {
-		return isCorrelation;
+	public boolean needRelaxedMutation() {
+		return needRelaxedMutation;
 	}
 
-	public void setCorrelation(boolean isCorrelation) {
-		this.isCorrelation = isCorrelation;
+	public void setNeedRelaxedMutation(boolean isCorrelation) {
+		this.needRelaxedMutation = isCorrelation;
 	}
 
 }

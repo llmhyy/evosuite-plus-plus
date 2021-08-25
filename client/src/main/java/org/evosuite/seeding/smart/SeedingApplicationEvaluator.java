@@ -375,7 +375,7 @@ public class SeedingApplicationEvaluator {
 									}
 									
 									//correlation
-									if (result.isCorrelation()) {
+									if (result.needRelaxedMutation()) {
 										if (result.getMatchedObservation() instanceof Character && obj.getValue() instanceof Integer) {
 											int in = (Integer) obj.getValue();
 											Character c = (char)in;
