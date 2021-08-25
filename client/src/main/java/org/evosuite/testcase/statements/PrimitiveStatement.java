@@ -64,7 +64,7 @@ import com.googlecode.gentyref.GenericTypeReflector;
  * @param <T>
  * @author Gordon Fraser
  */
-public abstract class PrimitiveStatement<T> extends AbstractStatement {
+public abstract class PrimitiveStatement<T> extends AbstractStatement implements ValueStatement{
 
     private static final long serialVersionUID = -7721106626421922833L;
 
@@ -103,6 +103,17 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement {
         super(tc, new VariableReferenceImpl(tc, clazz));
         this.value = value;
     }
+    
+    @SuppressWarnings("unchecked")
+	public void setAssignmentValue(Object obj) {
+    	if(this.value != null && value.getClass().isAssignableFrom(obj.getClass())) {
+    		this.value = ((T)obj);    		
+    	}
+    }
+	
+	public Object getAssignmentValue() {
+		return this.value;
+	}
 
     public List<TestFitnessFunction> getGoals(){
     	List<TestFitnessFunction> goals = new ArrayList<>();

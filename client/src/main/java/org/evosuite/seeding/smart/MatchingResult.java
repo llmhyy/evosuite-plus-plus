@@ -1,6 +1,6 @@
 package org.evosuite.seeding.smart;
 
-import org.evosuite.testcase.statements.PrimitiveStatement;
+import org.evosuite.testcase.statements.ValueStatement;
 
 /**
  * the matching result of checking the value preserving property of an input and an observation.
@@ -8,23 +8,22 @@ import org.evosuite.testcase.statements.PrimitiveStatement;
  * @author Yun Lin
  *
  */
-@SuppressWarnings("rawtypes")
 public class MatchingResult {
-	private PrimitiveStatement matchedInputVariable;
+	private ValueStatement matchedInputVariable;
 	private Object matchedObservation;
-	public static boolean isCorrelation = false;
+	public boolean isCorrelation = false;
 
-	public MatchingResult(PrimitiveStatement matchedInputVariable, Object matchedObservation) {
+	public MatchingResult(ValueStatement matchedInputVariable, Object matchedObservation) {
 		super();
 		this.matchedInputVariable = matchedInputVariable;
 		this.matchedObservation = matchedObservation;
 	}
 
-	public PrimitiveStatement getMatchedInputVariable() {
+	public ValueStatement getMatchedInputVariable() {
 		return matchedInputVariable;
 	}
 
-	public void setMatchedInputVariable(PrimitiveStatement matchedInputVariable) {
+	public void setMatchedInputVariable(ValueStatement matchedInputVariable) {
 		this.matchedInputVariable = matchedInputVariable;
 	}
 

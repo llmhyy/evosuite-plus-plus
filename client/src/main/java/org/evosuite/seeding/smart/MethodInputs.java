@@ -1,9 +1,14 @@
 package org.evosuite.seeding.smart;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 
 import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.statements.PrimitiveStatement;
+import org.evosuite.testcase.statements.AssignmentStatement;
+import org.evosuite.testcase.statements.ValueStatement;
+import org.evosuite.testcase.variable.ConstantValue;
+import org.evosuite.utils.Randomness;
+import org.evosuite.utils.generic.GenericClass;
 
 /**
  * 
@@ -12,23 +17,22 @@ import org.evosuite.testcase.statements.PrimitiveStatement;
  * @author Yun Lin
  *
  */
-@SuppressWarnings("rawtypes")
 public class MethodInputs {
 	
-	private Map<String, PrimitiveStatement> inputVariables;
+	private Map<String, ValueStatement> inputVariables;
 	private Map<String, Object> inputConstants;
 
-	public MethodInputs(Map<String, PrimitiveStatement> inputVariables, Map<String, Object> inputConstants) {
+	public MethodInputs(Map<String, ValueStatement> inputVariables, Map<String, Object> inputConstants) {
 		super();
 		this.inputVariables = inputVariables;
 		this.inputConstants = inputConstants;
 	}
 
-	public Map<String, PrimitiveStatement> getInputVariables() {
+	public Map<String, ValueStatement> getInputVariables() {
 		return inputVariables;
 	}
 
-	public void setInputVariables(Map<String, PrimitiveStatement> inputVariables) {
+	public void setInputVariables(Map<String, ValueStatement> inputVariables) {
 		this.inputVariables = inputVariables;
 	}
 
@@ -42,9 +46,24 @@ public class MethodInputs {
 
 	public void mutate() {
 		for(String key: inputVariables.keySet()) {
-			PrimitiveStatement statement = inputVariables.get(key);
-			statement.mutate(statement.getTestCase(), TestFactory.getInstance());
+			ValueStatement statement = inputVariables.get(key);
+			if(statement instanceof AssignmentStatement) {
+				AssignmentStatement aStat = (AssignmentStatement)statement;
+				Type t = aStat.getValue().getType();
+				if(t.equals(Integer.class)) {
+					Object obj = Randomness.nextInt();
+					aStat.setAssignmentValue(obj);
+				}
+				else if(t.equals(String.class)) {
+					Object obj = Randomness.nextString(10);
+					aStat.setAssignmentValue(obj);
+				}
+			}
+			else {
+				statement.mutate(statement.getTestCase(), TestFactory.getInstance());				
+			}
 		}
+		System.currentTimeMillis();
 	}
 
 }

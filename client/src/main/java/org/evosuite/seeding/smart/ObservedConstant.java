@@ -40,11 +40,16 @@ public class ObservedConstant {
 		this.ins = ins;
 	}
 
-	public boolean isCompatible(Type returnType) {
+	public boolean isCompatible(Object val) {
+		if(val == null) {
+			return false;
+		}
+		Class<?> valueType = val.getClass();
+		
 		Class<?> clazz = value.getClass();
 		
-		if (returnType.getTypeName().equals(clazz.getTypeName())
-				|| clazz.getTypeName().toLowerCase().contains(returnType.getTypeName())) {
+		if (valueType.getTypeName().equals(clazz.getTypeName())
+				|| clazz.getTypeName().toLowerCase().contains(valueType.getTypeName())) {
 			return true;
 		} else {
 			System.currentTimeMillis();

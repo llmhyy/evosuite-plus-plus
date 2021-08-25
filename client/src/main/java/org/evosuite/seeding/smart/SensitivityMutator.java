@@ -1,6 +1,5 @@
 package org.evosuite.seeding.smart;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +27,7 @@ import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
+import org.evosuite.testcase.statements.AbstractStatement;
 import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
@@ -36,18 +36,21 @@ import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
+import org.evosuite.testcase.variable.ConstantValue;
+import org.evosuite.testcase.variable.FieldReference;
+import org.evosuite.testcase.variable.NullReference;
 import org.evosuite.testcase.variable.VariableReference;
+import org.evosuite.testcase.variable.VariableReferenceImpl;
 import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
 
 public class SensitivityMutator {
 	public static List<List<Object>> data = new ArrayList<List<Object>>();
@@ -189,7 +192,7 @@ public class SensitivityMutator {
 			ObservationRecord record = new ObservationRecord(inputs, observationMap);
 			preservance.addRecord(record);
 			
-//			System.currentTimeMillis();
+			System.currentTimeMillis();
 		}
 		
 		System.currentTimeMillis();
@@ -232,7 +235,7 @@ public class SensitivityMutator {
 	@SuppressWarnings("rawtypes")
 	private static MethodInputs constructInputValues(List<DepVariable> rootVariables,
 			TestChromosome newTestChromosome, Map<DepVariableWrapper, List<VariableReference>> map) {
-		Map<String, PrimitiveStatement> inputVariables = new HashMap<>();
+		Map<String, ValueStatement> inputVariables = new HashMap<>();
 		Map<String, Object> inputConstants = new HashMap<>();
 		for (DepVariable rootVar : rootVariables) {
 
@@ -242,7 +245,7 @@ public class SensitivityMutator {
 			}
 			
 			List<DepVariable> relevantPrimitiveChildren = rootVar.getAllChildrenNodesIncludingItself();
-			List<PrimitiveStatement> relevantStatements = new ArrayList<>();
+			List<ValueStatement> relevantStatements = new ArrayList<>();
 			for(DepVariable var: relevantPrimitiveChildren) {
 				if(map == null) continue;
 				List<VariableReference> varList = map.get(new DepVariableWrapper(var));
@@ -253,23 +256,21 @@ public class SensitivityMutator {
 						relevantStatements.add((PrimitiveStatement)statement);
 					}
 					else if(statement instanceof ArrayStatement) {
-						List<PrimitiveStatement> primitiveStatements = checkAllRelevantIndexes((ArrayStatement)statement);
-						for(PrimitiveStatement pStat: primitiveStatements) {
+						List<ValueStatement> primitiveStatements = checkAllRelevantIndexes((ArrayStatement)statement);
+						for(ValueStatement pStat: primitiveStatements) {
 							if(!relevantStatements.contains(pStat)) {
 								relevantStatements.add(pStat);
 							}
 						}
 					}
 					
-					if(ref.isFieldReference()) {
-						//TODO get the value of filed and generate primitive statement
-						Type t= ref.getType();
-					}
+//					System.currentTimeMillis();
 				}
 			}
 			
+			System.currentTimeMillis();
 			for(int i=0; i<relevantStatements.size(); i++) {
-				PrimitiveStatement inputStatement = relevantStatements.get(i);
+				ValueStatement inputStatement = relevantStatements.get(i);
 				if(inputStatement instanceof NullStatement) 
 					continue;
 				inputVariables.put(String.valueOf(inputStatement.getPosition()), inputStatement);
@@ -279,10 +280,32 @@ public class SensitivityMutator {
 		return new MethodInputs(inputVariables, inputConstants);
 	}
 
-	@SuppressWarnings("rawtypes")
-	private static List<PrimitiveStatement> checkAllRelevantIndexes(ArrayStatement statement) {
+	private static AssignmentStatement findAssignmentStatementWithValue(VariableReference ref,
+			TestChromosome testChromsome) {
+		for(int i=0; i<testChromsome.getTestCase().size(); i++) {
+			Statement s = testChromsome.getTestCase().getStatement(i);
+			if(s instanceof AssignmentStatement) {
+				AssignmentStatement aStat = (AssignmentStatement)s;
+				
+				VariableReference varRef = aStat.getValue();
+				if(varRef != null) {
+					if(varRef.getStPosition() == ref.getStPosition()) {
+						
+						return aStat;
+					}
+					
+				}
+				
+			}
+		}
 		
-		List<PrimitiveStatement> list = new ArrayList<>();
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static List<ValueStatement> checkAllRelevantIndexes(ArrayStatement statement) {
+		
+		List<ValueStatement> list = new ArrayList<>();
 		
 		TestCase test = statement.getTestCase();
 		ArrayReference ref = statement.getArrayReference();
@@ -294,16 +317,33 @@ public class SensitivityMutator {
 					
 					ArrayIndex index = (ArrayIndex)aStat.getReturnValue();
 					if(index.getArray().equals(ref)) {
-						Statement s = test.getStatement(aStat.getValue().getStPosition());
-						if(s instanceof PrimitiveStatement) {
-							list.add((PrimitiveStatement)s);
+						
+						VariableReference var = aStat.getValue();
+						
+						if(var instanceof VariableReferenceImpl &&
+								!(var instanceof ArrayIndex) &&
+								!(var instanceof ArrayReference) &&
+								!(var instanceof ConstantValue) &&
+								!(var instanceof FieldReference) &&
+								!(var instanceof NullReference)
+								) {
+							Statement s = test.getStatement(aStat.getValue().getStPosition());
+							if(s instanceof ValueStatement) {
+								list.add((ValueStatement)s);
+							}
 						}
+						else {
+							list.add(aStat);
+						}
+						
 						
 					}
 					
 				}
 			}
 		}
+		
+		System.currentTimeMillis();
 		
 		return list;
 	}

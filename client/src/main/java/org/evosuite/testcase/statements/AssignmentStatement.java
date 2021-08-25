@@ -33,6 +33,7 @@ import org.evosuite.setup.TestClusterGenerator;
 import org.evosuite.setup.TestClusterUtils;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
+import org.evosuite.testcase.variable.ConstantValue;
 import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.NullReference;
 import org.evosuite.testcase.TestCase;
@@ -54,7 +55,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
  * 
  * @author Gordon Fraser
  */
-public class AssignmentStatement extends AbstractStatement {
+public class AssignmentStatement extends AbstractStatement implements ValueStatement{
 
 	private static final long serialVersionUID = 2051431241124468349L;
 
@@ -455,4 +456,22 @@ public class AssignmentStatement extends AbstractStatement {
         }
         throw new RuntimeException("Could not find position of assignment statement");
     }
+
+	@Override
+	public void setAssignmentValue(Object obj) {
+		ConstantValue cVal = new ConstantValue(this.getTestCase(), new GenericClass(this.parameter.getType()));
+		cVal.setValue(obj);
+		this.parameter = cVal;
+	}
+
+	@Override
+	public Object getAssignmentValue() {
+		
+		if(this.parameter instanceof ConstantValue) {
+			ConstantValue val = (ConstantValue)this.parameter;
+			return val.getObject(null);
+		}
+		
+		return null;
+	}
 }

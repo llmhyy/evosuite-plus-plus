@@ -26,7 +26,7 @@ import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.instrumentation.BytecodeInstrumentation;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testcase.statements.PrimitiveStatement;
+import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -277,8 +277,6 @@ public class SeedingApplicationEvaluator {
 			return branchInfo;
 		}
 		
-		System.currentTimeMillis();
-		
 		Map<Branch, Set<DepVariable>> branchesInTargetMethod = InterproceduralGraphAnalysis.branchInterestedVarsMap
 				.get(Properties.TARGET_METHOD);
 		if (branchesInTargetMethod == null) {
@@ -286,7 +284,6 @@ public class SeedingApplicationEvaluator {
 			cache.put(b, branchInfo);
 			return branchInfo;
 		}
-//		b = compileBranch(branchesInTargetMethod, b);
 		Set<DepVariable> nodes = branchesInTargetMethod.get(b);
 		if(nodes == null) {
 			nodes = branchesInTargetMethod.get(compileBranch(branchesInTargetMethod, b));
@@ -332,13 +329,14 @@ public class SeedingApplicationEvaluator {
 				}
 				
 				ValuePreservance sp = analyzeChannel(pathList, b, testSeed);
+				System.currentTimeMillis();
 				if (sp != null && sp.isValuePreserving()) {
 					List<MatchingResult> results = sp.getMatchingResults();
 					MatchingResult result = Randomness.choice(results);
-					PrimitiveStatement stat0 = result.getMatchedInputVariable();
-					PrimitiveStatement statement = null;
+					ValueStatement stat0 = result.getMatchedInputVariable();
+					ValueStatement statement = null;
 					if(testSeed != null)
-						statement = (PrimitiveStatement) testSeed.getTestCase().getStatement(stat0.getPosition());
+						statement = (ValueStatement) testSeed.getTestCase().getStatement(stat0.getPosition());
 					
 					if(isRelevantToRegularExpression(pathList)){
 						String type = "string";
@@ -370,8 +368,10 @@ public class SeedingApplicationEvaluator {
 							branchInfo.addPotentialSeed(obj);
 							try {
 								if(statement != null) {
-									if(obj.isCompatible(statement.getReturnType())) {
-										statement.setValue(obj.getValue());
+									if(obj.isCompatible(statement.getAssignmentValue())) {
+										if(statement instanceof ValueStatement) {
+											((ValueStatement)statement).setAssignmentValue(obj.getValue());
+										}
 									}
 									
 									//correlation
@@ -379,12 +379,21 @@ public class SeedingApplicationEvaluator {
 										if (result.getMatchedObservation() instanceof Character && obj.getValue() instanceof Integer) {
 											int in = (Integer) obj.getValue();
 											Character c = (char)in;
-											String stringAddChar = statement.getValue().toString().concat(c.toString());
-											statement.setValue(stringAddChar);
+											
+											Object objValue = statement.getAssignmentValue();
+											if(objValue != null) {
+												String stringAddChar = objValue.toString().concat(c.toString());
+												statement.setAssignmentValue(stringAddChar);												
+											}
+											
 										} else {
-											String appendString = statement.getValue().toString()
-													.concat(obj.getValue().toString());
-											statement.setValue(appendString);
+											Object objValue = statement.getAssignmentValue();
+											if(objValue != null) {
+												String appendString = objValue.toString().concat(obj.getValue().toString());
+												statement.setAssignmentValue(appendString);
+											}
+											
+											
 										}
 
 									}

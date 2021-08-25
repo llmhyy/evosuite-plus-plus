@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.text.StringEscapeUtils;
-import org.evosuite.testcase.statements.PrimitiveStatement;
 
 /**
  * This class represents the execution results (i.e., observation value) given each input.
@@ -47,11 +46,18 @@ public class ObservationRecord {
 			return null;
 		
 		if(!inputs.getInputVariables().containsKey(inKey)) return null;
-		Object inputObj = inputs.getInputVariables().get(inKey).getValue();
+		Object inputObj = inputs.getInputVariables().get(inKey).getAssignmentValue();
 		for(Object obser: observationMap.get(obKey)) {
 			boolean isSame = checkEquals(inputObj, obser);
 			if(isSame) {
 				return new MatchingResult(inputs.getInputVariables().get(inKey), obser);
+			}
+			else {
+				if(isStringCorrelation(inputObj, obser)) {
+					MatchingResult res = new MatchingResult(inputs.getInputVariables().get(inKey), obser);
+					res.setCorrelation(true);
+					return res;
+				}
 			}
 		}
 		
@@ -73,9 +79,10 @@ public class ObservationRecord {
 					sb.append((char) value);
 				}
 			}
-			if (sb.length() > 0 &&sb.toString().equals(inputs.getInputVariables().get(inKey).getValue())) {
-				MatchingResult.isCorrelation = true;
-				return new MatchingResult(inputs.getInputVariables().get(inKey), sb.toString());
+			if (sb.length() > 0 &&sb.toString().equals(inputs.getInputVariables().get(inKey).getAssignmentValue())) {
+				MatchingResult res = new MatchingResult(inputs.getInputVariables().get(inKey), sb.toString());
+				res.setCorrelation(true);
+				return res;
 			}
 		}
 
@@ -146,22 +153,23 @@ public class ObservationRecord {
 
 
 	private boolean checkEquals(Object value, Object constantValue) {
+		
+		if(value == null || constantValue == null) return false;
+		
 		if(value == constantValue) return true;
 		
 		if(isNumberEquals(value, constantValue)) return true;
 		if(isStringEquals(value, constantValue)) return true;
-		if(isStringCorrelation(value, constantValue)) {
-			MatchingResult.isCorrelation = true;
-			return true;
-		}
+		
 		return false;
 	}
 
 	private boolean isStringCorrelation(Object value, Object constantValue) {
+		if(value == null || constantValue == null) return false;
+		
 		if ((value instanceof String || value instanceof Character)
 				&& (constantValue instanceof String || constantValue instanceof Character)) {
 			if (constantValue instanceof Character) {
-				Character c = (Character) constantValue;
 				constantValue = constantValue.toString();
 			}
 
@@ -217,7 +225,11 @@ public class ObservationRecord {
 
 	public boolean isSensitive(int i, int j) {
 		String inKey = (String) inputs.getInputVariables().keySet().toArray()[i];
-		Object in = inputs.getInputVariables().get(inKey).getValue();
+		Object in = inputs.getInputVariables().get(inKey).getAssignmentValue();
+		
+		if(in == null) {
+			return false;
+		}
 
 		if (observationMap.keySet().size() == 0)
 			return false;

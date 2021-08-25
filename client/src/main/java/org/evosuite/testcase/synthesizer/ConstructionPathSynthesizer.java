@@ -354,11 +354,7 @@ public class ConstructionPathSynthesizer {
 			}
 			VariableReference generatedVariable = generateParameterStatement(test, node, callerObject, map, castSubClass, allowNullValue);
 			
-			if(generatedVariable != null && generatedVariable.isArray()) {
-				VariableReference var = test.getStatement(generatedVariable.getStPosition()).getReturnValue();
-				generatedVariables = generateArrayElementStatement(test, node, isLeaf, var);
-			}else
-				generatedVariables.add(generatedVariable);
+			generatedVariables.add(generatedVariable);
 		} else if (node.var.getType() == DepVariable.INSTANCE_FIELD) {
 			if (callerObject == null) {
 				return false;
