@@ -46,17 +46,13 @@ public class SmartSeedBranchUpdateManager {
 		Set<BranchSeedInfo> uncoveredGoal = new HashSet<>();
 		// TODO select the most potential branches
 		FitnessFunction minff = null;
-		Double minVal = 99999.0;
 		
 		List<FitnessFunction> list = new ArrayList<>();
 		for(FitnessFunction ff: bestMap.keySet()) {
 			Double d = bestMap.get(ff);
 			if(d < 1) {
 				list.add(ff);
-			}else if(d < minVal) {
-				minVal = d;
-				minff = ff;
-			}
+			} 
 		}
 		
 		TestChromosome testSeed = null;
@@ -85,6 +81,11 @@ public class SmartSeedBranchUpdateManager {
 			if (goal.getBranch().getClassName().equals(Properties.TARGET_CLASS)
 					&& goal.getBranch().getMethodName().equals(Properties.TARGET_METHOD)) {
 				testSeed = bestMapTest.get(ff);
+				
+				if(testSeed.getLastExecutionResult().hasTestException()) {
+					return null;
+				}
+				
 				Branch b = goal.getBranch();
 				
 //				long t1 = System.currentTimeMillis();
