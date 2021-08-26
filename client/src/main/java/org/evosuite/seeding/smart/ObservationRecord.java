@@ -1,8 +1,11 @@
 package org.evosuite.seeding.smart;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.evosuite.testcase.TestChromosome;
@@ -54,7 +57,8 @@ public class ObservationRecord {
 		if(!inputs.getInputVariables().containsKey(inKey)) return null;
 		Object inputObj = inputs.getInputVariables().get(inKey).getAssignmentValue();
 		for(Object obser: observationMap.get(obKey)) {
-			boolean isSame = checkEquals(inputObj, obser);
+			Set<Object> visitedObjects = new HashSet<>();
+			boolean isSame = checkEquals(inputObj, obser, visitedObjects);
 			if(isSame) {
 				return new MatchingResult(inputs.getInputVariables().get(inKey), obser, obKey);
 			}
@@ -67,7 +71,7 @@ public class ObservationRecord {
 			}
 		}
 		
-//		return false;
+		System.currentTimeMillis();
 		
 		if (inputObj == null)
 			return null;
@@ -158,17 +162,86 @@ public class ObservationRecord {
 }
 
 
-	private boolean checkEquals(Object value, Object constantValue) {
+	private boolean checkEquals(Object inputValue, Object observation, Set<Object> visitedObjects) {
 		
-		if(value == null || constantValue == null) return false;
+		if(inputValue == null || observation == null) return false;
 		
-		if(value == constantValue) return true;
+		if(inputValue == observation) return true;
 		
-		if(isNumberEquals(value, constantValue)) return true;
-		if(isStringEquals(value, constantValue)) return true;
+		if(isNumberEquals(inputValue, observation)) return true;
+		if(isStringEquals(inputValue, observation)) return true;
+		
+		boolean matchComplexDataStructure = matchComplexObservation(inputValue, observation, visitedObjects);
+		
+		return matchComplexDataStructure;
+	}
+
+	private boolean matchComplexObservation(Object inputValue, Object observation, Set<Object> visitedObjects) {
+		Class<?> clazz = observation.getClass();
+		if(clazz.isPrimitive() || clazz.getCanonicalName().equals("java.lang.String")) {
+			return false;
+		}
+		
+		int depth = 3;
+		
+		Map<String, Object> subObservationMap = new HashMap<>();
+		
+		if(!visitedObjects.contains(observation)) {
+			traverseObjectGraph(observation, subObservationMap, depth, visitedObjects);
+			for(String key: subObservationMap.keySet()) {
+				Object v = subObservationMap.get(key);
+				
+				if(checkEquals(inputValue, v, visitedObjects)) {
+					return true;
+				}
+			}
+		}
 		
 		return false;
 	}
+
+
+	private void traverseObjectGraph(Object observation, Map<String, Object> subObservationMap, 
+			int depth, Set<Object> visitedObjects) {
+		visitedObjects.add(observation);
+		if(depth < 1) {
+			return;
+		}
+		
+		Class<?> clazz = observation.getClass();
+		for(Field field: clazz.getDeclaredFields()) {
+			
+			field.setAccessible(true);
+			try {
+				Object fieldObservation = field.get(observation);
+				
+				if(fieldObservation != null) {
+					Class<?> fieldClazz = fieldObservation.getClass();
+					if(fieldClazz.isPrimitive() || 
+							fieldClazz.getCanonicalName().equals("java.lang.String") ||
+							Number.class.isAssignableFrom(fieldClazz)) {
+						String key = clazz.getCanonicalName() + "#" + field.getName();
+						subObservationMap.put(key, fieldObservation);
+					}
+					else if(fieldClazz.isArray()) {
+						System.currentTimeMillis();
+					}
+					else {
+						traverseObjectGraph(fieldObservation, subObservationMap, depth-1, visitedObjects);
+					}					
+				}
+				
+				
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+	}
+
 
 	private boolean isStringCorrelation(Object value, Object constantValue) {
 		if(value == null || constantValue == null) return false;
