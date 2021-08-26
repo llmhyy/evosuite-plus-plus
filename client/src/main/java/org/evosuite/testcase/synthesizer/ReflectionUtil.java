@@ -13,7 +13,15 @@ public class ReflectionUtil {
 	    		Field gSig = Method.class.getDeclaredField("signature");
 	    		gSig.setAccessible(true);
 	    		sig = (String) gSig.get(m);
-	    		if(sig!=null) return sig;	    		
+	    		if(sig!=null) {
+	    			int index0 = sig.indexOf("<");
+	    		    int index1 = sig.indexOf(">");
+	    		    if(index0 < index1) {
+	    		    	sig = sig.substring(0, index0) + sig.substring(index1+1, sig.length());
+	    		    }
+	    			return sig;
+	    		}	    		
+	    			
 	    	}
 	    } catch (Exception e) { 
 	        e.printStackTrace();
@@ -52,6 +60,13 @@ public class ReflectionUtil {
 	    }
 	    
 	    signature = signature.replace(".", "/");
+	    
+	    int index0 = signature.indexOf("<");
+	    int index1 = signature.indexOf(">");
+	    if(index0 < index1) {
+	    	signature = signature.substring(0, index0) + signature.substring(index1, signature.length());
+	    }
+	    
 	    return signature;
 	    
 	}
