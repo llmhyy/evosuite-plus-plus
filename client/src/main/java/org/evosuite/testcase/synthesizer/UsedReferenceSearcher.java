@@ -148,8 +148,8 @@ public class UsedReferenceSearcher {
 					AssignmentStatement aStat = (AssignmentStatement) stat;
 					String returnName = aStat.getReturnValue().getName();
 					if (returnName.contains(".")) {
-						String filedName = returnName.substring(returnName.lastIndexOf(".") + 1);
-						if (filedName.equals(field.getName())
+						String fieldName = returnName.substring(returnName.lastIndexOf(".") + 1);
+						if (fieldName.equals(field.getName())
 								&& aStat.getReturnValue().getAdditionalVariableReference().equals(targetObject)) {
 							VariableReference ref = aStat.getValue();
 							if (!relevantRefs.contains(ref)) {

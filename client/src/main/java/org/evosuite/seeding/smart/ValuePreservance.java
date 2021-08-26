@@ -19,6 +19,10 @@ public class ValuePreservance {
 	public List<ObservedConstant> getEstiamtedDynamicConstants() {
 		List<ObservedConstant> list = new ArrayList<>();
 		
+		if(recordList == null || recordList.isEmpty()) {
+			return list;
+		}
+		
 		/**
 		 * 1. 首先获得第一个record
 		 * 
