@@ -1,6 +1,8 @@
 package org.evosuite.testcase.synthesizer;
 
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -10,10 +12,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
+import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.graphs.GraphPool;
@@ -264,6 +269,61 @@ public class DataDependencyUtil {
 		return null;
 	}
 	
+	public static void findSetterInfo(Field field, Class<?> targetClass, List<Executable> fieldSettingMethods,
+			List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList, List<Set<Integer>> validParams,
+			Executable m, String signature) {
+		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
+		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<>();
+		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = 
+				DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
+						field, Properties.FIELD_SETTER_SEARCH_DEPTH, cascadingCallRelations, setterMap);
+		
+		System.currentTimeMillis();
+		
+		Set<Integer> releventPrams = new HashSet<>();
+		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
+			BytecodeInstruction setterIns = entry.getKey();
+			List<BytecodeInstruction> callList = entry.getValue();
+			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, 
+					targetClass.getCanonicalName(), signature, callList);
+			releventPrams.addAll(validParamPos);
+		}
+		
+		if(!fieldSetterMap.isEmpty()){
+			fieldSettingMethods.add(m);
+			difficultyList.add(fieldSetterMap);
+			validParams.add(releventPrams);
+		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static PotentialSetter searchForPotentialSettersInClass(Field field, String targetClassName) throws ClassNotFoundException {
+		Class<?> targetClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+				.loadClass(targetClassName);
+		
+		List<Executable> fieldSettingMethods = new ArrayList<>();
+		/**
+		 * map <field setter instruction, <m_1, ..., m_n>>, where 
+		 * m_n is the method to call field setter instruction
+		 * m_1 is the method called by test
+		 */
+		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = new ArrayList<>();
+		List<Set<Integer>> numberOfValidParams = new ArrayList<>();
+		
+		for(Method m: targetClass.getMethods()){
+			String signature = m.getName() + ReflectionUtil.getSignature(m);
+			System.currentTimeMillis();
+			findSetterInfo(field, targetClass, fieldSettingMethods, difficultyList, numberOfValidParams, m, signature);
+		}
+		
+		for(Constructor c: targetClass.getConstructors()){
+			String signature = "<init>" + ReflectionUtil.getSignature(c);
+			findSetterInfo(field, targetClass, fieldSettingMethods, difficultyList, numberOfValidParams, c, signature);
+		}
+		
+		return new PotentialSetter(fieldSettingMethods, difficultyList, numberOfValidParams);
+	}
+	
 	/**
 	 * 
 	 * return a map from a field-setting instruction to a set of calls like <m1(), m2(), ..., mk()>,
@@ -288,28 +348,33 @@ public class DataDependencyUtil {
 //		MockFramework.disable();
 //		System.currentTimeMillis();
 		try{
-//			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
 			ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 			insList = BytecodeInstructionPool.getInstance(classLoader).getAllInstructionsAtMethod(className, methodName);
 			
-			//FIXME aaron try to handle Java collection field.
 			if(insList == null) {
-				Class<?> c = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
-				Class<?> superClass = c.getSuperclass();
-				
-				while(superClass != null) {
-					String superClassName = superClass.getCanonicalName();
-//					GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(superClassName);
-					insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-							.getAllInstructionsAtMethod(superClassName, methodName);	
+				GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+//				RawControlFlowGraph cfg = GraphPool.getInstance(classLoader).getRawCFG(className, methodName);
+				System.currentTimeMillis();
+				insList = BytecodeInstructionPool.getInstance(classLoader).getAllInstructionsAtMethod(className, methodName);
+				if(insList == null) {
+					Class<?> c = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
+					Class<?> superClass = c.getSuperclass();
 					
-					if(insList != null) {
-						break;
-					}
-					else {
-						superClass = superClass.getSuperclass();
+					while(superClass != null) {
+						String superClassName = superClass.getCanonicalName();
+//					GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(superClassName);
+						insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
+								.getAllInstructionsAtMethod(superClassName, methodName);	
+						
+						if(insList != null) {
+							break;
+						}
+						else {
+							superClass = superClass.getSuperclass();
+						}
 					}
 				}
+				
 			}
 		}
 		catch(Exception e){
@@ -336,7 +401,7 @@ public class DataDependencyUtil {
 					}
 				} 
 				else if (ins.getASMNode() instanceof MethodInsnNode) {
-					if (depth > 0 && setterMap.size()>10) {
+					if (depth > 0) {
 						MethodInsnNode mNode = (MethodInsnNode) (ins.getASMNode());
 
 						String calledClass = mNode.owner;

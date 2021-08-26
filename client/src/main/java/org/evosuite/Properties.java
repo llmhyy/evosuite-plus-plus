@@ -2596,6 +2596,8 @@ public class Properties {
 
 	public static final double SENSITIVITY_PRESERVING_THRESHOLD = 0.5;
 
+	public static final int FIELD_SETTER_SEARCH_DEPTH = 3;
+
 	public static boolean PRINT_FITNESS = true;
 
 	/*

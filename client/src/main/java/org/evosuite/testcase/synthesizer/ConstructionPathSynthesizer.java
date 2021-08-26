@@ -1002,9 +1002,19 @@ public class ConstructionPathSynthesizer {
 				return getterObject;
 			} 
 			else {
-				generateFieldSetterInTest(test, callerObject, map, fieldDeclaringClass, field, allowNullValue);
+				VariableReference setterObject = generateFieldSetterInTest(test, callerObject, map, fieldDeclaringClass, field, allowNullValue);
+				if(setterObject != null) {
+					Statement statement = test.getStatement(setterObject.getStPosition());
+					if(statement instanceof MethodStatement) {
+						MethodStatement mStat = (MethodStatement)statement;
+						if(!mStat.getParameterReferences().isEmpty()) {
+							VariableReference ref = mStat.getParameterReferences().get(0);
+							return ref;							
+						}
+					}
+				}
 //				System.currentTimeMillis();
-				return null;
+				return setterObject;
 			}
 
 		} catch (ClassNotFoundException | SecurityException | ConstructionFailedException e) {
@@ -1642,30 +1652,12 @@ public class ConstructionPathSynthesizer {
 	 * @throws IllegalAccessException 
 	 * @throws IllegalArgumentException 
 	 */
-	@SuppressWarnings("rawtypes")
 	private Executable searchForPotentialSetterInClass(Field field, String targetClassName) throws ClassNotFoundException{
 		
-		Class<?> targetClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
-				.loadClass(targetClassName);
-		
-		List<Executable> fieldSettingMethods = new ArrayList<>();
-		/**
-		 * map <field setter instruction, <m_1, ..., m_n>>, where 
-		 * m_n is the method to call field setter instruction
-		 * m_1 is the method called by test
-		 */
-		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = new ArrayList<>();
-		List<Set<Integer>> numberOfValidParams = new ArrayList<>();
-		
-		for(Method m: targetClass.getMethods()){
-			String signature = m.getName() + ReflectionUtil.getSignature(m);
-			findSetterInfo(field, targetClass, fieldSettingMethods, difficultyList, numberOfValidParams, m, signature);
-		}
-		
-		for(Constructor c: targetClass.getConstructors()){
-			String signature = "<init>" + ReflectionUtil.getSignature(c);
-			findSetterInfo(field, targetClass, fieldSettingMethods, difficultyList, numberOfValidParams, c, signature);
-		}
+		PotentialSetter potentialSetter = DataDependencyUtil.searchForPotentialSettersInClass(field, targetClassName);
+		List<Executable> fieldSettingMethods = potentialSetter.setterList;
+		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = potentialSetter.difficultyList;
+		List<Set<Integer>> numberOfValidParams = potentialSetter.numberOfValidParams;
 		
 		System.currentTimeMillis();
 		
@@ -1766,33 +1758,6 @@ public class ConstructionPathSynthesizer {
 
 	
 
-	private void findSetterInfo(Field field, Class<?> targetClass, List<Executable> fieldSettingMethods,
-			List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList, List<Set<Integer>> validParams,
-			Executable m, String signature) {
-		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = 
-				DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
-						field, 5, cascadingCallRelations, setterMap);
-		
-//		System.currentTimeMillis();
-		
-		Set<Integer> releventPrams = new HashSet<>();
-		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
-			BytecodeInstruction setterIns = entry.getKey();
-			List<BytecodeInstruction> callList = entry.getValue();
-			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, 
-					targetClass.getCanonicalName(), signature, callList);
-			releventPrams.addAll(validParamPos);
-		}
-		
-		if(!fieldSetterMap.isEmpty()){
-			fieldSettingMethods.add(m);
-			difficultyList.add(fieldSetterMap);
-			validParams.add(releventPrams);
-		}
-	}
-	
 	
 //	private Map.Entry<Constructor, Parameter> searchForPotentialConstructor(Field field, String fieldOwner,
 //			Class<?> fieldDeclaringClass, List<BytecodeInstruction> insList)
