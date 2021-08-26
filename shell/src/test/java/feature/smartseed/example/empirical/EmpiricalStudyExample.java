@@ -172,6 +172,13 @@ public class EmpiricalStudyExample {
         }
     }
     
+	public EmpiricalStudyExample(String[] columnNames, int ordinalPosition) {
+		this.columnNames = columnNames;
+		if (ordinalPosition != 1) {
+			throw new IllegalArgumentException("ordinalPosition is expected to be 1, found: " + ordinalPosition);
+		}
+	}
+    
     private static final String FILENAME = "org/databene/jdbacl/databene.db_dialect.properties";
 	public static void getDialectForProduct(String productName) {
 		String normalizedProductName = productName.toLowerCase().replace(' ', '_');
@@ -255,11 +262,4 @@ public class EmpiricalStudyExample {
 		}
 	}
 	
-	
-	public EmpiricalStudyExample(String[] columnNames, int ordinalPosition) {
-		this.columnNames = columnNames;
-		if (ordinalPosition != 1) {
-			throw new IllegalArgumentException("ordinalPosition is expected to be 1, found: " + ordinalPosition);
-		}
-	}
 }

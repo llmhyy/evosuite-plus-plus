@@ -56,11 +56,11 @@ public class ObservationRecord {
 		for(Object obser: observationMap.get(obKey)) {
 			boolean isSame = checkEquals(inputObj, obser);
 			if(isSame) {
-				return new MatchingResult(inputs.getInputVariables().get(inKey), obser, obKey);
+				return new MatchingResult(inputs.getInputVariables().get(inKey), inputObj, obKey);
 			}
 			else {
 				if(isStringCorrelation(inputObj, obser)) {
-					MatchingResult res = new MatchingResult(inputs.getInputVariables().get(inKey), obser, obKey);
+					MatchingResult res = new MatchingResult(inputs.getInputVariables().get(inKey), inputObj, obKey);
 					res.setNeedRelaxedMutation(true);
 					return res;
 				}
