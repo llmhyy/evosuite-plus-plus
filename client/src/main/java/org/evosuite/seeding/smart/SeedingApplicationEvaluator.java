@@ -245,8 +245,6 @@ public class SeedingApplicationEvaluator {
 		}
 	}
 	
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static BranchSeedInfo evaluate(Branch b, TestChromosome testSeed) {
 		
 //		for(Branch br: cache.keySet()) {
@@ -256,7 +254,6 @@ public class SeedingApplicationEvaluator {
 //				System.currentTimeMillis();
 //			}
 //		}
-		
 		
 		if (cache.containsKey(b)) {
 			BranchSeedInfo info = cache.get(b);
