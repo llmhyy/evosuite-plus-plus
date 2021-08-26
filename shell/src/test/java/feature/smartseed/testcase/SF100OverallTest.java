@@ -42,10 +42,10 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample1() {
-		String projectId = SF100Project.P7;
+		String projectId = SF100Project.P5;
 		String[] targetMethods = new String[]{
 //				"org.dom4j.tree.LazyList#getEntryHeader(I)Lorg/dom4j/tree/LazyList$Entry;"//62
-				"com.hf.sfm.util.Loader#collectToMap(Ljava/lang/String;)V"//7
+				"org.templateit.Poi2ItextUtil#chooseFontFamily(Lorg/apache/poi/hssf/usermodel/HSSFFont;I)I"//5
 				
 //				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
 //				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
@@ -101,7 +101,7 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testBugExample7() {
-		String projectId = SF100Project.P44;
+		String projectId = SF100Project.P13;
 		String[] targetMethods = new String[]{
 //				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
 //				"org.exolab.jms.selector.parser.SelectorTreeParser#literal(Lantlr/collections/AST;)Lorg/exolab/jms/selector/Expression;"//66
@@ -114,7 +114,7 @@ public class SF100OverallTest {
 
 //				"jipa.Main#loadInstructions(Ljava/lang/String;)Z"//26
 //				"jipa.Main#splitArguments(Ljava/lang/String;)[Ljava/lang/String;"//26
-				"dk.statsbiblioteket.summa.common.util.IntArray2D#isCleared(I)Z"
+				"org.databene.jdbacl.model.jdbc.DBIndexInfo#addColumn(SLjava/lang/String;)V"//13
 				
 		};
 		
@@ -156,7 +156,7 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testBugExample8() {
-		String projectId = SF100Project.P43;
+		String projectId = SF100Project.P19;
 		String[] targetMethods = new String[]{
 //				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"//43 
 //				"wheel.json.JSONTokener#next(I)Ljava/lang/String;"//80
@@ -166,12 +166,12 @@ public class SF100OverallTest {
 //				"wheel.json.JSONTokener#next(I)Ljava/lang/String;"//80
 //				"wheel.util.ActionRegistry#needsRebuilding(Lwheel/components/Component;Ljava/lang/String;)Z"//80
 //				"org.javathena.login.UserManagement#charServerToAuthentify(Lorg/javathena/core/data/Socket_data;[B)V"//81
-				"de.huxhorn.lilith.data.logging.ExtendedStackTraceElement#parseStackTraceElement(Ljava/lang/String;)Lde/huxhorn/lilith/data/logging/ExtendedStackTraceElement;"
 //				"net.sf.xbus.technical.file.FileReceiverThread#run()V"//83
+				"com.soops.CEN4010.JMCA.JParser.SimpleNode#dump(Ljava/lang/String;Ljava/io/Writer;)V"
 		};
 		
 		int repeatTime = 3;
-		int budget = 100;
+		int budget = 1000;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
@@ -253,9 +253,10 @@ public class SF100OverallTest {
 	
 	@Test
 	public void testWorseExample2() {
-		String projectId = SF100Project.P43;
+		String projectId = SF100Project.P62;
 		String[] targetMethods = new String[]{
-				"de.huxhorn.lilith.swing.ApplicationPreferences#resolveGroovyConditionScriptFile(Ljava/lang/String;)Ljava/io/File;" 
+//				"org.dom4j.tree.LazyList#getEntryHeader(I)Lorg/dom4j/tree/LazyList$Entry;"
+				"org.dom4j.tree.LazyList#getEntry(I)Lorg/dom4j/tree/LazyList$Entry;"
 		};
 		
 		int repeatTime = 1;
@@ -264,7 +265,7 @@ public class SF100OverallTest {
 		
 		String fitnessApproach = "branch";
 		boolean aor = false;
-		boolean ass = false;
+		boolean ass = true;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethodSmartSeedProbability(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5, ass);

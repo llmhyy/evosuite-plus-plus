@@ -2,6 +2,7 @@ package org.evosuite.seeding.smart;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.evosuite.Properties;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
@@ -32,34 +33,33 @@ public class ValuePreservance {
 		 * 
 		 * m(x, y1, y2, ...), 如果x是fast channel， 就去设置y
 		 */
-		
-		ObservationRecord record = recordList.get(0);
-		Object matchedObs= this.matchingResults.get(0).getMatchedObservation();
-		Object matchedObsKey = this.matchingResults.get(0).getMatchedObservationKey();
-		for(String observationIns: record.observationMap.keySet()) {
-			if (!record.isConstant(observationIns) && !observationIns.equals(matchedObsKey)) {
-				if(record.observationMap.get(observationIns).isEmpty()) continue;
-				Object ob = Randomness.choice(record.observationMap.get(observationIns));
-				if (ob.getClass().equals(matchedObs.getClass())) {
-					ObservedConstant constant = new ObservedConstant(ob, matchedObs.getClass(), null);
-					list.add(constant);
+		for(ObservationRecord record : recordList) {
+			if(observationIsNull(record.observationMap)) continue;
+			Object matchedObs= this.matchingResults.get(0).getMatchedObservation();
+			Object matchedObsKey = this.matchingResults.get(0).getMatchedObservationKey();
+			for(String observationIns: record.observationMap.keySet()) {
+				if (!record.isConstant(observationIns) && !observationIns.equals(matchedObsKey)) {
+					if(record.observationMap.get(observationIns).isEmpty()) continue;
+					Object ob = Randomness.choice(record.observationMap.get(observationIns));
+					if (ob != null && ob.getClass().equals(matchedObs.getClass())) {
+						ObservedConstant constant = new ObservedConstant(ob, matchedObs.getClass(), null);
+						list.add(constant);
+					}
 				}
 			}
+			
+			return list;
 		}
-		
 		return list;
 		
-//		
-//		for(ObservationRecord record: recordList) {
-//			for(String observationIns: record.observationMap.keySet()) {
-//				if(!record.isConstant(observationIns)) {
-//					
-//				}
-//			}
-//		}
-		
 	}
-	
+	private static  boolean observationIsNull(Map<String, List<Object>> observationMap) {
+		for(String s : observationMap.keySet()) {
+			if(observationMap.get(s).size() > 0)
+				return false;
+		}
+		return true;
+	}
 	
 	public List<BytecodeInstruction> getConstantInputVariable(){
 		List<BytecodeInstruction> list = new ArrayList<>();
