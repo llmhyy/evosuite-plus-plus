@@ -563,6 +563,8 @@ public class SeedingApplicationEvaluator {
 		 * the operands corresponding to method inputs and constants
 		 */
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
+		
+//		System.currentTimeMillis();
 		//L266 two constant inputs
 		List<DepVariable> headers = retrieveHeads(pathList);
 		
@@ -600,7 +602,7 @@ public class SeedingApplicationEvaluator {
 	private static List<BytecodeInstruction> parseRelevantOperands(Branch targetBranch) {
 		List<BytecodeInstruction> list = new ArrayList<>();
 		parseRelevantOperands(targetBranch.getInstruction(), list);
-		
+		System.currentTimeMillis();
 		return list;
 	}
 	
@@ -638,16 +640,16 @@ public class SeedingApplicationEvaluator {
 		}
 	}
 	
+	@SuppressWarnings("rawtypes")
 	private static void parseRelevantOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
 		System.currentTimeMillis();
 		DepVariable var = new DepVariable(targetIns);
 
 		// element index
+//		if (var.getName().equals("array index"))
 		if (var.isLoadArrayElement()) {
-			if (var.getName().equals("array index")) {
-				add(list, var.getInstruction());
-				return;
-			}
+			add(list, var.getInstruction());
+			return;
 		}
 		
 		if(var.isPrimitive()) {
@@ -732,10 +734,51 @@ public class SeedingApplicationEvaluator {
 			if(passMethodInfoIntInstruction(ins)) continue;
 			parseRelevantOperands(ins, list);
 		}
-
 		
 		if(targetIns.getOperands().size() == 0)
 			add(list, targetIns);
+		
+		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(targetIns.getClassName(),
+				targetIns.getMethodName());
+		String className = cfg.getClassName();
+		String methodName = cfg.getMethodName();
+		
+		if (targetIns.isLocalVariableUse() || targetIns.isFieldUse()){
+			MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
+			DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
+			defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
+			
+			List<BytecodeInstruction> defs = DefUseAnalyzer.getDefFromUse(targetIns);
+			for (BytecodeInstruction def : defs) {
+				parseRelevantOperands(def, list);
+			}
+		}
+		
+		try {
+			for(ControlDependency control: targetIns.getControlDependencies()) {
+				BytecodeInstruction controlIns = control.getBranch().getInstruction();
+				int operandNum = controlIns.getOperandNum();
+				
+				MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
+				
+				for (int i = 0; i < operandNum; i++) {
+					Frame frame = controlIns.getFrame();
+					int index = frame.getStackSize() - operandNum + i ;
+					Value val = frame.getStack(index);
+					if(val instanceof SourceValue) {
+						SourceValue srcValue = (SourceValue)val;
+						for(AbstractInsnNode insNode: srcValue.insns) {
+							BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
+							parseRelevantOperands(defIns, list);
+						}
+					}
+				}
+			}					
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static boolean passMethodInfoIntInstruction(BytecodeInstruction ins) {		
