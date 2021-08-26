@@ -19,6 +19,7 @@ import org.evosuite.graphs.cdg.ControlDependenceGraph;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
+import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.graphs.interprocedural.DepVariable;
@@ -292,17 +293,7 @@ public class SeedingApplicationEvaluator {
 
 		try {
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
-
 			if (methodInputs != null && operands != null) {
-				List<ComputationPath> pathList = new ArrayList<>();
-				for (DepVariable input : methodInputs) {
-					List<ComputationPath> computationPathList = ComputationPath.computePath(input, b);
-					pathList.addAll(computationPathList);
-				}
-				
-				System.currentTimeMillis();
-				removeRedundancy(pathList);
-				
 				if (b.isSwitchCaseBranch()) {
 					String key1 = b.toString();
 					int index1 = key1.indexOf("SWITCH");
@@ -311,24 +302,14 @@ public class SeedingApplicationEvaluator {
 						index2 = key1.indexOf("Default") - 1;
 					}
 					if (cache.size() != 0) {
-						for (Branch b0 : cache.keySet()) {
-							if (b0.isSwitchCaseBranch() && (b0.toString()
-									.contains(key1.substring(index1, index2)))) {
-								cache.put(b, cache.get(b0));
-								System.out.println(b + ":" + cache.get(b0).getBenefiticalType());
-								
-								if(cache.get(b0).getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
-									AbstractMOSA.smartBranchNum += 1;
-									String branchType = cache.get(b0).getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL ? "STATIC_POOL" : "DYNAMIC_POOL";
-									AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(), branchType);
-								}
-								return cache.get(b0);
-							}
+						BranchSeedInfo info = checkReusableSwithBranches(b, key1, index1, index2);
+						if(info != null) {
+							return info;
 						}
 					}
 				}
 				
-				ValuePreservance preservance = analyzeChannel(pathList, b, testSeed);
+				ValuePreservance preservance = analyzeChannel(methodInputs, b, testSeed);
 				System.currentTimeMillis();
 				if (preservance != null && preservance.isValuePreserving()) {
 					List<MatchingResult> results = preservance.getMatchingResults();
@@ -338,21 +319,19 @@ public class SeedingApplicationEvaluator {
 					if(testSeed != null)
 						statement = (ValueStatement) testSeed.getTestCase().getStatement(stat0.getPosition());
 					
-					if(isRelevantToRegularExpression(pathList)){
+					if(isRelevantToRegularExpression(methodInputs)){
 						String type = "string";
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type, preservance);
 						cache.put(b, branchInfo);
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
 						AbstractMOSA.smartBranchNum += 1;
 						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(), "DYNAMIC_POOL");
-//						sp.clear();
 						return branchInfo;
 					}
 					
 					/**
-					 * 
+					 * label as static pool
 					 */
-					System.currentTimeMillis();
 					List<ObservedConstant> staticConstants = preservance.getEstiamtedStaticConstants(); 
 					if (!staticConstants.isEmpty()) {
 						ObservedConstant obConstant = staticConstants.get(0);
@@ -365,11 +344,12 @@ public class SeedingApplicationEvaluator {
 						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"STATIC_POOL");
 						
 						updateTestSeedWithConstantAssignment(result, statement, staticConstants, branchInfo);
-						
 						return branchInfo;
 					} 
+					/**
+					 * label as dynamic pool
+					 */
 					else {
-//						System.currentTimeMillis();
 						List<ObservedConstant> dynamicConstants = preservance.getEstiamtedDynamicConstants();
 						
 						String type = finalType(preservance.getMatchingResults().get(0).getMatchedObservation().getClass().toString());
@@ -380,41 +360,9 @@ public class SeedingApplicationEvaluator {
 						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"DYNAMIC_POOL");
 						
 						updateTestSeedWithConstantAssignment(result, statement, dynamicConstants, branchInfo);
-//						sp.clear();
 						return branchInfo;
 					}
 
-				}
-				
-//				if(sp != null)
-//					sp.clear();
-				
-				List<ComputationPath> fastChannels = new ArrayList<>();
-				
-				/** if there is a fast channel, we observe if there is any constants? 
-				 * if yes, it is static, otherwise, it is dynamic
-				 */
-				if(fastChannels.size() != 0) {
-					System.currentTimeMillis();
-					if(isRelevantToRegularExpression(fastChannels)) {
-						return branchInfo(fastChannels, b, DYNAMIC_POOL);													
-					}
-					
-					List<ComputationPath> nonFastChannelList = checkNonfastchannels(pathList, fastChannels);
-					if (nonFastChannelList.size() == 0) {
-						if (b.getInstruction().isSwitch())
-							return new BranchSeedInfo(b, STATIC_POOL, BranchSeedInfo.INT, preservance);
-						return branchInfo(fastChannels, b, DYNAMIC_POOL);
-					}
-					else {
-//						System.currentTimeMillis();
-						List<DepVariable> constants = collectConstants(methodInputs, b, nonFastChannelList);
-						if (!constants.isEmpty()) {
-							return branchInfo(fastChannels, b, STATIC_POOL);
-						} else {
-							return branchInfo(fastChannels, b, DYNAMIC_POOL);
-						}
-					}
 				}
 			}
 		} catch (Exception e) {
@@ -425,6 +373,24 @@ public class SeedingApplicationEvaluator {
 		cache.put(b, branchInfo);
 		System.out.println("NO_POOL_1:" + b);
 		return branchInfo;
+	}
+
+	private static BranchSeedInfo checkReusableSwithBranches(Branch b, String key1, int index1, int index2) {
+		for (Branch b0 : cache.keySet()) {
+			if (b0.isSwitchCaseBranch() && (b0.toString().contains(key1.substring(index1, index2)))) {
+				cache.put(b, cache.get(b0));
+				System.out.println(b + ":" + cache.get(b0).getBenefiticalType());
+				
+				if(cache.get(b0).getBenefiticalType() != SeedingApplicationEvaluator.NO_POOL) {
+					AbstractMOSA.smartBranchNum += 1;
+					String branchType = cache.get(b0).getBenefiticalType() == SeedingApplicationEvaluator.STATIC_POOL ? "STATIC_POOL" : "DYNAMIC_POOL";
+					AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(), branchType);
+				}
+				return cache.get(b0);
+			}
+		}
+		
+		return null;
 	}
 
 	private static void updateTestSeedWithConstantAssignment(MatchingResult result, ValueStatement statement,
@@ -467,24 +433,16 @@ public class SeedingApplicationEvaluator {
 		}
 	}
 
-	private static List<ComputationPath> checkNonfastchannels(List<ComputationPath> pathList,
-			List<ComputationPath> fastChannels) {
-		List<ComputationPath> nonFastChannelList = new ArrayList<>();
-		for(ComputationPath p : pathList) {
-			if(!fastChannels.contains(p))
-				nonFastChannelList.add(p);
-		}
-		return nonFastChannelList;
-	}
-	
-	//TODO Cheng Yan
-	private static boolean isRelevantToRegularExpression(List<ComputationPath> fastChannels) {
-		for(ComputationPath path : fastChannels) {
-			int index = path.size() - 1;
-			DepVariable operand = path.getComputationNodes().get(index);
-			
-			if (operand.isMethodCall()) {
-				MethodInsnNode mNode = (MethodInsnNode) operand.getInstruction().getASMNode();
+	private static boolean isRelevantToRegularExpression(Set<DepVariable> methodInputs) {
+		
+		if(methodInputs == null || methodInputs.isEmpty()) return false;
+		
+		DepVariable var = methodInputs.iterator().next();
+		RawControlFlowGraph graph = var.getInstruction().getRawCFG();
+		for(int i=0; i<graph.vertexCount(); i++) {
+			BytecodeInstruction ins = graph.getInstruction(i);
+			if(ins.isMethodCall()) {
+				MethodInsnNode mNode = (MethodInsnNode) ins.getASMNode();
 				if (mNode.owner.equals("org/evosuite/instrumentation/testability/StringHelper")) {
 					String calledMName = mNode.name;
 					if (calledMName.toLowerCase().contains("matches") || calledMName.equals("StringMatchRegex"))
@@ -492,12 +450,7 @@ public class SeedingApplicationEvaluator {
 				}
 			}
 		}
-//		if (b.getClassName().equals("java.lang.String")) {
-//			String calledMName = fastChannels.getInstruction().getCalledMethodName();
-//			if(calledMName.contains("matches")) {
-//				return true;
-//			}
-//		}
+		
 		return false;
 	}
 
@@ -557,7 +510,7 @@ public class SeedingApplicationEvaluator {
 		return constants;
 	}
 	
-	private static ValuePreservance analyzeChannel(List<ComputationPath> pathList, Branch targetBranch,
+	private static ValuePreservance analyzeChannel(Set<DepVariable> inputs, Branch targetBranch,
 			TestChromosome testSeed) {
 		/**
 		 * the operands corresponding to method inputs and constants
@@ -565,15 +518,15 @@ public class SeedingApplicationEvaluator {
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		
 //		System.currentTimeMillis();
-		//L266 two constant inputs
-		List<DepVariable> headers = retrieveHeads(pathList);
+//		List<DepVariable> headers = retrieveHeads(pathList);
 		
 //		for(BytecodeInstruction op: auxiliaryOperands) {
 //			RuntimeSensitiveVariable.observations.put(op.toString(), ne w ArrayList<>());
 //		}
-		if(observations.size() == 0 || headers.size() == 0)
+		if(observations.size() == 0 || inputs.size() == 0)
 			return null;
 		
+		List<DepVariable> headers = new ArrayList<>(inputs); 
 		ValuePreservance sp = SensitivityMutator.testBranchSensitivity(headers, observations, targetBranch, testSeed);
 		return sp;
 	}
@@ -634,9 +587,9 @@ public class SeedingApplicationEvaluator {
 	
 	private static void add(List<BytecodeInstruction> list, BytecodeInstruction ins) {
 		if(ins != null && !list.contains(ins)) {
-//			if(!ins.isMethodCall()) {
+			if(!ins.isDefinition()) {
 				list.add(ins);					
-//			}
+			}
 		}
 	}
 	
@@ -750,6 +703,7 @@ public class SeedingApplicationEvaluator {
 			defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
 			
 			List<BytecodeInstruction> defs = DefUseAnalyzer.getDefFromUse(targetIns);
+			
 			for (BytecodeInstruction def : defs) {
 				parseRelevantOperands(def, list);
 			}
