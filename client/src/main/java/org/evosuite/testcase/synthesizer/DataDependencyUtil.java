@@ -1,5 +1,6 @@
 package org.evosuite.testcase.synthesizer;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -7,20 +8,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.TestGenerationContext;
+import org.evosuite.classpath.ResourceList;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
+import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.graphs.cfg.RawControlFlowGraph;
+import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.MethodUtil;
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -313,7 +320,7 @@ public class DataDependencyUtil {
 		if (insList != null) {
 			for (BytecodeInstruction ins : insList) {
 				if(isCollectionType(field.getType())) {
-					if(isCallElementModification(ins)) {
+					if(isCallElementModification(ins, field)) {
 						setterMap.put(ins, new ArrayList<>(cascadingCallRelations));
 					}
 				}
@@ -365,10 +372,32 @@ public class DataDependencyUtil {
 	 * @param ins
 	 * @return
 	 */
-	private static boolean isCallElementModification(BytecodeInstruction ins) {
+	private static boolean isCallElementModification(BytecodeInstruction ins, Field field) {
 		// TODO aaron
 //		java.lang.System.out.println(ins.getMethodName());
 //		java.lang.System.out.println(ins.getASMNodeString());
+		
+		if(!ins.isMethodCall()) return false;
+		
+		boolean useCorrectField = false;
+		List<BytecodeInstruction> operands = ins.getOperands();
+		for(BytecodeInstruction instruction: operands) {
+			if(instruction.isFieldUse()) {
+				AbstractInsnNode asmNode = instruction.getASMNode();
+				if(asmNode instanceof FieldInsnNode) {
+					String fieldName = ((FieldInsnNode)asmNode).name;
+					if(fieldName != null && fieldName.equals(field.getName())) {
+						useCorrectField = true;
+					}
+					
+				}
+				
+			}
+		}
+		
+		if(!useCorrectField) {
+			return false;
+		} 
 		
 		// Check if instruction invokes another method
 		AbstractInsnNode asmNode = ins.getASMNode();
