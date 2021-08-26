@@ -1,5 +1,9 @@
 package org.evosuite.seeding.smart;
 
+import java.lang.reflect.Executable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
@@ -17,6 +22,7 @@ import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
@@ -37,7 +43,9 @@ import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
+import org.evosuite.testcase.synthesizer.DataDependencyUtil;
 import org.evosuite.testcase.synthesizer.DepVariableWrapper;
+import org.evosuite.testcase.synthesizer.PotentialSetter;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.ConstantValue;
@@ -45,8 +53,12 @@ import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.NullReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testcase.variable.VariableReferenceImpl;
+import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
+import org.evosuite.utils.generic.GenericClass;
+import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
@@ -157,6 +169,42 @@ public class SensitivityMutator {
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
+			
+			TestCase test0 = test.clone();
+			
+			for(DepVariableWrapper var: synthensizer.getGraph2CodeMap().keySet()) {
+				
+				if(var.var.referenceToThis())continue;
+				
+				List<VariableReference> refList = synthensizer.getGraph2CodeMap().get(var);
+				
+				for(VariableReference ref: refList) {
+					Statement statement = test.getStatement(ref.getStPosition());
+					if(statement instanceof ConstructorStatement) {
+						ConstructorStatement cStatement = (ConstructorStatement)statement;
+						List<Method> fieldSettingMethodList = detectFieldSettingsMethod(cStatement.getReturnType());
+						constructAdditionalFieldSettingsStatements(test0, cStatement, fieldSettingMethodList);
+						
+						TestChromosome trial = new TestChromosome();
+						trial.setTestCase(test0);
+						FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, testSeed);
+						trial.addFitness(fitness);
+						trial.clearCachedResults();
+						fitness.getFitness(trial);
+						
+						if(trial.getLastExecutionResult().hasTestException()) {
+							test0 = test;
+						}
+						else {
+							test = test0;
+						}
+						
+//						System.currentTimeMillis();
+					}
+				}
+			}
+			
+				
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -183,7 +231,7 @@ public class SensitivityMutator {
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
 			
 			newTestChromosome = (TestChromosome) newTestChromosome.clone();
-			//TODO how to get array list input
+			
 			MethodInputs inputs = constructInputValues(rootVariables, newTestChromosome, map);
 			inputs.mutate();
 			Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
@@ -231,7 +279,6 @@ public class SensitivityMutator {
 		return true;
 	}
 
-	@SuppressWarnings("rawtypes")
 	private static MethodInputs constructInputValues(List<DepVariable> rootVariables,
 			TestChromosome newTestChromosome, Map<DepVariableWrapper, List<VariableReference>> map) {
 		Map<String, ValueStatement> inputVariables = new HashMap<>();
@@ -251,23 +298,15 @@ public class SensitivityMutator {
 				if(varList == null) continue;
 				for(VariableReference ref: varList) {
 					Statement statement = newTestChromosome.getTestCase().getStatement(ref.getStPosition()); 
-					if(statement instanceof PrimitiveStatement) {
-						relevantStatements.add((PrimitiveStatement)statement);
-					}
-					else if(statement instanceof ArrayStatement) {
-						List<ValueStatement> primitiveStatements = checkAllRelevantIndexes((ArrayStatement)statement);
-						for(ValueStatement pStat: primitiveStatements) {
-							if(!relevantStatements.contains(pStat)) {
-								relevantStatements.add(pStat);
-							}
-						}
-					}
 					
-//					System.currentTimeMillis();
+					List<ValueStatement> set = new ArrayList<>();
+					search(set, statement, newTestChromosome);
+					
+					relevantStatements.addAll(set);
 				}
 			}
 			
-			System.currentTimeMillis();
+//			System.currentTimeMillis();
 			for(int i=0; i<relevantStatements.size(); i++) {
 				ValueStatement inputStatement = relevantStatements.get(i);
 				if(inputStatement instanceof NullStatement) 
@@ -277,6 +316,183 @@ public class SensitivityMutator {
 		}
 
 		return new MethodInputs(inputVariables, inputConstants);
+	}
+
+	public static List<ValueStatement> constructAdditionalFieldSettingsStatements(TestCase test,
+			ConstructorStatement cStatement, List<Method> fieldSettingMethodList) {
+		
+		List<ValueStatement> list = new ArrayList<>();
+		
+		VariableReference callee = cStatement.getReturnValue();
+		
+		Type type = cStatement.getReturnType();
+		GenericClass genericClazz = new GenericClass(type);
+		for(int i=0; i<1; i++) {
+			//TODO Cheng Yan have a distribution
+			Method m = Randomness.choice(fieldSettingMethodList);
+			GenericMethod method = new GenericMethod(m, genericClazz);
+			
+			try {
+				TestFactory.getInstance().addMethodFor(test, callee, method, 
+						cStatement.getPosition()+1, false);
+				
+				for(int j=cStatement.getPosition()+1; j<test.size(); j++) {
+					Statement s = test.getStatement(j);
+					if(s instanceof MethodStatement) {
+						if(((MethodStatement)s).getMethodName().equals(m.getName())) {
+							break;
+						}
+					}
+					else if(s instanceof ValueStatement) {
+						list.add((ValueStatement)s);
+					}
+				}
+				
+			} catch (ConstructionFailedException e) {
+//				e.printStackTrace();
+				System.currentTimeMillis();
+			}
+			
+			
+			System.currentTimeMillis();
+		}
+		
+		
+		return list;
+	}
+
+	private static List<ValueStatement> findAllfieldSettingStatements(ConstructorStatement cStatement,
+			List<Method> fieldSettingMethodList) {
+		
+		List<ValueStatement> vList = new ArrayList<>();
+		
+		TestCase test = cStatement.getTestCase();
+		for(int i=cStatement.getPosition(); i<test.size(); i++) {
+			Statement s = test.getStatement(i);
+			if(s instanceof MethodStatement) {
+				MethodStatement mStatement = (MethodStatement)s;
+				
+				if(fieldSettingMethodList.contains(mStatement.getMethod().getMethod())) {
+					List<VariableReference> params = mStatement.getParameterReferences();
+					for(VariableReference param: params) {
+						Statement s0 = test.getStatement(param.getStPosition());
+						if(s0 instanceof ValueStatement) {
+							vList.add((ValueStatement)s0);
+						}
+					}
+				}
+				
+			}
+		}
+		
+		return vList;
+	}
+
+	private static List<ValueStatement> findAllParameters(ConstructorStatement cStatement, 
+			TestChromosome newTestChromosome, List<ValueStatement> relevantStatements) {
+		TestCase test = cStatement.getTestCase();
+		List<VariableReference> parameters = cStatement.getParameterReferences();
+		for(VariableReference param: parameters) {
+			Statement statement = test.getStatement(param.getStPosition());
+			search(relevantStatements, statement, newTestChromosome);
+		}
+		
+		return relevantStatements;
+	}
+
+	@SuppressWarnings("rawtypes")
+	/**
+	 * if it is the first time to search the relevant statements, we can try to add more primitive statements
+	 * @param relevantStatements
+	 * @param statement
+	 * @param newTestChromosome
+	 * @param firstTime
+	 */
+	private static void search(List<ValueStatement> relevantStatements, Statement statement, 
+			TestChromosome newTestChromosome) {
+		if(statement instanceof PrimitiveStatement) {
+			relevantStatements.add((PrimitiveStatement)statement);
+		}
+		else if(statement instanceof ArrayStatement) {
+			List<ValueStatement> primitiveStatements = checkAllRelevantIndexes((ArrayStatement)statement);
+			for(ValueStatement pStat: primitiveStatements) {
+				if(!relevantStatements.contains(pStat)) {
+					relevantStatements.add(pStat);
+				}
+			}
+		}
+		else if(statement instanceof ConstructorStatement) {
+			ConstructorStatement cStatement = (ConstructorStatement)statement;
+			
+			Type type = cStatement.getReturnType();
+			List<Method> fieldSettingMethodList = detectFieldSettingsMethod(type);
+			
+			List<ValueStatement> list = new ArrayList<>();
+			List<ValueStatement> parameterDefinitionStatements = findAllParameters(cStatement, 
+					newTestChromosome, relevantStatements);
+			List<ValueStatement> fieldSettingStatements = findAllfieldSettingStatements(cStatement, fieldSettingMethodList);
+			
+			list.addAll(parameterDefinitionStatements);
+			list.addAll(fieldSettingStatements);
+			
+			for(ValueStatement pStat: list) {
+				if(!relevantStatements.contains(pStat)) {
+					relevantStatements.add(pStat);
+				}
+			}
+		}
+		
+	}
+
+	private static List<Method> detectFieldSettingsMethod(Type type) {
+		GenericClass genericClazz = new GenericClass(type);
+		String className = genericClazz.getClassName();
+		
+		List<Method> fieldSettingMethodList = searchForFieldSettingMethods(className);
+		if(fieldSettingMethodList.isEmpty()) {
+			className = genericClazz.getSuperClass().getClassName();
+			fieldSettingMethodList = searchForFieldSettingMethods(className);
+			System.currentTimeMillis();
+		}
+		return fieldSettingMethodList;
+	}
+
+	private static List<Method> searchForFieldSettingMethods(String className) {
+		List<Method> list = new ArrayList<>();
+		
+		try {
+			InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+			Class<?> clazz = classLoader.loadClass(className);
+			
+			while(clazz.getDeclaredFields().length == 0) {
+				Class<?> parent = clazz.getSuperclass();
+				if(parent == null) {
+					break;
+				}
+				else {
+					clazz = parent;
+				}
+			}
+			
+			for(Field field: clazz.getDeclaredFields()) {
+				PotentialSetter pSetter = DataDependencyUtil.searchForPotentialSettersInClass(field, className);
+				
+				for(Executable e: pSetter.setterList) {
+					if(e instanceof Method) {
+						Method m = (Method)e;
+						if(!list.contains(m) && m.getParameterCount() != 0) {
+							list.add(m);
+						}
+					}
+				}
+			}
+			
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		System.currentTimeMillis();
+		return list;
 	}
 
 	private static AssignmentStatement findAssignmentStatementWithValue(VariableReference ref,
@@ -728,7 +944,6 @@ public class SensitivityMutator {
 		for (FitnessFunction<?> f : set) {
 			newTestChromosome.addFitness(f);
 		}
-		FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, newTestChromosome);
 
 		InstrumentingClassLoader newClassLoader = createOrFindClassLoader(observations, newTestChromosome);
 		
@@ -739,6 +954,7 @@ public class SensitivityMutator {
 		
 		((DefaultTestCase) newTestChromosome.getTestCase()).changeClassLoader(newClassLoader);
 		
+		FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, newTestChromosome);
 		newTestChromosome.addFitness(fitness);
 		newTestChromosome.clearCachedResults();
 		fitness.getFitness(newTestChromosome);
