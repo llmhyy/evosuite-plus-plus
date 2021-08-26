@@ -250,7 +250,7 @@ public class TrueExample {
 	public void arrayList(List<String> localList,String name) {
 		
 		String value = localList.get(localList.size() - 1);
-		String subValue = value.concat("stu");
+		String subValue = value.concat("it is a testing work");
 		
 		//field
 		if(list.contains(subValue)) {
