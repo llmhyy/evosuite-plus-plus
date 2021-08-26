@@ -56,11 +56,11 @@ public class ObservationRecord {
 		for(Object obser: observationMap.get(obKey)) {
 			boolean isSame = checkEquals(inputObj, obser);
 			if(isSame) {
-				return new MatchingResult(inputs.getInputVariables().get(inKey), obser);
+				return new MatchingResult(inputs.getInputVariables().get(inKey), obser, obKey);
 			}
 			else {
 				if(isStringCorrelation(inputObj, obser)) {
-					MatchingResult res = new MatchingResult(inputs.getInputVariables().get(inKey), obser);
+					MatchingResult res = new MatchingResult(inputs.getInputVariables().get(inKey), obser, obKey);
 					res.setNeedRelaxedMutation(true);
 					return res;
 				}
@@ -86,7 +86,7 @@ public class ObservationRecord {
 				}
 			}
 			if (sb.length() > 0 &&sb.toString().equals(inputs.getInputVariables().get(inKey).getAssignmentValue())) {
-				MatchingResult res = new MatchingResult(inputs.getInputVariables().get(inKey), sb.toString());
+				MatchingResult res = new MatchingResult(inputs.getInputVariables().get(inKey), sb.toString(), obKey);
 				res.setNeedRelaxedMutation(true);
 				return res;
 			}
@@ -175,14 +175,20 @@ public class ObservationRecord {
 		
 		if ((value instanceof String || value instanceof Character)
 				&& (constantValue instanceof String || constantValue instanceof Character)) {
-			if (constantValue instanceof Character) {
+			if (value instanceof Character) 
+				value = value.toString();
+			
+			if (constantValue instanceof Character) 
 				constantValue = constantValue.toString();
-			}
 
 			if (value != null && constantValue != null) {
-				return value.toString().toLowerCase().contains(constantValue.toString().toLowerCase())
-						|| StringEscapeUtils.unescapeJava(value.toString().toLowerCase())
-								.contains(StringEscapeUtils.unescapeJava(constantValue.toString().toLowerCase()));
+				if (value.toString().toLowerCase().contains(constantValue.toString().toLowerCase())
+					||constantValue.toString().toLowerCase().contains(value.toString().toLowerCase()))
+					return true;
+				else if (value.toString().toLowerCase().contains("\\")) {
+					return value.toString().toLowerCase()
+							.contains(StringEscapeUtils.escapeJava(constantValue.toString().toLowerCase()));
+				}
 			}
 		}
 
@@ -192,9 +198,12 @@ public class ObservationRecord {
 
 	private boolean isStringEquals(Object value, Object constantValue) {
 		if (value != null && constantValue != null) {
-			return value.toString().toLowerCase().equals(constantValue.toString().toLowerCase())
-					|| StringEscapeUtils.unescapeJava(value.toString().toLowerCase())
-					.equals(StringEscapeUtils.unescapeJava(constantValue.toString().toLowerCase()));
+			if (value.toString().toLowerCase().equals(constantValue.toString().toLowerCase()))
+				return true;
+			else if (value.toString().toLowerCase().contains("\\")) {
+				return value.toString().toLowerCase()
+						.contains(StringEscapeUtils.escapeJava(constantValue.toString().toLowerCase()));
+			}
 		}
 
 		return false;

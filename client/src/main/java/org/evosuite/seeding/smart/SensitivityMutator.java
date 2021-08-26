@@ -183,6 +183,7 @@ public class SensitivityMutator {
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
 			
 			newTestChromosome = (TestChromosome) newTestChromosome.clone();
+			//TODO how to get array list input
 			MethodInputs inputs = constructInputValues(rootVariables, newTestChromosome, map);
 			inputs.mutate();
 			Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);

@@ -300,7 +300,7 @@ public class SeedingApplicationEvaluator {
 					pathList.addAll(computationPathList);
 				}
 				
-//				System.currentTimeMillis();
+				System.currentTimeMillis();
 				removeRedundancy(pathList);
 				
 				if (b.isSwitchCaseBranch()) {
@@ -352,7 +352,7 @@ public class SeedingApplicationEvaluator {
 					/**
 					 * 
 					 */
-//					System.currentTimeMillis();
+					System.currentTimeMillis();
 					List<ObservedConstant> staticConstants = preservance.getEstiamtedStaticConstants(); 
 					if (!staticConstants.isEmpty()) {
 						ObservedConstant obConstant = staticConstants.get(0);
@@ -369,6 +369,7 @@ public class SeedingApplicationEvaluator {
 						return branchInfo;
 					} 
 					else {
+//						System.currentTimeMillis();
 						List<ObservedConstant> dynamicConstants = preservance.getEstiamtedDynamicConstants();
 						
 						String type = finalType(preservance.getMatchingResults().get(0).getMatchedObservation().getClass().toString());
@@ -377,6 +378,8 @@ public class SeedingApplicationEvaluator {
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
 						AbstractMOSA.smartBranchNum += 1;
 						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"DYNAMIC_POOL");
+						
+						updateTestSeedWithConstantAssignment(result, statement, dynamicConstants, branchInfo);
 //						sp.clear();
 						return branchInfo;
 					}
@@ -426,39 +429,39 @@ public class SeedingApplicationEvaluator {
 
 	private static void updateTestSeedWithConstantAssignment(MatchingResult result, ValueStatement statement,
 			List<ObservedConstant> observedConstants, BranchSeedInfo branchInfo) {
-		for(ObservedConstant obj : observedConstants) {
+		if(observedConstants.isEmpty()) return;
+		for (ObservedConstant obj : observedConstants) {
 			branchInfo.addPotentialSeed(obj);
 			try {
-				if(statement != null) {
-					if(obj.isCompatible(statement.getAssignmentValue())) {
-						if(statement instanceof ValueStatement) {
-							((ValueStatement)statement).setAssignmentValue(obj.getValue());
+				if (statement != null) {
+					if (obj.isCompatible(statement.getAssignmentValue())) {
+						if (statement instanceof ValueStatement) {
+							((ValueStatement) statement).setAssignmentValue(obj.getValue());
 						}
-						//correlation
+						// correlation
 						if (result.needRelaxedMutation()) {
-							if (result.getMatchedObservation() instanceof Character && obj.getValue() instanceof Integer) {
+							if (result.getMatchedObservation() instanceof Character
+									&& obj.getValue() instanceof Integer) {
 								int in = (Integer) obj.getValue();
-								Character c = (char)in;
-								
+								Character c = (char) in;
+
 								Object objValue = statement.getAssignmentValue();
-								if(objValue != null) {
+								if (objValue != null) {
 									String stringAddChar = objValue.toString().concat(c.toString());
-									statement.setAssignmentValue(stringAddChar);												
+									statement.setAssignmentValue(stringAddChar);
 								}
-								
+
 							} else {
 								Object objValue = statement.getAssignmentValue();
-								if(objValue != null) {
+								if (objValue != null) {
 									String appendString = objValue.toString().concat(obj.getValue().toString());
 									statement.setAssignmentValue(appendString);
 								}
 							}
 						}
 					}
-					
 				}
-			}
-			catch(Exception e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -560,6 +563,7 @@ public class SeedingApplicationEvaluator {
 		 * the operands corresponding to method inputs and constants
 		 */
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
+		//L266 two constant inputs
 		List<DepVariable> headers = retrieveHeads(pathList);
 		
 //		for(BytecodeInstruction op: auxiliaryOperands) {
@@ -635,7 +639,7 @@ public class SeedingApplicationEvaluator {
 	}
 	
 	private static void parseRelevantOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		DepVariable var = new DepVariable(targetIns);
 
 		// element index
@@ -697,6 +701,7 @@ public class SeedingApplicationEvaluator {
 					}
 				}
 				else {
+					//TODO can get array list observation (ALOAD)
 					getInstructionOperands(targetIns,list);
 					return;
 				}
@@ -717,12 +722,14 @@ public class SeedingApplicationEvaluator {
 		
 		if (var.isCompare()) {
 			for (BytecodeInstruction ins : targetIns.getOperands()) {
-					add(list, ins);					
+				if(passMethodInfoIntInstruction(ins)) continue;
+				add(list, ins);					
 			}
 			return;
 		}
 
 		for (BytecodeInstruction ins : targetIns.getOperands()) {
+			if(passMethodInfoIntInstruction(ins)) continue;
 			parseRelevantOperands(ins, list);
 		}
 
@@ -731,8 +738,27 @@ public class SeedingApplicationEvaluator {
 			add(list, targetIns);
 	}
 
+	private static boolean passMethodInfoIntInstruction(BytecodeInstruction ins) {		
+		AbstractInsnNode node = ins.getASMNode();
+		if (node.getType() == AbstractInsnNode.INT_INSN) {
+			IntInsnNode iins = (IntInsnNode) node;
+			if (iins.getOpcode() == Opcodes.SIPUSH) {
+				AbstractInsnNode preNode = ins.getPreviousInstruction().getASMNode();
+				if(preNode.getType() == AbstractInsnNode.LDC_INSN) {
+					LdcInsnNode ldc = (LdcInsnNode) preNode;
+					String cla = Properties.TARGET_CLASS.replace('.', '/');
+					if (ldc.cst.toString().contains(cla + "#")) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	private static void getInstructionOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
 		for (BytecodeInstruction ins : targetIns.getOperands()) {
+			if(passMethodInfoIntInstruction(ins)) continue;
 			BytecodeInstruction insCopy = ins;
 			
 			if (insCopy.getASMNode().getOpcode() == Opcodes.CHECKCAST) {
@@ -749,18 +775,8 @@ public class SeedingApplicationEvaluator {
 				add(list, i);
 				continue;
 			}
-
-//			if (insCopy.getType() == null && insCopy.getASMNode().getOpcode() == Opcodes.SIPUSH) {
-//				BytecodeInstruction i = insCopy.getPreviousInstruction();
-//				i = i.getPreviousInstruction();
-//				add(list, i);
-//				continue;
-//			}
-//			if (ins.isMethodCall()) {
-//				getInstructionOperands(insCopy, list);
-//			}
-//			else
-				add(list, insCopy);
+			
+			add(list, insCopy);
 		}
 	}
 

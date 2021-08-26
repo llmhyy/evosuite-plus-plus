@@ -56,6 +56,30 @@ public class MethodInputs {
 					Object obj = Randomness.nextString(10);
 					aStat.setAssignmentValue(obj);
 				}
+				else if(t.equals(Short.class)) {
+					Object obj = Randomness.nextShort();
+					aStat.setAssignmentValue(obj);
+				}
+				else if(t.equals(Long.class)) {
+					Object obj = Randomness.nextLong();
+					aStat.setAssignmentValue(obj);
+				}
+				else if(t.equals(Character.class)) {
+					Object obj = Randomness.nextChar();
+					aStat.setAssignmentValue(obj);
+				}
+				else if(t.equals(Byte.class)) {
+					Object obj = Randomness.nextByte();
+					aStat.setAssignmentValue(obj);
+				}
+				else if(t.equals(Double.class)) {
+					Object obj = Randomness.nextDouble();
+					aStat.setAssignmentValue(obj);
+				}
+				else if(t.equals(Float.class)) {
+					Object obj = Randomness.nextFloat();
+					aStat.setAssignmentValue(obj);
+				}
 			}
 			else {
 				statement.mutate(statement.getTestCase(), TestFactory.getInstance());				

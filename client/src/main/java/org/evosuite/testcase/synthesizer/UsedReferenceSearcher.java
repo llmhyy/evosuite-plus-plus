@@ -143,18 +143,22 @@ public class UsedReferenceSearcher {
 							}
 						}
 					}
-				}else if(stat instanceof AssignmentStatement) {
-					//obj.name = string;
+				} else if (stat instanceof AssignmentStatement) {
+					// obj.name = string;
 					AssignmentStatement aStat = (AssignmentStatement) stat;
-					
-					if (aStat.getReturnValue().getName().split(".").equals(field.getName())
-							&& aStat.getReturnValue().getAdditionalVariableReference().equals(targetObject)) {
-						VariableReference ref = aStat.getValue();
-						if (!relevantRefs.contains(ref)) {
-							relevantRefs.add(ref);
-							refPostions.put(i, ref);
+					String returnName = aStat.getReturnValue().getName();
+					if (returnName.contains(".")) {
+						String filedName = returnName.substring(returnName.lastIndexOf(".") + 1);
+						if (filedName.equals(field.getName())
+								&& aStat.getReturnValue().getAdditionalVariableReference().equals(targetObject)) {
+							VariableReference ref = aStat.getValue();
+							if (!relevantRefs.contains(ref)) {
+								relevantRefs.add(ref);
+								refPostions.put(i, ref);
+							}
 						}
 					}
+
 				}
 			}
 		}

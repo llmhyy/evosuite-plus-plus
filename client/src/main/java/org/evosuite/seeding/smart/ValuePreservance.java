@@ -7,6 +7,7 @@ import org.evosuite.Properties;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.utils.Randomness;
 
 public class ValuePreservance {
 	
@@ -28,7 +29,22 @@ public class ValuePreservance {
 		 * m(x, y1, y2, ...), 如果x是fast channel， 就去设置y
 		 */
 		
-//		ObservationRecord record = recordList
+		ObservationRecord record = recordList.get(0);
+		Object matchedObs= this.matchingResults.get(0).getMatchedObservation();
+		Object matchedObsKey = this.matchingResults.get(0).getMatchedObservationKey();
+		for(String observationIns: record.observationMap.keySet()) {
+			if (!record.isConstant(observationIns) && !observationIns.equals(matchedObsKey)) {
+				if(record.observationMap.get(observationIns).isEmpty()) continue;
+				Object ob = Randomness.choice(record.observationMap.get(observationIns));
+				if (ob.getClass().equals(matchedObs.getClass())) {
+					ObservedConstant constant = new ObservedConstant(ob, matchedObs.getClass(), null);
+					list.add(constant);
+				}
+			}
+		}
+		
+		return list;
+		
 //		
 //		for(ObservationRecord record: recordList) {
 //			for(String observationIns: record.observationMap.keySet()) {
@@ -38,8 +54,6 @@ public class ValuePreservance {
 //			}
 //		}
 		
-		
-		return null;
 	}
 	
 	

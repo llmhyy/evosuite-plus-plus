@@ -1,7 +1,9 @@
 package feature.smartseed.example.truecase;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
 public class TrueExample {
@@ -226,8 +228,8 @@ public class TrueExample {
 	private Vector _switches = new Vector();
 
 	public void JDKInstrument(String name, String value, boolean overwrite) {
-		boolean isRemove = _switches.contains(name);
-		if (isRemove) {
+		boolean isContain = _switches.contains(name);
+		if (isContain) {
 			System.currentTimeMillis();
 		}
 
@@ -242,6 +244,41 @@ public class TrueExample {
 		if (charList[charList.length - 3] == 'L') {
 			System.currentTimeMillis();
 		}
+	}
+	
+	private List<String> list = new ArrayList<>();
+	public void arrayList(List<String> localList,String name) {
+		
+		String value = localList.get(localList.size() - 1);
+		String subValue = value.concat("stu");
+		
+		//field
+		if(list.contains(subValue)) {
+			System.currentTimeMillis();
+		}
+		
+		boolean isContain = list.contains(name);
+		if (isContain) {
+			System.currentTimeMillis();
+		}
+		
+		//array
+		if(localList.contains(subValue)) {
+			System.currentTimeMillis();
+		}
+		
+		isContain = localList.contains(name);
+		if (isContain) {
+			System.currentTimeMillis();
+		}
+	}
+
+	public void setList(List<String> list) {
+		this.list = list;
+	}
+	
+	public void addList(String s) {
+		list.add(s);
 	}
 
 }
