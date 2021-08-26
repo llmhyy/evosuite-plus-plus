@@ -8,24 +8,25 @@ import java.lang.reflect.Method;
 public class ReflectionUtil {
 	public static String getSignature(Executable m){
 	    String sig;
-	    try {
-	    	if(m instanceof Method){
-	    		Field gSig = Method.class.getDeclaredField("signature");
-	    		gSig.setAccessible(true);
-	    		sig = (String) gSig.get(m);
-	    		if(sig!=null) {
-	    			int index0 = sig.indexOf("<");
-	    		    int index1 = sig.indexOf(">");
-	    		    if(index0 < index1) {
-	    		    	sig = sig.substring(0, index0) + sig.substring(index1+1, sig.length());
-	    		    }
-	    			return sig;
-	    		}	    		
-	    			
-	    	}
-	    } catch (Exception e) { 
-	        e.printStackTrace();
-	    }
+//	    try {
+//	    	if(m instanceof Method){
+//	    		Field gSig = Method.class.getDeclaredField("signature");
+//	    		gSig.setAccessible(true);
+//	    		sig = (String) gSig.get(m);
+//	    		if(sig!=null) {
+//	    			int index0 = sig.indexOf("<");
+//	    		    int index1 = sig.indexOf(">");
+//	    		    if(index0 < index1) {
+//	    		    	sig = sig.substring(0, index0) + sig.substring(index1+1, sig.length());
+//	    		    }
+//	    		    System.currentTimeMillis();
+//	    			return sig;
+//	    		}	    		
+//	    			
+//	    	}
+//	    } catch (Exception e) { 
+//	        e.printStackTrace();
+//	    }
 
 	    StringBuilder sb = new StringBuilder("(");
 	    for(Class<?> c : m.getParameterTypes()) 
