@@ -96,7 +96,6 @@ public class ValuePreservance {
 	 * @return
 	 */
 	public boolean isValuePreserving() {
-		double valuePreservingRatio = 0;
 		
 		if(this.recordList.isEmpty()) {
 			return false;
@@ -105,15 +104,17 @@ public class ValuePreservance {
 		ObservationRecord record0 = this.recordList.get(0);
 		
 		for(String inputKey: record0.inputs.getInputVariables().keySet()) {
+			System.currentTimeMillis();
+			
 			for(String obKey: record0.observationMap.keySet()) {
-				valuePreservingRatio = 0;
+				double valuePreservingCount = 0;
 				for (ObservationRecord record : recordList) {
 					MatchingResult result = record.checkSameValue(inputKey, obKey);
 					
 					if (result != null) {
-						valuePreservingRatio++;
-						if ((valuePreservingRatio
-								/ Properties.DYNAMIC_SENSITIVITY_THRESHOLD >= Properties.FAST_CHANNEL_SCORE_THRESHOLD)) {
+						valuePreservingCount++;
+						double valuePreservingRatio = ((double)valuePreservingCount)/recordList.size();
+						if (valuePreservingRatio >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
 							this.matchingResults.add(result);
 							break;
 						}
@@ -121,7 +122,7 @@ public class ValuePreservance {
 				}
 			}
 		}
-		
+		System.currentTimeMillis();
 		return !matchingResults.isEmpty();
 		
 	}
