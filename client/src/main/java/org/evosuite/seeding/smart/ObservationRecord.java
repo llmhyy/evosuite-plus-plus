@@ -187,7 +187,7 @@ public class ObservationRecord {
 		Map<String, Object> subObservationMap = new HashMap<>();
 		
 		if(!visitedObjects.contains(observation)) {
-			traverseObjectGraph(observation, subObservationMap, depth, visitedObjects);
+			traverseObjectGraph(observation, subObservationMap, "root", depth, visitedObjects);
 			for(String key: subObservationMap.keySet()) {
 				Object v = subObservationMap.get(key);
 				
@@ -202,43 +202,48 @@ public class ObservationRecord {
 
 
 	private void traverseObjectGraph(Object observation, Map<String, Object> subObservationMap, 
-			int depth, Set<Object> visitedObjects) {
+			String key, int depth, Set<Object> visitedObjects) {
 		visitedObjects.add(observation);
 		if(depth < 1) {
 			return;
 		}
 		
 		Class<?> clazz = observation.getClass();
-		for(Field field: clazz.getDeclaredFields()) {
-			
-			field.setAccessible(true);
-			try {
-				Object fieldObservation = field.get(observation);
-				
-				if(fieldObservation != null) {
-					Class<?> fieldClazz = fieldObservation.getClass();
-					if(fieldClazz.isPrimitive() || 
-							fieldClazz.getCanonicalName().equals("java.lang.String") ||
-							Number.class.isAssignableFrom(fieldClazz)) {
-						String key = clazz.getCanonicalName() + "#" + field.getName();
-						subObservationMap.put(key, fieldObservation);
-					}
-					else if(fieldClazz.isArray()) {
-						System.currentTimeMillis();
-					}
-					else {
-						traverseObjectGraph(fieldObservation, subObservationMap, depth-1, visitedObjects);
-					}					
+		if(clazz.isPrimitive() || 
+				clazz.getCanonicalName().equals("java.lang.String") ||
+				Number.class.isAssignableFrom(clazz)) {
+			subObservationMap.put(key, observation);
+		}
+		else if(clazz.isArray()) {
+			Object[] arrary = (Object[])observation;
+			int i = 0;
+			for(Object arrayElementValue: arrary) {
+				if(arrayElementValue != null) {
+					String usedKey = key + "[" + i + "]"; 
+					traverseObjectGraph(arrayElementValue, subObservationMap, usedKey, depth-1, visitedObjects);
 				}
-				
-				
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
 			}
 			
+			System.currentTimeMillis();
 		}
+		else {
+			for(Field field: clazz.getDeclaredFields()) {
+				field.setAccessible(true);
+				try {
+					Object fieldObservation = field.get(observation);
+					
+					if(fieldObservation != null) {
+						String usedKey = key + "." + field.getName(); 
+						traverseObjectGraph(fieldObservation, subObservationMap, usedKey, depth-1, visitedObjects);
+					}
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
 		
 	}
 
