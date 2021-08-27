@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class Config {
 	private Boolean highQuality;
-	private final ArrayList0<String> options;
-//	private final List<String> options;
+//	private final ArrayList0<String> options;
+	private final List<String> options;
 	private boolean helpRequired;
 	private boolean dbHelpRequired;
 	

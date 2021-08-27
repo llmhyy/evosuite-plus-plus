@@ -248,8 +248,8 @@ public class TrueExample {
 	
 	private List<String> list = new ArrayList<>();
 	public void arrayList(List<String> localList,String name) {
-		
-		String value = localList.get(localList.size() - 1);
+//		String value = localList.get(localList.size() - 1);
+		String value = "append test";
 		String subValue = value.concat("it is a testing work");
 		
 		//field
@@ -283,7 +283,7 @@ public class TrueExample {
 	
 	ArrayList<String> identifiers;
 	int id;
-	public void setIdentifier(final String s) {
+	public void setIdentifier(String s) {
 		this.identifiers.add(s);
 	}
 	
@@ -320,4 +320,39 @@ public class TrueExample {
 	public TrueExample(int i) {
 		this.id = i;
 	}
+	
+	
+	public static int magicConstant1 = 123456789;
+	public static int magicConstant2 = 23456789;
+	public static int magicConstant3 = 3456789;
+	public static int magicConstant4 = 456789;
+	public static int magicConstant5 = 56789;
+	public static int magicConstant6 = 6789;
+	public static int magicConstant7 = 789;
+	
+	public static void difficultForEvoSeed(int a, int b, int c, int d, int e, int f, int g) {
+		boolean branchCond1 = (a * Integer.valueOf("10") == Integer.valueOf("1234567890"));
+		if (branchCond1) {
+			boolean branchCond2 = (b * Integer.valueOf("10") == Integer.valueOf("234567890"));
+			if (branchCond2) {
+				boolean branchCond3 = (c * Integer.valueOf("10") == Integer.valueOf("34567890"));
+				if (branchCond3) {
+					boolean branchCond4 = (d * Integer.valueOf("10") == Integer.valueOf("4567890"));
+					if (branchCond4) {
+						boolean branchCond5 = (e * Integer.valueOf("10") == Integer.valueOf("567890"));
+						if (branchCond5) {
+							boolean branchCond6 = (f * Integer.valueOf("10") == Integer.valueOf("67890"));
+							if (branchCond6) {
+								boolean branchCond7 = (g * Integer.valueOf("10") == Integer.valueOf("7890"));
+								if (branchCond7) {
+									System.currentTimeMillis();
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
 }
