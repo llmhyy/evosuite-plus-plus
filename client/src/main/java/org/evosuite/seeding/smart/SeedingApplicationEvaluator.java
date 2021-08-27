@@ -311,14 +311,14 @@ public class SeedingApplicationEvaluator {
 				if (preservance != null && preservance.isValuePreserving()) {
 					List<MatchingResult> results = preservance.getMatchingResults();
 					MatchingResult result = Randomness.choice(results);
-					ValueStatement stat0 = result.getMatchedInputVariable();
-					ValueStatement statement = null;
-					if(testSeed != null)
-						statement = (ValueStatement) testSeed.getTestCase().getStatement(stat0.getPosition());
+					ValueStatement statement = result.getMatchedInputVariable();
+					TestChromosome referredTest = new TestChromosome();
+					referredTest.setTestCase(statement.getTestCase());
 					
 					if(isRelevantToRegularExpression(methodInputs)){
 						String type = "string";
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type, preservance);
+						branchInfo.referredTest = referredTest;
 						cache.put(b, branchInfo);
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
 						AbstractMOSA.smartBranchNum += 1;
@@ -334,6 +334,7 @@ public class SeedingApplicationEvaluator {
 						ObservedConstant obConstant = staticConstants.get(0);
 						String type = finalType(obConstant.getValue().getClass().toString());
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type, preservance);
+						branchInfo.referredTest = referredTest;
 						cache.put(b, branchInfo);
 						System.out.println("STATIC_POOL type:" + b + ":" + type);
 						
@@ -351,6 +352,7 @@ public class SeedingApplicationEvaluator {
 						
 						String type = finalType(preservance.getMatchingResults().get(0).getMatchedObservation().getClass().toString());
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, DYNAMIC_POOL, type, preservance);
+						branchInfo.referredTest = referredTest;
 						cache.put(b, branchInfo);
 						System.out.println("DYNAMIC_POOL type:" + b + ":" + type);
 						AbstractMOSA.smartBranchNum += 1;
@@ -514,12 +516,6 @@ public class SeedingApplicationEvaluator {
 		 */
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		
-//		System.currentTimeMillis();
-//		List<DepVariable> headers = retrieveHeads(pathList);
-		
-//		for(BytecodeInstruction op: auxiliaryOperands) {
-//			RuntimeSensitiveVariable.observations.put(op.toString(), ne w ArrayList<>());
-//		}
 		if(observations.size() == 0 || inputs.size() == 0)
 			return null;
 		
