@@ -1,5 +1,6 @@
 package org.evosuite.seeding.smart;
 
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -203,8 +204,9 @@ public class SensitivityMutator {
 					}
 				}
 			}
+			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
 			
-				
+			System.currentTimeMillis();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -217,7 +219,7 @@ public class SensitivityMutator {
 				observingValues, synthensizer);
 		preservingList.setTest(testSeed);
 		
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		return preservingList;
 	}
 
@@ -336,42 +338,135 @@ public class SensitivityMutator {
 		
 		Type type = cStatement.getReturnType();
 		GenericClass genericClazz = new GenericClass(type);
-		for(int i=0; i<1; i++) {
-			//TODO Cheng Yan have a distribution
-			Method m = Randomness.choice(fieldSettingMethodList);
-			GenericMethod method = new GenericMethod(m, genericClazz);
-			
+		
+		Map<Method,Double> score = new HashMap<>();
+//		System.currentTimeMillis();
+		Double allScore = calculateFieldSettingMethodsScore(fieldSettingMethodList,score);
+		Map<Method,Double> methodProbabilistic = new HashMap<>();
+		calculateMethodProbabilistic(score, methodProbabilistic, allScore);
+		
+		Method selectedMethod = randomChoiceMethods(methodProbabilistic);
+		
+		if (selectedMethod != null) {
+			GenericMethod method = new GenericMethod(selectedMethod, genericClazz);
+
 			try {
-				TestFactory.getInstance().addMethodFor(test, callee, method, 
-						cStatement.getPosition()+1, false);
+				TestFactory.getInstance().addMethodFor(test, callee, method, cStatement.getPosition() + 1, false);
 				System.currentTimeMillis();
-				for(int j=cStatement.getPosition()+1; j<test.size(); j++) {
+				for (int j = cStatement.getPosition() + 1; j < test.size(); j++) {
 					Statement s = test.getStatement(j);
-					if(s instanceof MethodStatement) {
-						MethodStatement mStat = (MethodStatement)s;
-						if((mStat.getMethodName().equals(m.getName()))) {
+					if (s instanceof MethodStatement) {
+						MethodStatement mStat = (MethodStatement) s;
+						if ((mStat.getMethodName().equals(selectedMethod.getName()))) {
 //							if(mStat.getCallee() != null) {
 //								mStat.setCallee(callee);
 //							}
 							break;
 						}
-					}
-					else if(s instanceof ValueStatement) {
-						list.add((ValueStatement)s);
+					} else if (s instanceof ValueStatement) {
+						list.add((ValueStatement) s);
 					}
 				}
-				
+
 			} catch (ConstructionFailedException e) {
 //				e.printStackTrace();
 				System.currentTimeMillis();
 			}
-			
-			
+
 			System.currentTimeMillis();
 		}
-		
+//		
+//
+//		for(int i=0; i<1; i++) {
+//			//TODO Cheng Yan have a distribution
+//			Method m = Randomness.choice(fieldSettingMethodList);
+//			GenericMethod method = new GenericMethod(m, genericClazz);
+//			
+//			try {
+//				TestFactory.getInstance().addMethodFor(test, callee, method, 
+//						cStatement.getPosition()+1, false);
+//				System.currentTimeMillis();
+//				for(int j=cStatement.getPosition()+1; j<test.size(); j++) {
+//					Statement s = test.getStatement(j);
+//					if(s instanceof MethodStatement) {
+//						MethodStatement mStat = (MethodStatement)s;
+//						if((mStat.getMethodName().equals(m.getName()))) {
+////							if(mStat.getCallee() != null) {
+////								mStat.setCallee(callee);
+////							}
+//							break;
+//						}
+//					}
+//					else if(s instanceof ValueStatement) {
+//						list.add((ValueStatement)s);
+//					}
+//				}
+//				
+//			} catch (ConstructionFailedException e) {
+////				e.printStackTrace();
+//				System.currentTimeMillis();
+//			}
+//			
+//			
+//			System.currentTimeMillis();
+//		}
 		
 		return list;
+	}
+
+	private static Method randomChoiceMethods(Map<Method, Double> methodProbabilistic) {
+		if(methodProbabilistic.isEmpty()) return null;
+		
+		Double d = Randomness.nextDouble(0, 1);
+		Double minMethod = 2.0;
+		Method selectedMethod = null;
+		for(Method m : methodProbabilistic.keySet()) {
+			if(d <= methodProbabilistic.get(m) && methodProbabilistic.get(m) < minMethod) {
+				minMethod = methodProbabilistic.get(m);
+				selectedMethod = m;
+			}
+		}
+		return selectedMethod;
+	}
+
+	private static void calculateMethodProbabilistic(Map<Method, Double> score,
+			Map<Method, Double> methodProbabilistic, Double allScore) {
+		if(allScore == 0.0) return;
+		Double probabilistic = 0.0;
+		for(Method m :score.keySet()) {
+			probabilistic += score.get(m) / allScore;
+			methodProbabilistic.put(m, probabilistic);
+		}
+	}
+
+	private static Double calculateFieldSettingMethodsScore(List<Method> fieldSettingMethodList,
+			Map<Method, Double> score) {
+		Double allScore = 0.0;
+		if(fieldSettingMethodList.isEmpty()) return allScore;
+		for(Method m :fieldSettingMethodList) {
+			Double score0 = 0.0;
+			int primitiveNum = 0;
+			int parameterNum = 0;
+			
+			
+			Class<?>[] clazz = m.getParameterTypes();
+			parameterNum = clazz.length;
+			
+			if(parameterNum == 0) {
+				score.put(m, 0.5);
+				allScore += 0.5;
+			}
+			
+			for(Class<?> cla : clazz) {
+				if(cla.isPrimitive() || cla.equals(String.class))
+					primitiveNum += 1;
+			}
+			
+			score0 = (double)(primitiveNum / parameterNum) + (double)(1 / parameterNum);
+			score.put(m, score0);
+			allScore += score0;
+		}
+		return allScore;
 	}
 
 	private static List<ValueStatement> findAllfieldSettingStatements(ConstructorStatement cStatement,
