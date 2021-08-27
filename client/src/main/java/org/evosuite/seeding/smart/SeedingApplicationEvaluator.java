@@ -291,6 +291,15 @@ public class SeedingApplicationEvaluator {
 		try {
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
 			if (methodInputs != null && operands != null) {
+
+				List<ComputationPath> pathList = new ArrayList<>();
+				for (DepVariable input : methodInputs) {
+					List<ComputationPath> computationPathList = ComputationPath.computePath(input, b);
+					pathList.addAll(computationPathList);
+				}
+
+				System.currentTimeMillis();
+				removeRedundancy(pathList);
 				if (b.isSwitchCaseBranch()) {
 					String key1 = b.toString();
 					int index1 = key1.indexOf("SWITCH");
@@ -306,7 +315,7 @@ public class SeedingApplicationEvaluator {
 					}
 				}
 				
-				ValuePreservance preservance = analyzeChannel(methodInputs, b, testSeed);
+				ValuePreservance preservance = analyzeChannel(methodInputs, b, testSeed, pathList);
 				System.currentTimeMillis();
 				if (preservance != null && preservance.isValuePreserving()) {
 					List<MatchingResult> results = preservance.getMatchingResults();
@@ -332,7 +341,7 @@ public class SeedingApplicationEvaluator {
 					List<ObservedConstant> staticConstants = preservance.getEstiamtedStaticConstants(); 
 					if (!staticConstants.isEmpty()) {
 						ObservedConstant obConstant = staticConstants.get(0);
-						String type = finalType(obConstant.getValue().getClass().toString());
+						String type = finalType(result.getMatchedInputVariable().getAssignmentValue().getClass().toString());
 						BranchSeedInfo branchInfo = new BranchSeedInfo(b, STATIC_POOL, type, preservance);
 						branchInfo.referredTest = referredTest;
 						cache.put(b, branchInfo);
@@ -510,18 +519,66 @@ public class SeedingApplicationEvaluator {
 	}
 	
 	private static ValuePreservance analyzeChannel(Set<DepVariable> inputs, Branch targetBranch,
-			TestChromosome testSeed) {
+			TestChromosome testSeed, List<ComputationPath> pathList) {
 		/**
 		 * the operands corresponding to method inputs and constants
 		 */
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		
+		List<DepVariable> headers = retrieveHeads(pathList);
+		
+		if(allConstantsHeaders(headers)) {
+			//not add constant
+			headers = addNotConstantHeaders(inputs);
+		}			
+		addAllField(headers, inputs);
+		
 		if(observations.size() == 0 || inputs.size() == 0)
 			return null;
 		
-		List<DepVariable> headers = new ArrayList<>(inputs); 
+		if(compareArrayLength(pathList))
+			return null;
+		
+//		List<DepVariable> headers = new ArrayList<>(inputs); 
 		ValuePreservance sp = SensitivityMutator.testBranchSensitivity(headers, observations, targetBranch, testSeed);
 		return sp;
+	}
+
+
+	private static List<DepVariable> addNotConstantHeaders(Set<DepVariable> inputs) {
+		List<DepVariable> headers = new ArrayList<>();
+		for(DepVariable var : inputs) {
+			if(!var.isConstant())
+				headers.add(var);
+		}
+		return headers;
+	}
+
+	private static boolean compareArrayLength(List<ComputationPath> pathList) {
+		for (ComputationPath path : pathList) {
+			DepVariable var = path.getTail();
+			if (!(var.getInstruction().getASMNode().getOpcode() == Opcodes.ARRAYLENGTH)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	private static void addAllField(List<DepVariable> headers, Set<DepVariable> inputs) {
+		for(DepVariable var : inputs) {
+			if(var.isStaticField() || var.isInstaceField()) {
+				if(!headers.contains(var))
+					headers.add(var);
+			}
+		}		
+	}
+
+	private static boolean allConstantsHeaders(List<DepVariable> headers) {
+		for(DepVariable var : headers) {
+			if(!var.isConstant()) return false;
+		}
+		return true;
 	}
 
 	private static List<DepVariable> retrieveHeads(List<ComputationPath> pathList) {

@@ -41,7 +41,7 @@ public class ValuePreservance {
 				if (!record.isConstant(observationIns) && !observationIns.equals(matchedObsKey)) {
 					if(record.observationMap.get(observationIns).isEmpty()) continue;
 					Object ob = Randomness.choice(record.observationMap.get(observationIns));
-					if (ob != null && ob.getClass().equals(matchedObs.getClass())) {
+					if (ob != null && ob.getClass().isPrimitive() && ob.getClass().equals(matchedObs.getClass())) {
 						ObservedConstant constant = new ObservedConstant(ob, matchedObs.getClass(), null);
 						list.add(constant);
 					}
@@ -156,7 +156,7 @@ public class ValuePreservance {
 					if (useConstant) count++;
 					
 					if (((double)count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
-						ObservedConstant constant = new ObservedConstant(value, clazz, constantIns0);
+						ObservedConstant constant = new ObservedConstant(value, clazz, constantIns0);						
 						list.add(constant);
 						break;
 					}
