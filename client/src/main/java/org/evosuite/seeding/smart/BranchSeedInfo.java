@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.testcase.TestChromosome;
 
 public class BranchSeedInfo {
 	
@@ -29,6 +30,8 @@ public class BranchSeedInfo {
 	private Branch auxilaryBranch;
 	private String operandType; 
 	private ValuePreservance valuePreservance;
+	
+	public TestChromosome referredTest;
 	
 	private List<ObservedConstant> potentialSeeds = new ArrayList<>();
 	

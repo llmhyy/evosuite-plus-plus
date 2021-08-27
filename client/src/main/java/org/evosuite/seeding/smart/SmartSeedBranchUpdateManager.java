@@ -90,6 +90,7 @@ public class SmartSeedBranchUpdateManager {
 				
 //				long t1 = System.currentTimeMillis();
 				BranchSeedInfo info = SeedingApplicationEvaluator.evaluate(b, testSeed);
+				testSeed = info.referredTest;
 //				long t2 = System.currentTimeMillis();
 //				SensitivityMutator.total += (t2-t1);
 				
