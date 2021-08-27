@@ -1,10 +1,13 @@
 package org.evosuite.seeding.smart;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
 
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.AssignmentStatement;
+import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.utils.Randomness;
 
@@ -86,6 +89,19 @@ public class MethodInputs {
 			}
 		}
 		System.currentTimeMillis();
+	}
+
+	public MethodInputs identifyInputs(TestChromosome newTestChromosome) {
+		Map<String, ValueStatement> inputVariables = new HashMap<>();
+		for(String key: this.inputVariables.keySet()) {
+			ValueStatement vStatement = this.inputVariables.get(key);
+			Statement s = newTestChromosome.getTestCase().getStatement(vStatement.getPosition());
+			if(s instanceof ValueStatement) {
+				inputVariables.put(key, (ValueStatement)s);
+			}
+		}
+		
+		return new MethodInputs(inputVariables, inputConstants);
 	}
 
 }

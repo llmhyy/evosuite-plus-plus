@@ -179,7 +179,7 @@ public class SensitivityMutator {
 				List<VariableReference> refList = synthensizer.getGraph2CodeMap().get(var);
 				
 				for(VariableReference ref: refList) {
-					Statement statement = test.getStatement(ref.getStPosition());
+					Statement statement = test0.getStatement(ref.getStPosition());
 					if(statement instanceof ConstructorStatement) {
 						ConstructorStatement cStatement = (ConstructorStatement)statement;
 						List<Method> fieldSettingMethodList = detectFieldSettingsMethod(cStatement.getReturnType());
@@ -217,32 +217,41 @@ public class SensitivityMutator {
 				observingValues, synthensizer);
 		preservingList.setTest(testSeed);
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		return preservingList;
 	}
 
-	private static ValuePreservance checkPreservance(Branch branch, TestChromosome newTestChromosome,
+	private static ValuePreservance checkPreservance(Branch branch, TestChromosome testChromosome,
 			List<DepVariable> rootVariables, List<BytecodeInstruction> observations,
 			ConstructionPathSynthesizer synthensizer) {
-		ValuePreservance preservance = new ValuePreservance(observations, rootVariables);
+		TestChromosome startPoint = (TestChromosome) testChromosome.clone();
 		
+		ValuePreservance preservance = new ValuePreservance(observations, rootVariables);
 		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
+		MethodInputs inputs0 = constructInputValues(rootVariables, testChromosome, map);
 		
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
-			
-			newTestChromosome = (TestChromosome) newTestChromosome.clone();
-			
-			MethodInputs inputs = constructInputValues(rootVariables, newTestChromosome, map);
-			inputs.mutate();
-			Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
-			
-			ObservationRecord record = new ObservationRecord(inputs, observationMap, newTestChromosome);
-			preservance.addRecord(record);
+			TestChromosome newTestChromosome = (TestChromosome) startPoint.clone();
+			/**
+			 * try 3 times at most
+			 */
+			for(int count=0; count<3; count++) {
+				MethodInputs inputs = inputs0.identifyInputs(newTestChromosome);
+				inputs.mutate();
+				Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
+				
+				if(newTestChromosome.getLastExecutionResult().noThrownExceptions()) {
+					ObservationRecord record = new ObservationRecord(inputs, observationMap, newTestChromosome);
+					preservance.addRecord(record);	
+					break;
+				}
+				
+			}
 			
 			System.currentTimeMillis();
 		}
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		return preservance;
 	}
 
@@ -335,11 +344,15 @@ public class SensitivityMutator {
 			try {
 				TestFactory.getInstance().addMethodFor(test, callee, method, 
 						cStatement.getPosition()+1, false);
-				
+				System.currentTimeMillis();
 				for(int j=cStatement.getPosition()+1; j<test.size(); j++) {
 					Statement s = test.getStatement(j);
 					if(s instanceof MethodStatement) {
-						if(((MethodStatement)s).getMethodName().equals(m.getName())) {
+						MethodStatement mStat = (MethodStatement)s;
+						if((mStat.getMethodName().equals(m.getName()))) {
+//							if(mStat.getCallee() != null) {
+//								mStat.setCallee(callee);
+//							}
 							break;
 						}
 					}
@@ -449,7 +462,7 @@ public class SensitivityMutator {
 		String className = genericClazz.getClassName();
 		
 		List<Method> fieldSettingMethodList = searchForFieldSettingMethods(className);
-		if(fieldSettingMethodList.isEmpty()) {
+		if(fieldSettingMethodList.isEmpty() && genericClazz.getSuperClass()!=null) {
 			className = genericClazz.getSuperClass().getClassName();
 			fieldSettingMethodList = searchForFieldSettingMethods(className);
 			System.currentTimeMillis();
