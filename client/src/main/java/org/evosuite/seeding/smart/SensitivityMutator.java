@@ -192,13 +192,15 @@ public class SensitivityMutator {
 						FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, testSeed);
 						trial.addFitness(fitness);
 						trial.clearCachedResults();
-						fitness.getFitness(trial);
+						double fitnessValue = fitness.getFitness(trial);
 						
-						if(trial.getLastExecutionResult().hasTestException()) {
+						if(trial.getLastExecutionResult().hasTestException() || fitnessValue > 1) {
 							test0 = test;
 						}
 						else {
 							test = test0;
+							
+							//TODO ensure mutated 
 						}
 					}
 				}
