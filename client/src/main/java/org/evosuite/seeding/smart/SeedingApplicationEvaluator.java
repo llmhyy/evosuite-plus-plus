@@ -292,14 +292,6 @@ public class SeedingApplicationEvaluator {
 			List<BytecodeInstruction> operands = b.getInstruction().getOperands();
 			if (methodInputs != null && operands != null) {
 
-				List<ComputationPath> pathList = new ArrayList<>();
-				for (DepVariable input : methodInputs) {
-					List<ComputationPath> computationPathList = ComputationPath.computePath(input, b);
-					pathList.addAll(computationPathList);
-				}
-
-				System.currentTimeMillis();
-				removeRedundancy(pathList);
 				if (b.isSwitchCaseBranch()) {
 					String key1 = b.toString();
 					int index1 = key1.indexOf("SWITCH");
@@ -315,7 +307,7 @@ public class SeedingApplicationEvaluator {
 					}
 				}
 				
-				ValuePreservance preservance = analyzeChannel(methodInputs, b, testSeed, pathList);
+				ValuePreservance preservance = analyzeChannel(methodInputs, b, testSeed);
 				System.currentTimeMillis();
 				if (preservance != null && preservance.isValuePreserving()) {
 					List<MatchingResult> results = preservance.getMatchingResults();
@@ -519,27 +511,13 @@ public class SeedingApplicationEvaluator {
 	}
 	
 	private static ValuePreservance analyzeChannel(Set<DepVariable> inputs, Branch targetBranch,
-			TestChromosome testSeed, List<ComputationPath> pathList) {
+			TestChromosome testSeed) {
 		/**
 		 * the operands corresponding to method inputs and constants
 		 */
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		
-		List<DepVariable> headers = retrieveHeads(pathList);
-		
-		if(allConstantsHeaders(headers)) {
-			//not add constant
-			headers = addNotConstantHeaders(inputs);
-		}			
-		addAllField(headers, inputs);
-		
-		if(observations.size() == 0 || inputs.size() == 0)
-			return null;
-		
-		if(compareArrayLength(pathList))
-			return null;
-		
-//		List<DepVariable> headers = new ArrayList<>(inputs); 
+		List<DepVariable> headers = new ArrayList<>(inputs); 
 		ValuePreservance sp = SensitivityMutator.testBranchSensitivity(headers, observations, targetBranch, testSeed);
 		return sp;
 	}
