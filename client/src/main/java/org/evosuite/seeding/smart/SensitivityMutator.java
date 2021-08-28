@@ -17,6 +17,7 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.Chromosome;
@@ -146,12 +147,12 @@ public class SensitivityMutator {
 
 		List<DepVariable> vars = new ArrayList<>();
 		vars.add(rootVariable);
-		preservingList = checkPreservance(branch, newTestChromosome, vars, observations, synthensizer);
+		preservingList = checkPreservance(branch, newTestChromosome, vars, observations, synthensizer, null);
 		return preservingList;
 	}
 
 	public static ValuePreservance testBranchSensitivity(List<DepVariable> rootVariables,
-			List<BytecodeInstruction> observingValues, Branch branch, TestChromosome testSeed) {
+			List<BytecodeInstruction> observingValues, Branch branch, TestChromosome testSeed, BranchFitness bf) {
 		TestCase test = null;
 		if(testSeed == null) {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);	
@@ -211,11 +212,11 @@ public class SensitivityMutator {
 		}
 		
 		TestChromosome oldTestChromosome = new TestChromosome();
-		oldTestChromosome.setTestCase(test);
+		oldTestChromosome.setTestCase(test);		
 		
 		TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
 		ValuePreservance preservingList = checkPreservance(branch, newTestChromosome, rootVariables,
-				observingValues, synthensizer);
+				observingValues, synthensizer, bf);
 		preservingList.setTest(testSeed);
 		
 		System.currentTimeMillis();
@@ -224,7 +225,7 @@ public class SensitivityMutator {
 
 	private static ValuePreservance checkPreservance(Branch branch, TestChromosome testChromosome,
 			List<DepVariable> rootVariables, List<BytecodeInstruction> observations,
-			ConstructionPathSynthesizer synthensizer) {
+			ConstructionPathSynthesizer synthensizer, BranchFitness bf) {
 		TestChromosome startPoint = (TestChromosome) testChromosome.clone();
 		
 		ValuePreservance preservance = new ValuePreservance(observations, rootVariables);
@@ -238,7 +239,7 @@ public class SensitivityMutator {
 			 */
 			for(int count=0; count<3; count++) {
 				MethodInputs inputs = inputs0.identifyInputs(newTestChromosome);
-				inputs.mutate(branch, startPoint);
+				inputs.mutate(branch, startPoint, bf);
 				Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
 				
 				if(newTestChromosome.getLastExecutionResult().noThrownExceptions()) {
@@ -791,7 +792,7 @@ public class SensitivityMutator {
 			observations.add(tailInstruction);
 			List<DepVariable> vars = new ArrayList<>();
 			vars.add(rootVariable);
-			preservingList = checkPreservance(branch, newTestChromosome, vars, observations, synthensizer);
+			preservingList = checkPreservance(branch, newTestChromosome, vars, observations, synthensizer, null);
 //			if (preservingList.isSensitivityPreserving() || preservingList.isValuePreserving()) {
 //				return preservingList;
 //			}

@@ -81,7 +81,7 @@ public class BranchWiseFilterTest {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
+				type = SeedingApplicationEvaluator.evaluate(br, null ,null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					System.out.println("type:STATIC_POOL");
 					break;
@@ -125,7 +125,7 @@ public class BranchWiseFilterTest {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
+				type = SeedingApplicationEvaluator.evaluate(br, null ,null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					System.out.println("type:STATIC_POOL");
 					break;
@@ -169,7 +169,7 @@ public class BranchWiseFilterTest {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
+				type = SeedingApplicationEvaluator.evaluate(br, null ,null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					System.out.println("type:STATIC_POOL");
 					break;
@@ -213,7 +213,7 @@ public class BranchWiseFilterTest {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
+				type = SeedingApplicationEvaluator.evaluate(br, null ,null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					System.out.println("type:STATIC_POOL");
 					break;
@@ -257,7 +257,7 @@ public class BranchWiseFilterTest {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
+				type = SeedingApplicationEvaluator.evaluate(br, null ,null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					System.out.println("type:STATIC_POOL");
 					break;
@@ -301,7 +301,7 @@ public class BranchWiseFilterTest {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
+				type = SeedingApplicationEvaluator.evaluate(br, null ,null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					System.out.println("type:STATIC_POOL");
 					break;
@@ -345,7 +345,7 @@ public class BranchWiseFilterTest {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
+				type = SeedingApplicationEvaluator.evaluate(br, null ,null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					System.out.println("type:STATIC_POOL");
 					break;
@@ -389,7 +389,7 @@ public class BranchWiseFilterTest {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
+				type = SeedingApplicationEvaluator.evaluate(br, null ,null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					System.out.println("type:STATIC_POOL");
 					break;
@@ -433,7 +433,7 @@ public class BranchWiseFilterTest {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
+				type = SeedingApplicationEvaluator.evaluate(br, null ,null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					System.out.println("type:STATIC_POOL");
 					break;
@@ -477,7 +477,7 @@ public class BranchWiseFilterTest {
 		for (Branch br : branchesInTargetMethod.keySet()) {
 			
 			if(br != null && br.getInstruction().getLineNumber() != -1) {					
-				type = SeedingApplicationEvaluator.evaluate(br, null).getBenefiticalType();
+				type = SeedingApplicationEvaluator.evaluate(br, null ,null).getBenefiticalType();
 				if (type == SeedingApplicationEvaluator.STATIC_POOL) {
 					System.out.println("type:STATIC_POOL");
 					break;

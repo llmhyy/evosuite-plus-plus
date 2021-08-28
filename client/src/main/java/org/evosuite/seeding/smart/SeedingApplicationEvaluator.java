@@ -12,6 +12,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
+import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.graphs.GraphPool;
@@ -245,7 +247,7 @@ public class SeedingApplicationEvaluator {
 		}
 	}
 	
-	public static BranchSeedInfo evaluate(Branch b, TestChromosome testSeed) {
+	public static BranchSeedInfo evaluate(Branch b, TestChromosome testSeed, BranchFitness bf) {
 		
 //		for(Branch br: cache.keySet()) {
 //			BranchSeedInfo info = cache.get(br);
@@ -306,8 +308,12 @@ public class SeedingApplicationEvaluator {
 						}
 					}
 				}
+				if(b.getInstruction().getLineNumber() == 90) {
+					System.currentTimeMillis();
+				}
 				
-				ValuePreservance preservance = analyzeChannel(methodInputs, b, testSeed);
+				ValuePreservance preservance = analyzeChannel(methodInputs, b, testSeed, bf);
+
 				System.currentTimeMillis();
 				if (preservance != null && preservance.isValuePreserving()) {
 					List<MatchingResult> results = preservance.getMatchingResults();
@@ -511,14 +517,15 @@ public class SeedingApplicationEvaluator {
 	}
 	
 	private static ValuePreservance analyzeChannel(Set<DepVariable> inputs, Branch targetBranch,
-			TestChromosome testSeed) {
+			TestChromosome testSeed, BranchFitness bf) {
 		/**
 		 * the operands corresponding to method inputs and constants
 		 */
+		System.currentTimeMillis();
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		
 		List<DepVariable> headers = new ArrayList<>(inputs); 
-		ValuePreservance sp = SensitivityMutator.testBranchSensitivity(headers, observations, targetBranch, testSeed);
+		ValuePreservance sp = SensitivityMutator.testBranchSensitivity(headers, observations, targetBranch, testSeed, bf);
 		return sp;
 	}
 
@@ -1171,7 +1178,7 @@ public class SeedingApplicationEvaluator {
 				targetMethod);
 
 		for (Branch branch : branches) {
-			BranchSeedInfo info = evaluate(branch, null);
+			BranchSeedInfo info = evaluate(branch, null ,null);
 //			Class<?> cla = cache.get(branch).getTargetType();
 			if (info.getBenefiticalType() != NO_POOL) {
 				interestedBranches.add(info);

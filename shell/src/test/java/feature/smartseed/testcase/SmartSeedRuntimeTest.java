@@ -597,7 +597,7 @@ public class SmartSeedRuntimeTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 10000;
 		Long seed = null;
 				
 		boolean aor = false;

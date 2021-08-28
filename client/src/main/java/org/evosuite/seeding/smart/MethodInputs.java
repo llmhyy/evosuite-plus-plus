@@ -2,17 +2,30 @@ package org.evosuite.seeding.smart;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.poi.ss.formula.functions.T;
+import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageFactory;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.coverage.branch.BranchFitness;
+import org.evosuite.coverage.exception.ExceptionCoverageSuiteFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.testcase.ExecutableChromosome;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.ValueStatement;
+import org.evosuite.testsuite.AbstractTestSuiteChromosome;
+import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.Randomness;
 
 /**
@@ -52,12 +65,25 @@ public class MethodInputs {
 	
 	private List<ValueStatement> fixedPoints = new ArrayList<>();
 	
-	public void mutate(Branch branch, TestChromosome startPoint) {
+	public void mutate(Branch branch, TestChromosome startPoint, BranchFitness bf) {
 		
+//		Set<FitnessFunction<?>> set = new HashSet<>();
+//		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(branch, bf.getBranchGoal().getValue());
+//		set.add(ff);
+//		for (FitnessFunction<?> f : set) {
+//			startPoint.addFitness(f);
+//		}
+
+		startPoint.addFitness((FitnessFunction<?>) bf);
 		FitnessFunction<Chromosome> fitness = SensitivityMutator.searchForRelevantFitness(branch, startPoint);
+		startPoint.getFitness(fitness);
 		double fitnessValue = fitness.getFitness(startPoint);
 		
-		assert fitnessValue < 1;
+		if(fitnessValue > 1) {
+			System.currentTimeMillis();
+		}
+		
+		assert fitnessValue < 1.0;
 		
 		for(String key: inputVariables.keySet()) {
 			
@@ -115,8 +141,16 @@ public class MethodInputs {
 			
 			TestChromosome trial = new TestChromosome();
 			trial.setTestCase(test);
+			
+//			Set<FitnessFunction<?>> set2 = new HashSet<>();
+//			BranchCoverageTestFitness ff2 = BranchCoverageFactory.createBranchCoverageTestFitness(branch, bf.getBranchGoal().getValue());
+//			set2.add(ff2);
+//			for (FitnessFunction<?> f : set2) {
+//				trial.addFitness(f);
+//			}
+			trial.addFitness((FitnessFunction<?>) bf);
 			FitnessFunction<Chromosome> fitness2 = SensitivityMutator.searchForRelevantFitness(branch, trial);
-			double fitnessValue2 = fitness2.getFitness(startPoint);
+			double fitnessValue2 = fitness2.getFitness(trial);
 			if(fitnessValue2 > 1) {
 				statement.setAssignmentValue(oldValue);
 				fixedPoints.add(statement);
@@ -139,5 +173,6 @@ public class MethodInputs {
 		
 		return new MethodInputs(inputVariables, inputConstants);
 	}
+	
 
 }
