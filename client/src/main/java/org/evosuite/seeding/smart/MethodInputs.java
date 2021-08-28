@@ -96,39 +96,42 @@ public class MethodInputs {
 			TestCase test = statement.getTestCase();
 			Object oldValue = statement.getAssignmentValue();
 			
-			Type t = statement.getAssignmentValue().getClass();
-			if(t.equals(Integer.class)) {
-				Object obj = Randomness.nextInt();
-				statement.setAssignmentValue(obj);
+			if(oldValue != null) {
+				Type t = statement.getAssignmentValue().getClass();
+				if(t.equals(Integer.class)) {
+					Object obj = Randomness.nextInt();
+					statement.setAssignmentValue(obj);
+				}
+				else if(t.equals(String.class)) {
+					Object obj = Randomness.nextString(10);
+					statement.setAssignmentValue(obj);
+				}
+				else if(t.equals(Short.class)) {
+					Object obj = Randomness.nextShort();
+					statement.setAssignmentValue(obj);
+				}
+				else if(t.equals(Long.class)) {
+					Object obj = Randomness.nextLong();
+					statement.setAssignmentValue(obj);
+				}
+				else if(t.equals(Character.class)) {
+					Object obj = Randomness.nextChar();
+					statement.setAssignmentValue(obj);
+				}
+				else if(t.equals(Byte.class)) {
+					Object obj = Randomness.nextByte();
+					statement.setAssignmentValue(obj);
+				}
+				else if(t.equals(Double.class)) {
+					Object obj = Randomness.nextDouble();
+					statement.setAssignmentValue(obj);
+				}
+				else if(t.equals(Float.class)) {
+					Object obj = Randomness.nextFloat();
+					statement.setAssignmentValue(obj);
+				}
 			}
-			else if(t.equals(String.class)) {
-				Object obj = Randomness.nextString(10);
-				statement.setAssignmentValue(obj);
-			}
-			else if(t.equals(Short.class)) {
-				Object obj = Randomness.nextShort();
-				statement.setAssignmentValue(obj);
-			}
-			else if(t.equals(Long.class)) {
-				Object obj = Randomness.nextLong();
-				statement.setAssignmentValue(obj);
-			}
-			else if(t.equals(Character.class)) {
-				Object obj = Randomness.nextChar();
-				statement.setAssignmentValue(obj);
-			}
-			else if(t.equals(Byte.class)) {
-				Object obj = Randomness.nextByte();
-				statement.setAssignmentValue(obj);
-			}
-			else if(t.equals(Double.class)) {
-				Object obj = Randomness.nextDouble();
-				statement.setAssignmentValue(obj);
-			}
-			else if(t.equals(Float.class)) {
-				Object obj = Randomness.nextFloat();
-				statement.setAssignmentValue(obj);
-			}
+
 			
 //			if(statement instanceof AssignmentStatement) {
 //				AssignmentStatement aStat = (AssignmentStatement)statement;
@@ -142,12 +145,6 @@ public class MethodInputs {
 			TestChromosome trial = new TestChromosome();
 			trial.setTestCase(test);
 			
-//			Set<FitnessFunction<?>> set2 = new HashSet<>();
-//			BranchCoverageTestFitness ff2 = BranchCoverageFactory.createBranchCoverageTestFitness(branch, bf.getBranchGoal().getValue());
-//			set2.add(ff2);
-//			for (FitnessFunction<?> f : set2) {
-//				trial.addFitness(f);
-//			}
 			trial.addFitness((FitnessFunction<?>) bf);
 			FitnessFunction<Chromosome> fitness2 = SensitivityMutator.searchForRelevantFitness(branch, trial);
 			double fitnessValue2 = fitness2.getFitness(trial);

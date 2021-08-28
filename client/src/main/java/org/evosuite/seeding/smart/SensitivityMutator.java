@@ -168,11 +168,14 @@ public class SensitivityMutator {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 		}
 		
+		TestChromosome oldTest = new TestChromosome();
+		oldTest.setTestCase(test);
+		oldTest.addFitness((FitnessFunction<?>) bf);
+		
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
-			
-			TestCase test0 = test.clone();
+			TestCase test0 = (TestCase)test.clone();
 			
 			for(DepVariableWrapper var: synthensizer.getGraph2CodeMap().keySet()) {
 				
@@ -189,25 +192,23 @@ public class SensitivityMutator {
 						
 						TestChromosome trial = new TestChromosome();
 						trial.setTestCase(test0);
-						FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, testSeed);
-						trial.addFitness(fitness);
 						trial.clearCachedResults();
+						FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, oldTest);
+						trial.addFitness(fitness);
 						double fitnessValue = fitness.getFitness(trial);
 						
 						if(trial.getLastExecutionResult().hasTestException() || fitnessValue > 1) {
-							test0 = test;
+							test0 = (TestCase)test.clone();;
 						}
 						else {
-							test = test0;
-							
+							test = (TestCase)test0.clone();;
 							//TODO ensure mutated 
 						}
+						System.currentTimeMillis();
 					}
 				}
 			}
-			
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
-			
 			System.currentTimeMillis();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -241,7 +242,7 @@ public class SensitivityMutator {
 			 */
 			for(int count=0; count<3; count++) {
 				MethodInputs inputs = inputs0.identifyInputs(newTestChromosome);
-				inputs.mutate(branch, startPoint, bf);
+				inputs.mutate(branch, newTestChromosome, bf);
 				Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
 				
 				if(newTestChromosome.getLastExecutionResult().noThrownExceptions()) {

@@ -15,6 +15,8 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.coverage.branch.BranchPool;
+import org.evosuite.ga.Chromosome;
+import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
@@ -28,7 +30,10 @@ import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.instrumentation.BytecodeInstrumentation;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Opcodes;
@@ -348,7 +353,7 @@ public class SeedingApplicationEvaluator {
 						AbstractMOSA.smartBranchNum += 1;
 						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"STATIC_POOL");
 						
-						updateTestSeedWithConstantAssignment(result, statement, staticConstants, branchInfo);
+						updateTestSeedWithConstantAssignment(result, statement, staticConstants, branchInfo, bf, b);
 						return branchInfo;
 					} 
 					/**
@@ -365,7 +370,7 @@ public class SeedingApplicationEvaluator {
 						AbstractMOSA.smartBranchNum += 1;
 						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"DYNAMIC_POOL");
 						
-						updateTestSeedWithConstantAssignment(result, statement, dynamicConstants, branchInfo);
+						updateTestSeedWithConstantAssignment(result, statement, dynamicConstants, branchInfo, bf, b);
 						return branchInfo;
 					}
 
@@ -400,11 +405,13 @@ public class SeedingApplicationEvaluator {
 	}
 
 	private static void updateTestSeedWithConstantAssignment(MatchingResult result, ValueStatement statement,
-			List<ObservedConstant> observedConstants, BranchSeedInfo branchInfo) {
+			List<ObservedConstant> observedConstants, BranchSeedInfo branchInfo, BranchFitness bf, Branch b) {
 		if(observedConstants.isEmpty()) return;
 		for (ObservedConstant obj : observedConstants) {
 			branchInfo.addPotentialSeed(obj);
 			try {
+				TestCase test = statement.getTestCase();
+				Object oldValue = statement.getAssignmentValue();
 				if (statement != null) {
 					if (obj.isCompatible(statement.getAssignmentValue())) {
 						if (statement instanceof ValueStatement) {
@@ -691,6 +698,7 @@ public class SeedingApplicationEvaluator {
 					}
 				}
 				else {
+					System.currentTimeMillis();
 					//TODO can get array list observation (ALOAD)
 					getInstructionOperands(targetIns,list);
 					return;
@@ -744,29 +752,31 @@ public class SeedingApplicationEvaluator {
 			}
 		}
 		
-		try {
-			for(ControlDependency control: targetIns.getControlDependencies()) {
-				BytecodeInstruction controlIns = control.getBranch().getInstruction();
-				int operandNum = controlIns.getOperandNum();
-				
-				MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
-				
-				for (int i = 0; i < operandNum; i++) {
-					Frame frame = controlIns.getFrame();
-					int index = frame.getStackSize() - operandNum + i ;
-					Value val = frame.getStack(index);
-					if(val instanceof SourceValue) {
-						SourceValue srcValue = (SourceValue)val;
-						for(AbstractInsnNode insNode: srcValue.insns) {
-							BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
-							parseRelevantOperands(defIns, list);
+		if(targetIns.isConstant()) {
+			try {
+				for(ControlDependency control: targetIns.getControlDependencies()) {
+					BytecodeInstruction controlIns = control.getBranch().getInstruction();
+					int operandNum = controlIns.getOperandNum();
+					
+					MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
+					
+					for (int i = 0; i < operandNum; i++) {
+						Frame frame = controlIns.getFrame();
+						int index = frame.getStackSize() - operandNum + i ;
+						Value val = frame.getStack(index);
+						if(val instanceof SourceValue) {
+							SourceValue srcValue = (SourceValue)val;
+							for(AbstractInsnNode insNode: srcValue.insns) {
+								BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
+								parseRelevantOperands(defIns, list);
+							}
 						}
 					}
-				}
-			}					
-		}
-		catch(Exception e) {
-			e.printStackTrace();
+				}					
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
