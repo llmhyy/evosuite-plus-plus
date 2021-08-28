@@ -1109,7 +1109,8 @@ public class SensitivityMutator {
 			res.put(s, RuntimeSensitiveVariable.observations.get(s));
 		}
 
-		
+		InstrumentingClassLoader generalClassLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
+		((DefaultTestCase) newTestChromosome.getTestCase()).changeClassLoader(generalClassLoader);
 //		RuntimeSensitiveVariable.observations.clear();
 		return res;
 
