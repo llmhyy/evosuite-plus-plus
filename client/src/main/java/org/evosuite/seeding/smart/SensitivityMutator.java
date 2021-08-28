@@ -1,6 +1,5 @@
 package org.evosuite.seeding.smart;
 
-import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -17,14 +16,12 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
-import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
@@ -55,12 +52,10 @@ import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.NullReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testcase.variable.VariableReferenceImpl;
-import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
@@ -150,6 +145,17 @@ public class SensitivityMutator {
 		preservingList = checkPreservance(branch, newTestChromosome, vars, observations, synthensizer, null);
 		return preservingList;
 	}
+	
+	class Diff{
+		int startPosition;
+		int changedLines;
+		public Diff(int startPosition, int changedLines) {
+			super();
+			this.startPosition = startPosition;
+			this.changedLines = changedLines;
+		}
+		
+	}
 
 	public static ValuePreservance testBranchSensitivity(List<DepVariable> rootVariables,
 			List<BytecodeInstruction> observingValues, Branch branch, TestChromosome testSeed, BranchFitness bf) {
@@ -158,7 +164,7 @@ public class SensitivityMutator {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);	
 		}
 		else {
-			test = testSeed.getTestCase();
+			test = ((TestChromosome) testSeed.clone()).getTestCase();
 		}
 		if (test == null) {
 			return new ValuePreservance(null, null);
@@ -177,6 +183,9 @@ public class SensitivityMutator {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
 			TestCase test0 = (TestCase)test.clone();
 			
+			List<Diff> diffList = new ArrayList<>();
+			List<Statement> enhancedStatements = new ArrayList<>();
+			
 			for(DepVariableWrapper var: synthensizer.getGraph2CodeMap().keySet()) {
 				
 				if(var.var.referenceToThis())continue;
@@ -184,27 +193,41 @@ public class SensitivityMutator {
 				List<VariableReference> refList = synthensizer.getGraph2CodeMap().get(var);
 				
 				for(VariableReference ref: refList) {
-					Statement statement = test0.getStatement(ref.getStPosition());
-					if(statement instanceof ConstructorStatement) {
+					int oldPosition = ref.getStPosition();
+					int adjustedPosition = applyDiff(oldPosition, diffList);
+							
+					Statement statement = test0.getStatement(adjustedPosition);
+					if(statement instanceof ConstructorStatement && !enhancedStatements.contains(statement)) {
 						ConstructorStatement cStatement = (ConstructorStatement)statement;
 						List<Method> fieldSettingMethodList = detectFieldSettingsMethod(cStatement.getReturnType());
 						constructAdditionalFieldSettingsStatements(test0, cStatement, fieldSettingMethodList);
 						
-						TestChromosome trial = new TestChromosome();
-						trial.setTestCase(test0);
-						trial.clearCachedResults();
-						FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, oldTest);
-						trial.addFitness(fitness);
-						double fitnessValue = fitness.getFitness(trial);
+						int lengthDiff = test0.size() - test.size();
 						
-						if(trial.getLastExecutionResult().hasTestException() || fitnessValue > 1) {
-							test0 = (TestCase)test.clone();;
+						if(lengthDiff != 0) {
+							TestChromosome trial = new TestChromosome();
+							trial.setTestCase(test0);
+							trial.clearCachedResults();
+							FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, oldTest);
+							trial.addFitness(fitness);
+							double fitnessValue = fitness.getFitness(trial);
+							
+							if(!trial.getLastExecutionResult().getAllThrownExceptions().isEmpty() || fitnessValue > 1) {
+								test0 = test.clone();
+							}
+							else {
+								test = test0.clone();
+								
+								int startPosition = cStatement.getPosition() + 1;
+								Diff diff = new SensitivityMutator().new Diff(startPosition, lengthDiff);
+								diffList.add(diff);
+								enhancedStatements.add(cStatement);
+								//TODO ensure mutated 
+							}
+							System.currentTimeMillis();
+							
 						}
-						else {
-							test = (TestCase)test0.clone();;
-							//TODO ensure mutated 
-						}
-						System.currentTimeMillis();
+						
 					}
 				}
 			}
@@ -224,6 +247,17 @@ public class SensitivityMutator {
 		
 		System.currentTimeMillis();
 		return preservingList;
+	}
+
+	private static int applyDiff(int oldPosition, List<Diff> diffList) {
+		int pos = oldPosition;
+		for(Diff diff: diffList) {
+			if(pos >= diff.startPosition) {
+				pos += diff.changedLines;
+			}
+		}
+		
+		return pos;
 	}
 
 	private static ValuePreservance checkPreservance(Branch branch, TestChromosome testChromosome,
