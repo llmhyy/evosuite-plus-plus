@@ -199,11 +199,10 @@ public class SensitivityMutator {
 						else {
 							test = test0;
 						}
-						
-//						System.currentTimeMillis();
 					}
 				}
 			}
+			
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
 			
 			System.currentTimeMillis();
@@ -239,7 +238,7 @@ public class SensitivityMutator {
 			 */
 			for(int count=0; count<3; count++) {
 				MethodInputs inputs = inputs0.identifyInputs(newTestChromosome);
-				inputs.mutate();
+				inputs.mutate(branch, startPoint);
 				Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
 				
 				if(newTestChromosome.getLastExecutionResult().noThrownExceptions()) {
@@ -1137,7 +1136,7 @@ public class SensitivityMutator {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static FitnessFunction<Chromosome> searchForRelevantFitness(Branch targetBranch,
+	public static FitnessFunction<Chromosome> searchForRelevantFitness(Branch targetBranch,
 			TestChromosome newTestChromosome) {
 		Map<FitnessFunction<?>, Double> fitnessValues = newTestChromosome.getFitnessValues();
 		for (FitnessFunction<?> ff : fitnessValues.keySet()) {

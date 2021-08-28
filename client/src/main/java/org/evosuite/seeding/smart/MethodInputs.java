@@ -1,12 +1,16 @@
 package org.evosuite.seeding.smart;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.ga.Chromosome;
+import org.evosuite.ga.FitnessFunction;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.utils.Randomness;
@@ -45,49 +49,81 @@ public class MethodInputs {
 		this.inputConstants = inputConstants;
 	}
 
-	public void mutate() {
+	
+	private List<ValueStatement> fixedPoints = new ArrayList<>();
+	
+	public void mutate(Branch branch, TestChromosome startPoint) {
+		
+		FitnessFunction<Chromosome> fitness = SensitivityMutator.searchForRelevantFitness(branch, startPoint);
+		double fitnessValue = fitness.getFitness(startPoint);
+		
+		assert fitnessValue < 1;
+		
 		for(String key: inputVariables.keySet()) {
+			
 			ValueStatement statement = inputVariables.get(key);
-			if(statement instanceof AssignmentStatement) {
-				AssignmentStatement aStat = (AssignmentStatement)statement;
-				Type t = aStat.getValue().getType();
-				if(t.equals(Integer.class)) {
-					Object obj = Randomness.nextInt();
-					aStat.setAssignmentValue(obj);
-				}
-				else if(t.equals(String.class)) {
-					Object obj = Randomness.nextString(10);
-					aStat.setAssignmentValue(obj);
-				}
-				else if(t.equals(Short.class)) {
-					Object obj = Randomness.nextShort();
-					aStat.setAssignmentValue(obj);
-				}
-				else if(t.equals(Long.class)) {
-					Object obj = Randomness.nextLong();
-					aStat.setAssignmentValue(obj);
-				}
-				else if(t.equals(Character.class)) {
-					Object obj = Randomness.nextChar();
-					aStat.setAssignmentValue(obj);
-				}
-				else if(t.equals(Byte.class)) {
-					Object obj = Randomness.nextByte();
-					aStat.setAssignmentValue(obj);
-				}
-				else if(t.equals(Double.class)) {
-					Object obj = Randomness.nextDouble();
-					aStat.setAssignmentValue(obj);
-				}
-				else if(t.equals(Float.class)) {
-					Object obj = Randomness.nextFloat();
-					aStat.setAssignmentValue(obj);
-				}
+			
+			if(fixedPoints.contains(statement)) {
+				continue;
 			}
-			else {
-				statement.mutate(statement.getTestCase(), TestFactory.getInstance());				
+			
+			TestCase test = statement.getTestCase();
+			Object oldValue = statement.getAssignmentValue();
+			
+			Type t = statement.getAssignmentValue().getClass();
+			if(t.equals(Integer.class)) {
+				Object obj = Randomness.nextInt();
+				statement.setAssignmentValue(obj);
 			}
+			else if(t.equals(String.class)) {
+				Object obj = Randomness.nextString(10);
+				statement.setAssignmentValue(obj);
+			}
+			else if(t.equals(Short.class)) {
+				Object obj = Randomness.nextShort();
+				statement.setAssignmentValue(obj);
+			}
+			else if(t.equals(Long.class)) {
+				Object obj = Randomness.nextLong();
+				statement.setAssignmentValue(obj);
+			}
+			else if(t.equals(Character.class)) {
+				Object obj = Randomness.nextChar();
+				statement.setAssignmentValue(obj);
+			}
+			else if(t.equals(Byte.class)) {
+				Object obj = Randomness.nextByte();
+				statement.setAssignmentValue(obj);
+			}
+			else if(t.equals(Double.class)) {
+				Object obj = Randomness.nextDouble();
+				statement.setAssignmentValue(obj);
+			}
+			else if(t.equals(Float.class)) {
+				Object obj = Randomness.nextFloat();
+				statement.setAssignmentValue(obj);
+			}
+			
+//			if(statement instanceof AssignmentStatement) {
+//				AssignmentStatement aStat = (AssignmentStatement)statement;
+//				
+//				
+//			}
+//			else if(statement instanceof PrimitiveStatement){
+//				statement.mutate(statement.getTestCase(), TestFactory.getInstance());				
+//			}
+			
+			TestChromosome trial = new TestChromosome();
+			trial.setTestCase(test);
+			FitnessFunction<Chromosome> fitness2 = SensitivityMutator.searchForRelevantFitness(branch, trial);
+			double fitnessValue2 = fitness2.getFitness(startPoint);
+			if(fitnessValue2 > 1) {
+				statement.setAssignmentValue(oldValue);
+				fixedPoints.add(statement);
+			}
+			
 		}
+		
 		System.currentTimeMillis();
 	}
 
