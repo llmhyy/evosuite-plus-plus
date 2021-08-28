@@ -472,4 +472,8 @@ public class AssignmentStatement extends AbstractStatement implements ValueState
 		
 		return null;
 	}
+
+	public void setValue(VariableReference oldParam) {
+		this.parameter = oldParam;
+	}
 }
