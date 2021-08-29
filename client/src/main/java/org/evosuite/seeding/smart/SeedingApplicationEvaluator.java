@@ -413,20 +413,28 @@ public class SeedingApplicationEvaluator {
 				TestCase test = statement.getTestCase();
 				Object oldValue = statement.getAssignmentValue();
 				if (statement != null) {
-					if (obj.isCompatible(statement.getAssignmentValue())) {
+					if (obj.isCompatible(statement.getAssignmentValue()) || result.needRelaxedMutation()) {
 						if (statement instanceof ValueStatement) {
 							((ValueStatement) statement).setAssignmentValue(obj.getValue());
 						}
+						
 						// correlation
 						if (result.needRelaxedMutation()) {
 							if (result.getMatchedObservation() instanceof Character
-									&& obj.getValue() instanceof Integer) {
-								int in = (Integer) obj.getValue();
-								Character c = (char) in;
+									|| obj.getValue() instanceof Integer) {
+								//obj is a string
+								String objStr = obj.getValue().toString();
+								if(obj.getValue() instanceof Integer) {
+									///obj is a character
+									int in = (Integer) obj.getValue();
+									Character c = (char) in;
+									objStr = c.toString();
+								}
 
 								Object objValue = statement.getAssignmentValue();
 								if (objValue != null) {
-									String stringAddChar = objValue.toString().concat(c.toString());
+									String stringAddChar = objValue.toString().concat(objStr);
+									branchInfo.addPotentialSeed(new ObservedConstant(stringAddChar, String.class, null));
 									statement.setAssignmentValue(stringAddChar);
 								}
 
@@ -434,6 +442,7 @@ public class SeedingApplicationEvaluator {
 								Object objValue = statement.getAssignmentValue();
 								if (objValue != null) {
 									String appendString = objValue.toString().concat(obj.getValue().toString());
+									branchInfo.addPotentialSeed(new ObservedConstant(appendString, String.class, null));
 									statement.setAssignmentValue(appendString);
 								}
 							}
@@ -528,7 +537,7 @@ public class SeedingApplicationEvaluator {
 		/**
 		 * the operands corresponding to method inputs and constants
 		 */
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		
 		List<DepVariable> headers = new ArrayList<>(inputs); 
@@ -741,6 +750,10 @@ public class SeedingApplicationEvaluator {
 		String methodName = cfg.getMethodName();
 		
 		if (targetIns.isLocalVariableUse() || targetIns.isFieldUse()){
+			if(list.contains(targetIns) && var.isPrimitive()) {
+				list.remove(targetIns);
+			}
+			
 			MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
 			DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
 			defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
@@ -753,6 +766,9 @@ public class SeedingApplicationEvaluator {
 		}
 		
 		if(targetIns.isConstant()) {
+			if(list.contains(targetIns)) {
+				list.remove(targetIns);
+			}
 			try {
 				for(ControlDependency control: targetIns.getControlDependencies()) {
 					BytecodeInstruction controlIns = control.getBranch().getInstruction();
