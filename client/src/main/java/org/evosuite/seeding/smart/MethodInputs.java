@@ -74,7 +74,7 @@ public class MethodInputs {
 			System.currentTimeMillis();
 		}
 		
-//		assert fitnessValue < 1.0;
+		assert fitnessValue < 1.0;
 		
 		for(String key: inputVariables.keySet()) {
 			

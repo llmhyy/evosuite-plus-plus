@@ -352,7 +352,7 @@ public class SeedingApplicationEvaluator {
 						
 						AbstractMOSA.smartBranchNum += 1;
 						AbstractMOSA.runtimeBranchType.put(b.getInstruction().toString(),"STATIC_POOL");
-						
+						System.currentTimeMillis();
 						updateTestSeedWithConstantAssignment(result, statement, staticConstants, branchInfo, bf, b);
 						return branchInfo;
 					} 
@@ -413,39 +413,16 @@ public class SeedingApplicationEvaluator {
 				TestCase test = statement.getTestCase();
 				Object oldValue = statement.getAssignmentValue();
 				if (statement != null) {
-					if (obj.isCompatible(statement.getAssignmentValue()) || result.needRelaxedMutation()) {
+					System.currentTimeMillis();
+					if (obj.isCompatible(statement)) {
 						if (statement instanceof ValueStatement) {
 							((ValueStatement) statement).setAssignmentValue(obj.getValue());
 						}
-						
 						// correlation
 						if (result.needRelaxedMutation()) {
-							if (result.getMatchedObservation() instanceof Character
-									|| obj.getValue() instanceof Integer) {
-								//obj is a string
-								String objStr = obj.getValue().toString();
-								if(obj.getValue() instanceof Integer) {
-									///obj is a character
-									int in = (Integer) obj.getValue();
-									Character c = (char) in;
-									objStr = c.toString();
-								}
-
-								Object objValue = statement.getAssignmentValue();
-								if (objValue != null) {
-									String stringAddChar = objValue.toString().concat(objStr);
-									branchInfo.addPotentialSeed(new ObservedConstant(stringAddChar, String.class, null));
-									statement.setAssignmentValue(stringAddChar);
-								}
-
-							} else {
-								Object objValue = statement.getAssignmentValue();
-								if (objValue != null) {
-									String appendString = objValue.toString().concat(obj.getValue().toString());
-									branchInfo.addPotentialSeed(new ObservedConstant(appendString, String.class, null));
-									statement.setAssignmentValue(appendString);
-								}
-							}
+							String stringAddChar = statement.getAssignmentValue().toString().concat((String) obj.getValue());
+							branchInfo.addPotentialSeed(new ObservedConstant(stringAddChar, String.class, null));
+							statement.setAssignmentValue(stringAddChar);
 						}
 					}
 				}
@@ -541,6 +518,9 @@ public class SeedingApplicationEvaluator {
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		
 		List<DepVariable> headers = new ArrayList<>(inputs); 
+		
+		if(observations.size() == 0 || headers.size() == 0)
+			return null;
 		ValuePreservance sp = SensitivityMutator.testBranchSensitivity(headers, observations, targetBranch, testSeed, bf);
 		return sp;
 	}
@@ -750,10 +730,6 @@ public class SeedingApplicationEvaluator {
 		String methodName = cfg.getMethodName();
 		
 		if (targetIns.isLocalVariableUse() || targetIns.isFieldUse()){
-			if(list.contains(targetIns) && var.isPrimitive()) {
-				list.remove(targetIns);
-			}
-			
 			MethodNode node = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
 			DefUseAnalyzer defUseAnalyzer = new DefUseAnalyzer();
 			defUseAnalyzer.analyze(classLoader, node, className, methodName, node.access);
@@ -766,9 +742,6 @@ public class SeedingApplicationEvaluator {
 		}
 		
 		if(targetIns.isConstant()) {
-			if(list.contains(targetIns)) {
-				list.remove(targetIns);
-			}
 			try {
 				for(ControlDependency control: targetIns.getControlDependencies()) {
 					BytecodeInstruction controlIns = control.getBranch().getInstruction();

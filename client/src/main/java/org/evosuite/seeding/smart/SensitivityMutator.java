@@ -28,6 +28,7 @@ import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.seeding.RuntimeSensitiveVariable;
 import org.evosuite.setup.DependencyAnalysis;
+import org.evosuite.testcase.CloneUtils;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -180,8 +181,21 @@ public class SensitivityMutator {
 		
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
-			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
-			TestCase test0 = (TestCase)test.clone();
+			TestCase test0 = test.clone();
+			synthensizer.constructDifficultObjectStatement(test0, branch, false, false);
+			
+			//Confirm that the fitness value is less than 1 after constructDifficultObjectStatement
+			TestChromosome trial = new TestChromosome();
+			trial.setTestCase(test0);
+			trial.clearCachedResults();
+			FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, oldTest);
+			double fitnessValue = fitness.getFitness(trial);
+			if(!(trial.getLastExecutionResult().getAllThrownExceptions().isEmpty()) || fitnessValue > 1) {
+				return new ValuePreservance(null, null);
+			}else {
+				test = test0.clone();
+				oldTest.setTestCase(test);
+			}
 			
 			List<Diff> diffList = new ArrayList<>();
 			List<Statement> enhancedStatements = new ArrayList<>();
@@ -196,6 +210,8 @@ public class SensitivityMutator {
 					int oldPosition = ref.getStPosition();
 					int adjustedPosition = applyDiff(oldPosition, diffList);
 							
+					if(adjustedPosition >= test0.size()) continue;
+					
 					Statement statement = test0.getStatement(adjustedPosition);
 					if(statement instanceof ConstructorStatement && !enhancedStatements.contains(statement)) {
 						ConstructorStatement cStatement = (ConstructorStatement)statement;
@@ -205,14 +221,12 @@ public class SensitivityMutator {
 						int lengthDiff = test0.size() - test.size();
 						
 						if(lengthDiff != 0) {
-							TestChromosome trial = new TestChromosome();
+							trial.addFitness(fitness);
 							trial.setTestCase(test0);
 							trial.clearCachedResults();
-							FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, oldTest);
-							trial.addFitness(fitness);
-							double fitnessValue = fitness.getFitness(trial);
+							fitnessValue = fitness.getFitness(trial);
 							
-							if(!trial.getLastExecutionResult().getAllThrownExceptions().isEmpty() || fitnessValue > 1) {
+							if(!(trial.getLastExecutionResult().getAllThrownExceptions().isEmpty()) || fitnessValue > 1) {
 								test0 = test.clone();
 							}
 							else {
@@ -224,21 +238,35 @@ public class SensitivityMutator {
 								enhancedStatements.add(cStatement);
 								//TODO ensure mutated 
 							}
-							System.currentTimeMillis();
+//							System.currentTimeMillis();
 							
 						}
+						trial.setTestCase(test0);
+						trial.addFitness(fitness);
+						trial.clearCachedResults();
+						fitnessValue = fitness.getFitness(trial);
 						
+						if(!(trial.getLastExecutionResult().getAllThrownExceptions().isEmpty()) || fitnessValue > 1) {
+							test0 = test.clone();
+						}
 					}
 				}
 			}
-			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
-			System.currentTimeMillis();
+			test0 = test.clone();
+			synthensizer.constructDifficultObjectStatement(test0, branch, false, false);
+			fitnessValue = fitness.getFitness(trial);
+			if(!(trial.getLastExecutionResult().getAllThrownExceptions().isEmpty()) || fitnessValue > 1) {
+				return new ValuePreservance(null, null);
+			}else {
+				test = test0.clone();
+			}
+//			System.currentTimeMillis();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 		TestChromosome oldTestChromosome = new TestChromosome();
-		oldTestChromosome.setTestCase(test);		
+		oldTestChromosome.setTestCase(test);	
 		
 		TestChromosome newTestChromosome = (TestChromosome) oldTestChromosome.clone();
 		ValuePreservance preservingList = checkPreservance(branch, newTestChromosome, rootVariables,

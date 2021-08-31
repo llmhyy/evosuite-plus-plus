@@ -972,6 +972,13 @@ public class ConstructionPathSynthesizer {
 			if (usedFieldInTest != null) {
 				return usedFieldInTest;
 			}
+			
+			if(usedFieldInTest == null && !isLeaf && fieldType.endsWith("/ArrayList;")) {
+				usedFieldInTest = usedRefSearcher.searchRelevantFieldWritingReferenceInTest(test, field, callerObject);
+				if (usedFieldInTest != null) {
+					return usedFieldInTest;
+				}
+			}
 
 			/**
 			 * now we try to generate the relevant statement in the test case.
