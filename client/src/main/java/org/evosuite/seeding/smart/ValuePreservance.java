@@ -155,7 +155,8 @@ public class ValuePreservance {
 					boolean useConstant = record.isObservationUsingConstant(value, obIns.toString());
 					if (useConstant) count++;
 					
-					if (((double)count / Properties.DYNAMIC_SENSITIVITY_THRESHOLD) >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
+					double constantRatio = ((double)count)/recordList.size();
+					if (constantRatio >= Properties.FAST_CHANNEL_SCORE_THRESHOLD) {
 						ObservedConstant constant = new ObservedConstant(value, clazz, constantIns0);						
 						list.add(constant);
 						break;

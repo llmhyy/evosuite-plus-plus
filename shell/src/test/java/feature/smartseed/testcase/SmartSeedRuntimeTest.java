@@ -665,7 +665,7 @@ public class SmartSeedRuntimeTest {
 		
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -721,7 +721,7 @@ public class SmartSeedRuntimeTest {
 		
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -1024,7 +1024,7 @@ public class SmartSeedRuntimeTest {
 		
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -1080,7 +1080,7 @@ public class SmartSeedRuntimeTest {
 		
 		String fitnessApproach = "branch";
 		
-		int repeatTime = 10;
+		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
 				
@@ -1137,11 +1137,11 @@ public class SmartSeedRuntimeTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 10000;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
-		boolean ass = true;
+		boolean ass = false;
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
@@ -1171,11 +1171,11 @@ public class SmartSeedRuntimeTest {
 		String fitnessApproach = "branch";
 		
 		int repeatTime = 1;
-		int budget = 10000;
+		int budget = 100;
 		Long seed = null;
 				
 		boolean aor = false;
-		boolean ass = true;
+		boolean ass = false;
 		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
 				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
@@ -1274,5 +1274,6 @@ public class SmartSeedRuntimeTest {
 		assert res1.getCoverage() == 1.0;
 		assert res1.getAge() < 50;
 	}
+	
 
 }
