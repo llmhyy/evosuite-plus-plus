@@ -28,7 +28,6 @@ import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.seeding.RuntimeSensitiveVariable;
 import org.evosuite.setup.DependencyAnalysis;
-import org.evosuite.testcase.CloneUtils;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
