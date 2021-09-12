@@ -10,6 +10,7 @@ import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
+import org.evosuite.testcase.TestCase;
 
 import evosuite.shell.EvoTestResult;
 import evosuite.shell.EvosuiteForMethod;
@@ -85,9 +86,19 @@ public class TestUtility {
 		for(int i = 0;i < iteration;i++) {
 		@SuppressWarnings("unchecked")
 		List<List<TestGenerationResult>> list = (List<List<TestGenerationResult>>) evo.parseCommandLine(args);
+		
+		if (ass) {
+			System.out.println("======================== EvoSeed ========================");
+		} else {
+			System.out.println("======================== Evosuite =======================");
+		}
 		for (List<TestGenerationResult> l : list) {
+			System.out.println("list size: " + list.size());
 			for (TestGenerationResult r : l) {
-				System.out.println(r.getProgressInformation());
+				System.out.println("sublist size: " + l.size());
+				TestCase testCase = r.getTestCase("test0");
+				System.out.println(testCase.toString());
+//				System.out.println(r.getProgressInformation());
 				result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), r.getAge(), r.getAvailabilityRatio(),
 						r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
 						r.getDistributionMap(), r.getUncoveredBranchDistribution(), r.getRandomSeed(), r.getMethodCallAvailabilityMap());
@@ -103,7 +114,17 @@ public class TestUtility {
 					}
 			}
 		}
+		if (ass) {
+			System.out.println("======================== EvoSeed ========================");
+		} else {
+			System.out.println("======================== Evosuite =======================");
+		}
 		return re;
+	}
+	
+	private static String getTestCaseArg(TestGenerationResult result, String methodName) {
+		result.getTestCase(methodName).findTargetMethodCallStatement();
+		return "";
 	}
 	
 //	public static void evoTestSmartSeedMethod(String targetClass, String targetMethod, 

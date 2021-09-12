@@ -30,7 +30,9 @@ public class TrueExample {
 	
 	public static void test(int x, int y, int z) {
 		if(x==123456789) {
+			System.currentTimeMillis();
 			if(y==987654321) {
+				System.currentTimeMillis();
 				if(z==555555555) {
 					System.currentTimeMillis();
 				}
@@ -44,7 +46,6 @@ public class TrueExample {
 				System.currentTimeMillis();
 			}
 		}
-
 	}
 	
 	public static void test(Obj o, int a) {

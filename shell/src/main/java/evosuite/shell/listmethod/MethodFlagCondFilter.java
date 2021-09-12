@@ -21,6 +21,7 @@ import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.CFGFrame;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
 import org.objectweb.asm.ClassReader;
@@ -101,8 +102,11 @@ public class MethodFlagCondFilter implements IMethodFilter {
 	
 	@Override
 	public List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException, AnalyzerException {
-		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-				.getClassAsStream(targetClass.getName());
+		TestGenerationContext testGenerationContext = TestGenerationContext.getInstance();
+		InstrumentingClassLoader instrumentingClassLoader = testGenerationContext.getClassLoaderForSUT();
+		ResourceList resourceList = ResourceList.getInstance(instrumentingClassLoader);
+		InputStream is = resourceList.getClassAsStream(targetClass.getName());
+		
 		List<String> validMethods = new ArrayList<String>();
 		try {
 			ClassReader reader = new ClassReader(is);
@@ -144,7 +148,8 @@ public class MethodFlagCondFilter implements IMethodFilter {
 						String methodSig = className + "#" + methodName;
 //						if(ListMethods.interestedMethods.contains(methodSig)) {
 //							tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
-							if (checkMethod(classLoader, targetClass.getName(), methodName, m, cn)) {
+							boolean isMethodValid = checkMethod(classLoader, targetClass.getName(), methodName, m, cn);
+							if (isMethodValid) {
 								validMethods.add(methodName);
 							}
 //						}

@@ -38,10 +38,12 @@ import org.slf4j.Logger;
 import evosuite.shell.FilterConfiguration.Filter;
 import evosuite.shell.FilterConfiguration.InclusiveFilter;
 import evosuite.shell.ParameterOptions.TestLevel;
+import evosuite.shell.batch.ListMethodsBatch;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.listmethod.ListFeatures;
 import evosuite.shell.listmethod.ListMethods;
+import evosuite.shell.listmethod.MethodFilterOption;
 import evosuite.shell.utils.LoggerUtils;
 import evosuite.shell.utils.TargetMethodIOUtils;
 
@@ -103,6 +105,15 @@ public class EvosuiteForMethod {
 	private URLClassLoader evoTestClassLoader;
 
 	public static void main(String[] args) {
+		if (args.length > 0 && args[0].equals("--run-filter")) {
+			try {
+				System.out.println("Running filter.");
+				new ListMethodsBatch().justRun();
+				return;
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+		}
 		execute(args);
 		System.exit(0);
 	}

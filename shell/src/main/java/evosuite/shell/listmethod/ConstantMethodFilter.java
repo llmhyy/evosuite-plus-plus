@@ -160,8 +160,11 @@ public class ConstantMethodFilter extends MethodFlagCondFilter {
 		
 		for (int i = 0; i < insn.getOperandNum(); i++) {
 			int index = frame.getStackSize() - i - 1;
+			
+			// The index of the operand
 			Value val = frame.getStack(index);
-
+			
+			// SourceValue = variables in the stack
 			if (val instanceof SourceValue) {
 				SourceValue srcValue = (SourceValue) val;
 				/**

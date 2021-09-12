@@ -20,6 +20,10 @@ import feature.smartseed.example.empirical.ResourcesDirectory;
 import feature.smartseed.example.empirical.SimpleNode;
 
 public class SmartSeedRuntimeTest {
+	private class TestOutcome {
+		public long timeTaken;
+		public double coverage;
+	};
 	
 	@Before
 	public void init() {
@@ -32,6 +36,59 @@ public class SmartSeedRuntimeTest {
 		
 //		Properties.APPLY_GRADEINT_ANALYSIS = true;
 //		Properties.CHROMOSOME_LENGTH = 5;
+	}
+
+	@Test 
+	public void compareMethod() {
+		Class<?> clazz = feature.smartseed.example.truecase.ParseStackTraceElementTest.class;
+//		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
+		String methodName = "weirdDynamicPool";
+		int numParams = 1;
+		
+		TestOutcome evoSeedTestOutcome = testMethod(clazz, methodName, numParams, true);
+		TestOutcome baselineTestOutcome = testMethod(clazz, methodName, numParams, false);
+		
+		System.out.println(" ====================== RESULTS ====================== ");
+		System.out.println("Evoseed results:");
+		System.out.println(" - Time taken: " + evoSeedTestOutcome.timeTaken + " ms");
+		System.out.println(" - Coverage: " + evoSeedTestOutcome.coverage);
+		System.out.println("Baseline results:");
+		System.out.println(" - Time taken: " + baselineTestOutcome.timeTaken + " ms");
+		System.out.println(" - Coverage: " + baselineTestOutcome.coverage);
+		System.out.println("Difference:");
+		System.out.println(" - Time taken: " + (evoSeedTestOutcome.timeTaken - baselineTestOutcome.timeTaken) + " ms");
+		System.out.println(" - Coverage: " + (evoSeedTestOutcome.coverage - baselineTestOutcome.coverage));
+		System.out.println(" ====================== RESULTS ====================== ");
+	}
+	
+	private TestOutcome testMethod(Class<?> clazz, String methodName, int numParams, boolean applySmartSeed) {
+		TestOutcome outcome = new TestOutcome();
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, numParams);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 150;
+		Long seed = null;
+				
+		boolean aor = false;
+		long startTime = System.currentTimeMillis();
+		List<EvoTestResult> results1 = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, applySmartSeed, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		long endTime = System.currentTimeMillis();
+		EvoTestResult res1 = results1.iterator().next();
+		long timeTaken = (endTime - startTime);
+		double coverage = res1.getCoverage();
+		
+		outcome.timeTaken = timeTaken;
+		outcome.coverage = coverage;
+		return outcome;
 	}
 	
 	@Test

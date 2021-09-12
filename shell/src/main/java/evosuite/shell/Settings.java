@@ -229,7 +229,7 @@ public class Settings {
 	
 	public static String getTargetClassFilePath() {
 		return FileUtils.getFilePath(getReportFolder(),
-				String.format("targetClasses%s.txt", mFilterOpt.getText()));
+				String.format("targetClasses_%s.txt", mFilterOpt.getText()));
 	}
 
 	public static boolean isListMethods() {

@@ -13,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.junit.Test;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
 
 import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.Settings;
@@ -21,15 +22,24 @@ import evosuite.shell.excel.MergeExcels;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.TestUtils;
 import evosuite.shell.listmethod.FlagMethodProfilesFilter;
+import evosuite.shell.listmethod.ListMethods;
 import evosuite.shell.listmethod.MethodFilterOption;
 import evosuite.shell.utils.TargetMethodIOUtils;
 
 public class ListMethodsBatch {
 
 	@Test
+	public void testSingleMethod() throws AnalyzerException, IOException {
+		org.evosuite.Properties.ALWAYS_REGISTER_BRANCH = true;
+		Class<?> targetClass = feature.smartseed.example.truecase.SmartSeedFilterPositiveExample.class;
+		MethodFilterOption targetFilter = MethodFilterOption.SMART_SEED_PERFORMANT_METHOD;
+		
+		ListMethods.execute(targetClass, targetFilter);
+	}
+	
+	@Test
 	public void justRun() throws IOException {
 		org.evosuite.Properties.ALWAYS_REGISTER_BRANCH = true;
-		
 //		runListMethod(MethodFilterOption.FLAG_PRIMITIVE_PARAMETER_FIELD);
 //		runListMethod(MethodFilterOption.IPF_EASY_OBJECT);
 //		runListMethod(MethodFilterOption.FLAG_METHOD_PROFILES);
@@ -49,9 +59,8 @@ public class ListMethodsBatch {
 //		runListMethod(MethodFilterOption.CALLS_RECURSIVE_METHOD);
 //		runListMethod(MethodFilterOption.OBJECT_CONSTRUCTION);
 //		runListMethod(MethodFilterOption.BRANCHWISE_METHOD);
-		runListMethod(MethodFilterOption.CONSTANT_METHOD);
-
-//	}
+//		runListMethod(MethodFilterOption.CONSTANT_METHOD);
+		runListMethod(MethodFilterOption.SMART_SEED_PERFORMANT_METHOD);
 	}
 
 	@Test
@@ -60,6 +69,8 @@ public class ListMethodsBatch {
 				TestUtils.getAbsolutePath("/experiments/SF100/reports/flag-filtered-methods-all.txt"), 
 				TestUtils.getAbsolutePath("/experiments/SF100-ForClass/targetClasses-flagProc.txt"));
 	}
+	
+	
 	
 	public void runListMethod(MethodFilterOption opt) throws IOException {
 		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();

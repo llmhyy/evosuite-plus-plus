@@ -22,6 +22,7 @@ import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.slf4j.Logger;
 
 import evosuite.shell.EvosuiteForMethod;
@@ -46,13 +47,46 @@ public class ListMethods {
 
 	public static List<String> interestedMethods = new ArrayList<>();
 
+	// Overloaded method for a single target class
+	// Prints a list of target methods to console
+	// This method is for testing filters
+	public static void execute(Class<?> targetClass, MethodFilterOption mFilterOpt)
+			throws AnalyzerException, IOException {
+		ClassLoader classLoader = targetClass.getClassLoader();
+
+		DependencyAnalysis.clear();
+		
+		/**
+		 * we clear the branch pool and graph pool when analyzing a new project.
+		 */
+		BranchPool.getInstance(classLoader).reset();
+		GraphPool.getInstance(classLoader).clear();
+		
+		IMethodFilter methodFilter = mFilterOpt.getCorrespondingFilter();
+		boolean isTargetClassInterface = targetClass.isInterface();
+		if (isTargetClassInterface) {
+			return;
+		}
+		
+		System.out.println("Testing class: " + targetClass.getName());
+		List<String> testableMethods = methodFilter.listTestableMethods(targetClass, classLoader);
+		boolean isTestableMethodsNullOrEmpty = (testableMethods == null || testableMethods.isEmpty());
+		if (isTestableMethodsNullOrEmpty) {
+			return;
+		}
+		
+		for (String testableMethod : testableMethods) { 
+			System.out.println(testableMethod);
+		}
+	}
+	
 	public static int execute(String[] targetClasses, ClassLoader classLoader, MethodFilterOption mFilterOpt,
 			String targetMethodFilePath, String targetClassFilePath)
 			throws ClassNotFoundException, IOException {
 		
 		
 		//TODO Cheng Yan, read the excel/csv file to include a method list
-		interestedMethods = readCSVFile();
+		// interestedMethods = readCSVFile();
 		
 		StringBuilder headerSb = new StringBuilder();
 //		headerSb.append("\n");
@@ -92,10 +126,11 @@ public class ListMethods {
 				}
 				total += CollectionUtil.getSize(testableMethods);
 				tMethodSb = new StringBuilder();
+							
 				for (String methodName : testableMethods) {
 					//TODO Cheng Yan shall comment this code later
 					String methodSig = className + "#" + methodName;
-					if(interestedMethods.contains(methodSig)) {
+					if(interestedMethods.contains(methodSig) || true) {
 						tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
 					}
 					
@@ -120,7 +155,7 @@ public class ListMethods {
 	}
 	
 	private static List<String> readCSVFile() throws IOException {
-		String path = "D:\\linyun\\git_space\\SF100-clean\\constantMethods-60.xls";
+		String path = "D:\\linyun\\git_space\\SF100-clean\\constantMethods-60.xlsx";
 		File f = new File(path);
 //		ExcelReader excelReader = new ExcelReader(f, 3);
 		POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(path));

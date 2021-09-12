@@ -25,7 +25,8 @@ public enum MethodFilterOption {
 	OBJECT_CONSTRUCTION("objectConstruction"),
 	EQUALS_METHOD("equalsMethod"),
 	BRANCHWISE_METHOD("branchwiseMethod"),
-	CONSTANT_METHOD("constantMethod");
+	CONSTANT_METHOD("constantMethod"),
+	SMART_SEED_PERFORMANT_METHOD("smartSeedPerformantMethod");
 	
 	private String text;
 	private MethodFilterOption(String text) {
@@ -82,6 +83,8 @@ public enum MethodFilterOption {
 			return new BranchwiseMethodFillter();
 		case CONSTANT_METHOD:
 			return new ConstantMethodFilter();
+		case SMART_SEED_PERFORMANT_METHOD:
+			return new SmartSeedPerformanceFilter();
 		}
 		return null;
 	}

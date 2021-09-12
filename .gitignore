@@ -25,3 +25,11 @@ master/dependency-reduced-pom.xml
 shaded/dependency-reduced-pom.xml
 standalone_runtime/dependency-reduced-pom.xml
 /.metadata/
+generated/.classpath
+generated/.settings/org.eclipse.jdt.core.prefs
+plugins/build-support-test/.classpath
+plugins/build-support-test/.settings/org.eclipse.jdt.core.prefs
+plugins/maven-test/.settings/org.eclipse.jdt.core.prefs
+plugins/maven-test/.classpath
+plugins/maven/.classpath
+plugins/maven/.settings/org.eclipse.jdt.core.prefs

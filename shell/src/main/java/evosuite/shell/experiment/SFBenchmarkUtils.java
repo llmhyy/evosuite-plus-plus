@@ -28,7 +28,9 @@ public class SFBenchmarkUtils {
 	/**
 	 * return map of project name and its folder */
 	public static Map<String, File> listProjectFolders() {
-		File[] files = new File(SFConfiguration.sfBenchmarkFolder).listFiles(new FilenameFilter() {
+		String workingFolder = SFConfiguration.sfBenchmarkFolder;
+//		String workingFolder = System.getProperty("user.dir");
+		File[] files = new File(workingFolder).listFiles(new FilenameFilter() {
 			
 			@Override
 			public boolean accept(File dir, String name) {
