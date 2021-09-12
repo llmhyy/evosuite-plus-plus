@@ -28,10 +28,13 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.stoppingconditions.MaxStatementsStoppingCondition;
+import org.evosuite.result.ExceptionResult;
 import org.evosuite.result.TestGenerationResultBuilder;
 import org.evosuite.rmi.ClientServices;
+import org.evosuite.rmi.service.ClientNodeLocal;
 import org.evosuite.rmi.service.ClientState;
 import org.evosuite.statistics.RuntimeVariable;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
@@ -157,12 +160,43 @@ public class MOSuiteStrategy extends TestGenerationStrategy {
 		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Total_Goals, algorithm.getFitnessFunctions().size());
 		
 		// We send exception-related data at the end of the search.
-		ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.NumberOfExceptions, testSuite.getExceptionResult().getNumberOfExceptions());
+		trackExceptionOutputVariables(testSuite);
 		
 		int timeUsed = (int) (endTime - startTime);
 		testSuite.setTimeUsed(timeUsed);
 		
 		return testSuite;
+	}
+	
+	/**
+	 * Helper method to add all exception related data.
+	 * Note that the data added here is at best a method-level overview i.e.
+	 * this does not have the granularity of a branch-level view. 
+	 */
+	private void trackExceptionOutputVariables(TestSuiteChromosome testSuiteChromosome) {
+		ClientNodeLocal clientNode = ClientServices.getInstance().getClientNode();
+		ExceptionResult<TestChromosome> exceptionResult = testSuiteChromosome.getExceptionResult();
+		
+		int numberOfExceptions = exceptionResult.getNumberOfExceptions();
+		int numberOfInMethodExceptions = exceptionResult.getNumberOfInMethodExceptions();
+		int numberOfOutMethodExceptions = exceptionResult.getNumberOfOutMethodExceptions();
+		String breakdownOfInMethodExceptions = exceptionResult.getBreakdownOfInMethodExceptions();
+		String breakdownOfOutMethodExceptions = exceptionResult.getBreakdownOfOutMethodExceptions();
+		
+		int numberOfUncoveredBranches = testSuiteChromosome.getMissingBranches().size();
+		int numberOfCoveredBranches = testSuiteChromosome.getCoveredBranchWithTest().size();
+		int numberOfUncoveredBranchesWithException = exceptionResult.getNumberOfUncoveredBranchesWithException(testSuiteChromosome.getMissingBranches());
+		int numberOfBranches = numberOfUncoveredBranches + numberOfCoveredBranches;
+		
+		clientNode.trackOutputVariable(RuntimeVariable.NumberOfExceptions, numberOfExceptions);
+		clientNode.trackOutputVariable(RuntimeVariable.NumberOfInMethodExceptions, numberOfInMethodExceptions);
+		clientNode.trackOutputVariable(RuntimeVariable.NumberOfOutMethodExceptions, numberOfOutMethodExceptions);
+		clientNode.trackOutputVariable(RuntimeVariable.BreakdownOfInMethodExceptions, breakdownOfInMethodExceptions);
+		clientNode.trackOutputVariable(RuntimeVariable.BreakdownOfOutMethodExceptions, breakdownOfOutMethodExceptions);
+		clientNode.trackOutputVariable(RuntimeVariable.NumberOfBranches, numberOfBranches);
+		clientNode.trackOutputVariable(RuntimeVariable.NumberOfUncoveredBranches, numberOfUncoveredBranches);
+		clientNode.trackOutputVariable(RuntimeVariable.NumberOfCoveredBranches, numberOfCoveredBranches);
+		clientNode.trackOutputVariable(RuntimeVariable.NumberOfUncoveredBranchesWithException, numberOfUncoveredBranchesWithException);
 	}
 	
 }

@@ -106,8 +106,10 @@ public class CSVStatisticsBackend implements StatisticsBackend {
 		// Write to evosuite-report/statistics.csv
 		BufferedWriter out = null;
 		try {
-			File outputDir = getReportDir();			
-			File f = new File(outputDir.getAbsolutePath() + File.separator + "statistics.csv");
+			File outputDir = getReportDir();
+			String statistics_prefix = Properties.APPLY_OBJECT_RULE ? "evoobj_" : "evosuite_";
+			
+			File f = new File(outputDir.getAbsolutePath() + File.separator + statistics_prefix + "statistics.csv");
 			
 			if(!new File(outputDir.getAbsolutePath()).exists()) {
 				new File(outputDir.getAbsolutePath()).mkdir();

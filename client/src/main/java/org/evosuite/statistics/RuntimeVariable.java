@@ -385,7 +385,15 @@ public enum RuntimeVariable {
 	
 	/* -------------------------------------------------------------------- */
 	/** Exception-related runtime variables */
-	NumberOfExceptions
+	NumberOfExceptions,
+	NumberOfInMethodExceptions,
+	NumberOfOutMethodExceptions,
+	BreakdownOfInMethodExceptions,
+	BreakdownOfOutMethodExceptions,
+	NumberOfBranches,
+	NumberOfUncoveredBranches,
+	NumberOfUncoveredBranchesWithException,
+	NumberOfCoveredBranches
 	;
 	/* -------------------------------------------------- */
 

@@ -22,16 +22,14 @@ import org.evosuite.ga.FitnessFunction;
 public class ExceptionResultBranch<T extends Chromosome> implements Serializable {
 	// generated serialVersionUID.
 	private static final long serialVersionUID = -7781936582744596947L;
-
-	// The threshold before we consider an exception non-trivial.
-	// This represents the number of iterations that an exception must persist for before 
-	// we consider it as a non-trivial exception.
-	private static final int NON_TRIVIAL_EXCEPTION_ITERATION_THRESHOLD = 5;
 	
 	// The branch that we are tracking.
 	private FitnessFunction<T> fitnessFunction;
 	
 	private HashMap<Integer, ExceptionResultIteration<T>> iterationToExceptionResult = new HashMap<>();	
+	
+	// Whether this branch is covered.
+	private boolean isCovered;
 	
 	public ExceptionResultBranch(FitnessFunction<T> fitnessFunction) {
 		this.fitnessFunction = fitnessFunction;
@@ -51,6 +49,16 @@ public class ExceptionResultBranch<T extends Chromosome> implements Serializable
 	
 	public List<ExceptionResultIteration<T>> getAllResults() {
 		return new ArrayList<>(iterationToExceptionResult.values());
+	}
+	
+	public ExceptionResultIteration<T> getLastIteration() {
+		int largestIteration = -1;
+		for (Integer i : iterationToExceptionResult.keySet()) {
+			if (i > largestIteration) {
+				largestIteration = i;
+			}
+		}
+		return iterationToExceptionResult.get(largestIteration);
 	}
 	
 	public int getNumberOfIterations() {
@@ -121,5 +129,31 @@ public class ExceptionResultBranch<T extends Chromosome> implements Serializable
 			}
 		}
 		return outMethodExceptions;
-	}	
+	}
+	
+	public boolean doesLastIterationHaveException() {
+		List<ExceptionResultIteration<T>> iterations = this.getAllResults();
+		ExceptionResultIteration<T> lastIteration = iterations.get(iterations.size() - 1);
+		return lastIteration.isExceptionOccurred();
+	}
+	
+	public boolean doesLastIterationHaveInMethodException() {
+		if (!doesLastIterationHaveException()) {
+			return false;
+		}
+		
+		List<ExceptionResultIteration<T>> iterations = this.getAllResults();
+		ExceptionResultIteration<T> lastIteration = iterations.get(iterations.size() - 1);
+		return lastIteration.isInMethodException();
+	}
+	
+	public boolean doesLastIterationHaveOutMethodException() {
+		if (!doesLastIterationHaveException()) {
+			return false;
+		}
+		
+		List<ExceptionResultIteration<T>> iterations = this.getAllResults();
+		ExceptionResultIteration<T> lastIteration = iterations.get(iterations.size() - 1);
+		return lastIteration.isOutMethodException();
+	}
 }

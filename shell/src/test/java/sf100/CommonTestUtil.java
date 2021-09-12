@@ -1,9 +1,11 @@
 package sf100;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import evosuite.shell.EvoTestResult;
 import evosuite.shell.EvosuiteForMethod;
@@ -196,7 +198,24 @@ public class CommonTestUtil {
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
 		file.deleteOnExit();
 		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethods);
-
+		
+		String[] outputVariables = new String[] {
+				"TARGET_CLASS",
+				"target_method",
+				"criterion",
+				"NumberOfExceptions",
+				"NumberOfInMethodExceptions",
+				"NumberOfOutMethodExceptions",
+				"BreakdownOfInMethodExceptions",
+				"BreakdownOfOutMethodExceptions",
+				"NumberOfBranches",
+				"NumberOfUncoveredBranches",
+				"NumberOfUncoveredBranchesWithException",
+				"NumberOfCoveredBranches",
+		};
+		
+		String outputVariableString = StringUtils.join(outputVariables, ",");
+		
 		String[] args = new String[] {
 				"-Dapply_object_rule", String.valueOf(applyObjectRule),
 				"-"+option,
@@ -239,8 +258,8 @@ public class CommonTestUtil {
 				"-Dprimitive_pool", "0.5",
 				"-Ddynamic_pool", "0.5",
 //				"-seed", "1556035769590"
-				"-Doutput_variables", "TARGET_CLASS,target_method,criterion,NumberOfExceptions,CoverageTimeline",
-				"-Dtimeline_interval", "1000"
+				"-Doutput_variables", outputVariableString,
+//				"-Dtimeline_interval", "1000"
 				
 		};
 		

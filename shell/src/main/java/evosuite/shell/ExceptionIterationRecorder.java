@@ -5,6 +5,7 @@ import static evosuite.shell.EvosuiteForMethod.projectId;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 	private static final String STATISTICS_SHEET = "Statistics";
 	private static final String COVERAGE_SHEET = "Coverage";
 	
-	public ExceptionIterationRecorder(int iteration) throws IOException {
+	public ExceptionIterationRecorder() throws IOException {
 		super();
 	}	
 	
@@ -71,6 +72,8 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		columnHeaders.add("Method");
 		columnHeaders.add("Branch");
 		columnHeaders.add("Is branch covered?");
+		columnHeaders.add("Did the last iteration incur exception?");
+		columnHeaders.add("Classification of last exception");
 		
 		return columnHeaders.toArray(new String[] {});
 	}
@@ -82,6 +85,8 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		columnHeaders.add("Method");
 		columnHeaders.add("Branch");
 		columnHeaders.add("Is branch covered?");
+		columnHeaders.add("Did the last iteration incur exception?");
+		columnHeaders.add("Classification of last exception");
 
 		return columnHeaders.toArray(new String[] {});
 	}
@@ -93,6 +98,8 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		columnHeaders.add("Method");
 		columnHeaders.add("Branch");
 		columnHeaders.add("Is branch covered?");
+		columnHeaders.add("Did the last iteration incur exception?");
+		columnHeaders.add("Classification of last exception");
 		columnHeaders.add("Total iterations");
 		columnHeaders.add("Total exceptions");
 		columnHeaders.add("Total in-method exceptions");
@@ -161,38 +168,53 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		for (ExceptionResultBranch<TestChromosome> exceptionResultBranch : exceptionResult.getAllResults()) {
 			String branchName = ((BranchCoverageTestFitness) exceptionResultBranch.getFitnessFunction()).getBranch().toString();
 			String branchGoal = (((BranchCoverageTestFitness) exceptionResultBranch.getFitnessFunction()).getBranchGoal().getValue() ? "true" : "false");
-			String branchIdentifier = className + methodName + ";" + branchName + ";" + branchGoal;
 			boolean isBranchCovered = isBranchCovered(r, exceptionResultBranch);
-			
-			Integer evosuiteIterationNumber = branchIdentifierToIterationNumber.get(branchIdentifier);
-			if (evosuiteIterationNumber == null) {
-				branchIdentifierToIterationNumber.put(branchIdentifier, 0);
-				evosuiteIterationNumber = 0;
-			} else {
-				branchIdentifierToIterationNumber.put(branchIdentifier, evosuiteIterationNumber + 1);
+			boolean isLastIterationIncurredException = exceptionResultBranch.doesLastIterationHaveException();
+			String classificationOfLastException = "-";
+			if (isLastIterationIncurredException) {
+				boolean isLastExceptionInMethod = exceptionResultBranch.doesLastIterationHaveInMethodException();
+				boolean isLastExceptionOutMethod = exceptionResultBranch.doesLastIterationHaveOutMethodException();
+				
+				if (isLastExceptionInMethod && isLastExceptionOutMethod) {
+					log.debug("Assertion violated; iteration exception is both in- and out-method.");
+				}
+				
+				if (isLastExceptionInMethod) {
+					classificationOfLastException = "In-method";
+				}
+				
+				if (isLastExceptionOutMethod) {
+					classificationOfLastException = "Out-method";
+				}
 			}
 			
 			List<Object> rowData = new ArrayList<>();
 			List<Object> rowComments = new ArrayList<>();
 			List<Object> rowStatistics = new ArrayList<>();
 			
-			rowData.add(evosuiteIterationNumber);
+			rowData.add(evosuiteIteration);
 			rowData.add(className);
 			rowData.add(methodName);
 			rowData.add(branchName + ";" + branchGoal);
 			rowData.add(isBranchCovered);
+			rowData.add(isLastIterationIncurredException);
+			rowData.add(classificationOfLastException);
 			
-			rowComments.add(evosuiteIterationNumber);
+			rowComments.add(evosuiteIteration);
 			rowComments.add(className);
 			rowComments.add(methodName);
 			rowComments.add(branchName + ";" + branchGoal);
 			rowComments.add(isBranchCovered);
+			rowComments.add(isLastIterationIncurredException);
+			rowComments.add(classificationOfLastException);
 			
-			rowStatistics.add(evosuiteIterationNumber);
+			rowStatistics.add(evosuiteIteration);
 			rowStatistics.add(className);
 			rowStatistics.add(methodName);
 			rowStatistics.add(branchName + ";" + branchGoal);
 			rowStatistics.add(isBranchCovered);
+			rowStatistics.add(isLastIterationIncurredException);
+			rowStatistics.add(classificationOfLastException);
 			
 			for (ExceptionResultIteration<TestChromosome> exceptionResultIteration : exceptionResultBranch.getAllResults()) {
 				boolean isExceptionOccurred = exceptionResultIteration.isExceptionOccurred();
@@ -297,7 +319,7 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 			
 			
 			StringBuilder inMethodExceptionClassificationStringBuilder = new StringBuilder();
-			for (Map.Entry<String, Integer> entry : inMethodExceptionsClassified.entrySet()) {
+			for (Map.Entry<String, Integer> entry : entrySetToOrderedList(inMethodExceptionsClassified.entrySet())) {
 				String exceptionClass = entry.getKey();
 				Integer count = entry.getValue();
 				
@@ -305,7 +327,7 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 			}
 			
 			StringBuilder outMethodExceptionClassificationStringBuilder = new StringBuilder();
-			for (Map.Entry<String, Integer> entry : outMethodExceptionsClassified.entrySet()) {
+			for (Map.Entry<String, Integer> entry : entrySetToOrderedList(outMethodExceptionsClassified.entrySet())) {
 				String exceptionClass = entry.getKey();
 				Integer count = entry.getValue();
 				
@@ -400,5 +422,28 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		}
 		
 		return false;
+	}
+	
+	private static List<Map.Entry<String, Integer>> entrySetToOrderedList(Set<Map.Entry<String, Integer>> entrySet) {
+		List<Map.Entry<String, Integer>> orderedList = new ArrayList<>(entrySet);
+		// Sort by decreasing number of exceptions
+		Collections.sort(orderedList, (entry, anotherEntry) -> {
+			boolean entryValueIsNull = (entry.getValue() == null);
+			boolean anotherEntryValueIsNull = (anotherEntry.getValue() == null);
+			if (entryValueIsNull && anotherEntryValueIsNull) {
+				return 0;
+			}
+			
+			if (entryValueIsNull) {
+				return -1;
+			}
+			
+			if (anotherEntryValueIsNull) {
+				return 1;
+			}
+			
+			return -entry.getValue().compareTo(anotherEntry.getValue());
+		});
+		return orderedList;
 	}
 }

@@ -215,7 +215,7 @@ public class EvosuiteForMethod {
 					fitnessRecorder = new FitnessEffectiveRecorder();
 					recorderList.add(fitnessRecorder);
 				}
-				exceptionIterationRecorder = new ExceptionIterationRecorder(Settings.getIteration());
+				exceptionIterationRecorder = new ExceptionIterationRecorder();
 				recorderList.add(exceptionIterationRecorder);
 				
 				String existingReport = fitnessRecorder.getFinalReportFilePath();

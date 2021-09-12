@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import common.SF100Project;
 import evosuite.shell.EvoTestResult;
-import jigl.image.RealGrayImage;
 import sf100.CommonTestUtil;
 
 public class SF100OverallTest {
@@ -110,6 +109,29 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testXbus() {
+		String projectId = SF100Project.P83;
+		String[] targetMethods = new String[]{
+				"net.sf.xbus.admin.html.JournalBean#getDetailsAsTable()Ljava/lang/String;"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
 	public void testWaterSimulator() {
 		String projectId = SF100Project.P10;
 		String[] targetMethods = new String[]{
@@ -178,6 +200,28 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testImsmart() {
+		String projectId = SF100Project.P11;
+		String[] targetMethods = new String[]{
+				"com.momed.main.MMergeTIFF#saveMultiPageTif([Ljava/awt/image/RenderedImage;Ljava/lang/String;)V"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 150;
+		int budget = 1;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		boolean aor = false;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
 	public void testLhamacaw() {
 		String projectId = SF100Project.P69;
 		String[] targetMethods = new String[]{
@@ -203,15 +247,15 @@ public class SF100OverallTest {
 	public void testJiggler() {
 		String projectId = SF100Project.P89;
 		String[] targetMethods = new String[]{
-				// "jigl.image.levelSetTool.LevelSetSmooth#constrainSigns(Ljigl/image/RealGrayImage;II)V",
-				// "jigl.image.MIPMap#get(FFF)[F",
+				"jigl.image.levelSetTool.LevelSetSmooth#constrainSigns(Ljigl/image/RealGrayImage;II)V",
+				"jigl.image.MIPMap#get(FFF)[F",
 				"jigl.image.levelSetTool.LevelSetSmooth#apply(IIIIZZ)Ljigl/image/RealColorImage;",
-				// "jigl.signal.ops.levelOps.ClipNeg#apply(Ljigl/signal/RealSignal;Ljigl/signal/ROI;)Ljigl/signal/Signal;"
+				"jigl.signal.ops.levelOps.ClipNeg#apply(Ljigl/signal/RealSignal;Ljigl/signal/ROI;)Ljigl/signal/Signal;"
 		};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 2;
-		int budget = 30;
+		int budget = 60;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
