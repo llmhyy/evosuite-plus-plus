@@ -42,11 +42,10 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample1() {
-		String projectId = SF100Project.P5;
+		String projectId = SF100Project.P85;
 		String[] targetMethods = new String[]{
 //				"org.dom4j.tree.LazyList#getEntryHeader(I)Lorg/dom4j/tree/LazyList$Entry;"//62
-				"org.templateit.Poi2ItextUtil#chooseFontFamily(Lorg/apache/poi/hssf/usermodel/HSSFFont;I)I"//5
-				
+				"umd.cs.shop.JSUtil#printTokenizer(Ljava/io/StreamTokenizer;)V"//85
 //				"net.sourceforge.schemaspy.Config#isHighQuality()Z"//36
 //				"com.pmdesigns.jvc.tools.JVCParser#parse()Ljava/lang/String;"//33
 //				"com.browsersoft.openhre.hl7.impl.parser.HL7CheckerImpl#subComponent(Ljava/lang/String;)V"//75
