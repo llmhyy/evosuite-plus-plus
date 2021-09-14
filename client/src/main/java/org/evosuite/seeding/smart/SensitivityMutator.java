@@ -177,7 +177,7 @@ public class SensitivityMutator {
 		TestChromosome oldTest = new TestChromosome();
 		oldTest.setTestCase(test);
 		oldTest.addFitness((FitnessFunction<?>) bf);
-		
+		long t1 = System.currentTimeMillis();
 		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance());
 		try {
 			TestCase test0 = test.clone();
@@ -260,6 +260,8 @@ public class SensitivityMutator {
 				test = test0.clone();
 			}
 //			System.currentTimeMillis();
+			long t2 = System.currentTimeMillis();
+			System.out.println((t2 - t1));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
