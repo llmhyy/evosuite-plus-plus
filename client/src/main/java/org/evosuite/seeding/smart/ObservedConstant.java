@@ -3,6 +3,7 @@ package org.evosuite.seeding.smart;
 import java.lang.reflect.Type;
 
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.testcase.statements.ValueStatement;
 
 public class ObservedConstant {
 	private Object value;
@@ -40,19 +41,43 @@ public class ObservedConstant {
 		this.ins = ins;
 	}
 
-	public boolean isCompatible(Object val) {
-		if(val == null) {
+	public boolean isCompatible(ValueStatement sta) {
+		if(sta.getAssignmentValue() == null) {
 			return false;
 		}
-		Class<?> valueType = val.getClass();
+		Class<?> valueType = sta.getAssignmentValue().getClass();
 		
 		Class<?> clazz = value.getClass();
-		
+
 		if (valueType.getTypeName().equals(clazz.getTypeName())
 				|| clazz.getTypeName().toLowerCase().contains(valueType.getTypeName())) {
+			//type conversion
+			value = clazz.cast(value);
 			return true;
 		} else {
-			System.currentTimeMillis();
+			//correlation
+			if((valueType.equals(String.class)) && (clazz.equals(Character.class) || clazz.equals(Integer.class))) {
+				if (value instanceof Integer) {
+					/// obj is a character
+					int in = (Integer) value;
+					Character c = (char) in;
+					value = c.toString();
+				}else
+					value = value.toString();
+				return true;
+			}
+			if((valueType.equals(Character.class)) && (clazz.equals(String.class) || clazz.equals(Integer.class))) {
+				sta.setAssignmentValue((String)sta.getAssignmentValue().toString());
+				if (value instanceof Integer) {
+					/// obj is a character
+					int in = (Integer) value;
+					Character c = (char) in;
+					value = c.toString();
+				}else {
+					value = value.toString();
+				}
+				return true;
+			}
 		}
 
 		return false;

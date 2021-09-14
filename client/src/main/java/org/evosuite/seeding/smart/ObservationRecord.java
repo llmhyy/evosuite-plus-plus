@@ -1,6 +1,8 @@
 package org.evosuite.seeding.smart;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -215,7 +217,9 @@ public class ObservationRecord {
 			subObservationMap.put(key, observation);
 		}
 		else if(clazz.isArray()) {
-			Object[] arrary = (Object[])observation;
+			//resolve ClassCastException
+			List<Object> arrary = Arrays.asList(observation);
+//			Object[] arrary = (Object[])observation;
 			int i = 0;
 			for(Object arrayElementValue: arrary) {
 				if(arrayElementValue != null) {

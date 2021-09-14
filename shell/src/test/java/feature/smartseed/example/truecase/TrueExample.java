@@ -320,15 +320,7 @@ public class TrueExample {
 	public TrueExample(int i) {
 		this.id = i;
 	}
-	
-	
-	public static int magicConstant1 = 123456789;
-	public static int magicConstant2 = 23456789;
-	public static int magicConstant3 = 3456789;
-	public static int magicConstant4 = 456789;
-	public static int magicConstant5 = 56789;
-	public static int magicConstant6 = 6789;
-	public static int magicConstant7 = 789;
+		
 	
 	public static void difficultForEvoSeed(int a, int b, int c, int d, int e, int f, int g) {
 		boolean branchCond1 = (a * Integer.valueOf("10") == Integer.valueOf("1234567890"));
@@ -352,6 +344,14 @@ public class TrueExample {
 					}
 				}
 			}
+		}
+	}
+	
+	public static String[] magicConstants = new String[] { "hello", "world" };
+
+	public static void difficultMethod(String a, String b) {
+		if (a.concat(b).equals(magicConstants[0].concat(magicConstants[1]))) {
+			System.currentTimeMillis();
 		}
 	}
 	

@@ -360,6 +360,9 @@ public class ConstructionPathSynthesizer {
 				return false;
 			}
 			VariableReference generatedVariable = generateFieldStatement(test, node, isLeaf, callerObject, map, b, allowNullValue);
+			if(generatedVariable == null) {
+				generatedVariable = reAnalyzeFieldStatement(test, node, isLeaf, callerObject, map, b, allowNullValue);
+			}
 			System.currentTimeMillis();
 			generatedVariables.add(generatedVariable);
 		} else if (node.var.getType() == DepVariable.OTHER) {
@@ -426,6 +429,58 @@ public class ConstructionPathSynthesizer {
 		}
 		
 		return true;
+	}
+
+	private VariableReference reAnalyzeFieldStatement(TestCase test, DepVariableWrapper node, boolean isLeaf,
+			VariableReference callerObject, Map<DepVariableWrapper, List<VariableReference>> map, Branch b,
+			boolean allowNullValue) {
+		FieldInsnNode fieldNode = (FieldInsnNode) node.var.getInstruction().getASMNode();
+		String fieldType = fieldNode.desc;
+		String fieldOwner = fieldNode.owner.replace("/", ".");
+		String fieldTypeName = fieldType.replace("/", ".");
+		if(fieldTypeName.startsWith("L")) {
+			fieldTypeName = fieldTypeName.substring(1, fieldTypeName.length()-1);
+		}
+		else if(fieldTypeName.startsWith("[L")) {
+			fieldTypeName = fieldTypeName.substring(2, fieldTypeName.length()-1);
+		}
+		String fieldName = fieldNode.name;
+		
+		//string value
+		if(fieldOwner.equals("java.lang.String") && fieldName.equals("value"))
+			return null;
+
+		if (callerObject != null) {
+			Statement stat = test.getStatement(callerObject.getStPosition());
+			if(stat instanceof NullStatement) {
+				return null;
+			}
+			
+			String callerType = callerObject.getClassName();
+			if (!isPrimitiveClass(callerType)) {
+				if (!isCompatible(fieldOwner, callerType)) {
+					System.currentTimeMillis();
+					return null;
+				}
+			}
+		}
+
+		try {
+			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+					.loadClass(fieldOwner);
+			Field field = searchForField(fieldDeclaringClass, fieldName);
+
+			UsedReferenceSearcher usedRefSearcher = new UsedReferenceSearcher();
+			VariableReference usedFieldInTest = usedRefSearcher.searchRelevantFieldWritingReferenceInTest(test, field, callerObject);
+			if (usedFieldInTest != null) {
+				return usedFieldInTest;
+			}
+		}catch (ClassNotFoundException | SecurityException e) {
+			printConstructionError(test, node, b);
+			e.printStackTrace();
+			return null;
+		}
+		return null;
 	}
 
 	private List<VariableReference> generateArrayElementStatement(TestCase test, DepVariableWrapper node, boolean isLeaf,
@@ -972,7 +1027,6 @@ public class ConstructionPathSynthesizer {
 			if (usedFieldInTest != null) {
 				return usedFieldInTest;
 			}
-
 			/**
 			 * now we try to generate the relevant statement in the test case.
 			 */
