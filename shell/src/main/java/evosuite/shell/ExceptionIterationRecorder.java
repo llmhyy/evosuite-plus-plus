@@ -74,6 +74,7 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		columnHeaders.add("Is branch covered?");
 		columnHeaders.add("Did the last iteration incur exception?");
 		columnHeaders.add("Classification of last exception");
+		columnHeaders.add("Last exception type");
 		
 		return columnHeaders.toArray(new String[] {});
 	}
@@ -87,6 +88,7 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		columnHeaders.add("Is branch covered?");
 		columnHeaders.add("Did the last iteration incur exception?");
 		columnHeaders.add("Classification of last exception");
+		columnHeaders.add("Last exception type");
 
 		return columnHeaders.toArray(new String[] {});
 	}
@@ -100,6 +102,7 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		columnHeaders.add("Is branch covered?");
 		columnHeaders.add("Did the last iteration incur exception?");
 		columnHeaders.add("Classification of last exception");
+		columnHeaders.add("Last exception type");
 		columnHeaders.add("Total iterations");
 		columnHeaders.add("Total exceptions");
 		columnHeaders.add("Total in-method exceptions");
@@ -187,6 +190,10 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 					classificationOfLastException = "Out-method";
 				}
 			}
+			String lastExceptionType = "-";
+			if (isLastIterationIncurredException) {
+				lastExceptionType = exceptionResultBranch.getLastIteration().getException().getClass().getCanonicalName();
+			}
 			
 			List<Object> rowData = new ArrayList<>();
 			List<Object> rowComments = new ArrayList<>();
@@ -199,6 +206,7 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 			rowData.add(isBranchCovered);
 			rowData.add(isLastIterationIncurredException);
 			rowData.add(classificationOfLastException);
+			rowData.add(lastExceptionType);
 			
 			rowComments.add(evosuiteIteration);
 			rowComments.add(className);
@@ -207,6 +215,7 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 			rowComments.add(isBranchCovered);
 			rowComments.add(isLastIterationIncurredException);
 			rowComments.add(classificationOfLastException);
+			rowComments.add(lastExceptionType);
 			
 			rowStatistics.add(evosuiteIteration);
 			rowStatistics.add(className);
@@ -215,6 +224,7 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 			rowStatistics.add(isBranchCovered);
 			rowStatistics.add(isLastIterationIncurredException);
 			rowStatistics.add(classificationOfLastException);
+			rowStatistics.add(lastExceptionType);
 			
 			for (ExceptionResultIteration<TestChromosome> exceptionResultIteration : exceptionResultBranch.getAllResults()) {
 				boolean isExceptionOccurred = exceptionResultIteration.isExceptionOccurred();

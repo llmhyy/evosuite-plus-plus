@@ -102,7 +102,7 @@ public class NullPointerExceptionTest {
 	}
 	
 	/*
-	 * Type is not visible. How did EvoObj run the tests?
+	 * Type not visible.
 	 */
 //	@Test
 //	public void xisemele_children() {
