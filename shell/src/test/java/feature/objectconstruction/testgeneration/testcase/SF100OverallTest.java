@@ -117,7 +117,7 @@ public class SF100OverallTest {
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 150;
+		int budget = 30;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
@@ -247,15 +247,15 @@ public class SF100OverallTest {
 	public void testJiggler() {
 		String projectId = SF100Project.P89;
 		String[] targetMethods = new String[]{
-				"jigl.image.levelSetTool.LevelSetSmooth#constrainSigns(Ljigl/image/RealGrayImage;II)V",
-				"jigl.image.MIPMap#get(FFF)[F",
+//				"jigl.image.levelSetTool.LevelSetSmooth#constrainSigns(Ljigl/image/RealGrayImage;II)V",
+//				"jigl.image.MIPMap#get(FFF)[F",
 				"jigl.image.levelSetTool.LevelSetSmooth#apply(IIIIZZ)Ljigl/image/RealColorImage;",
-				"jigl.signal.ops.levelOps.ClipNeg#apply(Ljigl/signal/RealSignal;Ljigl/signal/ROI;)Ljigl/signal/Signal;"
+//				"jigl.signal.ops.levelOps.ClipNeg#apply(Ljigl/signal/RealSignal;Ljigl/signal/ROI;)Ljigl/signal/Signal;"
 		};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 2;
-		int budget = 60;
+		int repeatTime = 1;
+		int budget = 30;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

@@ -90,7 +90,8 @@ public class NullPointerExceptionTest {
 	}
 	
 	/*
-	 * No way to put key-value pairs in journalMap.
+	 * No way to put key-value pairs in journalMap explicitly
+	 * Need to use getDataAsTableRows
 	 */
 	@Test
 	public void xbus_getDetailsAsTable() {

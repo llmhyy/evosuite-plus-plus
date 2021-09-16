@@ -717,9 +717,33 @@ public class EvosuiteForMethod {
 			return false;
 		}
 		
-		int lineNumber = branchCoverageTestFitnessFunction.getBranchGoal().getLineNumber();
+		// Check a tuple of:
+		// Class name
+		// Method name
+		// String value if not null
+		// - If string value is null, we check line number
+		// - We don't have the branch id?
+		// Truth value
+		String className = branchCoverageTestFitnessFunction.getClassName();
+		String methodName = branchCoverageTestFitnessFunction.getMethod();
+		String stringValue = branchCoverageTestFitnessFunction.getBranch().toString();
+		int lineNumber = branchCoverageTestFitnessFunction.getBranch().getInstruction().getLineNumber();
+		boolean truthValue = branchCoverageTestFitnessFunction.getBranchGoal().getValue();
+		
 		for (BranchInfo coveredBranch : coveredBranches) {
-			if (lineNumber == coveredBranch.getLineNo()) {
+			boolean isClassNameMatch = className.equals(coveredBranch.getClassName());
+			boolean isMethodNameMatch = methodName.equals(coveredBranch.getMethodName());
+			boolean isStringValueMatch = stringValue != null ? stringValue.equals(coveredBranch.getStringValue()) : false;
+			boolean isLineNumberMatch = (lineNumber == coveredBranch.getLineNo());
+			boolean isTruthValueMatch = (truthValue == coveredBranch.getTruthValue());
+			
+			boolean isIdenticalCheckIfCoveredBranchStringValueNonNull = isClassNameMatch && isMethodNameMatch && isStringValueMatch && isTruthValueMatch;
+			boolean isIdenticalCheckOtherwise = isClassNameMatch && isMethodNameMatch && isLineNumberMatch && isTruthValueMatch;
+			if ((stringValue != null) && (coveredBranch.getStringValue() != null) && isIdenticalCheckIfCoveredBranchStringValueNonNull) {
+				return true;
+			}
+			
+			if (isIdenticalCheckOtherwise) {
 				return true;
 			}
 		}
@@ -802,7 +826,7 @@ public class EvosuiteForMethod {
 		
 		System.out.println("Covered branches");
 		for(BranchInfo branch: r.getCoveredBranchWithTest().keySet()) {
-			System.out.println("-- " + branch);
+			System.out.println("-- " + branch.getStringValue() + ":" + branch.getTruthValue());
 			System.out.println(r.getCoveredBranchWithTest().get(branch));
 		}
 		

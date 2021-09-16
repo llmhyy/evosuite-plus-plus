@@ -47,8 +47,16 @@ public class ExceptionResultBranch<T extends Chromosome> implements Serializable
 		return iterationToExceptionResult.get(iteration);
 	}
 	
+	/*
+	 * Returns a list of results sorted by iteration number.
+	 * This is slightly slower, but preserves the order of iterations.
+	 */
 	public List<ExceptionResultIteration<T>> getAllResults() {
-		return new ArrayList<>(iterationToExceptionResult.values());
+		List<ExceptionResultIteration<T>> results = new ArrayList<>(iterationToExceptionResult.values());
+		results.sort((iteration, anotherIteration) -> {
+			return Integer.compare(iteration.getIteration(), anotherIteration.getIteration());
+		});
+		return results;
 	}
 	
 	public ExceptionResultIteration<T> getLastIteration() {

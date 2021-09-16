@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.result.BranchInfo;
@@ -169,8 +170,9 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		
 		ExceptionResult<TestChromosome> exceptionResult = r.getExceptionResult();
 		for (ExceptionResultBranch<TestChromosome> exceptionResultBranch : exceptionResult.getAllResults()) {
-			String branchName = ((BranchCoverageTestFitness) exceptionResultBranch.getFitnessFunction()).getBranch().toString();
-			String branchGoal = (((BranchCoverageTestFitness) exceptionResultBranch.getFitnessFunction()).getBranchGoal().getValue() ? "true" : "false");
+			BranchCoverageTestFitness fitnessFunction = ((BranchCoverageTestFitness) exceptionResultBranch.getFitnessFunction());
+			String branchName = fitnessFunction.getBranch().toString();
+			String branchGoal = fitnessFunction.getBranchGoal().getValue() ? "true" : "false";
 			boolean isBranchCovered = isBranchCovered(r, exceptionResultBranch);
 			boolean isLastIterationIncurredException = exceptionResultBranch.doesLastIterationHaveException();
 			String classificationOfLastException = "-";
@@ -235,6 +237,9 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 				}
 				
 				String testCaseCode = exceptionResultIteration.getTestCase().toString();
+				if (testCaseCode == null || testCaseCode.isEmpty()) {
+					testCaseCode = "-";
+				}
 				
 				// We store all the information in a single cell per iteration.
 				StringBuilder iterationEntryBuilder = new StringBuilder();
@@ -418,15 +423,16 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 	
 	private static boolean isBranchCovered(EvoTestResult result, ExceptionResultBranch<TestChromosome> exceptionResultBranch) {
 		Set<BranchInfo> coveredBranches = result.getCoveredBranchWithTest().keySet();
-		Branch branch = ((BranchCoverageTestFitness) exceptionResultBranch.getFitnessFunction()).getBranch();
+		BranchCoverageGoal branchCoverageGoal = ((BranchCoverageTestFitness) exceptionResultBranch.getFitnessFunction()).getBranchGoal();
+		Branch branch = branchCoverageGoal.getBranch();
 		BytecodeInstruction bytecodeInstruction = branch.getInstruction();
-		
 		for (BranchInfo branchInfo : coveredBranches) {
-			boolean isClassNameSame = (branchInfo.getClassName().equals(branch.getClassName()));
-			boolean isMethodNameSame = (branchInfo.getMethodName().equals(branch.getMethodName()));
+			boolean isClassNameSame = (branchInfo.getClassName().equals(branchCoverageGoal.getClassName()));
+			boolean isMethodNameSame = (branchInfo.getMethodName().equals(branchCoverageGoal.getMethodName()));
 			boolean isLineNumberSame = (branchInfo.getLineNo() == bytecodeInstruction.getLineNumber());
+			boolean isTruthValueSame = (branchInfo.getTruthValue() == branchCoverageGoal.getValue());
 			
-			if (isClassNameSame && isMethodNameSame && isLineNumberSame) {
+			if (isClassNameSame && isMethodNameSame && isLineNumberSame && isTruthValueSame) {
 				return true;
 			}
 		}

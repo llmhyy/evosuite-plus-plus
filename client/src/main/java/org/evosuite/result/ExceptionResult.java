@@ -20,33 +20,21 @@ public class ExceptionResult<T extends Chromosome> implements Serializable {
 	// Generated serialVersionUID.
 	private static final long serialVersionUID = -3348202727990137906L;
 	
-	// Used to provide a 1-1 map from index to FitnessFunction, since FitnessFunction isn't suitable
-	// as the key for a HashMap.
-	private List<FitnessFunction<T>> indexList = new ArrayList<>();
-	private HashMap<Integer, ExceptionResultBranch<T>> fitnessFunctionIndexToExceptionResult = new HashMap<>();
-	
-	// Quite slow, consider other approaches?
-	private int getIndexOfFitnessFunction(FitnessFunction<T> fitnessFunction) {
-		boolean isInList = indexList.contains(fitnessFunction);
-		if (!isInList) {
-			return -1;
-		}
-		
-		return indexList.indexOf(fitnessFunction);
-	}
+	// Although FitnessFunction<T> doesn't implement hashCode, the fitness function that we typically use
+	// (BranchCoverageTestFitness) does, so here we are. Maybe we should change the types in the code?
+	private HashMap<FitnessFunction<T>, ExceptionResultBranch<T>> fitnessFunctionIndexToExceptionResult = new HashMap<>();
 	
 	public ExceptionResultBranch<T> getResultByFitnessFunction(FitnessFunction<T> fitnessFunction) {
-		return fitnessFunctionIndexToExceptionResult.get(getIndexOfFitnessFunction(fitnessFunction));
+		return fitnessFunctionIndexToExceptionResult.get(fitnessFunction);
 	}
 	
 	public void updateExceptionResult(int iteration, FitnessFunction<T> fitnessFunction, TestChromosome testChromosome) {
-		ExceptionResultBranch<T> exceptionResultBranch = fitnessFunctionIndexToExceptionResult.get(getIndexOfFitnessFunction(fitnessFunction));
+		ExceptionResultBranch<T> exceptionResultBranch = fitnessFunctionIndexToExceptionResult.get(fitnessFunction);
 		boolean isResultNotFound = (exceptionResultBranch == null);
 		if (isResultNotFound) {
 			// Create a new ExceptionResultBranch and add it in.
 			exceptionResultBranch = new ExceptionResultBranch<T>(fitnessFunction);
-			indexList.add(fitnessFunction);
-			fitnessFunctionIndexToExceptionResult.put(getIndexOfFitnessFunction(fitnessFunction), exceptionResultBranch);
+			fitnessFunctionIndexToExceptionResult.put(fitnessFunction, exceptionResultBranch);
 		}
 		
 		ExceptionResultIteration<T> currentResultIteration = new ExceptionResultIteration<T>(fitnessFunction, iteration, testChromosome);

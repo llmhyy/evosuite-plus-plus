@@ -19,8 +19,10 @@
  */
 package org.evosuite.result;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -235,6 +237,19 @@ public class TestGenerationResultBuilder {
 		}
 		testBranchCoverage.put(name, branchCoverage);
 		uncoveredBranches.removeAll(branchCoverage);
+		
+		List<BranchInfo> relevantBranches = new ArrayList<>();
+		uncoveredBranches.forEach(branchInfo -> {
+			String className = branchInfo.getClassName();
+			String methodName = branchInfo.getMethodName();
+			boolean isClassNameCorrect = className.equals("jigl.image.levelSetTool.LevelSetSmooth");
+			boolean isMethodNameCorrect = methodName.equals("apply(IIIIZZ)Ljigl/image/RealColorImage;");
+			if (isClassNameCorrect && isMethodNameCorrect) {
+				relevantBranches.add(branchInfo);;
+			}
+		});
+		System.currentTimeMillis();
+		
 		
 		Set<MutationInfo> mutationCoverage = new LinkedHashSet<MutationInfo>();
 		for(Assertion assertion : testCase.getAssertions()) {

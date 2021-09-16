@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
@@ -276,10 +277,12 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		for (Entry<FitnessFunction<T>, T> entry : bestTestMap.entrySet()) {
 			FitnessFunction<T> fitnessFunction = entry.getKey();
 			T hopefullyATestChromosome = entry.getValue();
+			boolean isBranchCoverageTestFitness = fitnessFunction instanceof BranchCoverageTestFitness;
 			boolean isTestChromosome = hopefullyATestChromosome instanceof TestChromosome;
 			
-			if (!isTestChromosome) {
+			if (!isTestChromosome || !isBranchCoverageTestFitness) {
 				// What do we do?
+				System.currentTimeMillis();
 				continue;
 			}
 			
