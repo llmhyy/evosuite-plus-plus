@@ -44,7 +44,7 @@ import evosuite.shell.utils.LoggerUtils;
 public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 	private static Logger log = LoggerUtils.getLogger(SmartSeedPerformanceFilter.class);
 
-	private static final int CONSTANT_COUNT_THRESHOLD = 100;
+	private static final int CONSTANT_COUNT_THRESHOLD = 50;
 	private static final int BRANCH_COUNT_THRESHOLD = 1;
 	
 	private static Map<String,Integer> classToNumberOfConstants = new HashMap<>();
@@ -83,7 +83,6 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		//     - Not value preserving
 		//   - To sum it up, we care if one of the branch operands is a constant
 		//     - Don't care if static/dynamic
-		
 		
 		/*
 		 * This section adds context to the list of instructions
@@ -140,15 +139,23 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		// Else we have not encountered this class before
 		// Manually count from pool
 		// pool[0] is for constants from inside the class
+		// pool[1] is for constants from outside the class (e.g. constants from other classes)
 		ConstantPool staticConstantsInClass = ConstantPoolManager.pools[0];
+		ConstantPool staticConstantsOutsideClass = ConstantPoolManager.pools[1];
 		boolean isPoolInstanceOfStaticConstantPool = (staticConstantsInClass instanceof StaticConstantPool);
+		boolean isSecondPoolInstanceOfStaticConstantPool = (staticConstantsOutsideClass instanceof StaticConstantPool);
 		if (!isPoolInstanceOfStaticConstantPool) {
 			// Error
 			return -1;
 		}
+		if (!isSecondPoolInstanceOfStaticConstantPool) {
+			// Error
+			return -1;
+		}
 		
-		StaticConstantPool pool = (StaticConstantPool) staticConstantsInClass;
-		return pool.poolSize();
+		StaticConstantPool insideClassPool = (StaticConstantPool) staticConstantsInClass;
+		StaticConstantPool outsideClassPool = (StaticConstantPool) staticConstantsOutsideClass;
+		return insideClassPool.poolSize() + outsideClassPool.poolSize();
 	}
 	
 	/**
