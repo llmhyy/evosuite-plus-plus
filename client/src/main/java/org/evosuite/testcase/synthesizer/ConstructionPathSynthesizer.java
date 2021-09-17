@@ -14,6 +14,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -47,7 +48,6 @@ import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.AbstractStatement;
-import org.evosuite.testcase.statements.ArrayStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
@@ -360,7 +360,6 @@ public class ConstructionPathSynthesizer {
 				return false;
 			}
 			VariableReference generatedVariable = generateFieldStatement(test, node, isLeaf, callerObject, map, b, allowNullValue);
-			System.currentTimeMillis();
 			generatedVariables.add(generatedVariable);
 		} else if (node.var.getType() == DepVariable.OTHER) {
 			int opcode = node.var.getInstruction().getASMNode().getOpcode();
@@ -970,6 +969,13 @@ public class ConstructionPathSynthesizer {
 					: usedRefSearcher.searchRelevantFieldReadingReferenceInTest(test, field, callerObject);
 //			System.currentTimeMillis();
 			if (usedFieldInTest != null) {
+				/**
+				 * generate some elements for container classes
+				 */
+				if(Collection.class.isAssignableFrom(usedFieldInTest.getVariableClass())) {
+					generateElements(field.getType(), test, usedFieldInTest);
+				}
+				
 				return usedFieldInTest;
 			}
 
@@ -1023,6 +1029,35 @@ public class ConstructionPathSynthesizer {
 			return null;
 		}
 
+	}
+
+	private void generateElements(Class<?> type, TestCase test, VariableReference usedFieldInTest) {
+		
+		Method addMethod = null;
+		for(Method m: type.getDeclaredMethods()) {
+			if(m.getName().equals("add") && m.getParameterCount() == 1) {
+				addMethod = m;
+				break;
+			}
+		}
+		
+		if(addMethod != null) {
+			int addElementNum = Randomness.nextInt(1, 3);
+			
+			for(int i=0; i<addElementNum; i++) {
+				GenericMethod gMethod = new GenericMethod(addMethod, type);
+				try {
+					int position = usedFieldInTest.getStPosition()+1;
+					testFactory.addMethodFor(test, usedFieldInTest, gMethod, position, false);
+				} catch (ConstructionFailedException e) {
+					e.printStackTrace();
+				}				
+			}
+			
+		}
+		
+		System.currentTimeMillis();
+		
 	}
 
 	private void printConstructionError(TestCase test, DepVariableWrapper node, Branch b) {
@@ -1259,7 +1294,14 @@ public class ConstructionPathSynthesizer {
 
 	private String checkTargetClassName(Field field, VariableReference targetObjectReference) {
 		if(targetObjectReference != null){
-			return targetObjectReference.getType().getTypeName();
+			String typeName = targetObjectReference.getType().getTypeName();
+			if(typeName.contains("<")) {
+				typeName = typeName.substring(0, typeName.indexOf("<"));
+				return typeName;
+			}
+			else {
+				return typeName;
+			}
 		}
 		else{
 			return field.getDeclaringClass().getCanonicalName();
