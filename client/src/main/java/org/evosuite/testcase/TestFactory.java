@@ -26,6 +26,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
@@ -766,10 +767,23 @@ public class TestFactory {
 		
 		allowNull = allowNullParameter && allowNull;
 
+		Type calleeType = callee.getType();
+		List<Type> paramTypes = Arrays.asList(method.getParameterTypes());
+		if(calleeType instanceof ParameterizedType) {
+			ParameterizedType pType = (ParameterizedType)calleeType;
+			for(int i=0; i<paramTypes.size(); i++) {
+				Type paramType = paramTypes.get(i);
+				GenericClass parameterClass = new GenericClass(paramType);
+				if(parameterClass.hasTypeVariables()) {
+					paramTypes.set(i, pType.getActualTypeArguments()[0]);
+				}
+			}
+		}
+		
 		// Added 'null' as additional parameter - fix for @NotNull annotations issue on evo mailing list
 		List<VariableReference> parameters = satisfyParameters(
 				test, callee,
-				Arrays.asList(method.getParameterTypes()),
+				paramTypes,
 				Arrays.asList(method.getMethod().getParameters()), position, 1, allowNull, false, true);
 
 		int newLength = test.size();

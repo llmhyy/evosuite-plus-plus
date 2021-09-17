@@ -1196,7 +1196,7 @@ public class TestCodeVisitor extends TestVisitor {
 				} else if (parameterClass.isPrimitive()
 				        && parameters.get(i).isWrapperType()) {
 					parameterString += "(" + getTypeName(declaredParamType) + ") ";
-				} else if (isOverloaded) {
+				} else if (isOverloaded && !GenericClass.isAssignable(declaredParamType, actualParamType)) {
 					// If there is an overloaded method, we need to cast to make sure we use the right version
 					if (!declaredParamType.equals(actualParamType)) {
 						parameterString += "(" + getTypeName(declaredParamType) + ") ";
