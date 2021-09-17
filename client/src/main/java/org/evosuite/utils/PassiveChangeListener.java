@@ -24,7 +24,7 @@ public class PassiveChangeListener<T> implements Listener<T>, Serializable {
 
 	private static final long serialVersionUID = -8661407199741916844L;
 
-	protected boolean changed = false;
+	private boolean changed = false;
 
 	/**
 	 * Returns whether the listener received any event since the last call of

@@ -56,6 +56,7 @@ public class MethodInputs {
 	
 	private List<ValueStatement> fixedPoints = new ArrayList<>();
 	
+	@SuppressWarnings("unchecked")
 	public void mutate(Branch branch, TestChromosome startPoint, BranchFitness bf) {
 		
 //		Set<FitnessFunction<?>> set = new HashSet<>();
@@ -66,8 +67,8 @@ public class MethodInputs {
 //		}
 		startPoint.clearCachedResults();
 		startPoint.addFitness((FitnessFunction<?>) bf);
-		FitnessFunction<Chromosome> fitness = SensitivityMutator.searchForRelevantFitness(branch, startPoint);
-		startPoint.getFitness(fitness);
+		FitnessFunction<Chromosome> fitness = (FitnessFunction<Chromosome>)bf;
+//		startPoint.getFitness(fitness);
 		double fitnessValue = fitness.getFitness(startPoint);
 		
 		if(fitnessValue > 1) {
@@ -101,7 +102,7 @@ public class MethodInputs {
 			trial.setTestCase(test);
 			
 			trial.addFitness((FitnessFunction<?>) bf);
-			FitnessFunction<Chromosome> fitness2 = SensitivityMutator.searchForRelevantFitness(branch, trial);
+			FitnessFunction<Chromosome> fitness2 = (FitnessFunction<Chromosome>)bf;
 			double fitnessValue2 = fitness2.getFitness(trial);
 			if(fitnessValue2 > 1) {
 				if(oldParam != null) {

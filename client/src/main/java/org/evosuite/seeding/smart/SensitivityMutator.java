@@ -157,6 +157,7 @@ public class SensitivityMutator {
 		
 	}
 
+	@SuppressWarnings("unchecked")
 	public static ValuePreservance testBranchSensitivity(List<DepVariable> rootVariables,
 			List<BytecodeInstruction> observingValues, Branch branch, TestChromosome testSeed, BranchFitness bf) {
 		TestCase test = null;
@@ -183,56 +184,19 @@ public class SensitivityMutator {
 			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
 			TestCase test0 = (TestCase)test.clone();
 			
-			List<Diff> diffList = new ArrayList<>();
-			List<Statement> enhancedStatements = new ArrayList<>();
+			TestChromosome trial = new TestChromosome();
+			trial.setTestCase(test0);
+			trial.clearCachedResults();
+			FitnessFunction<Chromosome> fitness = (FitnessFunction<Chromosome>) bf;
+			trial.addFitness(fitness);
+			double fitnessValue = fitness.getFitness(trial);
 			
-			for(DepVariableWrapper var: synthensizer.getGraph2CodeMap().keySet()) {
-				
-				if(var.var.referenceToThis())continue;
-				
-				List<VariableReference> refList = synthensizer.getGraph2CodeMap().get(var);
-				
-				for(VariableReference ref: refList) {
-					int oldPosition = ref.getStPosition();
-					int adjustedPosition = applyDiff(oldPosition, diffList);
-							
-					Statement statement = test0.getStatement(adjustedPosition);
-					if(statement instanceof ConstructorStatement && !enhancedStatements.contains(statement)) {
-						ConstructorStatement cStatement = (ConstructorStatement)statement;
-						List<Method> fieldSettingMethodList = detectFieldSettingsMethod(cStatement.getReturnType());
-						constructAdditionalFieldSettingsStatements(test0, cStatement, fieldSettingMethodList);
-						
-						int lengthDiff = test0.size() - test.size();
-						
-						if(lengthDiff != 0) {
-							TestChromosome trial = new TestChromosome();
-							trial.setTestCase(test0);
-							trial.clearCachedResults();
-							FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, oldTest);
-							trial.addFitness(fitness);
-							double fitnessValue = fitness.getFitness(trial);
-							
-							if(!trial.getLastExecutionResult().getAllThrownExceptions().isEmpty() || fitnessValue > 1) {
-								test0 = test.clone();
-							}
-							else {
-								test = test0.clone();
-								
-								int startPosition = cStatement.getPosition() + 1;
-								Diff diff = new SensitivityMutator().new Diff(startPosition, lengthDiff);
-								diffList.add(diff);
-								enhancedStatements.add(cStatement);
-								//TODO ensure mutated 
-							}
-							System.currentTimeMillis();
-							
-						}
-						
-					}
-				}
-			}
-			synthensizer.constructDifficultObjectStatement(test, branch, false, false);
 			System.currentTimeMillis();
+			
+			if(!trial.getLastExecutionResult().getAllThrownExceptions().isEmpty() || fitnessValue > 1) {
+				test0 = test.clone();
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -277,7 +241,7 @@ public class SensitivityMutator {
 			for(int count=0; count<3; count++) {
 				MethodInputs inputs = inputs0.identifyInputs(newTestChromosome);
 				inputs.mutate(branch, newTestChromosome, bf);
-				Map<String, List<Object>> observationMap = evaluateObservations(branch, observations, newTestChromosome);
+				Map<String, List<Object>> observationMap = evaluateObservations(bf, observations, newTestChromosome);
 				
 				if(newTestChromosome.getLastExecutionResult().noThrownExceptions()) {
 					ObservationRecord record = new ObservationRecord(inputs, observationMap, newTestChromosome);
@@ -376,9 +340,9 @@ public class SensitivityMutator {
 		Type type = cStatement.getReturnType();
 		GenericClass genericClazz = new GenericClass(type);
 		
-		Map<Method,Double> score = new HashMap<>();
-//		System.currentTimeMillis();
-		Double allScore = calculateFieldSettingMethodsScore(fieldSettingMethodList,score);
+		Map<Method, Double> score = new HashMap<>();
+		System.currentTimeMillis();
+		Double allScore = calculateFieldSettingMethodsScore(fieldSettingMethodList, score);
 		Map<Method,Double> methodProbabilistic = new HashMap<>();
 		calculateMethodProbabilistic(score, methodProbabilistic, allScore);
 		
@@ -481,28 +445,27 @@ public class SensitivityMutator {
 		Double allScore = 0.0;
 		if(fieldSettingMethodList.isEmpty()) return allScore;
 		for(Method m :fieldSettingMethodList) {
-			Double score0 = 0.0;
+			double score0 = 0.0;
 			int primitiveNum = 0;
-			int parameterNum = 0;
 			
-			
-			Class<?>[] clazz = m.getParameterTypes();
-			parameterNum = clazz.length;
+			int parameterNum = m.getParameterTypes().length;
 			
 			if(parameterNum == 0) {
-				score.put(m, 0.5);
-				allScore += 0.5;
+				score.put(m, 0.1);
+				allScore += 0.1;
+				continue;
 			}
 			
-			for(Class<?> cla : clazz) {
+			for(Class<?> cla : m.getParameterTypes()) {
 				if(cla.isPrimitive() || cla.equals(String.class))
 					primitiveNum += 1;
 			}
 			
-			score0 = (double)(primitiveNum / parameterNum) + (double)(1 / parameterNum);
+			score0 = (primitiveNum + 1.0d) / parameterNum;
 			score.put(m, score0);
 			allScore += score0;
 		}
+		
 		return allScore;
 	}
 
@@ -1081,8 +1044,10 @@ public class SensitivityMutator {
 	
 	public static long total = 0;
 	
-	private static Map<String, List<Object>> evaluateObservations(Branch branch, List<BytecodeInstruction> observations,
+	private static Map<String, List<Object>> evaluateObservations(BranchFitness bf, List<BytecodeInstruction> observations,
 			TestChromosome newTestChromosome) {
+		Branch branch = bf.getBranchGoal().getBranch();
+		
 		Set<FitnessFunction<?>> set = new HashSet<>();
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(branch, true);
 		set.add(ff);
@@ -1099,7 +1064,7 @@ public class SensitivityMutator {
 		
 		((DefaultTestCase) newTestChromosome.getTestCase()).changeClassLoader(newClassLoader);
 		
-		FitnessFunction<Chromosome> fitness = searchForRelevantFitness(branch, newTestChromosome);
+		FitnessFunction<Chromosome> fitness = (FitnessFunction<Chromosome>)bf;
 		newTestChromosome.addFitness(fitness);
 		newTestChromosome.clearCachedResults();
 		fitness.getFitness(newTestChromosome);
@@ -1174,21 +1139,21 @@ public class SensitivityMutator {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public static FitnessFunction<Chromosome> searchForRelevantFitness(Branch targetBranch,
-			TestChromosome newTestChromosome) {
-		Map<FitnessFunction<?>, Double> fitnessValues = newTestChromosome.getFitnessValues();
-		for (FitnessFunction<?> ff : fitnessValues.keySet()) {
-			if (ff instanceof BranchFitness) {
-				BranchFitness bf = (BranchFitness) ff;
-				if (bf.getBranchGoal().getBranch().equals(targetBranch)) {
-					return (FitnessFunction<Chromosome>) ff;
-				}
-			}
-		}
-
-		return null;
-	}
+//	@SuppressWarnings("unchecked")
+//	public static FitnessFunction<Chromosome> searchForRelevantFitness(Branch targetBranch,
+//			TestChromosome newTestChromosome) {
+//		Map<FitnessFunction<?>, Double> fitnessValues = newTestChromosome.getFitnessValues();
+//		for (FitnessFunction<?> ff : fitnessValues.keySet()) {
+//			if (ff instanceof BranchFitness) {
+//				BranchFitness bf = (BranchFitness) ff;
+//				if (bf.getBranchGoal().getBranch().equals(targetBranch)) {
+//					return (FitnessFunction<Chromosome>) ff;
+//				}
+//			}
+//		}
+//
+//		return null;
+//	}
 
 	// Returns the statement in the test case that modifies rootVariable
 	private static Statement locateRelevantStatement(DepVariable rootVariable, TestChromosome newTestChromosome,
