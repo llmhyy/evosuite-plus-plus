@@ -289,30 +289,28 @@ public class TrueExample {
 	
 	public static final String[] jjtNodeName = { "CompilationUnit", "PackageDeclaration", "ImportDeclaration", "Modifiers","Literal","VariableDeclaratorId"};
 	public void dump(final String prefix){
-		if (this.identifiers.size() > 0) {
-			if (TrueExample.jjtNodeName[this.id].equals("Literal")) {
-				System.currentTimeMillis();
-			}else {
-				for (String identifier : this.identifiers) {
-					if (!identifier.equals(";") && !identifier.equals("}") && !identifier.equals("{") && !identifier.equals(""))
-						
-						if (!TrueExample.jjtNodeName[this.id].equals("VariableDeclaratorId") || !identifier.equals(")")) {
-							if (identifier.equals("<"))
-								System.currentTimeMillis();
-							if (identifier.equals(">"))
-								System.currentTimeMillis();
-							if (identifier.equals(">>"))
-								System.currentTimeMillis();
-							if (identifier.equals("<<"))
-								System.currentTimeMillis();
-							if (identifier.equals("<="))
-								System.currentTimeMillis();
-							if (identifier.equals(">="))
-								System.currentTimeMillis();
-							if (identifier.equals("&") || identifier.equals("&&"))
-								System.currentTimeMillis();
-						}
-				}
+		if (TrueExample.jjtNodeName[this.id].equals("Literal")) {
+			System.currentTimeMillis();
+		} else {
+			for (String identifier : this.identifiers) {
+				if (!identifier.equals(";") && !identifier.equals("}") && !identifier.equals("{") && !identifier.equals(""))
+					
+					if (!TrueExample.jjtNodeName[this.id].equals("VariableDeclaratorId") || !identifier.equals(")")) {
+						if (identifier.equals("<"))
+							System.currentTimeMillis();
+						if (identifier.equals(">"))
+							System.currentTimeMillis();
+						if (identifier.equals(">>"))
+							System.currentTimeMillis();
+						if (identifier.equals("<<"))
+							System.currentTimeMillis();
+						if (identifier.equals("<="))
+							System.currentTimeMillis();
+						if (identifier.equals(">="))
+							System.currentTimeMillis();
+						if (identifier.equals("&") || identifier.equals("&&"))
+							System.currentTimeMillis();
+					}
 			}
 		}
 	}
