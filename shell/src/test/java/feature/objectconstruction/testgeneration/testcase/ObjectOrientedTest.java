@@ -65,8 +65,8 @@ public class ObjectOrientedTest {
 		TestFactory testFactory = TestFactory.getInstance();
 		TestCase test = TestUtil.initializeTest(b, testFactory, allowNullValue);
 		try {
-			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebugger, allowNullValue);
+			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory, isDebugger);
+			cpSynthesizer.constructDifficultObjectStatement(test, b, allowNullValue);
 			if(!allowNullValue) {
 				TestUtil.mutateNullStatements(test);				
 			}
@@ -93,8 +93,8 @@ public class ObjectOrientedTest {
 		TestCase test = TestUtil.initializeTest(b, testFactory, allowNullValue);
 		try {
 			long t1 = System.currentTimeMillis();
-			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebug, allowNullValue);
+			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory, isDebug);
+			cpSynthesizer.constructDifficultObjectStatement(test, b, allowNullValue);
 			if(!allowNullValue) {
 				TestUtil.mutateNullStatements(test);		
 				System.currentTimeMillis();

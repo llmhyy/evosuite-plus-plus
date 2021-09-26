@@ -81,9 +81,10 @@ public class ConstructionPathSynthesizer {
 	
 	public static String debuggerFolder = "";
 
-	public ConstructionPathSynthesizer(TestFactory testFactory) {
+	public ConstructionPathSynthesizer(TestFactory testFactory, boolean isDebug) {
 		super();
 		this.testFactory = testFactory;
+		this.isDebugger = isDebug;
 	}
 
 	/**
@@ -150,7 +151,10 @@ public class ConstructionPathSynthesizer {
 	private PartialGraph partialGraph;
 	private Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap;
 	
-	public void constructDifficultObjectStatement(TestCase test, Branch b, boolean isDebugger, boolean allowNullValue)
+	
+	public boolean isDebugger = false;
+	
+	public void constructDifficultObjectStatement(TestCase test, Branch b, boolean allowNullValue)
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
