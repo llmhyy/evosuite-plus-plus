@@ -40,4 +40,4 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
   
       - name: Run tests with Maven
-        run: mvn -e -X test -Dtest=SmartSeedRuntimeTest#testSpecialPoint* -DfailIfNoTests=false -Dsurefire.useFile=false -Dsurefire.trimStackTrace=false 
+        run: mvn -e test -Dtest=SmartSeedRuntimeTest#testSpecialPoint* -DfailIfNoTests=false -Dsurefire.useFile=false -DtrimStackTrace=false 
