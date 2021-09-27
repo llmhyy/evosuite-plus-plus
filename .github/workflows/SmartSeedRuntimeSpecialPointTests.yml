@@ -23,7 +23,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout repository
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
   
       - name: Setup JDK8 + JavaFX
         uses: actions/setup-java@v2
@@ -38,5 +38,6 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+  
       - name: Run tests with Maven
         run: mvn test -Dtest=SmartSeedRuntimeTest#testSpecialPoint* -DfailIfNoTests=false
