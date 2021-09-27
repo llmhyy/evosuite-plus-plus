@@ -19,7 +19,7 @@ import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
-import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.seeding.ConstantPoolManager;
 import org.evosuite.seeding.StaticConstantPool;

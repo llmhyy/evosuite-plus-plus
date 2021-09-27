@@ -1,6 +1,6 @@
 package org.evosuite.graphs.interprocedural.interestednode;
 
-import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 
 /**
  * The interested-node filter for OCG.

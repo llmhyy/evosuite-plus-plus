@@ -7,6 +7,7 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.instrumentation.testability.StringHelper;
 import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.utils.ArrayUtil;

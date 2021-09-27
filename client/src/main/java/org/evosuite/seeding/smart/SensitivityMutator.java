@@ -23,8 +23,8 @@ import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.ComputationPath;
-import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.seeding.RuntimeSensitiveVariable;
 import org.evosuite.setup.DependencyAnalysis;
@@ -43,8 +43,9 @@ import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.DataDependencyUtil;
-import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.PotentialSetter;
+import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.DepVariableWrapperFactory;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.ConstantValue;
@@ -132,10 +133,10 @@ public class SensitivityMutator {
 		
 		System.currentTimeMillis();
 		
-		ConstructionPathSynthesizer relationBuilder = new ConstructionPathSynthesizer(TestFactory.getInstance(), false);
+		ConstructionPathSynthesizer relationBuilder = new ConstructionPathSynthesizer(false);
 		TestCase test0 = (TestCase)test.clone();
 		try {
-			relationBuilder.constructDifficultObjectStatement(test, branch, false);
+			relationBuilder.buildNodeStatementCorrespondence(test, branch, false);
 			
 			TestChromosome trial = new TestChromosome();
 			trial.setTestCase(test0);
@@ -146,6 +147,8 @@ public class SensitivityMutator {
 			
 			if(fitnessValue >= 1) {
 				test0 = test.clone();
+				relationBuilder = new ConstructionPathSynthesizer(false);
+//				relationBuilder.buildNodeStatementCorrespondence(test0, branch, false);
 			}
 			
 		} catch (Exception e) {
@@ -212,10 +215,10 @@ public class SensitivityMutator {
 
 	private static TestChromosome createNewTestCase(Branch branch) {
 		TestCase test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
-		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance(), false);
+		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(false);
 		
 		try {
-			synthensizer.constructDifficultObjectStatement(test, branch, false);
+			synthensizer.buildNodeStatementCorrespondence(test, branch, false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -251,7 +254,7 @@ public class SensitivityMutator {
 			List<ValueStatement> relevantStatements = new ArrayList<>();
 			for(DepVariable var: relevantPrimitiveChildren) {
 				if(map == null) continue;
-				List<VariableReference> varList = map.get(new DepVariableWrapper(var));
+				List<VariableReference> varList = map.get(DepVariableWrapperFactory.createWrapperInstance(var));
 				if(varList == null) continue;
 				for(VariableReference ref: varList) {
 					
@@ -693,9 +696,9 @@ public class SensitivityMutator {
 			test = SensitivityMutator.initializeTest(TestFactory.getInstance(), false);
 			methodCall = test.getStatement(test.size() - 1).toString();
 		}
-		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(TestFactory.getInstance(), false);
+		ConstructionPathSynthesizer synthensizer = new ConstructionPathSynthesizer(false);
 		try {
-			synthensizer.constructDifficultObjectStatement(test, branch, false);
+			synthensizer.buildNodeStatementCorrespondence(test, branch, false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1045,7 +1048,7 @@ public class SensitivityMutator {
 		TestCase tc = newTestChromosome.getTestCase();
 				
 		// Find root statement using object map
-		DepVariableWrapper rootVarWrapper = new DepVariableWrapper(rootVariable);
+		DepVariableWrapper rootVarWrapper = DepVariableWrapperFactory.createWrapperInstance(rootVariable);
 		if (map != null) {
 			List<VariableReference> varRefs = map.get(rootVarWrapper);
 			

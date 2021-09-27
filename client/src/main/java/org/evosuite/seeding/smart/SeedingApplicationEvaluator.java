@@ -21,8 +21,9 @@ import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
 import org.evosuite.graphs.interprocedural.ComputationPath;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
-import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
+import org.evosuite.graphs.interprocedural.var.DepVariableFactory;
 import org.evosuite.instrumentation.BytecodeInstrumentation;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.testcase.TestCase;
@@ -322,7 +323,7 @@ public class SeedingApplicationEvaluator {
 	@SuppressWarnings("rawtypes")
 	private static void parseRelevantOperands(BytecodeInstruction targetIns, List<BytecodeInstruction> list) {
 		System.currentTimeMillis();
-		DepVariable var = new DepVariable(targetIns);
+		DepVariable var = DepVariableFactory.createVariableInstance(targetIns);
 
 		// element index
 		if (var.isLoadArrayElement()) {

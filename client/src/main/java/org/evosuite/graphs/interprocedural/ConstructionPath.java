@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.evosuite.Properties;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 
 public class ConstructionPath {
 

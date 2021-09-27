@@ -58,7 +58,7 @@ import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.ConstructionPath;
-import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.annotation.Constraints;

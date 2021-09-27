@@ -87,7 +87,7 @@ public class TrueExample {
 	}
 	
 	public void specialPoint(String[] arsv) {
-		if(arsv.length == 0) return;
+//		if(arsv.length == 0) return;
 		String op = arsv[0];
 		if (arsv[arsv.length - 1].equals("-debug")) {
 			System.currentTimeMillis();

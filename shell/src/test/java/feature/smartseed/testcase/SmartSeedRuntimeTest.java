@@ -674,7 +674,7 @@ public class SmartSeedRuntimeTest {
 		
 		EvoTestResult res1 = results.iterator().next();
 		assert res1.getCoverage() == 1.0;
-		assert res1.getAge() > 10;
+		assert res1.getAge() > 50;
 	}
 	
 	@Test
