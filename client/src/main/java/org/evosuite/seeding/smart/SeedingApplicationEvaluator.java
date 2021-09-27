@@ -3,20 +3,15 @@ package org.evosuite.seeding.smart;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.coverage.branch.BranchPool;
-import org.evosuite.ga.Chromosome;
-import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cdg.ControlDependenceGraph;
@@ -32,8 +27,6 @@ import org.evosuite.instrumentation.BytecodeInstrumentation;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testcase.execution.ExecutionResult;
-import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Opcodes;
@@ -55,202 +48,6 @@ public class SeedingApplicationEvaluator {
 	public static int NO_POOL = 3;
 
 	public static Map<Branch, BranchSeedInfo> cache = new HashMap<>();
-
-	public class PathPartition{
-		List<ComputationPath> list = new ArrayList<>();
-		
-		public PathPartition(List<ComputationPath> list) {
-			this.list = list;
-		}
-		
-		public ComputationPath getSimplestChannel() {
-			ComputationPath simplestPath = null;
-//			double score = -1;
-			
-			for(ComputationPath path: list) {
-				if(simplestPath == null) {
-					simplestPath = path;
-				}
-				else {
-					if(simplestPath.isFastChannel())
-						break;
-					if(path.isFastChannel())
-						simplestPath = path;
-				}
-			}
-			
-//			for(ComputationPath path: list) {
-//				if(simplestPath == null) {
-//					simplestPath = path;
-//					score = path.evaluateFastChannelScore();
-//				}
-//				else {
-//					double newScore = path.evaluateFastChannelScore();
-//					if(newScore < score) {
-//						simplestPath = path;
-//						score = newScore;
-//					}
-//				}
-//			}
-			
-			return simplestPath;
-		}
-		
-		public boolean isEmpty() {
-			return this.list.isEmpty();
-		}
-	}
-	
-	public class TwoSidePathList{
-		public PathPartition side1 = new PathPartition(new ArrayList<>());
-		public PathPartition side2 = new PathPartition(new ArrayList<>());
-	}
-	
-	private static TwoSidePathList separateList(List<ComputationPath> pathList, List<BytecodeInstruction> operands) {
-		TwoSidePathList twoSidePathList = new SeedingApplicationEvaluator().new TwoSidePathList();
-
-		Map<BytecodeInstruction, List<ComputationPath>> sides = new HashMap<>();
-		
-		for(ComputationPath path: pathList) {
-			
-			if(path.shouldIgnore()) {
-				continue;
-			}
-			
-			BytecodeInstruction anchor = null;
-			if(operands.size() == 1) {
-				if(sides.isEmpty()) {
-					createSide(sides, path);
-				}
-				else {
-					BytecodeInstruction anchorInPath = findAnchorInPath(sides, path);
-					if(anchorInPath != null) {
-						List<ComputationPath> list = sides.get(anchorInPath);
-						list.add(path);
-					}
-					else {
-						Pair<BytecodeInstruction, BytecodeInstruction> pair 
-							= findAnchorSharingCommonNodes(sides, path);
-						System.currentTimeMillis();
-						if(pair != null) {
-							BytecodeInstruction anchorSharingCommonNode = pair.getLeft();
-							BytecodeInstruction commonNode = pair.getRight();
-							
-							List<ComputationPath> list = sides.get(anchorSharingCommonNode);
-							sides.remove(anchorSharingCommonNode);
-							
-							list.add(path);
-							sides.put(commonNode, list);								
-						}
-						else {
-							createSide(sides, path);
-						}
-						
-					}
-				}
-				
-				
-			}
-			else if(operands.size()==2) {
-				BytecodeInstruction operand1 = operands.get(0);
-				BytecodeInstruction operand2 = operands.get(1);
-				anchor = path.containsInstruction(operand1) ? operand1 : operand2;
-				List<ComputationPath> list = sides.get(anchor);
-				if(list==null) {
-					list = new ArrayList<>();
-				}
-				list.add(path);
-				sides.put(anchor, list);
-			}
-			else {
-				System.err.println("something wrong, operand number is larger than 2");
-			}
-		}
-		
-		if(sides.keySet().size()==2) {
-			Iterator<BytecodeInstruction> iter = sides.keySet().iterator();
-			BytecodeInstruction key1 = iter.next();
-			BytecodeInstruction key2 = iter.next();
-			twoSidePathList.side1 = new SeedingApplicationEvaluator().new PathPartition(sides.get(key1));
-			twoSidePathList.side2 = new SeedingApplicationEvaluator().new PathPartition(sides.get(key2));
-		}
-		else {
-			List<ComputationPath> list = new ArrayList<>();
-			for(List<ComputationPath> l: sides.values()) {
-				list.addAll(l);
-			}
-			twoSidePathList.side1 = new SeedingApplicationEvaluator().new PathPartition(list);
-			twoSidePathList.side2 = new SeedingApplicationEvaluator().new PathPartition(new ArrayList<>());
-		}
-		
-		return twoSidePathList;
-	}
-
-	/**
-	 * find a side whose computation paths which share common nodes with the path {@code path},
-	 * if we can find such a side, we return pair.left as the anchor of that side, and pair.right as 
-	 * the most-root node shared by the paths in the side and the path {@code path}.
-	 * @param sides
-	 * @param path
-	 * @return
-	 */
-	private static Pair<BytecodeInstruction, BytecodeInstruction> findAnchorSharingCommonNodes(
-			Map<BytecodeInstruction, List<ComputationPath>> sides, ComputationPath path) {
-		
-		for(BytecodeInstruction anchor: sides.keySet()) {
-			List<ComputationPath> pathList = sides.get(anchor);
-			ComputationPath p = pathList.get(0);
-			
-			for(int i=p.size()-2; i>=0; i--) {
-				if(path.size() > 2 && !p.getInstruction(i).equals(anchor)) {
-					BytecodeInstruction ins = path.getInstruction(path.size() - 2);
-					BytecodeInstruction pIns = p.getInstruction(i);
-					
-					if(ins.equals(pIns)) {
-						Pair<BytecodeInstruction, BytecodeInstruction> pair = Pair.of(anchor, ins);
-						return pair;
-					}
-				}
-			}
-		}
-		
-		return null;
-	}
-
-	private static BytecodeInstruction findAnchorInPath(Map<BytecodeInstruction, List<ComputationPath>> sides,
-			ComputationPath path) {
-		
-		for(BytecodeInstruction anchor: sides.keySet()) {
-			if(path.containsInstruction(anchor)) {
-				return anchor;
-			}
-		}
-		
-		return null;
-	}
-
-	private static void createSide(Map<BytecodeInstruction, List<ComputationPath>> sides, ComputationPath path) {
-		BytecodeInstruction anchor;
-		int index = path.size()-2;
-		if(path.size() >= 2) {
-			anchor = path.getComputationNodes().get(index).getInstruction();
-			List<ComputationPath> list = sides.get(anchor);
-			if(list==null) {
-				list = new ArrayList<>();
-			}
-			list.add(path);
-			sides.put(anchor, list);
-		}
-		else {
-			anchor = path.getComputationNodes().get(path.size()-1).getInstruction();
-			List<ComputationPath> list = sides.get(anchor);
-			if(list==null) {
-				list = new ArrayList<>();
-			}
-			list.add(path);
-			sides.put(anchor, list);
-		}
-	}
 	
 	public static BranchSeedInfo evaluate(Branch b, TestChromosome testSeed, BranchFitness bf) {
 		
@@ -319,7 +116,6 @@ public class SeedingApplicationEvaluator {
 				
 				ValuePreservance preservance = analyzeChannel(methodInputs, b, testSeed, bf);
 
-				System.currentTimeMillis();
 				if (preservance != null && preservance.isValuePreserving()) {
 					List<MatchingResult> results = preservance.getMatchingResults();
 					MatchingResult result = Randomness.choice(results);
@@ -410,8 +206,8 @@ public class SeedingApplicationEvaluator {
 		for (ObservedConstant obj : observedConstants) {
 			branchInfo.addPotentialSeed(obj);
 			try {
-				TestCase test = statement.getTestCase();
-				Object oldValue = statement.getAssignmentValue();
+//				TestCase test = statement.getTestCase();
+//				Object oldValue = statement.getAssignmentValue();
 				if (statement != null) {
 					if (obj.isCompatible(statement.getAssignmentValue())) {
 						if (statement instanceof ValueStatement) {
@@ -467,132 +263,20 @@ public class SeedingApplicationEvaluator {
 		return false;
 	}
 
-	private static void addSwitchConstants(Branch b, List<Object> constants) {
-		DepVariable var = new DepVariable(b.getInstruction());
-		if(var.getInstruction().getASMNode().getType() == AbstractInsnNode.LOOKUPSWITCH_INSN) {
-			LookupSwitchInsnNode lNode = (LookupSwitchInsnNode)var.getInstruction().getASMNode();
-			for(int i : lNode.keys) {
-				constants.add(i);
-			}
-		}
-	}
-
-	private static BranchSeedInfo branchInfo(List<ComputationPath> fastChannels, Branch b, int type) {
-		if(type == NO_POOL) {
-			BranchSeedInfo branchInfo = new BranchSeedInfo(b, NO_POOL, null, null);
-			cache.put(b, branchInfo);
-			System.out.println("type:" + b + ":" + type);
-			return branchInfo;
-		}
-		
-		String dataType = getDynamicDataType(fastChannels.get(0));
-//		if(dataType.equals("boolean"))
-//			type = NO_POOL;
-		BranchSeedInfo branchInfo = new BranchSeedInfo(b, type, dataType, null);
-		cache.put(b, branchInfo);
-		System.out.println("type:" + b + ":" + type);
-		return branchInfo;
-	}
-
-	private static boolean isBooleanMethod(ComputationPath p) {
-		if (p.size() == 2 && p.getComputationNodes().get(0).isMethodInput()
-				&& p.getComputationNodes().get(1).toString().contains("java/lang/Boolean.booleanValue()Z")) {
-			return true;
-		}
-		return false;
-	}
-
-	private static List<DepVariable> collectConstants(Set<DepVariable> methodInputs, Branch b, List<ComputationPath> nonFastChannels) {
-		List<DepVariable> constants = new ArrayList<>();
-		System.currentTimeMillis();
-		for (ComputationPath nonFastChannel : nonFastChannels) {
-			int index = nonFastChannel.size() - 1;
-			DepVariable operand = nonFastChannel.getComputationNodes().get(index);
-
-			if (operand.isConstant()) {
-				constants.add(operand);
-			} else if (operand.isMethodCall()) {
-				MethodInsnNode mNode = (MethodInsnNode) operand.getInstruction().getASMNode();
-				if (mNode.owner.equals("org/evosuite/instrumentation/testability/StringHelper")) {
-					if (nonFastChannel.isPureConstantPath())
-						constants.add(nonFastChannel.getComputationNodes().get(0));
-				}
-			} 
-		}
-
-		return constants;
-	}
+	
 	
 	private static ValuePreservance analyzeChannel(Set<DepVariable> inputs, Branch targetBranch,
 			TestChromosome testSeed, BranchFitness bf) {
 		/**
 		 * the operands corresponding to method inputs and constants
 		 */
-		System.currentTimeMillis();
 		List<BytecodeInstruction> observations = parseRelevantOperands(targetBranch);
 		
 		List<DepVariable> headers = new ArrayList<>(inputs); 
-		ValuePreservance sp = SensitivityMutator.testBranchSensitivity(headers, observations, targetBranch, testSeed, bf);
+		ValuePreservance sp = SensitivityMutator.evaluateBranchSensitivity(headers, observations, targetBranch, testSeed, bf);
 		return sp;
 	}
 
-
-	private static List<DepVariable> addNotConstantHeaders(Set<DepVariable> inputs) {
-		List<DepVariable> headers = new ArrayList<>();
-		for(DepVariable var : inputs) {
-			if(!var.isConstant())
-				headers.add(var);
-		}
-		return headers;
-	}
-
-	private static boolean compareArrayLength(List<ComputationPath> pathList) {
-		for (ComputationPath path : pathList) {
-			DepVariable var = path.getTail();
-			if (!(var.getInstruction().getASMNode().getOpcode() == Opcodes.ARRAYLENGTH)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-
-	private static void addAllField(List<DepVariable> headers, Set<DepVariable> inputs) {
-		for(DepVariable var : inputs) {
-			if(var.isStaticField() || var.isInstaceField()) {
-				if(!headers.contains(var))
-					headers.add(var);
-			}
-		}		
-	}
-
-	private static boolean allConstantsHeaders(List<DepVariable> headers) {
-		for(DepVariable var : headers) {
-			if(!var.isConstant()) return false;
-		}
-		return true;
-	}
-
-	private static List<DepVariable> retrieveHeads(List<ComputationPath> pathList) {
-		List<DepVariable> varList = new ArrayList<>();
-		for(ComputationPath path: pathList) {
-			DepVariable var = path.getFirstPrimitiveNode();
-			System.currentTimeMillis();
-			if(var != null && !varList.contains(var)) {
-				varList.add(var);				
-			}
-			
-			//switch
-			if(path.getBranch().isSwitchCaseBranch()) {
-				var = path.getComputationNodes().get(0);
-				if(var != null && !varList.contains(var)) {
-					varList.add(var);				
-				}
-			}
-		}
-		
-		return varList;
-	}
 
 	private static List<BytecodeInstruction> parseRelevantOperands(Branch targetBranch) {
 		List<BytecodeInstruction> list = new ArrayList<>();
@@ -641,7 +325,6 @@ public class SeedingApplicationEvaluator {
 		DepVariable var = new DepVariable(targetIns);
 
 		// element index
-//		if (var.getName().equals("array index"))
 		if (var.isLoadArrayElement()) {
 			add(list, var.getInstruction());
 			return;
@@ -890,25 +573,6 @@ public class SeedingApplicationEvaluator {
 		return ops;
 	}
 
-	private static List<Branch> analyzeRelevantBranches(ActualControlFlowGraph graph) {
-		List<BytecodeInstruction> insList = graph.getAllInstructions();
-		List<BytecodeInstruction> returnInsList = findAllReturnIns(graph);
-		
-		List<Branch> branches = new ArrayList<>();
-		for(BytecodeInstruction returnIns: returnInsList) {
-			
-			
-			
-			for(ControlDependency dep: returnIns.getControlDependencies()) {
-				if(dep != null && !branches.contains(dep.getBranch())) {
-					branches.add(dep.getBranch());
-				}
-			}
-		}
-		
-		return branches;
-	}
-
 	private static List<BytecodeInstruction> findAllReturnIns(ActualControlFlowGraph graph) {
 		List<BytecodeInstruction> insList = graph.getAllInstructions();
 		List<BytecodeInstruction> returnInsList = new ArrayList<>();
@@ -920,14 +584,7 @@ public class SeedingApplicationEvaluator {
 		return returnInsList;
 	}
 
-	private static boolean isMethodInStopList(String method) {
-		if(method.equals("booleanValue()Z") || 
-				method.equals("valueOf(Z)Ljava/lang/Boolean;")) {
-			return true;
-		}
-		return false;
-	}
-
+	
 	public static boolean isBooleanReturnType(String method) {
 		String returnType = method.substring(method.indexOf(")") + 1, method.length());
 		return returnType.equals("Z") || returnType.equals("Ljava/lang/Boolean;")
@@ -935,24 +592,7 @@ public class SeedingApplicationEvaluator {
 				|| method.equals("StringStartsWith(Ljava/lang/String;Ljava/lang/String;I)I");
 	}
 
-	private static String getDynamicDataType(ComputationPath otherPath) {
-		List<DepVariable> computationNodes = otherPath.getComputationNodes();
-		
-		List<String> list = new ArrayList<String>();
-		for(DepVariable n: computationNodes) {
-			String str = n.getDataType();
-			if(!str.equals(BranchSeedInfo.OTHER)) {
-				str = finalType(str);
-				list.add(str);
-			}
-		}
-		
-		if(list.isEmpty()) {
-			return BranchSeedInfo.OTHER;
-		}
-		
-		return list.get(list.size()-1);
-	}
+	
 
 	public static String finalType(String name) {
 		String type[] =  name.split("\\.");
@@ -962,14 +602,7 @@ public class SeedingApplicationEvaluator {
 			return type[type.length - 1].toLowerCase();
 	}
 
-	private static void removeRedundancy(List<ComputationPath> pathList) {
-		List<ComputationPath> redundantList = getRedundantPaths(pathList);
-		System.currentTimeMillis();
-		for (ComputationPath path : redundantList) {
-			pathList.remove(path);
-		}
-	}
-
+	
 	private static Set<DepVariable> compileInputs(Set<DepVariable> methodInputs) {
 		boolean additionalInstruction = false;
 		Set<DepVariable> local = new HashSet<>();
@@ -1055,130 +688,8 @@ public class SeedingApplicationEvaluator {
 			if(lineBranches.size() > 0)
 				targetBranch = lineBranches.get(0);
 		}
-//			String info = s[3] + " " + s[4];
-//			if (br.toString().contains(info) && !br.equals(b)) {
-//				targetBranch = br;
-//				break;
-//			}
-//			if (br.toString().contains(s[4])) {
-//				lineBranches.add(br);
-//			}
-//		}
-//		if (lineBranches.size() == 1 && !lineBranches.get(0).equals(b)) {
-//			targetBranch = lineBranches.get(0);
-//		}
 		return targetBranch;
 	}
-
-//	private static Class<?> findOpcodeType(ComputationPath otherPath) {
-//		int size = otherPath.getComputationNodes().size();
-//		for (DepVariable n : otherPath.getComputationNodes()) {
-//			BytecodeInstruction bi = n.getInstruction();
-//			AbstractInsnNode node = bi.getASMNode();
-//			if (node instanceof TypeInsnNode) {
-//				TypeInsnNode tNode = (TypeInsnNode) node;
-//				String des = tNode.desc.replace("/", ".");
-//				Class<?> cla;
-//				try {
-//					if (Class.forName(des) != null) {
-//						cla = Class.forName(des);
-//						return cla;
-//					}
-//				} catch (ClassNotFoundException e) {
-//					e.printStackTrace();
-//				}
-//			} else if (node instanceof MethodInsnNode) {
-//				MethodInsnNode mNode = (MethodInsnNode) node;
-//				String des = mNode.desc.replace("/", ".");
-//				Class<?> cla;
-//				try {
-//					if (Class.forName(des) != null) {
-//						cla = Class.forName(des);
-//						return cla;
-//					}
-//				} catch (ClassNotFoundException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//			int opcode = bi.getASMNode().getOpcode();
-//			switch (opcode) {
-//			case 0x97:
-//				return double.class;
-//
-//			}
-//		}
-//
-//		return null;
-//	}
-
-	private static List<ComputationPath> getRedundantPaths(List<ComputationPath> pathList) {
-		List<ComputationPath> localPathList = new ArrayList<>();
-		for (int i = 0; i < pathList.size(); i++) {
-			ComputationPath path = pathList.get(i);
-			
-			if(localPathList.contains(path)) continue;
-			l:
-			for (int j = i + 1; j < pathList.size(); j++) {
-				ComputationPath pathNext = pathList.get(j);
-				if(localPathList.contains(pathNext)) continue;				
-				if(path.size() != pathNext.size()) continue;
-				
-				for(int k=0; k<path.size(); k++) {
-					if(path.getComputationNodes().get(k).getInstruction().getInstructionId() != 
-							pathNext.getComputationNodes().get(k).getInstruction().getInstructionId()) {
-						break l;
-					}
-				}
-				
-				localPathList.add(pathNext);
-
-			}
-			System.currentTimeMillis();
-		}
-		
-		return localPathList;
-	}
-
-//	private static ComputationPath findTheOtherPath(ComputationPath path, List<ComputationPath> pathList) {
-//		// TODO Cheng Yan
-//		ComputationPath theOtherPath = new ComputationPath();
-//		for (ComputationPath otherPath : pathList) {
-//			if (otherPath != path) {
-//				theOtherPath = otherPath;
-//				return theOtherPath;
-//			}
-//
-//		}
-//		return null;
-//	}
-//
-//	private static ComputationPath findSimplestPath(List<ComputationPath> computationPathList) {
-//		// TODO Cheng Yan
-//		ComputationPath simplestPath = new ComputationPath();
-//		simplestPath.setScore(9999);
-//		boolean hasVar = false;
-//		for (int i = 0; i < computationPathList.size(); i++) {
-//			if (computationPathList.get(i).getScore() < simplestPath.getScore() && !hasVar)
-//				simplestPath = computationPathList.get(i);
-//			for (DepVariable node : computationPathList.get(i).getComputationNodes()) {
-//				BytecodeInstruction ins = node.getInstruction();
-//				if (ins.isLocalVariableUse()) {
-//					hasVar = true;
-//					simplestPath = computationPathList.get(i);
-//				}
-//			}
-//
-//		}
-////		for (ComputationPath path : computationPathList) {
-////			
-////			if (path.getScore() < simplestPath.getScore())
-////				simplestPath = path;
-////		}
-//		if (simplestPath.getScore() != 9999)
-//			return simplestPath;
-//		else
-//			return null;
-//	}
 
 	public static List<BranchSeedInfo> evaluate(String targetMethod) throws ClassNotFoundException {
 		List<BranchSeedInfo> interestedBranches = new ArrayList<>();

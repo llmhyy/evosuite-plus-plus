@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchFitness;
 import org.evosuite.ga.Chromosome;
@@ -14,6 +15,7 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.AssignmentStatement;
+import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.testcase.variable.VariableReference;
@@ -53,11 +55,13 @@ public class MethodInputs {
 		this.inputConstants = inputConstants;
 	}
 
-	
+	/**
+	 * a set of statements which does not allow to mutate.
+	 */
 	private List<ValueStatement> fixedPoints = new ArrayList<>();
 	
 	@SuppressWarnings("unchecked")
-	public void mutate(Branch branch, TestChromosome startPoint, BranchFitness bf) {
+	public boolean mutate(Branch branch, TestChromosome startPoint, BranchFitness bf) {
 		
 //		Set<FitnessFunction<?>> set = new HashSet<>();
 //		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(branch, bf.getBranchGoal().getValue());
@@ -71,11 +75,14 @@ public class MethodInputs {
 //		startPoint.getFitness(fitness);
 		double fitnessValue = fitness.getFitness(startPoint);
 		
-		if(fitnessValue > 1) {
+		if(fitnessValue >= 1) {
+			System.currentTimeMillis();
 			System.currentTimeMillis();
 		}
 		
-		assert fitnessValue < 1.0;
+		assert fitnessValue <= 1.0;
+		
+		boolean change = false;
 		
 		for(String key: inputVariables.keySet()) {
 			
@@ -87,16 +94,11 @@ public class MethodInputs {
 			
 			TestCase test = statement.getTestCase();
 			Object oldValue = statement.getAssignmentValue();
-			VariableReference oldParam = null;
 			
-			if(oldValue != null) {
-				mutateValueStatement(statement);
-			}
-			else if(statement instanceof AssignmentStatement) {
-				AssignmentStatement aStat = (AssignmentStatement)statement;
-				oldParam = aStat.getValue();
-				mutateValueStatement(statement);
-			}
+			int oldMax = Properties.MAX_DELTA;
+			Properties.MAX_DELTA = 3;
+			statement.mutateValue();
+			Properties.MAX_DELTA = oldMax;
 
 			TestChromosome trial = new TestChromosome();
 			trial.setTestCase(test);
@@ -104,57 +106,59 @@ public class MethodInputs {
 			trial.addFitness((FitnessFunction<?>) bf);
 			FitnessFunction<Chromosome> fitness2 = (FitnessFunction<Chromosome>)bf;
 			double fitnessValue2 = fitness2.getFitness(trial);
-			if(fitnessValue2 > 1) {
-				if(oldParam != null) {
-					((AssignmentStatement)statement).setValue(oldParam);
-				}
-				else {
-					statement.setAssignmentValue(oldValue);					
-				}
-				
+			if(fitnessValue2 >= 1) {
+				statement.setAssignmentValue(oldValue);			
 				fixedPoints.add(statement);
+			}
+			else {
+				change = true;
 			}
 			
 		}
 		
-		System.currentTimeMillis();
+		return change;
 	}
 
-	private void mutateValueStatement(ValueStatement statement) {
-		Type t = statement.getReturnType();
-		if(t.equals(Integer.class)) {
-			Object obj = Randomness.nextInt();
-			statement.setAssignmentValue(obj);
-		}
-		else if(t.equals(String.class)) {
-			Object obj = Randomness.nextString(10);
-			statement.setAssignmentValue(obj);
-		}
-		else if(t.equals(Short.class)) {
-			Object obj = Randomness.nextShort();
-			statement.setAssignmentValue(obj);
-		}
-		else if(t.equals(Long.class)) {
-			Object obj = Randomness.nextLong();
-			statement.setAssignmentValue(obj);
-		}
-		else if(t.equals(Character.class)) {
-			Object obj = Randomness.nextChar();
-			statement.setAssignmentValue(obj);
-		}
-		else if(t.equals(Byte.class)) {
-			Object obj = Randomness.nextByte();
-			statement.setAssignmentValue(obj);
-		}
-		else if(t.equals(Double.class)) {
-			Object obj = Randomness.nextDouble();
-			statement.setAssignmentValue(obj);
-		}
-		else if(t.equals(Float.class)) {
-			Object obj = Randomness.nextFloat();
-			statement.setAssignmentValue(obj);
-		}
-	}
+//	private void mutateValueStatement(ValueStatement statement) {
+//		/**
+//		 * It is better to consider both delta and random at the same time, just as what evosuite does.
+//		 * TODO: Lin Yun
+//		 */
+//		Type t = statement.getReturnType();
+//		if(t.equals(Integer.class) || t.getTypeName().equals("int")) {
+//			Object obj = (int)(Randomness.nextGaussian() * Properties.MAX_INT);
+//			statement.setAssignmentValue(obj);
+//		}
+//		else if(t.equals(String.class)) {
+//			Object obj = Randomness.nextString(10);
+//			statement.setAssignmentValue(obj);
+//		}
+//		else if(t.equals(Short.class) || t.getTypeName().equals("short")) {
+//			short max = (short) Math.min(Properties.MAX_INT, 32767);
+//			Object obj = (short) ((Randomness.nextGaussian() * max));
+//			statement.setAssignmentValue(obj);
+//		}
+//		else if(t.equals(Long.class) || t.getTypeName().equals("long")) {
+//			Object obj = (long)(Randomness.nextGaussian() * Properties.MAX_INT);
+//			statement.setAssignmentValue(obj);
+//		}
+//		else if(t.equals(Character.class) || t.getTypeName().equals("char")) {
+//			Object obj = Randomness.nextChar();
+//			statement.setAssignmentValue(obj);
+//		}
+//		else if(t.equals(Byte.class) || t.getTypeName().equals("byte")) {
+//			Object obj = (byte) (Randomness.nextInt(256) - 128);
+//			statement.setAssignmentValue(obj);
+//		}
+//		else if(t.equals(Double.class) || t.getTypeName().equals("double")) {
+//			Object obj = Randomness.nextGaussian() * Properties.MAX_INT;
+//			statement.setAssignmentValue(obj);
+//		}
+//		else if(t.equals(Float.class) || t.getTypeName().equals("float")) {
+//			Object obj = (float)(Randomness.nextGaussian() * Properties.MAX_INT);
+//			statement.setAssignmentValue(obj);
+//		}
+//	}
 
 	public MethodInputs identifyInputs(TestChromosome newTestChromosome) {
 		Map<String, ValueStatement> inputVariables = new HashMap<>();
