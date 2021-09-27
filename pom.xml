@@ -723,8 +723,9 @@
 					<!--<rerunFailingTestsCount>${rerunFailingTestsCount}</rerunFailingTestsCount> -->
 					<forkCount>1</forkCount>
 					<reuseForks>false</reuseForks>
-					<reportFormat>xml</reportFormat>
 					<runOrder>alphabetical</runOrder>
+					<useFile>false</useFile>
+					<trimStackTrace>false</trimStackTrace>
 					<!-- excludes> <exclude>**/*SystemTest.java</exclude> <exclude>**/*IntTest.java</exclude> 
 						</excludes -->
 					<excludes>
