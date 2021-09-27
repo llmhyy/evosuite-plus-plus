@@ -291,7 +291,7 @@ public class TrueExample {
 	public void dump(final String prefix){
 		if (TrueExample.jjtNodeName[this.id].equals("Literal")) {
 			System.currentTimeMillis();
-		} else {
+		}else {
 			for (String identifier : this.identifiers) {
 				if (!identifier.equals(";") && !identifier.equals("}") && !identifier.equals("{") && !identifier.equals(""))
 					
@@ -350,6 +350,15 @@ public class TrueExample {
 					}
 				}
 			}
+		}
+	}
+	
+	public ArrayList<String> strList = new ArrayList<>();
+	
+	public void JDKString(String s) {
+		boolean b = strList.remove("a very special string");
+		if(b) {
+			System.currentTimeMillis();
 		}
 	}
 	
