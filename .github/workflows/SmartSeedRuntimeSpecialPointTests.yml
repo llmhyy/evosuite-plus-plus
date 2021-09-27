@@ -6,9 +6,9 @@ name: SmartSeedRuntimeSpecialPointTests
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
+    branches: [ smartseedruntimetest-workflow ] # Temporarily change for testing
   pull_request:
-    branches: [ master ]
+    branches: [ smartseedruntimetest-workflow ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -29,6 +29,13 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '8'
-          distribution: 'adopt'
+          distribution: 'zulu' # Zulu supports JavaFX, which Evosuite uses.
+      # Cache Maven dependencies
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       - name: Run tests with Maven
         run: mvn test -Dtest=SmartSeedRuntimeTest#testSpecialPoint* -DfailIfNoTests=false
