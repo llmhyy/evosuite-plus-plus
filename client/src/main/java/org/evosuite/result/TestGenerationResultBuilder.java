@@ -238,6 +238,8 @@ public class TestGenerationResultBuilder {
 		testBranchCoverage.put(name, branchCoverage);
 		uncoveredBranches.removeAll(branchCoverage);
 		
+		System.currentTimeMillis();
+		
 		List<BranchInfo> relevantBranches = new ArrayList<>();
 		uncoveredBranches.forEach(branchInfo -> {
 			String className = branchInfo.getClassName();
@@ -245,7 +247,7 @@ public class TestGenerationResultBuilder {
 			boolean isClassNameCorrect = className.equals("jigl.image.levelSetTool.LevelSetSmooth");
 			boolean isMethodNameCorrect = methodName.equals("apply(IIIIZZ)Ljigl/image/RealColorImage;");
 			if (isClassNameCorrect && isMethodNameCorrect) {
-				relevantBranches.add(branchInfo);;
+				relevantBranches.add(branchInfo);
 			}
 		});
 		System.currentTimeMillis();
