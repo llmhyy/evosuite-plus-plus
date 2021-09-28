@@ -126,10 +126,42 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		long numberOfEligibleBranches = getNumberOfEligibleBranchesInMethod(className, methodName, cfg, node);
 		boolean isNumberOfEligibleBranchesOverThreshold = (numberOfEligibleBranches >= BRANCH_COUNT_THRESHOLD);
 		
+		// Since each eligible branch has at least one constant operand (= one constant in the class),
+		// the number of constants in the class should never be strictly less than the number of eligible branches.
+		// This guard serves as a breakpoint location during debugging.
+		if (numberOfConstantsInClass < numberOfEligibleBranches) {
+			List<ConstantPool> pools = getConstantPools();
+			List<BytecodeInstruction> eligibleBranches = getEligibleBranchesInMethod(className, methodName, cfg, node);
+			BytecodeInstruction firstEligibleBranch = eligibleBranches.get(0);
+			List<BytecodeInstruction> operands = getOperandsFromBranch(firstEligibleBranch, cfg, node);
+			System.currentTimeMillis();
+			
+		}
+		
 		log.debug("[" + className + "#" + methodName + "]: " + numberOfConstantsInClass + " constants, " + numberOfEligibleBranches + " eligible branches.");
-		log.debug("[" + className + "#" + methodName + "]: Over constant threshold? " + (isNumberOfConstantsOverThreshold ? "YES" : "NO"));
-		log.debug("[" + className + "#" + methodName + "]: Over branch threshold? " + (isNumberOfEligibleBranchesOverThreshold ? "YES" : "NO"));
 		return isNumberOfConstantsOverThreshold && isNumberOfEligibleBranchesOverThreshold;
+	}
+	
+	private List<ConstantPool> getConstantPools() {
+		ConstantPool staticConstantsInClass = ConstantPoolManager.pools[0];
+		ConstantPool staticConstantsOutsideClass = ConstantPoolManager.pools[1];
+		List<ConstantPool> pools = new ArrayList<>();
+		pools.add(staticConstantsInClass);
+		pools.add(staticConstantsOutsideClass);
+		return pools;
+	}
+	
+	private List<BytecodeInstruction> getEligibleBranchesInMethod(String className, String methodName, ActualControlFlowGraph cfg, MethodNode node) {
+		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg); 
+		List<BytecodeInstruction> eligibleBranches = new ArrayList<>();
+		for (BytecodeInstruction branch : branches) {
+			boolean isBranchHasConstantOperands = isBranchHasConstantOperands(branch, cfg, node);
+			if (isBranchHasConstantOperands) {
+				eligibleBranches.add(branch);
+			}
+		}
+		
+		return eligibleBranches;
 	}
 	
 	private long getNumberOfConstantsInClass(String className) {
