@@ -35,6 +35,11 @@ public class SmartSeedRuntimeTest {
 	}
 	
 	@Test
+	public void sanityCheck() {
+		return;
+	}
+	
+	@Test
 	public void testJDKInstrumentationOn() throws IOException {
 		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
 		String methodName = "JDKString";
