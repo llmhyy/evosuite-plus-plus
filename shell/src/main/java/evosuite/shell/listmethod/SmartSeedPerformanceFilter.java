@@ -47,7 +47,7 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 	private static final int CONSTANT_COUNT_THRESHOLD = 50;
 	private static final int BRANCH_COUNT_THRESHOLD = 1;
 	
-	private static Map<String,Integer> classToNumberOfConstants = new HashMap<>();
+	private static Map<String,Long> classToNumberOfConstants = new HashMap<>();
 	
 	private static Set<String> primitiveTypes = new HashSet<>();
 	
@@ -126,7 +126,9 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		long numberOfEligibleBranches = getNumberOfEligibleBranchesInMethod(className, methodName, cfg, node);
 		boolean isNumberOfEligibleBranchesOverThreshold = (numberOfEligibleBranches >= BRANCH_COUNT_THRESHOLD);
 		
-		log.debug("[" + className + "#" + methodName + "]: {" + numberOfConstantsInClass + " | " + numberOfEligibleBranches + "}");
+		log.debug("[" + className + "#" + methodName + "]: " + numberOfConstantsInClass + " constants, " + numberOfEligibleBranches + " eligible branches.");
+		log.debug("[" + className + "#" + methodName + "]: Over constant threshold? " + (isNumberOfConstantsOverThreshold ? "YES" : "NO"));
+		log.debug("[" + className + "#" + methodName + "]: Over branch threshold? " + (isNumberOfEligibleBranchesOverThreshold ? "YES" : "NO"));
 		return isNumberOfConstantsOverThreshold && isNumberOfEligibleBranchesOverThreshold;
 	}
 	
@@ -155,7 +157,9 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		
 		StaticConstantPool insideClassPool = (StaticConstantPool) staticConstantsInClass;
 		StaticConstantPool outsideClassPool = (StaticConstantPool) staticConstantsOutsideClass;
-		return insideClassPool.poolSize() + outsideClassPool.poolSize();
+		long constantCount = (insideClassPool.poolSize() + outsideClassPool.poolSize());
+		classToNumberOfConstants.put(key,  constantCount);
+		return constantCount;
 	}
 	
 	/**
