@@ -1,11 +1,5 @@
 package org.evosuite.testcase.synthesizer;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
@@ -52,100 +46,113 @@ import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 
 public class ConstructionPathSynthesizer {
-
 //	private TestFactory testFactory;
 //	private static final Logger logger = LoggerFactory.getLogger(ConstructionPathSynthesizer.class);
 	
-	public static String debuggerFolder = "";
+	private TestFactory testFactory;
+	private PartialGraph partialGraph;
+	private Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap;
+	public boolean isDebugger = false;
 
 	public ConstructionPathSynthesizer(boolean isDebug) {
 		super();
 //		this.testFactory = testFactory;
 		this.isDebugger = isDebug;
 	}
-
+	
 	/**
 	 * 
 	 * @param b
-	 * @param isBranchInTargetMethod
 	 * @return
 	 */
 	public PartialGraph constructPartialComputationGraph(Branch b) {
 		PartialGraph graph = new PartialGraph();
 		
-		System.currentTimeMillis();
+		// This maps the branch to a set of dependent variables (all one of static field, instance field, or parameter)
+		Map<Branch, Set<DepVariable>> branchToDependentVariables = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
+		Set<DepVariable> dependentVariables = branchToDependentVariables.get(b);
 		
-		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
-		Set<DepVariable> variables = map.get(b);
 		graph.setBranch(b);
 		
-		if(variables == null) {
+		// The branch has no dependent variables
+		if (dependentVariables == null) {
 			return graph;
 		}
 		
-		for(DepVariable source: variables) {
+		for (DepVariable source : dependentVariables) {
+			// Root variables are method input variables such as parameters.
+			// A path can look like parameter -> field1 -> field2, where field2 is a branch operand.
+			// In this case it would be root -> ... -> source.
 			Map<DepVariable, ArrayList<ConstructionPath>> rootInfo = source.getRootVars();
 			
-			for(DepVariable root: rootInfo.keySet()) {
-				/**
-				 *  this=> class; parameter => method; static field=> whatever
-				 */
-				if(
-					(root.referenceToThis() 
-							&&  root.getInstruction().getClassName().equals(Properties.TARGET_CLASS)) 
-					|| 
-					(root.isParameter()
-							&& root.getInstruction().getClassName().equals(Properties.TARGET_CLASS)
-							&& root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD)) 
-					|| 
-					root.isStaticField() 
-					||
-					root.isLoadArrayElement()
-						) {
-					
+			// Each root is a method input variable such as a parameter.
+			// We only consider the relevant roots:
+			//   1) The root is of the form this.{something} where the class of the root is our target class
+			//      This is for when the branch operand is e.g. this.foo().bar()
+			//   2) The root is a parameter, and the class and method match
+			//      (root.getInstruction().getMethodName() refers to the method in which the instruction for the root resides)
+			//      This is for when the branch operand is e.g. methodParam.foo().bar()
+			//   3) The root is a static field.
+			//      This is for when the branch operand is e.g. SomeClass.someStaticField.foo()
+			for (DepVariable root : rootInfo.keySet()) {
+				boolean isRootThisAndPointsToTargetClass = (root.referenceToThis() && 
+						root.getInstruction().getClassName().equals(Properties.TARGET_CLASS));
+				boolean isRootParamOfTargetMethod = (root.isParameter() && 
+						root.getInstruction().getClassName().equals(Properties.TARGET_CLASS) && 
+						root.getInstruction().getMethodName().equals(Properties.TARGET_METHOD));
+				boolean isRootStaticField = root.isStaticField();
+				boolean isRootLoadArrayElement = root.isLoadArrayElement();
+				if (isRootThisAndPointsToTargetClass || isRootParamOfTargetMethod || isRootStaticField || isRootLoadArrayElement) {
+					// There can be multiple paths from the root to the source
+					// (Why?)
 					List<ConstructionPath> paths = rootInfo.get(root);
 					
-					for(ConstructionPath path: paths) {
-						for(int i=0; i<path.size()-1; i++) {
-							DepVariableWrapper child = graph.fetchAndMerge(path.get(i));
-							DepVariableWrapper parent = graph.fetchAndMerge(path.get(i+1));
-							
-							child.addParent(parent);
-							parent.addChild(child);
+					for (ConstructionPath path : paths) {
+						if (path.size() == 1) {
+							graph.fetchAndMerge(path.get(0));
+							continue;
 						}
 						
-						if(path.size() == 1){
-							graph.fetchAndMerge(path.get(0));
+						// Path size >= 2
+						for (int i = 0; i < path.size() - 1; i++) {
+							DepVariable nodeInPath = path.get(i);
+							DepVariable successorNodeInPath = path.get(i + 1);
+							DepVariableWrapper mergedNodeInPath = graph.fetchAndMerge(nodeInPath);
+							DepVariableWrapper mergedSuccessorNodeInPath = graph.fetchAndMerge(successorNodeInPath);
+							
+							mergedNodeInPath.addParent(mergedSuccessorNodeInPath);
+							mergedSuccessorNodeInPath.addChild(mergedNodeInPath);
 						}
 					}
 				}
 			}
 		}
-		
 		return graph;
 	}
-	
-	private PartialGraph partialGraph;
-	private Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap;
-	
-	
-	public boolean isDebugger = false;
-	
-	public void buildNodeStatementCorrespondence(TestCase test, Branch b, boolean allowNullValue)
-			throws ConstructionFailedException, ClassNotFoundException {
 
-		PartialGraph partialGraph = constructPartialComputationGraph(b);
-//		System.currentTimeMillis();
-//		GraphVisualizer.visualizeComputationGraph(b, 10000);
-		if(isDebugger) {
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");			
+	/**
+	 * Handles cases when the object is non-trivial and we need to construct
+	 * statement(s) to initialise the object (e.g. setting fields, preparing dependencies
+	 * to pass in the constructor, etc.).
+	 * 
+	 * @param testCase The test case to modify.
+	 * @param branch The branch that the test case aims to cover.
+	 * @param isDebugger ?
+	 * @param allowNullValue ?
+	 * @throws ConstructionFailedException (When?)
+	 * @throws ClassNotFoundException (When?)
+	 */
+	public void buildNodeStatementCorrespondence(TestCase testCase, Branch branch, boolean isDebugger, boolean allowNullValue)
+			throws ConstructionFailedException, ClassNotFoundException {
+		// This is the object construction graph mentioned in the ACM paper
+		// It provides dataflow relations between the branch operands and method inputs.
+		PartialGraph partialGraph = constructPartialComputationGraph(branch);
+		
+		if (isDebugger) {
+			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");
 		}
 		
-		logTest(test, b, isDebugger, 0, null);
-		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-		
-//		System.currentTimeMillis();
 		
 		/**
 		 * track what variable reference can be reused. Note that, one node can corresponding to multiple statements.
@@ -166,22 +173,18 @@ public class ConstructionPathSynthesizer {
 		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-//			logger.warn(String.valueOf(c) + ":" + node.toString());
-			if(c==11) {
-				System.currentTimeMillis();
-			}
 			c++;
 			/**
 			 * for each method callsite, we only generate once. 
 			 */
-			if(map.containsKey(node) && node.var.isMethodCall()){
+			if (map.containsKey(node) && node.var.isMethodCall()){
 				continue;
 			}
 			
 			boolean isValid = checkDependency(node, map);
-			if(isValid) {
-				buildNodeStatementRelation(test, map, node, b, allowNullValue);	
-				logTest(test, b, isDebugger, c, node);
+
+			if (isValid) {
+				buildNodeStatementRelation(testCase, map, node, branch, allowNullValue);
 				
 				/**
 				 *  the order of children size matters
@@ -189,10 +192,10 @@ public class ConstructionPathSynthesizer {
 				Collections.sort(node.children, new Comparator<DepVariableWrapper>() {
 					@Override
 					public int compare(DepVariableWrapper o1, DepVariableWrapper o2) {
-						if(o1.var.isMethodCall() && !o2.var.isMethodCall()){
+						if (o1.var.isMethodCall() && !o2.var.isMethodCall()){
 							return -1;
 						}
-						else if(!o1.var.isMethodCall() && o2.var.isMethodCall()){
+						else if (!o1.var.isMethodCall() && o2.var.isMethodCall()){
 							return 1;
 						}
 						
@@ -206,60 +209,21 @@ public class ConstructionPathSynthesizer {
 				
 			} else {
 				Integer count = methodCounter.get(node);
-				if(count == null) count = 0;
+				if (count == null) count = 0;
 				
-				if(count < 5){
+				if (count < 5){
 					queue.add(node);					
 					methodCounter.put(node, ++count);
 				}
 			}
 			
-			if(test.size() > Properties.CHROMOSOME_LENGTH) {
+			if (testCase.size() > Properties.CHROMOSOME_LENGTH) {
 				break;
 			}
 		}
 		
-//		System.currentTimeMillis();
 		this.setPartialGraph(partialGraph);
 		this.setGraph2CodeMap(map);
-	}
-
-	private void logTest(TestCase test, Branch b, boolean isDebugger, int iteration, DepVariableWrapper node) {
-		if(!isDebugger) {
-			return;
-		}
-		
-		String subfolder = debuggerFolder + File.separator + b.toString() + File.separator;
-		File f = new File(subfolder);
-		if(!f.exists()) {
-			f.mkdir();
-		}
-		
-		String nodeName = "initial";
-		if(node != null) {
-			nodeName = node.getShortName();
-		}
-		
-		String testScript = subfolder + iteration  + "-" + nodeName + ".txt";
-		testScript = testScript.replace("/", ".");
-		Writer writer = null;
-
-		try {
-			writer = new BufferedWriter(new OutputStreamWriter(
-			          new FileOutputStream(testScript), "utf-8"));
-			writer.write(test.toString());
-		}
-		catch (IOException ex) {
-		    System.currentTimeMillis();
-		} finally {
-		   try {writer.close();} 
-		   catch (Exception ex) {
-			   System.currentTimeMillis();
-		   }
-		}
-		
-		System.currentTimeMillis();
-		
 	}
 
 	private boolean checkDependency(DepVariableWrapper node, Map<DepVariableWrapper, List<VariableReference>> map) {
@@ -267,7 +231,7 @@ public class ConstructionPathSynthesizer {
 		 * ensure every parent of current node is visited in the map
 		 */
 		for (DepVariableWrapper parent : node.parents) {
-			if(map.get(parent) == null 
+			if (map.get(parent) == null 
 					|| map.get(parent).isEmpty()) {
 				return false;
 			}
@@ -275,44 +239,50 @@ public class ConstructionPathSynthesizer {
 
 		return true;
 	}
-
-	private boolean buildNodeStatementRelation(TestCase test, Map<DepVariableWrapper, List<VariableReference>> map,
-			DepVariableWrapper node, Branch b, boolean allowNullValue) throws ClassNotFoundException, ConstructionFailedException {
-		
+	
+	/**
+	 * 
+	 * @param testCase
+	 * @param callerNodeToCallerObjectsMap
+	 * @param node
+	 * @param branch
+	 * @param isAllowNullValue
+	 * @return {@code true} if successful, {@code false} otherwise.
+	 * @throws ClassNotFoundException
+	 * @throws ConstructionFailedException
+	 */
+	private boolean buildNodeStatementRelation(TestCase testCase, Map<DepVariableWrapper, List<VariableReference>> callerNodeToCallerObjectsMap,
+			DepVariableWrapper node, Branch branch, boolean isAllowNullValue) throws ClassNotFoundException, ConstructionFailedException {		
 		List<DepVariableWrapper> callerNodes = node.getCallerNode();
-		/**
-		 * for root nodes
-		 */
-		if(callerNodes == null) {
+		// For root nodes
+		if (callerNodes == null) {
 			callerNodes = new ArrayList<>();
 			callerNodes.add(node);
 		}
 		
-		boolean success = true;
-		for(DepVariableWrapper callerNode: callerNodes){
-			List<VariableReference> callerObjects = map.get(callerNode);
-			/**
-			 * for root nodes
-			 */
-			if(callerObjects == null){
-				boolean s = deriveCodeForTest(map, test, null, node, b, allowNullValue);
-				success = success && s;				
-			}
-			else{
-				for(int i=0; i<callerObjects.size(); i++){
-					VariableReference callerObject = callerObjects.get(i);
-					GenericClass t = callerObject.getGenericClass();
-					if(t.isPrimitive()) {
-						continue;
-					}
-					boolean s = deriveCodeForTest(map, test, callerObject, node, b, allowNullValue);
-					success = success && s;	
-				}
+		boolean isEnhancementSuccessful = true;
+		for (DepVariableWrapper callerNode : callerNodes) {
+			List<VariableReference> callerObjects = callerNodeToCallerObjectsMap.get(callerNode);
+			// For root nodes
+			if (callerObjects == null) {
+				boolean isCodeDerivationSuccessful = deriveCodeForTest(callerNodeToCallerObjectsMap, testCase, null, node, branch, isAllowNullValue);
+				isEnhancementSuccessful &= isCodeDerivationSuccessful;
+				continue;
 			}
 			
+			for (int i = 0; i < callerObjects.size(); i++) {
+				VariableReference callerObject = callerObjects.get(i);
+				GenericClass genericClass = callerObject.getGenericClass();
+				// Why?
+				if (genericClass.isPrimitive()) {
+					continue;
+				}
+				boolean isCodeDerivationSuccessful = deriveCodeForTest(callerNodeToCallerObjectsMap, testCase, callerObject, node, branch, isAllowNullValue);
+				isEnhancementSuccessful &= isCodeDerivationSuccessful;
+			}
 		}
 		
-		return success;
+		return isEnhancementSuccessful;
 	}
 
 	private boolean deriveCodeForTest(Map<DepVariableWrapper, List<VariableReference>> map, TestCase test, 
@@ -338,6 +308,19 @@ public class ConstructionPathSynthesizer {
 			return false;
 		}
 		
+		// What is this side effect here?
+		// Why is the deriveCodeForTest method adding things to this map?
+		List<VariableReference> list = callerNodeToCallerObjectsMap.get(node);
+		boolean isListNull = (list == null);
+		boolean isListContainsGeneratedVariable = (list.contains(generatedVariable));
+		if (isListNull) {
+			list = new ArrayList<>();
+		}
+		
+		if (!isListContainsGeneratedVariable) {
+			list.add(generatedVariable);					
+		}
+		callerNodeToCallerObjectsMap.put(node, list);
 		return true;
 	}
 
@@ -346,7 +329,7 @@ public class ConstructionPathSynthesizer {
 //		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 //		String className = fieldDeclaringClass.getName();
 //		Map<String, RawControlFlowGraph> graphMap = GraphPool.getInstance(classLoader).getRawCFGs(className);
-//		if(graphMap != null && !graphMap.isEmpty()) {
+//		if (graphMap != null && !graphMap.isEmpty()) {
 //			return true;
 //		}
 //		
@@ -359,16 +342,16 @@ public class ConstructionPathSynthesizer {
 	protected boolean hasNotInvoked(TestCase test, Executable setter) {
 		for(int i=0; i<test.size(); i++) {
 			Statement s = test.getStatement(i);
-			if(s instanceof MethodStatement && setter instanceof Method) {
+			if (s instanceof MethodStatement && setter instanceof Method) {
 				Method m = ((MethodStatement)s).getMethod().getMethod();
-				if(m.equals(setter)) {
+				if (m.equals(setter)) {
 					return false;
 				}
 			}
 			
-			if(s instanceof ConstructorStatement && setter instanceof Constructor) {
+			if (s instanceof ConstructorStatement && setter instanceof Constructor) {
 				Constructor m = ((ConstructorStatement)s).getConstructor().getConstructor();
-				if(m.equals(setter)) {
+				if (m.equals(setter)) {
 					return false;
 				}
 			}
@@ -619,7 +602,7 @@ public class ConstructionPathSynthesizer {
 			}
 
 			double v = Randomness.nextDouble();
-			if(v < Properties.NULL_PROBABILITY) {
+			if (v < Properties.NULL_PROBABILITY) {
 				VariableReference variableReference = testFactory.createNull(test, fieldClass, position, 0);
 				return variableReference;
 			}
@@ -636,13 +619,7 @@ public class ConstructionPathSynthesizer {
 			e.printStackTrace();
 		}
 		return null;
-	}
-	
-	
-
-	
-
-	
+  }
 
 	public PartialGraph getPartialGraph() {
 		return partialGraph;

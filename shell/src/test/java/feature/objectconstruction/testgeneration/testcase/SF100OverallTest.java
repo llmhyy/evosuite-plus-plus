@@ -109,6 +109,48 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testCustom() {
+		String projectId = SF100Project.P0;
+		String[] targetMethods = new String[]{
+			"org.example.custom.NestedObjectConstructionTest#myMethod(Lorg/example/custom/NestedObject;)V"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 150000;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+	}
+	
+	@Test
+	public void testJdbacl() {
+		String projectId = SF100Project.P13;
+		String[] targetMethods = new String[]{
+			"org.databene.jdbacl.model.DBCheckConstraint#isEquivalent(Lorg/databene/jdbacl/model/DBCheckConstraint;)Z"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 150000;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+	}
+	
+	@Test
 	public void testXbus() {
 		String projectId = SF100Project.P83;
 		String[] targetMethods = new String[]{
@@ -282,7 +324,6 @@ public class SF100OverallTest {
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
-		
 		
 		boolean aor = true;
 		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  

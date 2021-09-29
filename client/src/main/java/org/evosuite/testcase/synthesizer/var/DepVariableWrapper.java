@@ -129,20 +129,23 @@ public abstract class DepVariableWrapper {
 	}
 
 	public List<DepVariableWrapper> getCallerNode() {
-		if(this.parents.isEmpty()){
+		if (this.parents.isEmpty()) {
 			return null;
 		}
 		
-		if(this.var.isMethodCall()){
-			for(DepVariableWrapper par: this.parents){
-				if(par.isSupportOperandFor(this.var, 0)){
+		if (this.var.isMethodCall()) {
+			for (DepVariableWrapper par : this.parents) {
+				// Equivalent to par.var.isSupportOperandFor(this.var, 0);
+				// Checks if par.var is the 0th operand for this.var
+				// Why are DepVariable(s) here also treated as nodes?
+				boolean unknown1 = par.isSupportOperandFor(this.var, 0);
+				if (unknown1) {
 					List<DepVariableWrapper> list = new ArrayList<>();
 					list.add(par);
 					return list;
 				}
 			}
-		}
-		else{
+		} else {
 			return this.parents;
 		}
 		
