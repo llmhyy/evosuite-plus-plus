@@ -172,30 +172,7 @@ public class SF100OverallTest {
 		
 		System.currentTimeMillis();
 	}
-	
-	@Test
-	public void testWaterSimulator() {
-		String projectId = SF100Project.P10;
-		String[] targetMethods = new String[]{
-				"simulator.CA.BehaviourReplyNeighbour#action()V"
-		};
-		
-		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 5;
-		int budget = 150;
-		Long seed = null;
-		
-		String fitnessApproach = "branch";
-		
-		
-		boolean aor = true;
-		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
-				targetMethods, fitnessApproach, repeatTime, budget, true, 
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
-		
-		System.currentTimeMillis();
-	}
-	
+
 	@Test
 	public void testByuic() {
 		String projectId = SF100Project.P22;

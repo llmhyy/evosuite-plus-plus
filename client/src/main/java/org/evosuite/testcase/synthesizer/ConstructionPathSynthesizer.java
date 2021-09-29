@@ -31,7 +31,6 @@ import org.evosuite.graphs.interprocedural.ConstructionPath;
 import org.evosuite.graphs.interprocedural.GraphVisualizer;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
-import org.evosuite.runtime.System;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
@@ -49,7 +48,10 @@ public class ConstructionPathSynthesizer {
 //	private TestFactory testFactory;
 //	private static final Logger logger = LoggerFactory.getLogger(ConstructionPathSynthesizer.class);
 	
-	private TestFactory testFactory;
+	// A lot of files set this field.
+	// Temporary fix while those files have not been refactored yet.
+	public static String debuggerFolder = "";
+	
 	private PartialGraph partialGraph;
 	private Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap;
 	public boolean isDebugger = false;
@@ -137,12 +139,11 @@ public class ConstructionPathSynthesizer {
 	 * 
 	 * @param testCase The test case to modify.
 	 * @param branch The branch that the test case aims to cover.
-	 * @param isDebugger ?
 	 * @param allowNullValue ?
 	 * @throws ConstructionFailedException (When?)
 	 * @throws ClassNotFoundException (When?)
 	 */
-	public void buildNodeStatementCorrespondence(TestCase testCase, Branch branch, boolean isDebugger, boolean allowNullValue)
+	public void buildNodeStatementCorrespondence(TestCase testCase, Branch branch, boolean allowNullValue)
 			throws ConstructionFailedException, ClassNotFoundException {
 		// This is the object construction graph mentioned in the ACM paper
 		// It provides dataflow relations between the branch operands and method inputs.

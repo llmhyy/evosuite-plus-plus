@@ -31,10 +31,11 @@ public class PartialGraph {
 		DepVariableWrapper newNode = DepVariableWrapperFactory.createWrapperInstance(var);
 		DepVariableWrapper nodeInGraph = allRelevantNodes.get(newNode);
 		
+		// No need to merge, since there is no such node in the graph.
+		// Add the new node into the graph and return it.
 		if (nodeInGraph == null) {
-			nodeInGraph = new DepVariableWrapper(var);
 			allRelevantNodes.put(newNode, newNode);
-			return nodeInGraph;
+			return newNode;
 		}
 		
 		// Else, nodeInGraph isn't null
