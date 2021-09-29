@@ -5,6 +5,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -315,7 +316,7 @@ public class VariableCodeGenerationUtil {
 		}
 		
 		if(addMethod != null) {
-			int addElementNum = Randomness.nextInt(1, 3);
+			int addElementNum = Randomness.nextInt(0, 3);
 			
 			for(int i=0; i<addElementNum; i++) {
 				GenericMethod gMethod = new GenericMethod(addMethod, type);
@@ -488,7 +489,7 @@ public class VariableCodeGenerationUtil {
 			
 			double[] probability = normalize(scores);
 			double p = Randomness.nextDouble();
-			System.currentTimeMillis();
+//			System.currentTimeMillis();
 			int selected = select(p, probability);
 			return fieldSettingMethods.get(selected);
 		}
@@ -579,8 +580,14 @@ public class VariableCodeGenerationUtil {
 			stmt = addStatementToSetOrGetPublicField(test, fieldType,
 					genericField, targetObjectReference, new NonPrimitiveFieldInitializer(), allowNullValue);
 		}
+		
 
 		if (stmt != null && stmt.getReturnValue() != null) {
+			if(Collection.class.isAssignableFrom(genericField.getField().getType())) {
+				Class<?> fType = genericField.getField().getType();
+				System.currentTimeMillis();
+				VariableCodeGenerationUtil.generateElements(fType, test, stmt.getReturnValue());
+			}
 			return stmt.getReturnValue();
 		}
 		
