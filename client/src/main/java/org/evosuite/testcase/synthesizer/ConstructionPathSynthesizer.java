@@ -308,19 +308,6 @@ public class ConstructionPathSynthesizer {
 			return false;
 		}
 		
-		// What is this side effect here?
-		// Why is the deriveCodeForTest method adding things to this map?
-		List<VariableReference> list = callerNodeToCallerObjectsMap.get(node);
-		boolean isListNull = (list == null);
-		boolean isListContainsGeneratedVariable = (list.contains(generatedVariable));
-		if (isListNull) {
-			list = new ArrayList<>();
-		}
-		
-		if (!isListContainsGeneratedVariable) {
-			list.add(generatedVariable);					
-		}
-		callerNodeToCallerObjectsMap.put(node, list);
 		return true;
 	}
 
