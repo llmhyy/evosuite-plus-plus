@@ -72,4 +72,9 @@ public class ResourcesDirectory {
 	public void setSubdirs(TreeMap<String, ResourcesDirectory> subdirs) {
 		this.subdirs = subdirs;
 	}
+
+	public boolean contains(ResourceDescriptor resource, LinkedList<String> path) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

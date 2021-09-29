@@ -15,8 +15,8 @@ import org.evosuite.coverage.branch.BranchPool;
 
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.interprocedural.ComputationPath;
-import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.seeding.smart.BranchSeedInfo;
 import org.evosuite.seeding.smart.SeedingApplicationEvaluator;

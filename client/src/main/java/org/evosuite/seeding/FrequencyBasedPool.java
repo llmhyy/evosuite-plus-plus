@@ -33,7 +33,7 @@ public class FrequencyBasedPool<T> {
 
     private Map<T, Integer> constants = Collections.synchronizedMap(new LinkedHashMap<T, Integer>());
 
-    private int numConstants = 0;
+    public int numConstants = 0;
 
     public void addConstant(T value) {
         numConstants++;

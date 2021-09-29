@@ -33,6 +33,7 @@ import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LocalVariable;
 import org.apache.bcel.util.ClassPath;
 import org.apache.bcel.util.SyntheticRepository;
+import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
@@ -441,6 +442,8 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	public List<BytecodeInstruction> getOperands() {
 		List<BytecodeInstruction> operands = new ArrayList<>();
 		Frame frame = this.getFrame();
+		
+		if(frame == null) return operands;
 
 		InstrumentingClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 		ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(this.getClassName(),
@@ -460,6 +463,17 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 				 */
 				for (AbstractInsnNode insNode : srcValue.insns) {
 					BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
+//					if(defIns.getType() == null) {
+//						if(defIns.getASMNode().getOpcode() == Opcodes.SIPUSH)
+//							continue;
+//					}
+//					if(defIns.isConstant()) {
+//						if(defIns.toString().replace('/', '.').contains(className)) {
+//							if(defIns.toString().contains(methodName))
+//								continue;
+//						}
+//					}
+
 					if (defIns != null) {
 						operands.add(defIns);
 					}
@@ -1436,16 +1450,37 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 	 * @return
 	 */
 	public int getParameterPosition(){
+		
+		
 		if (isLocalVariableUse()) {
 			int slot = getLocalVariableSlot();
 //			String methodName = getRawCFG().getMethodName();
 //			String methodDesc = methodName.substring(methodName.indexOf("("), methodName.length());
 			
-			
 			String[] parameters = MethodUtil.parseSignature(methodName);
+			
 			int paramNum = parameters.length - 1;
 			if(!this.getActualCFG().isStaticMethod()) {
 				slot--;
+			}
+			
+			int cursor = 0;
+			int position = 0;
+			for(int i=0; i<paramNum; i++) {
+				String param = parameters[i];
+				if(cursor == slot) {
+					return position;
+				}
+				else {
+					position ++;
+					if(param.equals("double") || param.equals("long")) {
+						cursor += 2;
+					}
+					else {
+						cursor++;
+					}
+				}
+				
 			}
 			
 			System.currentTimeMillis();

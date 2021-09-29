@@ -39,7 +39,7 @@ public class ConstantPoolManager {
 
 	private static ConstantPoolManager instance = new ConstantPoolManager();
 
-	private ConstantPool[] pools;
+	public static ConstantPool[] pools;
 	/**
 	 * by default, [0] is for static, [1] is for contextual static, and [2] is for dynamic 
 	 */
@@ -112,7 +112,8 @@ public class ConstantPoolManager {
 	}
 
 	public ConstantPool getConstantPool(String dataType) {
-		if(Properties.APPLY_SMART_SEED) {
+//		if(Properties.APPLY_SMART_SEED && Properties.END_INITIALIZATION) {
+			if(Properties.APPLY_SMART_SEED) {
 			Set<BranchSeedInfo> uncoveredBranches = SmartSeedBranchUpdateManager.uncoveredApplicableBranchInfo;
 			if(!uncoveredBranches.isEmpty()) {
 				BranchSeedInfo interestedBranchInfo = Randomness.choice(uncoveredBranches);
@@ -120,6 +121,7 @@ public class ConstantPoolManager {
 					ConstantPool pool = BranchwiseConstantPoolManager.evaluate(interestedBranchInfo);
 					if(pool != null) {
 						double r = Randomness.nextDouble(0, 1);
+						System.currentTimeMillis();
 						if(r > 0.5) {
 							return pool;												
 						}

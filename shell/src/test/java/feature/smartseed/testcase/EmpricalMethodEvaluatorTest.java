@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.testcase.SensitivityMutator;
+import org.evosuite.seeding.smart.SensitivityMutator;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class EmpricalMethodEvaluatorTest {
 		
 		Properties.ENABLE_TRACEING_EVENT = true;
 		Properties.APPLY_SMART_SEED = true;
-		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
+//		Properties.APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = true;
 		Properties.APPLY_GRADEINT_ANALYSIS = true;
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}

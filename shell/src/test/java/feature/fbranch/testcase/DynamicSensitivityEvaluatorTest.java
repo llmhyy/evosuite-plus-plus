@@ -23,10 +23,10 @@ import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.fbranch.StatisticBranchFlagEvaluator;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.interprocedural.ComputationPath;
-import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
+import org.evosuite.seeding.smart.SensitivityMutator;
 import org.evosuite.setup.DependencyAnalysis;
-import org.evosuite.testcase.SensitivityMutator;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -105,7 +105,7 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch, path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch, path).isSensitivityPreserving();
 		
 		writeResults();
 		assert flagValue;
@@ -142,7 +142,7 @@ public class DynamicSensitivityEvaluatorTest {
 		BranchCoverageTestFitness ff = BranchCoverageFactory.createBranchCoverageTestFitness(targetBranch, true);
 		set.add(ff);
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -179,7 +179,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		writeResults();
 		assert flagValue;
 	}
@@ -216,7 +216,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -253,7 +253,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -290,7 +290,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -327,7 +327,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -364,7 +364,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -401,7 +401,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		//TODO
 		writeResults();
 		Object oldHeadValue = SensitivityMutator.HeadValue;
@@ -443,7 +443,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		//TODO 
 		Object oldHeadValue = SensitivityMutator.HeadValue;
 		assert oldHeadValue == null;
@@ -484,7 +484,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -521,7 +521,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -558,7 +558,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -595,7 +595,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -632,7 +632,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		//TODO 
 		writeResults();
 		assert flagValue;
@@ -670,7 +670,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -708,7 +708,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -745,7 +745,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		 
 		assert flagValue;
 	}
@@ -782,7 +782,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -819,7 +819,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -856,7 +856,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		//TODO
 		assert flagValue;
 	}
@@ -893,7 +893,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		//TODO
 		assert flagValue;
 	}
@@ -930,7 +930,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -967,7 +967,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		 
 		assert flagValue;
 	}
@@ -1005,7 +1005,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1042,7 +1042,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -1080,7 +1080,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -1117,7 +1117,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -1155,7 +1155,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		//TODO 
 		writeResults();
 		
@@ -1199,7 +1199,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -1236,7 +1236,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -1273,7 +1273,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1310,7 +1310,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1347,7 +1347,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -1384,7 +1384,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1421,7 +1421,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -1458,7 +1458,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -1495,7 +1495,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1532,7 +1532,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1569,7 +1569,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -1606,7 +1606,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1643,7 +1643,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1680,7 +1680,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1717,7 +1717,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1754,7 +1754,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1791,7 +1791,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		writeResults();
 		
 		assert flagValue;
@@ -1830,7 +1830,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -1867,7 +1867,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1904,7 +1904,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1941,7 +1941,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -1979,7 +1979,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 
 		assert flagValue;
 	}
@@ -2016,7 +2016,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -2053,7 +2053,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}
@@ -2090,7 +2090,7 @@ public class DynamicSensitivityEvaluatorTest {
 		set.add(ff);
 		
 		ComputationPath path = null;
-		boolean flagValue = SensitivityMutator.testBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
+		boolean flagValue = SensitivityMutator.evaluateBranchSensitivity(branchesInTargetMethod, targetBranch,path).isSensitivityPreserving();
 		
 		assert flagValue;
 	}

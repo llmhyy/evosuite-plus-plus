@@ -98,6 +98,9 @@ public class TestGenerationResultBuilder {
 		result.setEventSequence(EventSequence.events);
 		
 		result.setExceptionResult(testSuite.getExceptionResult());
+		result.setCoverageTimeLine(GeneticAlgorithm.coverageTimeLine);
+		
+		result.setEvoSeedTime(result,testSuite);
 		
 		return result;
 	}

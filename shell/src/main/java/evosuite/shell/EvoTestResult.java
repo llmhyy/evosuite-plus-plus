@@ -11,6 +11,7 @@ import org.evosuite.result.BranchInfo;
 import org.evosuite.result.ExceptionResult;
 import org.evosuite.result.seedexpr.Event;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.statistics.OutputVariable;
 
 public class EvoTestResult {
 	
@@ -40,6 +41,10 @@ public class EvoTestResult {
 	
 	private ExceptionResult<TestChromosome> exceptionResult;
 	
+	private Map<String, OutputVariable<?>> coverageTimeLine = new HashMap<>();
+	
+  private int smartBranchNum;
+  private Map<String,String> runtimeBranchType;
 
 	public EvoTestResult(int time, double coverage, int age, double ratio, List<Double> progress, double IPFlagCoverage,
 			String uncoveredFlag, Map<Integer, Integer> distributionMap,
@@ -238,4 +243,29 @@ public class EvoTestResult {
 	{
 		return exceptionResult;
 	}
+
+	public int getSmartBranchNum() {
+		return smartBranchNum;
+	}
+
+	public void setSmartBranchNum(int smartBranchNum) {
+		this.smartBranchNum = smartBranchNum;
+	}
+
+	public Map<String,String> getRuntimeBranchType() {
+		return runtimeBranchType;
+	}
+
+	public void setRuntimeBranchType(Map<String,String> runtimeBranchType) {
+		this.runtimeBranchType = runtimeBranchType;
+	}
+
+	public Map<String, OutputVariable<?>> getCoverageTimeLine() {
+		return coverageTimeLine;
+	}
+
+	public void setCoverageTimeLine(Map<String, OutputVariable<?>> coverageTimeLine) {
+		this.coverageTimeLine = coverageTimeLine;
+	}	
+
 }

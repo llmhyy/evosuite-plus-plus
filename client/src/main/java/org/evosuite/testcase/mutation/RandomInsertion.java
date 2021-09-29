@@ -81,7 +81,12 @@ public class RandomInsertion implements InsertionStrategy {
 			// Insert a call to the UUT at the end
 			position = test.size();
 			try {
-				success = TestFactory.getInstance().insertRandomCall(test, lastPosition + 1);				
+				if(position != 0) {
+					success = TestFactory.getInstance().insertRandomCall(test, lastPosition + 1);					
+				}
+				else {
+					success = TestFactory.getInstance().insertRandomCall(test, 0);					
+				}
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -162,7 +167,7 @@ public class RandomInsertion implements InsertionStrategy {
 		if (test.size() - oldSize > 1) {
 			position += (test.size() - oldSize - 1);
 		}
-
+//		System.currentTimeMillis();
 		if (success) {
 			assert ConstraintVerifier.verifyTest(test);
 			assert ! ConstraintVerifier.hasAnyOnlyForAssertionMethod(test);

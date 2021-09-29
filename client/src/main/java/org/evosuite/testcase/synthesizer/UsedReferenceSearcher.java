@@ -2,6 +2,8 @@ package org.evosuite.testcase.synthesizer;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,6 +15,7 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.runtime.System;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
+import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
@@ -24,6 +27,7 @@ public class UsedReferenceSearcher {
 	public VariableReference searchRelevantFieldReadingReferenceInTest(TestCase test, Field field,
 			VariableReference targetObject) {
 		List<VariableReference> relevantRefs = new ArrayList<VariableReference>();
+		List<VariableReference> backuprelevantRefs = new ArrayList<>();
 
 		if (targetObject != null) {
 			for (int i = 0; i < test.size(); i++) {
@@ -35,6 +39,10 @@ public class UsedReferenceSearcher {
 						boolean isValidGetter = DataDependencyUtil.isFieldGetter(mStat.getMethod().getMethod(), field);
 						if (isValidGetter) {
 							relevantRefs.add(mStat.getReturnValue());
+						}
+						else {
+							VariableReference usedFieldInTest = searchRelevantFieldWritingReferenceInTest(test, field, targetObject);
+							backuprelevantRefs.add(usedFieldInTest);
 						}
 					}
 				}
@@ -57,8 +65,14 @@ public class UsedReferenceSearcher {
 		/**
 		 * FIXME, ziheng: we need to provide some priority for those parameters here.
 		 */
-		if (relevantRefs.isEmpty())
-			return null;
+		if (relevantRefs.isEmpty()) {
+			if(backuprelevantRefs.isEmpty()) {
+				return null;				
+			}
+			else {
+				return Randomness.choice(backuprelevantRefs);
+			}
+		}
 
 		VariableReference ref = Randomness.choice(relevantRefs);
 		return ref;
@@ -83,7 +97,9 @@ public class UsedReferenceSearcher {
 			VariableReference targetObject) {
 
 		List<VariableReference> relevantRefs = new ArrayList<VariableReference>();
-
+		
+		Map<Integer,VariableReference> refPostions = new HashMap<Integer,VariableReference>();
+		
 		if (targetObject != null) {
 			/**
 			 * check the variables passed as parameters to the constructor of targetObject,
@@ -107,6 +123,10 @@ public class UsedReferenceSearcher {
 				if (!params.isEmpty()) {
 					List<VariableReference> paramRefs = searchRelevantParameterOfSetterInTest(params, className, methodName, field);
 					relevantRefs.addAll(paramRefs);
+					
+					for(VariableReference vRef : paramRefs) {
+						refPostions.put(pos, vRef);
+					}
 					System.currentTimeMillis();
 				}
 			}
@@ -130,23 +150,84 @@ public class UsedReferenceSearcher {
 						for (VariableReference pRef : paramRefs) {
 							if (!relevantRefs.contains(pRef)) {
 								relevantRefs.add(pRef);
+								refPostions.put(i, pRef);
 							}
 						}
 					}
+				} else if (stat instanceof AssignmentStatement) {
+					// obj.name = string;
+					AssignmentStatement aStat = (AssignmentStatement) stat;
+					String returnName = aStat.getReturnValue().getName();
+					if (returnName.contains(".")) {
+						String fieldName = returnName.substring(returnName.lastIndexOf(".") + 1);
+						if (fieldName.equals(field.getName())
+								&& aStat.getReturnValue().getAdditionalVariableReference().equals(targetObject)) {
+							VariableReference ref = aStat.getValue();
+							if (!relevantRefs.contains(ref)) {
+								relevantRefs.add(ref);
+								refPostions.put(i, ref);
+							}
+						}
+					}
+
 				}
 			}
 		}
 
 		/**
-		 * FIXME, ziheng: we need to provide some priority for those parameters here.
+		 * get the var reference with more compatible types
 		 */
 		if (relevantRefs.isEmpty())
 			return null;
-
-		VariableReference ref = Randomness.choice(relevantRefs);
+		
+		List<VariableReference> compatibles = getCompatibleRef(relevantRefs, field);
+		System.currentTimeMillis();
+		VariableReference ref = null;
+		if(!compatibles.isEmpty()) {
+			ref = getLast(compatibles, refPostions);
+		}
+		else {
+			ref = getLast(relevantRefs, refPostions);
+		}
+		
 		return ref;
 	}
 	
+	private VariableReference getLast(List<VariableReference> compatibles, Map<Integer, VariableReference> refPostions) {
+		Collections.sort(compatibles, new Comparator<VariableReference>() {
+			@Override
+			public int compare(VariableReference o1, VariableReference o2) {
+				
+				return o2.getStPosition() - o1.getStPosition();
+			}
+		});
+		
+		int lastPos = 0;
+		for(Integer i :refPostions.keySet()) {
+			lastPos = i > lastPos ? i : lastPos;
+		}
+		
+		VariableReference ref = refPostions.get(lastPos);
+		return ref;
+	}
+
+	private List<VariableReference> getCompatibleRef(List<VariableReference> relevantRefs, Field field) {
+		List<VariableReference> list = new ArrayList<>();
+		for(VariableReference ref: relevantRefs) {
+			String refType = ref.getType().getTypeName();
+			
+			if(refType.contains("<")) {
+				refType = refType.substring(0, refType.indexOf("<"));
+			}
+			
+			String fieldType = field.getType().getName();
+			if(refType.equals(fieldType)) {
+				list.add(ref);
+			}
+		}
+		return list;
+	}
+
 	/**
 	 * opcode should always be "getfield"
 	 * 
@@ -155,7 +236,7 @@ public class UsedReferenceSearcher {
 	 * @param opcode
 	 * @return
 	 */
-	private List<VariableReference> searchRelevantParameterOfSetterInTest(List<VariableReference> params, String className,
+	public List<VariableReference> searchRelevantParameterOfSetterInTest(List<VariableReference> params, String className,
 			String methodName, Field field) {
 		/**
 		 * get all the field setter bytecode instructions in the method. TODO: the field

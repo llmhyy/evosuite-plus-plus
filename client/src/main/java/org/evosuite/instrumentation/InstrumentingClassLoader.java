@@ -85,8 +85,8 @@ public class InstrumentingClassLoader extends ClassLoader {
 		logger.debug("REGRESSION classloader running now");
 	}
 	
-	public InstrumentingClassLoader(BytecodeInstruction ins) {
-		this(new BytecodeInstrumentation(ins));
+	public InstrumentingClassLoader(List<BytecodeInstruction> insList) {
+		this(new BytecodeInstrumentation(insList));
 		logger.debug("dynamic instrumentator classloader running now");
 	}
 

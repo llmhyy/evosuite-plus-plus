@@ -30,10 +30,13 @@ import java.util.Set;
 import org.evosuite.BranchDistributionInformation;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.result.seedexpr.Event;
 import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.statistics.OutputVariable;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testsuite.TestSuiteChromosome;
 
 class TestGenerationResultImpl implements TestGenerationResult {
 
@@ -137,6 +140,11 @@ class TestGenerationResultImpl implements TestGenerationResult {
 		this.exceptionResult = exceptionResult;
 	}
 	
+	private Map<String, OutputVariable<?>> coverageTimeLine = new HashMap<>();
+	
+	/** EvoSeed Time **/
+	public int smartBranchNum = 0;
+	private  Map<String,String> runtimeBranchType;
 	
 	/** Did test generation succeed? */
 	public Status getTestGenerationStatus() {
@@ -517,5 +525,43 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	public void setEventSequence(List<Event> eventList) {
 		this.eventSequence = eventList;
 	}
+
+
+	public void setEvoSeedTime(TestGenerationResultImpl result, TestSuiteChromosome testSuite) {
+	      result.setSmartBranchNum(AbstractMOSA.smartBranchNum);
+	      result.setRuntimeBranchType(AbstractMOSA.runtimeBranchType);
+	      AbstractMOSA.clear();
+	}
+
+	@Override
+	public void setRuntimeBranchType(Map<String, String> runtimeBranchType) {
+		this.runtimeBranchType = runtimeBranchType;
+		
+	}
+
+	@Override
+	public Map<String, String> getRuntimeBranchType() {
+		return this.runtimeBranchType;
+	}
+
+	@Override
+	public void setSmartBranchNum(int smartBranchNum) {
+		this.smartBranchNum = smartBranchNum;
+	}
 	
+	@Override
+	public int getSmartBranchNum() {
+		return this.smartBranchNum;
+	}
+
+	@Override
+	public Map<String, OutputVariable<?>> getCoverageTimeLine() {
+		return this.coverageTimeLine;
+	}
+
+	@Override
+	public void setCoverageTimeLine(Map<String, OutputVariable<?>> coverageTimeLine) {
+		this.coverageTimeLine = coverageTimeLine;
+	}
+
 }

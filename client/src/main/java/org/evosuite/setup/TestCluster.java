@@ -419,7 +419,9 @@ public class TestCluster {
 	private void cacheGenerators(GenericClass clazz) throws ConstructionFailedException {
 
 		if (generatorCache.containsKey(clazz)) {
-			return;
+			if(!generatorCache.get(clazz).isEmpty()) {
+				return;				
+			}
 		}
 
 		logger.debug("1. Caching generators for {}", clazz);

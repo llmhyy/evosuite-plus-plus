@@ -1,4 +1,4 @@
-package org.evosuite.graphs.interprocedural;
+package org.evosuite.graphs.interprocedural.var;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,14 +6,22 @@ import java.util.List;
 import java.util.Map;
 
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.interprocedural.ConstructionPath;
+import org.evosuite.graphs.interprocedural.Relation;
 import org.evosuite.seeding.smart.BranchSeedInfo;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javassist.bytecode.Opcode;
 
 /**
  * This class should detailedly describe the dependent variables, including whether it is
@@ -21,7 +29,10 @@ import org.objectweb.asm.tree.TypeInsnNode;
  * @author linyun
  *
  */
-public class DepVariable {
+public abstract class DepVariable {
+	
+	private static final Logger logger = LoggerFactory.getLogger(DepVariable.class);
+	
 	private String className;
 	private String varName;
 	private BytecodeInstruction instruction;
@@ -53,10 +64,9 @@ public class DepVariable {
 	@SuppressWarnings("unchecked")
 	private List<DepVariable>[] reverseRelations = new ArrayList[OPERAND_NUM_LIMIT];
 	
-	public DepVariable(BytecodeInstruction insn) {
-		this.className = insn.getClassName();
-		this.setInstruction(insn);
-		this.setType();
+	protected DepVariable(BytecodeInstruction ins) {
+		this.className = ins.getClassName();
+		this.setInstruction(ins);
 	}
 	
 	
@@ -96,7 +106,7 @@ public class DepVariable {
 			relation = Relation.FIELD;
 		}
 		else {
-			if(instruction.getASMNode().getOpcode() == Opcodes.AALOAD && operandPosition == 0) {
+			if(instruction.isArrayLoadInstruction() && operandPosition == 0) {
 				relation = Relation.ARRAY_ELEMENT;
 			}
 			else {
@@ -113,7 +123,7 @@ public class DepVariable {
 				+ "\nvarName=" + varName + "\ninstruction=" + getInstruction() + "]";
 	}
 	
-	private void setType(int type) {
+	protected void setType(int type) {
 		this.type = type;
 	}
 	
@@ -123,34 +133,6 @@ public class DepVariable {
 	
 	public boolean isMethodCall(){
 		return this.instruction.isMethodCall();
-	}
-	
-	private void setType() {
-		BytecodeInstruction ins = this.getInstruction();
-		if(this.referenceToThis()) {
-			this.setType(DepVariable.THIS);
-			this.setName("this");
-		}
-		else if(this.isParameter()) {
-			this.setType(DepVariable.PARAMETER);
-			this.setName(ins.getVariableName());
-		}
-		else if(this.isStaticField()) {
-			this.setType(DepVariable.STATIC_FIELD);
-			this.setName(((FieldInsnNode)ins.getASMNode()).name);
-		}
-		else if(this.isInstaceField()) {
-			this.setType(DepVariable.INSTANCE_FIELD);
-			this.setName(((FieldInsnNode)ins.getASMNode()).name);
-		}
-		else if(this.isLoadArrayElement()) {
-			this.setType(DepVariable.ARRAY_ELEMENT);
-			this.setName("array index");
-		}
-		else {
-			this.setType(DepVariable.OTHER);
-			this.setName("$unknown");
-		}
 	}
 	
 	public String getTypeString() {
@@ -179,7 +161,6 @@ public class DepVariable {
 		return instruction;
 	}
 
-
 	public void setInstruction(BytecodeInstruction instruction) {
 		this.instruction = instruction;
 	}
@@ -193,7 +174,8 @@ public class DepVariable {
 	}
 	
 	public boolean isLoadArrayElement() {
-		return this.instruction.getASMNode().getOpcode() == Opcodes.AALOAD;
+		return this.instruction.isArrayLoadInstruction();
+//		return this.instruction.getASMNode().getOpcode() == Opcodes.AALOAD;
 	}
 	
 	public boolean hasNoParent() {
@@ -472,7 +454,7 @@ public class DepVariable {
 		
 		ArrayList<DepVariable> path = new ArrayList<DepVariable>();
 		path.add(this);
-		
+		System.currentTimeMillis();
 		for(int i=0; i<this.reverseRelations.length; i++) {
 			List<DepVariable> directParents = this.reverseRelations[i];
 			if(directParents != null && !directParents.isEmpty()) {
@@ -513,17 +495,29 @@ public class DepVariable {
 		return this.varName;
 	}
 
+	/**
+	 * return the exact order of the parameter regarding static method, starting at 1
+	 * @return
+	 */
 	public int getParamOrder() {
-		if(varName.contains("LV_")) {
-			String orderString = varName.substring(varName.indexOf("LV_")+3, varName.length());
-			int order = Integer.valueOf(orderString);
+		if(this.instruction.isParameter()) {
+//			String orderString = varName.substring(varName.indexOf("LV_")+3, varName.length());
+			int order = this.instruction.getParameterPosition() + 1;
+			return order;
 			
-			if(this.instruction.getActualCFG().isStaticMethod()) {
-				return order + 1;
-			}
-			else {
-				return order;
-			}
+//			/**
+//			 * e.g., iload_0 in static method should be changed to the order of 1
+//			 */
+//			if(this.instruction.getActualCFG().isStaticMethod()) {
+//				return order + 1;
+//			}
+//			/**
+//			 * here, iload_0 will point to this, so here the order must be larger than 0, 
+//			 * hence, there is no need to change the order
+//			 */
+//			else {
+//				return order;
+//			}
 		}
 		
 		return -1;
@@ -713,7 +707,8 @@ public class DepVariable {
 						List<BytecodeInstruction> sourceInsList = ins.getSourceOfStackInstructionList(0);
 						if(sourceInsList != null && !sourceInsList.isEmpty()) {
 							BytecodeInstruction sourceIns = sourceInsList.get(0);
-							DepVariable node = new DepVariable(sourceIns);
+							DepVariable node = DepVariableFactory.createVariableInstance(sourceIns);
+//							DepVariable node = new DepVariable(sourceIns);
 							String type = node.getDataType();
 							return type;
 						}
@@ -944,6 +939,11 @@ public class DepVariable {
 			return "long";
 		case "SALOAD":
 			return "short";
+		case "GETFIELD":
+		case "GETSTATIC":
+			FieldInsnNode fNode = (FieldInsnNode) this.instruction.getASMNode();
+			String desc = fNode.desc;
+			return MethodUtil.convertType(desc);
 		}
 		
 		return BranchSeedInfo.OTHER;
@@ -962,4 +962,91 @@ public class DepVariable {
 		return false;
 	}
 
+
+	public boolean isPrimitive() {
+		String type = inferType(this.getInstruction().getInstructionType());
+		
+		if(type.equals(BranchSeedInfo.BYTE) ||
+				type.equals(BranchSeedInfo.CHARACTER) ||
+				type.equals(BranchSeedInfo.DOUBLE) ||
+				type.equals(BranchSeedInfo.FLOAT) ||
+				type.equals(BranchSeedInfo.INT) ||
+				type.equals(BranchSeedInfo.LONG) ||
+				type.equals(BranchSeedInfo.SHORT) ||
+				type.equals(BranchSeedInfo.STRING) ||
+				type.equals(BranchSeedInfo.TBYTE) ||
+				type.equals(BranchSeedInfo.TCHARACTER) ||
+				type.equals(BranchSeedInfo.TDOUBLE) ||
+				type.equals(BranchSeedInfo.TFLOAT) ||
+				type.equals(BranchSeedInfo.TINT) ||
+				type.equals(BranchSeedInfo.TLONG) ||
+				type.equals(BranchSeedInfo.TSHORT) ||
+				type.equals(BranchSeedInfo.TSTRING)) {
+			return true;
+		}
+		
+		return false;
+	}
+
+
+	public boolean isCompare() {
+		switch(this.instruction.getASMNode().getOpcode()) {
+		case Opcode.IF_ACMPEQ:
+		case Opcode.IF_ACMPNE:
+		case Opcode.IF_ICMPEQ:
+		case Opcode.IF_ICMPGE:
+		case Opcode.IF_ICMPGT:
+		case Opcode.IF_ICMPLE:
+		case Opcode.IF_ICMPLT:
+		case Opcode.IF_ICMPNE:
+		case Opcode.LCMP:
+		case Opcode.FCMPL:
+		case Opcode.FCMPG:
+		case Opcode.DCMPL:
+		case Opcode.DCMPG:
+        	return true;
+		}
+		return false;
+	}
+	
+	public List<DepVariable> getAllChildrenNodesIncludingItself() {
+		
+		List<DepVariable> primitiveSet = new ArrayList<>();
+		List<DepVariable> allSet = new ArrayList<>();
+		
+		primitiveSet.add(this);
+		collectChildren(this, primitiveSet, allSet);
+		
+		return primitiveSet;
+	}
+
+
+	private void collectChildren(DepVariable depVariable, 
+			List<DepVariable> primitiveSet, List<DepVariable> allSet) {
+		
+		for(List<DepVariable> children: depVariable.getRelations()) {
+			if(children == null) continue;
+			
+			for(DepVariable child: children) {
+				if(!allSet.contains(child)) {
+					allSet.add(child);
+					if(child.isPrimitive()) {
+						primitiveSet.add(child);
+					}
+					else {
+						collectChildren(child, primitiveSet, allSet);
+					}
+				}
+			}
+		}
+		
+	}
+
+	public void printConstructionError(TestCase test, Branch b) {
+		logger.error("exception happens when processing branch " + b);
+		logger.error("working on node" + this);		
+		logger.error("partial test case:");
+		logger.error(test.toString());
+	}
+	
 }

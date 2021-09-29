@@ -18,6 +18,8 @@ import org.evosuite.graphs.cfg.BasicBlock;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
+import org.evosuite.graphs.interprocedural.var.DepVariableFactory;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -125,7 +127,7 @@ public class InterproceduralGraphAnalysis {
 							BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
 							if (defIns != null) {
 								System.currentTimeMillis();
-								DepVariable var = new DepVariable(defIns);
+								DepVariable var = DepVariableFactory.createVariableInstance(defIns);
 								if(var.isParameter()) {
 									int position = var.getInstruction().getParameterPosition();
 									List<String> classes = recommendationClasses.get(position);

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.evosuite.Properties;
 import org.evosuite.utils.ProgramArgumentUtils;
 
 import evosuite.shell.ParameterOptions.TestLevel;
@@ -56,6 +57,7 @@ public class Settings {
 		optValue = ProgramArgumentUtils.getOptValue(args, ParameterOptions.REPORT_FOLDER);
 		if (optValue != null) {
 			reportFolder = optValue;
+			Properties.EXPERIMENT_REPORT_DIR = reportFolder;
 		} else {
 			optValue = ProgramArgumentUtils.getOptValue(args, "-criterion");
 			if (optValue == null) {
@@ -66,6 +68,7 @@ public class Settings {
 						.append("-").append(optValue)
 						;		
 				reportFolder = sb.toString();
+				Properties.EXPERIMENT_REPORT_DIR = reportFolder;
 			}
 		}
 		optValue = ProgramArgumentUtils.getOptValue(args, ParameterOptions.RUNNING_MARKER_FILE);

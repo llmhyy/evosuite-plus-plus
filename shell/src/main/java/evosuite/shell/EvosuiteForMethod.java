@@ -30,6 +30,8 @@ import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.ExceptionResult;
 import org.evosuite.result.ExceptionResultBranch;
@@ -37,6 +39,8 @@ import org.evosuite.result.Failure;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.seedexpr.Event;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.statistics.SearchStatistics;
+import org.evosuite.statistics.backend.DebugStatisticsBackend;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.ProgramArgumentUtils;
 import org.slf4j.Logger;
@@ -105,7 +109,7 @@ public class EvosuiteForMethod {
 	public static String projectName;
 	public static String projectId; // ex: 1_tullibee (project folder name)
 	public static FilterConfiguration filter;
-
+	
 	private URLClassLoader evoTestClassLoader;
 
 	public static void main(String[] args) {
@@ -691,9 +695,16 @@ public class EvosuiteForMethod {
 					result.setEventSequence(r.getEventSequence());
 					result.setExceptionResult(r.getExceptionResult());
 					
+					result.setCoverageTimeLine(GeneticAlgorithm.coverageTimeLine);
+					
+					setEvoSeedTime(result,r);
+
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
-						recorder.recordSeedingToJson(className, methodName, result);
+//						recorder.recordSeedingToJson(className, methodName, result);
+						recorder.recordEvoSeedTime(className, methodName, result);
+//						recorder.recordCoverageOnDiffTime(className, methodName, result);
+						
 					}
 				}
 			}
@@ -705,6 +716,13 @@ public class EvosuiteForMethod {
 		}
 
 		return result;
+	}
+	
+	private void setEvoSeedTime(EvoTestResult result, TestGenerationResult r) {
+		result.setSmartBranchNum(r.getSmartBranchNum());
+		result.setRuntimeBranchType(r.getRuntimeBranchType());
+		
+//		AbstractMOSA.clear();
 	}
 
 	private static boolean isBranchCovered(FitnessFunction<TestChromosome> fitnessFunction, TestGenerationResult testGenerationResult) {

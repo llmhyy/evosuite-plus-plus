@@ -57,6 +57,7 @@ import org.evosuite.ga.populationlimit.PopulationLimit;
 import org.evosuite.ga.stoppingconditions.MaxGenerationStoppingCondition;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.statistics.OutputVariable;
 import org.evosuite.symbolic.DSEStats;
 import org.evosuite.testcase.execution.ExecutionTracer;
 import org.evosuite.testsuite.TestSuiteChromosome;
@@ -131,6 +132,11 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	private Map<BranchInfo, String> coveredBranchWithTest = new HashMap<BranchInfo, String>();
 	
 	protected double initialCoverage = 0; 
+	
+	private long intializationTime = 0;
+	
+	public static Map<String, OutputVariable<?>> coverageTimeLine = new HashMap<>();
+
 	
 	/**
 	 * Constructor
@@ -1246,12 +1252,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 	public List<Double> getProgressInformation() {
 		return progressInformation;
 	}
-							  
 	
-							  
-					   
-						 
-
 	public void setProgressInformation(List<Double> progressInformation) {
 		this.progressInformation = progressInformation;
 	}
@@ -1350,5 +1351,14 @@ public abstract class GeneticAlgorithm<T extends Chromosome> implements SearchAl
 		this.coveredBranchWithTest.clear();
 		this.coveredBranchWithTest = coveredBranchWithTest;
 	}
+
+	public long getIntializationTime() {
+		return intializationTime;
+	}
+
+	public void setIntializationTime() {
+		this.intializationTime = intializationOverhead;
+	}
+
 
 }

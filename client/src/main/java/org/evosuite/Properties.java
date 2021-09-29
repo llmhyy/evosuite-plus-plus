@@ -162,17 +162,23 @@ public class Properties {
 	@Parameter(key = "apply_smart_seed", group = "Test Creation", description = "let evosuite++ sample seed from dynamically generated seeds")
 	public static boolean APPLY_SMART_SEED = false;
 	
+	@Parameter(key = "apply_char_pool", group = "Test Creation", description = "let evosuite++ apply char pool")
+	public static boolean APPLY_CHAR_POOL = false;
+	
+	@Parameter(key = "value_similiarity_threshold", group = "Test Creation", description = "compare whether the tail value is simlar to the head value in smart seed application")
+	public static final double VALUE_SIMILARITY_THRESHOLD = 0.7;
+	
 	@Parameter(key = "dynamic_sensitivity_threshold", group = "Test Creation", description = "the number of times to test sensitivity and value change of an operand regarding a method input")
 	public static final int DYNAMIC_SENSITIVITY_THRESHOLD = 10;
 	
 	@Parameter(key = "fast_channel_score_threshold", group = "Test Creation", description = "evaluate whether a computation path is fast channel")
-	public static double FAST_CHANNEL_SCORE_THRESHOLD = 0.7;
+	public static double FAST_CHANNEL_SCORE_THRESHOLD = 0.5;
 	
 	@Parameter(key = "apply_gradient_analysis", group = "Test Creation", description = "let evosuite++ evaluate the gradients of a branch")
 	public static boolean APPLY_GRADEINT_ANALYSIS = false;
 	
-	@Parameter(key = "apply_gradient_analysis_in_smartseed", group = "Test Creation", description = "let evosuite++ evaluate the gradients of a branch")
-	public static boolean APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = false;
+//	@Parameter(key = "apply_gradient_analysis_in_smartseed", group = "Test Creation", description = "let evosuite++ evaluate the gradients of a branch")
+//	public static boolean APPLY_GRADEINT_ANALYSIS_IN_SMARTSEED = false;
 	
 	@Parameter(key = "fully_instrument_dependencies", group = "Test Creation", description = "force evosuite++ to fully instrument relevant dependent classes")
 	public static boolean FULLY_INSTRUMENT_DEPENDENCIES = false;
@@ -1056,6 +1062,9 @@ public class Properties {
 
 	@Parameter(key = "report_dir", group = "Output", description = "Directory in which to put HTML and CSV reports")
 	public static String REPORT_DIR = "evosuite-report";
+	
+	@Parameter(key = "experiment_report_dir", group = "Output", description = "Directory in which to put HTML and CSV reports")
+	public static String EXPERIMENT_REPORT_DIR = "evosuite-report";
 
 	@Parameter(key = "output_variables", group = "Output", description = "List of variables to output to CSV file. Variables are separated by commas. Null represents default values")
 	public static String OUTPUT_VARIABLES = null;
@@ -2586,6 +2595,8 @@ public class Properties {
 	public static final double VALUE_PRESERVING_THRESHOLD = 0.5;
 
 	public static final double SENSITIVITY_PRESERVING_THRESHOLD = 0.5;
+
+	public static final int FIELD_SETTER_SEARCH_DEPTH = 3;
 
 	public static boolean PRINT_FITNESS = true;
 

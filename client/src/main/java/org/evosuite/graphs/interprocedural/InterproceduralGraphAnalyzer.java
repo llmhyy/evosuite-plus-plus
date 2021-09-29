@@ -18,6 +18,8 @@ import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
+import org.evosuite.graphs.interprocedural.var.DepVariableFactory;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.Randomness;
@@ -79,7 +81,7 @@ public class InterproceduralGraphAnalyzer {
 //			
 //			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			calledCfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-			Properties.ALWAYS_REGISTER_BRANCH = false;
+			
 			
 			if (calledCfg == null) {
 				MethodNode innerNode = DefUseAnalyzer.getMethodNode(classLoader, className, methodName);
@@ -95,6 +97,12 @@ public class InterproceduralGraphAnalyzer {
 
 				bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
 			}
+			
+			Properties.ALWAYS_REGISTER_BRANCH = false;
+		}
+		
+		if(calledCfg == null) {
+			return new HashMap<>();
 		}
 		
 		GraphPool.getInstance(classLoader).alwaysRegisterActualCFG(calledCfg);
@@ -128,7 +136,7 @@ public class InterproceduralGraphAnalyzer {
 //		DepVariable var = variablePool.get(var0); 
 		DepVariable var = insPool.get(defIns);
 		if(var == null) {
-			var = new DepVariable(defIns);
+			var = DepVariableFactory.createVariableInstance(defIns);
 			
 			if(var.getName().contains("drain")){
 				System.currentTimeMillis();
@@ -354,15 +362,15 @@ public class InterproceduralGraphAnalyzer {
 						
 						DepVariable secondVar = path.getPath().get(path.size()-2);
 						if(rootVar.getType() == DepVariable.PARAMETER) {
-							int index = 0;
-							
-							if(defIns.getCalledCFG().isStaticMethod()) {
-								index = rootVar.getParamOrder() - 1;
+							int index = -1;
+							if(rootVar.getInstruction().getCalledCFG() == null) continue;
+							if(rootVar.getInstruction().getCalledCFG().isStaticMethod()) {
+								index = rootVar.getParamOrder() - 1;								
 							}
 							else {
 								index = rootVar.getParamOrder();
 							}
-								
+							
 							List<DepVariable> params = inputVarArray[index];
 							
 							for(DepVariable param: params) {

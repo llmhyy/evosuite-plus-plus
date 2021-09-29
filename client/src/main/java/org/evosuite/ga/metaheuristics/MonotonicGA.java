@@ -463,14 +463,14 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 		this.setAvailabilityRatio(availabilityRatio);
 		this.setAvailableCalls(getAvailableCalls());
 		this.setUnavailableCalls(getUnavailableCalls());
-
+		
 		// archive
 		TimeController.execute(this::updateBestIndividualFromArchive, "update from archive", 5_000);
 
 		notifySearchFinished();
 	}
 
-	
+
 	private List<BranchInfo> getMissingBranches(List<T> population,List<BranchCoverageTestFitness> branchGoals) {
 		List<BranchInfo> missingBranches = new ArrayList<>();
 		for (BranchCoverageTestFitness tf : branchGoals) {

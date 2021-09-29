@@ -36,6 +36,7 @@ import org.evosuite.ga.localsearch.LocalSearchObjective;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.ExceptionResult;
+import org.evosuite.statistics.OutputVariable;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -82,6 +83,9 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	
 	// Used for tracking exception-related data.
 	private ExceptionResult<TestChromosome> exceptionResult = new ExceptionResult<TestChromosome>();
+	private long intializationTime;
+
+
 	/**
 	 * Add an additional secondary objective to the end of the list of
 	 * objectives
@@ -482,4 +486,14 @@ public class TestSuiteChromosome extends AbstractTestSuiteChromosome<TestChromos
 	public ExceptionResult<TestChromosome> getExceptionResult() {
 		return exceptionResult;
 	}
+
+	public long getIntializationTime() {
+		return intializationTime;
+	}
+
+	public void setIntializationTime() {
+		this.intializationTime = initializationOverhead;
+	}
+
+
 }

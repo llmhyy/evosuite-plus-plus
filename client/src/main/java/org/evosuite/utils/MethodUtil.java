@@ -39,6 +39,8 @@ public class MethodUtil {
 	 * 
 	 * return a list of parameter types followed by the return type.
 	 * 
+	 * m(III)V => [int, int, int, void]
+	 * 
 	 * class name such as com.a.b.Class primitive type such as int, double, etc.
 	 * 
 	 * @param desc

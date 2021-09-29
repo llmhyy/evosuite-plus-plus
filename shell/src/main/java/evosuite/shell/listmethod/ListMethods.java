@@ -18,6 +18,7 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.graphs.GraphPool;
+import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
@@ -43,7 +44,7 @@ public class ListMethods {
 	
 	public static final String OPT_NAME = ParameterOptions.LIST_METHODS_OPT;
 
-//	public static List<String> interestedMethods = new ArrayList<>();
+	public static List<String> interestedMethods = new ArrayList<>();
 
 	public static int execute(String[] targetClasses, ClassLoader classLoader, MethodFilterOption mFilterOpt,
 			String targetMethodFilePath, String targetClassFilePath)
@@ -51,7 +52,7 @@ public class ListMethods {
 		
 		
 		//TODO Cheng Yan, read the excel/csv file to include a method list
-//		interestedMethods = readCSVFile();
+		interestedMethods = readCSVFile();
 		
 		StringBuilder headerSb = new StringBuilder();
 //		headerSb.append("\n");
@@ -64,7 +65,7 @@ public class ListMethods {
 			Properties.CRITERION = ArrayUtils.addAll(Properties.CRITERION, Criterion.DEFUSE);
 		}
 		
-		
+		DependencyAnalysis.clear();
 		
 		/**
 		 * we clear the branch pool and graph pool when analyzing a new project.
@@ -94,9 +95,9 @@ public class ListMethods {
 				for (String methodName : testableMethods) {
 					//TODO Cheng Yan shall comment this code later
 					String methodSig = className + "#" + methodName;
-					//if(interestedMethods.contains(methodSig)) {
+					if(interestedMethods.contains(methodSig)) {
 						tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
-					//}
+					}
 					
 					//TODO Cheng Yan shall comment this code later
 					//tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
@@ -119,7 +120,7 @@ public class ListMethods {
 	}
 	
 	private static List<String> readCSVFile() throws IOException {
-		String path = "D:\\linyun\\git_space\\SF100-clean\\test.xls";
+		String path = "D:\\linyun\\git_space\\SF100-clean\\constantMethods-60.xls";
 		File f = new File(path);
 //		ExcelReader excelReader = new ExcelReader(f, 3);
 		POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(path));

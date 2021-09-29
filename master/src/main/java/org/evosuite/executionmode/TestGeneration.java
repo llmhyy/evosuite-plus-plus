@@ -29,6 +29,7 @@ import org.evosuite.Properties.Strategy;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.instrumentation.BytecodeInstrumentation;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.TestGenerationResultBuilder;

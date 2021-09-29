@@ -87,6 +87,38 @@ public class StaticConstantPool implements ConstantPool {
 		doublePool.add(1.0);
 		doublePool.add(-1.0);
 	}
+	
+	public StaticConstantPool(boolean isContextual, boolean noInit) {
+		/*
+		 * all pools HAVE to be non-empty 
+		 */
+
+		this.isContextual = isContextual;
+		
+		stringPool.add("");
+
+		if (Properties.TARGET_CLASS != null && !Properties.TARGET_CLASS.isEmpty()) {
+			typePool.add(Type.getObjectType(Properties.TARGET_CLASS));
+		} else {
+			typePool.add(Type.getType(Object.class));
+		}
+
+		intPool.add(0);
+		intPool.add(1);
+		intPool.add(-1);
+
+		longPool.add(0L);
+		longPool.add(1L);
+		longPool.add(-1L);
+
+		floatPool.add(0.0f);
+		floatPool.add(1.0f);
+		floatPool.add(-1.0f);
+
+		doublePool.add(0.0);
+		doublePool.add(1.0);
+		doublePool.add(-1.0);
+	}
 
 	/**
 	 * <p>
@@ -119,6 +151,7 @@ public class StaticConstantPool implements ConstantPool {
 	@Override
 	public int getRandomInt() {
 		int value = Randomness.choice(intPool);
+//		System.currentTimeMillis();
 		EventSequence.addEvent(EventFactory.createStaticEvent(isContextual, System.currentTimeMillis(), SamplingDataType.INT, intPool.size(), String.valueOf(value)));
 		return value;
 	}
@@ -218,7 +251,7 @@ public class StaticConstantPool implements ConstantPool {
 				if (Math.abs(val) < Properties.MAX_INT) {
 					intPool.add((Integer) object);
 				}
-				if (Properties.APPLY_SMART_SEED) {
+				if (Properties.APPLY_CHAR_POOL) {
 					if (val >= 0 && val <= 255) {
 						char c = (char) val;
 						charPool.add((Character) c);
@@ -226,7 +259,7 @@ public class StaticConstantPool implements ConstantPool {
 				}
 			} else {
 				intPool.add((Integer) object);
-				if (Properties.APPLY_SMART_SEED) {
+				if (Properties.APPLY_CHAR_POOL) {
 					int val = (Integer) object;
 					if (val >= 0 && val <= 255) {
 						char c = (char) val;
@@ -274,5 +307,29 @@ public class StaticConstantPool implements ConstantPool {
 			LoggingUtils.getEvoLogger().info("Constant of unknown type: " + object.getClass());
 		}
 	}
+	
+    public long poolSize() {
+    	long num = 0;
+    	num += this.stringPool.size();
+//    	num += this.typePool.size();
+    	num += this.intPool.size();
+    	num += this.doublePool.size();
+    	num += this.longPool.size();
+    	num += this.floatPool.size();
+//    	num += this.charPool.size();
+    	
+    	return num;
+    }
+    
+    public void clear() {
+    	this.stringPool.clear();
+    	this.typePool.clear();
+    	this.intPool.clear();
+    	this.doublePool.clear();
+    	this.longPool.clear();
+    	this.floatPool.clear();
+    	this.charPool.clear();
+    }
+    
 
 }

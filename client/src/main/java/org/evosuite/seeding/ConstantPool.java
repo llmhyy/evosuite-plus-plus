@@ -104,4 +104,5 @@ public interface ConstantPool {
 	 * @return a Character.
 	 */
 	public char getRandomChar();
+	
 }

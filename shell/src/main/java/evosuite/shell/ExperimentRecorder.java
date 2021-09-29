@@ -42,4 +42,14 @@ public class ExperimentRecorder {
 		// TODO Auto-generated method stub
 		
 	}
+
+	public void recordEvoSeedTime(String className, String methodName, EvoTestResult r) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void recordCoverageOnDiffTime(String className, String methodName, EvoTestResult result) {
+		// TODO Auto-generated method stub
+		
+	}
 }

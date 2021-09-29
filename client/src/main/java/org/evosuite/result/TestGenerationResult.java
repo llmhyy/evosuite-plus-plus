@@ -29,6 +29,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.result.seedexpr.Event;
 import org.evosuite.result.seedexpr.EventSequence;
+import org.evosuite.statistics.OutputVariable;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 
@@ -153,4 +154,14 @@ public interface TestGenerationResult extends Serializable {
 	
 	public ExceptionResult<TestChromosome> getExceptionResult();
 	public void setExceptionResult(ExceptionResult<TestChromosome> exceptionResult);
+
+	public int getSmartBranchNum();
+	public void setSmartBranchNum(int smartBranchNum);
+	
+	public Map<String, String> getRuntimeBranchType();
+	public void setRuntimeBranchType(Map<String, String> runtimeBranchType);
+
+	public Map<String, OutputVariable<?>> getCoverageTimeLine();
+	public void setCoverageTimeLine(Map<String, OutputVariable<?>> coverageTimeLine);
+	
 }

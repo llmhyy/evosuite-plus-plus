@@ -84,7 +84,7 @@ public class SmartSeedExample {
 			System.currentTimeMillis();
 		}
 	}
-	
+	// evosuite perform well?
 	public void stratWithExample(String x, int index) {
 		String a = x.substring(2, x.length() - 3);
 		String b = "example";
@@ -99,14 +99,14 @@ public class SmartSeedExample {
 		if (a.startsWith("Find the right String")) {
 			System.currentTimeMillis();
 		}
-	}
-	
-	public String endWithExample(String args[],String suffix) {
+	}	
+	public String endWithExample(String args[], String suffix) {
 		String endString = "end";
-		for(String a : args) {
+		for(String a : args) 
 			if (a.endsWith(endString)) {
-				System.currentTimeMillis();
-				return a;}}
+				return a;
+			}
+			
 		return args.length != 0 ? args[args.length - 1] : "NULL";
 	}
 	
@@ -136,7 +136,7 @@ public class SmartSeedExample {
 	public void combinationExample(String[] x) {
 		String a = x[0];
 		String b = endWithExample(x,a);
-		if(b == "end") {
+		if(b.equals("end")) {
 			System.currentTimeMillis();
 		}
 	}
@@ -185,7 +185,7 @@ public class SmartSeedExample {
 	
 	public int compareNum = 55;
 	
-	public boolean singalOprand() {
+	public boolean singleOprand() {
 		if(compareNum > 100) 
 			return false;
 		return true;
@@ -199,7 +199,7 @@ public class SmartSeedExample {
 	}
 	
 	public void invokeDiffOprand() {
-		if(singalOprand()) {
+		if(singleOprand()) {
 			int num = 1000;
 			if(getCompareNum() == 1000)
 				return;
@@ -208,5 +208,22 @@ public class SmartSeedExample {
 	
 	public void setCompareNum(int compareNum) {
 		this.compareNum = compareNum;
+	}
+	
+	/**
+	 * a = m()
+	 * if(a == true)
+	 */
+	public boolean invokeMethod(int x) {
+		if(x > noiseInt[2])
+			return true;
+		return false;
+	}
+	
+	public void compareExample(int x) {
+		boolean a = invokeMethod(x);
+		if(a == true) {
+			System.currentTimeMillis();
+		}
 	}
 }

@@ -21,11 +21,8 @@ package org.evosuite.ga.metaheuristics.mosa;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.Properties;
@@ -38,8 +35,8 @@ import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
 import org.evosuite.result.ExceptionResult;
 import org.evosuite.result.ExceptionResultBranch;
+import org.evosuite.seeding.smart.SensitivityMutator;
 import org.evosuite.testcase.MutationPositionDiscriminator;
-import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.utils.LoggingUtils;
@@ -59,6 +56,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	private static final long serialVersionUID = 146182080947267628L;
 
 	private static final Logger logger = LoggerFactory.getLogger(DynaMOSA.class);
+	
+	public static long endTime;
 
 	/** Manager to determine the test goals to consider at each generation */
 	protected MultiCriteriaManager<T> goalsManager = null;
@@ -187,51 +186,17 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		/**
 		 * we can debug by setting break points here.
 		 */
-		printBestFitness();
+		checkBestFitness();
 		collectExceptionResultsForIteration(currentIteration);
-
+    
 		this.currentIteration++;
 		// logger.debug("N. fronts = {}", ranking.getNumberOfSubfronts());
 		// logger.debug("1* front size = {}", ranking.getSubfront(0).size());
 		logger.debug("Covered goals = {}", goalsManager.getCoveredGoals().size());
 		logger.debug("Current goals = {}", goalsManager.getCurrentGoals().size());
 		logger.debug("Uncovered goals = {}", goalsManager.getUncoveredGoals().size());
-	}
-
-	private void printBestFitness() {
 		
-		if(Properties.PRINT_FITNESS) {
-			Map<FitnessFunction<T>, Double> bestMap = new HashMap<>();
-			Map<FitnessFunction<T>, T> bestTestMap = new HashMap<>();
-
-			for (T t : this.population) {
-				if (t instanceof TestChromosome) {
-					for (FitnessFunction<T> ff : this.goalsManager.getCurrentGoals()) {
-						Double fitness = ff.getFitness(t);
-						Double bestSoFar = bestMap.get(ff);
-						if (bestSoFar == null) {
-							bestSoFar = fitness;
-							bestTestMap.put(ff, t);
-						} else if (bestSoFar > fitness) {
-							bestSoFar = fitness;
-							bestTestMap.put(ff, t);
-						}
-						bestMap.put(ff, bestSoFar);
-					}
-				}
-			}
-
-			System.out.println(this.currentIteration + "th iteration ========================");
-			for (FitnessFunction<T> ff : bestMap.keySet()) {
-				Double fitness = bestMap.get(ff);
-				T t = bestTestMap.get(ff);
-				ff.getFitness(t);
-				System.out.print(ff + ":");
-				System.out.println(fitness);
-				System.currentTimeMillis();
-			}
-		}
-
+		System.out.println("total time: " + SensitivityMutator.total);
 	}
 	
 	/**
@@ -313,6 +278,12 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		logger.debug("Initial Number of Goals = " + this.goalsManager.getCurrentGoals().size());
 
 		// initialize population
+		boolean turnOffSmart = false;
+		if(Properties.APPLY_SMART_SEED) {
+			Properties.APPLY_SMART_SEED = false;
+			turnOffSmart = true;
+		}
+			
 		long t1 = System.currentTimeMillis();
 		TestCaseLegitimizer.startTime = t1;
 		if (this.population.isEmpty()) {
@@ -320,7 +291,9 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		}
 		long t2 = System.currentTimeMillis();
 		this.initializationOverhead = t2 - t1;
-		
+		if(turnOffSmart)
+			Properties.APPLY_SMART_SEED = true;
+//		Properties.END_INITIALIZATION = true;
 		// update current goals
 		this.calculateFitness(true);
 		T suite = getBestIndividual();
@@ -337,6 +310,7 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		}
 
 		// next generations
+		TestCaseLegitimizer.startTime = System.currentTimeMillis();
 		while (!isFinished() && this.goalsManager.getUncoveredGoals().size() > 0) {
 			MutationPositionDiscriminator.discriminator.setPurpose(this.goalsManager.getCurrentGoals());
 
@@ -345,11 +319,12 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 				exceptionBranchEnhancer.updatePopulation(population);
 				exceptionBranchEnhancer.enhanceBranchGoals();				
 			}
-			
+			t1 = System.currentTimeMillis();
 			this.evolve();
+			t2 = System.currentTimeMillis();
 			this.notifyIteration();
 		}
-
+		
 		logger.warn("legitimizationSuccess: " + RandomLengthTestFactory.legitimizationSuccess);
 		logger.warn("legitimizationTrials: " + RandomLengthTestFactory.legitimizationTrials);
 		

@@ -162,6 +162,8 @@ public class CommonTestUtil {
 				"-Delite", "10",
 				"-Dprimitive_pool", String.valueOf(primitivePool),
 				"-Ddynamic_pool", String.valueOf(dynamicPool),
+				"-Doutput_variables", "TARGET_CLASS,target_method,criterion,CoverageTimeline",
+				"-Dtimeline_interval","10000"
 //				"-seed", "1556035769590"
 				
 		};

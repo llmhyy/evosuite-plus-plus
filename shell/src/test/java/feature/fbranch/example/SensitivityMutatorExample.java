@@ -132,15 +132,6 @@ public class SensitivityMutatorExample {
 	}
 
 	// dload_0
-//	public double dload_0Example(double d0) {
-//		d0 = 0.15 + d0;
-//		double[] d = noiseDouble.clone();
-//		d[0] = d[0] + 0.151;
-//		if(d0 == d[0]) {
-//			System.currentTimeMillis();
-//		}
-//		return 1;
-//	}
 
 	// dmul
 	public double dmulExample(double mul, double re) {

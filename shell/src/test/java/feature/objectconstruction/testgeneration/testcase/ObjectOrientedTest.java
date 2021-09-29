@@ -16,8 +16,8 @@ import org.evosuite.Properties.Criterion;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.runtime.LoopCounter;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.setup.ExceptionMapGenerator;
@@ -27,9 +27,9 @@ import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
-import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
+import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
@@ -65,8 +65,8 @@ public class ObjectOrientedTest {
 		TestFactory testFactory = TestFactory.getInstance();
 		TestCase test = TestUtil.initializeTest(b, testFactory, allowNullValue);
 		try {
-			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebugger, allowNullValue);
+			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(isDebugger);
+			cpSynthesizer.buildNodeStatementCorrespondence(test, b, allowNullValue);
 			if(!allowNullValue) {
 				TestUtil.mutateNullStatements(test);				
 			}
@@ -93,8 +93,8 @@ public class ObjectOrientedTest {
 		TestCase test = TestUtil.initializeTest(b, testFactory, allowNullValue);
 		try {
 			long t1 = System.currentTimeMillis();
-			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-			cpSynthesizer.constructDifficultObjectStatement(test, b, isDebug, allowNullValue);
+			ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(isDebug);
+			cpSynthesizer.buildNodeStatementCorrespondence(test, b, allowNullValue);
 			if(!allowNullValue) {
 				TestUtil.mutateNullStatements(test);		
 				System.currentTimeMillis();

@@ -167,10 +167,11 @@ public class WholeTestSuiteStrategy extends TestGenerationStrategy {
 		testSuite.setInitialCoverage(algorithm.getInitialCoverage());
 		testSuite.setInitializationOverhead(algorithm.getIntializationOverhead());
 		testSuite.setMissingBranches(algorithm.getMissingBranches());
+		
 		return testSuite;
 	}
-	
-    private List<TestFitnessFunction> getGoals(boolean verbose) {
+
+	private List<TestFitnessFunction> getGoals(boolean verbose) {
         List<TestFitnessFactory<? extends TestFitnessFunction>> goalFactories = getFitnessFactories();
         List<TestFitnessFunction> goals = new ArrayList<>();
 

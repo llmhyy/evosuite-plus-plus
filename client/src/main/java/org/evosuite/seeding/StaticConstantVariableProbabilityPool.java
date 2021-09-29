@@ -186,7 +186,7 @@ public class StaticConstantVariableProbabilityPool implements ConstantPool {
                 if (Math.abs(val) < Properties.MAX_INT) {
                     intPool.addConstant((Integer) object);
                 }
-				if (Properties.APPLY_SMART_SEED) {
+				if (Properties.APPLY_CHAR_POOL) {
 					if (val >= 0 && val <= 255) {
 						char c = (char) val;
 						charPool.addConstant((Character) c);
@@ -194,7 +194,7 @@ public class StaticConstantVariableProbabilityPool implements ConstantPool {
 				}
             } else {
                 intPool.addConstant((Integer) object);
-				if (Properties.APPLY_SMART_SEED) {
+				if (Properties.APPLY_CHAR_POOL) {
 					int val = (Integer) object;
 					if (val >= 0 && val <= 255) {
 						char c = (char) val;
@@ -244,5 +244,23 @@ public class StaticConstantVariableProbabilityPool implements ConstantPool {
 			LoggingUtils.getEvoLogger().info("Constant of unknown type: " + object.getClass());
 		}
 	}
+    
+    public long poolSize() {
+    	long num = 0;
+    	num += this.stringPool.numConstants;
+    	num += this.typePool.numConstants;
+    	num += this.intPool.numConstants;
+    	num += this.doublePool.numConstants;
+    	num += this.longPool.numConstants;
+    	num += this.floatPool.numConstants;
+    	num += this.charPool.numConstants;
+    	
+    	return num;
+    }
+    
+    public static long getPoolSize(StaticConstantVariableProbabilityPool pool) {
+    	return pool.poolSize();
+    }
 
+    
 }

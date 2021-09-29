@@ -108,7 +108,8 @@ public class ContainerHelper {
     }
     
     public static int collectionContains(Collection<?> c, Object o1, String methodSig, int index) {
-    	if(Properties.APPLY_SMART_SEED) {
+//    	if(Properties.APPLY_SMART_SEED && Properties.APPLY_SMART_DYNAMIC_POOL) {
+        if(Properties.APPLY_SMART_SEED) {
     		int branch = parseBranchId(methodSig, index);
 			BranchwiseConstantPoolManager.addBranchwiseDynamicConstant(branch, o1);
 		}
