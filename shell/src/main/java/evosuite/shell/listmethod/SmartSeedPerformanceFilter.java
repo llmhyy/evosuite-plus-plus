@@ -25,6 +25,7 @@ import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.ParameterNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
@@ -42,6 +43,12 @@ import evosuite.shell.utils.LoggerUtils;
  *
  */
 public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
+	private enum BranchType {
+		NONE,
+		STATIC,
+		DYNAMIC
+	};
+	
 	private static Logger log = LoggerUtils.getLogger(SmartSeedPerformanceFilter.class);
 
 	private static final int CONSTANT_COUNT_THRESHOLD = 50;
@@ -115,6 +122,16 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 			e.printStackTrace();
 		}
 		
+		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg); 
+		for (BytecodeInstruction branch : branches) {
+			List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, node);
+			List<ParameterNode> methodInputs = node.parameters;
+			
+			if (node.localVariables.size() > 1) {
+				System.currentTimeMillis();
+			}
+		}
+		
 		// At this point, the dependency analysis should be complete (assumed).
 		// Now we wish to check how many constants the class has.
 		long numberOfConstantsInClass = getNumberOfConstantsInClass(className);
@@ -136,6 +153,12 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 			List<BytecodeInstruction> operands = getOperandsFromBranch(firstEligibleBranch, cfg, node);
 			System.currentTimeMillis();
 			
+			// Since the number of constants in the class is bounded below by the number of eligible branches,
+			// a temporary fix we can do for now is to accept the method if the number of eligible branches
+			// is over the constant threshold, since then we are guaranteed that the number of constants
+			// is over the threshold.
+			boolean isNumberOfEligibleBranchesOverConstantThreshold = (numberOfEligibleBranches >= CONSTANT_COUNT_THRESHOLD);
+			return isNumberOfEligibleBranchesOverConstantThreshold;
 		}
 		
 		log.debug("[" + className + "#" + methodName + "]: " + numberOfConstantsInClass + " constants, " + numberOfEligibleBranches + " eligible branches.");
@@ -246,7 +269,7 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		return constantOperands.size();
 	}
 
-	private List<BytecodeInstruction> getOperandsFromBranch(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {
+	private static List<BytecodeInstruction> getOperandsFromBranch(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {
 		List<BytecodeInstruction> operands = new ArrayList<>();
 		Frame frame = branch.getFrame();
 		
@@ -298,6 +321,27 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 			return true;
 		}
 
+		return false;
+	}
+	
+	private static BranchType getBranchType(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {
+//		2.input exists in operands (static/dynamic)
+//		3. When there is a constant in branch operands, the branch can be considered as a static type
+//		4. When there are input-related instructions in branch operands, you can consider the branch as a dynamic type
+		return BranchType.STATIC;
+	}
+	
+	private static boolean isInputExistsInOperands(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {
+		List<ParameterNode> methodInputs = node.parameters;
+		List<BytecodeInstruction> branchOperands = getOperandsFromBranch(branch, cfg, node);
+		for (ParameterNode input : methodInputs) {
+			for (BytecodeInstruction branchOperand : branchOperands) {
+				boolean isMatch = (input.name == branchOperand.getVariableName());
+				if (isMatch) {
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 }
