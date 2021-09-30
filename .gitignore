@@ -33,3 +33,12 @@ plugins/maven-test/.settings/org.eclipse.jdt.core.prefs
 plugins/maven-test/.classpath
 plugins/maven/.classpath
 plugins/maven/.settings/org.eclipse.jdt.core.prefs
+generated/.classpath
+generated/.settings/org.eclipse.jdt.core.prefs
+plugins/build-support-test/.classpath
+plugins/build-support-test/.settings/org.eclipse.jdt.core.prefs
+plugins/maven-test/.classpath
+plugins/maven-test/.settings/org.eclipse.jdt.core.prefs
+plugins/maven/.classpath
+plugins/maven/.settings/org.eclipse.jdt.core.prefs
+generated/.classpath
