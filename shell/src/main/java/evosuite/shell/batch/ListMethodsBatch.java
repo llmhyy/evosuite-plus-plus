@@ -12,6 +12,8 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.evosuite.classpath.ClassPathHandler;
+import org.evosuite.setup.DependencyAnalysis;
 import org.junit.Test;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 
@@ -29,12 +31,22 @@ import evosuite.shell.utils.TargetMethodIOUtils;
 public class ListMethodsBatch {
 
 	@Test
-	public void testSingleMethod() throws AnalyzerException, IOException {
+	public void testCustom() throws AnalyzerException, IOException {
+		MethodFilterOption opt = MethodFilterOption.SMART_SEED_PERFORMANT_METHOD;
 		org.evosuite.Properties.ALWAYS_REGISTER_BRANCH = true;
-		Class<?> targetClass = feature.smartseed.example.truecase.SmartSeedFilterPositiveExample.class;
-		MethodFilterOption targetFilter = MethodFilterOption.SMART_SEED_PERFORMANT_METHOD;
+//		org.evosuite.Properties.INHERITANCE_FILE = null;
+		org.evosuite.Properties.INHERITANCE_FILE = "";
 		
-		ListMethods.execute(targetClass, targetFilter);
+		File projectFolder = new File("D:\\linyun\\git_space\\SF100-clean\\0_custom");
+		SFBenchmarkUtils.setupProjectProperties(projectFolder);
+		StringBuilder argJar = new StringBuilder(projectFolder.getAbsolutePath() + "/custom.jar");
+		String[] args = new String[] {
+				"-target",
+				argJar.toString(),
+				"-listMethods",
+				"-mFilterOpt", opt.getText()
+		};
+		EvosuiteForMethod.execute(args);
 	}
 	
 	@Test
@@ -119,12 +131,12 @@ public class ListMethodsBatch {
 				EvosuiteForMethod.execute(args);
 			}
 		}
-		TargetMethodIOUtils.generateStatisticExcel(Settings.getTargetMethodFilePath(),
-				evosuite.shell.FileUtils.getFilePath(Settings.getReportFolder(), "targetMethodsStatistic.xlsx"));
-		
-		MergeExcels.excelSuffix = FlagMethodProfilesFilter.excelProfileSubfix;
-		List<String> inputFiles = evosuite.shell.FileUtils.toFilePath(MergeExcels.listExcels(Settings.getReportFolder()));
-		ExcelUtils.mergeExcel(Settings.getReportFolder() + "/flag-methods-profiles.xlsx", inputFiles, 0);
+//		TargetMethodIOUtils.generateStatisticExcel(Settings.getTargetMethodFilePath(),
+//				evosuite.shell.FileUtils.getFilePath(Settings.getReportFolder(), "targetMethodsStatistic.xlsx"));
+//		
+//		MergeExcels.excelSuffix = FlagMethodProfilesFilter.excelProfileSubfix;
+//		List<String> inputFiles = evosuite.shell.FileUtils.toFilePath(MergeExcels.listExcels(Settings.getReportFolder()));
+//		ExcelUtils.mergeExcel(Settings.getReportFolder() + "/flag-methods-profiles.xlsx", inputFiles, 0);
 		
 		System.out.println("Done!");
 	}
