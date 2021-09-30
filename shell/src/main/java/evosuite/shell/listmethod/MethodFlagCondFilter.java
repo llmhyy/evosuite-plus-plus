@@ -45,61 +45,6 @@ import evosuite.shell.utils.OpcodeUtils;
 public class MethodFlagCondFilter implements IMethodFilter {
 	private static Logger log = LoggerUtils.getLogger(MethodFlagCondFilter.class);
 	
-//	@Override
-//	public List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException, AnalyzerException {
-//		InputStream is = ResourceList.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
-//				.getClassAsStream(targetClass.getName());
-//		List<String> validMethods = new ArrayList<String>();
-//		try {
-//			ClassReader reader = new ClassReader(is);
-//			ClassNode cn = new ClassNode();
-//			reader.accept(cn, ClassReader.SKIP_FRAMES);
-//			List<MethodNode> l = cn.methods;
-//			// Filter out abstract class
-//			if ((cn.access & Opcodes.ACC_ABSTRACT) == Opcodes.ACC_ABSTRACT) {
-//				return new ArrayList<String>();
-//			}
-//			for (MethodNode m : l) {
-//				/* methodName should be the same as declared in evosuite: String methodName = method.getName() + Type.getMethodDescriptor(method); */
-//				String methodName = CommonUtility.getMethodName(m);
-//	
-//				if ((m.access & Opcodes.ACC_PUBLIC) == Opcodes.ACC_PUBLIC
-//						|| (m.access & Opcodes.ACC_PROTECTED) == Opcodes.ACC_PROTECTED
-//						|| (m.access & Opcodes.ACC_PRIVATE) == 0 /* default */ ) {
-//					
-//                    if (methodName.contains("<init>") || methodName.contains("<clinit>")) {
-//                        continue;
-//                    }
-//
-//                    String className = targetClass.getName();
-//                    ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className,
-//                            methodName);
-//                    if (cfg == null) {
-//                        BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
-//                        bytecodeAnalyzer.analyze(classLoader, className, methodName, m);
-//                        bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
-//                        cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
-//                    }
-//                    
-//                    if (getIfBranchesInMethod(cfg).isEmpty()) {
-//                    	continue;
-//                    }
-//
-//					try {
-//						if (checkMethod(classLoader, targetClass.getName(), methodName, m, cn)) {
-//							validMethods.add(methodName);
-//						}
-//					} catch (Exception e) {
-//						log.info("error!!", e);
-//					}
-//				} 
-//			}
-//		} finally {
-//			is.close(); 
-//		}
-//		return validMethods;
-//	}
-	
 	@Override
 	public List<String> listTestableMethods(Class<?> targetClass, ClassLoader classLoader) throws IOException, AnalyzerException {
 		TestGenerationContext testGenerationContext = TestGenerationContext.getInstance();
@@ -111,7 +56,8 @@ public class MethodFlagCondFilter implements IMethodFilter {
 		try {
 			ClassReader reader = new ClassReader(is);
 			ClassNode cn = new ClassNode();
-			reader.accept(cn, ClassReader.SKIP_FRAMES);
+//			reader.accept(cn, ClassReader.SKIP_FRAMES);
+			reader.accept(cn, 0);
 			List<MethodNode> l = cn.methods;
 			// Filter out abstract class
 			if ((cn.access & Opcodes.ACC_ABSTRACT) == Opcodes.ACC_ABSTRACT) {

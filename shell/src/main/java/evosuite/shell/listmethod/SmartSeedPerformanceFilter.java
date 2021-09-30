@@ -2,6 +2,9 @@ package evosuite.shell.listmethod;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -73,45 +76,82 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 	}
 	
 	@Override
-	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode node,
-			ClassNode cn) throws AnalyzerException, IOException, ClassNotFoundException {
+	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode methodNode,
+			ClassNode classNode) throws AnalyzerException, IOException, ClassNotFoundException {
 		DependencyAnalysis.clear();
 		clearAllPools();
 		
-		// Logic to filter methods goes here
-		// Idea:
-		// - We want methods with a large number of constants
-		// - We want methods with branches satisfying at least one of these constraints:
-		//   - Static pool
-		//     - Value preserving and one branch operand is a static constant
-		//   - Dynamic pool
-		//     - Value preserving and one branch operand is a dynamic constant
-		//   - No pool
-		//     - Not value preserving
-		//   - To sum it up, we care if one of the branch operands is a constant
-		//     - Don't care if static/dynamic
+		if (className.contains("NestedObjectConstructionTest")) {
+			System.currentTimeMillis();
+		}
+		
+		// New logic to filter methods
+		// 1) Check if the number of constants meets a predefined threshold
+		// 2) Check if the branch has input-related instructions in branch operands
+		//    There is a distinction between "static" and "dynamic" branches, but it's not relevant
+		//    for the purposes of the filter - we want all such branches.
+		// What qualifies as an "input-related" branch? We want to capture branches of the form
+		// a) if (input.x.y.z == ...) { ... }
+		// b) if (someMethod(input) == ...) { ... }
+		// c) if (someMethod(input.x()) == ...) { ... }
 		
 		/*
 		 * This section adds context to the list of instructions
 		 * - Add data and control flow information (in CFG) to this list of instructions 
 		 */
-		GraphPool graphPool = GraphPool.getInstance(classLoader);
-		ActualControlFlowGraph cfg = graphPool.getActualCFG(className, methodName);
-		if (cfg == null) {
-			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
-			bytecodeAnalyzer.analyze(classLoader, className, methodName, node);
-			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
-			graphPool = GraphPool.getInstance(classLoader);
-			cfg = graphPool.getActualCFG(className, methodName);
-		}
+		ActualControlFlowGraph cfg = getCfg(className, methodName, classLoader, methodNode);
         
         // Get instructions for target method
         BytecodeInstructionPool instructionPool = BytecodeInstructionPool.getInstance(classLoader);
         List<BytecodeInstruction> instructions = instructionPool.getAllInstructionsAtMethod(className, methodName);
         
-        /*
-         * Force Evosuite to load specific class and method
-         */
+        // Force Evosuite to load specific class and method
+		forceEvosuiteToLoadClassAndMethod(className, methodName);
+		
+		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg);
+		
+		int numberOfEligibleBranches = 0;
+		for (BytecodeInstruction branch : branches) {
+			List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
+			// Possible cases:
+			// 1) The operand is a parameter (e.g. if (methodParam == ...))
+			// 2) The operand is a method call from a parameter (e.g. if (methodParam.foo() == ...))
+			// 3) The operand is a method call on a parameter e.g. if (foo(methodParam) == ...))
+			// We need to check if any of them fit.
+			for (BytecodeInstruction operand : operands) {
+				boolean isOperandParameter = operand.isParameter();
+				if (isOperandParameter) {
+					numberOfEligibleBranches++;
+					break;
+				}
+				
+				boolean isMethodCallFromParameter = false;
+				if ((isMethodCallFromParameter)) {
+					numberOfEligibleBranches++;
+					break;
+				}
+				
+				boolean isMethodCallOnParameter = false;
+				if (isMethodCallOnParameter) {
+					numberOfEligibleBranches++;
+					break;
+				}
+				
+			}
+			System.currentTimeMillis();
+		}
+		
+		// At this point, the dependency analysis should be complete (assumed).
+		// Now we wish to check how many constants the class has.
+		long numberOfConstantsInClass = getNumberOfConstantsInClass(className);
+		boolean isNumberOfConstantsOverThreshold = (numberOfConstantsInClass >= CONSTANT_COUNT_THRESHOLD);
+		boolean isNumberOfEligibleBranchesOverThreshold = (numberOfEligibleBranches >= BRANCH_COUNT_THRESHOLD);
+		
+		log.debug("[" + className + "#" + methodName + "]: {" + numberOfConstantsInClass + ", " + numberOfEligibleBranches + "}");
+		return isNumberOfConstantsOverThreshold && isNumberOfEligibleBranchesOverThreshold;
+	}
+	
+	private void forceEvosuiteToLoadClassAndMethod(String className, String methodName) {
 		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 		cp = cp.replace('\\', '/');
 		try {
@@ -121,48 +161,19 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		} catch (ClassNotFoundException | RuntimeException e) {
 			e.printStackTrace();
 		}
-		
-		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg); 
-		for (BytecodeInstruction branch : branches) {
-			List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, node);
-			List<ParameterNode> methodInputs = node.parameters;
-			
-			if (node.localVariables.size() > 1) {
-				System.currentTimeMillis();
-			}
+	}
+	
+	private ActualControlFlowGraph getCfg(String className, String methodName, ClassLoader classLoader, MethodNode methodNode) throws AnalyzerException {
+		GraphPool graphPool = GraphPool.getInstance(classLoader);
+		ActualControlFlowGraph cfg = graphPool.getActualCFG(className, methodName);
+		if (cfg == null) {
+			BytecodeAnalyzer bytecodeAnalyzer = new BytecodeAnalyzer();
+			bytecodeAnalyzer.analyze(classLoader, className, methodName, methodNode);
+			bytecodeAnalyzer.retrieveCFGGenerator().registerCFGs();
+			graphPool = GraphPool.getInstance(classLoader);
+			cfg = graphPool.getActualCFG(className, methodName);
 		}
-		
-		// At this point, the dependency analysis should be complete (assumed).
-		// Now we wish to check how many constants the class has.
-		long numberOfConstantsInClass = getNumberOfConstantsInClass(className);
-		boolean isNumberOfConstantsOverThreshold = (numberOfConstantsInClass >= CONSTANT_COUNT_THRESHOLD);
-		
-		// At this point we assume that the constant requirement is met (else return false). 
-		// Next check for branches with constant operands.
-		// We check if the number of branches with constant operands meets a certain threshold?
-		long numberOfEligibleBranches = getNumberOfEligibleBranchesInMethod(className, methodName, cfg, node);
-		boolean isNumberOfEligibleBranchesOverThreshold = (numberOfEligibleBranches >= BRANCH_COUNT_THRESHOLD);
-		
-		// Since each eligible branch has at least one constant operand (= one constant in the class),
-		// the number of constants in the class should never be strictly less than the number of eligible branches.
-		// This guard serves as a breakpoint location during debugging.
-		if (numberOfConstantsInClass < numberOfEligibleBranches) {
-			List<ConstantPool> pools = getConstantPools();
-			List<BytecodeInstruction> eligibleBranches = getEligibleBranchesInMethod(className, methodName, cfg, node);
-			BytecodeInstruction firstEligibleBranch = eligibleBranches.get(0);
-			List<BytecodeInstruction> operands = getOperandsFromBranch(firstEligibleBranch, cfg, node);
-			System.currentTimeMillis();
-			
-			// Since the number of constants in the class is bounded below by the number of eligible branches,
-			// a temporary fix we can do for now is to accept the method if the number of eligible branches
-			// is over the constant threshold, since then we are guaranteed that the number of constants
-			// is over the threshold.
-			boolean isNumberOfEligibleBranchesOverConstantThreshold = (numberOfEligibleBranches >= CONSTANT_COUNT_THRESHOLD);
-			return isNumberOfEligibleBranchesOverConstantThreshold;
-		}
-		
-		log.debug("[" + className + "#" + methodName + "]: " + numberOfConstantsInClass + " constants, " + numberOfEligibleBranches + " eligible branches.");
-		return isNumberOfConstantsOverThreshold && isNumberOfEligibleBranchesOverThreshold;
+		return cfg;
 	}
 	
 	private List<ConstantPool> getConstantPools() {
