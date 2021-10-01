@@ -109,6 +109,11 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 			// 3a) The operand is a method call on a parameter (transitive) field e.g. if (foo(methodParam.foo().bar) == ...))
 			// We need to check if any of them fit.
 			
+			// A better way might be to capture the "root" object in the invocation chain
+			// since we might have arbitrary chains of the form
+			//   methodInput.foo().bar.baz()
+			// We want some way to find the "root" instruction and check if it is a parameter.
+			
 			// We structure it in this manner so that we only do the computations
 			// if the simpler cases fail.
 			for (BytecodeInstruction operand : operands) {
@@ -136,7 +141,6 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 					break;
 				}
 				
-
 				boolean isMethodCallOnParameter = false;
 				if (isMethodCallOnParameter) {
 					numberOfEligibleBranches++;
