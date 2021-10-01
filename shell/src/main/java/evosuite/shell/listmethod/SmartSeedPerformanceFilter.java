@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,12 +47,6 @@ import evosuite.shell.utils.LoggerUtils;
  *
  */
 public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
-	private enum BranchType {
-		NONE,
-		STATIC,
-		DYNAMIC
-	};
-	
 	private static Logger log = LoggerUtils.getLogger(SmartSeedPerformanceFilter.class);
 
 	private static final int CONSTANT_COUNT_THRESHOLD = 50;
@@ -115,9 +110,15 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 			List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
 			// Possible cases:
 			// 1) The operand is a parameter (e.g. if (methodParam == ...))
+			// 1a) The operand is a (transitive) field of a parameter (e.g. if (methodParam.foo.bar.baz == ...))
 			// 2) The operand is a method call from a parameter (e.g. if (methodParam.foo() == ...))
+			// 2a) The operand is a (transitive) method call from a parameter (e.g. if (methodParam.foo().bar() == ...))
 			// 3) The operand is a method call on a parameter e.g. if (foo(methodParam) == ...))
+			// 3a) The operand is a method call on a parameter (transitive) field e.g. if (foo(methodParam.foo().bar) == ...))
 			// We need to check if any of them fit.
+			
+			// We structure it in this manner so that we only do the computations
+			// if the simpler cases fail.
 			for (BytecodeInstruction operand : operands) {
 				boolean isOperandParameter = operand.isParameter();
 				if (isOperandParameter) {
@@ -125,20 +126,31 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 					break;
 				}
 				
-				boolean isMethodCallFromParameter = false;
+				boolean isOperandParameterTransitiveField = false;
+				if (isOperandParameterTransitiveField) {
+					numberOfEligibleBranches++;
+					break;
+				}
+				
+				boolean isMethodCall = operand.isMethodCall();
+				if (!isMethodCall) {
+					break;
+				}
+
+				boolean isFromParameter = operand.getSourceOfMethodInvocationInstruction().isParameter();			
+				boolean isMethodCallFromParameter = (isMethodCall && isFromParameter);
 				if ((isMethodCallFromParameter)) {
 					numberOfEligibleBranches++;
 					break;
 				}
 				
+
 				boolean isMethodCallOnParameter = false;
 				if (isMethodCallOnParameter) {
 					numberOfEligibleBranches++;
 					break;
 				}
-				
 			}
-			System.currentTimeMillis();
 		}
 		
 		// At this point, the dependency analysis should be complete (assumed).
@@ -332,27 +344,6 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 			return true;
 		}
 
-		return false;
-	}
-	
-	private static BranchType getBranchType(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {
-//		2.input exists in operands (static/dynamic)
-//		3. When there is a constant in branch operands, the branch can be considered as a static type
-//		4. When there are input-related instructions in branch operands, you can consider the branch as a dynamic type
-		return BranchType.STATIC;
-	}
-	
-	private static boolean isInputExistsInOperands(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {
-		List<ParameterNode> methodInputs = node.parameters;
-		List<BytecodeInstruction> branchOperands = getOperandsFromBranch(branch, cfg, node);
-		for (ParameterNode input : methodInputs) {
-			for (BytecodeInstruction branchOperand : branchOperands) {
-				boolean isMatch = (input.name == branchOperand.getVariableName());
-				if (isMatch) {
-					return true;
-				}
-			}
-		}
 		return false;
 	}
 }
