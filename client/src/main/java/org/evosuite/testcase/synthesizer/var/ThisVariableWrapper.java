@@ -30,6 +30,12 @@ public class ThisVariableWrapper extends DepVariableWrapper {
 	
 	public VariableReference generateOrFind(TestCase test, boolean isLeaf, VariableReference callerObject,
 			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+		return find(test, isLeaf, callerObject, map);
+	}
+
+	@Override
+	public VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject,
+			Map<DepVariableWrapper, List<VariableReference>> map) {
 		if(this.parents.isEmpty()) {
 			MethodStatement mStat = test.findTargetMethodCallStatement();
 			if(mStat != null) {

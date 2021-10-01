@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -121,13 +122,19 @@ public class UsedReferenceSearcher {
 				String className = constructorStat.getDeclaringClassName();
 				String methodName = constructorStat.getMethodName() + constructorStat.getDescriptor();
 				if (!params.isEmpty()) {
-					List<VariableReference> paramRefs = searchRelevantParameterOfSetterInTest(params, className, methodName, field);
+					InstructionStatementMatch result = searchRelevantParameterOfSetterInTest(className, methodName, field);
+					List<VariableReference> paramRefs = new ArrayList<>();
+					for(Integer index: result.variables) {
+						paramRefs.add(params.get(index));
+					}
+					
+//					List<VariableReference> paramRefs = searchRelevantParameterOfSetterInTest(params, className, methodName, field);
 					relevantRefs.addAll(paramRefs);
 					
 					for(VariableReference vRef : paramRefs) {
 						refPostions.put(pos, vRef);
 					}
-					System.currentTimeMillis();
+//					System.currentTimeMillis();
 				}
 			}
 
@@ -144,8 +151,15 @@ public class UsedReferenceSearcher {
 						List<VariableReference> params = mStat.getParameterReferences();
 						String className = mStat.getDeclaringClassName();
 						String methodName = mStat.getMethodName() + mStat.getDescriptor();
-						List<VariableReference> paramRefs = searchRelevantParameterOfSetterInTest(params, className, methodName,
-								field);
+						
+						InstructionStatementMatch result = searchRelevantParameterOfSetterInTest(className, methodName, field);
+						List<VariableReference> paramRefs = new ArrayList<>();
+						for(Integer index: result.variables) {
+							paramRefs.add(params.get(index));
+						}
+						
+//						List<VariableReference> paramRefs = searchRelevantParameterOfSetterInTest(params, className, methodName,
+//								field);
 
 						for (VariableReference pRef : paramRefs) {
 							if (!relevantRefs.contains(pRef)) {
@@ -236,7 +250,7 @@ public class UsedReferenceSearcher {
 	 * @param opcode
 	 * @return
 	 */
-	public List<VariableReference> searchRelevantParameterOfSetterInTest(List<VariableReference> params, String className,
+	public InstructionStatementMatch searchRelevantParameterOfSetterInTest(String className,
 			String methodName, Field field) {
 		/**
 		 * get all the field setter bytecode instructions in the method. TODO: the field
@@ -246,9 +260,11 @@ public class UsedReferenceSearcher {
 		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<BytecodeInstruction, List<BytecodeInstruction>>();
 		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = DataDependencyUtil.analyzeFieldSetter(className, methodName,
 				field, 5, cascadingCallRelations, setterMap);
-		List<VariableReference> validParams = new ArrayList<VariableReference>();
+//		List<VariableReference> validParams = new ArrayList<VariableReference>();
+		
+		Set<Integer> validParams = new HashSet<>();
 		if (fieldSetterMap.isEmpty()) {
-			return validParams;
+			return new InstructionStatementMatch(false, validParams);
 		}
 
 		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
@@ -257,12 +273,13 @@ public class UsedReferenceSearcher {
 			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, className, methodName, callList);
 			for (Integer val : validParamPos) {
 				if (val >= 0) {
-					validParams.add(params.get(val));
+					validParams.add(val);
 				}
 			}
-			System.currentTimeMillis();
+//			System.currentTimeMillis();
 		}
-		return validParams;
+		
+		return new InstructionStatementMatch(!fieldSetterMap.isEmpty(), validParams);
 	}
 
 	

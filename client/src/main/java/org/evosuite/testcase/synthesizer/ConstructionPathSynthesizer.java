@@ -135,6 +135,7 @@ public class ConstructionPathSynthesizer {
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
+		
 //		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
 		if(isDebugger) {
@@ -144,8 +145,6 @@ public class ConstructionPathSynthesizer {
 		logTest(test, b, isDebugger, 0, null);
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-		
-//		System.currentTimeMillis();
 		
 		/**
 		 * track what variable reference can be reused. Note that, one node can corresponding to multiple statements.
@@ -166,8 +165,13 @@ public class ConstructionPathSynthesizer {
 		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
+			if(node.isTaint) {
+				continue;
+			}
+			
 //			logger.warn(String.valueOf(c) + ":" + node.toString());
 			if(c==11) {
+				System.currentTimeMillis();
 				System.currentTimeMillis();
 			}
 			c++;
@@ -180,7 +184,11 @@ public class ConstructionPathSynthesizer {
 			
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
-				buildNodeStatementRelation(test, map, node, b, allowNullValue);	
+				VariableReference callerObject = getCallerObject(map, node);
+				deriveCodeForTest(map, test, callerObject, node, b, allowNullValue);
+				
+				partialGraph.taint(map, node, test, callerObject);
+				
 				logTest(test, b, isDebugger, c, node);
 				
 				/**
@@ -219,7 +227,7 @@ public class ConstructionPathSynthesizer {
 			}
 		}
 		
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		this.setPartialGraph(partialGraph);
 		this.setGraph2CodeMap(map);
 	}
@@ -276,9 +284,7 @@ public class ConstructionPathSynthesizer {
 		return true;
 	}
 
-	private boolean buildNodeStatementRelation(TestCase test, Map<DepVariableWrapper, List<VariableReference>> map,
-			DepVariableWrapper node, Branch b, boolean allowNullValue) throws ClassNotFoundException, ConstructionFailedException {
-		
+	private VariableReference getCallerObject(Map<DepVariableWrapper, List<VariableReference>> map, DepVariableWrapper node) {
 		List<DepVariableWrapper> callerNodes = node.getCallerNode();
 		/**
 		 * for root nodes
@@ -288,15 +294,13 @@ public class ConstructionPathSynthesizer {
 			callerNodes.add(node);
 		}
 		
-		boolean success = true;
 		for(DepVariableWrapper callerNode: callerNodes){
 			List<VariableReference> callerObjects = map.get(callerNode);
 			/**
 			 * for root nodes
 			 */
 			if(callerObjects == null){
-				boolean s = deriveCodeForTest(map, test, null, node, b, allowNullValue);
-				success = success && s;				
+				return null;		
 			}
 			else{
 				for(int i=0; i<callerObjects.size(); i++){
@@ -305,15 +309,22 @@ public class ConstructionPathSynthesizer {
 					if(t.isPrimitive()) {
 						continue;
 					}
-					boolean s = deriveCodeForTest(map, test, callerObject, node, b, allowNullValue);
-					success = success && s;	
+					
+					return callerObject;
 				}
 			}
-			
 		}
 		
-		return success;
+		return null;
 	}
+	
+//	private void buildNodeStatementRelation(TestCase test, Map<DepVariableWrapper, List<VariableReference>> map,
+//			DepVariableWrapper node, Branch b, boolean allowNullValue) throws ClassNotFoundException, ConstructionFailedException {
+//		
+//		VariableReference callerObject = getCallerObject(map, node);
+//		deriveCodeForTest(map, test, callerObject, node, b, allowNullValue);
+//		
+//	}
 
 	private boolean deriveCodeForTest(Map<DepVariableWrapper, List<VariableReference>> map, TestCase test, 
 			VariableReference callerObject, DepVariableWrapper node, Branch b, boolean allowNullValue) 

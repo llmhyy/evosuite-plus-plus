@@ -131,12 +131,12 @@ public class SensitivityMutator {
 		TestChromosome oldTest = new TestChromosome();
 		oldTest.setTestCase(test);
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 		ConstructionPathSynthesizer relationBuilder = new ConstructionPathSynthesizer(false);
 		TestCase test0 = (TestCase)test.clone();
 		try {
-			relationBuilder.buildNodeStatementCorrespondence(test, branch, false);
+			relationBuilder.buildNodeStatementCorrespondence(test0, branch, false);
 			
 			TestChromosome trial = new TestChromosome();
 			trial.setTestCase(test0);
@@ -148,6 +148,7 @@ public class SensitivityMutator {
 			if(fitnessValue >= 1) {
 				test0 = test.clone();
 				relationBuilder = new ConstructionPathSynthesizer(false);
+				//TODO Lin Yun: provide a way to just build the correspondence
 //				relationBuilder.buildNodeStatementCorrespondence(test0, branch, false);
 			}
 			
@@ -258,16 +259,21 @@ public class SensitivityMutator {
 				if(varList == null) continue;
 				for(VariableReference ref: varList) {
 					
-					if(ref.getStPosition() > newTestChromosome.size()) {
+					if(ref.getStPosition() >= newTestChromosome.size()) {
 						System.currentTimeMillis();
 					}
 					
-					Statement statement = newTestChromosome.getTestCase().getStatement(ref.getStPosition()); 
-					
-					List<ValueStatement> set = new ArrayList<>();
-					search(set, statement, newTestChromosome);
-					
-					relevantStatements.addAll(set);
+					try {
+						Statement statement = newTestChromosome.getTestCase().getStatement(ref.getStPosition()); 
+						
+						List<ValueStatement> set = new ArrayList<>();
+						search(set, statement, newTestChromosome);
+						
+						relevantStatements.addAll(set);						
+					}
+					catch(Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 			

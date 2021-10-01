@@ -23,6 +23,7 @@ import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
+import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 
@@ -61,6 +62,15 @@ public class ParameterVariableWrapper extends DepVariableWrapper {
 	 */
 	public VariableReference generateOrFind(TestCase test, boolean isLeaf, VariableReference callerObject,
 			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+		
+		VariableReference parameter = find(test, allowNullValue, callerObject, map);
+		if(parameter != null) {
+			Statement s = test.getStatement(parameter.getStPosition());
+			if(!(s instanceof NullStatement)) {
+				return parameter;				
+			}
+		}
+		
 		
 		String castSubClass = checkCastClassForParameter();
 		if(castSubClass == null) {
@@ -201,5 +211,23 @@ public class ParameterVariableWrapper extends DepVariableWrapper {
 			args[i] = args[i].replace("/", ".").substring(1, args[i].length());
 		}
 		return args;
+	}
+
+	@Override
+	public VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject,
+			Map<DepVariableWrapper, List<VariableReference>> map) {
+		Statement s = test.getStatement(test.size()-1);
+		if(s instanceof MethodStatement) {
+			
+			int parameterOrder = this.var.getParamOrder();
+			
+			MethodStatement targetMethodStatement = (MethodStatement)s;
+			
+			List<VariableReference> paraList = targetMethodStatement.getParameterReferences();
+			
+			return paraList.get(parameterOrder-1);
+		}
+		
+		return null;
 	}
 }
