@@ -2,10 +2,6 @@ package evosuite.shell.listmethod;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,7 +25,6 @@ import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.ParameterNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
@@ -37,9 +32,6 @@ import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 
 import evosuite.shell.EvosuiteForMethod;
-import evosuite.shell.FileUtils;
-import evosuite.shell.Settings;
-import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.utils.LoggerUtils;
 
 /**
