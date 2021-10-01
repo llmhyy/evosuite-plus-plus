@@ -30,8 +30,8 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.ChromosomeFactory;
-import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -42,9 +42,9 @@ import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
-import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
+import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
@@ -154,8 +154,8 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				try {
 					System.currentTimeMillis();
 					long t0 = System.currentTimeMillis();
-					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
-					cpSynthesizer.constructDifficultObjectStatement(test, b, false, allowNullValue);
+					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(false);
+					cpSynthesizer.buildNodeStatementCorrespondence(test, b, allowNullValue);
 					if(!allowNullValue) {
 						mutateNullStatements(test);						
 					}

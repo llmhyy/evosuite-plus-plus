@@ -18,8 +18,9 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.testcase.synthesizer.DepVariableWrapper;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.synthesizer.PartialGraph;
+import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 
 import guru.nidi.graphviz.attribute.Rank;
 import guru.nidi.graphviz.attribute.Rank.RankDir;

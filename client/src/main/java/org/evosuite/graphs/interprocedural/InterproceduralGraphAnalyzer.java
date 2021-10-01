@@ -18,6 +18,8 @@ import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
+import org.evosuite.graphs.interprocedural.var.DepVariableFactory;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.Randomness;
@@ -134,7 +136,7 @@ public class InterproceduralGraphAnalyzer {
 //		DepVariable var = variablePool.get(var0); 
 		DepVariable var = insPool.get(defIns);
 		if(var == null) {
-			var = new DepVariable(defIns);
+			var = DepVariableFactory.createVariableInstance(defIns);
 			
 			if(var.getName().contains("drain")){
 				System.currentTimeMillis();

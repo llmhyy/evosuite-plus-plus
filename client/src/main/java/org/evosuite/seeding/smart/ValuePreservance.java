@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.evosuite.Properties;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.utils.Randomness;
 

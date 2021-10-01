@@ -493,5 +493,9 @@ public abstract class PrimitiveStatement<T> extends AbstractStatement implements
     public void changeClassLoader(ClassLoader loader) {
         super.changeClassLoader(loader);
     }
+    
+    public void mutateValue() {
+    	this.mutate(this.getTestCase(), TestFactory.getInstance());
+    }
 
 }

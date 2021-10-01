@@ -11,14 +11,14 @@ import java.util.Set;
 import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.interprocedural.DepVariable;
 import org.evosuite.graphs.interprocedural.GraphVisualizer;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
-import org.evosuite.testcase.synthesizer.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.PartialGraph;
+import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
@@ -65,8 +65,8 @@ public class ProjectGraphConstructionTest extends ObjectOrientedTest {
 
 //		Dataflow.initializeDataflow();
 
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		TestFactory testFactory = TestFactory.getInstance();
+		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(false);
 		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 
 		for (Branch b : map.keySet()) {
@@ -1600,8 +1600,8 @@ public class ProjectGraphConstructionTest extends ObjectOrientedTest {
 		Properties.APPLY_OBJECT_RULE = true;
 		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
 
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		TestFactory testFactory = TestFactory.getInstance();
+		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(false);
 		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 
 		for (Branch b : map.keySet()) {
@@ -1656,8 +1656,8 @@ public class ProjectGraphConstructionTest extends ObjectOrientedTest {
 		Properties.APPLY_OBJECT_RULE = true;
 		DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
 
-		TestFactory testFactory = TestFactory.getInstance();
-		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(testFactory);
+//		TestFactory testFactory = TestFactory.getInstance();
+		ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer( false);
 		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
 
 		for (Branch b : map.keySet()) {

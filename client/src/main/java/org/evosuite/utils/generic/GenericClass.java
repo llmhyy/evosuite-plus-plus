@@ -30,7 +30,15 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
@@ -158,11 +166,19 @@ public class GenericClass implements Serializable {
 	 *            a {@link java.lang.reflect.Type} object.
 	 * @return a boolean.
 	 */
+	@SuppressWarnings("rawtypes")
 	public static boolean isAssignable(Type lhsType, Type rhsType) {
 		if (rhsType == null || lhsType == null)
 			return false;
 
 		try {
+			if(lhsType instanceof TypeVariable) {
+				TypeVariable tVar = (TypeVariable)lhsType;
+				Type[] bounds = tVar.getBounds();
+				if(bounds != null && bounds.length != 0) {
+					lhsType = bounds[0];
+				}
+			}
 			return TypeUtils.isAssignable(rhsType, lhsType);
 		} catch (Throwable e) {
 			logger.debug("Found unassignable type: " + e);

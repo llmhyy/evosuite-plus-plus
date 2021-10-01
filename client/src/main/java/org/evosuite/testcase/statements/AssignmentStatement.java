@@ -22,6 +22,7 @@ package org.evosuite.testcase.statements;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,6 +37,13 @@ import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.CodeUnderTestException;
 import org.evosuite.testcase.execution.EvosuiteError;
 import org.evosuite.testcase.execution.Scope;
+import org.evosuite.testcase.statements.numeric.BytePrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.CharPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.DoublePrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.FloatPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.LongPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.ShortPrimitiveStatement;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.ConstantValue;
@@ -475,5 +483,95 @@ public class AssignmentStatement extends AbstractStatement implements ValueState
 
 	public void setValue(VariableReference oldParam) {
 		this.parameter = oldParam;
+	}
+
+	@Override
+	public void mutateValue() {
+		/**
+		 * the code is ugly here, but it shall work.
+		 */
+		Object value = getAssignmentValue();
+		Type t = this.getReturnType();
+		
+		if(value != null) {
+			if(Randomness.nextDouble() > Properties.RANDOM_PERTURBATION){
+				if(t.equals(Integer.class) || t.getTypeName().equals("int")) {
+					IntPrimitiveStatement s = new IntPrimitiveStatement(tc, (Integer) value);
+					s.delta();
+					this.setAssignmentValue(s.getValue());
+				}
+				else if(t.equals(String.class)) {
+					StringPrimitiveStatement s = new StringPrimitiveStatement(tc, (String)value);
+					s.delta();
+					this.setAssignmentValue(s.getValue());
+				}
+				else if(t.equals(Short.class) || t.getTypeName().equals("short")) {
+					ShortPrimitiveStatement s = new ShortPrimitiveStatement(tc, (Short)value);
+					s.delta();
+					this.setAssignmentValue(s.getValue());
+				}
+				else if(t.equals(Long.class) || t.getTypeName().equals("long")) {
+					LongPrimitiveStatement s = new LongPrimitiveStatement(tc, (Long)value);
+					s.delta();
+					this.setAssignmentValue(s.getValue());
+				}
+				else if(t.equals(Character.class) || t.getTypeName().equals("char")) {
+					CharPrimitiveStatement s = new CharPrimitiveStatement(tc, (Character)value);
+					s.delta();
+					this.setAssignmentValue(s.getValue());
+				}
+				else if(t.equals(Byte.class) || t.getTypeName().equals("byte")) {
+					BytePrimitiveStatement s = new BytePrimitiveStatement(tc, (Byte)value);
+					s.delta();
+					this.setAssignmentValue(s.getValue());
+				}
+				else if(t.equals(Double.class) || t.getTypeName().equals("double")) {
+					DoublePrimitiveStatement s = new DoublePrimitiveStatement(tc, (Double)value);
+					s.delta();
+					this.setAssignmentValue(s.getValue());
+				}
+				else if(t.equals(Float.class) || t.getTypeName().equals("float")) {
+					FloatPrimitiveStatement s = new FloatPrimitiveStatement(tc, (Float)value);
+					s.delta();
+					this.setAssignmentValue(s.getValue());
+				}
+				
+				return;
+			}
+		}
+		
+		if(t.equals(Integer.class) || t.getTypeName().equals("int")) {
+			Object obj = (int)(Randomness.nextGaussian() * Properties.MAX_INT);
+			this.setAssignmentValue(obj);
+		}
+		else if(t.equals(String.class)) {
+			Object obj = Randomness.nextString(10);
+			this.setAssignmentValue(obj);
+		}
+		else if(t.equals(Short.class) || t.getTypeName().equals("short")) {
+			short max = (short) Math.min(Properties.MAX_INT, 32767);
+			Object obj = (short) ((Randomness.nextGaussian() * max));
+			this.setAssignmentValue(obj);
+		}
+		else if(t.equals(Long.class) || t.getTypeName().equals("long")) {
+			Object obj = (long)(Randomness.nextGaussian() * Properties.MAX_INT);
+			this.setAssignmentValue(obj);
+		}
+		else if(t.equals(Character.class) || t.getTypeName().equals("char")) {
+			Object obj = Randomness.nextChar();
+			this.setAssignmentValue(obj);
+		}
+		else if(t.equals(Byte.class) || t.getTypeName().equals("byte")) {
+			Object obj = (byte) (Randomness.nextInt(256) - 128);
+			this.setAssignmentValue(obj);
+		}
+		else if(t.equals(Double.class) || t.getTypeName().equals("double")) {
+			Object obj = Randomness.nextGaussian() * Properties.MAX_INT;
+			this.setAssignmentValue(obj);
+		}
+		else if(t.equals(Float.class) || t.getTypeName().equals("float")) {
+			Object obj = (float)(Randomness.nextGaussian() * Properties.MAX_INT);
+			this.setAssignmentValue(obj);
+		}
 	}
 }

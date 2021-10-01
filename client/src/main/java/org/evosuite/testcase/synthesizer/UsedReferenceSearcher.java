@@ -27,6 +27,7 @@ public class UsedReferenceSearcher {
 	public VariableReference searchRelevantFieldReadingReferenceInTest(TestCase test, Field field,
 			VariableReference targetObject) {
 		List<VariableReference> relevantRefs = new ArrayList<VariableReference>();
+		List<VariableReference> backuprelevantRefs = new ArrayList<>();
 
 		if (targetObject != null) {
 			for (int i = 0; i < test.size(); i++) {
@@ -38,6 +39,10 @@ public class UsedReferenceSearcher {
 						boolean isValidGetter = DataDependencyUtil.isFieldGetter(mStat.getMethod().getMethod(), field);
 						if (isValidGetter) {
 							relevantRefs.add(mStat.getReturnValue());
+						}
+						else {
+							VariableReference usedFieldInTest = searchRelevantFieldWritingReferenceInTest(test, field, targetObject);
+							backuprelevantRefs.add(usedFieldInTest);
 						}
 					}
 				}
@@ -60,8 +65,14 @@ public class UsedReferenceSearcher {
 		/**
 		 * FIXME, ziheng: we need to provide some priority for those parameters here.
 		 */
-		if (relevantRefs.isEmpty())
-			return null;
+		if (relevantRefs.isEmpty()) {
+			if(backuprelevantRefs.isEmpty()) {
+				return null;				
+			}
+			else {
+				return Randomness.choice(backuprelevantRefs);
+			}
+		}
 
 		VariableReference ref = Randomness.choice(relevantRefs);
 		return ref;
@@ -164,15 +175,29 @@ public class UsedReferenceSearcher {
 		}
 
 		/**
-		 * FIXME, ziheng: we need to provide some priority for those parameters here.
+		 * get the var reference with more compatible types
 		 */
 		if (relevantRefs.isEmpty())
 			return null;
+		
+		List<VariableReference> compatibles = getCompatibleRef(relevantRefs, field);
 		System.currentTimeMillis();
-		Collections.sort(relevantRefs, new Comparator<VariableReference>() {
-			
+		VariableReference ref = null;
+		if(!compatibles.isEmpty()) {
+			ref = getLast(compatibles, refPostions);
+		}
+		else {
+			ref = getLast(relevantRefs, refPostions);
+		}
+		
+		return ref;
+	}
+	
+	private VariableReference getLast(List<VariableReference> compatibles, Map<Integer, VariableReference> refPostions) {
+		Collections.sort(compatibles, new Comparator<VariableReference>() {
 			@Override
 			public int compare(VariableReference o1, VariableReference o2) {
+				
 				return o2.getStPosition() - o1.getStPosition();
 			}
 		});
@@ -181,13 +206,28 @@ public class UsedReferenceSearcher {
 		for(Integer i :refPostions.keySet()) {
 			lastPos = i > lastPos ? i : lastPos;
 		}
-		VariableReference ref = refPostions.get(lastPos);
 		
-//		VariableReference ref = Randomness.choice(relevantRefs);
-//		VariableReference ref = relevantRefs.get(0);
+		VariableReference ref = refPostions.get(lastPos);
 		return ref;
 	}
-	
+
+	private List<VariableReference> getCompatibleRef(List<VariableReference> relevantRefs, Field field) {
+		List<VariableReference> list = new ArrayList<>();
+		for(VariableReference ref: relevantRefs) {
+			String refType = ref.getType().getTypeName();
+			
+			if(refType.contains("<")) {
+				refType = refType.substring(0, refType.indexOf("<"));
+			}
+			
+			String fieldType = field.getType().getName();
+			if(refType.equals(fieldType)) {
+				list.add(ref);
+			}
+		}
+		return list;
+	}
+
 	/**
 	 * opcode should always be "getfield"
 	 * 

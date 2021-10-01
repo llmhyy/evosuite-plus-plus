@@ -1,4 +1,4 @@
-package org.evosuite.graphs.interprocedural;
+package org.evosuite.graphs.interprocedural.var;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,14 +6,20 @@ import java.util.List;
 import java.util.Map;
 
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.interprocedural.ConstructionPath;
+import org.evosuite.graphs.interprocedural.Relation;
 import org.evosuite.seeding.smart.BranchSeedInfo;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javassist.bytecode.Opcode;
 
@@ -23,7 +29,10 @@ import javassist.bytecode.Opcode;
  * @author linyun
  *
  */
-public class DepVariable {
+public abstract class DepVariable {
+	
+	private static final Logger logger = LoggerFactory.getLogger(DepVariable.class);
+	
 	private String className;
 	private String varName;
 	private BytecodeInstruction instruction;
@@ -55,10 +64,9 @@ public class DepVariable {
 	@SuppressWarnings("unchecked")
 	private List<DepVariable>[] reverseRelations = new ArrayList[OPERAND_NUM_LIMIT];
 	
-	public DepVariable(BytecodeInstruction insn) {
-		this.className = insn.getClassName();
-		this.setInstruction(insn);
-		this.setType();
+	protected DepVariable(BytecodeInstruction ins) {
+		this.className = ins.getClassName();
+		this.setInstruction(ins);
 	}
 	
 	
@@ -115,7 +123,7 @@ public class DepVariable {
 				+ "\nvarName=" + varName + "\ninstruction=" + getInstruction() + "]";
 	}
 	
-	private void setType(int type) {
+	protected void setType(int type) {
 		this.type = type;
 	}
 	
@@ -125,34 +133,6 @@ public class DepVariable {
 	
 	public boolean isMethodCall(){
 		return this.instruction.isMethodCall();
-	}
-	
-	private void setType() {
-		BytecodeInstruction ins = this.getInstruction();
-		if(this.referenceToThis()) {
-			this.setType(DepVariable.THIS);
-			this.setName("this");
-		}
-		else if(this.isParameter()) {
-			this.setType(DepVariable.PARAMETER);
-			this.setName(ins.getVariableName());
-		}
-		else if(this.isStaticField()) {
-			this.setType(DepVariable.STATIC_FIELD);
-			this.setName(((FieldInsnNode)ins.getASMNode()).name);
-		}
-		else if(this.isInstaceField()) {
-			this.setType(DepVariable.INSTANCE_FIELD);
-			this.setName(((FieldInsnNode)ins.getASMNode()).name);
-		}
-		else if(this.isLoadArrayElement()) {
-			this.setType(DepVariable.ARRAY_ELEMENT);
-			this.setName("array index");
-		}
-		else {
-			this.setType(DepVariable.OTHER);
-			this.setName("$unknown");
-		}
 	}
 	
 	public String getTypeString() {
@@ -180,7 +160,6 @@ public class DepVariable {
 	public BytecodeInstruction getInstruction() {
 		return instruction;
 	}
-
 
 	public void setInstruction(BytecodeInstruction instruction) {
 		this.instruction = instruction;
@@ -728,7 +707,8 @@ public class DepVariable {
 						List<BytecodeInstruction> sourceInsList = ins.getSourceOfStackInstructionList(0);
 						if(sourceInsList != null && !sourceInsList.isEmpty()) {
 							BytecodeInstruction sourceIns = sourceInsList.get(0);
-							DepVariable node = new DepVariable(sourceIns);
+							DepVariable node = DepVariableFactory.createVariableInstance(sourceIns);
+//							DepVariable node = new DepVariable(sourceIns);
 							String type = node.getDataType();
 							return type;
 						}
@@ -1060,6 +1040,13 @@ public class DepVariable {
 			}
 		}
 		
+	}
+
+	public void printConstructionError(TestCase test, Branch b) {
+		logger.error("exception happens when processing branch " + b);
+		logger.error("working on node" + this);		
+		logger.error("partial test case:");
+		logger.error(test.toString());
 	}
 	
 }

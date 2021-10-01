@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
+import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.DepVariableWrapperFactory;
 
 public class PartialGraph {
 	Map<DepVariableWrapper, DepVariableWrapper> allRelevantNodes = new HashMap<DepVariableWrapper, DepVariableWrapper>();
@@ -23,7 +25,7 @@ public class PartialGraph {
 	 * @return
 	 */
 	public DepVariableWrapper fetchAndMerge(DepVariable var) {
-		DepVariableWrapper tempWrapper = new DepVariableWrapper(var);
+		DepVariableWrapper tempWrapper = DepVariableWrapperFactory.createWrapperInstance(var);
 		
 		if(var.toString().contains("ALOAD")) {
 			System.currentTimeMillis();
@@ -32,7 +34,7 @@ public class PartialGraph {
 		
 		DepVariableWrapper wrapper = allRelevantNodes.get(tempWrapper);
 		if(wrapper == null) {
-			wrapper = new DepVariableWrapper(var);
+			wrapper = DepVariableWrapperFactory.createWrapperInstance(var);
 			allRelevantNodes.put(wrapper, wrapper);
 		}
 		else{

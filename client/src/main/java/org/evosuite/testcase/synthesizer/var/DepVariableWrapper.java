@@ -1,21 +1,28 @@
-package org.evosuite.testcase.synthesizer;
+package org.evosuite.testcase.synthesizer.var;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import org.evosuite.graphs.interprocedural.DepVariable;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
+import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.variable.VariableReference;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
-public class DepVariableWrapper {
+public abstract class DepVariableWrapper {
 	public DepVariable var;
 	public List<DepVariableWrapper> children = new ArrayList<>();
 	public List<DepVariableWrapper> parents = new ArrayList<>();
 	
-	public DepVariableWrapper(DepVariable var) {
+	protected DepVariableWrapper(DepVariable var) {
 		this.var = var;
 	}
+	
+	public abstract List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableReference callerObject,
+			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue);
 	
 	@Override
 	public int hashCode() {
@@ -106,7 +113,7 @@ public class DepVariableWrapper {
 			if(var.getRelations()[i] == null || var.getRelations()[i].isEmpty()) continue;
 			
 			for(DepVariable child: var.getRelations()[i]) {
-				DepVariableWrapper childWrapper = new DepVariableWrapper(child);
+				DepVariableWrapper childWrapper = DepVariableWrapperFactory.createWrapperInstance(child);
 				if (childWrapper.equals(node)) {
 					return i;
 				}				

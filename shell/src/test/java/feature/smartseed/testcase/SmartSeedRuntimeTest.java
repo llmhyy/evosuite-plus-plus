@@ -92,6 +92,42 @@ public class SmartSeedRuntimeTest {
 	}
 	
 	@Test
+	public void sanityCheck() {
+		return;
+	}
+	
+	@Test
+	public void testJDKInstrumentationOn() throws IOException {
+		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
+		String methodName = "JDKString";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 100000000;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+
+		List<EvoTestResult> results1 = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		EvoTestResult res1 = results1.iterator().next();
+		
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() < 10;
+	}
+	
+	@Test
 	public void testTrueCase1On() throws IOException {
 		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
 		String methodName = "test";
@@ -700,7 +736,7 @@ public class SmartSeedRuntimeTest {
 		
 		EvoTestResult res1 = results.iterator().next();
 		assert res1.getCoverage() == 1.0;
-		assert res1.getAge() > 10;
+		assert res1.getAge() > 50;
 	}
 	
 	@Test
@@ -1018,7 +1054,7 @@ public class SmartSeedRuntimeTest {
 	}
 	
 	@Test
-	public void testDumpOn() { 
+	public void testDumpStaticStringConstantsOn() { 
 		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
 		String methodName = "dump";
 		int parameterNum = 1;
@@ -1049,6 +1085,41 @@ public class SmartSeedRuntimeTest {
 		EvoTestResult res1 = results.iterator().next();
 		assert res1.getCoverage() == 1.0;
 		assert res1.getAge() < 50;
+	}
+	
+	
+	@Test
+	public void testDumpOff() { 
+		Class<?> clazz = feature.smartseed.example.truecase.TrueExample.class;
+		String methodName = "dump";
+		int parameterNum = 1;
+		
+		String targetClass = clazz.getCanonicalName();
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		String cp = "target/classes;target/test-classes";
+
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 1000;
+		
+		String fitnessApproach = "branch";
+		
+		int repeatTime = 1;
+		int budget = 10000;
+		Long seed = null;
+				
+		boolean aor = false;
+		boolean ass = true;
+		List<EvoTestResult> results = TestUtility.evoTestSmartSeedMethod(targetClass,  
+				targetMethod, cp,fitnessApproach, repeatTime, budget, ass, true,
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA", 0.5, 0.5);	
+		
+		EvoTestResult res1 = results.iterator().next();
+		assert res1.getCoverage() == 1.0;
+		assert res1.getAge() > 100;
 	}
 	
 	@Test

@@ -88,7 +88,7 @@ public class TrueExample {
 	}
 	
 	public void specialPoint(String[] arsv) {
-		if(arsv.length == 0) return;
+//		if(arsv.length == 0) return;
 		String op = arsv[0];
 		if (arsv[arsv.length - 1].equals("-debug")) {
 			System.currentTimeMillis();
@@ -290,30 +290,28 @@ public class TrueExample {
 	
 	public static final String[] jjtNodeName = { "CompilationUnit", "PackageDeclaration", "ImportDeclaration", "Modifiers","Literal","VariableDeclaratorId"};
 	public void dump(final String prefix){
-		if (this.identifiers.size() > 0) {
-			if (TrueExample.jjtNodeName[this.id].equals("Literal")) {
-				System.currentTimeMillis();
-			}else {
-				for (String identifier : this.identifiers) {
-					if (!identifier.equals(";") && !identifier.equals("}") && !identifier.equals("{") && !identifier.equals(""))
-						
-						if (!TrueExample.jjtNodeName[this.id].equals("VariableDeclaratorId") || !identifier.equals(")")) {
-							if (identifier.equals("<"))
-								System.currentTimeMillis();
-							if (identifier.equals(">"))
-								System.currentTimeMillis();
-							if (identifier.equals(">>"))
-								System.currentTimeMillis();
-							if (identifier.equals("<<"))
-								System.currentTimeMillis();
-							if (identifier.equals("<="))
-								System.currentTimeMillis();
-							if (identifier.equals(">="))
-								System.currentTimeMillis();
-							if (identifier.equals("&") || identifier.equals("&&"))
-								System.currentTimeMillis();
-						}
-				}
+		if (TrueExample.jjtNodeName[this.id].equals("Literal")) {
+			System.currentTimeMillis();
+		}else {
+			for (String identifier : this.identifiers) {
+				if (!identifier.equals(";") && !identifier.equals("}") && !identifier.equals("{") && !identifier.equals(""))
+					
+					if (!TrueExample.jjtNodeName[this.id].equals("VariableDeclaratorId") || !identifier.equals(")")) {
+						if (identifier.equals("<"))
+							System.currentTimeMillis();
+						if (identifier.equals(">"))
+							System.currentTimeMillis();
+						if (identifier.equals(">>"))
+							System.currentTimeMillis();
+						if (identifier.equals("<<"))
+							System.currentTimeMillis();
+						if (identifier.equals("<="))
+							System.currentTimeMillis();
+						if (identifier.equals(">="))
+							System.currentTimeMillis();
+						if (identifier.equals("&") || identifier.equals("&&"))
+							System.currentTimeMillis();
+					}
 			}
 		}
 	}
@@ -353,6 +351,15 @@ public class TrueExample {
 					}
 				}
 			}
+		}
+	}
+	
+	public ArrayList<String> strList = new ArrayList<>();
+	
+	public void JDKString(String s) {
+		boolean b = strList.remove("a very special string");
+		if(b) {
+			System.currentTimeMillis();
 		}
 	}
 	
