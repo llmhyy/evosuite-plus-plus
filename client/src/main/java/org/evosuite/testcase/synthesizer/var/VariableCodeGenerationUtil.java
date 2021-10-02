@@ -5,6 +5,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +31,7 @@ import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.DataDependencyUtil;
 import org.evosuite.testcase.synthesizer.FieldInitializer;
 import org.evosuite.testcase.synthesizer.NonPrimitiveFieldInitializer;
+import org.evosuite.testcase.synthesizer.ParameterMatch;
 import org.evosuite.testcase.synthesizer.PotentialSetter;
 import org.evosuite.testcase.synthesizer.PrimitiveFieldInitializer;
 import org.evosuite.testcase.synthesizer.ReflectionUtil;
@@ -199,11 +201,17 @@ public class VariableCodeGenerationUtil {
 							List<VariableReference> pList = cStat.getParameterReferences();
 							UsedReferenceSearcher searcher = new UsedReferenceSearcher();
 							String methodName = cStat.getMethodName() + cStat.getDescriptor();
-							List<VariableReference> params = 
-									searcher.searchRelevantParameterOfSetterInTest(pList, fieldDeclaringClass.getCanonicalName(), methodName, field);
+//							List<VariableReference> params = 
+//									searcher.searchRelevantParameterOfSetterInTest(pList, fieldDeclaringClass.getCanonicalName(), methodName, field);
 							
-							if(!params.isEmpty()) {
-								return params.get(0);
+							ParameterMatch result = searcher.searchRelevantParameterOfSetterInTest(fieldDeclaringClass.getCanonicalName(), methodName, field);
+							List<VariableReference> paramRefs = new ArrayList<>();
+							for(Integer index: result.parameterPoisitions) {
+								paramRefs.add(pList.get(index));
+							}
+							
+							if(!paramRefs.isEmpty()) {
+								return paramRefs.get(0);
 							}
 						}
 						
