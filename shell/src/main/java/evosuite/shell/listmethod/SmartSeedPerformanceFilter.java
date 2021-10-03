@@ -95,39 +95,13 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
         // Force Evosuite to load specific class and method
 		forceEvosuiteToLoadClassAndMethod(className, methodName);
 		
-		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg);
-		
-		int numberOfEligibleBranches = 0;
-		for (BytecodeInstruction branch : branches) {
-			List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
-			// Possible cases:
-			// 1) The operand is a parameter (e.g. if (methodParam == ...))
-			// 2) The operand is a transitive field/method call of a parameter 
-			//    (e.g. if (methodParam.foo.bar().baz == ...))
-			// 2a) The operand is a (potentially transitive) method call on a parameter 
-			//     (e.g. if (foo(methodParam.bar.baz()) == ...))
-			
-			// We structure it in this manner so that we only do the computations
-			// if the simpler cases fail.
-			for (BytecodeInstruction operand : operands) {
-				boolean isOperandParameter = operand.isParameter();
-				if (isOperandParameter) {
-					numberOfEligibleBranches++;
-					break;
-				}
-				
-				boolean isTransitiveCase = checkIfTransitiveChainOfParameter(operand);
-				if (isTransitiveCase) {
-					numberOfEligibleBranches++;
-					break;
-				}
-			}
-		}
-		
 		// At this point, the dependency analysis should be complete (assumed).
 		// Now we wish to check how many constants the class has.
 		long numberOfConstantsInClass = getNumberOfConstantsInClass(className);
 		boolean isNumberOfConstantsOverThreshold = (numberOfConstantsInClass >= CONSTANT_COUNT_THRESHOLD);
+		
+		List<BytecodeInstruction> eligibleBranches = getEligibleBranchesInMethod(className, methodName, cfg, methodNode);
+		long numberOfEligibleBranches = eligibleBranches.size();
 		boolean isNumberOfEligibleBranchesOverThreshold = (numberOfEligibleBranches >= BRANCH_COUNT_THRESHOLD);
 		
 		log.debug("[" + className + "#" + methodName + "]: {" + numberOfConstantsInClass + ", " + numberOfEligibleBranches + ", " + (isNumberOfConstantsOverThreshold && isNumberOfEligibleBranchesOverThreshold) + "}");
@@ -226,12 +200,37 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		return pools;
 	}
 	
+	private boolean isBranchEligible(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode) {
+		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
+		// Possible cases:
+		// 1) The operand is a parameter (e.g. if (methodParam == ...))
+		// 2) The operand is a transitive field/method call of a parameter 
+		//    (e.g. if (methodParam.foo.bar().baz == ...))
+		// 2a) The operand is a (potentially transitive) method call on a parameter 
+		//     (e.g. if (foo(methodParam.bar.baz()) == ...))
+		//     We can't check for this case for now
+
+		for (BytecodeInstruction operand : operands) {
+			boolean isOperandParameter = operand.isParameter();
+			if (isOperandParameter) {
+				return true;
+			}
+			
+			boolean isTransitiveCase = checkIfTransitiveChainOfParameter(operand);
+			if (isTransitiveCase) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	private List<BytecodeInstruction> getEligibleBranchesInMethod(String className, String methodName, ActualControlFlowGraph cfg, MethodNode node) {
 		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg); 
 		List<BytecodeInstruction> eligibleBranches = new ArrayList<>();
 		for (BytecodeInstruction branch : branches) {
-			boolean isBranchHasConstantOperands = isBranchHasConstantOperands(branch, cfg, node);
-			if (isBranchHasConstantOperands) {
+			boolean isCurrentBranchEligible = isBranchEligible(branch, cfg, node);
+			if (isCurrentBranchEligible) {
 				eligibleBranches.add(branch);
 			}
 		}
