@@ -41,7 +41,7 @@ import evosuite.shell.utils.LoggerUtils;
 public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 	private static Logger log = LoggerUtils.getLogger(SmartSeedPerformanceFilter.class);
 
-	private static final int CONSTANT_COUNT_THRESHOLD = 50;
+	private static final int CONSTANT_COUNT_THRESHOLD = 0;
 	private static final int BRANCH_COUNT_THRESHOLD = 1;
 	
 	private static Map<String,Long> classToNumberOfConstants = new HashMap<>();
@@ -102,17 +102,10 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 			List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
 			// Possible cases:
 			// 1) The operand is a parameter (e.g. if (methodParam == ...))
-			// 1a) The operand is a (transitive) field of a parameter (e.g. if (methodParam.foo.bar.baz == ...))
-			// 2) The operand is a method call from a parameter (e.g. if (methodParam.foo() == ...))
-			// 2a) The operand is a (transitive) method call from a parameter (e.g. if (methodParam.foo().bar() == ...))
-			// 3) The operand is a method call on a parameter e.g. if (foo(methodParam) == ...))
-			// 3a) The operand is a method call on a parameter (transitive) field e.g. if (foo(methodParam.foo().bar) == ...))
-			// We need to check if any of them fit.
-			
-			// A better way might be to capture the "root" object in the invocation chain
-			// since we might have arbitrary chains of the form
-			//   methodInput.foo().bar.baz()
-			// We want some way to find the "root" instruction and check if it is a parameter.
+			// 2) The operand is a transitive field/method call of a parameter 
+			//    (e.g. if (methodParam.foo.bar().baz == ...))
+			// 2a) The operand is a (potentially transitive) method call on a parameter 
+			//     (e.g. if (foo(methodParam.bar.baz()) == ...))
 			
 			// We structure it in this manner so that we only do the computations
 			// if the simpler cases fail.
@@ -123,26 +116,8 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 					break;
 				}
 				
-				boolean isOperandParameterTransitiveField = false;
-				if (isOperandParameterTransitiveField) {
-					numberOfEligibleBranches++;
-					break;
-				}
-				
-				boolean isMethodCall = operand.isMethodCall();
-				if (!isMethodCall) {
-					break;
-				}
-
-				boolean isFromParameter = operand.getSourceOfMethodInvocationInstruction().isParameter();			
-				boolean isMethodCallFromParameter = (isMethodCall && isFromParameter);
-				if ((isMethodCallFromParameter)) {
-					numberOfEligibleBranches++;
-					break;
-				}
-				
-				boolean isMethodCallOnParameter = false;
-				if (isMethodCallOnParameter) {
+				boolean isTransitiveCase = checkIfTransitiveChainOfParameter(operand);
+				if (isTransitiveCase) {
 					numberOfEligibleBranches++;
 					break;
 				}
@@ -155,8 +130,66 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		boolean isNumberOfConstantsOverThreshold = (numberOfConstantsInClass >= CONSTANT_COUNT_THRESHOLD);
 		boolean isNumberOfEligibleBranchesOverThreshold = (numberOfEligibleBranches >= BRANCH_COUNT_THRESHOLD);
 		
-		log.debug("[" + className + "#" + methodName + "]: {" + numberOfConstantsInClass + ", " + numberOfEligibleBranches + "}");
+		log.debug("[" + className + "#" + methodName + "]: {" + numberOfConstantsInClass + ", " + numberOfEligibleBranches + ", " + (isNumberOfConstantsOverThreshold && isNumberOfEligibleBranchesOverThreshold) + "}");
 		return isNumberOfConstantsOverThreshold && isNumberOfEligibleBranchesOverThreshold;
+	}
+	
+	/**
+	 * Returns the "head" of the transitive chain by looking upwards from the given instruction.
+	 * For example, given methodParameter.nestedParameter.deeplyNestedParameter.methodCall() (the instruction
+	 * corresponding to the method call), this method should return the instruction corresponding to the loading
+	 * of the parameter onto the stack.
+	 * 
+	 * @param operand The instruction to begin looking from.
+	 * @return The head of the transitive chain.
+	 */
+	private static BytecodeInstruction getHeadOfTransitiveChain(BytecodeInstruction operand) {
+		// The (current) idea is that we do some kind of backtracking.
+		// We start at the "bottom" of the chain = the operand. 
+		// - If the operand is a method call, go "upwards" using operand.getSourceOfMethodInvocationInstruction
+		// - If the operand is a field access, ???
+		// - Otherwise, check if the operand is a parameter. If it is, return true, else false.
+		// Repeat this process until we arrive at the end (can't go up the chain any further), then check if the head is a parameter.
+		BytecodeInstruction currentInstruction = operand;
+		boolean isCurrentInstructionMethodCall = currentInstruction.isMethodCall();
+		boolean isCurrentInstructionFieldUse = currentInstruction.isFieldUse();
+		while (isCurrentInstructionMethodCall || isCurrentInstructionFieldUse) {
+			if (isCurrentInstructionMethodCall) {
+				currentInstruction = currentInstruction.getSourceOfMethodInvocationInstruction();
+			} else if (isCurrentInstructionFieldUse) {
+				// Not sure if this works?
+				currentInstruction = currentInstruction.getPreviousInstruction();
+			}
+			
+			// We've hit some unexpected state
+			// Return a null value (error).
+			if (currentInstruction == null) {
+				return currentInstruction;
+			}
+			
+			isCurrentInstructionMethodCall = currentInstruction.isMethodCall();
+			isCurrentInstructionFieldUse = currentInstruction.isFieldUse();
+		}
+		return currentInstruction;
+	}
+	
+	
+	/**
+	 * Checks if the operand matches a "transitive chain" of a parameter i.e. something of the form
+	 * parameter.foo().bar.baz() etc. This method will not be able to determine if the operand is something
+	 * of the form foo(parameter).bar.baz(). This method will also not be able to determine if the operand was
+	 * defined before use in the branch.
+	 * 
+	 * @param operand The operand to check.
+	 * @return {@code true} if the operand is a transitive chain of the parameter, and {@code false} otherwise.
+	 */
+	private static boolean checkIfTransitiveChainOfParameter(BytecodeInstruction operand) {
+		BytecodeInstruction headOfChain = getHeadOfTransitiveChain(operand);
+		if (headOfChain == null) {
+			return false;
+		}
+		
+		return headOfChain.isParameter();
 	}
 	
 	private void forceEvosuiteToLoadClassAndMethod(String className, String methodName) {
