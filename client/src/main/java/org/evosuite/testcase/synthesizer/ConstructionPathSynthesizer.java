@@ -165,9 +165,9 @@ public class ConstructionPathSynthesizer {
 		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-			if(node.isTaint) {
-				continue;
-			}
+//			if(node.isTaint) {
+//				continue;
+//			}
 			
 //			logger.warn(String.valueOf(c) + ":" + node.toString());
 			if(c==11) {
@@ -187,7 +187,7 @@ public class ConstructionPathSynthesizer {
 				VariableReference callerObject = getCallerObject(map, node);
 				deriveCodeForTest(map, test, callerObject, node, b, allowNullValue);
 				
-				partialGraph.taint(map, node, test, callerObject);
+//				partialGraph.taint(map, node, test, callerObject);
 				
 				logTest(test, b, isDebugger, c, node);
 				
