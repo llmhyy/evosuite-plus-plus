@@ -120,12 +120,12 @@ public class PartialGraph {
 	 */
 	public void taint(Map<DepVariableWrapper, List<VariableReference>> map, 
 			DepVariableWrapper node, TestCase test, VariableReference callerObject) {
-		node.isTaint = true;
+		node.processed = true;
 		
 		List<DepVariableWrapper> leaves = getLeaves();
 		for(DepVariableWrapper leaf: leaves) {
 			if(map.containsKey(leaf)) {
-				leaf.isTaint = true;
+				leaf.processed = true;
 			}
 			else {
 				DepVariableWrapper taintedParent = leaf.findTaintedParent();
@@ -138,7 +138,7 @@ public class PartialGraph {
 					List<VariableReference> varList = leaf.findCorrespondingVariables(test, true, callerObj, map);
 					
 					if(!varList.isEmpty()) {
-						leaf.isTaint = true;
+						leaf.processed = true;
 					}
 					
 				}
@@ -154,17 +154,17 @@ public class PartialGraph {
 		while(change) {
 			change = false;
 			for(DepVariableWrapper node: allRelevantNodes.keySet()) {
-				if(!node.isTaint && !node.children.isEmpty()) {
+				if(!node.processed && !node.children.isEmpty()) {
 					boolean isAllChildrenTaint = true;
 					for(DepVariableWrapper child: node.children) {
-						if(!child.isTaint) {
+						if(!child.processed) {
 							isAllChildrenTaint = false;
 							break;
 						}						
 					}
 					
 					if(isAllChildrenTaint) {
-						node.isTaint = true;
+						node.processed = true;
 						change = true;
 					}
 				}

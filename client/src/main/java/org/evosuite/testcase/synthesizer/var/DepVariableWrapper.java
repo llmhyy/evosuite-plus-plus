@@ -7,6 +7,7 @@ import java.util.Map;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.synthesizer.VariableInTest;
 import org.evosuite.testcase.variable.VariableReference;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -20,13 +21,13 @@ public abstract class DepVariableWrapper {
 	/**
 	 * It means the variable has been accessed by the code of the enriching test code
 	 */
-	public boolean isTaint = false;
+	public boolean processed = false;
 	
 	protected DepVariableWrapper(DepVariable var) {
 		this.var = var;
 	}
 	
-	public abstract List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableReference callerObject,
+	public abstract List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
 			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue);
 	
 	public List<VariableReference> findCorrespondingVariables(TestCase test, boolean isLeaf, VariableReference callerObject, 
@@ -191,7 +192,7 @@ public abstract class DepVariableWrapper {
 		DepVariableWrapper firstPar = this.getFirstParent(); 
 		if(firstPar == null) return null;
 		
-		while(!firstPar.isTaint) {
+		while(!firstPar.processed) {
 			firstPar = firstPar.getFirstParent();
 			
 			if(firstPar == null) return null;
