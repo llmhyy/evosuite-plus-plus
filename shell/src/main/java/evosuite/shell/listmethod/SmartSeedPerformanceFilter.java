@@ -12,12 +12,15 @@ import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHandler;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.ConstantPoolManager;
 import org.evosuite.seeding.StaticConstantPool;
@@ -68,10 +71,6 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		DependencyAnalysis.clear();
 		clearAllPools();
 		
-		if (className.contains("NestedObjectConstructionTest")) {
-			System.currentTimeMillis();
-		}
-		
 		// New logic to filter methods
 		// 1) Check if the number of constants meets a predefined threshold
 		// 2) Check if the branch has input-related instructions in branch operands
@@ -94,7 +93,6 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
         
         // Force Evosuite to load specific class and method
 		forceEvosuiteToLoadClassAndMethod(className, methodName);
-		
 		// At this point, the dependency analysis should be complete (assumed).
 		// Now we wish to check how many constants the class has.
 		long numberOfConstantsInClass = getNumberOfConstantsInClass(className);
@@ -118,6 +116,9 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 	 * @return The head of the transitive chain.
 	 */
 	private static BytecodeInstruction getHeadOfTransitiveChain(BytecodeInstruction operand) {
+		// What if the operand is a static variable/field variable of class of method?
+		// Need to account for that as well
+		
 		// The (current) idea is that we do some kind of backtracking.
 		// We start at the "bottom" of the chain = the operand. 
 		// - If the operand is a method call, go "upwards" using operand.getSourceOfMethodInvocationInstruction
@@ -172,7 +173,7 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		try {
 			Properties.TARGET_CLASS = className;
 			Properties.TARGET_METHOD = methodName;
-			DependencyAnalysis.analyzeClass(className, Arrays.asList(cp.split(File.pathSeparator)));
+			DependencyAnalysis.analyzeClassForFilter(className, Arrays.asList(cp.split(File.pathSeparator)));
 		} catch (ClassNotFoundException | RuntimeException e) {
 			e.printStackTrace();
 		}
@@ -200,16 +201,21 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		return pools;
 	}
 	
-	private boolean isBranchEligible(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode) {
+	private boolean isBranchEligible(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode, Set<DepVariable> dependentVariables) {
+		if (dependentVariables == null) {
+			// We can't do the dataflow analysis using InterproceduralGraphAnalysis if we can't 
+			// get the set of dependent variables for this branch. In this case, fallback to 
+			// direct instruction analysis
+			return checkIfBranchIsEligibleWithoutInterproceduralGraphAnalysis(branch, cfg, methodNode);
+		}
+		
 		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
-		// Possible cases:
-		// 1) The operand is a parameter (e.g. if (methodParam == ...))
-		// 2) The operand is a transitive field/method call of a parameter 
-		//    (e.g. if (methodParam.foo.bar().baz == ...))
-		// 2a) The operand is a (potentially transitive) method call on a parameter 
-		//     (e.g. if (foo(methodParam.bar.baz()) == ...))
-		//     We can't check for this case for now
-
+		return false;		
+	}
+	
+	private boolean checkIfBranchIsEligibleWithoutInterproceduralGraphAnalysis(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode) {
+		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
+		
 		for (BytecodeInstruction operand : operands) {
 			boolean isOperandParameter = operand.isParameter();
 			if (isOperandParameter) {
@@ -228,8 +234,11 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 	private List<BytecodeInstruction> getEligibleBranchesInMethod(String className, String methodName, ActualControlFlowGraph cfg, MethodNode node) {
 		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg); 
 		List<BytecodeInstruction> eligibleBranches = new ArrayList<>();
+		Map<Branch, Set<DepVariable>> branchToDependentVariables = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(methodName);
 		for (BytecodeInstruction branch : branches) {
-			boolean isCurrentBranchEligible = isBranchEligible(branch, cfg, node);
+			Branch branchAsBranch = branch.toBranch();
+			Set<DepVariable> dependentVariables = (branchToDependentVariables == null ? null : branchToDependentVariables.get(branchAsBranch));
+			boolean isCurrentBranchEligible = isBranchEligible(branch, cfg, node, dependentVariables);
 			if (isCurrentBranchEligible) {
 				eligibleBranches.add(branch);
 			}
@@ -266,58 +275,6 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		long constantCount = (insideClassPool.poolSize() + outsideClassPool.poolSize());
 		classToNumberOfConstants.put(key,  constantCount);
 		return constantCount;
-	}
-	
-	/**
-	 * Returns the number of branches with constant operands.
-	 * @param className 
-	 * @param methodName
-	 * @return
-	 */
-	private long getNumberOfEligibleBranchesInMethod(String className, String methodName, ActualControlFlowGraph cfg, MethodNode node) {
-		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg); 
-		int numberOfEligibleBranches = 0;
-		for (BytecodeInstruction branch : branches) {
-			boolean isBranchHasConstantOperands = isBranchHasConstantOperands(branch, cfg, node);
-			if (isBranchHasConstantOperands) {
-				numberOfEligibleBranches++;
-			}
-		}
-		
-		return numberOfEligibleBranches;
-	}
-	
-	/**
-	 * Returns true if the branch has at least one constant operand, but not
-	 * all constant operands i.e.
-	 * 
-	 * while (x == 3) { .. } => true
-	 * while (true) { .. } => false
-	 * while (x == y) { .. } => false
-	 * @param branch
-	 * @return
-	 */
-	private boolean isBranchHasConstantOperands(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {
-		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, node);
-		int numConstantOperands = getNumberOfConstantOperandsFromBranch(branch, cfg, node);
-		
-		boolean isAllOperandsConstant = (numConstantOperands == operands.size());
-		boolean isAtLeastOneOperandConstant = (numConstantOperands > 0);
-		
-		return (!isAllOperandsConstant && isAtLeastOneOperandConstant);
-	}
-	
-	private int getNumberOfConstantOperandsFromBranch(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {
-		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, node);
-		List<BytecodeInstruction> constantOperands = new ArrayList<>();
-		for (BytecodeInstruction operand : operands) {
-			boolean isConstantOperand = operand.isConstant();
-			if (isConstantOperand) {
-				constantOperands.add(operand);
-			}
-		}
-		
-		return constantOperands.size();
 	}
 
 	private static List<BytecodeInstruction> getOperandsFromBranch(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {

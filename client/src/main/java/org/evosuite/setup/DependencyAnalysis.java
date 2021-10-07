@@ -161,6 +161,15 @@ public class DependencyAnalysis {
 			InterproceduralGraphAnalysis.initializeDataflow(interestedNodeFilter);
 		}
 	}
+	
+	public static void analyzeClassForFilter(String className, List<String> classPath) throws ClassNotFoundException, RuntimeException {
+		logger.info("Analysing " + className);
+		
+		initInheritanceTree(classPath);
+		analyze(className, classPath);
+		
+		InterproceduralGraphAnalysis.initializeDataflow(new SmartSeedInterestedNodeFilter());
+	}
 
 	/**
 	 * Start analysis from target
