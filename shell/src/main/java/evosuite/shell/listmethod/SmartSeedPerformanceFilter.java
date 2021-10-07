@@ -336,11 +336,6 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 			}
 		}
 		
-		boolean isField = operand.isFieldUse();
-		if (isField) {
-			// TODO
-		}
-		
 		return false;
 	}
 	
