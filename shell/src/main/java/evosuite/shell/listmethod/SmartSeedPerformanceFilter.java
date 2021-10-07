@@ -27,7 +27,9 @@ import org.evosuite.seeding.StaticConstantPool;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
@@ -201,7 +203,148 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		return pools;
 	}
 	
-	private boolean isBranchEligible(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode, Set<DepVariable> dependentVariables) {
+	/**
+	 * Checks if the operand passed in is a dependent variable.
+	 * @param operand The operand to check.
+	 * @param dependentVariables The dependent variables.
+	 * @return {@code true} if the operand corresponds to any of the variables in the set, {@code false} otherwise.
+	 */
+	private static boolean isOperandDependentVariable(BytecodeInstruction operand, Set<DepVariable> dependentVariables) {
+		AbstractInsnNode operandNode = operand.getASMNode();
+		if (operandNode == null) {
+			return false;
+		}
+		boolean isOperandNodeField = operandNode instanceof FieldInsnNode;
+		boolean isOperandNodeParameter = operandNode instanceof VarInsnNode;
+		boolean isOperandIload = operand.getInstructionType().equals("ILOAD");
+		
+		for (DepVariable dependentVariable : dependentVariables) {		
+			BytecodeInstruction dependentVariableInstruction = dependentVariable.getInstruction();
+			if (dependentVariableInstruction == null) {
+				continue;
+			}
+			AbstractInsnNode dependentVariableNode = dependentVariableInstruction.getASMNode();
+			if (dependentVariableNode == null) {
+				continue;
+			}
+			
+			if (isOperandNodeField) {
+				FieldInsnNode operandFieldNode = (FieldInsnNode) operandNode;
+				boolean isDependentVariableNodeField = (dependentVariableNode instanceof FieldInsnNode);
+				if (!isDependentVariableNodeField) {
+					continue;
+				}
+				
+				FieldInsnNode dependentVariableFieldNode = (FieldInsnNode) dependentVariableNode;
+				boolean isVariableNamesMatch = (operandFieldNode.name.equals(dependentVariableFieldNode.name));
+				boolean isOwnersMatch = (operandFieldNode.owner.equals(dependentVariableFieldNode.owner));
+				// We consider the fields to match if their variable names and owners match.
+				if (isVariableNamesMatch && isOwnersMatch) {
+					return true;
+				}
+			}
+			
+			// This case handles precomputing the branch operand e.g.
+			// branchOperand = parameter.someMethod();
+			// if (branchOperand == ...) 
+			// We essentially treat the branch operand as a function, trace upwards and match against
+			if (isOperandIload) {
+				List<BytecodeInstruction> iloadOperands = getOperandsOfMethod(operand);
+				for (BytecodeInstruction iloadOperand : iloadOperands) {
+					if (isOperandDependentVariable(iloadOperand, dependentVariables)) {
+						return true;
+					}
+				}
+			}
+			
+			if (isOperandNodeParameter) {
+				VarInsnNode operandVarNode = (VarInsnNode) operandNode;
+				boolean isDependentVariableNodeParameter = (dependentVariableNode instanceof VarInsnNode);
+				if (!isDependentVariableNodeParameter) {
+					continue;
+				}
+				
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Traces through the method call to get all parameters. This method is not perfect,
+	 * in that it might pick up some operands that are strictly speaking, not parameters of 
+	 * the method. However, the additional operands should be irrelevant.
+	 * 
+	 * @param methodCall The method call to analyse.
+	 * @return A list of parameters.
+	 */
+	private static List<BytecodeInstruction> getOperandsOfMethod(BytecodeInstruction methodCall) {
+		List<BytecodeInstruction> operands = new ArrayList<>();
+		
+		BytecodeInstruction currentInstruction = methodCall.getPreviousInstruction();
+		while (currentInstruction != null) {
+			operands.add(currentInstruction);
+			currentInstruction = currentInstruction.getPreviousInstruction();
+		}
+		
+		return operands;
+	}
+	
+	/**
+	 * Checks if an operand is eligible. We define an operand to be eligible if 
+	 * it is a transitive method call/field use from a method input i.e. of the form
+	 * methodInput.foo.bar().baz for arbitrary chains of method calls and field accesses.
+	 * 
+	 * @param operand The operand to check.
+	 * @return {@code true} if the operand is eligible, {@code false} otherwise.
+	 */
+	private static boolean isOperandEligible(BytecodeInstruction operand, Set<DepVariable> dependentVariables) {
+		// Ignore constants
+		boolean isConstant = operand.isConstant();
+		if (isConstant) {
+			return false;
+		}
+		
+		// Check if the operand is one of our dependent variables
+		boolean isDependentVariable = isOperandDependentVariable(operand, dependentVariables);
+		if (isDependentVariable) {
+			return true;
+		}
+		
+		// Possible cases for when the operand is a method call
+		// 1) input.foo.baz.bar()
+		// 2) someMethod(parameter.foo)
+		// We need to distinguish between the two and treat them differently
+		boolean isMethodCall = operand.isMethodCall();
+		if (isMethodCall) {
+			// We check the first case by tracing the ancestor object
+			// If it is non-null and parameter or field, then we know
+			// it's the first case. Else we check for the second case.
+			BytecodeInstruction ancestorObject = getHeadOfTransitiveChain(operand);
+			boolean isTransitiveMethodCallOnMethodInput = ((ancestorObject != null) && (ancestorObject.isParameter() || ancestorObject.isFieldUse()));
+			if (isTransitiveMethodCallOnMethodInput) {
+				return true;
+			}
+			
+			// We check the second case by sifting through all the operands of the method call
+			// For each, we run the same procedure.
+			List<BytecodeInstruction> methodOperands = getOperandsOfMethod(operand);
+			for (BytecodeInstruction methodOperand : methodOperands) {
+				boolean isMethodOperandEligible = isOperandEligible(methodOperand, dependentVariables);
+				if (isMethodOperandEligible) {
+					return true;
+				}
+			}
+		}
+		
+		boolean isField = operand.isFieldUse();
+		if (isField) {
+			// TODO
+		}
+		
+		return false;
+	}
+	
+	private static boolean isBranchEligible(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode, Set<DepVariable> dependentVariables) {
 		if (dependentVariables == null) {
 			// We can't do the dataflow analysis using InterproceduralGraphAnalysis if we can't 
 			// get the set of dependent variables for this branch. In this case, fallback to 
@@ -210,10 +353,21 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		}
 		
 		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
+		if (methodNode.name.equals("otherTransitiveChainExample")) {
+			System.currentTimeMillis();
+		}
+		
+		for (BytecodeInstruction operand : operands) {
+			boolean isOperandEligible = isOperandEligible(operand, dependentVariables);
+			if (isOperandEligible) {
+				return true;
+			}
+		}
+		
 		return false;		
 	}
 	
-	private boolean checkIfBranchIsEligibleWithoutInterproceduralGraphAnalysis(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode) {
+	private static boolean checkIfBranchIsEligibleWithoutInterproceduralGraphAnalysis(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode) {
 		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
 		
 		for (BytecodeInstruction operand : operands) {
@@ -236,8 +390,7 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		List<BytecodeInstruction> eligibleBranches = new ArrayList<>();
 		Map<Branch, Set<DepVariable>> branchToDependentVariables = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(methodName);
 		for (BytecodeInstruction branch : branches) {
-			Branch branchAsBranch = branch.toBranch();
-			Set<DepVariable> dependentVariables = (branchToDependentVariables == null ? null : branchToDependentVariables.get(branchAsBranch));
+			Set<DepVariable> dependentVariables = getDependentVariablesByBranch(branch, branchToDependentVariables);
 			boolean isCurrentBranchEligible = isBranchEligible(branch, cfg, node, dependentVariables);
 			if (isCurrentBranchEligible) {
 				eligibleBranches.add(branch);
@@ -245,6 +398,96 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		}
 		
 		return eligibleBranches;
+	}
+	
+	/*
+	 * The way that the InterproceduralGraphAnalysis and the filter was set up means that the two use
+	 * different ClassLoaders, so we have to account for when the two branches (either in Branch or BytecodeInstruction format)
+	 * refer to the same branch, but aren't formally equal (they might not even have the same hashcode). This
+	 * method aims to check if such a situation occurs, and retrieve the correct set of dependent variables in that case.
+	 * As such, it can be quite slow in the event that it occurs (O(n) traversal of the key set).
+	 */
+	private static Set<DepVariable> getDependentVariablesByBranch(BytecodeInstruction branch, Map<Branch, Set<DepVariable>> branchToDependentVariables) {
+		// Nothing we can do if this happens.
+		if (branchToDependentVariables == null) {
+			return null;
+		}
+		Branch branchAsBranch = branch.toBranch();
+		Set<DepVariable> attemptAtGettingDependentVariables = branchToDependentVariables.get(branchAsBranch);
+		if (attemptAtGettingDependentVariables != null) {
+			// Jackpot
+			return attemptAtGettingDependentVariables;
+		}
+		
+		// Need to identify the two branches
+		for (Map.Entry<Branch, Set<DepVariable>> entry : branchToDependentVariables.entrySet()) {
+			Branch currentBranch = entry.getKey();
+			boolean isBranchesWeaklyEqual = weakEquals(currentBranch, branchAsBranch);
+			if (isBranchesWeaklyEqual) {
+				return entry.getValue();
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Weaker form of identification of branches. Checks equality of
+	 * 1) Branch id
+	 * 2) Class name
+	 * 3) Method name
+	 * 4) Line number
+	 * 
+	 * @param branch The first branch to compare.
+	 * @param otherBranch The second branch to compare.
+	 * @returns {@code true} if the two branches are weakly equal, {@code false} otherwise.
+	 */
+	private static boolean weakEquals(Branch branch, Branch otherBranch) {
+		int branchId = branch.getActualBranchId();
+		String className = branch.getClassName();
+		String methodName = branch.getMethodName();
+		BytecodeInstruction instruction = branch.getInstruction();
+		int lineNumber = (instruction == null ? -1 : instruction.getLineNumber());
+		if (className == null) {
+			className = "className";
+		}
+		if (methodName == null) {
+			methodName = "methodName";
+		}
+		
+		int otherBranchId = branch.getActualBranchId();
+		String otherClassName = branch.getClassName();
+		String otherMethodName = branch.getMethodName();
+		BytecodeInstruction otherInstruction = branch.getInstruction();
+		int otherLineNumber = (otherInstruction == null ? -2 : otherInstruction.getLineNumber());
+		if (otherClassName == null) {
+			otherClassName = "otherClassName";
+		}
+		if (otherMethodName == null) {
+			otherMethodName = "otherMethodName";
+		}
+		
+		boolean isBranchIdsMatch = (branchId == otherBranchId);
+		if (!isBranchIdsMatch) {
+			return false;
+		}
+		
+		boolean isClassNamesMatch = (className.equals(otherClassName));
+		if (!isClassNamesMatch) {
+			return false;
+		}
+		
+		boolean isMethodNamesMatch = (methodName.equals(otherMethodName));
+		if (!isMethodNamesMatch) {
+			return false;
+		}
+		
+		boolean isLineNumbersMatch = (lineNumber == otherLineNumber);
+		if (!isLineNumbersMatch) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	private long getNumberOfConstantsInClass(String className) {
