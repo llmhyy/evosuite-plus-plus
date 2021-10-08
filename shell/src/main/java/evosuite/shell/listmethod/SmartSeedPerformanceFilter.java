@@ -104,7 +104,8 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		long numberOfEligibleBranches = eligibleBranches.size();
 		boolean isNumberOfEligibleBranchesOverThreshold = (numberOfEligibleBranches >= BRANCH_COUNT_THRESHOLD);
 		
-		log.debug("[" + className + "#" + methodName + "]: {" + numberOfConstantsInClass + ", " + numberOfEligibleBranches + ", " + (isNumberOfConstantsOverThreshold && isNumberOfEligibleBranchesOverThreshold) + "}");
+		String debugOutput = "[" + className + "#" + methodName + "]: {" + numberOfConstantsInClass + ", " + numberOfEligibleBranches + ", " + (isNumberOfConstantsOverThreshold && isNumberOfEligibleBranchesOverThreshold) + "}";
+		log.debug(debugOutput);
 		return isNumberOfConstantsOverThreshold && isNumberOfEligibleBranchesOverThreshold;
 	}
 	
@@ -264,8 +265,20 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 					continue;
 				}
 				
+				VarInsnNode dependentVariableVarNode = (VarInsnNode) dependentVariableNode;
+				// We check if the following values match between the nodes
+				// 1) the local variable position
+				// 2) opcode
+				// The idea is that both should be the same opcode (*LOAD) and the same local variable position
+				boolean isLocalVarIndexEqual = (operandVarNode.var == dependentVariableVarNode.var);
+				boolean isOpcodesEqual = (operandVarNode.getOpcode() == dependentVariableVarNode.getOpcode());
+				boolean isWeaklyEqual = (isLocalVarIndexEqual && isOpcodesEqual);
+				if (isWeaklyEqual) {
+					return true;
+				}
 			}
 		}
+		
 		return false;
 	}
 	
@@ -348,9 +361,6 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		}
 		
 		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
-		if (methodNode.name.equals("otherTransitiveChainExample")) {
-			System.currentTimeMillis();
-		}
 		
 		for (BytecodeInstruction operand : operands) {
 			boolean isOperandEligible = isOperandEligible(operand, dependentVariables);
