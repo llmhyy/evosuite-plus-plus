@@ -211,14 +211,7 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 	}
 	
 	private static boolean isBranchEligible(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode, Set<DepVariable> dependentVariables) {
-		// First filter the dependent variables
-		// Sometimes we have some irrelevant variables in our set
-		if (dependentVariables != null) {
-			dependentVariables.removeIf(depVariable -> {
-				return depVariable.getName().equals("$unknown");
-			});
-		}
-		if (dependentVariables == null || dependentVariables.size() == 0) {
+		if (dependentVariables == null) {
 			// We can't do the dataflow analysis using InterproceduralGraphAnalysis if we can't 
 			// get the set of dependent variables for this branch. In this case, fallback to 
 			// direct instruction analysis
@@ -234,7 +227,8 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 			}
 		}
 		
-		return false;		
+		// If dependency analysis fails, try the backup method
+		return checkIfBranchIsEligibleWithoutInterproceduralGraphAnalysis(branch, cfg, methodNode);		
 	}
 	
 	private static boolean checkIfBranchIsEligibleWithoutInterproceduralGraphAnalysis(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode) {
