@@ -24,6 +24,7 @@ import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.synthesizer.VariableInTest;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.VariableReference;
@@ -34,6 +35,8 @@ import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.FieldInsnNode;
 
+import javassist.bytecode.Bytecode;
+
 public class ArrayElementVariableWrapper extends DepVariableWrapper {
 
 	protected ArrayElementVariableWrapper(DepVariable var) {
@@ -41,10 +44,11 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 	}
 
 	@Override
-	public List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableReference callerObject,
+	public List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
 			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+		
 		try {
-			return generateArrayElementStatement(test, isLeaf, callerObject);
+			return generateArrayElementStatement(test, isLeaf, variable);
 		} catch (ConstructionFailedException e) {
 			e.printStackTrace();
 		}
@@ -53,90 +57,73 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 	}
 
 	private List<VariableReference> generateArrayElementStatement(TestCase test, boolean isLeaf,
-			VariableReference callerObject) throws ConstructionFailedException {
-		Statement stat = test.getStatement(callerObject.getStPosition());
+			VariableInTest variable) throws ConstructionFailedException {
+		Statement stat = test.getStatement(variable.callerObject.getStPosition());
 		if(stat instanceof NullStatement) {
 			List<VariableReference> list = new ArrayList<>();
 			list.add(stat.getReturnValue());
 			return list;
 		}
 		
-		if(this.var.getType() == DepVariable.PARAMETER) {
-			List<VariableReference> usedArrayElementList = searchUsedArrayElementReference(test, callerObject);
-			if(!usedArrayElementList.isEmpty()) {
-				return usedArrayElementList;
-			}
+		
+		int opcodeRead = this.var.getInstruction().getASMNode().getOpcode();			
+		int opcodeWrite = getCorrespondingWriteOpcode(opcodeRead);
+		Statement statement = test.getStatement(variable.callerObject.getStPosition());
+
+		/**
+		 * check reused array element
+		 */
+		List<VariableReference> usedArrayElementList = searchUsedArrayElementReference(test, variable);
+		if(!usedArrayElementList.isEmpty()) {
+			return usedArrayElementList;
 		}
 		
-		if (callerObject instanceof ArrayReference) {
-			int opcodeRead = this.var.getInstruction().getASMNode().getOpcode();			
-			int opcodeWrite = getCorrespondingWriteOpcode(opcodeRead);
-			VariableReference realParentRef = null;
-			Statement statement = test.getStatement(callerObject.getStPosition());
-
-			if (statement instanceof MethodStatement) {
-				MethodStatement mStatement = (MethodStatement) statement;
-				realParentRef = mStatement.getCallee();
-			}
-			
-			List<VariableReference> usedArrayElementList = searchUsedArrayElementReference(test, callerObject);
-			if(!usedArrayElementList.isEmpty()) {
-				return usedArrayElementList;
-			}
-			
-			double prob = Randomness.nextDouble();
-			if (realParentRef  != null && prob > 0.8) {
+		List<VariableReference> usedArrayRefs = isLeaf
+				? searchArrayElementWritingReference(test, variable, opcodeWrite)
+				: searchArrayElementReadingReference(test, variable, opcodeRead);
+		if (usedArrayRefs != null && !usedArrayRefs.isEmpty()) {
+			return usedArrayRefs;
+		}
+		
+		double prob = Randomness.nextDouble();
+		if (prob > 0.8) {
+			if (isLeaf) {
 				/**
-				 * check reused array element
+				 * generate setter
 				 */
-				VariableReference usedArrayRef = isLeaf
-						? searchArrayElementWritingReference(test, callerObject, realParentRef, opcodeWrite)
-						: searchArrayElementReadingReference(test, callerObject, realParentRef, opcodeRead);
-				if (usedArrayRef != null) {
-					VariableReference generatedVariable = isLeaf ? null : usedArrayRef;
+				Method setter = searchSetterForArrayElement(test, realParentRef, opcodeWrite, variable);
+				if (setter != null) {
+					GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
+					TestFactory.getInstance().addMethodFor(test, realParentRef, gMethod,
+							realParentRef.getStPosition() + 1, false);
+					return null;
+				}
+			} else {
+				/**
+				 * generate getter
+				 */
+				Method getter = searchGetterForArrayElement(test, realParentRef, opcodeRead, variable);
+				if (getter != null) {
+					VariableReference newParentVarRef = null;
+					GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
+					newParentVarRef = TestFactory.getInstance().addMethodFor(test, realParentRef, gMethod,
+							realParentRef.getStPosition() + 1, false);
+//					V newParentVarRef;
 					List<VariableReference> vars = new ArrayList<>();
-					if(generatedVariable != null) {
-						vars.add(generatedVariable);						
+					if(newParentVarRef != null) {
+						vars.add(newParentVarRef);						
 					}
 					return vars;
 				}
-
-				if (isLeaf) {
-					/**
-					 * generate setter
-					 */
-					Method setter = searchSetterForArrayElement(test, realParentRef, opcodeWrite);
-					if (setter != null) {
-						GenericMethod gMethod = new GenericMethod(setter, setter.getDeclaringClass());
-						TestFactory.getInstance().addMethodFor(test, realParentRef, gMethod,
-								realParentRef.getStPosition() + 1, false);
-						return null;
-					}
-				} else {
-					/**
-					 * generate getter
-					 */
-					Method getter = searchGetterForArrayElement(test, realParentRef, opcodeRead);
-					if (getter != null) {
-						VariableReference newParentVarRef = null;
-						GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
-						newParentVarRef = TestFactory.getInstance().addMethodFor(test, realParentRef, gMethod,
-								realParentRef.getStPosition() + 1, false);
-//						V newParentVarRef;
-						List<VariableReference> vars = new ArrayList<>();
-						if(newParentVarRef != null) {
-							vars.add(newParentVarRef);						
-						}
-						return vars;
-					}
-					return null;
-				}
+				return null;
 			}
-			/**
-			 * direct set
-			 */
-			else{
-				ArrayReference arrayRef = (ArrayReference) callerObject;
+		}
+		/**
+		 * have a try to set array element directly
+		 */
+		else{
+			if (variable.callerObject instanceof ArrayReference) {
+				ArrayReference arrayRef = (ArrayReference) variable.callerObject;
 				int length = arrayRef.getArrayLength();
 				if(arrayRef.getArrayLength() <= 0) {
 					length = Randomness.nextInt(10) + 1;
@@ -162,25 +149,29 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 		return null;
 	}
 
-	private List<VariableReference> searchUsedArrayElementReference(TestCase test, VariableReference arrayObject) {
+	private List<VariableReference> searchUsedArrayElementReference(TestCase test, VariableInTest variable) {
 		List<VariableReference> elementList = new ArrayList<>();
-		for(int i=0; i<test.size(); i++) {
-			Statement statement = test.getStatement(i);
-			if(statement instanceof AssignmentStatement) {
-				AssignmentStatement aStat = (AssignmentStatement)statement;
-				VariableReference var = aStat.getReturnValue();
-				if(var.isArrayIndex()) {
-					if(var instanceof ArrayIndex) {
-						ArrayIndex index = (ArrayIndex)var;
-						if(index.getArray().equals(arrayObject)) {
-							elementList.add(aStat.getValue());
+		if(variable.callerObject instanceof ArrayReference && variable.nodePath.size()==1) {
+			ArrayReference arrayObject = (ArrayReference)variable.callerObject;
+			for(int i=0; i<test.size(); i++) {
+				Statement statement = test.getStatement(i);
+				if(statement instanceof AssignmentStatement) {
+					AssignmentStatement aStat = (AssignmentStatement)statement;
+					VariableReference var = aStat.getReturnValue();
+					if(var.isArrayIndex()) {
+						if(var instanceof ArrayIndex) {
+							ArrayIndex index = (ArrayIndex)var;
+							if(index.getArray().equals(arrayObject)) {
+								elementList.add(aStat.getValue());
+							}
 						}
+						
+						System.currentTimeMillis();
 					}
-					
-					System.currentTimeMillis();
 				}
 			}
 		}
+		
 		return elementList;
 	}
 
@@ -210,34 +201,50 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 		return Randomness.choice(targetMethods);
 	}
 
-	private VariableReference searchArrayElementWritingReference(TestCase test, VariableReference parentVarRef, VariableReference realParentRef, int opcodeWrite) {
-		/*
-		 * AASTORE, BASTORE, CASTORE, DASTORE, FASTORE, IASTORE, LASTORE, SASTORE
+	/**
+	 * AASTORE, BASTORE, CASTORE, DASTORE, FASTORE, IASTORE, LASTORE, SASTORE
+	 */
+	private List<VariableReference> searchArrayElementWritingReference(TestCase test, VariableInTest variable, int opcodeWrite) {
+		
+		List<VariableReference> variableList = new ArrayList<VariableReference>(); 
+		/**
+		 * check array[*] = ....;, and collect all array[*]
 		 */
-		for (int i = 0;i < test.size(); i ++) {
-			Statement stat = test.getStatement(i);
-			// check directly writing
-			if (stat instanceof AssignmentStatement) {
-				AssignmentStatement assignStat = (AssignmentStatement) stat;
-				for (VariableReference varRef : assignStat.getVariableReferences()) {
-					if (varRef.equals(parentVarRef)) {
-						return assignStat.getReturnValue();
-					}
-				}
-			} 
-			// check writing through method call
-			else if (stat instanceof MethodStatement) {
-				MethodStatement mStat = (MethodStatement) stat;
-				VariableReference ref = mStat.getCallee();
-				if (ref != null && ref.equals(realParentRef)) {
-					boolean isValid = checkValidArrayElementSetter(mStat.getMethod().getMethod(), opcodeWrite);
-					if (isValid) {
-						return mStat.getReturnValue();
-					}
-				}
+		if(variable.isDirentNodeAccess() && variable.callerObject instanceof ArrayReference) {
+			for (int i = 0;i < test.size(); i ++) {
+				Statement stat = test.getStatement(i);
+				if (stat instanceof AssignmentStatement) {
+					AssignmentStatement assignStat = (AssignmentStatement) stat;
+					for (VariableReference varRef : assignStat.getVariableReferences()) {
+						if (varRef.equals(variable.callerObject)) {
+							variableList.add(assignStat.getReturnValue());
+						}
+					}		
+				} 
 			}
 		}
-		return null;
+		/**
+		 * check obj.m() which assign the array element
+		 */
+		else {
+			for (int i = 0;i < test.size(); i ++) {
+				Statement stat = test.getStatement(i);
+				if (stat instanceof MethodStatement) {
+					MethodStatement mStat = (MethodStatement) stat;
+					VariableReference ref = mStat.getCallee();
+					if (ref != null && ref.equals(variable.callerObject)) {
+						Integer parameterPosition = checkValidArrayElementSetter(mStat.getMethod().getMethod(), opcodeWrite, variable);
+						if(parameterPosition != -1) {
+							VariableReference param = mStat.getParameterReferences().get(parameterPosition);
+							variableList.add(param);
+						}
+						
+					}	
+				} 
+			}
+		}
+		
+		return variableList;
 	}
 
 	private int getCorrespondingWriteOpcode(int opcodeRead) {
@@ -272,46 +279,89 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 	 * @param opcodeWrite
 	 * @return
 	 */
-	private boolean checkValidArrayElementSetter(Method method, 
-			int opcodeWrite) {
-		boolean isValid = false;
-		DepVariable parentVar = this.parents.get(0).var;
-		if (parentVar.getType() != DepVariable.INSTANCE_FIELD && parentVar.getType() != DepVariable.STATIC_FIELD) {
-			return false;
-		}
+	private Integer checkValidArrayElementSetter(Method method, 
+			int opcodeWrite, VariableInTest variable) {
+		
 		String className = method.getDeclaringClass().getCanonicalName();
 		String methodName = method.getName() + MethodUtil.getSignature(method);
-		FieldInsnNode parentFNode = (FieldInsnNode) parentVar.getInstruction().getASMNode();
+		
 		List<BytecodeInstruction> insList = BytecodeInstructionPool
 				.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 				.getAllInstructionsAtMethod(className, methodName);
-		if (insList == null && RuntimeInstrumentation.checkIfCanInstrument(className)) {
+		if (insList == null /* && RuntimeInstrumentation.checkIfCanInstrument(className) */) {
 			GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
 			insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 					.getAllInstructionsAtMethod(className, methodName);
 		}
+		
 		if (insList != null) {
 			for (BytecodeInstruction ins : insList) {
 				// *ASTORE
 				if (ins.getASMNode().getOpcode() == opcodeWrite) {
-					for (int i = 0; i < ins.getOperandNum(); i++) {
-						BytecodeInstruction defIns = ins.getSourceOfStackInstruction(i);
-						if (defIns.getASMNode().getOpcode() == Opcodes.ACONST_NULL) {
-							return false;
-						}
-						if (defIns.isFieldUse()) {
-							FieldInsnNode fnode = ((FieldInsnNode) defIns.getASMNode());
-							if (fnode.name.equals(parentFNode.name)) {
-								isValid = true;
-							}
-						}
+					BytecodeInstruction param = isMatchPath(ins, variable);
+					if(param != null) {
+						return param.getParameterPosition();
 					}
+					
 				}
 			}
 		}
-		return isValid;
+		
+		return -1;
 	}
-	
+
+	/**
+	 * check whether this method can cover the instructions on the node path,
+	 * 
+	 * if yes, we return the parameter with dataflow to setting the array element.
+	 * 
+	 * @param ins
+	 * @param variable
+	 * @return
+	 */
+	private BytecodeInstruction isMatchPath(BytecodeInstruction ins, VariableInTest variable) {
+		BytecodeInstruction param = null;
+		/**
+		 * correspond to each node in the path
+		 */
+		boolean[] visitedPath = new boolean[variable.nodePath.size()];
+		int cursor = variable.nodePath.size()-1;
+		visitedPath[cursor] = true;
+		cursor--;
+		
+		while(cursor >= 0) {
+			boolean isValid = false;
+			for (int i = 0; i < ins.getOperandNum(); i++) {
+				BytecodeInstruction defIns = ins.getSourceOfStackInstruction(i);
+				
+				if(defIns.isParameter()) {
+					param = defIns;
+				}
+				
+				if(defIns.equals(variable.nodePath.get(cursor).var.getInstruction())) {
+					cursor--;
+					isValid = true;
+					break;
+				}
+			}
+			
+			if(!isValid) {
+				break;
+			}
+		}
+		
+		boolean isMatch = true;
+		for(int i=0; i<visitedPath.length; i++) {
+			isMatch = isMatch & visitedPath[i];
+		}
+		
+		if(!isMatch) {
+			return null;
+		}
+		
+		return param;
+	}
+
 	/**
 	 * check if current method is a valid getter for array element
 	 * 
@@ -321,7 +371,7 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 	 * @param opcodeRead
 	 * @return
 	 */
-	private boolean checkValidArrayElementGetter(Method method, int opcodeRead) {
+	private boolean checkValidArrayElementGetter(Method method, int opcodeRead, VariableInTest variable) {
 		DepVariable parentVar = this.parents.get(0).var;
 		if (parentVar.getType() != DepVariable.INSTANCE_FIELD && parentVar.getType() != DepVariable.STATIC_FIELD) {
 			return false;
@@ -363,7 +413,7 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 		return false;
 	}
 
-	private VariableReference searchArrayElementReadingReference(TestCase test, VariableReference parentVarRef, VariableReference realParentRef, int opcodeRead) {
+	private VariableReference searchArrayElementReadingReference(TestCase test, VariableInTest variable, int opcodeRead) {
 		/*
 		 * AALOAD, BALOAD, CALOAD, DALOAD, FALOAD, IALOAD, LALOAD, SALOAD
 		 */
@@ -374,8 +424,8 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 				MethodStatement mStat = (MethodStatement) stat;
 				Method method = mStat.getMethod().getMethod();
 				VariableReference ref = mStat.getCallee();
-				if (ref != null && ref.equals(realParentRef)) {
-					boolean isValid = checkValidArrayElementGetter(method, opcodeRead);
+				if (ref != null && ref.equals(variable.callerObject)) {
+					boolean isValid = checkValidArrayElementGetter(method, opcodeRead, variable);
 					if (isValid) {
 						return mStat.getReturnValue();
 					}

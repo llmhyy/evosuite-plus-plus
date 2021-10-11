@@ -203,7 +203,7 @@ public class VariableCodeGenerationUtil {
 							String methodName = cStat.getMethodName() + cStat.getDescriptor();
 //							List<VariableReference> params = 
 //									searcher.searchRelevantParameterOfSetterInTest(pList, fieldDeclaringClass.getCanonicalName(), methodName, field);
-							
+							System.currentTimeMillis();
 							ParameterMatch result = searcher.searchRelevantParameterOfSetterInTest(fieldDeclaringClass.getCanonicalName(), methodName, field);
 							List<VariableReference> paramRefs = new ArrayList<>();
 							for(Integer index: result.parameterPoisitions) {
