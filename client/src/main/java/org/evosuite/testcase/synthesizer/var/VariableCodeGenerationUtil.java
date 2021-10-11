@@ -367,6 +367,7 @@ public class VariableCodeGenerationUtil {
 		
 		String targetClassName = checkTargetClassName(field, targetObjectReference);
 		Executable setter = searchForPotentialSetterInClass(field, targetClassName);
+//		System.currentTimeMillis();
 		if (setter != null && !isTarget(setter)) {
 			if(setter instanceof Method){
 				GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
@@ -384,7 +385,7 @@ public class VariableCodeGenerationUtil {
 				GenericConstructor gConstructor = new GenericConstructor((Constructor)setter,
 						setter.getDeclaringClass());
 				VariableReference returnedVar = TestFactory.getInstance().addConstructor(test, gConstructor,
-						targetObjectReference.getStPosition() + 1, 2);
+						targetObjectReference.getStPosition(), 2);
 
 				for (int i = 0; i < test.size(); i++) {
 					Statement stat = test.getStatement(i);
@@ -465,7 +466,7 @@ public class VariableCodeGenerationUtil {
 		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = potentialSetter.difficultyList;
 		List<Set<Integer>> numberOfValidParams = potentialSetter.numberOfValidParams;
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 		if(!fieldSettingMethods.isEmpty()){
 //			Executable entry = Randomness.choice(fieldSettingMethods);
