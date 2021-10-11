@@ -112,7 +112,7 @@ public class SF100OverallTest {
 	public void testCustom() {
 		String projectId = SF100Project.P0;
 		String[] targetMethods = new String[]{
-			"org.example.custom.NestedObjectConstructionTest#myMethod(Lorg/example/custom/NestedObject;)V"
+			"org.example.custom.BasicRules#checkRules(Lorg/example/custom/Action;Lorg/example/custom/GameState;)Z"
 		};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();

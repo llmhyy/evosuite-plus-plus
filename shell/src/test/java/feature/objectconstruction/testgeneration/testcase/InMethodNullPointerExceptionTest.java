@@ -49,7 +49,7 @@ import de.paragon.explorer.model.AttributeModel;
 import de.paragon.explorer.model.AttributeModelComparator;
 import dk.statsbiblioteket.summa.common.util.CollatorFactory;
 
-public class NullPointerExceptionTest {
+public class InMethodNullPointerExceptionTest {
 	/*
 	 * null parameter (event0) passed to constructor
 	 */
