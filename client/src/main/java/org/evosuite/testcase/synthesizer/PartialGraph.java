@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.interprocedural.ConstructionPath;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
@@ -112,63 +111,63 @@ public class PartialGraph {
 		return this.targetBranch;
 	}
 
-	/**
-	 * 
-	 * @param map 
-	 * @param node 
-	 * @param test
-	 */
-	public void taint(Map<DepVariableWrapper, List<VariableReference>> map, 
-			DepVariableWrapper node, TestCase test, VariableReference callerObject) {
-		node.processed = true;
-		
-		List<DepVariableWrapper> leaves = getLeaves();
-		for(DepVariableWrapper leaf: leaves) {
-			if(map.containsKey(leaf)) {
-				leaf.processed = true;
-			}
-			else {
-				DepVariableWrapper taintedParent = leaf.findTaintedParent();
-				if(taintedParent != null && map.containsKey(taintedParent)) {
-					
-					/**
-					 * cannot use this, aaload
-					 */
-					VariableReference callerObj = map.get(taintedParent).get(0);
-					List<VariableReference> varList = leaf.findCorrespondingVariables(test, true, callerObj, map);
-					
-					if(!varList.isEmpty()) {
-						leaf.processed = true;
-					}
-					
-				}
-			}
-		}
-		
-		propagateTaint();
-	}
+//	/**
+//	 * 
+//	 * @param map 
+//	 * @param node 
+//	 * @param test
+//	 */
+//	public void taint(Map<DepVariableWrapper, List<VariableReference>> map, 
+//			DepVariableWrapper node, TestCase test, VariableReference callerObject) {
+//		node.processed = true;
+//		
+//		List<DepVariableWrapper> leaves = getLeaves();
+//		for(DepVariableWrapper leaf: leaves) {
+//			if(map.containsKey(leaf)) {
+//				leaf.processed = true;
+//			}
+//			else {
+//				DepVariableWrapper taintedParent = leaf.findTaintedParent();
+//				if(taintedParent != null && map.containsKey(taintedParent)) {
+//					
+//					/**
+//					 * cannot use this, aaload
+//					 */
+//					VariableReference callerObj = map.get(taintedParent).get(0);
+//					List<VariableReference> varList = leaf.findCorrespondingVariables(test, true, callerObj, map);
+//					
+//					if(!varList.isEmpty()) {
+//						leaf.processed = true;
+//					}
+//					
+//				}
+//			}
+//		}
+//		
+//		propagateTaint();
+//	}
 	
-	private void propagateTaint() {
-		boolean change = true;
-		
-		while(change) {
-			change = false;
-			for(DepVariableWrapper node: allRelevantNodes.keySet()) {
-				if(!node.processed && !node.children.isEmpty()) {
-					boolean isAllChildrenTaint = true;
-					for(DepVariableWrapper child: node.children) {
-						if(!child.processed) {
-							isAllChildrenTaint = false;
-							break;
-						}						
-					}
-					
-					if(isAllChildrenTaint) {
-						node.processed = true;
-						change = true;
-					}
-				}
-			}
-		}
-	}
+//	private void propagateTaint() {
+//		boolean change = true;
+//		
+//		while(change) {
+//			change = false;
+//			for(DepVariableWrapper node: allRelevantNodes.keySet()) {
+//				if(!node.processed && !node.children.isEmpty()) {
+//					boolean isAllChildrenTaint = true;
+//					for(DepVariableWrapper child: node.children) {
+//						if(!child.processed) {
+//							isAllChildrenTaint = false;
+//							break;
+//						}						
+//					}
+//					
+//					if(isAllChildrenTaint) {
+//						node.processed = true;
+//						change = true;
+//					}
+//				}
+//			}
+//		}
+//	}
 }

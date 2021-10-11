@@ -331,6 +331,10 @@ public class ConstructionPathSynthesizer {
 			}
 		}
 		
+		if(callerObjects == null) {
+			return new VariableInTest(callerObj, nodePath);
+		}
+		
 		
 		for(int i=0; i<callerObjects.size(); i++){
 			VariableReference callerObject = callerObjects.get(i);

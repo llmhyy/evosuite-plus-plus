@@ -146,6 +146,10 @@ public abstract class DepVariableWrapper {
 		return var.toString();
 	}
 
+	/**
+	 * the parent node which can directly "call" this node.
+	 * @return
+	 */
 	public List<DepVariableWrapper> getCallerNode() {
 		if(this.parents.isEmpty()){
 			return null;
