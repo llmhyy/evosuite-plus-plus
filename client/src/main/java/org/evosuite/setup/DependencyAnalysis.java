@@ -33,6 +33,7 @@ import org.evosuite.coverage.mutation.MutationPool;
 import org.evosuite.graphs.cfg.CFGMethodAdapter;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.graphs.interprocedural.interestednode.EmptyInterestedNodeFilter;
+import org.evosuite.graphs.interprocedural.interestednode.FullInterestedNodeFilter;
 import org.evosuite.graphs.interprocedural.interestednode.GradientGraphInterestedNodeFilter;
 import org.evosuite.graphs.interprocedural.interestednode.IInterestedNodeFilter;
 import org.evosuite.graphs.interprocedural.interestednode.OCGInterestedNodeFilter;
@@ -168,7 +169,7 @@ public class DependencyAnalysis {
 		initInheritanceTree(classPath);
 		analyze(className, classPath);
 		
-		InterproceduralGraphAnalysis.initializeDataflow(new SmartSeedInterestedNodeFilter());
+		InterproceduralGraphAnalysis.initializeDataflow(new FullInterestedNodeFilter());
 	}
 
 	/**
