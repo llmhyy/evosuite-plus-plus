@@ -222,7 +222,18 @@ public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 		for (DepVariable dependentVariable : dependentVariables) {
 			boolean isParameter = dependentVariable.isParameter();
 			boolean isStaticField = dependentVariable.isStaticField();
-			if (isParameter || isStaticField) {
+			
+			if (isParameter) {
+				String className = branch.getClassName();
+				String methodName = methodNode.name;
+				
+				boolean isDependentVariableClassNameMatches = dependentVariable.getClassName().equals(className);
+				boolean isDependentVariableMethodNameMatches = dependentVariable.getInstruction().getMethodName().contains(methodName);
+				
+				return isDependentVariableClassNameMatches && isDependentVariableMethodNameMatches;
+			}
+			
+			if (isStaticField) {
 				return true;
 			}
 		}
