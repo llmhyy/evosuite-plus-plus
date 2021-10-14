@@ -24,7 +24,7 @@ import evosuite.shell.FileUtils;
 import evosuite.shell.utils.AlphanumComparator;
 
 public class SFBenchmarkUtils {
-	private static final boolean USE_USER_DIR = false;
+	private static final boolean USE_USER_DIR = true;
 	
 	/**
 	 * return map of project name and its folder */

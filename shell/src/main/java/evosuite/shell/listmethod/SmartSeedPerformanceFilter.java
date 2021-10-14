@@ -46,7 +46,7 @@ import evosuite.shell.utils.LoggerUtils;
 public class SmartSeedPerformanceFilter extends MethodFlagCondFilter {
 	private static Logger log = LoggerUtils.getLogger(SmartSeedPerformanceFilter.class);
 
-	private static final int CONSTANT_COUNT_THRESHOLD = 0;
+	private static final int CONSTANT_COUNT_THRESHOLD = 100;
 	private static final int BRANCH_COUNT_THRESHOLD = 1;
 	
 	private static Map<String, Long> classToNumberOfConstants = new HashMap<>();
