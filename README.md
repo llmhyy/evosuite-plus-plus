@@ -32,6 +32,10 @@ In eclipse, we need to import Evosuite projects by **Import>>Maven>>Existing Mav
 * evosuite-runtime
 * evosuite-shell
 
+## JDK version
+EvoSuite++ supports JDK1.8. We are working on the project to support the above version.
+
+## The path of tools.jar
 After importing all the above projects, we need to modify pom.xml in evosuite project as follows (here is an Eclipse bug, which makes the IDE fail to recognize correct Java home path even if we set the correct JDK path in Eclipse, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=432992):
 We find ```<tools-default>``` and replace its ```<exists>``` and ```<toolsjar>``` element with the file location inside
  project.
@@ -58,8 +62,14 @@ $YOUR_JDK_PATH$/jre/bin/server/jvm.dll
 Then, right click the project >> Maven >> Ipdate Project ...
 By this means, the problem can be fixed.
 
-The "evosuite-master" project may have some compilation errors. In this case, we may include the ```target/generated
--sources/jaxb``` folder as build path.
+## Compilation
+To work on EvoSuite++ source code (forked from EvoSuite project by Prof. Gordon Fraser), we need to compile Evosuite to generate some source code. We suggest to remove the dependency of evosuite-master component on evosuite-client-test (i.e., the evosuite-client test-jar file) to compile the source code first. The maven command to compile EvoSuite++ is:
+`
+mvn clean source:jar install -Ppackage-jars -T 4
+`
+
+
+After compilation, the "evosuite-master" project may have some compilation errors. In this case, we may include the ```target/generated-sources/jaxb``` folder as build path. 
 
 # FAQ
 

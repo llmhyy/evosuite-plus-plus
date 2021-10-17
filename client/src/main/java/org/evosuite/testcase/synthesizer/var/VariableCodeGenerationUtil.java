@@ -5,6 +5,8 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.DataDependencyUtil;
 import org.evosuite.testcase.synthesizer.FieldInitializer;
 import org.evosuite.testcase.synthesizer.NonPrimitiveFieldInitializer;
+import org.evosuite.testcase.synthesizer.ParameterMatch;
 import org.evosuite.testcase.synthesizer.PotentialSetter;
 import org.evosuite.testcase.synthesizer.PrimitiveFieldInitializer;
 import org.evosuite.testcase.synthesizer.ReflectionUtil;
@@ -198,11 +201,17 @@ public class VariableCodeGenerationUtil {
 							List<VariableReference> pList = cStat.getParameterReferences();
 							UsedReferenceSearcher searcher = new UsedReferenceSearcher();
 							String methodName = cStat.getMethodName() + cStat.getDescriptor();
-							List<VariableReference> params = 
-									searcher.searchRelevantParameterOfSetterInTest(pList, fieldDeclaringClass.getCanonicalName(), methodName, field);
+//							List<VariableReference> params = 
+//									searcher.searchRelevantParameterOfSetterInTest(pList, fieldDeclaringClass.getCanonicalName(), methodName, field);
+							System.currentTimeMillis();
+							ParameterMatch result = searcher.searchRelevantParameterOfSetterInTest(fieldDeclaringClass.getCanonicalName(), methodName, field);
+							List<VariableReference> paramRefs = new ArrayList<>();
+							for(Integer index: result.parameterPoisitions) {
+								paramRefs.add(pList.get(index));
+							}
 							
-							if(!params.isEmpty()) {
-								return params.get(0);
+							if(!paramRefs.isEmpty()) {
+								return paramRefs.get(0);
 							}
 						}
 						
@@ -315,7 +324,7 @@ public class VariableCodeGenerationUtil {
 		}
 		
 		if(addMethod != null) {
-			int addElementNum = Randomness.nextInt(1, 3);
+			int addElementNum = Randomness.nextInt(0, 3);
 			
 			for(int i=0; i<addElementNum; i++) {
 				GenericMethod gMethod = new GenericMethod(addMethod, type);
@@ -358,6 +367,7 @@ public class VariableCodeGenerationUtil {
 		
 		String targetClassName = checkTargetClassName(field, targetObjectReference);
 		Executable setter = searchForPotentialSetterInClass(field, targetClassName);
+//		System.currentTimeMillis();
 		if (setter != null && !isTarget(setter)) {
 			if(setter instanceof Method){
 				GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
@@ -375,7 +385,7 @@ public class VariableCodeGenerationUtil {
 				GenericConstructor gConstructor = new GenericConstructor((Constructor)setter,
 						setter.getDeclaringClass());
 				VariableReference returnedVar = TestFactory.getInstance().addConstructor(test, gConstructor,
-						targetObjectReference.getStPosition() + 1, 2);
+						targetObjectReference.getStPosition(), 2);
 
 				for (int i = 0; i < test.size(); i++) {
 					Statement stat = test.getStatement(i);
@@ -456,7 +466,7 @@ public class VariableCodeGenerationUtil {
 		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = potentialSetter.difficultyList;
 		List<Set<Integer>> numberOfValidParams = potentialSetter.numberOfValidParams;
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 		if(!fieldSettingMethods.isEmpty()){
 //			Executable entry = Randomness.choice(fieldSettingMethods);
@@ -488,7 +498,7 @@ public class VariableCodeGenerationUtil {
 			
 			double[] probability = normalize(scores);
 			double p = Randomness.nextDouble();
-			System.currentTimeMillis();
+//			System.currentTimeMillis();
 			int selected = select(p, probability);
 			return fieldSettingMethods.get(selected);
 		}
@@ -579,8 +589,14 @@ public class VariableCodeGenerationUtil {
 			stmt = addStatementToSetOrGetPublicField(test, fieldType,
 					genericField, targetObjectReference, new NonPrimitiveFieldInitializer(), allowNullValue);
 		}
+		
 
 		if (stmt != null && stmt.getReturnValue() != null) {
+			if(Collection.class.isAssignableFrom(genericField.getField().getType())) {
+				Class<?> fType = genericField.getField().getType();
+				System.currentTimeMillis();
+				VariableCodeGenerationUtil.generateElements(fType, test, stmt.getReturnValue());
+			}
 			return stmt.getReturnValue();
 		}
 		

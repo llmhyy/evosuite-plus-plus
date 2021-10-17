@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -135,6 +136,7 @@ public class ConstructionPathSynthesizer {
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
+		
 //		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
 		if(isDebugger) {
@@ -144,8 +146,6 @@ public class ConstructionPathSynthesizer {
 		logTest(test, b, isDebugger, 0, null);
 		
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
-		
-//		System.currentTimeMillis();
 		
 		/**
 		 * track what variable reference can be reused. Note that, one node can corresponding to multiple statements.
@@ -166,6 +166,10 @@ public class ConstructionPathSynthesizer {
 		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
+//			if(node.isTaint) {
+//				continue;
+//			}
+			
 //			logger.warn(String.valueOf(c) + ":" + node.toString());
 			if(c==11) {
 				System.currentTimeMillis();
@@ -180,7 +184,13 @@ public class ConstructionPathSynthesizer {
 			
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
-				buildNodeStatementRelation(test, map, node, b, allowNullValue);	
+				VariableInTest testVariable = getCallerObject(map, node);
+				deriveCodeForTest(map, test, testVariable, b, allowNullValue);
+				
+				node.processed = true;
+				
+//				partialGraph.taint(map, node, test, callerObject);
+				
 				logTest(test, b, isDebugger, c, node);
 				
 				/**
@@ -219,7 +229,7 @@ public class ConstructionPathSynthesizer {
 			}
 		}
 		
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		this.setPartialGraph(partialGraph);
 		this.setGraph2CodeMap(map);
 	}
@@ -269,16 +279,25 @@ public class ConstructionPathSynthesizer {
 		for (DepVariableWrapper parent : node.parents) {
 			if(map.get(parent) == null 
 					|| map.get(parent).isEmpty()) {
-				return false;
+				
+				if(!parent.processed) {
+					return false;					
+				}
 			}
 		}
 
 		return true;
 	}
-
-	private boolean buildNodeStatementRelation(TestCase test, Map<DepVariableWrapper, List<VariableReference>> map,
-			DepVariableWrapper node, Branch b, boolean allowNullValue) throws ClassNotFoundException, ConstructionFailedException {
-		
+	
+	/**
+	 * Some node cannot correspond to any variable in test source code, but their children can.
+	 * For example, arraylist.elementData[i] has a path like: arraylist -> elementData => [].
+	 * the elementData in arraylist cannot be accessed, but we still need to find the correspondence
+	 * between arraylist.elementData[i] and some variables in the source code.
+	 * 
+	 * Therefore, here, we need to find (1) the caller object and (2) additional nodes a call should cover
+	 */
+	private VariableInTest getCallerObject(Map<DepVariableWrapper, List<VariableReference>> map, DepVariableWrapper node) {
 		List<DepVariableWrapper> callerNodes = node.getCallerNode();
 		/**
 		 * for root nodes
@@ -288,39 +307,64 @@ public class ConstructionPathSynthesizer {
 			callerNodes.add(node);
 		}
 		
-		boolean success = true;
-		for(DepVariableWrapper callerNode: callerNodes){
-			List<VariableReference> callerObjects = map.get(callerNode);
-			/**
-			 * for root nodes
-			 */
-			if(callerObjects == null){
-				boolean s = deriveCodeForTest(map, test, null, node, b, allowNullValue);
-				success = success && s;				
-			}
-			else{
-				for(int i=0; i<callerObjects.size(); i++){
-					VariableReference callerObject = callerObjects.get(i);
-					GenericClass t = callerObject.getGenericClass();
-					if(t.isPrimitive()) {
-						continue;
-					}
-					boolean s = deriveCodeForTest(map, test, callerObject, node, b, allowNullValue);
-					success = success && s;	
+		VariableReference callerObj = null;
+		List<DepVariableWrapper> nodePath = new ArrayList<>();
+		nodePath.add(node);
+		
+		DepVariableWrapper callerNode = callerNodes.get(0);
+		List<VariableReference> callerObjects = map.get(callerNode);
+		
+		while(callerObjects == null || callerObjects.isEmpty()) {
+			DepVariableWrapper parentNode = callerNode.getFirstParent();
+			if(parentNode != null) {
+				if(!nodePath.contains(parentNode)) {
+					callerNode = parentNode;
+					nodePath.add(callerNode);
+					callerObjects = map.get(callerNode);					
+				}
+				else {
+					break;
 				}
 			}
-			
+			else {
+				break;
+			}
 		}
 		
-		return success;
+		if(callerObjects == null) {
+			return new VariableInTest(callerObj, nodePath);
+		}
+		
+		
+		for(int i=0; i<callerObjects.size(); i++){
+			VariableReference callerObject = callerObjects.get(i);
+			GenericClass t = callerObject.getGenericClass();
+			if(t.isPrimitive()) {
+				continue;
+			}
+			
+			callerObj = callerObject;
+		}
+		
+		Collections.reverse(nodePath);
+		return new VariableInTest(callerObj, nodePath);
 	}
+	
+//	private void buildNodeStatementRelation(TestCase test, Map<DepVariableWrapper, List<VariableReference>> map,
+//			DepVariableWrapper node, Branch b, boolean allowNullValue) throws ClassNotFoundException, ConstructionFailedException {
+//		
+//		VariableReference callerObject = getCallerObject(map, node);
+//		deriveCodeForTest(map, test, callerObject, node, b, allowNullValue);
+//		
+//	}
 
 	private boolean deriveCodeForTest(Map<DepVariableWrapper, List<VariableReference>> map, TestCase test, 
-			VariableReference callerObject, DepVariableWrapper node, Branch b, boolean allowNullValue) 
+			VariableInTest testVariable, Branch b, boolean allowNullValue) 
 					throws ClassNotFoundException, ConstructionFailedException{
+		DepVariableWrapper node = testVariable.getNode();
 		boolean isLeaf = node.children.isEmpty();
 		
-		List<VariableReference> generatedVariables = node.generateOrFindStatement(test, isLeaf, callerObject, map, b, allowNullValue);
+		List<VariableReference> generatedVariables = node.generateOrFindStatement(test, isLeaf, testVariable, map, b, allowNullValue);
 		if (generatedVariables != null) {
 			List<VariableReference> list = map.get(node);
 			if(list == null){

@@ -14,6 +14,7 @@ import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.synthesizer.VariableInTest;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.Opcodes;
@@ -28,10 +29,10 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 	}
 
 	@Override
-	public List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableReference callerObject,
+	public List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
 			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
 		List<VariableReference> list = new ArrayList<>();
-		VariableReference var = generateOrFind(test, isLeaf, callerObject, map, b, allowNullValue);
+		VariableReference var = generateOrFind(test, isLeaf, variable.callerObject, map, b, allowNullValue);
 		if(var != null) {
 			list.add(var);
 		}
@@ -97,6 +98,11 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 					return null;
 				}
 				
+				MethodStatement mStatement = findMethodCall(call, callerObject, test);
+				if(mStatement != null) {
+					return mStatement.getReturnValue();
+				}
+				
 				VariableReference calleeVarRef = null;
 				Map<Integer, VariableReference> paramRefMap = new HashMap<>();
 
@@ -158,6 +164,99 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 			e.printStackTrace();
 		}
 
+		return null;
+	}
+
+	private MethodStatement findMethodCall(Method call, VariableReference callerObject, TestCase test) {
+		for(int i=callerObject.getStPosition(); i<test.size(); i++) {
+			Statement s = test.getStatement(i);
+			if(s instanceof MethodStatement) {
+				MethodStatement mStatement = (MethodStatement)s;
+				Method invocation = mStatement.getMethod().getMethod();
+				VariableReference calleeObject = mStatement.getCallee();
+				if(calleeObject != null && callerObject != null) {
+					if(calleeObject.equals(callerObject) && invocation.equals(call)) {
+						return mStatement;
+					}
+				}
+				else if(calleeObject == null && callerObject == null) {
+					if(invocation.equals(call)) {
+						return mStatement;
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
+
+	@Override
+	public VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject, Map<DepVariableWrapper, List<VariableReference>> map) {
+		int opcode = this.var.getInstruction().getASMNode().getOpcode();
+		if(opcode == Opcode.ALOAD ||
+				opcode == Opcode.ALOAD_1||
+				opcode == Opcode.ALOAD_2||
+				opcode == Opcode.ALOAD_3 ||
+				opcode == Opcode.DUP ||
+				opcode == Opcode.DUP2) {
+			for(DepVariableWrapper parentNode: this.parents) {
+				if(map.get(parentNode) != null) {
+					VariableReference generatedVariable = map.get(parentNode).get(0);
+					return generatedVariable;
+				}
+			}
+		}
+		else if (opcode == Opcode.INVOKEVIRTUAL || 
+				opcode == Opcode.INVOKESPECIAL ||
+				opcode == Opcode.INVOKESTATIC || 
+				opcode == Opcode.INVOKEDYNAMIC ||
+				opcode == Opcode.INVOKEINTERFACE){
+			VariableReference generatedVariable = findMethodCallStatement(test, map, callerObject);
+			return generatedVariable;
+		}
+		
+		return null;
+	}
+	
+	private VariableReference findMethodCallStatement(TestCase test, 
+			Map<DepVariableWrapper, List<VariableReference>> map, VariableReference callerObject) {
+		try {
+			MethodInsnNode methodNode = ((MethodInsnNode) this.var.getInstruction().getASMNode());
+			String owner = methodNode.owner;
+			String fieldOwner = owner.replace("/", ".");
+			String fullName = methodNode.name + methodNode.desc;
+			Class<?> fieldDeclaringClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
+					.loadClass(fieldOwner);
+			org.objectweb.asm.Type[] types = org.objectweb.asm.Type
+					.getArgumentTypes(fullName.substring(fullName.indexOf("("), fullName.length()));
+			Class<?>[] paramClasses = new Class<?>[types.length];
+			int index = 0;
+			for (org.objectweb.asm.Type type : types) {
+				Class<?> paramClass = VariableCodeGenerationUtil.getClassForType(type);
+				paramClasses[index++] = paramClass;
+			}
+
+			if (!fullName.contains("<init>")) {
+				Method call = null;
+				try {
+					call = fieldDeclaringClass.getMethod(fullName.substring(0, fullName.indexOf("(")), paramClasses); 
+				}
+				catch(Exception e) {}
+						
+				if(call == null) {
+					return null;
+				}
+				
+				MethodStatement mStatement = findMethodCall(call, callerObject, test);
+				if(mStatement != null) {
+					return mStatement.getReturnValue();
+				}
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		return null;
 	}
 	
