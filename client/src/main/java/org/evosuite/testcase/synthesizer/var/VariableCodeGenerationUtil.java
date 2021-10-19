@@ -164,7 +164,7 @@ public class VariableCodeGenerationUtil {
 	
 	
 	public static VariableReference generateFieldGetterInTest(TestCase test, VariableReference targetObjectReference,
-			Map<DepVariableWrapper, List<VariableReference>> map, Class<?> fieldDeclaringClass, Field field, 
+			Map<DepVariableWrapper, VarRelevance> map, Class<?> fieldDeclaringClass, Field field, 
 			UsedReferenceSearcher usedRefSearcher, Branch b)
 			throws ConstructionFailedException {
 		/**
@@ -347,7 +347,7 @@ public class VariableCodeGenerationUtil {
 	 * generate setter in current test
 	 */
 	public static VariableReference generateFieldSetterInTest(TestCase test, VariableReference targetObjectReference,
-			Map<DepVariableWrapper, List<VariableReference>> map, Class<?> fieldDeclaringClass, Field field, boolean allowNullValue)
+			Map<DepVariableWrapper, VarRelevance> map, Class<?> fieldDeclaringClass, Field field, boolean allowNullValue)
 			throws ClassNotFoundException, ConstructionFailedException {
 		String className = fieldDeclaringClass.getName();
 		List<BytecodeInstruction> insList = BytecodeInstructionPool
@@ -409,10 +409,21 @@ public class VariableCodeGenerationUtil {
 		return null;
 	}
 	
-	public static void replaceMapFromNode2Code(Map<DepVariableWrapper, List<VariableReference>> map,
+	public static void replaceMapFromNode2Code(Map<DepVariableWrapper, VarRelevance> map,
 			VariableReference oldObject, VariableReference newObject) {
 		for(DepVariableWrapper key: map.keySet()) {
-			List<VariableReference> list = map.get(key);
+			List<VariableReference> list = map.get(key).influentialVars;
+			
+			if(list.contains(oldObject)) {
+				for(int i=0; i<list.size(); i++) {
+					if(list.get(i).equals(oldObject)) {
+						list.set(i, newObject);
+					}
+				}
+				
+			}
+			
+			list = map.get(key).matchedVars;
 			
 			if(list.contains(oldObject)) {
 				for(int i=0; i<list.size(); i++) {

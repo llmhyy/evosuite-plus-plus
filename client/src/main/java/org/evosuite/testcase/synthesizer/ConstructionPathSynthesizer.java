@@ -46,6 +46,7 @@ import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
@@ -127,7 +128,7 @@ public class ConstructionPathSynthesizer {
 	}
 	
 	private PartialGraph partialGraph;
-	private Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap;
+	private Map<DepVariableWrapper, VarRelevance> graph2CodeMap;
 	
 	
 	public boolean isDebugger = false;
@@ -152,7 +153,7 @@ public class ConstructionPathSynthesizer {
 		 * It is because a static field/method can be called twice dynamically.
 		 * Therefore, we need to construct multiple fields/methods for different object of the same type.
 		 */
-		Map<DepVariableWrapper, List<VariableReference>> map = new HashMap<>();
+		Map<DepVariableWrapper, VarRelevance> map = new HashMap<>();
 
 		/**
 		 * use BFS on partial graph to generate test code, but we need to check the dependency, making
@@ -166,9 +167,6 @@ public class ConstructionPathSynthesizer {
 		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-//			if(node.isTaint) {
-//				continue;
-//			}
 			
 //			logger.warn(String.valueOf(c) + ":" + node.toString());
 			if(c==11) {
@@ -272,13 +270,14 @@ public class ConstructionPathSynthesizer {
 		
 	}
 
-	private boolean checkDependency(DepVariableWrapper node, Map<DepVariableWrapper, List<VariableReference>> map) {
+	private boolean checkDependency(DepVariableWrapper node, Map<DepVariableWrapper, VarRelevance> map) {
 		/**
 		 * ensure every parent of current node is visited in the map
 		 */
 		for (DepVariableWrapper parent : node.parents) {
 			if(map.get(parent) == null 
-					|| map.get(parent).isEmpty()) {
+					|| map.get(parent).matchedVars == null
+					|| map.get(parent).matchedVars.isEmpty()) {
 				
 				if(!parent.processed) {
 					return false;					
@@ -297,7 +296,7 @@ public class ConstructionPathSynthesizer {
 	 * 
 	 * Therefore, here, we need to find (1) the caller object and (2) additional nodes a call should cover
 	 */
-	private VariableInTest getCallerObject(Map<DepVariableWrapper, List<VariableReference>> map, DepVariableWrapper node) {
+	private VariableInTest getCallerObject(Map<DepVariableWrapper, VarRelevance> map, DepVariableWrapper node) {
 		List<DepVariableWrapper> callerNodes = node.getCallerNode();
 		/**
 		 * for root nodes
@@ -312,15 +311,17 @@ public class ConstructionPathSynthesizer {
 		nodePath.add(node);
 		
 		DepVariableWrapper callerNode = callerNodes.get(0);
-		List<VariableReference> callerObjects = map.get(callerNode);
+		VarRelevance variableRel = map.get(callerNode);
 		
-		while(callerObjects == null || callerObjects.isEmpty()) {
+		while(variableRel == null || 
+				variableRel.matchedVars != null ||
+				variableRel.matchedVars.isEmpty()) {
 			DepVariableWrapper parentNode = callerNode.getFirstParent();
 			if(parentNode != null) {
 				if(!nodePath.contains(parentNode)) {
 					callerNode = parentNode;
 					nodePath.add(callerNode);
-					callerObjects = map.get(callerNode);					
+					variableRel = map.get(callerNode);					
 				}
 				else {
 					break;
@@ -331,23 +332,25 @@ public class ConstructionPathSynthesizer {
 			}
 		}
 		
-		if(callerObjects == null) {
+		if(variableRel == null || 
+				variableRel.matchedVars != null ||
+				variableRel.matchedVars.isEmpty()) {
 			return new VariableInTest(callerObj, nodePath);
 		}
 		
 		
-		for(int i=0; i<callerObjects.size(); i++){
-			VariableReference callerObject = callerObjects.get(i);
-			GenericClass t = callerObject.getGenericClass();
-			if(t.isPrimitive()) {
-				continue;
-			}
-			
-			callerObj = callerObject;
-		}
+//		for(int i=0; i<callerObjects.size(); i++){
+//			VariableReference callerObject = callerObjects.get(i);
+//			GenericClass t = callerObject.getGenericClass();
+//			if(t.isPrimitive()) {
+//				continue;
+//			}
+//			
+//			callerObj = callerObject;
+//		}
 		
 		Collections.reverse(nodePath);
-		return new VariableInTest(callerObj, nodePath);
+		return new VariableInTest(variableRel.matchedVars.get(0), nodePath);
 	}
 	
 //	private void buildNodeStatementRelation(TestCase test, Map<DepVariableWrapper, List<VariableReference>> map,
@@ -358,25 +361,23 @@ public class ConstructionPathSynthesizer {
 //		
 //	}
 
-	private boolean deriveCodeForTest(Map<DepVariableWrapper, List<VariableReference>> map, TestCase test, 
+	private boolean deriveCodeForTest(Map<DepVariableWrapper, VarRelevance> map, TestCase test, 
 			VariableInTest testVariable, Branch b, boolean allowNullValue) 
 					throws ClassNotFoundException, ConstructionFailedException{
 		DepVariableWrapper node = testVariable.getNode();
 		boolean isLeaf = node.children.isEmpty();
 		
-		List<VariableReference> generatedVariables = node.generateOrFindStatement(test, isLeaf, testVariable, map, b, allowNullValue);
-		if (generatedVariables != null) {
-			List<VariableReference> list = map.get(node);
-			if(list == null){
-				list = new ArrayList<>();
+		VarRelevance relevance = node.generateOrFindStatement(test, isLeaf, testVariable, map, b, allowNullValue);
+//		List<VariableReference> generatedVariables = node.generateOrFindStatement(test, isLeaf, testVariable, map, b, allowNullValue);
+		if (relevance != null) {
+			VarRelevance rel = map.get(node);
+			if(rel == null){
+				map.put(node, relevance);
 			}
-			
-			for(VariableReference ref: generatedVariables) {
-				if(ref != null && !list.contains(ref)){
-					list.add(ref);											
-				}				
+			else {
+				rel.merge(relevance);
+				map.put(node, rel);		
 			}
-			map.put(node, list);
 		}
 		else {
 			return false;
@@ -442,11 +443,6 @@ public class ConstructionPathSynthesizer {
 //		return null;
 //	}
 
-	
-
-	
-
-	
 
 	public static BytecodeInstruction traceBackToMethodCall(BytecodeInstruction ins) {
 
@@ -696,11 +692,11 @@ public class ConstructionPathSynthesizer {
 		this.partialGraph = partialGraph;
 	}
 
-	public Map<DepVariableWrapper, List<VariableReference>> getGraph2CodeMap() {
+	public Map<DepVariableWrapper, VarRelevance> getGraph2CodeMap() {
 		return graph2CodeMap;
 	}
 
-	public void setGraph2CodeMap(Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap) {
+	public void setGraph2CodeMap(Map<DepVariableWrapper, VarRelevance> graph2CodeMap) {
 		this.graph2CodeMap = graph2CodeMap;
 	}
 

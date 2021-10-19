@@ -34,15 +34,15 @@ public class ParameterVariableWrapper extends DepVariableWrapper {
 	}
 
 	@Override
-	public List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+	public VarRelevance generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
 		List<VariableReference> list = new ArrayList<>();
 		VariableReference var = generateOrFind(test, isLeaf, variable.callerObject, map, b, allowNullValue);
 		if(var != null) {
 			list.add(var);
 		}
 		
-		return list;
+		return new VarRelevance(list, list);
 	}
 	
 	
@@ -61,7 +61,7 @@ public class ParameterVariableWrapper extends DepVariableWrapper {
 	 * @throws ClassNotFoundException
 	 */
 	public VariableReference generateOrFind(TestCase test, boolean isLeaf, VariableReference callerObject,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
 		
 		VariableReference parameter = find(test, allowNullValue, callerObject, map);
 		if(parameter != null) {
@@ -215,7 +215,7 @@ public class ParameterVariableWrapper extends DepVariableWrapper {
 
 	@Override
 	public VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject,
-			Map<DepVariableWrapper, List<VariableReference>> map) {
+			Map<DepVariableWrapper, VarRelevance> map) {
 		Statement s = test.getStatement(test.size()-1);
 		if(s instanceof MethodStatement) {
 			

@@ -46,6 +46,7 @@ import org.evosuite.testcase.synthesizer.DataDependencyUtil;
 import org.evosuite.testcase.synthesizer.PotentialSetter;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapperFactory;
+import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.ConstantValue;
@@ -175,7 +176,7 @@ public class SensitivityMutator {
 		TestChromosome startPoint = (TestChromosome) testChromosome.clone();
 		
 		ValuePreservance preservance = new ValuePreservance(observations, rootVariables);
-		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
+		Map<DepVariableWrapper, VarRelevance> map = synthensizer.getGraph2CodeMap();
 		MethodInputs inputs0 = constructInputValues(rootVariables, testChromosome, map);
 		
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
@@ -241,7 +242,7 @@ public class SensitivityMutator {
 	}
 
 	private static MethodInputs constructInputValues(List<DepVariable> rootVariables,
-			TestChromosome newTestChromosome, Map<DepVariableWrapper, List<VariableReference>> map) {
+			TestChromosome newTestChromosome, Map<DepVariableWrapper, VarRelevance> map) {
 		Map<String, ValueStatement> inputVariables = new HashMap<>();
 		Map<String, Object> inputConstants = new HashMap<>();
 		for (DepVariable rootVar : rootVariables) {
@@ -255,7 +256,7 @@ public class SensitivityMutator {
 			List<ValueStatement> relevantStatements = new ArrayList<>();
 			for(DepVariable var: relevantPrimitiveChildren) {
 				if(map == null) continue;
-				List<VariableReference> varList = map.get(DepVariableWrapperFactory.createWrapperInstance(var));
+				List<VariableReference> varList = map.get(DepVariableWrapperFactory.createWrapperInstance(var)).influentialVars;
 				if(varList == null) continue;
 				for(VariableReference ref: varList) {
 					

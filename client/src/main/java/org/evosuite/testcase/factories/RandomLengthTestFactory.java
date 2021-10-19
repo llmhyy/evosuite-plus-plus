@@ -45,6 +45,7 @@ import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
@@ -172,7 +173,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					}
 					
 					PartialGraph graph = cpSynthesizer.getPartialGraph();
-					Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+					Map<DepVariableWrapper, VarRelevance> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
 					
 //					t0 = System.currentTimeMillis();
 					TestChromosome templateTestChromosome = new TestChromosome();

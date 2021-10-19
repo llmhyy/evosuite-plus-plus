@@ -29,19 +29,19 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 	}
 
 	@Override
-	public List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+	public VarRelevance generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
 		List<VariableReference> list = new ArrayList<>();
 		VariableReference var = generateOrFind(test, isLeaf, variable.callerObject, map, b, allowNullValue);
 		if(var != null) {
 			list.add(var);
 		}
 		
-		return list;
+		return new VarRelevance(list, list);
 	}
 	
 	public VariableReference generateOrFind(TestCase test, boolean isLeaf, VariableReference callerObject,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
 		int opcode = this.var.getInstruction().getASMNode().getOpcode();
 		if(opcode == Opcode.ALOAD ||
 				opcode == Opcode.ALOAD_1||
@@ -51,7 +51,7 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 				opcode == Opcode.DUP2) {
 			for(DepVariableWrapper parentNode: this.parents) {
 				if(map.get(parentNode) != null) {
-					VariableReference generatedVariable = map.get(parentNode).get(0);
+					VariableReference generatedVariable = map.get(parentNode).matchedVars.get(0);
 					return generatedVariable;
 				}
 			}
@@ -69,7 +69,7 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 	}
 
 	private VariableReference generateMethodCallStatement(TestCase test, 
-			Map<DepVariableWrapper, List<VariableReference>> map, VariableReference callerObject, boolean allowNullValue) {
+			Map<DepVariableWrapper, VarRelevance> map, VariableReference callerObject, boolean allowNullValue) {
 		int opcode = this.var.getInstruction().getASMNode().getOpcode();
 		try {
 			MethodInsnNode methodNode = ((MethodInsnNode) this.var.getInstruction().getASMNode());
@@ -107,7 +107,7 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 				Map<Integer, VariableReference> paramRefMap = new HashMap<>();
 
 				for (DepVariableWrapper par : this.parents) {
-					VariableReference parRef = map.get(par).get(0);
+					VariableReference parRef = map.get(par).matchedVars.get(0);
 					int position = par.findRelationPosition(this);
 					if (position > -1) {
 						paramRefMap.put(position, parRef);
@@ -191,7 +191,7 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 	}
 
 	@Override
-	public VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject, Map<DepVariableWrapper, List<VariableReference>> map) {
+	public VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject, Map<DepVariableWrapper, VarRelevance> map) {
 		int opcode = this.var.getInstruction().getASMNode().getOpcode();
 		if(opcode == Opcode.ALOAD ||
 				opcode == Opcode.ALOAD_1||
@@ -201,7 +201,7 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 				opcode == Opcode.DUP2) {
 			for(DepVariableWrapper parentNode: this.parents) {
 				if(map.get(parentNode) != null) {
-					VariableReference generatedVariable = map.get(parentNode).get(0);
+					VariableReference generatedVariable = map.get(parentNode).matchedVars.get(0);
 					return generatedVariable;
 				}
 			}
@@ -219,7 +219,7 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 	}
 	
 	private VariableReference findMethodCallStatement(TestCase test, 
-			Map<DepVariableWrapper, List<VariableReference>> map, VariableReference callerObject) {
+			Map<DepVariableWrapper, VarRelevance> map, VariableReference callerObject) {
 		try {
 			MethodInsnNode methodNode = ((MethodInsnNode) this.var.getInstruction().getASMNode());
 			String owner = methodNode.owner;

@@ -39,20 +39,20 @@ public class FieldVariableWrapper extends DepVariableWrapper{
 	 * @return
 	 */
 	@Override
-	public List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+	public VarRelevance generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
 		List<VariableReference> list = new ArrayList<>();
 		VariableReference var = generateOrFind(test, isLeaf, variable, map, b, allowNullValue);
 		if(var != null) {
 			list.add(var);
 		}
 		
-		return list;
+		return new VarRelevance(list, list);
 	}
 	
 	
 	public VariableReference generateOrFind(TestCase test, boolean isLeaf, VariableInTest variable,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
 		FieldInsnNode fieldNode = (FieldInsnNode) this.var.getInstruction().getASMNode();
 		String fieldType = fieldNode.desc;
 		String fieldOwner = fieldNode.owner.replace("/", ".");
@@ -176,7 +176,7 @@ public class FieldVariableWrapper extends DepVariableWrapper{
 
 	
 	@Override
-	public VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject, Map<DepVariableWrapper, List<VariableReference>> map) {
+	public VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject, Map<DepVariableWrapper, VarRelevance> map) {
 		FieldInsnNode fieldNode = (FieldInsnNode) this.var.getInstruction().getASMNode();
 		String fieldType = fieldNode.desc;
 		String fieldOwner = fieldNode.owner.replace("/", ".");

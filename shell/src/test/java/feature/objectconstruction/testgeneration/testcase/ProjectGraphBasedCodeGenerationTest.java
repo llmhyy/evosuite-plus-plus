@@ -38,7 +38,7 @@ public class ProjectGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		Branch b = TestUtil.searchBranch(rankedList, 15);
 		
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
-		generateCode(b, true, false);
+		generateCode(b, false, false);
 	}
 	
 	@Test

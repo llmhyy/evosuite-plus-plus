@@ -18,25 +18,25 @@ public class ThisVariableWrapper extends DepVariableWrapper {
 	}
 
 	@Override
-	public List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+	public VarRelevance generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
 		List<VariableReference> list = new ArrayList<>();
 		VariableReference var = generateOrFind(test, isLeaf, variable.callerObject, map, b, allowNullValue);
 		if(var != null) {
 			list.add(var);
 		}
 		
-		return list;
+		return new VarRelevance(list, list);
 	}
 	
 	public VariableReference generateOrFind(TestCase test, boolean isLeaf, VariableReference callerObject,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
 		return find(test, isLeaf, callerObject, map);
 	}
 
 	@Override
 	public VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject,
-			Map<DepVariableWrapper, List<VariableReference>> map) {
+			Map<DepVariableWrapper, VarRelevance> map) {
 		if(this.parents.isEmpty()) {
 			MethodStatement mStat = test.findTargetMethodCallStatement();
 			if(mStat != null) {
@@ -47,7 +47,7 @@ public class ThisVariableWrapper extends DepVariableWrapper {
 		else {
 			for(DepVariableWrapper parentNode: this.parents) {
 				if(map.get(parentNode) != null) {
-					VariableReference generatedVariable = map.get(parentNode).get(0);
+					VariableReference generatedVariable = map.get(parentNode).matchedVars.get(0);
 					return generatedVariable;
 				}
 			}

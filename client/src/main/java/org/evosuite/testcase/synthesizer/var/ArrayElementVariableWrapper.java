@@ -17,7 +17,6 @@ import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.runtime.System;
-import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.AssignmentStatement;
@@ -35,8 +34,6 @@ import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.FieldInsnNode;
 
-import javassist.bytecode.Bytecode;
-
 public class ArrayElementVariableWrapper extends DepVariableWrapper {
 
 	protected ArrayElementVariableWrapper(DepVariable var) {
@@ -44,8 +41,8 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 	}
 
 	@Override
-	public List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
+	public VarRelevance generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
 		
 		try {
 			return generateArrayElementStatement(test, isLeaf, variable);
@@ -53,16 +50,16 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 			e.printStackTrace();
 		}
 		
-		return new ArrayList<>();
+		return null;
 	}
 
-	private List<VariableReference> generateArrayElementStatement(TestCase test, boolean isLeaf,
+	private VarRelevance generateArrayElementStatement(TestCase test, boolean isLeaf,
 			VariableInTest variable) throws ConstructionFailedException {
 		Statement stat = test.getStatement(variable.callerObject.getStPosition());
 		if(stat instanceof NullStatement) {
 			List<VariableReference> list = new ArrayList<>();
 			list.add(stat.getReturnValue());
-			return list;
+			return new VarRelevance(list, list);
 		}
 		
 		
@@ -75,14 +72,14 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 		 */
 		List<VariableReference> usedArrayElementList = searchUsedArrayElementReference(test, variable);
 		if(!usedArrayElementList.isEmpty()) {
-			return usedArrayElementList;
+			return new VarRelevance(usedArrayElementList, usedArrayElementList);
 		}
 		
 		List<VariableReference> usedArrayRefs = isLeaf
 				? searchArrayElementWritingReference(test, variable, opcodeWrite)
 				: searchArrayElementReadingReference(test, variable, opcodeRead);
 		if (usedArrayRefs != null && !usedArrayRefs.isEmpty()) {
-			return usedArrayRefs;
+			return new VarRelevance(usedArrayRefs, usedArrayRefs);
 		}
 		
 		double prob = Randomness.nextDouble();
@@ -113,8 +110,9 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 					if(newParentVarRef != null) {
 						vars.add(newParentVarRef);						
 					}
-					return vars;
+					return new VarRelevance(vars, vars);
 				}
+				
 				return null;
 			}
 		}
@@ -142,7 +140,8 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 				if(ref != null) {
 					vars.add(ref);						
 				}
-				return vars;
+				
+				return new VarRelevance(vars, vars);
 			}
 		}
 		
@@ -533,7 +532,7 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 	
 	@Override
 	public VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject,
-			Map<DepVariableWrapper, List<VariableReference>> map) {
+			Map<DepVariableWrapper, VarRelevance> map) {
 		//TODO
 		return null;
 	}

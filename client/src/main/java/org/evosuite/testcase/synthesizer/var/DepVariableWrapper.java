@@ -27,11 +27,11 @@ public abstract class DepVariableWrapper {
 		this.var = var;
 	}
 	
-	public abstract List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue);
+	public abstract VarRelevance generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue);
 	
 	public List<VariableReference> findCorrespondingVariables(TestCase test, boolean isLeaf, VariableReference callerObject, 
-			Map<DepVariableWrapper, List<VariableReference>> map) {
+			Map<DepVariableWrapper, VarRelevance> map) {
 		List<VariableReference> vars = new ArrayList<>();
 		VariableReference var = find(test, isLeaf, callerObject, map);
 		if(var != null) {
@@ -40,7 +40,7 @@ public abstract class DepVariableWrapper {
 		return vars;
 	}
 	
-	public abstract VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject, Map<DepVariableWrapper, List<VariableReference>> map);
+	public abstract VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject, Map<DepVariableWrapper, VarRelevance> map);
 	
 	@Override
 	public int hashCode() {
