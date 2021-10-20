@@ -468,7 +468,7 @@ public class NullPointerExceptionTest_121021 {
 //	}
 
 	/*
-	 * Used parameter not set (m_instances)
+	 * Used input not set (m_instances)
 	 */
 	@Test
 	public void evoobj_weka_KDDataGenerator_generateInstances_3() throws Exception {
