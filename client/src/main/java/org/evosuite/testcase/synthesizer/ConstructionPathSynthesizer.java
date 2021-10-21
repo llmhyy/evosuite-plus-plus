@@ -314,7 +314,7 @@ public class ConstructionPathSynthesizer {
 		VarRelevance variableRel = map.get(callerNode);
 		
 		while(variableRel == null || 
-				variableRel.matchedVars != null ||
+				variableRel.matchedVars == null ||
 				variableRel.matchedVars.isEmpty()) {
 			DepVariableWrapper parentNode = callerNode.getFirstParent();
 			if(parentNode != null) {
@@ -333,7 +333,7 @@ public class ConstructionPathSynthesizer {
 		}
 		
 		if(variableRel == null || 
-				variableRel.matchedVars != null ||
+				variableRel.matchedVars == null ||
 				variableRel.matchedVars.isEmpty()) {
 			return new VariableInTest(callerObj, nodePath);
 		}
