@@ -53,6 +53,8 @@ import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class ConstructionPathSynthesizer {
 
 //	private TestFactory testFactory;
@@ -140,8 +142,25 @@ public class ConstructionPathSynthesizer {
 		
 //		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
+		isDebugger = true;
 		if(isDebugger) {
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");			
+			ObjectMapper mapper = new ObjectMapper();
+			File file = new File("D:\\linyun\\simplePartialGraph.json");
+			SimplePartialGraph simplePartialGraph = new SimplePartialGraph(partialGraph);
+			SimplePartialGraph deserializedSimplePartialGraph = null;
+			try {
+				mapper.writeValue(file, simplePartialGraph);
+				deserializedSimplePartialGraph = mapper.readValue(file, SimplePartialGraph.class);
+				System.currentTimeMillis();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+			
+			if (deserializedSimplePartialGraph != null) {
+				GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");	
+				GraphVisualizer.visualizeComputationGraph(simplePartialGraph, 5000, "test2");
+				GraphVisualizer.visualizeComputationGraph(deserializedSimplePartialGraph, 5000, "test3");
+			}
 		}
 		
 		logTest(test, b, isDebugger, 0, null);
