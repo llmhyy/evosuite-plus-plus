@@ -20,6 +20,8 @@ import java.util.Set;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.synthesizer.PartialGraph;
+import org.evosuite.testcase.synthesizer.SimpleDepVariableWrapper;
+import org.evosuite.testcase.synthesizer.SimplePartialGraph;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 
 import guru.nidi.graphviz.attribute.Rank;
@@ -33,6 +35,77 @@ public class GraphVisualizer {
 
 	public static String path = "D://linyun/";
 
+	public static void visualizeComputationGraph(SimplePartialGraph partialGraph, int resolution, String folderName) {
+		List<SimpleDepVariableWrapper> topLayer = partialGraph.getTopLayer();
+
+		/**
+		 * use BFS on partial graph to generate test code.
+		 */
+		Queue<SimpleDepVariableWrapper> queue = new ArrayDeque<>(topLayer);
+		List<LinkSource> links = new ArrayList<LinkSource>();
+
+		while (!queue.isEmpty()) {
+			SimpleDepVariableWrapper source = queue.remove();
+
+			for (SimpleDepVariableWrapper target : source.children) {
+				guru.nidi.graphviz.model.Node n = node(source.shortLabel)
+						.link(node(target.shortLabel));
+				if (!links.contains(n)) {
+					links.add(n);
+					queue.add(target);
+				}
+
+			}
+
+			if (source.children.isEmpty()) {
+				guru.nidi.graphviz.model.Node n = node(source.shortLabel);
+				if (!links.contains(n)) {
+					links.add(n);
+				}
+			}
+		}
+
+		Graph g = graph(partialGraph.getBranch().toString()).directed().graphAttr()
+				.with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
+		try {
+			File f = new File(path + folderName + File.separator + partialGraph.getBranch().toString() + ".png");
+			Graphviz.fromGraph(g).height(resolution).render(Format.PNG).toFile(f);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		// Generate graphs with highlighted nodes
+		Set<String> nodeIds = new HashSet<String>();
+		for (int i = 0; i < links.size(); i++) {
+//			List<LinkSource> coloredLinks = new ArrayList<LinkSource>(links);
+			guru.nidi.graphviz.model.Node node = (guru.nidi.graphviz.model.Node) links.get(i);
+			
+			// Some nodes are duplicate
+			String name = node.name().toString();
+			String nodeId = name.substring(name.indexOf("ID: ") + 4, name.indexOf("\nLINE:"));
+			if (nodeIds.contains(nodeId)) {
+				continue;
+			}
+			nodeIds.add(nodeId);
+	
+			// Color node and save graph
+//			guru.nidi.graphviz.model.Node coloredNode = node.with(Style.FILLED, Color.YELLOW2);
+//			coloredLinks.set(i, coloredNode);
+			links.set(i, ((guru.nidi.graphviz.model.Node) links.get(i)).with(Style.FILLED, Color.YELLOW3));
+			Graph coloredGraph = graph(partialGraph.getBranch().toString()).directed().graphAttr()
+					.with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
+			try {
+				File f = new File(path + folderName + File.separator + partialGraph.getBranch().toString() + "#" + nodeId + ".png");
+				Graphviz.fromGraph(coloredGraph).height(resolution).render(Format.PNG).toFile(f);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			// Color node back to normal
+			links.set(i, ((guru.nidi.graphviz.model.Node) links.get(i)).with(Style.ROUNDED, Color.BLACK));
+		}
+	}
+	
 	public static void visualizeComputationGraph(PartialGraph partialGraph, int resolution, String folderName) {
 
 		List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
