@@ -574,30 +574,30 @@ public class ConstructionPathSynthesizer {
 
 	}
 
-	private Set<Integer> searchRelevantParameterOfSetterInMethod(String className, String methodName, Field field) {
-		/**
-		 * get all the field setter bytecode instructions in the method. 
-		 * the field setter can be taken from callee method of @code{methodName}.
-		 */
-		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<BytecodeInstruction, List<BytecodeInstruction>>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = DataDependencyUtil.analyzeFieldSetter(className, methodName,
-				field, 5, cascadingCallRelations, setterMap);
-		Set<Integer> validParams = new HashSet<>();
-		if (fieldSetterMap.isEmpty()) {
-			return validParams;
-		}
-
-		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
-			BytecodeInstruction setterIns = entry.getKey();
-			List<BytecodeInstruction> callList = entry.getValue();
-			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, className, methodName, callList);
-			if (!validParamPos.isEmpty()) {
-				validParams.addAll(validParamPos);
-			}
-		}
-		return validParams;
-	}
+//	private Set<Integer> searchRelevantParameterOfSetterInMethod(String className, String methodName, Field field) {
+//		/**
+//		 * get all the field setter bytecode instructions in the method. 
+//		 * the field setter can be taken from callee method of @code{methodName}.
+//		 */
+//		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
+//		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<BytecodeInstruction, List<BytecodeInstruction>>();
+//		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = DataDependencyUtil.analyzeFieldSetter(className, methodName,
+//				field, 5, cascadingCallRelations, setterMap);
+//		Set<Integer> validParams = new HashSet<>();
+//		if (fieldSetterMap.isEmpty()) {
+//			return validParams;
+//		}
+//
+//		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
+//			BytecodeInstruction setterIns = entry.getKey();
+//			List<BytecodeInstruction> callList = entry.getValue();
+//			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, className, methodName, callList);
+//			if (!validParamPos.isEmpty()) {
+//				validParams.addAll(validParamPos);
+//			}
+//		}
+//		return validParams;
+//	}
 
 	
 //	private Map.Entry<Constructor, Parameter> searchForPotentialConstructor(Field field, String fieldOwner,

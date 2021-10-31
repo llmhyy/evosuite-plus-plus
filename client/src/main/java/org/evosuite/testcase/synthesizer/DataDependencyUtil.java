@@ -1,6 +1,5 @@
 package org.evosuite.testcase.synthesizer;
 
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
@@ -10,29 +9,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
-import org.evosuite.classpath.ResourceList;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
-import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.graphs.cfg.RawControlFlowGraph;
-import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
 import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.MethodUtil;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -269,59 +260,70 @@ public class DataDependencyUtil {
 		return null;
 	}
 	
-	public static void findSetterInfo(Field field, Class<?> targetClass, List<Executable> fieldSettingMethods,
-			List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList, List<Set<Integer>> validParams,
-			Executable m, String signature) {
-		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = 
-				DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
-						field, Properties.FIELD_SETTER_SEARCH_DEPTH, cascadingCallRelations, setterMap);
-		
-		System.currentTimeMillis();
-		
-		Set<Integer> releventPrams = new HashSet<>();
-		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
-			BytecodeInstruction setterIns = entry.getKey();
-			List<BytecodeInstruction> callList = entry.getValue();
-			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, 
-					targetClass.getCanonicalName(), signature, callList);
-			releventPrams.addAll(validParamPos);
-		}
-		
-		if(!fieldSetterMap.isEmpty()){
-			fieldSettingMethods.add(m);
-			difficultyList.add(fieldSetterMap);
-			validParams.add(releventPrams);
-		}
-	}
+//	public static List<ValueSettings> findSetterInfo(Field field, Class<?> targetClass, 
+//			Executable m, String signature) {
+//		/**
+//		 * initialization
+//		 */
+//		
+//		/**
+//		 * get the field setting map
+//		 */
+//		List<ValueSettings> fieldValueSettings = new ArrayList<>();
+//		DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
+//				field, Properties.FIELD_SETTER_SEARCH_DEPTH, new ArrayList<>(), fieldValueSettings);
+//		
+////		System.currentTimeMillis();
+////		
+////		Set<Integer> releventPrams = new HashSet<>();
+////		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
+////			BytecodeInstruction setterIns = entry.getKey();
+////			List<BytecodeInstruction> callList = entry.getValue();
+////			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, 
+////					targetClass.getCanonicalName(), signature, callList);
+////			releventPrams.addAll(validParamPos);
+////		}
+////		
+////		if(!fieldValueSettings.isEmpty()){
+////			fieldSettingMethods.add(m);
+////			difficultyList.add(fieldSetterMap);
+////			validParams.add(releventPrams);
+////		}
+//	}
 	
 	@SuppressWarnings("rawtypes")
-	public static PotentialSetter searchForPotentialSettersInClass(Field field, String targetClassName) throws ClassNotFoundException {
+	public static LinkedHashMap<Executable, List<ValueSettings>> searchForPotentialSettersInClass(Field field, String targetClassName) throws ClassNotFoundException {
+		LinkedHashMap<Executable, List<ValueSettings>> map = new LinkedHashMap<>();
 		Class<?> targetClass = TestGenerationContext.getInstance().getClassLoaderForSUT()
 				.loadClass(targetClassName);
 		
-		List<Executable> fieldSettingMethods = new ArrayList<>();
-		/**
-		 * map <field setter instruction, <m_1, ..., m_n>>, where 
-		 * m_n is the method to call field setter instruction
-		 * m_1 is the method called by test
-		 */
-		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = new ArrayList<>();
-		List<Set<Integer>> numberOfValidParams = new ArrayList<>();
-		
 		for(Method m: targetClass.getMethods()){
 			String signature = m.getName() + ReflectionUtil.getSignature(m);
-			System.currentTimeMillis();
-			findSetterInfo(field, targetClass, fieldSettingMethods, difficultyList, numberOfValidParams, m, signature);
+			List<ValueSettings> fieldValueSettings = new ArrayList<>();
+			DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
+					field, Properties.FIELD_SETTER_SEARCH_DEPTH, new ArrayList<>(), fieldValueSettings);
+			if(!fieldValueSettings.isEmpty()) {
+				map.put(m, fieldValueSettings);
+			}
 		}
 		
 		for(Constructor c: targetClass.getConstructors()){
 			String signature = "<init>" + ReflectionUtil.getSignature(c);
-			findSetterInfo(field, targetClass, fieldSettingMethods, difficultyList, numberOfValidParams, c, signature);
+			List<ValueSettings> fieldValueSettings = new ArrayList<>();
+			DataDependencyUtil.analyzeFieldSetter(targetClass.getCanonicalName(), signature,
+					field, Properties.FIELD_SETTER_SEARCH_DEPTH, new ArrayList<>(), fieldValueSettings);
+			if(!fieldValueSettings.isEmpty()) {
+				map.put(c, fieldValueSettings);
+			}
 		}
 		
-		return new PotentialSetter(fieldSettingMethods, difficultyList, numberOfValidParams);
+		return map;
+	}
+	
+	public static void analyzeFieldSetter(String className, String methodName,
+			Field field, int depth, List<BytecodeInstruction> cascadingCallRelations,
+			List<ValueSettings> setterList) {
+		analyzeFieldSetter(className, methodName, className, methodName, field, depth, cascadingCallRelations, setterList);
 	}
 	
 	/**
@@ -337,16 +339,16 @@ public class DataDependencyUtil {
 	 * @param field
 	 * @param depth
 	 * @param cascadingCallRelations
-	 * @param setterMap
+	 * @param setterList
 	 * @return
 	 */
-	public static Map<BytecodeInstruction, List<BytecodeInstruction>> analyzeFieldSetter(String className, String methodName,
+	private static void analyzeFieldSetter(String targetClass, String targetSig, String className, String methodName,
 			Field field, int depth, List<BytecodeInstruction> cascadingCallRelations,
-			Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap) {
+			List<ValueSettings> setterList) {
 		List<BytecodeInstruction> insList = null;
 
 //		MockFramework.disable();
-//		System.currentTimeMillis();
+		System.currentTimeMillis();
 		try{
 			ClassLoader classLoader = TestGenerationContext.getInstance().getClassLoaderForSUT();
 			insList = BytecodeInstructionPool.getInstance(classLoader).getAllInstructionsAtMethod(className, methodName);
@@ -362,7 +364,7 @@ public class DataDependencyUtil {
 					
 					while(superClass != null) {
 						String superClassName = superClass.getCanonicalName();
-//					GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(superClassName);
+//						GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(superClassName);
 						insList = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT())
 								.getAllInstructionsAtMethod(superClassName, methodName);	
 						
@@ -386,7 +388,9 @@ public class DataDependencyUtil {
 			for (BytecodeInstruction ins : insList) {
 				if(isCollectionType(field.getType())) {
 					if(isCallElementModification(ins, field)) {
-						setterMap.put(ins, new ArrayList<>(cascadingCallRelations));
+						ValueSettings settings = new ValueSettings(ins, cascadingCallRelations, targetClass, targetSig);
+						setterList.add(settings);
+//						setterMap.put(ins, new ArrayList<>(cascadingCallRelations));
 					}
 				}
 				
@@ -396,7 +400,9 @@ public class DataDependencyUtil {
 					if (node instanceof FieldInsnNode) {
 						FieldInsnNode fNode = (FieldInsnNode) node;
 						if (fNode.name.equals(field.getName())) {
-							setterMap.put(ins, new ArrayList<>(cascadingCallRelations));
+							ValueSettings settings = new ValueSettings(ins, cascadingCallRelations, targetClass, targetSig);
+							setterList.add(settings);
+//							setterList.put(ins, new ArrayList<>(cascadingCallRelations));
 						}
 					}
 				} 
@@ -416,8 +422,8 @@ public class DataDependencyUtil {
 							String confirmedCalledClass = confirmClassNameInParentClass(calledClass, mNode);
 							if (calledMethodName != null) {
 								cascadingCallRelations.add(ins);
-								analyzeFieldSetter(confirmedCalledClass, calledMethodName, field, depth - 1,
-										cascadingCallRelations, setterMap);
+								analyzeFieldSetter(targetClass, targetSig, confirmedCalledClass, calledMethodName, field, depth - 1,
+										cascadingCallRelations, setterList);
 							}
 						} else {
 							System.currentTimeMillis();
@@ -428,7 +434,7 @@ public class DataDependencyUtil {
 		}
 		cascadingCallRelations.clear();
 
-		return setterMap;
+//		return setterList;
 
 	}
 	

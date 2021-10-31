@@ -8,8 +8,11 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.Properties;
@@ -32,10 +35,10 @@ import org.evosuite.testcase.synthesizer.DataDependencyUtil;
 import org.evosuite.testcase.synthesizer.FieldInitializer;
 import org.evosuite.testcase.synthesizer.NonPrimitiveFieldInitializer;
 import org.evosuite.testcase.synthesizer.ParameterMatch;
-import org.evosuite.testcase.synthesizer.PotentialSetter;
 import org.evosuite.testcase.synthesizer.PrimitiveFieldInitializer;
 import org.evosuite.testcase.synthesizer.ReflectionUtil;
 import org.evosuite.testcase.synthesizer.UsedReferenceSearcher;
+import org.evosuite.testcase.synthesizer.ValueSettings;
 import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.CollectionUtil;
@@ -472,23 +475,26 @@ public class VariableCodeGenerationUtil {
 	 */
 	public static Executable searchForPotentialSetterInClass(Field field, String targetClassName) throws ClassNotFoundException{
 		
-		PotentialSetter potentialSetter = DataDependencyUtil.searchForPotentialSettersInClass(field, targetClassName);
-		List<Executable> fieldSettingMethods = potentialSetter.setterList;
-		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = potentialSetter.difficultyList;
-		List<Set<Integer>> numberOfValidParams = potentialSetter.numberOfValidParams;
+		LinkedHashMap<Executable, List<ValueSettings>> setterMap = DataDependencyUtil.searchForPotentialSettersInClass(field, targetClassName);
+//		List<Executable> fieldSettingMethods = potentialSetter.setterList;
+//		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = potentialSetter.difficultyList;
+//		List<Set<Integer>> numberOfValidParams = potentialSetter.numberOfValidParams;
 		
 //		System.currentTimeMillis();
 		
-		if(!fieldSettingMethods.isEmpty()){
+		if(!setterMap.isEmpty()){
 //			Executable entry = Randomness.choice(fieldSettingMethods);
-			double[] scores = new double[fieldSettingMethods.size()];
+			double[] scores = new double[setterMap.size()];
+			Iterator<Entry<Executable, List<ValueSettings>>> iter = setterMap.entrySet().iterator();
 			for(int i=0; i<scores.length; i++){
-				scores[i] = estimateCoverageLikelihood(difficultyList.get(i), numberOfValidParams.get(i).size());
+				Entry<Executable, List<ValueSettings>> entry = iter.next();
+				ValueSettings valueSetting = entry.getValue().get(0);
+				scores[i] = estimateCoverageLikelihood(entry.getValue());
 
-				java.lang.reflect.Parameter[] pList = fieldSettingMethods.get(i).getParameters();
+				java.lang.reflect.Parameter[] pList = entry.getKey().getParameters();
 				boolean typeCompatible = false;
 				
-				for(Integer index: numberOfValidParams.get(i)) {
+				for(Integer index: valueSetting.releventPrams) {
 					scores[i] += 1;
 					java.lang.reflect.Parameter p = pList[index];
 					Class<?> c = p.getType();
@@ -500,7 +506,7 @@ public class VariableCodeGenerationUtil {
 					}
 				}
 				
-				if(fieldSettingMethods.get(i) instanceof Method && typeCompatible) {
+				if(entry.getKey() instanceof Method && typeCompatible) {
 					scores[i] += 10;
 				}
 				
@@ -511,7 +517,8 @@ public class VariableCodeGenerationUtil {
 			double p = Randomness.nextDouble();
 //			System.currentTimeMillis();
 			int selected = select(p, probability);
-			return fieldSettingMethods.get(selected);
+			Executable e = (Executable) setterMap.keySet().toArray()[selected];
+			return e;
 		}
 		
 		return null;
@@ -526,16 +533,14 @@ public class VariableCodeGenerationUtil {
 	 * @param integer
 	 * @return
 	 */
-	private static double estimateCoverageLikelihood(Map<BytecodeInstruction, List<BytecodeInstruction>> map,
-			Integer validParamNum) {
-		
+	private static double estimateCoverageLikelihood(List<ValueSettings> settings) {
 		double sum = 0;
-		for(BytecodeInstruction ins: map.keySet()) {
-			double callchainSize = map.get(ins).size();
-			sum += 1/(callchainSize+1);
+		for(ValueSettings setting: settings) {
+			double callchainSize = setting.callChain.size() * 1.0d;
+			sum += setting.releventPrams.size()/(callchainSize+1);
 		}
 		
-		return (double)(validParamNum+1) * sum;
+		return sum;
 	}
 
 	private static int select(double p, double[] probability) {
