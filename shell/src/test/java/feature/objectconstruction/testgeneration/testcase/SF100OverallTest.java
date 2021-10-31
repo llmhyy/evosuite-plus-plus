@@ -206,6 +206,27 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testWheelWebTool() {
+		String projectId = SF100Project.P80;
+		String[] targetMethods = new String[]{
+			"wheel.enhance.WheelFieldVisitor#visitEnd()V"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 150000;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+	}
+	
+	@Test
 	public void testQuickServer() {
 		String projectId = SF100Project.P93;
 		String[] targetMethods = new String[]{
