@@ -1,4 +1,4 @@
-package org.evosuite.testcase.synthesizer;
+package org.evosuite.testcase.synthesizer.graphviz;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -6,7 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.VarRelevance;
+import org.evosuite.testcase.variable.VariableReference;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -20,19 +25,34 @@ public class SimplePartialGraph implements Serializable {
 	@JsonIgnore
 	public Map<String, SimpleDepVariableWrapper> memory = new HashMap<>();
 	
+	// Only used during conversion from a PartialGraph, not used during deserialisation
+	@JsonIgnore
+	public Map<DepVariableWrapper, VarRelevance> graph2CodeMap;
+	
+	// Only used during initialisation, not during deserialisation
+	@JsonIgnore
+	public boolean isTestCaseSet = false;
+	
 	public Map<String, SimpleDepVariableWrapper> allRelevantNodes = new HashMap<>();
 	
 	public String branch;
 
+	public Map<Integer, String> testCaseStatements = new HashMap<>();
+	
+	public Map<String, Integer> nodeToStatement = new HashMap<>();
+	
+	public List<String> graphTraversalOrder = new ArrayList<>();
+	
 	// Needed for de/serialization
 	public SimplePartialGraph() {
 		
 	}
 	
-	public SimplePartialGraph(PartialGraph partialGraph) {
+	public SimplePartialGraph(Map<DepVariableWrapper, VarRelevance> graph2CodeMap, PartialGraph partialGraph) {
 		branch = partialGraph.getBranch().toString();
+		this.graph2CodeMap = graph2CodeMap;
 		
-		for (Map.Entry<DepVariableWrapper, DepVariableWrapper> entry : partialGraph.allRelevantNodes.entrySet()) {
+		for (Map.Entry<DepVariableWrapper, DepVariableWrapper> entry : partialGraph.getAllRelevantNodes().entrySet()) {
 			DepVariableWrapper key = entry.getKey();
 			DepVariableWrapper value = entry.getValue();
 			
@@ -43,7 +63,14 @@ public class SimplePartialGraph implements Serializable {
 			SimpleDepVariableWrapper simpleValue = getFromMemory(value.var.getShortLabel());
 			allRelevantNodes.put(simpleKey.shortLabel, simpleKey);
 			allRelevantNodes.put(simpleValue.shortLabel, simpleValue);
+			
+			recordNodeToStatementCorrespondence(key);
+			recordNodeToStatementCorrespondence(value);
 		}
+	}
+	
+	public void recordGraphTraversalOrder(DepVariableWrapper node) {
+		this.graphTraversalOrder.add(node.var.getShortLabel());
 	}
 	
 	// Compatibility methods for GraphVisualizer
@@ -95,6 +122,35 @@ public class SimplePartialGraph implements Serializable {
 			}
 			simpleWrapper.children.add(simpleChild);
 			
+		}
+	}
+	
+	// Records the node to statement test case correspondence
+	private void recordNodeToStatementCorrespondence(DepVariableWrapper node) {
+		VarRelevance varRelevance = this.graph2CodeMap.get(node);
+		if (varRelevance == null) {
+			return;
+		}
+		
+		// There are no matched variables
+		// In this case, we cannot do anything
+		if (varRelevance.matchedVars.size() == 0) {
+			return;
+		}
+		
+		VariableReference varRef = varRelevance.matchedVars.get(0);
+		int statementPosition = varRef.getStPosition();
+		this.nodeToStatement.put(node.var.getShortLabel(), statementPosition);
+		
+		// If the test case isn't set, record all statements here.
+		if (!isTestCaseSet) {
+			TestCase testCase = varRef.getTestCase();
+			for (int i = 0; i < testCase.size(); i++) {
+				Statement statement = testCase.getStatement(i);
+				String statementAsString = statement.getCode();
+				this.testCaseStatements.put(i, statementAsString);
+			}
+			this.isTestCaseSet = true;
 		}
 	}
 }

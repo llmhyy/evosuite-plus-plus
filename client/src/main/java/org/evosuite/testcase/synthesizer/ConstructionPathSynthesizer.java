@@ -45,6 +45,7 @@ import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.synthesizer.graphviz.SimplePartialGraph;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.VariableReference;
@@ -142,25 +143,8 @@ public class ConstructionPathSynthesizer {
 		
 //		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
-		isDebugger = true;
-		if(isDebugger) {
-			ObjectMapper mapper = new ObjectMapper();
-			File file = new File("D:\\linyun\\simplePartialGraph.json");
-			SimplePartialGraph simplePartialGraph = new SimplePartialGraph(partialGraph);
-			SimplePartialGraph deserializedSimplePartialGraph = null;
-			try {
-				mapper.writeValue(file, simplePartialGraph);
-				deserializedSimplePartialGraph = mapper.readValue(file, SimplePartialGraph.class);
-				System.currentTimeMillis();
-			} catch (IOException ioe) {
-				ioe.printStackTrace();
-			}
-			
-			if (deserializedSimplePartialGraph != null) {
-				GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");	
-				GraphVisualizer.visualizeComputationGraph(simplePartialGraph, 5000, "test2");
-				GraphVisualizer.visualizeComputationGraph(deserializedSimplePartialGraph, 5000, "test3");
-			}
+		if (isDebugger) {
+			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");	
 		}
 		
 		logTest(test, b, isDebugger, 0, null);
@@ -183,9 +167,15 @@ public class ConstructionPathSynthesizer {
 		 * when constructing some instruction, its dependency may not be ready.
 		 */
 		Map<DepVariableWrapper, Integer> methodCounter = new HashMap<>();
+		
+		// Used for recording purposes
+		// Simply records the nodes traversed in order.
+		List<DepVariableWrapper> graphTraversalOrder = new ArrayList<>();
+		
 		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
+			graphTraversalOrder.add(node);
 			
 //			logger.warn(String.valueOf(c) + ":" + node.toString());
 			if(c==11) {
@@ -249,6 +239,13 @@ public class ConstructionPathSynthesizer {
 		System.currentTimeMillis();
 		this.setPartialGraph(partialGraph);
 		this.setGraph2CodeMap(map);
+		
+		// Record
+		SimplePartialGraph simplePartialGraph = new SimplePartialGraph(map, partialGraph);
+		for (DepVariableWrapper traversedNode : graphTraversalOrder) {
+			simplePartialGraph.recordGraphTraversalOrder(traversedNode);
+		}
+		System.currentTimeMillis();
 	}
 
 	private void logTest(TestCase test, Branch b, boolean isDebugger, int iteration, DepVariableWrapper node) {

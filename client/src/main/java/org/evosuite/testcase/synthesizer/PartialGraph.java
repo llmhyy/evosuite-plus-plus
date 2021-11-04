@@ -19,6 +19,10 @@ public class PartialGraph {
 		return allRelevantNodes.keySet().size();
 	}
 	
+	public Map<DepVariableWrapper, DepVariableWrapper> getAllRelevantNodes() {
+		return allRelevantNodes;
+	}
+	
 	/**
 	 * In the original computation graph, multiple node can represent the same variable.
 	 * Therefore, we need to merge those nodes when generating the partial graph.

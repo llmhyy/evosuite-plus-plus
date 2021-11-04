@@ -20,8 +20,8 @@ import java.util.Set;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.synthesizer.PartialGraph;
-import org.evosuite.testcase.synthesizer.SimpleDepVariableWrapper;
-import org.evosuite.testcase.synthesizer.SimplePartialGraph;
+import org.evosuite.testcase.synthesizer.graphviz.SimpleDepVariableWrapper;
+import org.evosuite.testcase.synthesizer.graphviz.SimplePartialGraph;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 
 import guru.nidi.graphviz.attribute.Rank;

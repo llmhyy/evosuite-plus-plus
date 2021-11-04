@@ -1,4 +1,4 @@
-package org.evosuite.testcase.synthesizer;
+package org.evosuite.testcase.synthesizer.graphviz;
 
 import java.io.Serializable;
 import java.util.ArrayList;
