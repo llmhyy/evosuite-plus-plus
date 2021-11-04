@@ -245,6 +245,17 @@ public class ConstructionPathSynthesizer {
 		for (DepVariableWrapper traversedNode : graphTraversalOrder) {
 			simplePartialGraph.recordGraphTraversalOrder(traversedNode);
 		}
+		// Test de/serialisation
+		ObjectMapper mapper = new ObjectMapper();
+		File file = new File("D:\\linyun\\simplePartialGraph.json");
+		SimplePartialGraph deserialisedGraph = null;
+		try {
+			mapper.writeValue(file, simplePartialGraph);
+			deserialisedGraph = mapper.readValue(file, SimplePartialGraph.class);
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+		
 		System.currentTimeMillis();
 	}
 
