@@ -38,6 +38,7 @@ import org.evosuite.testcase.statements.NullStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.VariableReference;
@@ -57,7 +58,7 @@ public class TestCaseLegitimizer {
 	private InstrumentingClassLoader auxilaryLoader = new InstrumentingClassLoader();
 	
 	private PartialGraph graph;
-	private Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap;
+	private Map<DepVariableWrapper, VarRelevance> graph2CodeMap;
 	
 	private static TestCaseLegitimizer legitimizer = new TestCaseLegitimizer();
 	private TestCaseLegitimizer(){
@@ -75,7 +76,7 @@ public class TestCaseLegitimizer {
 	}
 	
 	public TestChromosome legitimize(TestChromosome testChromosome, PartialGraph graph, Map<DepVariableWrapper, 
-			List<VariableReference>> graph2CodeMap) {
+			VarRelevance> graph2CodeMap) {
 		this.graph = graph;
 		this.graph2CodeMap = graph2CodeMap;
 		

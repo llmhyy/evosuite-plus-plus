@@ -5,9 +5,14 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.Properties;
@@ -29,10 +34,11 @@ import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.DataDependencyUtil;
 import org.evosuite.testcase.synthesizer.FieldInitializer;
 import org.evosuite.testcase.synthesizer.NonPrimitiveFieldInitializer;
-import org.evosuite.testcase.synthesizer.PotentialSetter;
+import org.evosuite.testcase.synthesizer.ParameterMatch;
 import org.evosuite.testcase.synthesizer.PrimitiveFieldInitializer;
 import org.evosuite.testcase.synthesizer.ReflectionUtil;
 import org.evosuite.testcase.synthesizer.UsedReferenceSearcher;
+import org.evosuite.testcase.synthesizer.ValueSettings;
 import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.CollectionUtil;
@@ -161,7 +167,7 @@ public class VariableCodeGenerationUtil {
 	
 	
 	public static VariableReference generateFieldGetterInTest(TestCase test, VariableReference targetObjectReference,
-			Map<DepVariableWrapper, List<VariableReference>> map, Class<?> fieldDeclaringClass, Field field, 
+			Map<DepVariableWrapper, VarRelevance> map, Class<?> fieldDeclaringClass, Field field, 
 			UsedReferenceSearcher usedRefSearcher, Branch b)
 			throws ConstructionFailedException {
 		/**
@@ -198,11 +204,17 @@ public class VariableCodeGenerationUtil {
 							List<VariableReference> pList = cStat.getParameterReferences();
 							UsedReferenceSearcher searcher = new UsedReferenceSearcher();
 							String methodName = cStat.getMethodName() + cStat.getDescriptor();
-							List<VariableReference> params = 
-									searcher.searchRelevantParameterOfSetterInTest(pList, fieldDeclaringClass.getCanonicalName(), methodName, field);
+//							List<VariableReference> params = 
+//									searcher.searchRelevantParameterOfSetterInTest(pList, fieldDeclaringClass.getCanonicalName(), methodName, field);
+							System.currentTimeMillis();
+							ParameterMatch result = searcher.searchRelevantParameterOfSetterInTest(fieldDeclaringClass.getCanonicalName(), methodName, field);
+							List<VariableReference> paramRefs = new ArrayList<>();
+							for(Integer index: result.parameterPoisitions) {
+								paramRefs.add(pList.get(index));
+							}
 							
-							if(!params.isEmpty()) {
-								return params.get(0);
+							if(!paramRefs.isEmpty()) {
+								return paramRefs.get(0);
 							}
 						}
 						
@@ -315,7 +327,7 @@ public class VariableCodeGenerationUtil {
 		}
 		
 		if(addMethod != null) {
-			int addElementNum = Randomness.nextInt(1, 3);
+			int addElementNum = Randomness.nextInt(0, 3);
 			
 			for(int i=0; i<addElementNum; i++) {
 				GenericMethod gMethod = new GenericMethod(addMethod, type);
@@ -338,7 +350,7 @@ public class VariableCodeGenerationUtil {
 	 * generate setter in current test
 	 */
 	public static VariableReference generateFieldSetterInTest(TestCase test, VariableReference targetObjectReference,
-			Map<DepVariableWrapper, List<VariableReference>> map, Class<?> fieldDeclaringClass, Field field, boolean allowNullValue)
+			Map<DepVariableWrapper, VarRelevance> map, Class<?> fieldDeclaringClass, Field field, boolean allowNullValue)
 			throws ClassNotFoundException, ConstructionFailedException {
 		String className = fieldDeclaringClass.getName();
 		List<BytecodeInstruction> insList = BytecodeInstructionPool
@@ -358,6 +370,7 @@ public class VariableCodeGenerationUtil {
 		
 		String targetClassName = checkTargetClassName(field, targetObjectReference);
 		Executable setter = searchForPotentialSetterInClass(field, targetClassName);
+//		System.currentTimeMillis();
 		if (setter != null && !isTarget(setter)) {
 			if(setter instanceof Method){
 				GenericMethod gMethod = new GenericMethod((Method)setter, setter.getDeclaringClass());
@@ -375,7 +388,7 @@ public class VariableCodeGenerationUtil {
 				GenericConstructor gConstructor = new GenericConstructor((Constructor)setter,
 						setter.getDeclaringClass());
 				VariableReference returnedVar = TestFactory.getInstance().addConstructor(test, gConstructor,
-						targetObjectReference.getStPosition() + 1, 2);
+						targetObjectReference.getStPosition(), 2);
 
 				for (int i = 0; i < test.size(); i++) {
 					Statement stat = test.getStatement(i);
@@ -399,10 +412,21 @@ public class VariableCodeGenerationUtil {
 		return null;
 	}
 	
-	public static void replaceMapFromNode2Code(Map<DepVariableWrapper, List<VariableReference>> map,
+	public static void replaceMapFromNode2Code(Map<DepVariableWrapper, VarRelevance> map,
 			VariableReference oldObject, VariableReference newObject) {
 		for(DepVariableWrapper key: map.keySet()) {
-			List<VariableReference> list = map.get(key);
+			List<VariableReference> list = map.get(key).influentialVars;
+			
+			if(list.contains(oldObject)) {
+				for(int i=0; i<list.size(); i++) {
+					if(list.get(i).equals(oldObject)) {
+						list.set(i, newObject);
+					}
+				}
+				
+			}
+			
+			list = map.get(key).matchedVars;
 			
 			if(list.contains(oldObject)) {
 				for(int i=0; i<list.size(); i++) {
@@ -451,23 +475,26 @@ public class VariableCodeGenerationUtil {
 	 */
 	public static Executable searchForPotentialSetterInClass(Field field, String targetClassName) throws ClassNotFoundException{
 		
-		PotentialSetter potentialSetter = DataDependencyUtil.searchForPotentialSettersInClass(field, targetClassName);
-		List<Executable> fieldSettingMethods = potentialSetter.setterList;
-		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = potentialSetter.difficultyList;
-		List<Set<Integer>> numberOfValidParams = potentialSetter.numberOfValidParams;
+		LinkedHashMap<Executable, List<ValueSettings>> setterMap = DataDependencyUtil.searchForPotentialSettersInClass(field, targetClassName);
+//		List<Executable> fieldSettingMethods = potentialSetter.setterList;
+//		List<Map<BytecodeInstruction, List<BytecodeInstruction>>> difficultyList = potentialSetter.difficultyList;
+//		List<Set<Integer>> numberOfValidParams = potentialSetter.numberOfValidParams;
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
-		if(!fieldSettingMethods.isEmpty()){
+		if(!setterMap.isEmpty()){
 //			Executable entry = Randomness.choice(fieldSettingMethods);
-			double[] scores = new double[fieldSettingMethods.size()];
+			double[] scores = new double[setterMap.size()];
+			Iterator<Entry<Executable, List<ValueSettings>>> iter = setterMap.entrySet().iterator();
 			for(int i=0; i<scores.length; i++){
-				scores[i] = estimateCoverageLikelihood(difficultyList.get(i), numberOfValidParams.get(i).size());
+				Entry<Executable, List<ValueSettings>> entry = iter.next();
+				ValueSettings valueSetting = entry.getValue().get(0);
+				scores[i] = estimateCoverageLikelihood(entry.getValue());
 
-				java.lang.reflect.Parameter[] pList = fieldSettingMethods.get(i).getParameters();
+				java.lang.reflect.Parameter[] pList = entry.getKey().getParameters();
 				boolean typeCompatible = false;
 				
-				for(Integer index: numberOfValidParams.get(i)) {
+				for(Integer index: valueSetting.releventPrams) {
 					scores[i] += 1;
 					java.lang.reflect.Parameter p = pList[index];
 					Class<?> c = p.getType();
@@ -479,7 +506,7 @@ public class VariableCodeGenerationUtil {
 					}
 				}
 				
-				if(fieldSettingMethods.get(i) instanceof Method && typeCompatible) {
+				if(entry.getKey() instanceof Method && typeCompatible) {
 					scores[i] += 10;
 				}
 				
@@ -488,9 +515,10 @@ public class VariableCodeGenerationUtil {
 			
 			double[] probability = normalize(scores);
 			double p = Randomness.nextDouble();
-			System.currentTimeMillis();
+//			System.currentTimeMillis();
 			int selected = select(p, probability);
-			return fieldSettingMethods.get(selected);
+			Executable e = (Executable) setterMap.keySet().toArray()[selected];
+			return e;
 		}
 		
 		return null;
@@ -505,16 +533,14 @@ public class VariableCodeGenerationUtil {
 	 * @param integer
 	 * @return
 	 */
-	private static double estimateCoverageLikelihood(Map<BytecodeInstruction, List<BytecodeInstruction>> map,
-			Integer validParamNum) {
-		
+	private static double estimateCoverageLikelihood(List<ValueSettings> settings) {
 		double sum = 0;
-		for(BytecodeInstruction ins: map.keySet()) {
-			double callchainSize = map.get(ins).size();
-			sum += 1/(callchainSize+1);
+		for(ValueSettings setting: settings) {
+			double callchainSize = setting.callChain.size() * 1.0d;
+			sum += setting.releventPrams.size()/(callchainSize+1);
 		}
 		
-		return (double)(validParamNum+1) * sum;
+		return sum;
 	}
 
 	private static int select(double p, double[] probability) {
@@ -579,8 +605,14 @@ public class VariableCodeGenerationUtil {
 			stmt = addStatementToSetOrGetPublicField(test, fieldType,
 					genericField, targetObjectReference, new NonPrimitiveFieldInitializer(), allowNullValue);
 		}
+		
 
 		if (stmt != null && stmt.getReturnValue() != null) {
+			if(Collection.class.isAssignableFrom(genericField.getField().getType())) {
+				Class<?> fType = genericField.getField().getType();
+				System.currentTimeMillis();
+				VariableCodeGenerationUtil.generateElements(fType, test, stmt.getReturnValue());
+			}
 			return stmt.getReturnValue();
 		}
 		

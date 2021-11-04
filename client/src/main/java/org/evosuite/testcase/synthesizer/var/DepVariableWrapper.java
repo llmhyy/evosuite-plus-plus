@@ -7,6 +7,7 @@ import java.util.Map;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.synthesizer.VariableInTest;
 import org.evosuite.testcase.variable.VariableReference;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -17,12 +18,29 @@ public abstract class DepVariableWrapper {
 	public List<DepVariableWrapper> children = new ArrayList<>();
 	public List<DepVariableWrapper> parents = new ArrayList<>();
 	
+	/**
+	 * It means the variable has been accessed by the code of the enriching test code
+	 */
+	public boolean processed = false;
+	
 	protected DepVariableWrapper(DepVariable var) {
 		this.var = var;
 	}
 	
-	public abstract List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableReference callerObject,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue);
+	public abstract VarRelevance generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue);
+	
+	public List<VariableReference> findCorrespondingVariables(TestCase test, boolean isLeaf, VariableReference callerObject, 
+			Map<DepVariableWrapper, VarRelevance> map) {
+		List<VariableReference> vars = new ArrayList<>();
+		VariableReference var = find(test, isLeaf, callerObject, map);
+		if(var != null) {
+			vars.add(var);			
+		}
+		return vars;
+	}
+	
+	public abstract VariableReference find(TestCase test, boolean isLeaf, VariableReference callerObject, Map<DepVariableWrapper, VarRelevance> map);
 	
 	@Override
 	public int hashCode() {
@@ -128,6 +146,10 @@ public abstract class DepVariableWrapper {
 		return var.toString();
 	}
 
+	/**
+	 * the parent node which can directly "call" this node.
+	 * @return
+	 */
 	public List<DepVariableWrapper> getCallerNode() {
 		if (this.parents.isEmpty()) {
 			return null;
@@ -161,4 +183,29 @@ public abstract class DepVariableWrapper {
 		buffer.append(var.getShortMethodName() + "#" + var.getInstruction().getInstructionId());
 		return buffer.toString();
 	}
+
+	public DepVariableWrapper getFirstParent() {
+		for(DepVariableWrapper par: this.parents) {
+			int order = this.var.getInputOrder(par.var);
+			if(order == 0) {
+				return par;
+			}
+		}
+		return null;
+	}
+
+	public DepVariableWrapper findTaintedParent() {
+		
+		DepVariableWrapper firstPar = this.getFirstParent(); 
+		if(firstPar == null) return null;
+		
+		while(!firstPar.processed) {
+			firstPar = firstPar.getFirstParent();
+			
+			if(firstPar == null) return null;
+		}
+		
+		return firstPar;
+	}
+	
 }

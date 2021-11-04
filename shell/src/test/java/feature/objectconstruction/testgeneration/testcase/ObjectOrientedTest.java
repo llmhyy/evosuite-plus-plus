@@ -30,6 +30,7 @@ import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
@@ -74,7 +75,20 @@ public class ObjectOrientedTest {
 			System.out.println(test);
 
 //			PartialGraph graph = cpSynthesizer.getPartialGraph();
-//			Map<DepVariable, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+			Map<DepVariableWrapper, VarRelevance> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+			
+			for(DepVariableWrapper node: graph2CodeMap.keySet()) {
+				System.out.println("key node: " + node.var.getInstruction());
+				
+				VarRelevance rel = graph2CodeMap.get(node);
+				
+				for(VariableReference variable: rel.matchedVars) {					
+					System.out.println("  variable: " + test.getStatement(variable.getStPosition()) + 
+							" at statement " + variable.getStPosition());					
+				}
+				
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -103,7 +117,7 @@ public class ObjectOrientedTest {
 			System.out.println("Time to generate code template: " + (t2-t1)/1000 + "s");
 			
 			PartialGraph graph = cpSynthesizer.getPartialGraph();
-			Map<DepVariableWrapper, List<VariableReference>> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+			Map<DepVariableWrapper, VarRelevance> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
 
 			TestChromosome templateTestChromosome = new TestChromosome();
 			templateTestChromosome.setTestCase(test);

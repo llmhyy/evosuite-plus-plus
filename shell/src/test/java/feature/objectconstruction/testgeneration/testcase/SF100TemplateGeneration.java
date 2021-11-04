@@ -45,7 +45,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 		Branch b = rankedList.get(12);
 		System.out.println(b);
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
-		generateCode(b, true, false);
+		generateCode(b, false, false);
 	}
 	
 	@Test

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,8 +45,10 @@ import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.DataDependencyUtil;
 import org.evosuite.testcase.synthesizer.PotentialSetter;
+import org.evosuite.testcase.synthesizer.ValueSettings;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapperFactory;
+import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.ConstantValue;
@@ -131,12 +134,12 @@ public class SensitivityMutator {
 		TestChromosome oldTest = new TestChromosome();
 		oldTest.setTestCase(test);
 		
-		System.currentTimeMillis();
+//		System.currentTimeMillis();
 		
 		ConstructionPathSynthesizer relationBuilder = new ConstructionPathSynthesizer(false);
 		TestCase test0 = (TestCase)test.clone();
 		try {
-			relationBuilder.buildNodeStatementCorrespondence(test, branch, false);
+			relationBuilder.buildNodeStatementCorrespondence(test0, branch, false);
 			
 			TestChromosome trial = new TestChromosome();
 			trial.setTestCase(test0);
@@ -148,6 +151,7 @@ public class SensitivityMutator {
 			if(fitnessValue >= 1) {
 				test0 = test.clone();
 				relationBuilder = new ConstructionPathSynthesizer(false);
+				//TODO Lin Yun: provide a way to just build the correspondence
 //				relationBuilder.buildNodeStatementCorrespondence(test0, branch, false);
 			}
 			
@@ -174,7 +178,7 @@ public class SensitivityMutator {
 		TestChromosome startPoint = (TestChromosome) testChromosome.clone();
 		
 		ValuePreservance preservance = new ValuePreservance(observations, rootVariables);
-		Map<DepVariableWrapper, List<VariableReference>> map = synthensizer.getGraph2CodeMap();
+		Map<DepVariableWrapper, VarRelevance> map = synthensizer.getGraph2CodeMap();
 		MethodInputs inputs0 = constructInputValues(rootVariables, testChromosome, map);
 		
 		for (int i = 0; i < Properties.DYNAMIC_SENSITIVITY_THRESHOLD; i++) {
@@ -240,7 +244,7 @@ public class SensitivityMutator {
 	}
 
 	private static MethodInputs constructInputValues(List<DepVariable> rootVariables,
-			TestChromosome newTestChromosome, Map<DepVariableWrapper, List<VariableReference>> map) {
+			TestChromosome newTestChromosome, Map<DepVariableWrapper, VarRelevance> map) {
 		Map<String, ValueStatement> inputVariables = new HashMap<>();
 		Map<String, Object> inputConstants = new HashMap<>();
 		for (DepVariable rootVar : rootVariables) {
@@ -254,20 +258,25 @@ public class SensitivityMutator {
 			List<ValueStatement> relevantStatements = new ArrayList<>();
 			for(DepVariable var: relevantPrimitiveChildren) {
 				if(map == null) continue;
-				List<VariableReference> varList = map.get(DepVariableWrapperFactory.createWrapperInstance(var));
+				List<VariableReference> varList = map.get(DepVariableWrapperFactory.createWrapperInstance(var)).influentialVars;
 				if(varList == null) continue;
 				for(VariableReference ref: varList) {
 					
-					if(ref.getStPosition() > newTestChromosome.size()) {
+					if(ref.getStPosition() >= newTestChromosome.size()) {
 						System.currentTimeMillis();
 					}
 					
-					Statement statement = newTestChromosome.getTestCase().getStatement(ref.getStPosition()); 
-					
-					List<ValueStatement> set = new ArrayList<>();
-					search(set, statement, newTestChromosome);
-					
-					relevantStatements.addAll(set);
+					try {
+						Statement statement = newTestChromosome.getTestCase().getStatement(ref.getStPosition()); 
+						
+						List<ValueStatement> set = new ArrayList<>();
+						search(set, statement, newTestChromosome);
+						
+						relevantStatements.addAll(set);						
+					}
+					catch(Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 			
@@ -536,9 +545,10 @@ public class SensitivityMutator {
 			}
 			
 			for(Field field: clazz.getDeclaredFields()) {
-				PotentialSetter pSetter = DataDependencyUtil.searchForPotentialSettersInClass(field, className);
+				LinkedHashMap<Executable, List<ValueSettings>> pSetter 
+					= DataDependencyUtil.searchForPotentialSettersInClass(field, className);
 				
-				for(Executable e: pSetter.setterList) {
+				for(Executable e: pSetter.keySet()) {
 					if(e instanceof Method) {
 						Method m = (Method)e;
 						if(!list.contains(m) && m.getParameterCount() != 0) {

@@ -1,12 +1,11 @@
 package org.evosuite.testcase.synthesizer.var;
 
-import java.util.List;
 import java.util.Map;
 
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.variable.VariableReference;
+import org.evosuite.testcase.synthesizer.VariableInTest;
 
 public class StaticFieldVariableWrapper extends FieldVariableWrapper {
 
@@ -15,8 +14,8 @@ public class StaticFieldVariableWrapper extends FieldVariableWrapper {
 	}
 
 	@Override
-	public List<VariableReference> generateOrFindStatement(TestCase test, boolean isLeaf, VariableReference callerObject,
-			Map<DepVariableWrapper, List<VariableReference>> map, Branch b, boolean allowNullValue) {
-		return super.generateOrFindStatement(test, isLeaf, callerObject, map, b, allowNullValue);
+	public VarRelevance generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
+		return super.generateOrFindStatement(test, isLeaf, variable, map, b, allowNullValue);
 	}
 }

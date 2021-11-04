@@ -7,8 +7,10 @@ import java.util.Map;
 
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapperFactory;
+import org.evosuite.testcase.variable.VariableReference;
 
 public class PartialGraph {
 	Map<DepVariableWrapper, DepVariableWrapper> allRelevantNodes = new HashMap<DepVariableWrapper, DepVariableWrapper>();
@@ -107,6 +109,17 @@ public class PartialGraph {
 		
 		return list;
 	}
+	
+	public List<DepVariableWrapper> getLeaves(){
+		List<DepVariableWrapper> list = new ArrayList<DepVariableWrapper>();
+		for(DepVariableWrapper node: allRelevantNodes.values()) {
+			if(node.children.isEmpty()) {
+				list.add(node);
+			}
+		}
+		
+		return list;
+	}
 
 	private Branch targetBranch;
 	
@@ -117,4 +130,64 @@ public class PartialGraph {
 	public Branch getBranch() {
 		return this.targetBranch;
 	}
+
+//	/**
+//	 * 
+//	 * @param map 
+//	 * @param node 
+//	 * @param test
+//	 */
+//	public void taint(Map<DepVariableWrapper, List<VariableReference>> map, 
+//			DepVariableWrapper node, TestCase test, VariableReference callerObject) {
+//		node.processed = true;
+//		
+//		List<DepVariableWrapper> leaves = getLeaves();
+//		for(DepVariableWrapper leaf: leaves) {
+//			if(map.containsKey(leaf)) {
+//				leaf.processed = true;
+//			}
+//			else {
+//				DepVariableWrapper taintedParent = leaf.findTaintedParent();
+//				if(taintedParent != null && map.containsKey(taintedParent)) {
+//					
+//					/**
+//					 * cannot use this, aaload
+//					 */
+//					VariableReference callerObj = map.get(taintedParent).get(0);
+//					List<VariableReference> varList = leaf.findCorrespondingVariables(test, true, callerObj, map);
+//					
+//					if(!varList.isEmpty()) {
+//						leaf.processed = true;
+//					}
+//					
+//				}
+//			}
+//		}
+//		
+//		propagateTaint();
+//	}
+	
+//	private void propagateTaint() {
+//		boolean change = true;
+//		
+//		while(change) {
+//			change = false;
+//			for(DepVariableWrapper node: allRelevantNodes.keySet()) {
+//				if(!node.processed && !node.children.isEmpty()) {
+//					boolean isAllChildrenTaint = true;
+//					for(DepVariableWrapper child: node.children) {
+//						if(!child.processed) {
+//							isAllChildrenTaint = false;
+//							break;
+//						}						
+//					}
+//					
+//					if(isAllChildrenTaint) {
+//						node.processed = true;
+//						change = true;
+//					}
+//				}
+//			}
+//		}
+//	}
 }
