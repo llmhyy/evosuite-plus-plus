@@ -27,6 +27,8 @@ import de.huxhorn.lilith.engine.impl.LogFileFactoryImpl;
 import dk.statsbiblioteket.summa.search.api.document.DocumentKeys;
 import dk.statsbiblioteket.summa.search.api.document.DocumentResponse;
 import ioproject.client.network.Server;
+import ioproject.client.network.ServerToMessageHandlerAdapter;
+import ioproject.client.network.StateMultiplexer;
 import mindbright.ssh.SSHMiscDialogs;
 
 import java.awt.Dimension;
@@ -106,6 +108,7 @@ import javax.xml.transform.Transformer;
 import org.evosuite.runtime.mock.java.io.MockFile;
 import org.evosuite.runtime.mock.java.io.MockFileInputStream;
 import org.evosuite.runtime.mock.java.io.MockPrintWriter;
+import org.evosuite.runtime.mock.java.net.MockInetSocketAddress;
 import org.evosuite.runtime.mock.java.util.MockDate;
 import org.evosuite.runtime.mock.java.util.MockGregorianCalendar;
 import org.evosuite.runtime.testdata.EvoSuiteFile;
