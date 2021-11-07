@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 
 import org.evosuite.Properties;
@@ -57,7 +58,8 @@ import org.evosuite.utils.generic.GenericConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ConstructionPathSynthesizer {
-
+	public static int simplePartialGraphCounter = 0;
+	
 //	private TestFactory testFactory;
 //	private static final Logger logger = LoggerFactory.getLogger(ConstructionPathSynthesizer.class);
 	
@@ -141,6 +143,9 @@ public class ConstructionPathSynthesizer {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
+		// For recording data for graph visualisation
+		SimplePartialGraph simplePartialGraph = new SimplePartialGraph(partialGraph);
+		
 //		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
 		if (isDebugger) {
@@ -168,14 +173,9 @@ public class ConstructionPathSynthesizer {
 		 */
 		Map<DepVariableWrapper, Integer> methodCounter = new HashMap<>();
 		
-		// Used for recording purposes
-		// Simply records the nodes traversed in order.
-		List<DepVariableWrapper> graphTraversalOrder = new ArrayList<>();
-		
 		int c = 1;
 		while(!queue.isEmpty()) {
 			DepVariableWrapper node = queue.remove();
-			graphTraversalOrder.add(node);
 			
 //			logger.warn(String.valueOf(c) + ":" + node.toString());
 			if(c==11) {
@@ -221,6 +221,8 @@ public class ConstructionPathSynthesizer {
 					queue.add(child);
 				}
 				
+				// Record graph traversal
+				simplePartialGraph.recordGraphTraversalOrder(node, map.get(node));
 			} else {
 				Integer count = methodCounter.get(node);
 				if(count == null) count = 0;
@@ -240,25 +242,20 @@ public class ConstructionPathSynthesizer {
 		this.setPartialGraph(partialGraph);
 		this.setGraph2CodeMap(map);
 		
-		// Record
-		SimplePartialGraph simplePartialGraph = new SimplePartialGraph(map, partialGraph);
-		for (DepVariableWrapper traversedNode : graphTraversalOrder) {
-			simplePartialGraph.recordGraphTraversalOrder(traversedNode);
-		}
-		// Test de/serialisation
-		ObjectMapper mapper = new ObjectMapper();
-		File file = new File("D:\\linyun\\simplePartialGraph.json");
-		SimplePartialGraph deserialisedGraph = null;
 		try {
-			mapper.writeValue(file, simplePartialGraph);
-			deserialisedGraph = mapper.readValue(file, SimplePartialGraph.class);
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
+			// Quick fix while we look for truth value of branch
+			simplePartialGraph.writeTo(new File("D:\\linyun\\simplePartialGraph_" + b.toString() + "_" + simplePartialGraphCounter++ + ".json"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		
-		System.currentTimeMillis();
 	}
-
+	
+	private int getRandomInRange(int min, int max) {
+		Random random = new Random();
+		return min + random.nextInt(max - min);
+	}
+	
 	private void logTest(TestCase test, Branch b, boolean isDebugger, int iteration, DepVariableWrapper node) {
 		if(!isDebugger) {
 			return;

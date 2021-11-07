@@ -1,5 +1,7 @@
 package org.evosuite.testcase.synthesizer.graphviz;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +16,9 @@ import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.VariableReference;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.exc.StreamWriteException;
+import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Simplified form of the partial graph, for use in constructing graph visualisations.
@@ -29,17 +34,11 @@ public class SimplePartialGraph implements Serializable {
 	@JsonIgnore
 	public Map<DepVariableWrapper, VarRelevance> graph2CodeMap;
 	
-	// Only used during initialisation, not during deserialisation
-	@JsonIgnore
-	public boolean isTestCaseSet = false;
-	
 	public Map<String, SimpleDepVariableWrapper> allRelevantNodes = new HashMap<>();
 	
 	public String branch;
-
-	public Map<Integer, String> testCaseStatements = new HashMap<>();
 	
-	public Map<String, Integer> nodeToStatement = new HashMap<>();
+	public Map<String, SimpleStatement> nodeToStatement = new HashMap<>();
 	
 	public List<String> graphTraversalOrder = new ArrayList<>();
 	
@@ -48,9 +47,8 @@ public class SimplePartialGraph implements Serializable {
 		
 	}
 	
-	public SimplePartialGraph(Map<DepVariableWrapper, VarRelevance> graph2CodeMap, PartialGraph partialGraph) {
+	public SimplePartialGraph(PartialGraph partialGraph) {
 		branch = partialGraph.getBranch().toString();
-		this.graph2CodeMap = graph2CodeMap;
 		
 		for (Map.Entry<DepVariableWrapper, DepVariableWrapper> entry : partialGraph.getAllRelevantNodes().entrySet()) {
 			DepVariableWrapper key = entry.getKey();
@@ -63,14 +61,28 @@ public class SimplePartialGraph implements Serializable {
 			SimpleDepVariableWrapper simpleValue = getFromMemory(value.var.getShortLabel());
 			allRelevantNodes.put(simpleKey.shortLabel, simpleKey);
 			allRelevantNodes.put(simpleValue.shortLabel, simpleValue);
-			
-			recordNodeToStatementCorrespondence(key);
-			recordNodeToStatementCorrespondence(value);
 		}
 	}
 	
-	public void recordGraphTraversalOrder(DepVariableWrapper node) {
-		this.graphTraversalOrder.add(node.var.getShortLabel());
+	public void writeTo(File file) throws StreamWriteException, DatabindException, IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.writeValue(file, this);
+	}
+	
+	public void recordGraphTraversalOrder(DepVariableWrapper node, VarRelevance varRel) {
+		String nodeLabel = node.var.getShortLabel();
+		this.graphTraversalOrder.add(nodeLabel);
+		
+		if (varRel == null || varRel.matchedVars.isEmpty()) {
+			return;
+		}
+		
+		VariableReference matchedVariable = varRel.matchedVars.get(0);
+		int statementPosition = matchedVariable.getStPosition();
+		TestCase testCase = matchedVariable.getTestCase();
+		
+		SimpleStatement simpleStatement = new SimpleStatement(statementPosition, testCase);
+		this.nodeToStatement.put(nodeLabel, simpleStatement);
 	}
 	
 	// Compatibility methods for GraphVisualizer
@@ -140,17 +152,8 @@ public class SimplePartialGraph implements Serializable {
 		
 		VariableReference varRef = varRelevance.matchedVars.get(0);
 		int statementPosition = varRef.getStPosition();
-		this.nodeToStatement.put(node.var.getShortLabel(), statementPosition);
-		
-		// If the test case isn't set, record all statements here.
-		if (!isTestCaseSet) {
-			TestCase testCase = varRef.getTestCase();
-			for (int i = 0; i < testCase.size(); i++) {
-				Statement statement = testCase.getStatement(i);
-				String statementAsString = statement.getCode();
-				this.testCaseStatements.put(i, statementAsString);
-			}
-			this.isTestCaseSet = true;
-		}
+		TestCase testCase = varRef.getTestCase();
+		SimpleStatement simpleStatement = new SimpleStatement(statementPosition, testCase);
+		this.nodeToStatement.put(node.var.getShortLabel(), simpleStatement);
 	}
 }
