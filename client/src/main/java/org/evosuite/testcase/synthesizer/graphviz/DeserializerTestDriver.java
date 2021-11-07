@@ -9,14 +9,12 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DeserializerTestDriver {
 	@Test
 	public void deserializationTest() throws StreamReadException, DatabindException, IOException {
-		ObjectMapper objectMapper = new ObjectMapper();
 		File file = new File("D:\\linyun\\simplePartialGraph.json");
-		SimplePartialGraph graph = objectMapper.readValue(file, SimplePartialGraph.class);
+		SimplePartialGraph graph = SimplePartialGraph.from(file);
 		
 		GraphVisualizer.visualizeComputationGraph(graph, 5000, "test");
 		

@@ -16,6 +16,7 @@ import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.VariableReference;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.core.exc.StreamWriteException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,6 +68,11 @@ public class SimplePartialGraph implements Serializable {
 	public void writeTo(File file) throws StreamWriteException, DatabindException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.writeValue(file, this);
+	}
+	
+	public static SimplePartialGraph from(File file) throws StreamReadException, DatabindException, IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.readValue(file, SimplePartialGraph.class);
 	}
 	
 	public void recordGraphTraversalOrder(DepVariableWrapper node, VarRelevance varRel) {
