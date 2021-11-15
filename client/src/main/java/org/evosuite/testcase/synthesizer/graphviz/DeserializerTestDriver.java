@@ -11,19 +11,32 @@ import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 
 public class DeserializerTestDriver {
+	public static final boolean IS_VISUALISE_PARTIAL_GRAPH = false;
+	public static final boolean IS_VISUALISE_CFG = true;
+	public static final boolean IS_TRAVERSE_GRAPH = false;
+	
 	@Test
 	public void deserializationTest() throws StreamReadException, DatabindException, IOException {
-		File file = new File("D:\\linyun\\simplePartialGraph.json");
-		SimplePartialGraph graph = SimplePartialGraph.from(file);
+		File file = new File("D:\\linyun\\graphVisData_I9 Branch 2 IF_ICMPGE L6_0.json");
+		GraphVisualisationData graphVisData = GraphVisualisationData.from(file);
+		SimplePartialGraph graph = graphVisData.getPartialGraph();
+		SimpleControlFlowGraph cfg = graphVisData.cfg;
 		
-		GraphVisualizer.visualizeComputationGraph(graph, 5000, "test");
+		if (IS_VISUALISE_PARTIAL_GRAPH) {
+			GraphVisualizer.visualizeComputationGraph(graph, 5000, "test");
+		}
 		
-		List<String> graphTraversalOrder = graph.graphTraversalOrder;
-		for (String traversedNode : graphTraversalOrder) {
-			SimpleStatement simpleStatement = graph.nodeToStatement.get(traversedNode);
-			String correspondingStatement = simpleStatement.statementNumberToTestCase.get(simpleStatement.statementNumber);
-			String testCase = simpleStatement.wholeTestCase;
-			System.currentTimeMillis();
+		if (IS_VISUALISE_CFG) {
+			GraphVisualizer.visualizeCfg(cfg, 5000, "test", "CFG");
+		}
+		
+		if (IS_TRAVERSE_GRAPH) {
+			List<String> graphTraversalOrder = graph.graphTraversalOrder;
+			for (String traversedNode : graphTraversalOrder) {
+				SimpleStatement simpleStatement = graph.nodeToStatement.get(traversedNode);
+				String correspondingStatement = simpleStatement.statementNumberToTestCase.get(simpleStatement.statementNumber);
+				String testCase = simpleStatement.wholeTestCase;
+			}
 		}
 	}
 }

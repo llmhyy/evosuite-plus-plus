@@ -134,6 +134,29 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testCustom() {
+		String projectId = SF100Project.P0;
+		String[] targetMethods = new String[]{
+				"org.example.custom.CfgTest#method(I)V"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
 	public void testWaterSimulator() {
 		String projectId = SF100Project.P10;
 		String[] targetMethods = new String[]{
@@ -214,7 +237,7 @@ public class SF100OverallTest {
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
 		int repeatTime = 1;
-		int budget = 150000;
+		int budget = 150;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";

@@ -1,7 +1,7 @@
 package common;
 
 public class SF100Project {
-	
+	public final static String P0 = "0_custom";
 	public final static String P1 = "1_tullibee";
 	public final static String P2 = "2_a4j";
 	public final static String P3 = "3_jigen";

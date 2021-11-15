@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.PartialGraph;
@@ -31,10 +32,6 @@ public class SimplePartialGraph implements Serializable {
 	@JsonIgnore
 	public Map<String, SimpleDepVariableWrapper> memory = new HashMap<>();
 	
-	// Only used during conversion from a PartialGraph, not used during deserialisation
-	@JsonIgnore
-	public Map<DepVariableWrapper, VarRelevance> graph2CodeMap;
-	
 	public Map<String, SimpleDepVariableWrapper> allRelevantNodes = new HashMap<>();
 	
 	public String branch;
@@ -42,6 +39,8 @@ public class SimplePartialGraph implements Serializable {
 	public Map<String, SimpleStatement> nodeToStatement = new HashMap<>();
 	
 	public List<String> graphTraversalOrder = new ArrayList<>();
+	
+	public SimpleControlFlowGraph simpleCfg;
 	
 	// Needed for de/serialization
 	public SimplePartialGraph() {
@@ -83,12 +82,7 @@ public class SimplePartialGraph implements Serializable {
 			return;
 		}
 		
-		VariableReference matchedVariable = varRel.matchedVars.get(0);
-		int statementPosition = matchedVariable.getStPosition();
-		TestCase testCase = matchedVariable.getTestCase();
-		
-		SimpleStatement simpleStatement = new SimpleStatement(statementPosition, testCase);
-		this.nodeToStatement.put(nodeLabel, simpleStatement);
+		recordNodeToStatementCorrespondence(node, varRel);
 	}
 	
 	// Compatibility methods for GraphVisualizer
@@ -144,8 +138,7 @@ public class SimplePartialGraph implements Serializable {
 	}
 	
 	// Records the node to statement test case correspondence
-	private void recordNodeToStatementCorrespondence(DepVariableWrapper node) {
-		VarRelevance varRelevance = this.graph2CodeMap.get(node);
+	private void recordNodeToStatementCorrespondence(DepVariableWrapper node, VarRelevance varRelevance) {
 		if (varRelevance == null) {
 			return;
 		}

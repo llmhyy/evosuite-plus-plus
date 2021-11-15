@@ -34,11 +34,14 @@ import org.evosuite.coverage.dataflow.Definition;
 import org.evosuite.coverage.dataflow.Use;
 import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.ga.ConstructionFailedException;
+import org.evosuite.graphs.GraphPool;
+import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.ConstructionPath;
 import org.evosuite.graphs.interprocedural.GraphVisualizer;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
+import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.testcase.TestCase;
@@ -46,6 +49,9 @@ import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.synthesizer.graphviz.GraphVisualisationData;
+import org.evosuite.testcase.synthesizer.graphviz.GraphVisualisationDataBuilder;
+import org.evosuite.testcase.synthesizer.graphviz.SimpleControlFlowGraph;
 import org.evosuite.testcase.synthesizer.graphviz.SimplePartialGraph;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.VarRelevance;
@@ -58,7 +64,7 @@ import org.evosuite.utils.generic.GenericConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ConstructionPathSynthesizer {
-	public static int simplePartialGraphCounter = 0;
+	public static int graphVisCounter = 0;
 	
 //	private TestFactory testFactory;
 //	private static final Logger logger = LoggerFactory.getLogger(ConstructionPathSynthesizer.class);
@@ -144,7 +150,9 @@ public class ConstructionPathSynthesizer {
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
 		// For recording data for graph visualisation
-		SimplePartialGraph simplePartialGraph = new SimplePartialGraph(partialGraph);
+		GraphVisualisationDataBuilder graphVisDataBuilder = new GraphVisualisationDataBuilder();
+		graphVisDataBuilder.addPartialGraph(partialGraph);
+		graphVisDataBuilder.addCfgFor(b.getClassName(), b.getMethodName());
 		
 //		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
@@ -222,7 +230,12 @@ public class ConstructionPathSynthesizer {
 				}
 				
 				// Record graph traversal
-				simplePartialGraph.recordGraphTraversalOrder(node, map.get(node));
+				try {
+					graphVisDataBuilder.recordGraphTraversalOrder(node, map.get(node));
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			} else {
 				Integer count = methodCounter.get(node);
 				if(count == null) count = 0;
@@ -243,9 +256,9 @@ public class ConstructionPathSynthesizer {
 		this.setGraph2CodeMap(map);
 		
 		try {
-			// Quick fix while we look for truth value of branch
-			simplePartialGraph.writeTo(new File("D:\\linyun\\simplePartialGraph_" + b.toString() + "_" + simplePartialGraphCounter++ + ".json"));
-		} catch (IOException e) {
+			// Quick fix
+			graphVisDataBuilder.build().writeTo(new File("D:\\linyun\\graphVisData_" + b.toString() + "_" + graphVisCounter++ + ".json"));
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
