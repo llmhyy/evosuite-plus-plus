@@ -27,6 +27,25 @@ import evosuite.shell.utils.TargetMethodIOUtils;
 public class ListMethodsBatch {
 
 	@Test
+	public void testCustom() throws IOException {
+		MethodFilterOption opt = MethodFilterOption.CONSTANT_BRANCH_OPERAND_METHOD;
+		org.evosuite.Properties.ALWAYS_REGISTER_BRANCH = true;
+//		org.evosuite.Properties.INHERITANCE_FILE = null;
+		org.evosuite.Properties.INHERITANCE_FILE = "";
+		
+		File projectFolder = new File("D:\\linyun\\git_space\\SF100-clean\\0_custom");
+		SFBenchmarkUtils.setupProjectProperties(projectFolder);
+		StringBuilder argJar = new StringBuilder(projectFolder.getAbsolutePath() + "/custom.jar");
+		String[] args = new String[] {
+				"-target",
+				argJar.toString(),
+				"-listMethods",
+				"-mFilterOpt", opt.getText()
+		};
+		EvosuiteForMethod.execute(args);
+	}
+	
+	@Test
 	public void justRun() throws IOException {
 		org.evosuite.Properties.ALWAYS_REGISTER_BRANCH = true;
 		
@@ -49,8 +68,8 @@ public class ListMethodsBatch {
 //		runListMethod(MethodFilterOption.CALLS_RECURSIVE_METHOD);
 //		runListMethod(MethodFilterOption.OBJECT_CONSTRUCTION);
 //		runListMethod(MethodFilterOption.BRANCHWISE_METHOD);
-		runListMethod(MethodFilterOption.CONSTANT_METHOD);
-
+//		runListMethod(MethodFilterOption.CONSTANT_METHOD);
+		runListMethod(MethodFilterOption.CONSTANT_BRANCH_OPERAND_METHOD);
 //	}
 	}
 
