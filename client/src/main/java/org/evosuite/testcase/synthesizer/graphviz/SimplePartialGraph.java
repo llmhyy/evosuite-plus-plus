@@ -8,9 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.VarRelevance;
@@ -39,8 +37,6 @@ public class SimplePartialGraph implements Serializable {
 	public Map<String, SimpleStatement> nodeToStatement = new HashMap<>();
 	
 	public List<String> graphTraversalOrder = new ArrayList<>();
-	
-	public SimpleControlFlowGraph simpleCfg;
 	
 	// Needed for de/serialization
 	public SimplePartialGraph() {
