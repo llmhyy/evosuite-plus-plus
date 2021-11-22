@@ -69,29 +69,28 @@ public class InterproceduralGraphAnalysis {
 		for (String className : BranchPool.getInstance(classLoader).knownClasses()) {
 			// when limitToCUT== true, if not the class under test of a inner/anonymous
 			// class, continue
-			if (!isCUT(className))
+			if (!isCUT(className)) {
 				continue;
+			}
+			
 			// when limitToCUT==false, consider all classes, but excludes libraries ones
 			// according the INSTRUMENT_LIBRARIES property
-			if (!Properties.INSTRUMENT_LIBRARIES && !DependencyAnalysis.isTargetProject(className))
+			if (!Properties.INSTRUMENT_LIBRARIES && !DependencyAnalysis.isTargetProject(className)) {
 				continue;
-
+			}
+			
 			// Branches
 			for (String methodName : BranchPool.getInstance(classLoader).knownMethods(className)) {
-				if(Properties.TARGET_METHOD.equals(methodName)) {
+				if (Properties.TARGET_METHOD.equals(methodName)) {
 					ActualControlFlowGraph cfg = GraphPool.getInstance(classLoader).getActualCFG(className, methodName);
 					FBranchDefUseAnalyzer.analyze(cfg.getRawGraph());
 					
 					Map<Branch, Set<DepVariable>> map = analyzeIndividualMethod(cfg, interestedNodeFilter);
-					System.currentTimeMillis();
 					recommendedClasses = analyzeRecommendationClasses(cfg);
-					System.currentTimeMillis();
 					branchInterestedVarsMap.put(methodName, map);					
 				}
 			}
 		}
-
-//		GraphVisualizer.visualizeComputationGraph();
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -123,31 +122,28 @@ public class InterproceduralGraphAnalysis {
 						/**
 						 * get all the instruction defining the value.
 						 */
-						for(AbstractInsnNode insNode: srcValue.insns) {
+						for (AbstractInsnNode insNode: srcValue.insns) {
 							BytecodeInstruction defIns = DefUseAnalyzer.convert2BytecodeInstruction(cfg, node, insNode);
 							if (defIns != null) {
 								System.currentTimeMillis();
 								DepVariable var = DepVariableFactory.createVariableInstance(defIns);
-								if(var.isParameter()) {
+								if (var.isParameter()) {
 									int position = var.getInstruction().getParameterPosition();
 									List<String> classes = recommendationClasses.get(position);
-									if(classes == null) {
+									if (classes == null) {
 										classes = new ArrayList<String>();
 									}
-									if(!classes.contains(checkingClassName)) {
+									if (!classes.contains(checkingClassName)) {
 										classes.add(checkingClassName);
 										recommendationClasses.put(position, classes);										
 									}
-									
 								}
 							}
 						}
 					}
 				}
-				
 			}
 		}
-		
 		return recommendationClasses;
 	}
 	

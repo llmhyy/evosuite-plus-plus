@@ -51,6 +51,7 @@ import org.evosuite.ga.metaheuristics.SearchListener;
 import org.evosuite.ga.operators.mutation.MutationHistory;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.ExceptionResult;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.seeding.smart.SensitivityMutator;
@@ -120,6 +121,11 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	public static int smartBranchNum = 0;
 	public static Map<String,String> runtimeBranchType = new HashMap<String,String>();
 
+	/**
+	 * Data object containing exception related results.
+	 */
+	protected ExceptionResult<T> exceptionResult = new ExceptionResult<>();
+	
 	/**
 	 * Constructor.
 	 * 
@@ -729,6 +735,15 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 				best.setFitness(suiteFitness, 1.0);
 			}
 			best.setAge(this.currentIteration);
+
+      if (exceptionResult == null) {
+  			System.out.println("Detected a null ExceptionResult in " + this.getClass().getCanonicalName());
+      }
+          
+      if (exceptionResult != null) {
+        best.setExceptionResult((ExceptionResult<TestChromosome>) exceptionResult);
+      }
+
 			return (T) best;
 		}
 
@@ -740,7 +755,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		best.setUncoveredBranchDistribution(this.getUncoveredBranchDistribution());
 		best.setDistribution(this.getDistribution());
 		best.setDistributionMap(this.getDistributionMap());
-
 		Map<FitnessFunction<T>, String> IPFlags = findIPFlagBranches();
 		Map<FitnessFunction<T>, String> uncoveredIPFlags = findUncoveredIPFlags(IPFlags);
 
@@ -756,8 +770,17 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		best.setCoveredBranchWithTest(coveredBranchWithTest);
 
 		double IPFlagCoverage = 0;
+
 		if (IPFlags.size() != 0)
 			IPFlagCoverage = (double) uncoveredIPFlags.size() / IPFlags.size();
+
+    if (exceptionResult == null) {
+			System.out.println("Detected a null ExceptionResult in " + this.getClass().getCanonicalName());
+		}
+		
+		if (exceptionResult != null) {
+			best.setExceptionResult((ExceptionResult<TestChromosome>) exceptionResult);
+		}
 
 		best.setIPFlagCoverage(1 - IPFlagCoverage);
 
@@ -890,7 +913,6 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 		return r;
 	}
 
-
 	public static void clear() {
 		runtimeBranchType = new HashMap<String,String>();
 		smartBranchNum = 0;
@@ -912,5 +934,4 @@ public abstract class AbstractMOSA<T extends Chromosome> extends GeneticAlgorith
 	public void setSmartBranchNum(int smartBranchNum) {
 		this.smartBranchNum = smartBranchNum;
 	}
-
 }

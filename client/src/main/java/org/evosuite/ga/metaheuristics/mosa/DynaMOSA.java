@@ -21,19 +21,26 @@ package org.evosuite.ga.metaheuristics.mosa;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.Properties;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.comparators.NonduplicationComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
+import org.evosuite.result.ExceptionResult;
+import org.evosuite.result.ExceptionResultBranch;
 import org.evosuite.seeding.smart.SensitivityMutator;
 import org.evosuite.testcase.MutationPositionDiscriminator;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.utils.LoggingUtils;
@@ -60,7 +67,6 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 	protected MultiCriteriaManager<T> goalsManager = null;
 
 	protected CrowdingDistance<T> distance = new CrowdingDistance<T>();
-
 
 	protected ExceptionBranchEnhancer<T> exceptionBranchEnhancer = new ExceptionBranchEnhancer<T>(goalsManager);
 	
@@ -185,7 +191,8 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		 * we can debug by setting break points here.
 		 */
 		checkBestFitness();
-
+		collectExceptionResultsForIteration(currentIteration);
+    
 		this.currentIteration++;
 		// logger.debug("N. fronts = {}", ranking.getNumberOfSubfronts());
 		// logger.debug("1* front size = {}", ranking.getSubfront(0).size());
@@ -195,7 +202,64 @@ public class DynaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 		
 		System.out.println("total time: " + SensitivityMutator.total);
 	}
-
+	
+	/**
+	 * Returns a map from FitnessFunction (uncovered branch) to highest scoring TestChromosome.
+	 * 
+	 * @param bestTestMap
+	 */
+	private Map<FitnessFunction<T>, T> generateBestTestMap() {
+		Map<FitnessFunction<T>, Double> goalToBestFitnessScore = new HashMap<>();
+		Map<FitnessFunction<T>, T> goalToBestTest = new HashMap<>();
+		for (T test : this.population) {
+			boolean isTestChromosome = test instanceof TestChromosome;
+			if (isTestChromosome) {
+				// We compute the fitness functions for pair of <FitnessFunction, TestChromosome>
+				// We keep the highest scoring TestChromosome for each FitnessFunction in our map.
+				for (FitnessFunction<T> fitnessFunction : this.goalsManager.getCurrentGoals()) {
+					Double fitness = fitnessFunction.getFitness(test);
+					Double bestFitnessScoreSoFar = goalToBestFitnessScore.get(fitnessFunction);
+					
+					boolean isFirstTimeSeeingThisFitnessFunction = bestFitnessScoreSoFar == null;
+					
+					// Lower fitness score is better.
+					boolean isCurrentTestBetterThanPreviousBest = false;
+					// Have to wrap this condition to avoid NullPointerExceptions when bestFitnessScoreSoFar is null.
+					if (!isFirstTimeSeeingThisFitnessFunction) {
+						isCurrentTestBetterThanPreviousBest = bestFitnessScoreSoFar > fitness;
+					}
+					
+					if (isFirstTimeSeeingThisFitnessFunction || isCurrentTestBetterThanPreviousBest) {
+						goalToBestFitnessScore.put(fitnessFunction, fitness);
+						goalToBestTest.put(fitnessFunction, test);
+						continue;
+					}
+				}
+			}
+		}
+		return goalToBestTest;
+	}
+	
+	private void collectExceptionResultsForIteration(int currentIteration) {
+		Map<FitnessFunction<T>, T> bestTestMap = generateBestTestMap();
+		
+		for (Entry<FitnessFunction<T>, T> entry : bestTestMap.entrySet()) {
+			FitnessFunction<T> fitnessFunction = entry.getKey();
+			T hopefullyATestChromosome = entry.getValue();
+			boolean isBranchCoverageTestFitness = fitnessFunction instanceof BranchCoverageTestFitness;
+			boolean isTestChromosome = hopefullyATestChromosome instanceof TestChromosome;
+			
+			if (!isTestChromosome || !isBranchCoverageTestFitness) {
+				// What do we do?
+				System.currentTimeMillis();
+				continue;
+			}
+			
+			TestChromosome testChromosome = (TestChromosome) hopefullyATestChromosome;
+			exceptionResult.updateExceptionResult(currentIteration, fitnessFunction, testChromosome);
+		}
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */

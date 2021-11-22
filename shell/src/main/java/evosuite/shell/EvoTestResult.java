@@ -8,7 +8,9 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.evosuite.BranchDistributionInformation;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.ExceptionResult;
 import org.evosuite.result.seedexpr.Event;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.statistics.OutputVariable;
 
 public class EvoTestResult {
@@ -37,10 +39,12 @@ public class EvoTestResult {
 	
 	private Map<String, Boolean> methodCallAvailability;
 	
+	private ExceptionResult<TestChromosome> exceptionResult;
+	
 	private Map<String, OutputVariable<?>> coverageTimeLine = new HashMap<>();
 	
-    private int smartBranchNum;
-    private Map<String,String> runtimeBranchType;
+  private int smartBranchNum;
+  private Map<String,String> runtimeBranchType;
 
 	public EvoTestResult(int time, double coverage, int age, double ratio, List<Double> progress, double IPFlagCoverage,
 			String uncoveredFlag, Map<Integer, Integer> distributionMap,
@@ -228,6 +232,16 @@ public class EvoTestResult {
 	
 	public List<Event> getEventSequence(){
 		return eventSequence;
+	}
+	
+	public void setExceptionResult(ExceptionResult<TestChromosome> exceptionResult)
+	{
+		this.exceptionResult = exceptionResult;
+	}
+	
+	public ExceptionResult<TestChromosome> getExceptionResult()
+	{
+		return exceptionResult;
 	}
 
 	public int getSmartBranchNum() {

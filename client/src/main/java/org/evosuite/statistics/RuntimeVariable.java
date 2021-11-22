@@ -381,8 +381,19 @@ public enum RuntimeVariable {
 	/* -------------------------------------------------------------------- */
 	/** Search budget needed to reach the maximum coverage */ 
 	/** Used in the comparison between LISP and MOSA */
-	Time2MaxCoverage, FBranchCoverage
+	Time2MaxCoverage, FBranchCoverage,
 	
+	/* -------------------------------------------------------------------- */
+	/** Exception-related runtime variables */
+	NumberOfExceptions,
+	NumberOfInMethodExceptions,
+	NumberOfOutMethodExceptions,
+	BreakdownOfInMethodExceptions,
+	BreakdownOfOutMethodExceptions,
+	NumberOfBranches,
+	NumberOfUncoveredBranches,
+	NumberOfUncoveredBranchesWithException,
+	NumberOfCoveredBranches
 	;
 	/* -------------------------------------------------- */
 

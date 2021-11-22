@@ -35,6 +35,7 @@ import org.evosuite.result.seedexpr.Event;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.statistics.OutputVariable;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testsuite.TestSuiteChromosome;
 
 class TestGenerationResultImpl implements TestGenerationResult {
@@ -123,6 +124,21 @@ class TestGenerationResultImpl implements TestGenerationResult {
 	private List<BranchDistributionInformation> branchInformation;
 	
 	private Map<String, Boolean> methodCallAvailabilityMap = new HashMap<>();
+	
+	private ExceptionResult<TestChromosome> exceptionResult = new ExceptionResult<TestChromosome>();
+	
+	public ExceptionResult<TestChromosome> getExceptionResult() {
+		return this.exceptionResult;
+	}
+	
+	public void setExceptionResult(ExceptionResult<TestChromosome> exceptionResult) {
+		if (exceptionResult == null) {
+			System.out.println("Detected an attempt to set exception result to a null value.");
+			return;
+		}
+		
+		this.exceptionResult = exceptionResult;
+	}
 	
 	private Map<String, OutputVariable<?>> coverageTimeLine = new HashMap<>();
 	

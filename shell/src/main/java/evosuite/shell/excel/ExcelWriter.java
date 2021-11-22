@@ -13,16 +13,26 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
+import java.util.ListIterator;
+
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.Comment;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
@@ -136,6 +146,23 @@ public class ExcelWriter {
 		
 		writeWorkbook();
 	}
+	
+	// Overloaded version that allows for comments as well.
+	public void writeSheet(String sheetName, List<List<Object>> data, List<List<Object>> comments) throws IOException {
+		Sheet sheet = getSheet(sheetName);
+		int rowNum = sheet.getLastRowNum() + 1;
+		
+		// More performant than iterating over the lists by indices.
+		ListIterator<List<Object>> rowDataIterator = data.listIterator();
+		ListIterator<List<Object>> rowCommentsIterator = comments.listIterator();
+		while (rowDataIterator.hasNext()) {
+			List<Object> rowData = rowDataIterator.next();
+			List<Object> rowComments = rowCommentsIterator.next();
+			rowNum = fillRowData(sheet, rowNum, rowData, rowComments);
+		}
+		
+		writeWorkbook();
+	}
 
 	private int fillRowData(Sheet sheet, int rowNum, List<Object> rowData) {
 		Row row = sheet.createRow(rowNum++);
@@ -150,6 +177,62 @@ public class ExcelWriter {
 			}
 			cellNum++;
 		}
+		return rowNum;
+	}
+	
+	private void setCommentForCell(Cell cell, String commentText) {
+		Sheet sheet = cell.getSheet();
+		Row row = cell.getRow();
+		Drawing drawingPatriarch = sheet.createDrawingPatriarch();
+		CreationHelper creationHelper = workbook.getCreationHelper();
+		
+		// Where to show the comment box
+		ClientAnchor clientAnchor = creationHelper.createClientAnchor();
+		clientAnchor.setCol1(cell.getColumnIndex());
+		clientAnchor.setCol2(cell.getColumnIndex() + 1);
+		clientAnchor.setRow1(row.getRowNum());
+		clientAnchor.setRow2(row.getRowNum() + 1);
+		
+		
+		// Creating the comment, adding text and attaching it to the cell.
+		Comment comment = drawingPatriarch.createCellComment(clientAnchor);
+		RichTextString commentTextAsRichTextString = new XSSFRichTextString(commentText);
+		comment.setString(commentTextAsRichTextString);
+		comment.setAuthor("Apache POI");
+		
+		cell.setCellComment(comment);
+	}
+	
+	private int fillRowData(Sheet sheet, int rowNum, List<Object> rowData, List<Object> rowComments) throws IllegalArgumentException {
+		if (rowData.size() != rowComments.size()) {
+			throw new IllegalArgumentException("Sizes of row data and row comments do not match.");
+		}
+		
+		Row row = sheet.createRow(rowNum++);
+		int cellNum = 0;
+		for (int i = 0; i < rowData.size(); i++) {
+			Object value = rowData.get(i);
+			Object commentValue = rowComments.get(i);
+			String commentValueAsString = commentValue.toString();
+			boolean isCommentValueEmpty = (commentValueAsString.isEmpty());
+			
+			if (value instanceof Boolean) {
+				row.createCell(cellNum).setCellValue((Boolean)value);
+			} else if (value instanceof String) {
+				row.createCell(cellNum).setCellValue((String)value);
+			} else if (value instanceof Number) {
+				row.createCell(cellNum).setCellValue(Double.valueOf(value.toString()));
+			}
+			
+			boolean isCellExists = (row.getCell(cellNum) != null);
+			
+			if (!isCommentValueEmpty && isCellExists) {
+				setCommentForCell(row.getCell(cellNum), commentValueAsString);
+			}
+			
+			cellNum++;
+		}
+		
 		return rowNum;
 	}
 	
@@ -201,5 +284,20 @@ public class ExcelWriter {
 	
 	public File getFile() {
 		return file;
+	}
+	
+	// Debug method to check for POI versions
+	// See https://poi.apache.org/help/faq.html#faq-N10006
+	private void printApachePoiVersion() {
+		ClassLoader classloader = org.apache.poi.poifs.filesystem.POIFSFileSystem.class.getClassLoader();
+		URL res = classloader.getResource(
+		             "org/apache/poi/poifs/filesystem/POIFSFileSystem.class");
+		String path = res.getPath();
+		System.out.println("POI Core came from " + path);
+
+		classloader = org.apache.poi.ooxml.POIXMLDocument.class.getClassLoader();
+		res = classloader.getResource("org/apache/poi/ooxml/POIXMLDocument.class");
+		path = res.getPath();
+		System.out.println("POI OOXML came from " + path);
 	}
 }

@@ -6,9 +6,13 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -24,11 +28,17 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.mosa.AbstractMOSA;
 import org.evosuite.result.BranchInfo;
+import org.evosuite.result.ExceptionResult;
+import org.evosuite.result.ExceptionResultBranch;
+import org.evosuite.result.Failure;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.seedexpr.Event;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.statistics.SearchStatistics;
 import org.evosuite.statistics.backend.DebugStatisticsBackend;
 import org.evosuite.utils.LoggingUtils;
@@ -196,6 +206,7 @@ public class EvosuiteForMethod {
 				
 //				String usedStrategy = getStrategy(args);
 				FitnessEffectiveRecorder fitnessRecorder;
+				ExceptionIterationRecorder exceptionIterationRecorder;
 //				DistributionRecorder distributionRecorder;
 //				OneBranchRecorder oneBranchRecorder;
 
@@ -208,6 +219,8 @@ public class EvosuiteForMethod {
 					fitnessRecorder = new FitnessEffectiveRecorder();
 					recorderList.add(fitnessRecorder);
 				}
+				exceptionIterationRecorder = new ExceptionIterationRecorder();
+				recorderList.add(exceptionIterationRecorder);
 				
 				String existingReport = fitnessRecorder.getFinalReportFilePath();
 				Set<String> succeedMethods = null;
@@ -667,6 +680,7 @@ public class EvosuiteForMethod {
 			for (List<TestGenerationResult> l : list) {
 				for (TestGenerationResult r : l) {
 					printResult(r);
+					printExceptionResult(r);
 					
 					result = new EvoTestResult(r.getElapseTime(), r.getCoverage(), r.getAge(), r.getAvailabilityRatio(),
 							r.getProgressInformation(), r.getIPFlagCoverage(), r.getUncoveredIPFlags(),
@@ -679,6 +693,7 @@ public class EvosuiteForMethod {
 					result.setInitializationOverhead(r.getInitializationOverhead());
 					result.setCoveredBranchWithTest(r.getCoveredBranchWithTest());
 					result.setEventSequence(r.getEventSequence());
+					result.setExceptionResult(r.getExceptionResult());
 					
 					result.setCoverageTimeLine(GeneticAlgorithm.coverageTimeLine);
 					
@@ -694,6 +709,7 @@ public class EvosuiteForMethod {
 				}
 			}
 		} catch (Exception e) {
+			System.out.println(e.toString());
 			for (ExperimentRecorder recorder : recorders) {
 				recorder.recordError(className, methodName, e);
 			}
@@ -709,6 +725,107 @@ public class EvosuiteForMethod {
 //		AbstractMOSA.clear();
 	}
 
+	private static boolean isBranchCovered(FitnessFunction<TestChromosome> fitnessFunction, TestGenerationResult testGenerationResult) {
+		BranchCoverageTestFitness branchCoverageTestFitnessFunction;
+		Set<BranchInfo> coveredBranches = testGenerationResult.getCoveredBranches();
+		try {
+			branchCoverageTestFitnessFunction = (BranchCoverageTestFitness) fitnessFunction;
+		} catch (Exception e) {
+			System.out.println(e.toString());
+			return false;
+		}
+		
+		// Check a tuple of:
+		// Class name
+		// Method name
+		// String value if not null
+		// - If string value is null, we check line number
+		// - We don't have the branch id?
+		// Truth value
+		String className = branchCoverageTestFitnessFunction.getClassName();
+		String methodName = branchCoverageTestFitnessFunction.getMethod();
+		String stringValue = branchCoverageTestFitnessFunction.getBranch().toString();
+		int lineNumber = branchCoverageTestFitnessFunction.getBranch().getInstruction().getLineNumber();
+		boolean truthValue = branchCoverageTestFitnessFunction.getBranchGoal().getValue();
+		
+		for (BranchInfo coveredBranch : coveredBranches) {
+			boolean isClassNameMatch = className.equals(coveredBranch.getClassName());
+			boolean isMethodNameMatch = methodName.equals(coveredBranch.getMethodName());
+			boolean isStringValueMatch = stringValue != null ? stringValue.equals(coveredBranch.getStringValue()) : false;
+			boolean isLineNumberMatch = (lineNumber == coveredBranch.getLineNo());
+			boolean isTruthValueMatch = (truthValue == coveredBranch.getTruthValue());
+			
+			boolean isIdenticalCheckIfCoveredBranchStringValueNonNull = isClassNameMatch && isMethodNameMatch && isStringValueMatch && isTruthValueMatch;
+			boolean isIdenticalCheckOtherwise = isClassNameMatch && isMethodNameMatch && isLineNumberMatch && isTruthValueMatch;
+			if ((stringValue != null) && (coveredBranch.getStringValue() != null) && isIdenticalCheckIfCoveredBranchStringValueNonNull) {
+				return true;
+			}
+			
+			if (isIdenticalCheckOtherwise) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private static Map<String, Integer> getExceptionTypesAndCount(List<Throwable> exceptions) {
+		Map<String, Integer> toReturn = new HashMap<>();
+		
+		for (Throwable exception : exceptions) {
+			String exceptionType = exception.getClass().getCanonicalName();
+			Integer count = toReturn.get(exceptionType);
+			if (count == null) {
+				toReturn.put(exceptionType, 1);
+			} else {
+				toReturn.put(exceptionType, count + 1);
+			}		
+		}
+		
+		return toReturn;
+	}
+	
+	public static void printExceptionResult(TestGenerationResult testGenerationResult) {
+		ExceptionResult<TestChromosome> exceptionResult = testGenerationResult.getExceptionResult();
+
+		// Guard clause
+		// This method is just printing out debug outputs, so we don't really care
+		// if something breaks in here anyway.
+		if (exceptionResult == null) {
+			System.out.println("Exception result was null, terminating print function early.");
+			return;
+		}
+		
+		List<ExceptionResultBranch<TestChromosome>> branches = exceptionResult.getAllResults();
+		for (ExceptionResultBranch<TestChromosome> branch : branches) {
+			String branchName = ((BranchCoverageTestFitness) branch.getFitnessFunction()).getBranch().toString();
+			String branchGoal = ((BranchCoverageTestFitness) branch.getFitnessFunction()).getBranchGoal().getValue() ? "true" : "false";
+			boolean isBranchCovered = isBranchCovered(branch.getFitnessFunction(), testGenerationResult);
+			int numberOfIterations = branch.getNumberOfIterations();
+			int numberOfExceptions = branch.getNumberOfExceptions();
+			int numberOfInMethodExceptions = branch.getNumberOfInMethodExceptions();
+			int numberOfOutMethodExceptions = branch.getNumberOfOutMethodExceptions();
+			
+			List<Throwable> inMethodExceptions = branch.getInMethodExceptions();
+			List<Throwable> outMethodExceptions = branch.getOutMethodExceptions();
+			Map<String, Integer> inMethodExceptionsTypeAndCount = getExceptionTypesAndCount(inMethodExceptions);
+			Map<String, Integer> outMethodExceptionsTypeAndCount = getExceptionTypesAndCount(outMethodExceptions);
+			
+			
+			System.out.println("Branch: " + branchName + ":" + branchGoal);
+			System.out.println("  " + "- Covered? " + (isBranchCovered ? "Yes" : "No"));
+			System.out.println("  " + "- Number of iterations: " + numberOfIterations);
+			System.out.println("  " + "- Number of exceptions: " + numberOfExceptions);
+			System.out.println("  " + "- Number of in-method exceptions: " + numberOfInMethodExceptions);
+			for (Entry<String, Integer> entry : inMethodExceptionsTypeAndCount.entrySet()) {
+				System.out.println("    " + "- " + entry.getKey() + ": " + entry.getValue());
+			}
+			System.out.println("  - Number of out-method exceptions: " + numberOfOutMethodExceptions);
+			for (Entry<String, Integer> entry : outMethodExceptionsTypeAndCount.entrySet()) {
+				System.out.println("    " + "- " + entry.getKey() + ": " + entry.getValue());
+			}
+		}
+	}
+	
 	public static void printResult(TestGenerationResult r) {
 		System.out.println("Initial Coverage: " + r.getInitialCoverage());
 		System.out.println("Initialization Time: " + r.getInitializationOverhead());
@@ -727,7 +844,7 @@ public class EvosuiteForMethod {
 		
 		System.out.println("Covered branches");
 		for(BranchInfo branch: r.getCoveredBranchWithTest().keySet()) {
-			System.out.println("-- " + branch);
+			System.out.println("-- " + branch.getStringValue() + ":" + branch.getTruthValue());
 			System.out.println(r.getCoveredBranchWithTest().get(branch));
 		}
 		
@@ -735,5 +852,7 @@ public class EvosuiteForMethod {
 		for(Event e: r.getEventSequence()) {
 			System.out.print(e.toString() + ", ");
 		}
+		
+		System.out.println("Errors:" + r.getErrorMessage());
 	}
 }

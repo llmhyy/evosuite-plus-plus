@@ -609,12 +609,12 @@ public abstract class DepVariable {
 	public boolean isSupportOperandFor(DepVariable childVar, int index) {
 		List<DepVariable> list = this.relations[index];
 		
-		if(list == null){
+		if (list == null) {
 			return false;
 		}
 		
-		for(DepVariable v: list){
-			if(v.equals(childVar)){
+		for (DepVariable v : list) {
+			if (v.equals(childVar)) {
 				return true;
 			}
 		}

@@ -19,8 +19,10 @@
  */
 package org.evosuite.result;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,6 +41,7 @@ import org.evosuite.instrumentation.LinePool;
 import org.evosuite.result.TestGenerationResult.Status;
 import org.evosuite.result.seedexpr.EventSequence;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.LoggingUtils;
@@ -94,6 +97,7 @@ public class TestGenerationResultBuilder {
 		result.setCoveredBranchWithTest(testSuite.getCoveredBranchWithTest());
 		result.setEventSequence(EventSequence.events);
 		
+		result.setExceptionResult(testSuite.getExceptionResult());
 		result.setCoverageTimeLine(GeneticAlgorithm.coverageTimeLine);
 		
 		result.setEvoSeedTime(result,testSuite);
@@ -236,6 +240,21 @@ public class TestGenerationResultBuilder {
 		}
 		testBranchCoverage.put(name, branchCoverage);
 		uncoveredBranches.removeAll(branchCoverage);
+		
+		System.currentTimeMillis();
+		
+		List<BranchInfo> relevantBranches = new ArrayList<>();
+		uncoveredBranches.forEach(branchInfo -> {
+			String className = branchInfo.getClassName();
+			String methodName = branchInfo.getMethodName();
+			boolean isClassNameCorrect = className.equals("jigl.image.levelSetTool.LevelSetSmooth");
+			boolean isMethodNameCorrect = methodName.equals("apply(IIIIZZ)Ljigl/image/RealColorImage;");
+			if (isClassNameCorrect && isMethodNameCorrect) {
+				relevantBranches.add(branchInfo);
+			}
+		});
+		System.currentTimeMillis();
+		
 		
 		Set<MutationInfo> mutationCoverage = new LinkedHashSet<MutationInfo>();
 		for(Assertion assertion : testCase.getAssertions()) {

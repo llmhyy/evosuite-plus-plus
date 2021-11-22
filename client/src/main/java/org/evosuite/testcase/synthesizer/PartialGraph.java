@@ -21,62 +21,82 @@ public class PartialGraph {
 	
 	/**
 	 * In the original computation graph, multiple node can represent the same variable.
-	 * Therefore, we need to merge those nodes when generating the partial graph.
+	 * Therefore, we need to merge those nodes when generating the partial graph. This method
+	 * works by tracking the nodes by hash (so the graph only ever has one node with that hash)
+	 * and merging the nodes with the same hash. Merging two nodes means that we combine their 
+	 * relations and reverse relations.
 	 * 
-	 * @param var
-	 * @return
+	 * @param var The variable to merge into the graph.
+	 * @return The merged node.
 	 */
 	public DepVariableWrapper fetchAndMerge(DepVariable var) {
-		DepVariableWrapper tempWrapper = DepVariableWrapperFactory.createWrapperInstance(var);
+		DepVariableWrapper newNode = DepVariableWrapperFactory.createWrapperInstance(var);
+		DepVariableWrapper nodeInGraph = allRelevantNodes.get(newNode);
 		
-		if(var.toString().contains("ALOAD")) {
-			System.currentTimeMillis();
-//			System.currentTimeMillis();
+		// No need to merge, since there is no such node in the graph.
+		// Add the new node into the graph and return it.
+		if (nodeInGraph == null) {
+			allRelevantNodes.put(newNode, newNode);
+			return newNode;
 		}
 		
-		DepVariableWrapper wrapper = allRelevantNodes.get(tempWrapper);
-		if(wrapper == null) {
-			wrapper = DepVariableWrapperFactory.createWrapperInstance(var);
-			allRelevantNodes.put(wrapper, wrapper);
-		}
-		else{
-			for(int i=0; i<wrapper.var.getRelations().length; i++){
-				List<DepVariable> list = wrapper.var.getRelations()[i];
-				List<DepVariable> list0 = var.getRelations()[i];
-				
-				if(list0 != null){
-					if(list == null) list = new ArrayList<>();
-					
-					for(DepVariable v: list0){
-						if(!list.contains(v)){
-							list.add(v);
-						}
-					}
-				}
-				
-				wrapper.var.getRelations()[i] = list;
+		// Else, nodeInGraph isn't null
+		// So there is some node in the graph matching that hash
+		// We merge our new node (constructed from the input var) into
+		// the node in the graph
+		List<DepVariable>[] nodeInGraphRelations = nodeInGraph.var.getRelations();
+		List<DepVariable>[] newNodeRelations = var.getRelations();
+		for (int i = 0; i < nodeInGraphRelations.length; i++) {
+			List<DepVariable> nodeInGraphRelation = nodeInGraphRelations[i];
+			List<DepVariable> newNodeRelation = newNodeRelations[i];
+			
+			// No relations to merge in.
+			if (newNodeRelation == null) {
+				continue;
 			}
 			
-			for(int i=0; i<wrapper.var.getReverseRelations().length; i++){
-				List<DepVariable> list = wrapper.var.getReverseRelations()[i];
-				List<DepVariable> list0 = var.getReverseRelations()[i];
-				
-				if(list0 != null){
-					if(list == null) list = new ArrayList<>();
-					
-					for(DepVariable v: list0){
-						if(!list.contains(v)){
-							list.add(v);
-						}
-					}
-				}
-				
-				wrapper.var.getReverseRelations()[i] = list;
+			if (nodeInGraphRelation == null) {
+				nodeInGraphRelation = new ArrayList<>();
 			}
 			
+			// Merge in all the dependent variables
+			for (DepVariable v : newNodeRelation) {
+				if (!nodeInGraphRelation.contains(v)) {
+					nodeInGraphRelation.add(v);
+				}
+			}
+			
+			// In the event that the original wrapperVarRelation was null
+			// We need to store it back.
+			nodeInGraphRelations[i] = nodeInGraphRelation;
 		}
 		
-		return wrapper;
+		List<DepVariable>[] nodeInGraphReverseRelations = nodeInGraph.var.getReverseRelations();
+		List<DepVariable>[] newNodeReverseRelations = var.getReverseRelations();
+		for (int i = 0; i < nodeInGraphReverseRelations.length; i++){
+			List<DepVariable> nodeInGraphReverseRelation = nodeInGraphReverseRelations[i];
+			List<DepVariable> newNodeReverseRelation = newNodeReverseRelations[i];
+			
+			// Nothing to merge.
+			if (newNodeReverseRelation == null) {
+				continue;
+			}
+			
+			if (nodeInGraphReverseRelation == null) {
+				nodeInGraphReverseRelation = new ArrayList<>();
+			}
+			
+			for (DepVariable v : newNodeReverseRelation) {
+				if (!nodeInGraphReverseRelation.contains(v)) {
+					nodeInGraphReverseRelation.add(v);
+				}
+			}
+			
+			// In the event that the original wrapperVarReverseRelation was null
+			// We need to store it back in.
+			nodeInGraphReverseRelations[i] = nodeInGraphReverseRelation;
+		}
+		return nodeInGraph;
 	}
 	
 	public List<DepVariableWrapper> getTopLayer(){
