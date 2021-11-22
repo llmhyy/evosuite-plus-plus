@@ -90,49 +90,6 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		return isNumberOfEligibleBranchesOverThreshold;
 	}
 	
-	/**
-	 * Returns the "head" of the transitive chain by looking upwards from the given instruction.
-	 * For example, given methodParameter.nestedParameter.deeplyNestedParameter.methodCall() (the instruction
-	 * corresponding to the method call), this method should return the instruction corresponding to the loading
-	 * of the parameter onto the stack.
-	 * 
-	 * @param operand The instruction to begin looking from.
-	 * @return The head of the transitive chain.
-	 */
-	private static BytecodeInstruction getHeadOfTransitiveChain(BytecodeInstruction operand) {
-		// What if the operand is a static variable/field variable of class of method?
-		// Need to account for that as well
-		
-		// The (current) idea is that we do some kind of backtracking.
-		// We start at the "bottom" of the chain = the operand. 
-		// - If the operand is a method call, go "upwards" using operand.getSourceOfMethodInvocationInstruction
-		// - If the operand is a field access, ???
-		// - Otherwise, check if the operand is a parameter. If it is, return true, else false.
-		// Repeat this process until we arrive at the end (can't go up the chain any further), then check if the head is a parameter.
-		BytecodeInstruction currentInstruction = operand;
-		boolean isCurrentInstructionMethodCall = currentInstruction.isMethodCall();
-		boolean isCurrentInstructionFieldUse = currentInstruction.isFieldUse();
-		
-		while (isCurrentInstructionMethodCall || isCurrentInstructionFieldUse) {
-			if (isCurrentInstructionMethodCall) {
-				currentInstruction = currentInstruction.getSourceOfMethodInvocationInstruction();
-			} else if (isCurrentInstructionFieldUse) {
-				// Not sure if this works?
-				currentInstruction = currentInstruction.getPreviousInstruction();
-			}
-			
-			// We've hit some unexpected state
-			// Return a null value (error).
-			if (currentInstruction == null) {
-				return currentInstruction;
-			}
-			
-			isCurrentInstructionMethodCall = currentInstruction.isMethodCall();
-			isCurrentInstructionFieldUse = currentInstruction.isFieldUse();
-		}
-		return currentInstruction;
-	}
-	
 	private void forceEvosuiteToLoadClassAndMethod(String className, String methodName) {
 		String cp = ClassPathHandler.getInstance().getTargetProjectClasspath();
 		cp = cp.replace('\\', '/');

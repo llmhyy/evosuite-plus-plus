@@ -10,8 +10,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
 
 /**
  * Data object to collect exception based results.
@@ -31,8 +34,33 @@ public class ExceptionResultBranch<T extends Chromosome> implements Serializable
 	// Whether this branch is covered.
 	private boolean isCovered;
 	
+	// Whether this branch is a constant-reading branch
+	// i.e. whether it has >= 1 constant operand
+	private boolean isConstantReadingBranch;
+	
 	public ExceptionResultBranch(FitnessFunction<T> fitnessFunction) {
 		this.fitnessFunction = fitnessFunction;
+		
+		if (!(fitnessFunction instanceof BranchCoverageTestFitness)) {
+			throw new IllegalArgumentException("The fitness function passed in must be a BranchCoverageTestFitness.");
+		}
+		
+		this.isConstantReadingBranch = this.isConstantReadingBranch((BranchCoverageTestFitness) fitnessFunction);
+	}
+	
+	// Each BranchCoverageTestFitness is associated with a target branch.
+	// This method checks if that target branch is a constant-reading branch or not.
+	private boolean isConstantReadingBranch(BranchCoverageTestFitness fitnessFunction) {
+		Branch targetBranch = fitnessFunction.getBranch();
+		BytecodeInstruction branchInstruction = targetBranch.getInstruction();
+		List<BytecodeInstruction> branchOperands = branchInstruction.getOperands();
+		for (BytecodeInstruction operand : branchOperands) {
+			boolean isConstantOperand = operand.isConstant();
+			if (isConstantOperand) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public void addExceptionResultIteration(ExceptionResultIteration<T> exceptionResultIteration) {
@@ -41,6 +69,14 @@ public class ExceptionResultBranch<T extends Chromosome> implements Serializable
 	
 	public FitnessFunction<T> getFitnessFunction() {
 		return this.fitnessFunction;
+	}
+	
+	public boolean isConstantReadingBranch() {
+		return isConstantReadingBranch;
+	}
+	
+	public void setIsConstantReadingBranch(boolean value) {
+		isConstantReadingBranch = value;
 	}
 	
 	public ExceptionResultIteration<T> getResultByIteration(int iteration) {
