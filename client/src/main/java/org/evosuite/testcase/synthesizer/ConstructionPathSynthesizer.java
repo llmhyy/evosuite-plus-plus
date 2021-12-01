@@ -149,10 +149,14 @@ public class ConstructionPathSynthesizer {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
 		
-		// For recording data for graph visualisation
-		GraphVisualisationDataBuilder graphVisDataBuilder = new GraphVisualisationDataBuilder();
-		graphVisDataBuilder.addPartialGraph(partialGraph);
-		graphVisDataBuilder.addCfgFor(b.getClassName(), b.getMethodName());
+		// Declaration needed for scoping
+		GraphVisualisationDataBuilder graphVisDataBuilder = null;
+		if (isDebugger) {
+			// For recording data for graph visualisation
+			graphVisDataBuilder = new GraphVisualisationDataBuilder();
+			graphVisDataBuilder.addPartialGraph(partialGraph);
+			graphVisDataBuilder.addCfgFor(b.getClassName(), b.getMethodName());
+		}
 		
 //		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
@@ -200,7 +204,12 @@ public class ConstructionPathSynthesizer {
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
 				VariableInTest testVariable = getCallerObject(map, node);
-				deriveCodeForTest(map, test, testVariable, b, allowNullValue);
+				
+				try {
+					deriveCodeForTest(map, test, testVariable, b, allowNullValue);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				
 				node.processed = true;
 				
@@ -230,11 +239,13 @@ public class ConstructionPathSynthesizer {
 				}
 				
 				// Record graph traversal
-				try {
-					graphVisDataBuilder.recordGraphTraversalOrder(node, map.get(node));
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if (isDebugger) {
+					try {
+						graphVisDataBuilder.recordGraphTraversalOrder(node, map.get(node));
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			} else {
 				Integer count = methodCounter.get(node);
@@ -255,18 +266,18 @@ public class ConstructionPathSynthesizer {
 		this.setPartialGraph(partialGraph);
 		this.setGraph2CodeMap(map);
 		
-		try {
-			// Quick fix
-			graphVisDataBuilder.build().writeTo(new File("D:\\linyun\\graphVisData_" + b.toString() + "_" + graphVisCounter++ + ".json"));
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (isDebugger) {
+			try {
+				// Quick fix
+				String filePath = java.lang.System.getProperty("user.dir") + File.separator + "graphVisData_" + b.toString() + "_" + graphVisCounter++ + ".json";
+				java.lang.System.out.println("Writing graph visualisation data to " + filePath);
+				graphVisDataBuilder.build().writeTo(new File(filePath));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-	}
-	
-	private int getRandomInRange(int min, int max) {
-		Random random = new Random();
-		return min + random.nextInt(max - min);
+		
 	}
 	
 	private void logTest(TestCase test, Branch b, boolean isDebugger, int iteration, DepVariableWrapper node) {
