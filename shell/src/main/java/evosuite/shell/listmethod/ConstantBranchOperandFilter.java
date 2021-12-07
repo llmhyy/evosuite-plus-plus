@@ -4,48 +4,46 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHandler;
-import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
-import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
-import org.evosuite.graphs.interprocedural.var.DepVariable;
-import org.evosuite.seeding.ConstantPool;
 import org.evosuite.seeding.ConstantPoolManager;
 import org.evosuite.seeding.StaticConstantPool;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 
-import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.utils.LoggerUtils;
 
 public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 	private static Logger log = LoggerUtils.getLogger(ConstantBranchOperandFilter.class);
 
-	private static final int BRANCH_COUNT_THRESHOLD = 1;
+	// Flags
+	// Experimental settings to improve filter performance
+	private static final boolean IS_BRANCH_COUNT_THRESHOLD_PROPORTIONAL = false;
+	private static final float PROPORTIONAL_BRANCH_COUNT_THRESHOLD = 0.3f;
+	private static final int ABSOLUTE_BRANCH_COUNT_THRESHOLD = 3;
 	
-	private static Map<String, Long> classToNumberOfConstants = new HashMap<>();
+	private static final boolean IS_ONLY_ALLOW_STRING_CONSTANTS = false;
+	private static final boolean IS_REQUIRE_AT_LEAST_ONE_BRANCH_OPERAND_IS_PARAMETER = false;
+	private static final boolean IS_REQUIRE_BRANCH_OPERANDS_PRIMITIVE = false;
 	
+	private static final boolean IS_PRINT_DEBUG_INFO = true;
+		
 	private static Set<String> primitiveTypes = new HashSet<>();
 	
 	static {
@@ -60,6 +58,7 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 	}
 	
 	public ConstantBranchOperandFilter() {
+		System.out.println("[ConstantBranchOperandFilter]: Current branch count threshold: " + ABSOLUTE_BRANCH_COUNT_THRESHOLD);
 	}
 	
 	@Override
@@ -69,25 +68,20 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		DependencyAnalysis.clear();
 		clearAllPools();
 
-		// Logic to filter methods
-		// 2) Check if the method has at least one branch branch with >= 1 constant operand
-		
 		/*
 		 * This section adds context to the list of instructions
 		 * - Add data and control flow information (in CFG) to this list of instructions 
 		 */
 		ActualControlFlowGraph cfg = getCfg(className, methodName, classLoader, methodNode);
-        
-        // Force Evosuite to load specific class and method
 		forceEvosuiteToLoadClassAndMethod(className, methodName);
 		
-		List<BytecodeInstruction> eligibleBranches = getEligibleBranchesInMethod(className, methodName, cfg, methodNode);
-		long numberOfEligibleBranches = eligibleBranches.size();
-		boolean isNumberOfEligibleBranchesOverThreshold = (numberOfEligibleBranches >= BRANCH_COUNT_THRESHOLD);
-		
-		String debugOutput = "[" + className + "#" + methodName + "]: {"  + numberOfEligibleBranches + ", " + isNumberOfEligibleBranchesOverThreshold + "}";
-		log.debug(debugOutput);
-		return isNumberOfEligibleBranchesOverThreshold;
+		return isEligibleBranchesOverThreshold(className, methodName, cfg, methodNode);
+	}
+	
+	private static void debug(String message) {
+		if (IS_PRINT_DEBUG_INFO) {
+			log.debug(message);
+		}
 	}
 	
 	private void forceEvosuiteToLoadClassAndMethod(String className, String methodName) {
@@ -115,26 +109,42 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		return cfg;
 	}
 	
-	private List<ConstantPool> getConstantPools() {
-		ConstantPool staticConstantsInClass = ConstantPoolManager.pools[0];
-		ConstantPool staticConstantsOutsideClass = ConstantPoolManager.pools[1];
-		List<ConstantPool> pools = new ArrayList<>();
-		pools.add(staticConstantsInClass);
-		pools.add(staticConstantsOutsideClass);
-		return pools;
-	}
-	
 	private static boolean isBranchEligible(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode) {
 		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
 		
+		if (IS_REQUIRE_BRANCH_OPERANDS_PRIMITIVE) {
+			// Remove all non-primitive types before further processing.
+			operands.removeIf(operand -> !isPrimitive(operand.getType()));
+		}
+		
+		if (IS_ONLY_ALLOW_STRING_CONSTANTS) {
+			// Filter out all string constants before further processing.
+			operands.removeIf(operand -> !isString(operand));
+		}
+		
+		boolean isAtLeastOneOperandConstant = false;
+		boolean isAtLeastOneOperandParameter = false;
 		for (BytecodeInstruction operand : operands) {
 			boolean isOperandConstant = operand.isConstant();
+			
 			if (isOperandConstant) {
-				return true;
+				isAtLeastOneOperandConstant = true;
+			}
+			
+			if (IS_REQUIRE_AT_LEAST_ONE_BRANCH_OPERAND_IS_PARAMETER) {
+				boolean isOperandParameter = operand.isParameter();
+				if (isOperandParameter) {
+					isAtLeastOneOperandParameter = true;
+				}
 			}
 		}
 		
-		return false;
+		boolean isAllConditionsMet = isAtLeastOneOperandConstant;
+		if (IS_REQUIRE_AT_LEAST_ONE_BRANCH_OPERAND_IS_PARAMETER) {
+			isAllConditionsMet = isAllConditionsMet && isAtLeastOneOperandParameter;
+		}
+		
+		return isAllConditionsMet;
 	}
 	
 	private List<BytecodeInstruction> getEligibleBranchesInMethod(String className, String methodName, ActualControlFlowGraph cfg, MethodNode node) {
@@ -150,38 +160,54 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		return eligibleBranches;
 	}
 	
-	private long getNumberOfConstantsInClass(String className) {
-		String key = getKey(className);
-		if (classToNumberOfConstants.containsKey(key)) {
-			return classToNumberOfConstants.get(key);
+	/**
+	 * Handles deciding whether we are over the threshold, depending on the settings
+	 * (Absolute/proportional threshold, threshold values, etc.)
+	 * 
+	 * @return
+	 */
+	private boolean isEligibleBranchesOverThreshold(String className, String methodName, ActualControlFlowGraph cfg, MethodNode node) {	
+		if (IS_BRANCH_COUNT_THRESHOLD_PROPORTIONAL) {
+			return isEligibleBranchesOverProportionalThreshold(className, methodName, cfg, node);
 		}
 		
-		// Else we have not encountered this class before
-		// Manually count from pool
-		// pool[0] is for constants from inside the class
-		// pool[1] is for constants from outside the class (e.g. constants from other classes)
-		ConstantPool staticConstantsInClass = ConstantPoolManager.pools[0];
-		ConstantPool staticConstantsOutsideClass = ConstantPoolManager.pools[1];
-		boolean isPoolInstanceOfStaticConstantPool = (staticConstantsInClass instanceof StaticConstantPool);
-		boolean isSecondPoolInstanceOfStaticConstantPool = (staticConstantsOutsideClass instanceof StaticConstantPool);
-		if (!isPoolInstanceOfStaticConstantPool) {
-			// Error
-			return -1;
-		}
-		if (!isSecondPoolInstanceOfStaticConstantPool) {
-			// Error
-			return -1;
+		return isEligibleBranchesOverAbsoluteThreshold(className, methodName, cfg, node);
+	}
+	
+	private boolean isEligibleBranchesOverProportionalThreshold(String className, String methodName, ActualControlFlowGraph cfg, MethodNode node) {
+		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg);
+		List<BytecodeInstruction> eligibleBranches = getEligibleBranchesInMethod(className, methodName, cfg, node);
+		int eligibleBranchCount = eligibleBranches.size();
+		int totalBranchCount = branches.size();
+		
+		float eligibleBranchCountAsFloat = (float) eligibleBranchCount;
+		float totalBranchCountAsFloat = (float) totalBranchCount;
+		float eligibleBranchProportion = eligibleBranchCountAsFloat / totalBranchCountAsFloat;
+		boolean isOverThreshold = (eligibleBranchProportion >= PROPORTIONAL_BRANCH_COUNT_THRESHOLD);
+		
+		if (IS_PRINT_DEBUG_INFO) {
+			String message = "[" + className + "#" + methodName + "]: " + eligibleBranchCount + " / " + totalBranchCount + " = " + String.format("%.2f", eligibleBranchProportion) + " (" + isOverThreshold + ")";
+			debug(message);
 		}
 		
-		StaticConstantPool insideClassPool = (StaticConstantPool) staticConstantsInClass;
-		StaticConstantPool outsideClassPool = (StaticConstantPool) staticConstantsOutsideClass;
-		long constantCount = (insideClassPool.poolSize() + outsideClassPool.poolSize());
-		classToNumberOfConstants.put(key,  constantCount);
-		return constantCount;
+		return isOverThreshold;
+	}
+	
+	private boolean isEligibleBranchesOverAbsoluteThreshold(String className, String methodName, ActualControlFlowGraph cfg, MethodNode node) {
+		List<BytecodeInstruction> eligibleBranches = getEligibleBranchesInMethod(className, methodName, cfg, node);
+		int eligibleBranchCount = eligibleBranches.size();
+		boolean isOverThreshold = (eligibleBranchCount >= ABSOLUTE_BRANCH_COUNT_THRESHOLD);
+		
+		if (IS_PRINT_DEBUG_INFO) {
+			String message = "[" + className + "#" + methodName + "]: " + eligibleBranchCount + " (" + isOverThreshold + ")";
+			debug(message);
+		}
+		return isOverThreshold;
 	}
 
 	private static List<BytecodeInstruction> getOperandsFromBranch(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {
 		List<BytecodeInstruction> operands = new ArrayList<>();
+		@SuppressWarnings("rawtypes")
 		Frame frame = branch.getFrame();
 		
 		for (int i = 0; i < branch.getOperandNum(); i++) {
@@ -205,14 +231,6 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		return operands;
 	}
 	
-	/*
-	 * Returns a key generated from a combination of the project id and class name.
-	 */
-	private String getKey(String className) {
-		String projectId = EvosuiteForMethod.projectId.toString().split("_")[0];
-		return projectId + "#" + className;
-	}
-	
 	private void clearAllPools() {
 		for (int j = 0; j < 2; j++) {
 			if (ConstantPoolManager.pools[j] instanceof StaticConstantPool) {
@@ -233,5 +251,10 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		}
 
 		return false;
+	}
+	
+	private static boolean isString(BytecodeInstruction operand) {
+		String operandType = operand.getType();
+		return (operandType.contains("java.lang.String"));
 	}
 }
