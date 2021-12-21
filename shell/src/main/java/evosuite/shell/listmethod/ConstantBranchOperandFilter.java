@@ -20,6 +20,7 @@ import org.evosuite.seeding.StaticConstantPool;
 import org.evosuite.setup.DependencyAnalysis;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
@@ -27,44 +28,80 @@ import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 
+import evosuite.shell.FileUtils;
+import evosuite.shell.Settings;
+import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.utils.LoggerUtils;
 
 public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
+	// For demographic analysis
+	private class TagInformation {
+		public boolean isStringType;
+		public boolean isNumberType;
+		public boolean isBooleanType;
+		
+		public TagInformation(boolean isStringType, boolean isNumberType, boolean isBooleanType) {
+			this.isStringType = isStringType;
+			this.isNumberType = isNumberType;
+			this.isBooleanType = isBooleanType;
+		}
+	}
+	
 	private static Logger log = LoggerUtils.getLogger(ConstantBranchOperandFilter.class);
 
 	// Flags
 	// Experimental settings to improve filter performance
-	private static final boolean IS_BRANCH_COUNT_THRESHOLD_PROPORTIONAL = false;
+	private static final boolean IS_BRANCH_COUNT_THRESHOLD_PROPORTIONAL = true;
 	private static final float PROPORTIONAL_BRANCH_COUNT_THRESHOLD = 0.3f;
-	private static final int ABSOLUTE_BRANCH_COUNT_THRESHOLD = 3;
+	private static final int ABSOLUTE_BRANCH_COUNT_THRESHOLD = 1;
 	
-	private static final boolean IS_ONLY_ALLOW_STRING_CONSTANTS = false;
+	private static final boolean IS_ONLY_ALLOW_STRING_CONSTANTS = true;
 	private static final boolean IS_REQUIRE_AT_LEAST_ONE_BRANCH_OPERAND_IS_PARAMETER = false;
-	private static final boolean IS_REQUIRE_BRANCH_OPERANDS_PRIMITIVE = false;
 	
 	private static final boolean IS_PRINT_DEBUG_INFO = true;
-		
-	private static Set<String> primitiveTypes = new HashSet<>();
 	
-	static {
-		primitiveTypes.add(int.class.toString());
-		primitiveTypes.add(long.class.toString());
-		primitiveTypes.add(float.class.toString());
-		primitiveTypes.add(double.class.toString());
-		primitiveTypes.add(char.class.toString());
-		primitiveTypes.add(boolean.class.toString());
-		primitiveTypes.add(byte.class.toString());
-		primitiveTypes.add(short.class.toString());
-	}
+	// Special flag where we don't filter anything, we just 
+	// collect information on all the methods.
+	private static final boolean IS_DEMOGRAPHIC_ANALYSIS_MODE = true;
 	
 	public ConstantBranchOperandFilter() {
-		System.out.println("[ConstantBranchOperandFilter]: Current branch count threshold: " + ABSOLUTE_BRANCH_COUNT_THRESHOLD);
+	}
+	
+	public static void reportFlags() {
+		String prefix = "[ConstantBranchOperandFilter] ";
+		String indent = "  ";
+		
+		if (!IS_PRINT_DEBUG_INFO) {
+			return;
+		}
+		
+		if (IS_DEMOGRAPHIC_ANALYSIS_MODE) {
+			System.out.println(prefix + "Demographic analysis mode active");
+		}
+		
+		System.out.println(prefix + "Branch count type: " + (IS_BRANCH_COUNT_THRESHOLD_PROPORTIONAL ? "Proportional" : "Absolute"));
+		if (IS_BRANCH_COUNT_THRESHOLD_PROPORTIONAL) {
+			System.out.println(prefix + "Branch count threshold: " + String.format("%.2f", PROPORTIONAL_BRANCH_COUNT_THRESHOLD));
+		} else {
+			System.out.println(prefix + "Branch count threshold: " + ABSOLUTE_BRANCH_COUNT_THRESHOLD);
+		}
+		
+		System.out.println(prefix + "Flags set:");
+		
+		if (IS_ONLY_ALLOW_STRING_CONSTANTS) {
+			System.out.println(prefix + indent + "Allow only string constants");
+		}
+		
+		if (IS_REQUIRE_AT_LEAST_ONE_BRANCH_OPERAND_IS_PARAMETER) {
+			System.out.println(prefix + indent + "At least one branch operand must be a parameter");
+		}		
 	}
 	
 	@Override
 	protected boolean checkMethod(ClassLoader classLoader, String className, String methodName, MethodNode methodNode,
 			ClassNode classNode) throws AnalyzerException, IOException, ClassNotFoundException {
-//		log.debug("Working on [" + className + "#" + methodName + "]");
+		log.debug("Working on [" + className + "#" + methodName + "]");
+
 		DependencyAnalysis.clear();
 		clearAllPools();
 
@@ -75,7 +112,119 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		ActualControlFlowGraph cfg = getCfg(className, methodName, classLoader, methodNode);
 		forceEvosuiteToLoadClassAndMethod(className, methodName);
 		
+		if (className.contains("DemographicAnalysisTagTest")) {
+			System.currentTimeMillis();
+		}
+		
+		if (IS_DEMOGRAPHIC_ANALYSIS_MODE) {
+			recordMethodInformation(classLoader, className, methodName, cfg, methodNode, classNode);
+			return true;
+		}
+		
 		return isEligibleBranchesOverThreshold(className, methodName, cfg, methodNode);
+	}
+	
+	private void recordMethodInformation(ClassLoader classLoader, String className, String methodName,
+			ActualControlFlowGraph cfg, MethodNode methodNode, ClassNode classNode) {
+		int numberOfCrBranches = computeNumberOfCrBranches(className, methodName, cfg, methodNode);
+		float ratioOfCrBranches = computeRatioOfCrBranches(numberOfCrBranches, cfg);
+		TagInformation tagInfo = computeTagsOfMethod(cfg, methodNode);
+		
+		ExcelWriter writer = setupExcelWriter();
+		List<Object> rowData = new ArrayList<>();
+		rowData.add(className);
+		rowData.add(methodName);
+		rowData.add(numberOfCrBranches);
+		rowData.add(ratioOfCrBranches);
+		rowData.add(tagInfo.isStringType);
+		rowData.add(tagInfo.isNumberType);
+		rowData.add(tagInfo.isBooleanType);
+		
+		try {
+			writer.writeSheet("Data", Arrays.asList(rowData));
+		} catch (IOException ioe) {
+			log.error("Error", ioe);
+		}
+	}
+	
+	
+	private ExcelWriter setupExcelWriter() {
+		String[] headers = {
+			"Class",
+			"Method",
+			"CR Branch Count",
+			"CR Branch Ratio",
+			"String type?",
+			"Number type?",
+			"Boolean type?"
+		};
+		ExcelWriter excelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), "demographic_analysis.xlsx"));
+		excelWriter.getSheet("Data", headers, 0);
+		return excelWriter;
+	}
+
+	private int computeNumberOfCrBranches(String className, String methodName, ActualControlFlowGraph cfg, MethodNode node) {
+		int numberOfCrBranches = 0;
+		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg);
+		for (BytecodeInstruction branch : branches) {
+			if (isCrBranch(branch, cfg, node)) {
+				numberOfCrBranches++;
+			}
+		}
+		return numberOfCrBranches;
+	}
+	
+	private boolean isCrBranch(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode) {
+		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
+		for (BytecodeInstruction operand : operands) {
+			if (operand.isConstant()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private float computeRatioOfCrBranches(int numberOfCrBranches, ActualControlFlowGraph cfg) {
+		float numberOfCrBranchesAsFloat = (float) numberOfCrBranches;
+		float numberOfBranchesAsFloat = (float) getIfBranchesInMethod(cfg).size();
+		return (numberOfCrBranchesAsFloat / numberOfBranchesAsFloat);
+	}
+	
+	// Returns the tags in a bitmap-like format
+	// The result is an integer which should in binary be represented by 3-bits,
+	// String-Number-Boolean
+	// e.g. a tag of 0-1-1 = 3 means that the method is tagged as number and boolean.
+	private TagInformation computeTagsOfMethod(ActualControlFlowGraph cfg, MethodNode methodNode) {
+		// A method is determined as "{type} type" if it contains
+		// a branch that has as operand some value of that type.
+		boolean isStringType = false;
+		boolean isNumberType = false;
+		boolean isBooleanType = false;
+		
+		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg);
+		for (BytecodeInstruction branch : branches) {
+			List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
+			for (BytecodeInstruction operand : operands) {
+				if (!isStringType) {
+					isStringType = isStringConstant(operand);
+				}
+				
+				if (!isNumberType) {
+					isNumberType = isNumberConstant(operand);
+				}
+				
+				if (isBooleanType) {
+					isBooleanType = isBooleanConstant(operand);
+				}
+				
+				if (isStringType && isNumberType && isBooleanType) {
+					// Early exit if we've ascertained all three types exist
+					break;
+				}
+			}
+		}
+		return new TagInformation(isStringType, isNumberType, isBooleanType);
+		
 	}
 	
 	private static void debug(String message) {
@@ -111,15 +260,9 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 	
 	private static boolean isBranchEligible(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode methodNode) {
 		List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
-		
-		if (IS_REQUIRE_BRANCH_OPERANDS_PRIMITIVE) {
-			// Remove all non-primitive types before further processing.
-			operands.removeIf(operand -> !isPrimitive(operand.getType()));
-		}
-		
 		if (IS_ONLY_ALLOW_STRING_CONSTANTS) {
-			// Filter out all string constants before further processing.
-			operands.removeIf(operand -> !isString(operand));
+			// Filter out all non-string constants before further processing.
+			operands.removeIf(operand -> !isStringConstant(operand));
 		}
 		
 		boolean isAtLeastOneOperandConstant = false;
@@ -205,6 +348,22 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		return isOverThreshold;
 	}
 
+	private static List<BytecodeInstruction> getOperandsFromMethodCall(BytecodeInstruction methodCall) {
+		// Yes, this method will pick up a few unnecessary instructions. They shouldn't matter for our purposes.
+		List<BytecodeInstruction> operands = new ArrayList<>();
+		BytecodeInstruction currentInstruction = methodCall.getPreviousInstruction();
+		while (currentInstruction != null) {
+			// This won't catch "deeper" operands e.g. 2-level nested operands
+			// This is because we want to keep it lightweight enough to minimise filter computation time
+			// The alternative would be e.g. recording the function traversed to prevent infinite recursion
+			// e.g. if a function calls itself
+			operands.add(currentInstruction);
+			currentInstruction = currentInstruction.getPreviousInstruction();
+		}
+		return operands;
+	}
+	
+	
 	private static List<BytecodeInstruction> getOperandsFromBranch(BytecodeInstruction branch, ActualControlFlowGraph cfg, MethodNode node) {
 		List<BytecodeInstruction> operands = new ArrayList<>();
 		@SuppressWarnings("rawtypes")
@@ -228,6 +387,20 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 				}
 			}
 		}
+		
+		// After the first round of obtaining operands, we need to add all the operands
+		// from method calls
+		// This deals with cases where e.g. we have
+		// if (a.equals("hello world"))
+		// The operand for the branch is simply an INVOKEVIRTUAL instruction
+		// We want to go beyond that to extract the actual operands (a, "hello world").
+		List<BytecodeInstruction> additionalOperands = new ArrayList<>();
+		for (BytecodeInstruction operand : operands) {
+			if (operand.isMethodCall()) {
+				additionalOperands.addAll(getOperandsFromMethodCall(operand));
+			}
+		}
+		operands.addAll(additionalOperands);
 		return operands;
 	}
 	
@@ -240,21 +413,40 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		}
 	}
 	
-	private static boolean isPrimitive(String inputType) {
-		if (primitiveTypes.contains(inputType)) {
-			return true;
+	private static boolean isStringConstant(BytecodeInstruction operand) {
+		if (!operand.isLoadConstant()) {
+			return false;
 		}
-
-		// String
-		if (inputType.contains("java.lang.String")) {
-			return true;
+		
+		Object constant = ((LdcInsnNode) operand.getASMNode()).cst;
+		return (constant instanceof String);
+	}
+	
+	private static boolean isNumberConstant(BytecodeInstruction operand) {
+		if (operand.getASMNode() == null) {
+			return false;
 		}
-
+		
+		int opcode = operand.getASMNode().getOpcode();
+		// Refer to org.objectweb.asm.Opcodes
+		// Opcodes 3-17 inclusive are all numeric constant-loading instructions 
+		if (3 <= opcode && opcode <= 17) {
+			return true;
+		}		
+		
+		if (operand.isLoadConstant()) {
+			Object constant = ((LdcInsnNode) operand.getASMNode()).cst;
+			return ((constant instanceof Integer) ||
+					(constant instanceof Long) ||
+					(constant instanceof Float) ||
+					(constant instanceof Double));
+		}
+		
 		return false;
 	}
 	
-	private static boolean isString(BytecodeInstruction operand) {
-		String operandType = operand.getType();
-		return (operandType.contains("java.lang.String"));
+	private static boolean isBooleanConstant(BytecodeInstruction operand) {
+		// TODO
+		return false;
 	}
 }
