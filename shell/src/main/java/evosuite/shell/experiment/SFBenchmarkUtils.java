@@ -24,11 +24,20 @@ import evosuite.shell.FileUtils;
 import evosuite.shell.utils.AlphanumComparator;
 
 public class SFBenchmarkUtils {
+	private static final boolean USE_USER_DIR = true;
 	
 	/**
 	 * return map of project name and its folder */
 	public static Map<String, File> listProjectFolders() {
-		File[] files = new File(SFConfiguration.sfBenchmarkFolder).listFiles(new FilenameFilter() {
+		String workingFolder = "";
+		
+		if (USE_USER_DIR) {
+			workingFolder = System.getProperty("user.dir");
+		} else {
+			workingFolder = SFConfiguration.sfBenchmarkFolder;
+		}
+			
+		File[] files = new File(workingFolder).listFiles(new FilenameFilter() {
 			
 			@Override
 			public boolean accept(File dir, String name) {

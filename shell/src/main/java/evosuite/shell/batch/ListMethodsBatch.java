@@ -20,6 +20,7 @@ import evosuite.shell.excel.ExcelUtils;
 import evosuite.shell.excel.MergeExcels;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.TestUtils;
+import evosuite.shell.listmethod.ConstantBranchOperandFilter;
 import evosuite.shell.listmethod.FlagMethodProfilesFilter;
 import evosuite.shell.listmethod.MethodFilterOption;
 import evosuite.shell.utils.TargetMethodIOUtils;
@@ -81,6 +82,10 @@ public class ListMethodsBatch {
 	}
 	
 	public void runListMethod(MethodFilterOption opt) throws IOException {
+		if (opt == MethodFilterOption.CONSTANT_BRANCH_OPERAND_METHOD) {
+			ConstantBranchOperandFilter.reportFlags();
+		}
+		
 		Map<String, File> projectFolders = SFBenchmarkUtils.listProjectFolders();
 		File dependentLibFolder = null;
 		File[] dependentLibJars = null;

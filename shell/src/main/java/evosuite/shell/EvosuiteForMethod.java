@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +49,7 @@ import org.slf4j.Logger;
 import evosuite.shell.FilterConfiguration.Filter;
 import evosuite.shell.FilterConfiguration.InclusiveFilter;
 import evosuite.shell.ParameterOptions.TestLevel;
+import evosuite.shell.batch.ListMethodsBatch;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.listmethod.ListFeatures;
@@ -113,6 +115,22 @@ public class EvosuiteForMethod {
 	private URLClassLoader evoTestClassLoader;
 
 	public static void main(String[] args) {
+		System.out.println("Arguments passed: ");
+		for (int i = 0; i < args.length; i++) {
+			System.out.println("[" + i + "]: " + args[i]);
+		}
+		
+		boolean isRunFilter = Arrays.stream(args).anyMatch("--run-filter"::equals);
+		if (isRunFilter) {
+			try {
+				System.out.println("Running filter.");
+				new ListMethodsBatch().justRun();
+				return;
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+		}
+		
 		execute(args);
 		System.exit(0);
 	}

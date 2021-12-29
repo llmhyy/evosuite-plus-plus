@@ -35,15 +35,15 @@ import evosuite.shell.utils.LoggerUtils;
 
 public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 	// For demographic analysis
-	private class TagInformation {
-		public boolean isStringType;
-		public boolean isNumberType;
-		public boolean isBooleanType;
+	private class BranchCount {
+		public int stringTypeOnly;
+		public int numberTypeOnly;
+		public int stringAndNumberType;
 		
-		public TagInformation(boolean isStringType, boolean isNumberType, boolean isBooleanType) {
-			this.isStringType = isStringType;
-			this.isNumberType = isNumberType;
-			this.isBooleanType = isBooleanType;
+		public BranchCount(int stringTypeOnly, int numberTypeOnly, int stringAndNumberType) {
+			this.stringTypeOnly = stringTypeOnly;
+			this.numberTypeOnly = numberTypeOnly;
+			this.stringAndNumberType = stringAndNumberType;
 		}
 	}
 	
@@ -128,7 +128,7 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 			ActualControlFlowGraph cfg, MethodNode methodNode, ClassNode classNode) {
 		int numberOfCrBranches = computeNumberOfCrBranches(className, methodName, cfg, methodNode);
 		float ratioOfCrBranches = computeRatioOfCrBranches(numberOfCrBranches, cfg);
-		TagInformation tagInfo = computeTagsOfMethod(cfg, methodNode);
+		BranchCount branchCount = computeTagsOfMethod(cfg, methodNode);
 		
 		ExcelWriter writer = setupExcelWriter();
 		List<Object> rowData = new ArrayList<>();
@@ -136,9 +136,9 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		rowData.add(methodName);
 		rowData.add(numberOfCrBranches);
 		rowData.add(ratioOfCrBranches);
-		rowData.add(tagInfo.isStringType);
-		rowData.add(tagInfo.isNumberType);
-		rowData.add(tagInfo.isBooleanType);
+		rowData.add(branchCount.stringTypeOnly);
+		rowData.add(branchCount.numberTypeOnly);
+		rowData.add(branchCount.stringAndNumberType);
 		
 		try {
 			writer.writeSheet("Data", Arrays.asList(rowData));
@@ -154,9 +154,9 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 			"Method",
 			"CR Branch Count",
 			"CR Branch Ratio",
-			"String type?",
-			"Number type?",
-			"Boolean type?"
+			"String type only",
+			"Number type only",
+			"String and number type"
 		};
 		ExcelWriter excelWriter = new ExcelWriter(FileUtils.newFile(Settings.getReportFolder(), "demographic_analysis.xlsx"));
 		excelWriter.getSheet("Data", headers, 0);
@@ -190,20 +190,17 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		return (numberOfCrBranchesAsFloat / numberOfBranchesAsFloat);
 	}
 	
-	// Returns the tags in a bitmap-like format
-	// The result is an integer which should in binary be represented by 3-bits,
-	// String-Number-Boolean
-	// e.g. a tag of 0-1-1 = 3 means that the method is tagged as number and boolean.
-	private TagInformation computeTagsOfMethod(ActualControlFlowGraph cfg, MethodNode methodNode) {
-		// A method is determined as "{type} type" if it contains
-		// a branch that has as operand some value of that type.
-		boolean isStringType = false;
-		boolean isNumberType = false;
-		boolean isBooleanType = false;
+	private BranchCount computeTagsOfMethod(ActualControlFlowGraph cfg, MethodNode methodNode) {
+		int stringTypeOnlyCount = 0;
+		int numberTypeOnlyCount = 0;
+		int stringAndNumberTypeCount = 0;
 		
 		Set<BytecodeInstruction> branches = getIfBranchesInMethod(cfg);
 		for (BytecodeInstruction branch : branches) {
 			List<BytecodeInstruction> operands = getOperandsFromBranch(branch, cfg, methodNode);
+			boolean isStringType = false;
+			boolean isNumberType = false;
+			
 			for (BytecodeInstruction operand : operands) {
 				if (!isStringType) {
 					isStringType = isStringConstant(operand);
@@ -213,17 +210,26 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 					isNumberType = isNumberConstant(operand);
 				}
 				
-				if (isBooleanType) {
-					isBooleanType = isBooleanConstant(operand);
-				}
-				
-				if (isStringType && isNumberType && isBooleanType) {
-					// Early exit if we've ascertained all three types exist
+				if (isStringType && isNumberType) {
+					// Early exit if we've ascertained both types exist
 					break;
 				}
 			}
+			
+			if (isStringType && !isNumberType) {
+				stringTypeOnlyCount++;
+			}
+			
+			if (!isStringType && isNumberType) {
+				numberTypeOnlyCount++;
+			}
+			
+			if (isStringType && isNumberType) {
+				stringAndNumberTypeCount++;
+			}
 		}
-		return new TagInformation(isStringType, isNumberType, isBooleanType);
+		
+		return new BranchCount(stringTypeOnlyCount, numberTypeOnlyCount, stringAndNumberTypeCount);
 		
 	}
 	
@@ -430,6 +436,7 @@ public class ConstantBranchOperandFilter extends MethodFlagCondFilter {
 		int opcode = operand.getASMNode().getOpcode();
 		// Refer to org.objectweb.asm.Opcodes
 		// Opcodes 3-17 inclusive are all numeric constant-loading instructions 
+		// TODO: Check if BIPUSH/SIPUSH are always constant-loading
 		if (3 <= opcode && opcode <= 17) {
 			return true;
 		}		
