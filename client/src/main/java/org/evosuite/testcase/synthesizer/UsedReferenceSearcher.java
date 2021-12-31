@@ -6,10 +6,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.evosuite.graphs.cfg.BytecodeInstruction;
@@ -263,30 +261,31 @@ public class UsedReferenceSearcher {
 		 * get all the field setter bytecode instructions in the method. TODO: the field
 		 * setter can be taken from callee method of @code{methodName}.
 		 */
-		List<BytecodeInstruction> cascadingCallRelations = new LinkedList<>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> setterMap = new HashMap<BytecodeInstruction, List<BytecodeInstruction>>();
-		Map<BytecodeInstruction, List<BytecodeInstruction>> fieldSetterMap = DataDependencyUtil.analyzeFieldSetter(className, methodName,
-				field, 5, cascadingCallRelations, setterMap);
+		List<BytecodeInstruction> cascadingCallRelations = new ArrayList<>();
+		List<ValueSettings> setter = new ArrayList<>();
+		DataDependencyUtil.analyzeFieldSetter(className, methodName,
+				field, 5, cascadingCallRelations, setter);
 //		List<VariableReference> validParams = new ArrayList<VariableReference>();
 		
 		Set<Integer> validParams = new HashSet<>();
-		if (fieldSetterMap.isEmpty()) {
+		if (setter.isEmpty()) {
 			return new ParameterMatch(false, validParams);
 		}
 
-		for (Entry<BytecodeInstruction, List<BytecodeInstruction>> entry : fieldSetterMap.entrySet()) {
-			BytecodeInstruction setterIns = entry.getKey();
-			List<BytecodeInstruction> callList = entry.getValue();
-			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, className, methodName, callList);
-			for (Integer val : validParamPos) {
-				if (val >= 0) {
-					validParams.add(val);
-				}
-			}
+		for (ValueSettings setting : setter) {
+//			BytecodeInstruction setterIns = entry.getKey();
+//			List<BytecodeInstruction> callList = entry.getValue();
+//			Set<Integer> validParamPos = DataDependencyUtil.checkValidParameterPositions(setterIns, className, methodName, callList);
+//			for (Integer val : validParamPos) {
+//				if (val >= 0) {
+//					validParams.add(val);
+//				}
+//			}
 //			System.currentTimeMillis();
+			return new ParameterMatch(!setting.releventPrams.isEmpty(), setting.releventPrams);
 		}
-		
-		return new ParameterMatch(!fieldSetterMap.isEmpty(), validParams);
+	
+		return new ParameterMatch(false, validParams);
 	}
 
 	

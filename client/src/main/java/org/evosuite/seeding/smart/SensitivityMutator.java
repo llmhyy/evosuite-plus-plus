@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,7 @@ import org.evosuite.testcase.statements.ValueStatement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.DataDependencyUtil;
 import org.evosuite.testcase.synthesizer.PotentialSetter;
+import org.evosuite.testcase.synthesizer.ValueSettings;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapperFactory;
 import org.evosuite.testcase.synthesizer.var.VarRelevance;
@@ -543,9 +545,10 @@ public class SensitivityMutator {
 			}
 			
 			for(Field field: clazz.getDeclaredFields()) {
-				PotentialSetter pSetter = DataDependencyUtil.searchForPotentialSettersInClass(field, className);
+				LinkedHashMap<Executable, List<ValueSettings>> pSetter 
+					= DataDependencyUtil.searchForPotentialSettersInClass(field, className);
 				
-				for(Executable e: pSetter.setterList) {
+				for(Executable e: pSetter.keySet()) {
 					if(e instanceof Method) {
 						Method m = (Method)e;
 						if(!list.contains(m) && m.getParameterCount() != 0) {
