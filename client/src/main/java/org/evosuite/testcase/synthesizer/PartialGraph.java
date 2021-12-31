@@ -33,11 +33,6 @@ public class PartialGraph {
 	public DepVariableWrapper fetchAndMerge(DepVariable var) {
 		DepVariableWrapper tempWrapper = DepVariableWrapperFactory.createWrapperInstance(var);
 		
-		if(var.toString().contains("ALOAD")) {
-			System.currentTimeMillis();
-//			System.currentTimeMillis();
-		}
-		
 		DepVariableWrapper wrapper = allRelevantNodes.get(tempWrapper);
 		if(wrapper == null) {
 			wrapper = DepVariableWrapperFactory.createWrapperInstance(var);

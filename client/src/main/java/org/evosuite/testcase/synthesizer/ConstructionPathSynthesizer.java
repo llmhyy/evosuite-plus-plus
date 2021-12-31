@@ -160,9 +160,9 @@ public class ConstructionPathSynthesizer {
 		
 //		System.currentTimeMillis();
 //		GraphVisualizer.visualizeComputationGraph(b, 10000);
-		if (isDebugger) {
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");	
-		}
+//		if (isDebugger) {
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");	
+//		}
 		
 		logTest(test, b, isDebugger, 0, null);
 		
@@ -269,7 +269,7 @@ public class ConstructionPathSynthesizer {
 		if (isDebugger) {
 			try {
 				// Quick fix
-				String filePath = java.lang.System.getProperty("user.dir") + File.separator + "graphVisData_" + b.toString() + "_" + graphVisCounter++ + ".json";
+				String filePath = java.lang.System.getProperty("user.dir") + File.separator + "graphVisData_" + b.toString().replaceAll(" ", "_") + "_" + graphVisCounter++ + ".json";
 				java.lang.System.out.println("Writing graph visualisation data to " + filePath);
 				graphVisDataBuilder.build().writeTo(new File(filePath));
 			} catch (Exception e) {

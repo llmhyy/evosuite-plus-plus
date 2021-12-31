@@ -155,7 +155,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				try {
 					System.currentTimeMillis();
 					long t0 = System.currentTimeMillis();
-					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(false);
+					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(true);
 					cpSynthesizer.buildNodeStatementCorrespondence(test, b, allowNullValue);
 					if(!allowNullValue) {
 						mutateNullStatements(test);						
