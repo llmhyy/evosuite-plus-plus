@@ -142,7 +142,7 @@ public class ConstructionPathSynthesizer {
 	private Map<DepVariableWrapper, VarRelevance> graph2CodeMap;
 	
 	
-	public boolean isDebugger = false;
+	public boolean isDebugger = true;
 	
 	public void buildNodeStatementCorrespondence(TestCase test, Branch b, boolean allowNullValue)
 			throws ConstructionFailedException, ClassNotFoundException {

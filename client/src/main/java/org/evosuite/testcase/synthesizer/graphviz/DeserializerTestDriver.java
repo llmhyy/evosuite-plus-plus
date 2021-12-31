@@ -11,13 +11,13 @@ import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 
 public class DeserializerTestDriver {
-	public static final boolean IS_VISUALISE_PARTIAL_GRAPH = false;
-	public static final boolean IS_VISUALISE_CFG = true;
+	public static final boolean IS_VISUALISE_PARTIAL_GRAPH = true;
+	public static final boolean IS_VISUALISE_CFG = false;
 	public static final boolean IS_TRAVERSE_GRAPH = false;
 	
 	@Test
 	public void deserializationTest() throws StreamReadException, DatabindException, IOException {
-		File file = new File("D:\\linyun\\graphVisData_I9 Branch 2 IF_ICMPGE L6_0.json");
+		File file = new File("D:\\linyun\\graphVisData_I194 Branch 1 IF_ICMPNE L19_0.json");
 		GraphVisualisationData graphVisData = GraphVisualisationData.from(file);
 		SimplePartialGraph graph = graphVisData.getPartialGraph();
 		SimpleControlFlowGraph cfg = graphVisData.cfg;

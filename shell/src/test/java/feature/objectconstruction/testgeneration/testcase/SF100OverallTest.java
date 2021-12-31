@@ -137,7 +137,31 @@ public class SF100OverallTest {
 	public void testCustom() {
 		String projectId = SF100Project.P0;
 		String[] targetMethods = new String[]{
-				"org.example.custom.CfgTest#method(I)V"
+//				"org.example.custom.CfgTest#method(I)V"
+				"org.example.custom.BigOcgExample#method()V"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testJSecurity() {
+		String projectId = SF100Project.P18;
+		String[] targetMethods = new String[]{
+				"org.jsecurity.ri.session.DelegatingSession#setAttribute(Ljava/lang/Object;Ljava/lang/Object;)V"
 		};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
