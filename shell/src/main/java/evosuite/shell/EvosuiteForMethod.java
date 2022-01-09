@@ -719,9 +719,7 @@ public class EvosuiteForMethod {
 
 					for (ExperimentRecorder recorder : recorders) {
 						recorder.record(className, methodName, result);
-//						recorder.recordSeedingToJson(className, methodName, result);
-						recorder.recordEvoSeedTime(className, methodName, result);
-//						recorder.recordCoverageOnDiffTime(className, methodName, result);
+						recorder.CRBranchrecord(className, methodName, result);
 						
 					}
 				}

@@ -35,6 +35,10 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 	private String[] coverageColumnHeaders;
 	private Map<String, Integer> branchIdentifierToIterationNumber = new HashMap<>();
 	private Map<String, Integer> classAndMethodNameToIterationNumber = new HashMap<>();
+	
+	private ExcelWriter CRBranch_excelWriter;
+	private String[] CRBranhDtaColumnHeaders;
+	private static final String CRBRANCH_DEFAULT_SHEET = "CRBranch_Data";
 
 	private static final String DEFAULT_SHEET = "Data";
 	private static final String TEST_CASE_CODE_SHEET = "Test case code";
@@ -120,6 +124,39 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 		columnHeaders.add("Total branches");
 		columnHeaders.add("Number of uncovered branches");
 		columnHeaders.add("Number of covered branches");
+
+		return columnHeaders.toArray(new String[] {});
+	}
+	
+
+	private String generateCRBranchFileName() {
+		return projectId + "_CRBranch_data.xlsx";
+	}
+
+	private void setupCRBranchExcelWriter() {
+		CRBranch_excelWriter = new ExcelWriter(
+				FileUtils.newFile(Settings.getReportFolder(), generateCRBranchFileName()));
+	}
+
+	private void setupCRBranchColumnHeadersForSheet(String sheetName, String[] columnHeaders) {
+		if (CRBranch_excelWriter == null) {
+			log.error("CRBranch Excel writer was not initialised.");
+			return;
+		}
+		CRBranch_excelWriter.getSheet(sheetName, columnHeaders, 0);
+	}
+
+	private String[] generateCRBranchDataColumnHeaders() {
+		List<String> columnHeaders = new ArrayList<>();
+		columnHeaders.add("Evosuite iteration");
+		columnHeaders.add("Class");
+		columnHeaders.add("Method");
+		columnHeaders.add("Branch");
+		columnHeaders.add("CRBranch");
+		columnHeaders.add("Covered");
+		columnHeaders.add("Constants");
+		columnHeaders.add("Sampled");
+		columnHeaders.add("TestCase");
 
 		return columnHeaders.toArray(new String[] {});
 	}
@@ -474,5 +511,60 @@ public class ExceptionIterationRecorder extends ExperimentRecorder {
 			return -entry.getValue().compareTo(anotherEntry.getValue());
 		});
 		return orderedList;
+	}
+	
+	@Override
+	public void CRBranchrecord(String className, String methodName, EvoTestResult r) {
+		if (CRBranch_excelWriter == null) {
+			setupCRBranchExcelWriter();
+		}
+
+		CRBranhDtaColumnHeaders = generateCRBranchDataColumnHeaders();
+
+		setupCRBranchColumnHeadersForSheet(CRBRANCH_DEFAULT_SHEET, CRBranhDtaColumnHeaders);
+
+		List<List<Object>> rows = new ArrayList<>();
+		Integer evosuiteIteration = classAndMethodNameToIterationNumber.get(className + methodName) - 1;
+
+		ExceptionResult<TestChromosome> exceptionResult = r.getExceptionResult();
+		for (ExceptionResultBranch<TestChromosome> exceptionResultBranch : exceptionResult.getAllResults()) {
+			BranchCoverageTestFitness fitnessFunction = ((BranchCoverageTestFitness) exceptionResultBranch
+					.getFitnessFunction());
+			String branchName = fitnessFunction.getBranch().toString();
+			String branchGoal = fitnessFunction.getBranchGoal().getValue() ? "true" : "false";
+			boolean isBranchCovered = isBranchCovered(r, exceptionResultBranch);
+			boolean isConstantReadingBranch = exceptionResultBranch.isConstantReadingBranch();
+			String constant = "Null";
+			boolean isSampled = false;
+			if (isConstantReadingBranch) {
+				constant = (String) exceptionResultBranch.getConstant();
+				isSampled = exceptionResultBranch.isSampled();
+			}
+
+			List<Object> rowData = new ArrayList<>();
+
+			String testCase = "NULL";
+			if (!isBranchCovered) {
+				testCase = exceptionResultBranch.getLastIteration().getTestCase().toString();
+			}
+
+			rowData.add(evosuiteIteration);
+			rowData.add(className);
+			rowData.add(methodName);
+			rowData.add(branchName + ";" + branchGoal);
+			rowData.add(isConstantReadingBranch);
+			rowData.add(isBranchCovered);
+			rowData.add(constant);
+			rowData.add(isSampled);
+			rowData.add(testCase);
+
+			rows.add(rowData);
+		}
+
+		try {
+			CRBranch_excelWriter.writeSheet(CRBRANCH_DEFAULT_SHEET, rows);
+		} catch (IOException ioe) {
+			log.error("IO Error\n", ioe);
+		}
 	}
 }

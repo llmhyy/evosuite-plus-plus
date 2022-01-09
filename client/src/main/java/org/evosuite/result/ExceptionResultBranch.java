@@ -15,6 +15,12 @@ import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.result.seedexpr.Event;
+import org.evosuite.result.seedexpr.EventSequence;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.IntInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 
 /**
  * Data object to collect exception based results.
@@ -38,6 +44,16 @@ public class ExceptionResultBranch<T extends Chromosome> implements Serializable
 	// i.e. whether it has >= 1 constant operand
 	private boolean isConstantReadingBranch;
 	
+	//constants of constant-reading branch.
+	private String constant;
+	
+	//Whether constant is sampled.
+	private boolean isSampled;
+	
+	//Test case
+	private String branchTestCase;
+	
+	
 	public ExceptionResultBranch(FitnessFunction<T> fitnessFunction) {
 		this.fitnessFunction = fitnessFunction;
 		
@@ -57,12 +73,31 @@ public class ExceptionResultBranch<T extends Chromosome> implements Serializable
 		for (BytecodeInstruction operand : branchOperands) {
 			boolean isConstantOperand = operand.isConstant();
 			if (isConstantOperand) {
+				constantAndSample(operand,branchInstruction);
 				return true;
 			}
 		}
 		return false;
 	}
 	
+	private void constantAndSample(BytecodeInstruction operand, BytecodeInstruction branchInstruction) {
+		AbstractInsnNode cons = operand.getASMNode();
+		Object val = getValue(cons);
+		constant = val.toString();
+		
+		if(EventSequence.events.isEmpty()) {
+			setSampled(false);
+		}else {
+			for(Event e: EventSequence.events) {
+				if(e.getType() != Event.branchCovering && e.getValue().equals(constant)) {
+					setSampled(true);
+				    break;
+				}
+			}
+		}
+		
+	}
+
 	public void addExceptionResultIteration(ExceptionResultIteration<T> exceptionResultIteration) {
 		this.iterationToExceptionResult.put(exceptionResultIteration.getIteration(), exceptionResultIteration);
 	}
@@ -200,4 +235,58 @@ public class ExceptionResultBranch<T extends Chromosome> implements Serializable
 		ExceptionResultIteration<T> lastIteration = iterations.get(iterations.size() - 1);
 		return lastIteration.isOutMethodException();
 	}
+	
+	private Object getValue(AbstractInsnNode constant) {
+		switch (constant.getOpcode()) {
+		case Opcodes.LDC:
+			return ((LdcInsnNode) constant).cst;
+		case Opcodes.ICONST_0:
+			return 0;
+		case Opcodes.ICONST_1:
+			return 1;
+		case Opcodes.ICONST_2:
+			return 2;
+		case Opcodes.ICONST_3:
+			return 3;
+		case Opcodes.ICONST_4:
+			return 4;
+		case Opcodes.ICONST_5:
+			return 5;
+		case Opcodes.ICONST_M1:
+			return -1;
+		case Opcodes.LCONST_0:
+			return 0L;
+		case Opcodes.LCONST_1:
+			return 1L;
+		case Opcodes.DCONST_0:
+			return 0.0;
+		case Opcodes.DCONST_1:
+			return 1.0;
+		case Opcodes.FCONST_0:
+			return 0.0F;
+		case Opcodes.FCONST_1:
+			return 1.0F;
+		case Opcodes.FCONST_2:
+			return 2.0F;
+		case Opcodes.SIPUSH:
+			return ((IntInsnNode) constant).operand;
+		case Opcodes.BIPUSH:
+			return ((IntInsnNode) constant).operand;
+		default:
+			throw new RuntimeException("Unknown constant: " + constant.getOpcode());
+		}
+	}
+
+	public boolean isSampled() {
+		return isSampled;
+	}
+
+	public void setSampled(boolean isSampled) {
+		this.isSampled = isSampled;
+	}
+	
+	public Object getConstant() {
+		return constant;
+	}
+
 }

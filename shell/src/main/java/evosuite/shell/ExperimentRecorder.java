@@ -52,4 +52,9 @@ public class ExperimentRecorder {
 		// TODO Auto-generated method stub
 		
 	}
+
+	public void CRBranchrecord(String className, String methodName, EvoTestResult result) {
+		// TODO Auto-generated method stub
+		
+	}
 }
