@@ -35,7 +35,6 @@ public class SF100OverallTest {
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	
-
 	@Test
 	public void testBugExample() {
 		
@@ -151,6 +150,49 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testJedit() {
+		String projectId = "125_jedit";
+		String[] targetMethods = new String[]{
+//			"org.gjt.sp.jedit.menu.EnhancedCheckBoxMenuItem#paint(Ljava/awt/Graphics;)V"
+			"org.gjt.sp.jedit.proto.jeditresource.PluginResURLConnection#connect()V"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+	}
+	
+	@Test
+	public void testJSecurity() {
+		String projectId = SF100Project.P18;
+		String[] targetMethods = new String[]{
+			"org.jsecurity.spring.servlet.security.AuthenticationInterceptor#preHandle(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Ljava/lang/Object;)Z"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+	}
+	
+	@Test
 	public void testIoProject() {
 		String projectId = SF100Project.P77;
 		String[] targetMethods = new String[]{
@@ -223,12 +265,13 @@ public class SF100OverallTest {
 	public void testJwbf() {
 		String projectId = SF100Project.P23;
 		String[] targetMethods = new String[]{
-				"net.sourceforge.jwbf.core.contentRep.Article#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.jwbf.core.contentRep.Article#equals(Ljava/lang/Object;)Z"
+				"net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot#readData(Ljava/lang/String;I)Lnet/sourceforge/jwbf/core/contentRep/SimpleArticle;"
 		};
 		
 		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
-		int repeatTime = 150;
-		int budget = 1;
+		int repeatTime = 1;
+		int budget = 150;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
