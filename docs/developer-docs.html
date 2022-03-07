@@ -1,0 +1,565 @@
+
+<!DOCTYPE html>
+<html lang="en" >
+
+  <head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" size="32" href="https://img.icons8.com/metro/208/search.png">
+    <title>EvoObj Dev Docs</title>
+
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet"></script>
+  <style>
+    .caret {
+      cursor: pointer;
+      -webkit-user-select: none; /* Safari 3.1+ */
+      -moz-user-select: none; /* Firefox 2+ */
+      -ms-user-select: none; /* IE 10+ */
+      user-select: none;
+    }
+
+    .caret::before {
+      content: "\25B6";
+      color: black;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .caret-down::before {
+      -ms-transform: rotate(90deg); /* IE 9 */
+      -webkit-transform: rotate(90deg); /* Safari */'
+      transform: rotate(90deg);  
+    }
+
+    .nested {
+      display: none;
+    }
+
+    .active {
+      display: block;
+    }
+
+    a {
+      color: blue;
+      text-decoration: underline;
+    }
+
+    .banner{
+      background-image: url("https://clincoln8.github.io/evosuite-plus-plus/imgs/banner.png");
+      background-size: contain;
+      text-align: center;
+      padding: 4vh;
+      vertical-align: middle; 
+      background-color: rgba(255, 255, 255, 0.3);
+      background-blend-mode: overlay;
+
+    }
+    .page-content > * {
+      margin: 2vh 0vh;
+    }
+  </style>
+  </head>
+
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!--  Separate rest of page from footer  -->
+  <div class="flex flex-col grow">
+    <!--  Top Title    -->
+    <div class="inline-flex p-2">
+      <img src="https://img.icons8.com/metro/50/000000/search.png"/>
+      <h1 class="font-medium leading-tight text-2xl mt-2 mb-2 pl-4">EvoObj Dev Docs</h1>
+    </div>
+
+    <!--   Banner   -->
+    <div class="banner">
+      <h1 class="font-bold leading-tight text-5xl ">	EvoObj & EvoSuite Developer Documentation</h1>
+      <br><p>Documentation for how EvoObj works under the hood.</p>
+    </div>
+
+    <!--  Page Content  -->
+    <div class="p-4 page-content flex flex-col justify-around">
+      <!--  Intro Text    -->
+      <div>
+        <p>
+          This site is to provide developer documentation for <a href="https://sites.google.com/view/evoobj/home">EvoObj</a> [1] and by extension <a href="https://www.evosuite.org/">EvoSuite</a> [2]. This site has been created for educational purposes only and is in no way endorsed or acknowledge by EvoObj nor EvoSuite.
+        </p>
+      </div>
+      <div>
+        <h1 class="font-bold text-2xl">EvoObj/EvoSuite Background</h1>
+        <p>EvoSuite is a well known Search Based Test Generation tool to automatically produce testcases for a program. EvoObj extended EvoSuite by building an Object Construction Graph in order to produce better seeds for programs with object type inputs. Although EvoSuite provides <a href="https://www.evosuite.org/documentation/tutorial-part-4/">documentation</a> of how to extend it, the examples provided demonstrate how to make modular modifications such as adjusting fitness functions or genetic algorithm operators. Below is an end to end workflow of what happens when invoking EvoSuite, including the modifications provided by EvoObj. </p>
+
+      </div>
+
+      <!--  EvoSuite Workflow    -->
+      <div class="flex flex-col mt-4 space-y-4">
+        <div class="flex justify-between p-x-4 align-center">
+          <h1 class="font-bold text-3xl">EvoSuite Workflow</h1>
+          <button type="button" id="expand-all" class="max-w-xl bg-blue-400 hover:bg-blue-700 border border-gray-400 py-2 px-6 rounded-full shadow mx-6"><h3 id="expand-button-text" class="text-xs font-bold text-white">Expand All<h3></button>
+            </div>
+            <p>This workflow assumes that -Dstrategy==EVOSUITE in order to kick off Whole Test Suite generation. It also assumes that -Dalgorithm==MONOTONIC_GA. Using alternative strategies and algorithms will cause slightly different execution paths, however understanding this flow will help when understanding how the more complicated strategies work.</p>
+            <!-- Workflow is added to this div via JS  -->
+            <div id="root" class="flex justify-stretch text-sm"></div>
+            <div>
+              <div id="monotonic"></div>
+            </div>
+            </div>
+          <div class="mt-4">
+            <h1 class="font-bold text-2xl">Confusing Points</h1>
+            <ul class="list-disc px-4">
+              <li><h3 class="text-lg">TestSuite vs TestCase/TestChromosome </h3>
+                <p>A TestSuiteChromosome is made up of many TestChromosomes. Each TestChromosome has a 1:1 correspondance with a TestCase.</p>
+              </li>
+              <li>
+            <h3 class="text-lg">TestSuiteFitness vs FitnessFactory</h3>
+                <p>TestSuiteFitnessFunctions evaluates fitness for a TestSuiteChromosome. A FitnessFactory extends AbstractFitnessFactory which implements TestFitnessFactory these also get fitness of a TestSuiteChromosome. However, each one of these factories takes a specific implementation of TestFitnessFunction. These FitnessFunctions get the fitness for a TestChromosome. The advantage of a FitnessFactory is that they can return coverage goals whereas TestSuiteFitnessFunctions only return fitness.</p>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!--  Footer  -->
+      <div class="flex flex-col justify-end">
+        <!--    References    -->
+        <div class="p-4">
+          <h2 class="text-m font-bold">References</h2>
+          <p>
+            [1] Lin, Y., Ong, Y.S., Sun, J., Fraser, G. and Dong, J.S., 2021. Graph-based seed object synthesis for search-based unit testing. In <i>Proceedings of the 29th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Software Engineering</i> (pp. 1068-1080).
+            <br>
+            [2] Fraser, G. and Arcuri, A., 2011. Evosuite: Automatic Test Suite Generation for Object-Oriented Software. In <i>Proceedings of the 19th ACM SIGSOFT Symposium and the 13th European Conference on Foundations of Software Engineering</i> (pp. 416-419).</p> 
+        </div>
+
+        <div class="bg-gray-100 text-center border">
+          <p class="text-xs">
+            <a href="https://icons8.com/icon/131/search">Search icon by Icons8</a>
+          </p>
+        </div>
+      </div>
+      </body>
+    <script>
+
+      const evoObjModClass = ["bg-yellow-200"];
+      const evoObjAddClass = ["bg-orange-200"];
+
+      const master = {
+        title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/tree/master/client">/master</a>',
+        description: 'Handles the command line interface, passing the inputs to a client instance and manages the generated test cases.',
+        children: [
+          {
+            function: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/master/src/main/java/org/evosuite/EvoSuite.java#L317">Evosuite.java</a>',
+            nodes: [
+              {
+                title: '<a href="">TestGeneration</a>',
+                description: '',
+                spanClass: "evoobj-add",
+                children: [
+                  { 
+                    function: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/master/src/main/java/org/evosuite/executionmode/TestGeneration.java#L56">executeTestGeneration()</a>',
+                    nodes:[ 
+                      {
+                        title: '',
+                        description: 'Instantiates ClientNodeImpl and startsNewSearch (see client side)',
+                        children: [],
+                      }]},]}]},]};
+      const depAnalysisChildren = [{
+        function: '',
+        nodes:[
+          { 
+            title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/setup/DependencyAnalysis.java#L81">initInheritanceTree()</a>',
+            description: '',
+            children:[],
+          },
+          { 
+            title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/setup/DependencyAnalysis.java#L89">analyze()</a>',
+            description: '',
+            children:[],
+          },
+          { 
+            title: 'InterproceduralGraphAnalysis',
+            description: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/setup/DependencyAnalysis.java#L152">Passes</a> an <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/graphs/interprocedural/interestednode/OCGInterestedNodeFilter.java">OCGInterestedNodeFilter</a> when EvoObj is enabled (-Dapply_object_rule==true) to <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/graphs/interprocedural/InterproceduralGraphAnalysis.java#L66">initialzeDataflow()',
+            spanClass: evoObjAddClass,
+            children:[
+              {function: '',
+               nodes:[
+                 { 
+                   title: '',
+                   description: 'The entire graphs/<a href="https://github.com/llmhyy/evosuite-plus-plus/tree/master/client/src/main/java/org/evosuite/graphs/interprocedural">interprocedural</a> directory was created for EvoObj specifically. This is desgined to generate good seeds for object inputs that will give rise to more meaningful test cases. This is where the majority of the EvoObj paper[1] is implemented.',
+                   children:[],
+                 }]}],}]}];
+
+      const searchAlgoNodes = [{ 
+        title: '<b>Builds and intializes a genetic algorithm.</b>',
+        description: `<br><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/PropertiesSuiteGAFactory.java#L102">getChromosomeFactory()</a> uses Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L1298">TEST_FACTORY</a> and returns a <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/factories/TestSuiteChromosomeFactory.java#L54">TestSuiteChromosomeFactory</a> (implements ChromosomeFactory&lt<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/TestSuiteChromosome.java#L51">TestSuiteChromosome</a>&gt) initialized with an <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/archive/ArchiveTestChromosomeFactory.java#L35">ArchiveTestChromosomeFactory</a> (implements ChromosomeFactory&lt<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testcase/TestChromosome.java#L63">TestChromosome</a>&gt) by default.
+
+    <br><br><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/PropertiesSuiteGAFactory.java#L139">getGeneticAlgorithm()</a> uses Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/c2ea99f2e7f55ae4e04ebeca1e3d588842982b3c/client/src/main/java/org/evosuite/Properties.java#L394">ALGORITHM</a> returns <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/MonotonicGA.java#L74">MonotonicGA</a> by default, initialized with the TestSuiteChromosomeFactory from above and sets the replacement function to <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/TestSuiteReplacementFunction.java#L33">TestSuiteReplacementFunction</a> by default.
+
+    <br><br><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/PropertiesSuiteGAFactory.java#L249">getSelectionFunction()</a> uses Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L706">SELECTION_FUNCTION</a> and returns <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/operators/selection/RankSelection.java#L34">RankSelection</a> by default. 
+
+    <br><br><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/PropertiesSuiteGAFactory.java#L290">getRankingFunction()</a> uses Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L391">RANKING_TYPE</a> and returns <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/operators/ranking/RankBasedPreferenceSorting.java#L41">RankBasedPreferenceSorting</a> by default.
+
+
+    <br><br><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/PropertiesSuiteGAFactory.java#L268">getCrossoverFunction()</a> uses Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L674">CROSSOVER_FUNCTION</a> and returns <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/operators/crossover/SinglePointRelativeCrossOver.java#L31">SinglePointRelativeCrossOver</a> by default.
+
+    <br><br><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/secondaryobjectives/TestSuiteSecondaryObjective.java#L36">setSecondaryObjectives()</a> adds each Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L724">SECONDARY_OBJECTIVE</a>, to the <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/TestSuiteChromosome.java#L51">TestSuiteChromosome</a>. <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/secondaryobjectives/MinimizeTotalLengthSecondaryObjective.java#L30">MinimizeTotalLengthSecondaryObjective</a> is added by default.
+
+   <br><br><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/PropertiesSearchAlgorithmFactory.java#L64">getStoppingCondition()</a> uses Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L667">STOPPING_CONDITION</a> and returns MaxTimeStoppingCondition by default.
+
+   <br><br><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/PropertiesSearchAlgorithmFactory.java#L51">getPopulationLimit()</a> uses Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L644">POPULATION_LIMIT</a> and returns <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/populationlimit/IndividualPopulationLimit.java#L36">IndividualPopulationLimit</a> by default.`,
+        children:[],
+      }];
+
+      const initPopulation = [
+        {
+          function: 'calls <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/GeneticAlgorithm.java#L386">generateInitialPopulation()</a> --> <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/GeneticAlgorithm.java#L441">generateRandomPopulation()</a>',
+          nodes:[
+            {
+              title: 'TestSuiteChromosomeFactory',
+              description: '',
+              children:[{
+                function: `(TestSuiteChromosome) <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/factories/TestSuiteChromosomeFactory.java#L73">getChromsome()</a>:
+                 <br> <p class="text-sm">Each TestSuiteChromsome is initialized with between Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L301">MIN_INITIAL_TESTS</a> and Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L304">MAX_INITIAL_TESTS</a> number of TestChromsomes using the TestChromsome factory shown below.</p>`,
+                nodes: [
+                  {
+                    title: 'ArchiveTestChromosomeFactory',
+                    description: 'By default when Properties.STRATEGY==EVOSUITE, this Chromosome Factory type will be created (see above PropertiesSuiteGAFactory node above for details). ',
+                    children:[
+                      {
+                        function: '(TestChromsome) <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/archive/ArchiveTestChromosomeFactory.java#L57">getChromosome()</a>',
+                        nodes:[
+                          { 
+                            title: 'RandomLengthTestFactory',
+                            description: 'This is <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/archive/ArchiveTestChromosomeFactory.java#L88">called</a> by above given certain conditions.',
+                            children:[
+                              {
+                                function: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testcase/factories/RandomLengthTestFactory.java#L267">getChromosome()</a>:<br>Each TestChromosome is initialized with a single TestCase.',
+                                nodes:[
+                                  { 
+                                    title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testcase/factories/RandomLengthTestFactory.java#L83">getRandomTestCase()</a>',
+                                    description: 'This was modified by EvoObj in order to use the previously initialized InterproceduralGraphAnalysis.',
+                                    children:[],
+                                    spanClass: evoObjModClass,
+                                  },
+                                  { 
+                                    title: 'TestChromosome <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testcase/TestChromosome.java#L102">setTestCase()</a>',
+                                    description: 'Initializes <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testcase/TestChromosome.java#L63">TestChromosome</a> with the generated test case above.',
+                                    children:[],
+                                  },]},],}]}],
+                  },]
+              }
+                       ],
+            },
+
+            { 
+              title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/Chromosome.java#L164">addFitness()</a>',
+              description: 'Associates each TestSuiteChromosome with the fitness functions.',
+              children:[],
+            }
+
+          ]},
+
+        {
+          function: `<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/GeneticAlgorithm.java#L666">calculateFitnessAndSortPopulation()</a>`,
+          nodes:[{
+            title: 'Calculate fitness for each chromosome, then sort.',
+            description:``,
+            children:[{
+              function: '',
+              nodes:[{
+                title: '',
+                description: `<div>For each TestSuiteChromosome in the population:
+        <ul class="list-disc list-inside">
+        <br>
+ <li><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/GeneticAlgorithm.java#L656">Calculate</a>
+          <br> calls (instance of TestSuiteFitnessFunction).getFitness(chromosome) for each of the TestSuiteFitnessFunctions set above. (example <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/coverage/branch/BranchCoverageSuiteFitness.java#L381">getFitness()</a>)
+          <br>--> <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/TestSuiteFitnessFunction.java#L90">runTestSuite()</a> [returns list of results for each TestCase/TestChromosome in each TestSuiteChromsome]
+          <br> --> for TestChromosome chromo in suite.getTestChromosomes():
+         <br> --> --> chromo.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testcase/TestChromosome.java#L979">executeForFitnessFunction</a>(this);
+         <br> --> --> --> testSuiteFitnessFunction.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/TestSuiteFitnessFunction.java#L59">runTest</a>(this.test)
+         <br>--> --> --> --> TestCaseExecutor.getInstance().<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testcase/execution/TestCaseExecutor.java#L296">execute</a>(test)
+         <br>sets coverage and updates fitness for the TestSuiteChromosome
+      </li>
+         <br>
+      <li><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/GeneticAlgorithm.java#L985">Sorts</a> the TestSuiteChromsome population based on Collection.sort
+      </li>
+      </ul></div>`,
+                children:[],
+              }]
+            }]
+          }]
+        },
+      ];
+
+
+      const client = {
+        title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/tree/master/client">/client</a>',
+        description: 'Handles the main functionality of EvoSuite - test generation. CLI inputs are passed to the client side via <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L724">Properties.java</a> which are used to build the test generation environment.<br>Client side is initiated when  TestGeneration.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/master/src/main/java/org/evosuite/executionmode/TestGeneration.java#L213">generateTests()</a> in /master instantiates a ClientNodeImpl object which <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/master/src/main/java/org/evosuite/executionmode/TestGeneration.java#L509">calls</a>:',
+        children: [
+          {function: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/rmi/service/ClientNodeImpl.java#L134">startNewSearch()</a>', 
+           nodes: [
+             {title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/rmi/service/ClientNodeImpl.java#L157">calls</a> TestSuiteGenerator.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L139">generateTestSuite()</a>',
+              description: '',
+              children:[
+                {function: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L183">calls</a> <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L104">initializeTargetClass()</a>',
+                 nodes: [{
+                   title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L107">calls</a> <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L376">buildLoadTargetClassTestCase()</a>',
+                   description: 'Creates a single <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testcase/DefaultTestCase.java#L76">DefaultTestCase</a> that only loads the target class.',
+                   children:[],
+                 },
+                         {
+                           title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L108">runs</a> TestCaseExecutor.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/d54090d6e65d4ba2d2296dc859e7ee2480f92459/client/src/main/java/org/evosuite/testcase/execution/TestCaseExecutor.java#L275">execute()</a>',
+                           description: 'Runs the dummy test to <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L110">check</a> for failures.',
+                           children:[],
+                         },
+                         {
+                           title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L127">calls</a> DependencyAnalysis.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/setup/DependencyAnalysis.java#L134">analyzeClass()</a>',
+                           description: '',
+                           children: depAnalysisChildren,
+                         },
+
+                        ]},
+                {
+                  function: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L708">generateTests()</a>',
+                  nodes:[
+                    { 
+                      title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/tree/master/client/src/main/java/org/evosuite/strategy">TestGenerationStrategy</a>',
+                      description: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L718">returned</a> from TestSuiteGeneratorHelper.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGeneratorHelper.java#L252">getTestGenerationStrategy()</a>. The following assumes that <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L1614">Properties.STRATEGY</a> is set to EVOSUITE (default), which will set the strategy to <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/WholeTestSuiteStrategy.java#L54">WholeTestSuiteStrategy</a>',
+                      children:[
+                        {function: 'strategy.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/WholeTestSuiteStrategy.java#L57">generateTests</a>()',
+                         nodes: [
+                           { 
+                             title: 'PropertiesSuiteGAFactory',
+                             description: '',
+                             children:[
+                               {function: 'algorithmFactory.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/PropertiesSuiteGAFactory.java#L305">getSearchAlgorithm()</a>',
+                                nodes: searchAlgoNodes,
+                               },
+                             ],
+                           },
+                           { title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/TestGenerationStrategy.java#L86">getFitnessFunctions()</a>',
+                            description: 'Helper method helper method FitnessFunctions.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/coverage/FitnessFunctions.java#L113">getFitnessFunction()</a> uses Properties.<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/Properties.java#L1494">CRITERION</a> to initialize a list of suite fitness functions that extend <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/TestSuiteFitnessFunction.java#L42">TestSuiteFitnessFunctions</a>&ltAbstractTestSuiteChromosome&gt. (<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/c2ea99f2e7f55ae4e04ebeca1e3d588842982b3c/client/src/main/java/org/evosuite/coverage/branch/BranchCoverageSuiteFitness.java">example</a>)',
+                            children:[],
+                           },
+                           { 
+                             title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/WholeTestSuiteStrategy.java#L174">getGoals()</a>',
+                             description: `
+                             <ul class="list-disc">
+                             <li>Helper function <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/coverage/FitnessFunctions.java#L180">getFitnessFactory()</a> uses Properties.CRITERION to retrieve a list of factories extending <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testsuite/AbstractFitnessFactory.java#L35">AbstractFitnessFactory</a> which implements <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/coverage/TestFitnessFactory.java">TestFitnessFactory</a>&lt<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testcase/TestFitnessFunction.java">TestFitnessFunction</a>&ltTestChromsome&gt&gt. (<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/coverage/branch/BranchCoverageFactory.java#L42">example</a>) 
+                             </li>
+<br>
+                 <li>Returns all TestFitnessFactory objects from each factory by calling the factory's getCoverageGoals() function.(<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/coverage/branch/BranchCoverageFactory.java#L53">example</a>)
+                 </li></ul>`,
+                             children:[],
+                           }  ,           
+                           { 
+                             title: 'MonotonicGA',
+                             description: "given the necessary flags, this will be the algorithm created above by the PropertiesSuiteGAFactory",
+                             children:[
+                               {
+                                 function: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/c2ea99f2e7f55ae4e04ebeca1e3d588842982b3c/client/src/main/java/org/evosuite/ga/metaheuristics/MonotonicGA.java#L282">generateSolution()</a>',
+                                 nodes:[
+                                   { 
+                                     title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/MonotonicGA.java#L263">initializePopulation()</a>',
+                                     description: 'Initializes a population as a list of <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/testcase/TestChromosome.java#L63">Test Chromosomes</a> of length Properties.POPULATION ',
+                                     children: initPopulation,
+                                   },
+                                   { 
+                                     title: '<b>See MonotonicGA Execution Details below</b>',
+                                     description: '',
+                                     children:[],
+                                   } ]},],}
+                         ],}]
+                    },
+
+                  ]},]}]},
+          {
+            function: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/strategy/WholeTestSuiteStrategy.java#L132">Coverage Analysis</a>',
+            nodes:[
+              { 
+                title: '',
+                description: `The TestSuiteChromosome returned by  is passed back up the chain and <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/TestSuiteGenerator.java#L308">converted to a TestGenerationResult</a>. The results are <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/rmi/service/ClientNodeImpl.java#L161">added</a> to the MasterNode from which the /master branch handles the rest of the user output.`,
+                children:[],
+              }]}]};
+
+      const montonicDetails = {
+        title: '<b><a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/MonotonicGA.java#L282">MonotonicGA Execution</a> Details</b>',
+        description: '',
+        children: [
+          {
+            function: 'After running <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/MonotonicGA.java#L263">initializePopulation()</a> from above:',
+            nodes: [
+              {
+                title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/MonotonicGA.java#L300">setInitialCoverage()</a>',
+                description: '(inherit from <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/c2ea99f2e7f55ae4e04ebeca1e3d588842982b3c/client/src/main/java/org/evosuite/ga/metaheuristics/GeneticAlgorithm.java#L1333">GeneticAlgorithm</a>)',
+                children: []
+              }]},
+          {
+            function: '',
+            nodes: [
+              {
+                title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/MonotonicGA.java#L320">initialize</a> distribution map',
+                description: '',
+                children: []
+              }]
+          },
+          {
+            function: 'loop until <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/GeneticAlgorithm.java#L1032">finished</a> based on the set stopping conditions',
+            nodes: [
+              {
+                title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/MonotonicGA.java#L107">evolve()<a/>',
+                description: '',
+                children: [],
+              },
+              {
+                title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/c2ea99f2e7f55ae4e04ebeca1e3d588842982b3c/client/src/main/java/org/evosuite/ga/metaheuristics/GeneticAlgorithm.java#L985">sortPopulation()</a>',
+                description: 'This generic sortPopulation works for single objective algorithms. Multi-Objective algorithms <b>should</b> implement their own sortPopulation function.',
+                children: [],
+              },
+              {
+                title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/MonotonicGA.java#L707">getBestFitness()</a>',
+                description: 'updates then returns the fitness for each FitnessFunction of the <a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/GeneticAlgorithm.java#L784">best individual</a>.',
+                children: [],
+              },
+              {
+                title: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/GeneticAlgorithm.java#L243">applyLocalSearch()</a>',
+                description: '',
+                children: [],
+              },
+
+            ]
+          },
+          {
+            function: '<a href="https://github.com/llmhyy/evosuite-plus-plus/blob/master/client/src/main/java/org/evosuite/ga/metaheuristics/MonotonicGA.java#L433">Set</a> coverage analysis results.',
+            nodes: []
+          },
+        ]};
+
+      function getLi(content){
+
+        const title = document.createElement("span");
+        title.innerHTML = content.title;
+
+
+        if (content.children.length){
+          title.classList.add("caret");
+        }
+        title.classList.add("text-base", "p-4");
+
+        const desc = document.createElement("p");
+        desc.innerHTML = content.description
+        desc.classList.add("p-4");
+
+        const li = document.createElement("li");
+        if(content.title){
+          li.appendChild(title);
+        }
+        if (content.description){
+          li.appendChild(desc);   
+        }
+        li.classList.add("box-border", "p-4", "border", "border-gray-300","block", "rounded-md", "shadow-lg", "bg-gray-100");
+        if ('spanClass' in content){
+          li.classList.add(...content.spanClass);
+        }
+        return li
+      }
+
+      function constructTree(content){
+        const li = getLi(content)
+        if (!content.children.length){
+          return li;
+        }
+
+        const subUl = document.createElement("ul");
+
+        for (let child of content.children) {
+          console.log(child)
+          const func = document.createElement("li");
+          func.innerHTML = child.function;
+          func.classList.add("text-base", "p-2");
+          subUl.appendChild(func)
+          subUl.classList.add("nested")
+
+          const subClass = document.createElement("li");
+          for (let node of child.nodes) {
+            const ul = document.createElement("ul");
+            ul.appendChild(constructTree(node))
+            subClass.appendChild(ul)
+          }
+          subUl.appendChild(subClass)
+        }
+        li.append(subUl)
+        return li
+      }
+
+      const masterElem = document.createElement("ul");
+      masterElem.classList.add("m-1", "flex-grow")
+      masterElem.id = "master-elem";
+      // masterElem.append(...constructTree(master).childNodes)
+      masterElem.append(constructTree(master))
+      const clientElem = document.createElement("ul");
+      clientElem.classList.add("m-1", "flex-grow")
+      clientElem.id = "client-elem";
+
+      // clientElem.append(...constructTree(client).childNodes)
+      clientElem.append(constructTree(client))
+      const monotonicElem = document.createElement("ul")
+      monotonicElem.append(constructTree(montonicDetails))
+      const root = document.getElementById("root");
+      root.appendChild(masterElem);
+      root.appendChild(clientElem);
+      document.getElementById("monotonic").appendChild(monotonicElem)
+
+
+
+      console.log(document.querySelectorAll(".caret"))
+      document.querySelectorAll(".caret").forEach((elem)=> {
+        elem.addEventListener("click", function() {      this.parentElement.querySelector(".nested").classList.toggle("active");
+                                                   this.classList.toggle("caret-down");
+                                                  });
+      })
+
+      const getActive = () =>{
+        return (document.getElementById("master-elem").getElementsByTagName('ul')[0]).classList.contains("active") || (document.getElementById("client-elem").getElementsByTagName('ul')[0]).classList.contains("active") 
+      }
+      const setButtonText = (text) => {
+        document.getElementById("expand-button-text").innerHTML = text;
+      }
+
+      document.getElementById("expand-all").addEventListener("click", function() {
+        const isActive = getActive();
+        document.querySelectorAll('.nested').forEach((elem)=> {
+
+          if (isActive){
+            elem.classList.remove("active");
+          } else{
+            elem.classList.add("active");
+          }
+        });
+        if (isActive){
+          setButtonText('Expand All');
+          document.querySelectorAll('.caret').forEach((elem)=> elem.classList.remove("caret-down"));
+
+        } else{
+          setButtonText('Collapse All');
+
+          document.querySelectorAll('.caret').forEach((elem)=> elem.classList.add("caret-down"));
+        }
+
+      });
+
+      function resizeIFrameToFitContent( iFrame ) {
+
+        iFrame.width  = iFrame.contentWindow.document.body.scrollWidth;
+        iFrame.height = iFrame.contentWindow.document.body.scrollHeight;
+      }
+
+      window.addEventListener('DOMContentLoaded', function(e) {
+
+        var iFrame = document.getElementById( 'userHtmlFrame' );
+        if (iFrame){
+          resizeIFrameToFitContent( iFrame );
+        }
+
+      } );
+    </script>
+
+    </html>
