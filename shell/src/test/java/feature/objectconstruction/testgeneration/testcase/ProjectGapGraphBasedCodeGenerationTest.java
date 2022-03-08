@@ -36,4 +36,29 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest{
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 		generateCode(b, false, false);
 	}
+	
+	
+	@Test
+	public void testGap2() throws ClassNotFoundException, RuntimeException {
+		
+		Properties.RANDOM_SEED = 1634620626101L;
+		
+		setup();
+
+		Class<?> clazz = feature.objectconstruction.testgeneration.example.gap.Employee.class;
+		
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+
+		Method method = TestUtility.getTargetMethod("method", clazz, 0);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+
+		Properties.TARGET_METHOD = targetMethod;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		Branch b = TestUtil.searchBranch(rankedList, 39);
+		
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		generateCode(b, false, false);
+	}
 }
