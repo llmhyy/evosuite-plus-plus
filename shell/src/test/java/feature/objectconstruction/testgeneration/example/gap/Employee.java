@@ -7,7 +7,7 @@ package feature.objectconstruction.testgeneration.example.gap;
  *    e.g. A is composed of B, which is composed of C, and so on
  */
 public class Employee {
-	private Friend friend = new Friend();
+	private Friend friend = new Friend(); //private Friend friend; //
 	
 	public Friend getFriend() {
 		return this.friend;

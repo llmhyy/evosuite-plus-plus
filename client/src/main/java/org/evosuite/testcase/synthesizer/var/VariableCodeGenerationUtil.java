@@ -26,6 +26,9 @@ import org.evosuite.runtime.System;
 import org.evosuite.runtime.instrumentation.RuntimeInstrumentation;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
+import org.evosuite.testcase.execution.CodeUnderTestException;
+import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.statements.AbstractStatement;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.ConstructorStatement;
@@ -187,7 +190,7 @@ public class VariableCodeGenerationUtil {
 		 * otherwise we may have a null pointer exception after using the retrieved field.
 		 */
 		
-		boolean isPossibleToBeNull = checkNullOfField();
+		boolean isPossibleToBeNull = checkNullOfField(test, field, fieldDeclaringClass, targetObjectReference);
 		
 		int insertionPostion = targetObjectReference.getStPosition() + 1;
 		if(isPossibleToBeNull) {
@@ -281,8 +284,58 @@ public class VariableCodeGenerationUtil {
 		return null;
 	}
 	
-	private static boolean checkNullOfField() {
-		// TODO Auto-generated method stub
+	private static boolean checkNullOfField(TestCase test, Field field, Class<?> fieldDeclaringClass, VariableReference targetObjectReference) {
+		
+		if(field.getType().isPrimitive()) {
+			return false;
+		}
+		
+		TestCase test0 = test.clone();
+		
+		targetObjectReference = test0.getStatement(targetObjectReference.getStPosition()).getReturnValue(); 
+		Method getter = searchForPotentialGetterInClass(fieldDeclaringClass, field);
+		if (getter != null) {
+			try {
+				VariableReference fieldObject = null;
+				GenericMethod gMethod = new GenericMethod(getter, getter.getDeclaringClass());
+				int insertionPostion = targetObjectReference.getStPosition() + 1;
+				fieldObject = TestFactory.getInstance().addMethodFor(test0, targetObjectReference, gMethod,
+						insertionPostion, false);
+
+//				System.currentTimeMillis();
+				Method m;
+				try {
+					m = field.getType().getMethod("equals", Object.class);
+					insertionPostion++;
+					VariableReference varRef = TestFactory.getInstance().addMethodFor(test0, fieldObject, new GenericMethod(m, m.getDeclaringClass()), insertionPostion);
+					
+					ExecutionResult result = TestCaseExecutor.runTest(test0);
+					
+					Throwable e = result.getExceptionThrownAtPosition(varRef.getStPosition());
+					if(e != null && e instanceof CodeUnderTestException) {
+						CodeUnderTestException exp = (CodeUnderTestException)e;
+						if(exp.getMessage().equals("java.lang.NullPointerException")) {
+							return true;							
+						}
+					}
+					
+					return false;
+					
+					
+				} catch (NoSuchMethodException|SecurityException e) {
+					e.printStackTrace();
+				} 
+				
+			}
+			catch (ConstructionFailedException e) {
+				e.printStackTrace();
+				return false;
+			}
+			
+		}
+		
+		
+		
 		return false;
 	}
 
