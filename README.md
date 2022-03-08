@@ -1,3 +1,15 @@
+# Testing Evosuite++ with Memetic Algorithms
+This repository is a forked version of https://github.com/llmhyy/evosuite-plus-plus
+
+To replicate the results presented in our final report:
+1. Download the SF100 Benchmark: https://www.evosuite.org/experimental-data/sf100/ and extract it to a directory called `SF100`
+2. Copy the scripts in this repository under `evosutie-plus-plus/scripts` and place them in the `SF100` directory from step 1.
+3. Run the scripts.
+
+The demo presented in the final project presentation can be found in this repository under `evosuite-plus-plus/ExampleProject`.
+
+Our unofficial developer docs can be viewed at: https://clincoln8.github.io/evosuite-plus-plus/developer-docs.html.
+
 [![Build Status](https://travis-ci.org/EvoSuite/evosuite.svg?branch=master)](https://travis-ci.org/EvoSuite/evosuite)
 [![CircleCI](https://circleci.com/gh/EvoSuite/evosuite.svg?style=svg&circle-token=f00c8d84b9dcf7dae4a82438441823f3be9df090)](https://circleci.com/gh/EvoSuite/evosuite)
 
