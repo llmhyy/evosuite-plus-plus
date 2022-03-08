@@ -1,0 +1,5 @@
+TARGET="./target/ExampleProject-1.0.jar"
+EVOSUITE_SHELL="./evosuite-shell-1.0.7-SNAPSHOT.jar"
+#EVOSUITE_SHELL="./evosuite-shell-1.0.7-SNAPSHOT-supplied.jar"
+EVOSUITE_MASTER="./evosuite-master-1.0.7-SNAPSHOT.jar"
+EVOSUITE_RUNTIME="./evosuite-standalone-runtime-1.0.7-SNAPSHOT.jar"
