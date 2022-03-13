@@ -1,8 +1,15 @@
 package common;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
@@ -41,5 +48,22 @@ public class TestUtil {
 			}
 		}
 		return null;
+	}
+	
+	// Returns the branch with the largest set in map
+	public static Branch getLongestBranch(List<Branch> rankedList, int lineNumber) {
+		Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
+		int largestSetSoFar = -1;
+		Branch branchToReturn = null;
+		for (Branch b : rankedList) {
+			int currentSize = map.get(b).size();
+			if (currentSize > largestSetSoFar) {
+				largestSetSoFar = currentSize;
+				branchToReturn = b;
+			}
+		}
+		return branchToReturn;
+		
+		
 	}
 }
