@@ -80,4 +80,20 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		
 		generateCode(b, false, false);
 	}
+	
+	@Test
+	public void longGetterCase() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.longgettercase.Parent.class;
+		String methodName = "method";
+		int numParams = 0;
+		setupClassAndMethod(clazz, methodName, numParams);
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		int branchConditionLineNumber = 11;
+//		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
+		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
+		
+		generateCode(b, false, false);
+	}
 }
