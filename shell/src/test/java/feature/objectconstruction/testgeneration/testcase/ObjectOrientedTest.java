@@ -27,7 +27,7 @@ import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
-import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer0;
+import org.evosuite.testcase.synthesizer.ImprovedConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
