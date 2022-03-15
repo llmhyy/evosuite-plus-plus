@@ -13,20 +13,22 @@ import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
  *
  */
 public class AccessibilityMatrixManager {
+	// The size of the square matrix.
+	// Also equivalent to the number of nodes in the partial graph.
 	private int size;
-	private SimpleMatrix internalMatrix;
-	private Map<DepVariableWrapper, Integer> nodeToIndex;
-	private Map<Integer, DepVariableWrapper> indexToNode;
-	private boolean isInitialised = false;
 	
-	/**
-	 * Constructor for AccessibilityMatrixManager.
-	 * @param size The number of nodes to model, equal to the size of the (square) accessibility matrix.
-	 */
-	public AccessibilityMatrixManager() {
-		nodeToIndex = new HashMap<>();
-		indexToNode = new HashMap<>();
-	}
+	// The backing matrix, uses EJML.
+	private SimpleMatrix internalMatrix;
+	
+	// Internal mappings between OCG nodes and matrix row/column indices.
+	private Map<DepVariableWrapper, Integer> nodeToIndex = new HashMap<>();
+	private Map<Integer, DepVariableWrapper> indexToNode = new HashMap<>();
+	
+	// Cache previously computed powers of the internalMatrix.
+	private Map<Integer, SimpleMatrix> powerCache = new HashMap<>();
+	
+	// Whether initialisation has been completed.
+	private boolean isInitialised = false;
 	
 	/**
 	 * Initialises the accessibility matrix with a given partial graph.
@@ -66,10 +68,33 @@ public class AccessibilityMatrixManager {
 		for (DepVariableWrapper node : nodeToIndex.keySet()) {
 			generateAccessibilityMatrixEntriesFor(node);
 		}
+		
+		powerCache.put(1, internalMatrix);
+		
+		isInitialised = true;
 	}
 	
 	private void generateAccessibilityMatrixEntriesFor(DepVariableWrapper node) {
 		// TODO
+	}
+	
+	private void _initialisationCheck() {
+		if (!isInitialised) {
+			throw new IllegalStateException("Method was called before AccessbilityMatrixManager was initialised!");
+		}
+	}
+	
+	private void _nullParameterCheck(Object parameter) {
+		if (parameter == null) {
+			throw new IllegalArgumentException("A parameter was null when it should not have been!");
+		}
+	}
+	
+	private void _exclusiveBoundsCheck(int number, int lowerBound, int upperBound) {
+		if (number > lowerBound && number < upperBound) {
+			return;
+		}
+		throw new IllegalArgumentException("A parameter did not adhere to the given bounds (strictly between " + lowerBound + " and " + upperBound + ")!");
 	}
 	
 	private void _unsafeSet(int rowIndex, int colIndex, boolean value) {
@@ -78,6 +103,10 @@ public class AccessibilityMatrixManager {
 	
 	private boolean _unsafeGet(int rowIndex, int colIndex) {
 		return internalMatrix.get(rowIndex, colIndex) == 1;
+	}
+	
+	private boolean _unsafeGet(SimpleMatrix matrix, int rowIndex, int colIndex) {
+		return matrix.get(rowIndex, colIndex) == 1;
 	}
 	
 	private int _getIndexFor(DepVariableWrapper node) {		
@@ -119,9 +148,9 @@ public class AccessibilityMatrixManager {
 	 * @param value Whether we can access the toNode from the fromNode.
 	 */
 	public void set(DepVariableWrapper fromNode, DepVariableWrapper toNode, boolean value) {
-		if (!isInitialised) {
-			throw new IllegalStateException("Can't set before AccessbilityMatrixManager is initialised!");
-		}
+		_initialisationCheck();
+		_nullParameterCheck(fromNode);
+		_nullParameterCheck(toNode);
 		
 		Integer fromNodeIndex = _getIndexFor(fromNode);
 		Integer toNodeIndex = _getIndexFor(toNode);
@@ -136,13 +165,44 @@ public class AccessibilityMatrixManager {
 	 * @return Whether we can access the toNode from the fromNode.
 	 */
 	public boolean get(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		if (!isInitialised) {
-			throw new IllegalStateException("Can't set before AccessbilityMatrixManager is initialised!");
-		}
+		_initialisationCheck();
+		_nullParameterCheck(fromNode);
+		_nullParameterCheck(toNode);
 		
 		Integer fromNodeIndex = _getIndexFor(fromNode);
 		Integer toNodeIndex = _getIndexFor(toNode);
 		
 		return _unsafeGet(fromNodeIndex, toNodeIndex);
+	}
+	
+	/**
+	 * Checks if a path of given length exists starting at the fromNode and ending at the toNode exists.
+	 * @param fromNode The node to start pathing from.
+	 * @param toNode The node to path to.
+	 * @param length The length of the path.
+	 * @return {@code true} if such a path exists, {@code false} otherwise.
+	 */
+	public boolean isPathOfLengthExistsBetween(DepVariableWrapper fromNode, DepVariableWrapper toNode, int length) {
+		_initialisationCheck();
+		_nullParameterCheck(fromNode);
+		_nullParameterCheck(toNode);
+		_exclusiveBoundsCheck(length, 0, size);
+		
+		// Check if the cache contains a pre-computed power matrix
+		boolean isCachedResultExists = powerCache.containsKey(length);
+		if (!isCachedResultExists) {
+			// Compute the power matrices up to the given value
+			SimpleMatrix previousMatrix = internalMatrix;
+			// Start at 2 since we already have the 1st power of the matrix (i.e. the base matrix itself).
+			for (int i = 2; i <= length; i++) {
+				SimpleMatrix multipliedMatrix = previousMatrix.mult(internalMatrix);
+				powerCache.put(i, multipliedMatrix);
+				previousMatrix = multipliedMatrix;
+			}
+		}
+		SimpleMatrix powerMatrix = powerCache.get(length);
+		int fromNodeIndex = _getIndexFor(fromNode);
+		int toNodeIndex = _getIndexFor(toNode);
+		return _unsafeGet(powerMatrix, fromNodeIndex, toNodeIndex);
 	}
 }
