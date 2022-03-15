@@ -7,13 +7,20 @@ import java.util.Map;
 
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
-import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapperFactory;
-import org.evosuite.testcase.variable.VariableReference;
 
 public class PartialGraph {
 	Map<DepVariableWrapper, DepVariableWrapper> allRelevantNodes = new HashMap<DepVariableWrapper, DepVariableWrapper>();
+	
+	/**
+	 * Provides a defensive copy of references to all the nodes in the graph.
+	 * @return A defensive copy of references to all the nodes in the graph.
+	 */
+	public List<DepVariableWrapper> getNodes() {
+		return new ArrayList<>(allRelevantNodes.keySet());
+		
+	}
 	
 	public int getGraphSize() {
 		return allRelevantNodes.keySet().size();
