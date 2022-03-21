@@ -2,7 +2,6 @@ package feature.objectconstruction.testgeneration.testcase;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.List;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
@@ -45,7 +44,7 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		Branch b = TestUtil.searchBranch(rankedList, 10);
 		
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
-		generateCode(b, false, false);
+		generateCode0(b, false, false);
 	}
 	
 	
@@ -58,11 +57,11 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 		
-		int branchConditionLineNumber = 11;
+		int branchConditionLineNumber = 12;
 //		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
 		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
 		
-		generateCode(b, false, false);
+		generateCode0(b, false, false);
 	}
 	
 	@Test
@@ -78,7 +77,7 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 //		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
 		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
 		
-		generateCode(b, false, false);
+		generateCode0(b, false, false);
 	}
 	
 	@Test
@@ -94,6 +93,6 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 //		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
 		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
 		
-		generateCode(b, false, false);
+		generateCode0(b, false, false);
 	}
 }
