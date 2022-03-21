@@ -97,6 +97,41 @@ public class ObjectOrientedTest {
 		System.out.println("random seed is " + Randomness.getSeed());
 		return test;
 	}
+	
+	protected TestCase generateCode0(Branch b, boolean isDebugger, boolean allowNullValue) {
+		TestFactory testFactory = TestFactory.getInstance();
+		TestCase test = TestUtil.initializeTest(b, testFactory, allowNullValue);
+		try {
+			ImprovedConstructionPathSynthesizer cpSynthesizer = new ImprovedConstructionPathSynthesizer(isDebugger);
+			cpSynthesizer.buildNodeStatementCorrespondence(test, b, allowNullValue);
+			if(!allowNullValue) {
+				TestUtil.mutateNullStatements(test);				
+			}
+
+			System.out.println(test);
+
+//			PartialGraph graph = cpSynthesizer.getPartialGraph();
+			Map<DepVariableWrapper, VarRelevance> graph2CodeMap = cpSynthesizer.getGraph2CodeMap();
+			
+			for(DepVariableWrapper node: graph2CodeMap.keySet()) {
+				System.out.println("key node: " + node.var.getInstruction());
+				
+				VarRelevance rel = graph2CodeMap.get(node);
+				
+				for(VariableReference variable: rel.matchedVars) {					
+					System.out.println("  variable: " + test.getStatement(variable.getStPosition()) + 
+							" at statement " + variable.getStPosition());					
+				}
+				
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		System.out.println("random seed is " + Randomness.getSeed());
+		return test;
+	}
 
 	protected void assertLegitimization(Branch b, boolean isDebug, boolean allowNullValue) {
 		if (Properties.APPLY_OBJECT_RULE) {
