@@ -1,4 +1,4 @@
-package org.evosuite.testcase.synthesizer;
+package org.evosuite.testcase.synthesizer.improvedsynth;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +8,8 @@ import java.util.Map;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
+import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.VarRelevance;
 
@@ -41,7 +43,7 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 					break;
 				}
 				
-				boolean isPathExists = accessibilityMatrixManager.isPathExistsBetween(rootNode, leafNode);
+				boolean isPathExists = accessibilityMatrixManager.findShortestPathLength(rootNode, leafNode) > 0;
 				if (isPathExists) {
 					accessPairs.add(new NodePair(rootNode, leafNode));
 				}

@@ -1,4 +1,4 @@
-package org.evosuite.testcase.synthesizer.matrix;
+package org.evosuite.testcase.synthesizer.improvedsynth;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package org.evosuite.testcase.synthesizer;
+package org.evosuite.testcase.synthesizer.improvedsynth;
 
 import java.util.Map;
 
