@@ -1,11 +1,15 @@
 package org.evosuite.testcase.synthesizer;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.ejml.simple.SimpleMatrix;
+import org.evosuite.testcase.synthesizer.matrix.AccessEntry;
+import org.evosuite.testcase.synthesizer.matrix.AccessMatrix;
+import org.evosuite.testcase.synthesizer.matrix.Operation;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 
 /**
@@ -70,6 +74,11 @@ public class AccessibilityMatrixManager {
 		}
 		
 		// Generate the accessibility matrix entries for each node
+		AccessMatrix matrix = new AccessMatrix(size);
+		for(DepVariableWrapper root: partialGraph.getTopLayer()) {
+			buildMatrix(root, matrix);
+		}
+		
 		for (DepVariableWrapper node : nodeToIndex.keySet()) {
 			generateAccessibilityMatrixEntriesFor(node);
 		}
@@ -79,6 +88,60 @@ public class AccessibilityMatrixManager {
 		isInitialised = true;
 	}
 	
+	private void buildMatrix(DepVariableWrapper parent, AccessMatrix matrix) {
+		List<DepVariableWrapper> children = getAllChildren(parent);
+		
+		if(!children.isEmpty()) {
+			for(DepVariableWrapper child: children) {
+				List<DepVariableWrapper> path = searchPathFromParentToChild(parent, child);
+				List<Operation> implementation = checkValidity(path, parent, child);
+				
+				if(!implementation.isEmpty()) {
+					int i = nodeToIndex.get(parent);
+					int j = nodeToIndex.get(child);
+					matrix.set(i, j, new AccessEntry(implementation));
+				}
+			}
+			
+			for(DepVariableWrapper node: parent.children) {
+				buildMatrix(node, matrix);
+			}
+		}
+		
+	}
+
+	//TODO we actually can return mutiple sequence of operations
+	private List<Operation> checkValidity(List<DepVariableWrapper> path, DepVariableWrapper parent,
+			DepVariableWrapper child) {
+		//TODO darien
+		List<Operation> list = new ArrayList<>();
+		if(!parent.var.isPrimitive()) {
+			//find all the calls to cover the nodes on the path
+//			Class<?> clazz = getClass(parent);
+//			for(Method method: clazz.getMethods()) {
+//				//see if method can cover some of the path, if yes, ...; otherwise ...
+//			}
+			
+			//if the path has been covered, return the
+		}
+		
+		return new ArrayList<>();
+	}
+
+	private List<DepVariableWrapper> searchPathFromParentToChild(DepVariableWrapper parent, DepVariableWrapper child) {
+		// TODO Darien write a recurisve function to know who to access child from parent on the graph
+		
+		ArrayList<DepVariableWrapper> list = new ArrayList<DepVariableWrapper>();
+		list.add(parent);
+		list.add(child);
+		return list;
+	}
+
+	private List<DepVariableWrapper> getAllChildren(DepVariableWrapper parent) {
+		// TODO Darien
+		return parent.children;
+	}
+
 	private void generateAccessibilityMatrixEntriesFor(DepVariableWrapper node) {
 		// TODO
 	}
