@@ -1,6 +1,5 @@
 package org.evosuite.testcase.synthesizer;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,10 +22,9 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 	public void buildNodeStatementCorrespondence(TestCase test, Branch b, boolean allowNullValue)
 			throws ConstructionFailedException, ClassNotFoundException {
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
-		// To avoid having to make a new Pair class, just re-use the Map.Entry class
 		// Access pairs here denotes a pair of nodes, one root and one leaf, such that we can
 		// access (set) the leaf node starting from the root node.
-		List<Map.Entry<DepVariableWrapper, DepVariableWrapper>> accessPairs = new ArrayList<>();
+		List<NodePair> accessPairs = new ArrayList<>();
 		AccessibilityMatrixManager accessibilityMatrixManager = new AccessibilityMatrixManager();
 		Map<DepVariableWrapper, VarRelevance> graph2CodeMap = new HashMap<>();
 		accessibilityMatrixManager.initialise(partialGraph);
@@ -43,15 +41,12 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 					break;
 				}
 				
-				for (int i = 1; i < partialGraph.getGraphSize(); i++) {
-					boolean isPathExists = accessibilityMatrixManager.isPathOfLengthExistsBetween(rootNode, leafNode, i);
-					if (isPathExists) {
-						// AbstractMap.SimpleEntry is one such class implementing the Map.Entry interface
-						accessPairs.add(new AbstractMap.SimpleEntry<DepVariableWrapper, DepVariableWrapper>(rootNode, leafNode));
-						isCurrentLeafNodePathValidated = true;
-						break;
-					}
+				boolean isPathExists = accessibilityMatrixManager.isPathExistsBetween(rootNode, leafNode);
+				if (isPathExists) {
+					accessPairs.add(new NodePair(rootNode, leafNode));
 				}
+				
+				break; // Should we break, or should we continue trying other root nodes to this leaf node?
 			}
 		}
 		
@@ -63,9 +58,9 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 				.setBranch(b)
 				.build();
 			
-		for (Map.Entry<DepVariableWrapper, DepVariableWrapper> accessPair : accessPairs) {
-			DepVariableWrapper rootNode = accessPair.getKey();
-			DepVariableWrapper leafNode = accessPair.getValue();
+		for (NodePair accessPair : accessPairs) {
+			DepVariableWrapper rootNode = accessPair.getFirst();
+			DepVariableWrapper leafNode = accessPair.getSecond();
 			testCaseStatementGenerator.generateStatementForLeafStartingFromRoot(rootNode, leafNode);
 		}
 		

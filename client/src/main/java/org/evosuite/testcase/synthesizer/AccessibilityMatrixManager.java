@@ -1,5 +1,6 @@
 package org.evosuite.testcase.synthesizer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,10 @@ public class AccessibilityMatrixManager {
 	// Internal mappings between OCG nodes and matrix row/column indices.
 	private Map<DepVariableWrapper, Integer> nodeToIndex = new HashMap<>();
 	private Map<Integer, DepVariableWrapper> indexToNode = new HashMap<>();
+	
+	// Map of a (from, to) node pair to the path found.
+	// Access should check first if there exists a path between the nodes.
+	private Map<NodePair, List<DepVariableWrapper>> nodesToPath = new HashMap<>();
 	
 	// Cache previously computed powers of the internalMatrix.
 	private Map<Integer, SimpleMatrix> powerCache = new HashMap<>();
@@ -204,5 +209,22 @@ public class AccessibilityMatrixManager {
 		int fromNodeIndex = _getIndexFor(fromNode);
 		int toNodeIndex = _getIndexFor(toNode);
 		return _unsafeGet(powerMatrix, fromNodeIndex, toNodeIndex);
+	}
+	
+	public boolean isPathExistsBetween(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		for (int i = 1; i < size; i++) {
+			if (isPathOfLengthExistsBetween(fromNode, toNode, i)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public List<DepVariableWrapper> getPathBetween(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		if (!isPathExistsBetween(fromNode, toNode)) {
+			return new ArrayList<>();
+		}
+		
+		return nodesToPath.get(new NodePair(fromNode, toNode));
 	}
 }

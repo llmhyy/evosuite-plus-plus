@@ -13,6 +13,10 @@ public class TestCaseStatementGenerator {
 	private TestCase testCase;
 	private Branch branch;
 	
+	// Don't allow initialisation without parameters.
+	private TestCaseStatementGenerator() {
+	}
+	
 	public TestCaseStatementGenerator(Map<DepVariableWrapper, VarRelevance> graph2CodeMap,
 			AccessibilityMatrixManager accessibilityMatrixManager, TestCase testCase, Branch branch) {
 		this.graph2CodeMap = graph2CodeMap;
@@ -22,6 +26,7 @@ public class TestCaseStatementGenerator {
 	}
 	
 	public void generateStatementForLeafStartingFromRoot(DepVariableWrapper rootNode, DepVariableWrapper leafNode) {
+		// TODO
 		
 	}
 }
