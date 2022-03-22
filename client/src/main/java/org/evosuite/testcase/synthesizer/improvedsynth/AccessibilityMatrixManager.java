@@ -497,4 +497,8 @@ public class AccessibilityMatrixManager {
 		nodeToNeighbours.put(fromNode, neighbours);
 		return neighbours;
 	}
+	
+	public NodeAccessPath getNodeAccessPath(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		return nodesToPath.get(new NodePair(fromNode, toNode));
+	}
 }

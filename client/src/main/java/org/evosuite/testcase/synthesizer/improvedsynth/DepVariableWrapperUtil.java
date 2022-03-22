@@ -2,6 +2,7 @@ package org.evosuite.testcase.synthesizer.improvedsynth;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,21 +34,21 @@ public class DepVariableWrapperUtil {
 			
 			switch (formattedFieldType) {
 				case "Z": 
-					return Boolean.class;
+					return boolean.class;
 				case "B":
-					return Byte.class;
+					return byte.class;
 				case "C":
-					return Character.class;
+					return char.class;
 				case "S":
-					return Short.class;
+					return short.class;
 				case "I":
-					return Integer.class;
+					return int.class;
 				case "J":
-					return Long.class;
+					return long.class;
 				case "F":
-					return Float.class;
+					return float.class;
 				case "D":
-					return Double.class;
+					return double.class;
 				default:
 					return null;
 			}
@@ -136,13 +137,20 @@ public class DepVariableWrapperUtil {
 	 * @param node
 	 * @return
 	 */
-	public static List<Method> extractMethodsFrom(DepVariableWrapper node) {
+	public static List<Method> extractNonNativeMethodsFrom(DepVariableWrapper node) {
 		Class<?> clazz = extractClassFrom(node);
 		if (clazz == null) {
 			return new ArrayList<>();
 		}
 		
-		return Arrays.asList(clazz.getMethods());
+		Method[] methods = clazz.getMethods();
+		List<Method> nonNativeMethods = new ArrayList<>();
+		for (Method method : methods) {
+			if (!Modifier.isNative(method.getModifiers())) {
+				nonNativeMethods.add(method);
+			}
+		}
+		return nonNativeMethods;
 	}
 	
 	/**
@@ -154,7 +162,7 @@ public class DepVariableWrapperUtil {
 	 */
 	public static List<Method> extractMethodsReturning(DepVariableWrapper node, Class<?> desiredReturnType) {
 		List<Method> methodsToReturn = new ArrayList<>();
-		List<Method> candidateMethods = extractMethodsFrom(node);
+		List<Method> candidateMethods = extractNonNativeMethodsFrom(node);
 		for (Method candidateMethod : candidateMethods) {
 			Class<?> candidateMethodReturnType = candidateMethod.getReturnType();
 			if (candidateMethodReturnType.equals(desiredReturnType)) {
@@ -173,7 +181,7 @@ public class DepVariableWrapperUtil {
 	 */
 	public static List<Method> extractMethodsAccepting(DepVariableWrapper node, Class<?> desiredParameterType) {
 		List<Method> methodsToReturn = new ArrayList<>();
-		List<Method> candidateMethods = extractMethodsFrom(node);
+		List<Method> candidateMethods = extractNonNativeMethodsFrom(node);
 		for (Method candidateMethod : candidateMethods) {
 			for (Class<?> parameterType : candidateMethod.getParameterTypes()) {
 				if (parameterType.equals(desiredParameterType)) {
@@ -213,7 +221,7 @@ public class DepVariableWrapperUtil {
 		// 1) What values to put in the parameters?
 		// 2) How to perform dataflow analysis?
 		
-		// For now, we ignore cases where the method has a >1 parameter
+		// For now, we ignore cases where the method has >1 parameter
 		if (method.getParameterCount() != 1) {
 			return false;
 		}

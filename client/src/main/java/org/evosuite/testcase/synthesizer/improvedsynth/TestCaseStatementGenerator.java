@@ -34,15 +34,29 @@ public class TestCaseStatementGenerator {
 	
 	public void generateStatementForLeafStartingFromRoot(DepVariableWrapper rootNode, DepVariableWrapper leafNode) {
 		List<DepVariableWrapper> path = getPathBetween(rootNode, leafNode);
-		// TODO
-		// Iterate over the path and construct the statements
-		if (path == null) {
-			// Failure
+		if (path == null || path.size() < 2) {
 			return; 
 		}
+		List<Operation> operations = generateOperations(path);		
+		// Now we have a list of operations, we just need a starting object to begin the access chain
 		
 		
-		
+	}
+	
+	private List<Operation> generateOperations(List<DepVariableWrapper> path) {		
+		List<Operation> operations = new ArrayList<>();
+		DepVariableWrapper currentNode = path.get(0);
+		DepVariableWrapper nextNode;
+		for (int i = 1; i < path.size(); i++) {
+			nextNode = path.get(i);
+			NodeAccessPath accessPath = accessibilityMatrixManager.getNodeAccessPath(currentNode, nextNode);
+			if (accessPath == null) {
+				return new ArrayList<>(); // Access chain is broken, failure
+			}
+			operations.addAll(accessPath.getOperationsList());
+			currentNode = nextNode;
+		}
+		return operations;
 	}
 	
 	private List<DepVariableWrapper> getPathBetween(DepVariableWrapper sourceNode, DepVariableWrapper endNode) {
@@ -60,7 +74,6 @@ public class TestCaseStatementGenerator {
 			BfsNodeWrapper currentNodeWrapper = queue.poll();
 			List<DepVariableWrapper> currentPath = currentNodeWrapper.getPath();
 			if (currentNodeWrapper.getNode() == endNode) {
-				currentPath.add(endNode);
 				path = currentPath;
 				break;
 			}
