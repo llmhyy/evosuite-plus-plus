@@ -3,14 +3,22 @@ package org.evosuite.testcase.synthesizer.improvedsynth;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import org.ejml.simple.SimpleMatrix;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.synthesizer.PartialGraph;
+import org.evosuite.testcase.synthesizer.var.ArrayElementVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.FieldVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.OtherVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.ParameterVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.ThisVariableWrapper;
 
 /**
  * Manager for an internal accessibility matrix.
@@ -23,6 +31,10 @@ public class AccessibilityMatrixManager {
 	
 	// The backing matrix, uses EJML.
 	private SimpleMatrix internalMatrix;
+	
+	// Initial seed test case
+	// Used to validate getter/setters
+	private TestCase seedTestCase;
 	
 	// Internal mappings between OCG nodes and matrix row/column indices.
 	private Map<DepVariableWrapper, Integer> nodeToIndex = new HashMap<>();
@@ -53,10 +65,12 @@ public class AccessibilityMatrixManager {
 	 * 2) Compute the accessibility between adjacent nodes
 	 * @param partialGraph The {@code PartialGraph} to use for initialisation.
 	 */
-	public void initialise(PartialGraph partialGraph) {
+	public void initialise(PartialGraph partialGraph, TestCase testCase) {
 		if (isInitialised) {
 			return;
 		}
+		
+		seedTestCase = testCase;
 		
 		// SimpleMatrices are 0-indexed.
 		int currentNodeIndex = 0;
@@ -81,8 +95,16 @@ public class AccessibilityMatrixManager {
 		}
 		
 		// Generate the accessibility matrix entries for each node
-		for (DepVariableWrapper node : nodeToIndex.keySet()) {
+		Queue<DepVariableWrapper> queue = new ArrayDeque<>();
+		for (DepVariableWrapper topLayerNode : partialGraph.getTopLayer()) {
+			queue.offer(topLayerNode);
+		}
+		while (!queue.isEmpty()) {
+			DepVariableWrapper node = queue.poll();
 			generateAccessibilityMatrixEntriesFor(node);
+			for (DepVariableWrapper childNode : node.children) {
+				queue.offer(childNode);
+			}
 		}
 		
 		powerCache.put(1, internalMatrix);
@@ -143,10 +165,10 @@ public class AccessibilityMatrixManager {
 		nodesList.add(toNode);
 		
 		boolean isPathFound = false;
-		Class<?> toNodeClass = DepVariableWrapperUtil.getClassOf(toNode);
+		Class<?> toNodeClass = DepVariableWrapperUtil.extractClassFrom(toNode);
 		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsAccepting(fromNode, toNodeClass);
 		for (Method candidateMethod : candidateMethods) {
-			boolean isValidSetter = DepVariableWrapperUtil.testSetter(candidateMethod, fromNode, toNode);
+			boolean isValidSetter = DepVariableWrapperUtil.testFieldSetter(candidateMethod, fromNode, toNode);
 			if (isValidSetter) {
 				MethodCall methodCall = new MethodCall(candidateMethod);
 				operationsList.add(methodCall);
@@ -204,10 +226,10 @@ public class AccessibilityMatrixManager {
 		nodesList.add(toNode);
 		
 		boolean isPathFound = false;
-		Class<?> toNodeClass = DepVariableWrapperUtil.getClassOf(toNode);
+		Class<?> toNodeClass = DepVariableWrapperUtil.extractClassFrom(toNode);
 		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsReturning(fromNode, toNodeClass);
 		for (Method candidateMethod : candidateMethods) {
-			boolean isValidGetter = DepVariableWrapperUtil.testGetter(candidateMethod, fromNode, toNode);
+			boolean isValidGetter = DepVariableWrapperUtil.testFieldGetter(seedTestCase, candidateMethod, fromNode, toNode);
 			if (isValidGetter) {
 				MethodCall methodCall = new MethodCall(candidateMethod);
 				operationsList.add(methodCall);
@@ -223,7 +245,43 @@ public class AccessibilityMatrixManager {
 		return null;
 	}
 	
-	private NodeAccessPath findPathBetween(DepVariableWrapper fromNode, DepVariableWrapper toNode) {		
+	private NodeAccessPath findPathBetween(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		boolean isArrayElement = (toNode instanceof ArrayElementVariableWrapper);
+		boolean isField = (toNode instanceof FieldVariableWrapper);
+		boolean isOther = (toNode instanceof OtherVariableWrapper);
+		boolean isParameter = (toNode instanceof ParameterVariableWrapper);
+		boolean isThis = (toNode instanceof ThisVariableWrapper);
+		
+		if (isArrayElement) {
+			return findPathToArrayElement(fromNode, toNode);
+		}
+		
+		if (isField) {
+			return findPathToField(fromNode, toNode);
+		}
+		
+		if (isOther) {
+			return findPathToOther(fromNode, toNode);
+		}
+		
+		if (isParameter) {
+			return findPathToParameter(fromNode, toNode);
+		}
+		
+		if (isThis) {
+			return findPathToThis(fromNode, toNode);
+		}
+		
+		return null;
+	}
+	
+	private NodeAccessPath findPathToArrayElement(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		// TODO
+		return null;
+	}
+	
+	// Handles the case when the toNode represents a field (is a FieldVariableWrapper)
+	private NodeAccessPath findPathToField(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
 		boolean isToNodeLeaf = toNode.children.isEmpty();
 		if (isToNodeLeaf) {
 			NodeAccessPath firstAttempt = validateDirectFieldSet(fromNode, toNode);
@@ -251,6 +309,21 @@ public class AccessibilityMatrixManager {
 			
 			return null;
 		}
+	}
+	
+	private NodeAccessPath findPathToOther(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		// TODO
+		return null;
+	}
+	
+	private NodeAccessPath findPathToParameter(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		// TODO
+		return null;
+	}
+	
+	private NodeAccessPath findPathToThis(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		// TODO
+		return null;
 	}
 	
 	private void _initialisationCheck() {
@@ -390,7 +463,7 @@ public class AccessibilityMatrixManager {
 			return 0;
 		}
 		
-		for (int i = 1; i < size; i++) {
+		for (int i = 1; i <= size; i++) {
 			boolean isPathOfLengthIExists = getPower(i).get(_getIndexFor(fromNode), _getIndexFor(toNode)) > 0;
 			if (isPathOfLengthIExists) {
 				return i;

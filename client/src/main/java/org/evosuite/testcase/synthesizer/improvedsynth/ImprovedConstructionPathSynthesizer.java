@@ -21,15 +21,15 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 	}
 
 	@Override
-	public void buildNodeStatementCorrespondence(TestCase test, Branch b, boolean allowNullValue)
+	public void buildNodeStatementCorrespondence(TestCase testCase, Branch branch, boolean isAllowNullValues)
 			throws ConstructionFailedException, ClassNotFoundException {
-		PartialGraph partialGraph = constructPartialComputationGraph(b);
+		PartialGraph partialGraph = constructPartialComputationGraph(branch);
 		// Access pairs here denotes a pair of nodes, one root and one leaf, such that we can
 		// access (set) the leaf node starting from the root node.
 		List<NodePair> accessPairs = new ArrayList<>();
 		AccessibilityMatrixManager accessibilityMatrixManager = new AccessibilityMatrixManager();
 		Map<DepVariableWrapper, VarRelevance> graph2CodeMap = new HashMap<>();
-		accessibilityMatrixManager.initialise(partialGraph);
+		accessibilityMatrixManager.initialise(partialGraph, testCase);
 		
 		List<DepVariableWrapper> rootNodes = partialGraph.getTopLayer();
 		List<DepVariableWrapper> leafNodes = partialGraph.getLeaves();
@@ -56,8 +56,8 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 		TestCaseStatementGenerator testCaseStatementGenerator = new TestCaseStatementGeneratorBuilder()
 				.setGraph2CodeMap(graph2CodeMap)
 				.setAccessibilityMatrixManager(accessibilityMatrixManager)
-				.setTestCase(test)
-				.setBranch(b)
+				.setTestCase(testCase)
+				.setBranch(branch)
 				.build();
 			
 		for (NodePair accessPair : accessPairs) {

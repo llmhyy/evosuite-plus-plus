@@ -36,6 +36,12 @@ public class TestCaseStatementGenerator {
 		List<DepVariableWrapper> path = getPathBetween(rootNode, leafNode);
 		// TODO
 		// Iterate over the path and construct the statements
+		if (path == null) {
+			// Failure
+			return; 
+		}
+		
+		
 		
 	}
 	
