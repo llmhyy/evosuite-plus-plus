@@ -45,4 +45,4 @@ jobs:
       # in those modules. We don't use them anyway (they relate to running Evosuite on itself, a functionality we don't use currently).
       - name: Run tests with Maven
         # run: mvn clean test -Dtest=SmartSeedRuntimeTest#testSpecialPoint* -DfailIfNoTests=false -pl '!:evosuite-shaded,!:evosuite-generated'
-        run: mvn clean test -Dtest=SmartSeedRuntimeTest#sanityCheck -DfailIfNoTests=false -pl '!:evosuite-shaded,!:evosuite-generated'
+        run: mvn clean test -Dtest=SmartSeedRuntimeTest#sanityCheck -DfailIfNoTests=false -pl '!:evosuite-shaded,!:evosuite-generated,!:evosuite-master'
