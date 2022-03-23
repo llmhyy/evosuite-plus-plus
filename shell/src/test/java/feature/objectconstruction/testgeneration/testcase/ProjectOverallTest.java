@@ -66,7 +66,7 @@ public class ProjectOverallTest extends TestUtility{
 		
 		String fitnessApproach = "branch";
 		
-		int timeBudget = 30;
+		int timeBudget = 100;
 		
 		boolean aor = true;
 		double coverage = TestUtility.evoTestSingleMethod(targetClass,  
@@ -101,7 +101,7 @@ public class ProjectOverallTest extends TestUtility{
 		
 		String fitnessApproach = "branch";
 		
-		int timeBudget = 30;
+		int timeBudget = 100;
 		
 		boolean aor = false;
 		double coverage = TestUtility.evoTestSingleMethod(targetClass,  
