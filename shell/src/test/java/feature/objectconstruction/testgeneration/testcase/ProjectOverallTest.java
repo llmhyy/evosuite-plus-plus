@@ -1,5 +1,6 @@
 package feature.objectconstruction.testgeneration.testcase;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -52,7 +53,7 @@ public class ProjectOverallTest extends TestUtility{
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/test-classes;target/classes";
+		String cp = "target/test-classes" + File.pathSeparator + "target/classes";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
@@ -87,7 +88,7 @@ public class ProjectOverallTest extends TestUtility{
 		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/test-classes;target/classes";
+		String cp = "target/test-classes" + File.pathSeparator + "target/classes";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
