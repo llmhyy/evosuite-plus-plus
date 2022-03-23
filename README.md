@@ -53,12 +53,22 @@ For example:
     </properties>
 ```
 
-A more systematic way to resolve the problem can be referred here: 
-add the following configuration in your eclipse.ini file before `-vmargs` option.
+A more systematic way to resolve the problem is to use customized maven settings where the `java.home` environment is manually defined. Technically, you should customize your IDE (e.g., eclipse) to use the downloaded maven, where the conf\settings.xml be set as
+
 ```
--vm
-$YOUR_JDK_PATH$/jre/bin/server/jvm.dll
+<profiles>
+	<profile>
+      <id>compiler</id>
+        <properties>
+          <java.home>C:\Program Files\Java\jdk1.8.0_202\bin</java.home>
+        </properties>
+ </profile>
+<profiles>
+<activeProfiles>
+  <activeProfile>compiler</activeProfile>
+</activeProfiles>
 ```
+
 Then, right click the project >> Maven >> Ipdate Project ...
 By this means, the problem can be fixed.
 
