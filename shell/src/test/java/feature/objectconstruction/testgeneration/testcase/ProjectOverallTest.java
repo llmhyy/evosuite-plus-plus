@@ -58,8 +58,8 @@ public class ProjectOverallTest extends TestUtility{
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
 //		Properties.PORT = 8000;
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.TIMEOUT = 100;
 //		Properties.TIMELINE_INTERVAL = 3000;
@@ -93,8 +93,8 @@ public class ProjectOverallTest extends TestUtility{
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
 //		Properties.PORT = 8000;
-//		Properties.CLIENT_ON_THREAD = true;
-//		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.TIMEOUT = 100;
 //		Properties.TIMELINE_INTERVAL = 3000;
