@@ -15,9 +15,6 @@ import evosuite.shell.EvoTestResult;
 import feature.smartseed.example.SmartSeedExample;
 import feature.smartseed.example.empirical.Config;
 import feature.smartseed.example.empirical.EmpiricalStudyExample;
-import feature.smartseed.example.empirical.ResourceDescriptor;
-import feature.smartseed.example.empirical.ResourcesDirectory;
-import feature.smartseed.example.empirical.SimpleNode;
 
 public class SmartSeedRuntimeTest {
 	

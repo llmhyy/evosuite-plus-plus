@@ -19,6 +19,7 @@ import evosuite.shell.experiment.SFConfiguration;
 
 public class TestUtility {
 	static List<EvoTestResult> re = new ArrayList<EvoTestResult>();
+	
 	public static List<EvoTestResult> evoTestSmartSeedMethod(String targetClass, String targetMethod, String cp,
 			String fitnessApproach, int iteration, 
 			long seconds, boolean ass, boolean context, Long seed, 
@@ -193,7 +194,7 @@ public class TestUtility {
 	
 	
 	
-	public static void evoTestSingleMethod(String targetClass, String targetMethod, 
+	public static double evoTestSingleMethod(String targetClass, String targetMethod, 
 			int timeBudget, 
 			boolean instrumentContext,
 			boolean aor,
@@ -273,8 +274,12 @@ public class TestUtility {
 
 				System.out.println("Available calls: " + getAvailableCalls());
 				System.out.println("Unavailable calls: " + getUnavailableCalls());
+				
+				return r.getCoverage();
 			}
 		}
+		
+		return 0;
 
 	}
 	
