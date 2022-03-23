@@ -33,7 +33,7 @@
         
         <!-- FIXME this is temporary -->
         
-        
+        <!-- 
         <dependency>  
             <groupId>org.evosuite</groupId>
             <artifactId>evosuite-client</artifactId>
@@ -41,6 +41,7 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+        -->
         
         
         <dependency>
