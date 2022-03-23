@@ -72,7 +72,7 @@ public class ProjectOverallTest extends TestUtility{
 				targetMethod, timeBudget, true, aor, cp, fitnessApproach, 
 				"generateMOSuite", "MOSUITE", "DynaMOSA");
 		
-		assert coverage > 0.3;
+		assert coverage > 0.2;
 		
 	}
 	
@@ -81,9 +81,6 @@ public class ProjectOverallTest extends TestUtility{
 		Class<?> clazz = BasicRules.class;
 		String methodName = "checkRules";
 		int parameterNum = 2;
-		
-		System.out.println("aaa");
-		System.out.println("aaa");
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];
@@ -110,7 +107,7 @@ public class ProjectOverallTest extends TestUtility{
 				targetMethod, timeBudget, true, aor, cp, fitnessApproach, 
 				"generateMOSuite", "MOSUITE", "DynaMOSA");
 		
-		assert coverage > 0.3;
+		assert coverage < 0.2;
 		
 	}
 	

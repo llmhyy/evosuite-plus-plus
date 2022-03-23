@@ -43,6 +43,8 @@ jobs:
       # See https://stackoverflow.com/questions/8304110/skip-a-submodule-during-a-maven-build for more details
       # We exclude the 'evosuite-shaded' and 'evosuite-generated' submodules as there are some pre-existing failing tests
       # in those modules. We don't use them anyway (they relate to running Evosuite on itself, a functionality we don't use currently).
-      - name: Run tests with Maven
+      - name: Compile with Maven
         # run: mvn clean test -Dtest=SmartSeedRuntimeTest#testSpecialPoint* -DfailIfNoTests=false -pl '!:evosuite-shaded,!:evosuite-generated'
-        run: mvn clean test -Dtest=SmartSeedRuntimeTest#sanityCheck -DfailIfNoTests=false -pl '!:evosuite-shaded,!:evosuite-generated,!:evosuite-master'
+        run: mvn -DskipTests=true clean source:jar install -Ppackage-jars -T 4
+      - name: Run tests with Maven
+        run: mvn -DfailIfNoTests=false test -Dtest=ProjectOverallTest#testBasicRules* 
