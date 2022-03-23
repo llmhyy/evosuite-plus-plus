@@ -32,7 +32,8 @@
         </dependency> -->
         
         <!-- FIXME this is temporary -->
-        <!-- 
+        
+        
         <dependency>  
             <groupId>org.evosuite</groupId>
             <artifactId>evosuite-client</artifactId>
@@ -40,7 +41,8 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        -->
+        
+        
         <dependency>
             <groupId>org.evosuite</groupId>
             <artifactId>evosuite-client</artifactId>
@@ -109,14 +111,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-		<configuration>
-		  <artifactSet>
-                    <excludes>
-                      <!-- the eclipse plugin needs this -->
-                      <exclude>*:xml-apis</exclude>
-                    </excludes>
-                  </artifactSet>
-		</configuration>
+				<configuration>
+				  <artifactSet>
+		                    <excludes>
+		                      <!-- the eclipse plugin needs this -->
+		                      <exclude>*:xml-apis</exclude>
+		                    </excludes>
+		                  </artifactSet>
+				</configuration>
             </plugin>
 
             <!-- create single jar with also shaded classes, eg ASM -->
