@@ -125,12 +125,7 @@ public class AccessibilityMatrixManager {
 		}
 	}
 	
-	private NodeAccessPath validateDirectFieldSet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		List<Operation> operationsList = new ArrayList<>();
-		List<DepVariableWrapper> nodesList = new ArrayList<>();
-		nodesList.add(fromNode);
-		nodesList.add(toNode);
-		
+	private NodeAccessPath validateDirectFieldSet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {	
 		boolean isToNodeLeaf = toNode.children.isEmpty();
 		if (!isToNodeLeaf) {
 			return null;
@@ -153,16 +148,17 @@ public class AccessibilityMatrixManager {
 			return null;
 		}
 		
-		FieldAccess fieldAccess = new FieldAccess(toNodeField);
-		operationsList.add(fieldAccess);
-		return new NodeAccessPath(operationsList, nodesList);
+		return new NodeAccessPathBuilder()
+				.addToPath(fromNode)
+				.addToPath(toNode)
+				.addToOperations(new FieldAccess(toNodeField))
+				.build();
 	}
 	
 	private NodeAccessPath validateMethodCallSet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		List<Operation> operationsList = new ArrayList<>();
-		List<DepVariableWrapper> nodesList = new ArrayList<>();
-		nodesList.add(fromNode);
-		nodesList.add(toNode);
+		NodeAccessPathBuilder builder = new NodeAccessPathBuilder()
+				.addToPath(fromNode)
+				.addToPath(toNode);
 		
 		boolean isPathFound = false;
 		Class<?> toNodeClass = DepVariableWrapperUtil.extractClassFrom(toNode);
@@ -170,25 +166,23 @@ public class AccessibilityMatrixManager {
 		for (Method candidateMethod : candidateMethods) {
 			boolean isValidSetter = DepVariableWrapperUtil.testFieldSetter(candidateMethod, fromNode, toNode);
 			if (isValidSetter) {
-				MethodCall methodCall = new MethodCall(candidateMethod);
-				operationsList.add(methodCall);
+				builder.addToOperations(new MethodCall(candidateMethod));
 				isPathFound = true;
 				break;
 			}
 		}
 		
 		if (isPathFound) {
-			return new NodeAccessPath(operationsList, nodesList);
+			return builder.build();
 		}
 		
 		return null;
 	}
 	
 	private NodeAccessPath validateDirectFieldGet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		List<Operation> operationsList = new ArrayList<>();
-		List<DepVariableWrapper> nodesList = new ArrayList<>();
-		nodesList.add(fromNode);
-		nodesList.add(toNode);
+		NodeAccessPathBuilder builder = new NodeAccessPathBuilder()
+				.addToPath(fromNode)
+				.addToPath(toNode);
 		
 		// A successful path from fromNode to toNode would be an operation where
 		// we can get the field enclosed in toNode directly from the caller object
@@ -214,16 +208,14 @@ public class AccessibilityMatrixManager {
 			return null;
 		}
 		
-		FieldAccess fieldAccess = new FieldAccess(toNodeField);
-		operationsList.add(fieldAccess);
-		return new NodeAccessPath(operationsList, nodesList);
+		return builder.addToOperations(new FieldAccess(toNodeField))
+				.build();
 	}
 	
 	private NodeAccessPath validateMethodCallGet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		List<Operation> operationsList = new ArrayList<>();
-		List<DepVariableWrapper> nodesList = new ArrayList<>();
-		nodesList.add(fromNode);
-		nodesList.add(toNode);
+		NodeAccessPathBuilder builder = new NodeAccessPathBuilder()
+				.addToPath(fromNode)
+				.addToPath(toNode);
 		
 		boolean isPathFound = false;
 		Class<?> toNodeClass = DepVariableWrapperUtil.extractClassFrom(toNode);
@@ -231,15 +223,14 @@ public class AccessibilityMatrixManager {
 		for (Method candidateMethod : candidateMethods) {
 			boolean isValidGetter = DepVariableWrapperUtil.testFieldGetter(seedTestCase, candidateMethod, fromNode, toNode);
 			if (isValidGetter) {
-				MethodCall methodCall = new MethodCall(candidateMethod);
-				operationsList.add(methodCall);
+				builder.addToOperations(new MethodCall(candidateMethod));
 				isPathFound = true;
 				break;
 			}
 		}
 		
 		if (isPathFound) {
-			return new NodeAccessPath(operationsList, nodesList);
+			return builder.build();
 		}
 		
 		return null;
@@ -283,6 +274,9 @@ public class AccessibilityMatrixManager {
 	// Handles the case when the toNode represents a field (is a FieldVariableWrapper)
 	private NodeAccessPath findPathToField(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
 		boolean isToNodeLeaf = toNode.children.isEmpty();
+		// TODO 
+		// Edge case here: if the field is an array, it will not be a leaf node
+		// even if we wish to set it. What to do here?
 		if (isToNodeLeaf) {
 			NodeAccessPath firstAttempt = validateDirectFieldSet(fromNode, toNode);
 			if (firstAttempt != null) {
@@ -312,18 +306,38 @@ public class AccessibilityMatrixManager {
 	}
 	
 	private NodeAccessPath findPathToOther(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		// TODO
+		// Other here is either a method invocation or ALOAD/ALOAD_*/DUP/DUP2
+		// If it's a method invocation, then
+		// If it's ALOAD/ALOAD_*/DUP/DUP2, then
 		return null;
+	}
+	
+	private int getParameterOrder(ParameterVariableWrapper node) {
+		return node.var.getParamOrder();
 	}
 	
 	private NodeAccessPath findPathToParameter(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		// TODO
-		return null;
+		// We should always be able to access parameters from any node
+		// NodeAccessPath should just contain a ParameterAccess containing the parameter order
+		if (!(toNode instanceof ParameterVariableWrapper)) {
+			return null;
+		}
+		
+		return new NodeAccessPathBuilder()
+				.addToPath(fromNode)
+				.addToPath(toNode)
+				.addToOperations(new ParameterReference(getParameterOrder((ParameterVariableWrapper) toNode)))
+				.build();
 	}
 	
 	private NodeAccessPath findPathToThis(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		// TODO
-		return null;
+		// We can always access 'this' from anywhere in the caller object.
+		// NodeAccessPath should just contain a ThisReference
+		return new NodeAccessPathBuilder()
+				.addToPath(fromNode)
+				.addToPath(toNode)
+				.addToOperations(new ThisReference())
+				.build();
 	}
 	
 	private void _initialisationCheck() {

@@ -1,5 +1,6 @@
 package org.evosuite.testcase.synthesizer.improvedsynth;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -21,42 +22,35 @@ public class DepVariableWrapperUtil {
 	private DepVariableWrapperUtil() {
 	}
 	
-	private static Class<?> extractPrimitiveType(DepVariableWrapper node) {
-		try {
-			FieldInsnNode fieldNode = (FieldInsnNode) node.var.getInstruction().getASMNode();
-			String fieldType = fieldNode.desc;
-			String formattedFieldType = fieldType.replace("/", ".");
-			if (formattedFieldType.startsWith("L")) {
-				formattedFieldType = formattedFieldType.substring(1, formattedFieldType.length() - 1);
-			} else if (formattedFieldType.startsWith("[L")) {
-				formattedFieldType = formattedFieldType.substring(2, formattedFieldType.length() - 1);
-			}
-			
-			switch (formattedFieldType) {
-				case "Z": 
-					return boolean.class;
-				case "B":
-					return byte.class;
-				case "C":
-					return char.class;
-				case "S":
-					return short.class;
-				case "I":
-					return int.class;
-				case "J":
-					return long.class;
-				case "F":
-					return float.class;
-				case "D":
-					return double.class;
-				default:
-					return null;
-			}
-		} catch (NullPointerException e) {
-			return null;
+	private static Class<?> extractPrimitiveType(String fieldType) {
+		switch (fieldType) {
+			case "Z": 
+				return boolean.class;
+			case "B":
+				return byte.class;
+			case "C":
+				return char.class;
+			case "S":
+				return short.class;
+			case "I":
+				return int.class;
+			case "J":
+				return long.class;
+			case "F":
+				return float.class;
+			case "D":
+				return double.class;
+			default:
+				return null;
 		}
 	}
-
+	
+	private static Class<?> extractPrimitiveType(DepVariableWrapper node) {
+		FieldInsnNode fieldNode = (FieldInsnNode) node.var.getInstruction().getASMNode();
+		String fieldType = fieldNode.desc;
+		String formattedFieldType = fieldType.replace("/", ".");
+		return extractPrimitiveType(formattedFieldType);
+	}
 	
 	private static String extractNonPrimitiveType(DepVariableWrapper node) {
 		try {
@@ -69,6 +63,16 @@ public class DepVariableWrapperUtil {
 				formattedFieldType = formattedFieldType.substring(2, formattedFieldType.length() - 1);
 			}
 			return formattedFieldType;
+		} catch (NullPointerException e) {
+			return null;
+		}
+	}
+	
+	private static String extractFieldType(DepVariableWrapper node) {
+		try {
+			FieldInsnNode fieldNode = (FieldInsnNode) node.var.getInstruction().getASMNode();
+			String fieldType = fieldNode.desc;
+			return fieldType;
 		} catch (NullPointerException e) {
 			return null;
 		}
@@ -95,6 +99,67 @@ public class DepVariableWrapperUtil {
 		
 	}
 	
+	
+	private static boolean isArray(DepVariableWrapper node) {
+		String fieldType = extractFieldType(node);
+		if (fieldType == null) {
+			return false;
+		}
+		
+		return fieldType.startsWith("[");
+	}
+	
+	private static int getDimensionOfArrayFieldType(String fieldType) {
+		// Return the number of [ in the string
+		return (int) fieldType.chars().filter(character -> character == '[').count();
+	}
+	
+	private static Class<?> extractArrayType(String fieldType) {
+		int dimension = getDimensionOfArrayFieldType(fieldType);
+		Class<?> baseClass = extractClassFrom(fieldType.replace("[", ""));
+		Class<?> toReturn = baseClass;
+		for (int i = 0; i < dimension; i++) {
+			toReturn = Array.newInstance(toReturn, 0).getClass();
+		}
+		return toReturn;
+	}
+	
+	private static Class<?> extractArrayType(DepVariableWrapper node) {
+		if (!isArray(node)) {
+			return null;
+		}
+		
+		String fieldType = extractFieldType(node);
+		return extractArrayType(fieldType);
+	}
+	
+	private static boolean isPrimitive(String fieldType) {
+		if (fieldType == null) {
+			return false;
+		}
+		
+		return fieldType.equals("Z") ||
+				fieldType.equals("B") ||
+				fieldType.equals("C") ||
+				fieldType.equals("S") ||
+				fieldType.equals("I") ||
+				fieldType.equals("J") ||
+				fieldType.equals("F") ||
+				fieldType.equals("D");
+	}
+	
+	private static Class<?> extractClassFrom(String fieldType) {
+		if (isPrimitive(fieldType)) {
+			return extractPrimitiveType(fieldType);
+		} else {
+			try {
+				return TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fieldType);
+			} catch (ClassNotFoundException | NullPointerException e) {
+				return null;
+			}
+		}
+	}
+	
 	/**
 	 * A FieldVariableWrapper or ThisVariableWrapper encloses a particular type.
 	 * This method extracts and returns that type information.
@@ -112,8 +177,11 @@ public class DepVariableWrapperUtil {
 		
 		if (isField) {
 			boolean isPrimitive = node.var.isPrimitive();
+			boolean isArray = isArray(node);
 			if (isPrimitive) {
 				return extractPrimitiveType(node);
+			} else if (isArray) {
+				return extractArrayType(node);
 			} else {
 				classAsString = extractNonPrimitiveType(node);
 			}

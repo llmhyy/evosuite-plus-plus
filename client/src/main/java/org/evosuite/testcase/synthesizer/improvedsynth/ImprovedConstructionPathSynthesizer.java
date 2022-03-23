@@ -47,8 +47,6 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 				if (isPathExists) {
 					accessPairs.add(new NodePair(rootNode, leafNode));
 				}
-				
-				break; // Should we break, or should we continue trying other root nodes to this leaf node?
 			}
 		}
 		
