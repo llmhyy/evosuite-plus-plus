@@ -73,7 +73,7 @@ public class ProjectOverallTest extends TestUtility{
 				targetMethod, timeBudget, true, aor, cp, fitnessApproach, 
 				"generateMOSuite", "MOSUITE", "DynaMOSA");
 		
-		assert coverage > 0.2;
+		assert coverage > 0.1;
 		
 	}
 	
@@ -108,7 +108,7 @@ public class ProjectOverallTest extends TestUtility{
 				targetMethod, timeBudget, true, aor, cp, fitnessApproach, 
 				"generateMOSuite", "MOSUITE", "DynaMOSA");
 		
-		assert coverage < 0.2;
+		assert coverage < 0.05;
 		
 	}
 	
