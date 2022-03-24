@@ -360,12 +360,18 @@ public class DepVariableWrapperUtil {
 			
 			boolean isMethodCall = instruction.isMethodCall();
 			if (isMethodCall) {
+				// What to do if it's a method call?
+				// TODO
 				// Repeat this procedure one level down with the method
 				Method invokedMethod = getInvokedMethod(instruction);
-				return testFieldGetter(testCase, invokedMethod, fromNode, toNode);
+				boolean isInvokedMethodGetter = testFieldGetter(testCase, invokedMethod, fromNode, toNode);
+				if (isInvokedMethodGetter) {
+					return true;
+				}
 			}
 		}
-		return true;
+		
+		return false;
 	}
 	
 	/**
