@@ -5,15 +5,19 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.evosuite.TestGenerationContext;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.FieldVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.ThisVariableWrapper;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
+
+import org.objectweb.asm.Opcodes;
 
 /**
  * Helper class for manipulating DepVariableWrapper (OCG nodes).
@@ -261,19 +265,106 @@ public class DepVariableWrapperUtil {
 		return methodsToReturn;
 	}
 	
+	/*
+	 * See https://stackoverflow.com/questions/45072268/how-can-i-get-the-signature-field-of-java-reflection-method-object
+	 */
+	public static String getSignatureOf(Method method) {
+	    String signature;
+	    try {
+	        Field genericSignature = Method.class.getDeclaredField("signature");
+	        genericSignature.setAccessible(true);
+	        signature = (String) genericSignature.get(method);
+	        if (signature != null) {
+	        	return signature;
+	        }
+	    } catch (IllegalAccessException | NoSuchFieldException e) { 
+	        e.printStackTrace();
+	    }
+
+	    StringBuilder stringBuilder = new StringBuilder("(");
+	    for(Class<?> clazz : method.getParameterTypes()) 
+	        stringBuilder.append((signature = Array.newInstance(clazz, 0).toString())
+	            .substring(1, signature.indexOf('@')));
+	    String unformattedSignature = method.getName() + stringBuilder.append(')')
+	        .append(
+	            method.getReturnType() == void.class ? "V":
+	            (signature = Array.newInstance(method.getReturnType(), 0).toString())
+	            	.substring(1, signature.indexOf('@'))
+	        )
+	        .toString();
+	    String formattedSignature = unformattedSignature.replace(".", "/");
+	    return formattedSignature;
+	}
+	
+	private static List<BytecodeInstruction> getInstructionsFor(Method method) {
+		Class<?> clazz = method.getDeclaringClass();
+		String className = clazz.getCanonicalName();
+		String methodName = getSignatureOf(method);
+		
+		BytecodeInstructionPool bytecodeInstructionPool = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT());
+		List<BytecodeInstruction> instructions = bytecodeInstructionPool.getInstructionsIn(className, methodName);
+		
+		return instructions;
+	}
+	
+	private static boolean isInstructionGettingField(BytecodeInstruction instruction, DepVariableWrapper node) {
+		if (!(node instanceof FieldVariableWrapper)) {
+			return false;
+		}
+		
+		boolean isGetField = instruction.getASMNode().getOpcode() == Opcodes.GETFIELD;
+		boolean isGetStatic = instruction.getASMNode().getOpcode() == Opcodes.GETSTATIC;
+		if (!(isGetField || isGetStatic)) {
+			return false;
+		}
+		
+		// TODO: Check if this logic works for GETSTATIC
+		AbstractInsnNode insnNode = instruction.getASMNode();
+		boolean isFieldInsnNode = insnNode instanceof FieldInsnNode;
+		if (!isFieldInsnNode) {
+			return false;
+		}
+		
+		if (isFieldInsnNode) {
+			FieldInsnNode fieldInsnNode = (FieldInsnNode) insnNode;
+			String nodeFieldName = fieldInsnNode.name;
+			String nodeFieldOwner = fieldInsnNode.owner;
+			String desiredFieldName = extractFieldName(node);
+			String desiredFieldOwner = extractFieldOwner(node).replace(".", "/");
+			boolean isFieldNameMatch = nodeFieldName.equals(desiredFieldName);
+			boolean isFieldOwnerMatch = nodeFieldOwner.equals(desiredFieldOwner);
+			if (isFieldNameMatch && isFieldOwnerMatch) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private static Method getInvokedMethod(BytecodeInstruction instruction) {
+		return null;
+	}
 	/**
 	 * @param method
 	 * @param fromNode
 	 * @param toNode
 	 * @return
 	 */
-	public static boolean testFieldGetter(TestCase testCase, Method method, DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		// For now, we ignore cases where the method has a non-zero number of parameters.
-		if (method.getParameterCount() > 0) {
-			return false;
+	public static boolean testFieldGetter(TestCase testCase, Method method, DepVariableWrapper fromNode, DepVariableWrapper toNode) {			
+		List<BytecodeInstruction> instructions = getInstructionsFor(method);
+		for (BytecodeInstruction instruction : instructions) {
+			boolean isGetfieldForField = isInstructionGettingField(instruction, toNode);
+			if (isGetfieldForField) {
+				return true;
+			}
+			
+			boolean isMethodCall = instruction.isMethodCall();
+			if (isMethodCall) {
+				// Repeat this procedure one level down with the method
+				Method invokedMethod = getInvokedMethod(instruction);
+				return testFieldGetter(testCase, invokedMethod, fromNode, toNode);
+			}
 		}
-		
-		// TODO
 		return true;
 	}
 	
