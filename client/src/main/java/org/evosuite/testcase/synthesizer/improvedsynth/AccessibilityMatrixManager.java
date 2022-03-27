@@ -221,7 +221,7 @@ public class AccessibilityMatrixManager {
 		Class<?> toNodeClass = DepVariableWrapperUtil.extractClassFrom(toNode);
 		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsReturning(fromNode, toNodeClass);
 		for (Method candidateMethod : candidateMethods) {
-			boolean isValidGetter = DepVariableWrapperUtil.testFieldGetter(seedTestCase, candidateMethod, fromNode, toNode);
+			boolean isValidGetter = DepVariableWrapperUtil.testFieldGetter(candidateMethod, toNode);
 			if (isValidGetter) {
 				builder.addToOperations(new MethodCall(candidateMethod));
 				isPathFound = true;

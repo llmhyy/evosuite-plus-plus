@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.evosuite.TestGenerationContext;
@@ -16,7 +17,7 @@ import org.evosuite.testcase.synthesizer.var.FieldVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.ThisVariableWrapper;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
-
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.Opcodes;
 
 /**
@@ -100,9 +101,19 @@ public class DepVariableWrapperUtil {
 		} catch (NullPointerException e) {
 			return null;
 		}
-		
 	}
 	
+	private static Field extractFieldFrom(DepVariableWrapper node) {
+		if (!(node instanceof FieldVariableWrapper)) {
+			return null;
+		}
+		
+		String fieldName = extractFieldName(node);
+		String fieldOwner = extractFieldOwner(node);
+		String fieldType = extractFieldType(node);
+		
+		return null;
+	}
 	
 	private static boolean isArray(DepVariableWrapper node) {
 		String fieldType = extractFieldType(node);
@@ -268,7 +279,7 @@ public class DepVariableWrapperUtil {
 	/*
 	 * See https://stackoverflow.com/questions/45072268/how-can-i-get-the-signature-field-of-java-reflection-method-object
 	 */
-	public static String getSignatureOf(Method method) {
+	private static String getSignatureOf(Method method) {
 	    String signature;
 	    try {
 	        Field genericSignature = Method.class.getDeclaredField("signature");
@@ -308,10 +319,18 @@ public class DepVariableWrapperUtil {
 	}
 	
 	private static boolean isInstructionGettingField(BytecodeInstruction instruction, DepVariableWrapper node) {
-		if (!(node instanceof FieldVariableWrapper)) {
-			return false;
-		}
-		
+		String desiredFieldName = extractFieldName(node);
+		String desiredFieldOwner = extractFieldOwner(node).replace(".", "/");
+		return isInstructionGettingField(instruction, desiredFieldName, desiredFieldOwner);
+	}
+	
+	private static boolean isInstructionGettingField(BytecodeInstruction instruction, Field field) {	
+		String desiredFieldName = field.getName();
+		String desiredFieldOwner = field.getDeclaringClass().getCanonicalName();
+		return isInstructionGettingField(instruction, desiredFieldName, desiredFieldOwner);
+	}
+	
+	private static boolean isInstructionGettingField(BytecodeInstruction instruction, String fieldName, String fieldOwner) {
 		boolean isGetField = instruction.getASMNode().getOpcode() == Opcodes.GETFIELD;
 		boolean isGetStatic = instruction.getASMNode().getOpcode() == Opcodes.GETSTATIC;
 		if (!(isGetField || isGetStatic)) {
@@ -328,11 +347,9 @@ public class DepVariableWrapperUtil {
 		if (isFieldInsnNode) {
 			FieldInsnNode fieldInsnNode = (FieldInsnNode) insnNode;
 			String nodeFieldName = fieldInsnNode.name;
-			String nodeFieldOwner = fieldInsnNode.owner;
-			String desiredFieldName = extractFieldName(node);
-			String desiredFieldOwner = extractFieldOwner(node).replace(".", "/");
-			boolean isFieldNameMatch = nodeFieldName.equals(desiredFieldName);
-			boolean isFieldOwnerMatch = nodeFieldOwner.equals(desiredFieldOwner);
+			String nodeFieldOwner = fieldInsnNode.owner.replace("/", ".");
+			boolean isFieldNameMatch = nodeFieldName.equals(fieldName);
+			boolean isFieldOwnerMatch = nodeFieldOwner.equals(fieldOwner);
 			if (isFieldNameMatch && isFieldOwnerMatch) {
 				return true;
 			}
@@ -341,37 +358,138 @@ public class DepVariableWrapperUtil {
 		return false;
 	}
 	
-	private static Method getInvokedMethod(BytecodeInstruction instruction) {
-		return null;
-	}
 	/**
 	 * @param method
 	 * @param fromNode
 	 * @param toNode
 	 * @return
 	 */
-	public static boolean testFieldGetter(TestCase testCase, Method method, DepVariableWrapper fromNode, DepVariableWrapper toNode) {			
+	public static boolean testFieldGetter(Method method, DepVariableWrapper toNode) {	
+		Field field = extractFieldFrom(toNode);
+		return testFieldGetter(method, field);
+	}
+	
+	public static boolean testFieldGetter(Method method, Field field) {
 		List<BytecodeInstruction> instructions = getInstructionsFor(method);
 		for (BytecodeInstruction instruction : instructions) {
-			boolean isGetfieldForField = isInstructionGettingField(instruction, toNode);
+			boolean isGetfieldForField = isInstructionGettingField(instruction, field);
 			if (isGetfieldForField) {
 				return true;
 			}
 			
 			boolean isMethodCall = instruction.isMethodCall();
 			if (isMethodCall) {
-				// What to do if it's a method call?
-				// TODO
-				// Repeat this procedure one level down with the method
-				Method invokedMethod = getInvokedMethod(instruction);
-				boolean isInvokedMethodGetter = testFieldGetter(testCase, invokedMethod, fromNode, toNode);
-				if (isInvokedMethodGetter) {
-					return true;
+				// Check for case 2:
+				// It's calling a getter that returns the field that we want
+				boolean isGetter = isInvokedMethodDesiredGetter(instruction, field);
+				if (isGetter) {
+					// Do a lookahead to check if it's being returned
+					// TODO: Check if it's being stored and returned later
+					// For some reason, BytecodeInstruction#getNextInstruction returns null
+					// in the specific case that we want to get the last instruction in the CFG
+					// We have to retrieve the last instruction manually
+					BytecodeInstruction nextInstruction = instruction.getActualCFG().getInstruction(instruction.getInstructionId() + 1);					
+					if (nextInstruction != null && nextInstruction.isReturn()) {
+						return true;
+					}
 				}
+				
+				// If it's not, continue searching
 			}
 		}
 		
 		return false;
+	}
+	
+	private static Method getInvokedMethod(BytecodeInstruction instruction) {
+		boolean isMethodCall = instruction.isMethodCall();
+		if (!isMethodCall) {
+			return null;
+		}
+		
+		try {
+			MethodInsnNode methodNode = (MethodInsnNode) instruction.getASMNode();
+			String methodName = methodNode.name;
+			String methodOwner = methodNode.owner;
+			String methodSignature = methodName + methodNode.desc;
+			Class<?> methodOwningClass = extractClassFrom(methodOwner.replace("/", "."));
+			Method[] methods = methodOwningClass.getDeclaredMethods();
+			for (Method currentMethod : methods) {
+				// Just compare signatures
+				String currentSignature = getSignatureOf(currentMethod);
+				if (methodSignature.equals(currentSignature)) {
+					return currentMethod;
+				}
+			}
+		} catch (NullPointerException e) {
+			return null;
+		}
+		
+		return null;
+	}
+	
+	private static boolean isInvokedMethodDesiredGetter(BytecodeInstruction instruction, Field field) {
+		boolean isMethodCall = instruction.isMethodCall();
+		if (!isMethodCall) {
+			return false;
+		}
+		
+		Method method = getInvokedMethod(instruction);
+		if (method == null) {
+			return false;
+		}
+		
+		return testFieldGetter(method, field);
+	}
+	
+	// Assumes signature has already been stripped of method name (begins with '(')
+	private static int getParameterCountFromSignature(String signature) {
+		List<String> sigAsList = Arrays.asList(signature.split(""));
+		int paramCount = 0;
+		int index = 0;
+		while (index < sigAsList.size()) {
+			String character = sigAsList.get(index);
+			if (character.equals(")")) {
+				return paramCount;
+			}
+			
+			if (character.equals("(")) {
+				if (index > 0) {
+					throw new IllegalArgumentException("Illegal character '(' detected at non-zero index in signature string (" + signature + ")!");
+				}
+				
+				index++;
+				continue;
+			}
+			
+			switch (character) {
+				/* Primitive types */
+				case "Z":
+				case "B":
+				case "C":
+				case "S":
+				case "I":
+				case "J":
+				case "F":
+				case "D":
+					paramCount++;
+					index++;
+					continue;
+				/* fully-qualified-class */
+				case "L": 
+					paramCount++;
+					// Shift index over to after the next semicolon (end of type)
+					index = signature.indexOf(";", index) + 1;
+					continue;
+				case "[":
+					index++;
+					continue;
+				default:
+					throw new IllegalStateException("Illegal state encountered, panic.");
+			}
+		}
+		
+		throw new IllegalStateException("Illegal state encountered, panic.");
 	}
 	
 	/**

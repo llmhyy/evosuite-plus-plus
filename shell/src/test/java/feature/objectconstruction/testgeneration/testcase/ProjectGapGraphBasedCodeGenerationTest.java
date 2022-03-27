@@ -1,17 +1,21 @@
 package feature.objectconstruction.testgeneration.testcase;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
+import org.evosuite.testcase.synthesizer.improvedsynth.DepVariableWrapperUtil;
 import org.evosuite.utils.MethodUtil;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import common.TestUtil;
 import common.TestUtility;
+import feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild.Parent;
 
 public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 	@Before
@@ -126,5 +130,34 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 //		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
 		
 		generateCode0(b, false, false);
+	}
+	
+	@Test
+	public void testGetterDetector() throws NoSuchMethodException, NoSuchFieldException, SecurityException, ClassNotFoundException {
+		Class<?> parentClass = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild.Parent.class;
+		Class<?> childClass = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild.Child.class;
+		String methodName = "method";
+		int numParams = 0;
+		setupClassAndMethod(parentClass, methodName, numParams);
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		Method method = getMethod(parentClass, "getGrandchild2", 0);
+		Field field = childClass.getDeclaredField("grandchild");
+		System.out.println(method.getName() + " is getter? " + DepVariableWrapperUtil.testFieldGetter(method, field));
+	}
+	
+	private Method getMethod(Class<?> callerClass, String methodName, int numParams) throws NoSuchMethodException {
+		Method[] methods = callerClass.getDeclaredMethods();
+		for (Method method : methods) {
+			int currentNumParams = method.getParameterCount();
+			String currentMethodName = method.toGenericString();
+			boolean isNameMatch = currentMethodName.contains(methodName);
+			boolean isNumParamsMatch = currentNumParams == numParams;
+			
+			if (isNameMatch && isNumParamsMatch) {
+				return method;
+			}
+		}
+		throw new NoSuchMethodException("No method with name (" + methodName + ") and " + numParams + " params found!");
 	}
 }
