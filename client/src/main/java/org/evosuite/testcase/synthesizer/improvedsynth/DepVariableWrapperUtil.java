@@ -7,6 +7,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
@@ -22,6 +23,7 @@ import org.objectweb.asm.Opcodes;
 
 /**
  * Helper class for manipulating DepVariableWrapper (OCG nodes).
+ * TODO: Possibly move the non-DepVariableWrapper methods into another class (ReflectionUtil?)
  */
 public class DepVariableWrapperUtil {
 	private DepVariableWrapperUtil() {
@@ -286,6 +288,11 @@ public class DepVariableWrapperUtil {
 	        genericSignature.setAccessible(true);
 	        signature = (String) genericSignature.get(method);
 	        if (signature != null) {
+	        	// Sometimes the signature field will omit the method's name
+	        	// If so, we need to add the method's name back on
+	        	if (signature.length() > 0 && signature.charAt(0) == '(') {
+	        		signature = method.getName() + signature;
+	        	}
 	        	return signature;
 	        }
 	    } catch (IllegalAccessException | NoSuchFieldException e) { 
@@ -314,6 +321,16 @@ public class DepVariableWrapperUtil {
 		
 		BytecodeInstructionPool bytecodeInstructionPool = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT());
 		List<BytecodeInstruction> instructions = bytecodeInstructionPool.getInstructionsIn(className, methodName);
+		
+		// Typically this occurs when the method accepts a generic type
+		// We need to strip the generic type information to match what's seen by the InstrumentingClassLoader
+		if (instructions == null) {
+			// Strip generic class types from the method
+			int positionOfLeftAngleBracket = methodName.indexOf('<');
+			int positionOfRightAngleBracket = methodName.lastIndexOf('>');
+			String strippedMethodName = methodName.substring(0, positionOfLeftAngleBracket) + methodName.substring(positionOfRightAngleBracket + 1);
+			instructions = bytecodeInstructionPool.getInstructionsIn(className, strippedMethodName);
+		}
 		
 		return instructions;
 	}
@@ -499,18 +516,78 @@ public class DepVariableWrapperUtil {
 	 * @param toNode
 	 * @return
 	 */
-	public static boolean testFieldSetter(Method method, DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		// Questions
-		// 1) What values to put in the parameters?
-		// 2) How to perform dataflow analysis?
-		
-		// For now, we ignore cases where the method has >1 parameter
-		if (method.getParameterCount() != 1) {
+	public static boolean testFieldSetter(Method method, DepVariableWrapper toNode) {
+		Field field = extractFieldFrom(toNode);
+		return testFieldSetter(method, field);
+	}
+	
+	/**
+	 * 
+	 * @param method
+	 * @param field
+	 * @return
+	 */
+	public static boolean testFieldSetter(Method method, Field field) {
+		if (method == null || field == null) {
 			return false;
 		}
 		
-		// TODO
-		return true;
+		// Sanity check, see if the method accepts a parameter of same/super-type as the field
+		// Note: disabled sanity check since it's possible for a setter to not take in a parameter
+		// of same type as the field e.g. the setter retrieves from a map via a key parameter
+//		Class<?> fieldType = field.getType();
+//		Class<?>[] parameterTypes = method.getParameterTypes();
+//		boolean isMethodHasFieldTypeAsParameterType = false;
+//		for (Class<?> parameterType : parameterTypes) {
+//			if (parameterType.isAssignableFrom(fieldType)) {
+//				isMethodHasFieldTypeAsParameterType = true;
+//			}
+//		}
+//		if (!isMethodHasFieldTypeAsParameterType) {
+//			return false;
+//		}
+		
+		List<BytecodeInstruction> instructions = getInstructionsFor(method);
+		for (BytecodeInstruction instruction : instructions) {
+			// Three cases
+			// 1) Non-relevant instruction (ignore)
+			// 2) Field definition instruction (check if field is correct)
+			// 3) method call (recursively check if it's a setter)
+			boolean isFieldDef = instruction.isFieldDefinition();
+			if (isFieldDef) {
+				// BytecodeInstruction#isFieldDefinition also includes certain cases for method calls
+				// Check first if it's a method call
+				boolean isMethodCall = instruction.isMethodCall();
+				if (isMethodCall) {
+					Method invokedMethod = getInvokedMethod(instruction);
+					boolean isInvokedMethodDesiredSetter = testFieldSetter(invokedMethod, field);
+					if (isInvokedMethodDesiredSetter) {
+						return true;
+					}
+				}
+				
+				// Else check what field it sets
+				// TODO: Check if this procedure works for PUTSTATIC/field array def
+				AbstractInsnNode asmNode = instruction.getASMNode();
+				if (!(asmNode instanceof FieldInsnNode)) {
+					return false;
+				}
+				
+				FieldInsnNode fieldInsnNode = (FieldInsnNode) asmNode;
+				String fieldInsnNodeOwner = fieldInsnNode.owner.replace("/", ".");
+				String fieldInsnNodeName = fieldInsnNode.name;
+				if (fieldInsnNodeOwner == null || fieldInsnNodeName == null) {
+					return false;
+				}
+				boolean isOwnersMatch = fieldInsnNodeOwner.equals(field.getDeclaringClass().getCanonicalName());
+				boolean isNamesMatch = fieldInsnNodeName.equals(field.getName());
+				if (isOwnersMatch && isNamesMatch) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
 	}
 	
 	/**

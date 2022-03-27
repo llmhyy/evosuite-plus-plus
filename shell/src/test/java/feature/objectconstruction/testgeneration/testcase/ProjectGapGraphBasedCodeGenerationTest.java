@@ -146,6 +146,22 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		System.out.println(method.getName() + " is getter? " + DepVariableWrapperUtil.testFieldGetter(method, field));
 	}
 	
+	@Test
+	public void testSetterDetector() throws NoSuchMethodException, NoSuchFieldException, SecurityException, ClassNotFoundException {
+		Class<?> parentClass = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild.Parent.class;
+		Class<?> grandchildClass = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild.Grandchild.class;
+		Class<?> greatGrandchildClass = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild.GreatGrandchild.class;
+		String methodName = "method";
+		
+		int numParams = 0;
+		setupClassAndMethod(parentClass, methodName, numParams);
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		Method method = getMethod(grandchildClass, "setSomeField", 1);
+		Field field = grandchildClass.getDeclaredField("someField");
+		System.out.println(method.getName() + " is setter? " + DepVariableWrapperUtil.testFieldSetter(method, field));
+	}
+	
 	private Method getMethod(Class<?> callerClass, String methodName, int numParams) throws NoSuchMethodException {
 		Method[] methods = callerClass.getDeclaredMethods();
 		for (Method method : methods) {
