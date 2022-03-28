@@ -12,4 +12,9 @@ public class MethodCall extends Operation {
 	public Method getMethod() {
 		return method;
 	}
+	
+	@Override
+	public String toString() {
+		return "[MethodCall]: " + method.toString();
+	}
 }

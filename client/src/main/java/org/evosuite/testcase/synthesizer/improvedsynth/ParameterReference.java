@@ -10,4 +10,9 @@ public class ParameterReference extends Operation {
 	public int getParameterOrder() {
 		return parameterOrder;
 	}
+	
+	@Override
+	public String toString() {
+		return "[ParameterReference]: " + parameterOrder;
+	}
 }

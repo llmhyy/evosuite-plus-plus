@@ -40,7 +40,7 @@ public class TestCaseStatementGenerator {
 		List<Operation> operations = generateOperations(path);		
 		// Now we have a list of operations, we just need a starting object to begin the access chain
 		// TODO
-		
+		System.currentTimeMillis();
 	}
 	
 	private List<Operation> generateOperations(List<DepVariableWrapper> path) {		

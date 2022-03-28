@@ -30,6 +30,11 @@ public class NodePair {
 		return first.hashCode() + 31 * second.hashCode();
 	}
 	
+	@Override
+	public String toString() {
+		return first.toString() + System.lineSeparator() + second.toString();
+	}
+	
 	public DepVariableWrapper getFirst() {
 		return first;
 	}

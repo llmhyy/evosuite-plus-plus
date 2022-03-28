@@ -164,7 +164,7 @@ public class AccessibilityMatrixManager {
 		Class<?> toNodeClass = DepVariableWrapperUtil.extractClassFrom(toNode);
 		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsAccepting(fromNode, toNodeClass);
 		for (Method candidateMethod : candidateMethods) {
-			boolean isValidSetter = DepVariableWrapperUtil.testFieldSetter(candidateMethod, fromNode, toNode);
+			boolean isValidSetter = DepVariableWrapperUtil.testFieldSetter(candidateMethod, toNode);
 			if (isValidSetter) {
 				builder.addToOperations(new MethodCall(candidateMethod));
 				isPathFound = true;
@@ -307,9 +307,28 @@ public class AccessibilityMatrixManager {
 	
 	private NodeAccessPath findPathToOther(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
 		// Other here is either a method invocation or ALOAD/ALOAD_*/DUP/DUP2
-		// If it's a method invocation, then
-		// If it's ALOAD/ALOAD_*/DUP/DUP2, then
-		return null;
+		// If it's a method invocation, then find the method and return a path with that method?
+		// If it's ALOAD/ALOAD_*/DUP/DUP2, then do nothing?
+		if (!(toNode instanceof OtherVariableWrapper)) {
+			return null;
+		}
+		
+		try {
+			NodeAccessPathBuilder builder = new NodeAccessPathBuilder()
+					.addToPath(fromNode)
+					.addToPath(toNode);
+			boolean isMethodInvocation = (toNode.var.getInstruction().isMethodCall());
+			if (isMethodInvocation) {
+				Method invokedMethod = DepVariableWrapperUtil.getInvokedMethod(toNode.var.getInstruction());
+				builder.addToOperations(new MethodCall(invokedMethod));
+				return builder.build();
+			}
+			
+			// No operation if it's ALOAD/ALOAD_*/DUP/DUP2?
+			return builder.build();
+		} catch (NullPointerException e) {
+			return null;
+		}
 	}
 	
 	private int getParameterOrder(ParameterVariableWrapper node) {

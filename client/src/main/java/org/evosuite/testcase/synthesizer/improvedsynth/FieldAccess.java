@@ -12,4 +12,9 @@ public class FieldAccess extends Operation {
 	public Field getField() {
 		return field;
 	}
+	
+	@Override
+	public String toString() {
+		return "[FieldAccess]: " + field.toString();
+	}
 }

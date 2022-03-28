@@ -110,11 +110,17 @@ public class DepVariableWrapperUtil {
 			return null;
 		}
 		
-		String fieldName = extractFieldName(node);
-		String fieldOwner = extractFieldOwner(node);
-		String fieldType = extractFieldType(node);
-		
-		return null;
+		try {
+			String fieldName = extractFieldName(node);
+			String fieldOwner = extractFieldOwner(node);
+			String fieldType = extractFieldType(node);
+			Class<?> fieldOwnerClass = extractClassFrom(fieldOwner);
+			Field field = fieldOwnerClass.getDeclaredField(fieldName);
+			
+			return field;
+		} catch (NoSuchFieldException | SecurityException e) {
+			return null;
+		}		
 	}
 	
 	private static boolean isArray(DepVariableWrapper node) {
@@ -328,6 +334,12 @@ public class DepVariableWrapperUtil {
 			// Strip generic class types from the method
 			int positionOfLeftAngleBracket = methodName.indexOf('<');
 			int positionOfRightAngleBracket = methodName.lastIndexOf('>');
+			
+			if (positionOfLeftAngleBracket < 0 || positionOfRightAngleBracket < 0) {
+				// It's not a generics issue, we can't deal with it
+				return null;
+			}
+			
 			String strippedMethodName = methodName.substring(0, positionOfLeftAngleBracket) + methodName.substring(positionOfRightAngleBracket + 1);
 			instructions = bytecodeInstructionPool.getInstructionsIn(className, strippedMethodName);
 		}
@@ -341,7 +353,11 @@ public class DepVariableWrapperUtil {
 		return isInstructionGettingField(instruction, desiredFieldName, desiredFieldOwner);
 	}
 	
-	private static boolean isInstructionGettingField(BytecodeInstruction instruction, Field field) {	
+	private static boolean isInstructionGettingField(BytecodeInstruction instruction, Field field) {
+		if (instruction == null || field == null) {
+			return false;
+		}
+		
 		String desiredFieldName = field.getName();
 		String desiredFieldOwner = field.getDeclaringClass().getCanonicalName();
 		return isInstructionGettingField(instruction, desiredFieldName, desiredFieldOwner);
@@ -418,7 +434,7 @@ public class DepVariableWrapperUtil {
 		return false;
 	}
 	
-	private static Method getInvokedMethod(BytecodeInstruction instruction) {
+	public static Method getInvokedMethod(BytecodeInstruction instruction) {
 		boolean isMethodCall = instruction.isMethodCall();
 		if (!isMethodCall) {
 			return null;
@@ -548,6 +564,10 @@ public class DepVariableWrapperUtil {
 //		}
 		
 		List<BytecodeInstruction> instructions = getInstructionsFor(method);
+		if (instructions == null) {
+			return false;
+		}
+		
 		for (BytecodeInstruction instruction : instructions) {
 			// Three cases
 			// 1) Non-relevant instruction (ignore)
