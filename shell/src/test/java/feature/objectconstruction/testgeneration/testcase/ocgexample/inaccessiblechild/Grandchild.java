@@ -8,9 +8,9 @@ public class Grandchild {
 //	List<Object> someField;
 	GreatGrandchild greatGrandchild = new GreatGrandchild();
 	
-//	public void setGrandchildInteger(int int0) {
-//		greatGrandchild.setInteger(int0);
-//	}
+	public void setGrandchildInteger(int int0) {
+		greatGrandchild.setInteger(int0);
+	}
 	
 	public void setInteger(int int0) {
 		integer = int0;
