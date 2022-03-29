@@ -9,6 +9,7 @@ import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.synthesizer.VariableInTest;
+import org.evosuite.testcase.synthesizer.improvedsynth.Operation;
 import org.evosuite.testcase.variable.VariableReference;
 
 public class ThisVariableWrapper extends DepVariableWrapper {
@@ -19,7 +20,7 @@ public class ThisVariableWrapper extends DepVariableWrapper {
 
 	@Override
 	public VarRelevance generateOrFindStatement(TestCase test, boolean isLeaf, VariableInTest variable,
-			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue, Operation recommendation) {
 		List<VariableReference> list = new ArrayList<>();
 		VariableReference var = generateOrFind(test, isLeaf, variable.callerObject, map, b, allowNullValue);
 		if(var != null) {

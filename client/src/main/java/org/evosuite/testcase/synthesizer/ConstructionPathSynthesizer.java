@@ -8,20 +8,15 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
@@ -45,12 +40,12 @@ import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.synthesizer.improvedsynth.Operation;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
-import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 
 public class ConstructionPathSynthesizer {
@@ -183,7 +178,7 @@ public class ConstructionPathSynthesizer {
 			boolean isValid = checkDependency(node, map);
 			if(isValid) {
 				VariableInTest testVariable = getCallerObject(map, node);
-				deriveCodeForTest(map, test, testVariable, b, allowNullValue);
+				deriveCodeForTest(map, test, testVariable, b, allowNullValue, null);
 				
 				node.processed = true;
 				
@@ -232,7 +227,7 @@ public class ConstructionPathSynthesizer {
 		this.setGraph2CodeMap(map);
 	}
 
-	private void logTest(TestCase test, Branch b, boolean isDebugger, int iteration, DepVariableWrapper node) {
+	protected void logTest(TestCase test, Branch b, boolean isDebugger, int iteration, DepVariableWrapper node) {
 		if(!isDebugger) {
 			return;
 		}
@@ -270,7 +265,7 @@ public class ConstructionPathSynthesizer {
 		
 	}
 
-	private boolean checkDependency(DepVariableWrapper node, Map<DepVariableWrapper, VarRelevance> map) {
+	protected boolean checkDependency(DepVariableWrapper node, Map<DepVariableWrapper, VarRelevance> map) {
 		/**
 		 * ensure every parent of current node is visited in the map
 		 */
@@ -296,7 +291,7 @@ public class ConstructionPathSynthesizer {
 	 * 
 	 * Therefore, here, we need to find (1) the caller object and (2) additional nodes a call should cover
 	 */
-	private VariableInTest getCallerObject(Map<DepVariableWrapper, VarRelevance> map, DepVariableWrapper node) {
+	protected VariableInTest getCallerObject(Map<DepVariableWrapper, VarRelevance> map, DepVariableWrapper node) {
 		List<DepVariableWrapper> callerNodes = node.getCallerNode();
 		/**
 		 * for root nodes
@@ -361,13 +356,13 @@ public class ConstructionPathSynthesizer {
 //		
 //	}
 
-	private boolean deriveCodeForTest(Map<DepVariableWrapper, VarRelevance> map, TestCase test, 
-			VariableInTest testVariable, Branch b, boolean allowNullValue) 
+	protected boolean deriveCodeForTest(Map<DepVariableWrapper, VarRelevance> map, TestCase test, 
+			VariableInTest testVariable, Branch b, boolean allowNullValue, Operation recommendation) 
 					throws ClassNotFoundException, ConstructionFailedException{
 		DepVariableWrapper node = testVariable.getNode();
 		boolean isLeaf = node.children.isEmpty();
 		
-		VarRelevance relevance = node.generateOrFindStatement(test, isLeaf, testVariable, map, b, allowNullValue);
+		VarRelevance relevance = node.generateOrFindStatement(test, isLeaf, testVariable, map, b, allowNullValue, recommendation);
 //		List<VariableReference> generatedVariables = node.generateOrFindStatement(test, isLeaf, testVariable, map, b, allowNullValue);
 		if (relevance != null) {
 			VarRelevance rel = map.get(node);

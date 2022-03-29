@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Stack;
 
 import org.ejml.simple.SimpleMatrix;
 import org.evosuite.testcase.TestCase;
@@ -44,7 +45,7 @@ public class AccessibilityMatrixManager {
 	// Access should check first if there exists a path between the nodes.
 	// In our case, since we only consider (direct) adjacency, our access paths
 	// should always have node list of length 2 and a single operation (operations list of length 1).
-	private Map<NodePair, NodeAccessPath> nodesToPath = new HashMap<>();
+	private Map<ConstructionPlan, NodeAccessPath> nodesToPath = new HashMap<>();
 	
 	// Cache previously computed powers of the internalMatrix.
 	private Map<Integer, SimpleMatrix> powerCache = new HashMap<>();
@@ -57,6 +58,55 @@ public class AccessibilityMatrixManager {
 	
 	// Whether initialisation has been completed.
 	private boolean isInitialised = false;
+	
+	private List<ConstructionPlan> constructionPlans = new ArrayList<>();
+	
+	public void buildIndexOfGraphNodes(PartialGraph partialGraph) {
+		// SimpleMatrices are 0-indexed.
+		int currentNodeIndex = 0;
+		
+//		List<DepVariableWrapper> partialGraphNodes = partialGraph.getNodes();
+		
+		for(DepVariableWrapper root: partialGraph.getTopLayer()) {
+			boolean isAlreadyIndexed = nodeToIndex.containsKey(root);
+			if (isAlreadyIndexed) {
+				continue;
+			}
+			
+			_setIndexNodeMapping(root, currentNodeIndex);
+			currentNodeIndex++;
+			
+			Stack<DepVariableWrapper> stack = new Stack<DepVariableWrapper>();
+			stack.addAll(root.children);
+			
+			while(!stack.isEmpty()) {
+				DepVariableWrapper node = stack.pop();
+				
+				isAlreadyIndexed = nodeToIndex.containsKey(node);
+				if (isAlreadyIndexed) {
+					continue;
+				}
+				
+				_setIndexNodeMapping(node, currentNodeIndex);
+				currentNodeIndex++;
+				
+				if(!node.children.isEmpty()) {
+					stack.addAll(node.children);					
+				}
+			}
+		}
+		
+//		for (DepVariableWrapper node : partialGraphNodes) {
+//			// Shouldn't be, but defensive check.
+//			boolean isAlreadyIndexed = nodeToIndex.containsKey(node);
+//			if (isAlreadyIndexed) {
+//				continue;
+//			}
+//			
+//			_setIndexNodeMapping(node, currentNodeIndex);
+//			currentNodeIndex++;
+//		}
+	}
 	
 	/**
 	 * Initialises the accessibility matrix with a given partial graph.
@@ -72,22 +122,12 @@ public class AccessibilityMatrixManager {
 		
 		seedTestCase = testCase;
 		
-		// SimpleMatrices are 0-indexed.
-		int currentNodeIndex = 0;
-		List<DepVariableWrapper> partialGraphNodes = partialGraph.getNodes();
-		this.size = partialGraphNodes.size();
+		
+		
+		this.size = partialGraph.getNodes().size();
 		this.internalMatrix = new SimpleMatrix(this.size, this.size);
 		
-		for (DepVariableWrapper node : partialGraphNodes) {
-			// Shouldn't be, but defensive check.
-			boolean isAlreadyIndexed = nodeToIndex.containsKey(node);
-			if (isAlreadyIndexed) {
-				continue;
-			}
-			
-			_setIndexNodeMapping(node, currentNodeIndex);
-			currentNodeIndex++;
-		}
+		buildIndexOfGraphNodes(partialGraph);
 		
 		// Set all diagonal entries to 1
 		for (int i = 0; i < size; i++) {
@@ -120,7 +160,7 @@ public class AccessibilityMatrixManager {
 			NodeAccessPath nodeAccessPath = findPathBetween(node, descendant);
 			if (nodeAccessPath != null) {
 				_unsafeSet(_getIndexFor(node), _getIndexFor(descendant), true);
-				nodesToPath.put(new NodePair(node, descendant), nodeAccessPath);
+				nodesToPath.put(new ConstructionPlan(node, descendant), nodeAccessPath);
 			}
 		}
 	}
@@ -532,6 +572,14 @@ public class AccessibilityMatrixManager {
 	}
 	
 	public NodeAccessPath getNodeAccessPath(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		return nodesToPath.get(new NodePair(fromNode, toNode));
+		return nodesToPath.get(new ConstructionPlan(fromNode, toNode));
+	}
+
+	public List<ConstructionPlan> getConstructionPlans() {
+		return constructionPlans;
+	}
+
+	public void setConstructionPlans(List<ConstructionPlan> constructionPlans) {
+		this.constructionPlans = constructionPlans;
 	}
 }
