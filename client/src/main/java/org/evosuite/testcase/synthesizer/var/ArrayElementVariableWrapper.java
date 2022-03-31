@@ -22,7 +22,15 @@ import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.statements.AssignmentStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.NullStatement;
+import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
+import org.evosuite.testcase.statements.numeric.BooleanPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.BytePrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.CharPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.FloatPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.LongPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.ShortPrimitiveStatement;
 import org.evosuite.testcase.synthesizer.VariableInTest;
 import org.evosuite.testcase.synthesizer.improvedsynth.Operation;
 import org.evosuite.testcase.variable.ArrayIndex;
@@ -317,7 +325,6 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 					if(param != null) {
 						return param.getParameterPosition();
 					}
-					
 				}
 			}
 		}
@@ -455,10 +462,43 @@ public class ArrayElementVariableWrapper extends DepVariableWrapper {
 		return varList;
 	}
 
+	private PrimitiveStatement generatePrimitiveStatementFor(TestCase testCase, ArrayReference arrayRef) {
+		Class<?> arrayClass = arrayRef.getComponentClass();
+		// TODO: For now, only support numeric/string primitives
+		if (arrayClass.equals(boolean.class)) {
+			return new BooleanPrimitiveStatement(testCase, false);
+		} else if (arrayClass.equals(byte.class)) {
+			return new BytePrimitiveStatement(testCase, (byte) 0);
+		} else if (arrayClass.equals(double.class)) {
+			return new CharPrimitiveStatement(testCase, (char) 0);
+		} else if (arrayClass.equals(float.class)) {
+			return new FloatPrimitiveStatement(testCase, 0.0f);
+		} else if (arrayClass.equals(int.class)) {
+			return new IntPrimitiveStatement(testCase, 0);
+		} else if (arrayClass.equals(long.class)) {
+			return new LongPrimitiveStatement(testCase, 0L);
+		} else if (arrayClass.equals(short.class)) {
+			return new ShortPrimitiveStatement(testCase, (short) 0);
+		} else {
+			return null;
+		}
+	}
+	
 	private VariableReference createArrayElementVariable(TestCase test, ArrayReference arrayRef) {
 		Class<?> clazz = arrayRef.getComponentClass();
-		if(clazz.getConstructors().length < 1)
-			return null;
+		if (clazz.getConstructors().length < 1) {
+			if (clazz.isPrimitive()) {
+				try {
+					PrimitiveStatement primitiveStatement = generatePrimitiveStatementFor(test, arrayRef);
+					VariableReference returnedVar = TestFactory.getInstance().addPrimitive(test, primitiveStatement, arrayRef.getStPosition() + 1);
+					return returnedVar;
+				} catch (ConstructionFailedException e) { 
+					e.printStackTrace();
+				}
+			} else {
+				return null;
+			}
+		}
 		
 		Constructor<?> constructor = clazz.getConstructors()[0];
 		GenericConstructor gConstructor = new GenericConstructor(constructor,

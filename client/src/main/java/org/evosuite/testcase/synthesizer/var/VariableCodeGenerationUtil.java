@@ -168,6 +168,117 @@ public class VariableCodeGenerationUtil {
 		}
 	}
 	
+	/**
+	 * precondition: the target node is not a leaf.
+	 * @param test
+	 * @param targetObjectReference
+	 * @param map
+	 * @param fieldDeclaringClass
+	 * @param field
+	 * @param usedRefSearcher
+	 * @param branch
+	 * @return
+	 * @throws ConstructionFailedException
+	 */
+	public static VariableReference generateFieldGetterInTest(TestCase test, VariableReference targetObjectReference,
+			Map<DepVariableWrapper, VarRelevance> map, Class<?> fieldDeclaringClass, Field field, 
+			UsedReferenceSearcher usedRefSearcher, Method fieldGetter)
+			throws ConstructionFailedException {
+		/**
+		 * make sure this field has been set before get, 
+		 * otherwise we may have a null pointer exception after using the retrieved field.
+		 */
+		
+		boolean isPossibleToBeNull = checkNullOfField(test, field, fieldDeclaringClass, targetObjectReference);
+		
+		int insertionPostion = targetObjectReference.getStPosition() + 1;
+		if(isPossibleToBeNull) {
+			VariableReference fieldSetter = usedRefSearcher.searchRelevantFieldWritingReferenceInTest(test, field, targetObjectReference);
+			if(fieldSetter == null) {
+				try {
+					fieldSetter = generateFieldSetterInTest(test, targetObjectReference, map, fieldDeclaringClass, field, false);
+					if(fieldSetter != null) {
+						Statement s = test.getStatement(fieldSetter.getStPosition());
+						/**
+						 * if the field setter is a constructor, thus, the object represented by the field setter, o_new, should be
+						 * the target object reference as the field is now only relevant to o_new.
+						 */
+						if(s instanceof ConstructorStatement) {
+							ConstructorStatement cStat = (ConstructorStatement)s;
+							VariableReference relevantParam = null;
+//							if(cStat.getParameterReferences().size() == 1) {
+//								relevantParam = cStat.getParameterReferences().get(0);
+//							}
+							
+							for(VariableReference vRef: cStat.getParameterReferences()) {
+								if(vRef.getType().equals(field.getGenericType())) {
+									relevantParam = vRef;
+								}
+							}
+							
+							if(relevantParam != null) {
+								return relevantParam;
+							}
+							else {
+								List<VariableReference> pList = cStat.getParameterReferences();
+								UsedReferenceSearcher searcher = new UsedReferenceSearcher();
+								String methodName = cStat.getMethodName() + cStat.getDescriptor();
+//								List<VariableReference> params = 
+//										searcher.searchRelevantParameterOfSetterInTest(pList, fieldDeclaringClass.getCanonicalName(), methodName, field);
+								System.currentTimeMillis();
+								ParameterMatch result = searcher.searchRelevantParameterOfSetterInTest(fieldDeclaringClass.getCanonicalName(), methodName, field);
+								List<VariableReference> paramRefs = new ArrayList<>();
+								for(Integer index: result.parameterPoisitions) {
+									paramRefs.add(pList.get(index));
+								}
+								
+								if(!paramRefs.isEmpty()) {
+									return paramRefs.get(0);
+								}
+							}
+							
+							targetObjectReference = fieldSetter;
+						}
+					}
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				} catch (ConstructionFailedException e) {
+//					printConstructionError(test, null, b);
+					e.printStackTrace();
+				}
+			}
+			
+			
+			if(fieldSetter != null) {
+				insertionPostion = fieldSetter.getStPosition()+1;
+				if(targetObjectReference != null && 
+						targetObjectReference.getStPosition() > fieldSetter.getStPosition()) {
+					insertionPostion = targetObjectReference.getStPosition() + 1;
+				}
+			}
+			else if (targetObjectReference == null) {
+				MethodStatement mStat = test.findTargetMethodCallStatement();
+				insertionPostion = mStat.getPosition() - 1;
+			}
+			else {
+				insertionPostion = targetObjectReference.getStPosition() + 1;
+			}
+		}
+		
+		if (fieldGetter != null) {
+			VariableReference newParentVarRef = null;
+			GenericMethod gMethod = new GenericMethod(fieldGetter, fieldGetter.getDeclaringClass());
+			if (targetObjectReference == null) {
+				newParentVarRef = TestFactory.getInstance().addMethod(test, gMethod, insertionPostion, 2, false);
+			} else {
+				newParentVarRef = TestFactory.getInstance().addMethodFor(test, targetObjectReference, gMethod,
+						insertionPostion, false);
+			}
+			return newParentVarRef;
+		}
+		
+		return null;
+	}
 	
 	/**
 	 * precondition: the target node is not a leaf.
@@ -329,7 +440,7 @@ public class VariableCodeGenerationUtil {
 			}
 			catch (ConstructionFailedException e) {
 				e.printStackTrace();
-				return false;
+				return true;
 			}
 			
 		}
@@ -494,6 +605,57 @@ public class VariableCodeGenerationUtil {
 							}
 						}
 						
+					}
+					
+					return returnedVar;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	public static VariableReference generateFieldSetterInTest(TestCase test, VariableReference targetObjectReference,
+			Map<DepVariableWrapper, VarRelevance> map, Class<?> fieldDeclaringClass, Field field, boolean allowNullValue, Executable fieldSetter)
+			throws ClassNotFoundException, ConstructionFailedException {
+		if (fieldSetter != null && !isTarget(fieldSetter)) {
+			if (fieldSetter instanceof Method){
+				GenericMethod genericFieldSetter = new GenericMethod((Method) fieldSetter, fieldSetter.getDeclaringClass());
+				VariableReference generatedSetter = null;
+				if (targetObjectReference == null) {
+					MethodStatement methodStatement = test.findTargetMethodCallStatement();
+					generatedSetter = TestFactory.getInstance().addMethod(test, genericFieldSetter, methodStatement.getPosition() - 1, 2, allowNullValue);
+				} else {
+					generatedSetter = TestFactory.getInstance().addMethodFor(test, targetObjectReference, genericFieldSetter,
+							targetObjectReference.getStPosition() + 1, allowNullValue);
+				}
+				return generatedSetter;
+			} else if (fieldSetter instanceof Constructor) {
+				Statement constructorStatement = findConstructorStatement(test, (Constructor) fieldSetter, targetObjectReference);
+				if (constructorStatement != null) {
+					return constructorStatement.getReturnValue();
+				} else {
+					/**
+					 * check if the new instance can be set as a field of its parent.
+					 * if yes, we change the test,
+					 * otherwise, we do nothing.
+					 */
+					GenericConstructor gConstructor = new GenericConstructor((Constructor)fieldSetter,
+							fieldSetter.getDeclaringClass());
+					VariableReference returnedVar = TestFactory.getInstance().addConstructor(test, gConstructor,
+							targetObjectReference.getStPosition(), 2);
+					
+					for (int i = 0; i < test.size(); i++) {
+						Statement statement = test.getStatement(i);
+						if (statement.references(targetObjectReference)) {
+							if (returnedVar.getStPosition() < statement.getPosition()) {
+								statement.replace(targetObjectReference, returnedVar);
+								replaceMapFromNode2Code(map, targetObjectReference, returnedVar);
+							} else if (returnedVar.getStPosition() > statement.getPosition() 
+									&& statement.getPosition() != targetObjectReference.getStPosition()){
+								System.currentTimeMillis();
+							}
+						}
 					}
 					
 					return returnedVar;

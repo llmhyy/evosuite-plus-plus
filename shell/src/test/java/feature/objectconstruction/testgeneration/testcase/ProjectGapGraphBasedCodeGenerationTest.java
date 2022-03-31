@@ -61,7 +61,7 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 		
-		int branchConditionLineNumber = 30;
+		int branchConditionLineNumber = 29;
 //		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
 		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
 		
@@ -104,7 +104,7 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 	public void arrayElementAccessCase() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.arrayelementaccess.Parent.class;
 		String methodName = "method";
-		int numParams = 1;
+		int numParams = 0;
 		setupClassAndMethod(clazz, methodName, numParams);
 
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph();

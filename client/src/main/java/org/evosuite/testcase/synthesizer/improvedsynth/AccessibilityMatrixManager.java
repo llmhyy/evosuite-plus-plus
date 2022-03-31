@@ -12,6 +12,7 @@ import java.util.Queue;
 import java.util.Stack;
 
 import org.ejml.simple.SimpleMatrix;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.var.ArrayElementVariableWrapper;
@@ -33,10 +34,6 @@ public class AccessibilityMatrixManager {
 	// The backing matrix, uses EJML.
 	private SimpleMatrix internalMatrix;
 	
-	// Initial seed test case
-	// Used to validate getter/setters
-	private TestCase seedTestCase;
-	
 	// Internal mappings between OCG nodes and matrix row/column indices.
 	private Map<DepVariableWrapper, Integer> nodeToIndex = new HashMap<>();
 	private Map<Integer, DepVariableWrapper> indexToNode = new HashMap<>();
@@ -45,7 +42,7 @@ public class AccessibilityMatrixManager {
 	// Access should check first if there exists a path between the nodes.
 	// In our case, since we only consider (direct) adjacency, our access paths
 	// should always have node list of length 2 and a single operation (operations list of length 1).
-	private Map<ConstructionPlan, NodeAccessPath> nodesToPath = new HashMap<>();
+	private Map<NodePair, ConstructionPath> nodesToPath = new HashMap<>();
 	
 	// Cache previously computed powers of the internalMatrix.
 	private Map<Integer, SimpleMatrix> powerCache = new HashMap<>();
@@ -59,53 +56,29 @@ public class AccessibilityMatrixManager {
 	// Whether initialisation has been completed.
 	private boolean isInitialised = false;
 	
-	private List<ConstructionPlan> constructionPlans = new ArrayList<>();
-	
-	public void buildIndexOfGraphNodes(PartialGraph partialGraph) {
+	public void buildNodeIndexMappings(PartialGraph partialGraph) {
 		// SimpleMatrices are 0-indexed.
-		int currentNodeIndex = 0;
+		int currentNodeIndex = 0;		
+		Stack<DepVariableWrapper> stack = new Stack<DepVariableWrapper>();
+		for (DepVariableWrapper rootNode : partialGraph.getTopLayer()) {
+			stack.push(rootNode);
+		}
 		
-//		List<DepVariableWrapper> partialGraphNodes = partialGraph.getNodes();
-		
-		for(DepVariableWrapper root: partialGraph.getTopLayer()) {
-			boolean isAlreadyIndexed = nodeToIndex.containsKey(root);
+		while(!stack.isEmpty()) {
+			DepVariableWrapper node = stack.pop();
+			
+			boolean isAlreadyIndexed = nodeToIndex.containsKey(node);
 			if (isAlreadyIndexed) {
 				continue;
 			}
 			
-			_setIndexNodeMapping(root, currentNodeIndex);
+			_setIndexNodeMapping(node, currentNodeIndex);
 			currentNodeIndex++;
 			
-			Stack<DepVariableWrapper> stack = new Stack<DepVariableWrapper>();
-			stack.addAll(root.children);
-			
-			while(!stack.isEmpty()) {
-				DepVariableWrapper node = stack.pop();
-				
-				isAlreadyIndexed = nodeToIndex.containsKey(node);
-				if (isAlreadyIndexed) {
-					continue;
-				}
-				
-				_setIndexNodeMapping(node, currentNodeIndex);
-				currentNodeIndex++;
-				
-				if(!node.children.isEmpty()) {
-					stack.addAll(node.children);					
-				}
+			if(node.children != null && !node.children.isEmpty()) {
+				stack.addAll(node.children);					
 			}
 		}
-		
-//		for (DepVariableWrapper node : partialGraphNodes) {
-//			// Shouldn't be, but defensive check.
-//			boolean isAlreadyIndexed = nodeToIndex.containsKey(node);
-//			if (isAlreadyIndexed) {
-//				continue;
-//			}
-//			
-//			_setIndexNodeMapping(node, currentNodeIndex);
-//			currentNodeIndex++;
-//		}
 	}
 	
 	/**
@@ -115,19 +88,15 @@ public class AccessibilityMatrixManager {
 	 * 2) Compute the accessibility between adjacent nodes
 	 * @param partialGraph The {@code PartialGraph} to use for initialisation.
 	 */
-	public void initialise(PartialGraph partialGraph, TestCase testCase) {
+	public void initialise(PartialGraph partialGraph) {
 		if (isInitialised) {
 			return;
-		}
-		
-		seedTestCase = testCase;
-		
-		
+		}		
 		
 		this.size = partialGraph.getNodes().size();
 		this.internalMatrix = new SimpleMatrix(this.size, this.size);
 		
-		buildIndexOfGraphNodes(partialGraph);
+		buildNodeIndexMappings(partialGraph);
 		
 		// Set all diagonal entries to 1
 		for (int i = 0; i < size; i++) {
@@ -157,15 +126,15 @@ public class AccessibilityMatrixManager {
 		// Only attempt to find paths between node to descendants.
 		List<DepVariableWrapper> descendants = getAllDescendantsOf(node);
 		for (DepVariableWrapper descendant : descendants) {
-			NodeAccessPath nodeAccessPath = findPathBetween(node, descendant);
+			ConstructionPath nodeAccessPath = findPathBetween(node, descendant);
 			if (nodeAccessPath != null) {
 				_unsafeSet(_getIndexFor(node), _getIndexFor(descendant), true);
-				nodesToPath.put(new ConstructionPlan(node, descendant), nodeAccessPath);
+				nodesToPath.put(new NodePair(node, descendant), nodeAccessPath);
 			}
 		}
 	}
 	
-	private NodeAccessPath validateDirectFieldSet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {	
+	private ConstructionPath validateDirectFieldSet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {	
 		boolean isToNodeLeaf = toNode.children.isEmpty();
 		if (!isToNodeLeaf) {
 			return null;
@@ -188,15 +157,15 @@ public class AccessibilityMatrixManager {
 			return null;
 		}
 		
-		return new NodeAccessPathBuilder()
+		return new ConstructionPathBuilder()
 				.addToPath(fromNode)
 				.addToPath(toNode)
 				.addToOperations(new FieldAccess(toNodeField))
 				.build();
 	}
 	
-	private NodeAccessPath validateMethodCallSet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		NodeAccessPathBuilder builder = new NodeAccessPathBuilder()
+	private ConstructionPath validateMethodCallSet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		ConstructionPathBuilder builder = new ConstructionPathBuilder()
 				.addToPath(fromNode)
 				.addToPath(toNode);
 		
@@ -219,8 +188,8 @@ public class AccessibilityMatrixManager {
 		return null;
 	}
 	
-	private NodeAccessPath validateDirectFieldGet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		NodeAccessPathBuilder builder = new NodeAccessPathBuilder()
+	private ConstructionPath validateDirectFieldGet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		ConstructionPathBuilder builder = new ConstructionPathBuilder()
 				.addToPath(fromNode)
 				.addToPath(toNode);
 		
@@ -252,8 +221,8 @@ public class AccessibilityMatrixManager {
 				.build();
 	}
 	
-	private NodeAccessPath validateMethodCallGet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		NodeAccessPathBuilder builder = new NodeAccessPathBuilder()
+	private ConstructionPath validateMethodCallGet(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		ConstructionPathBuilder builder = new ConstructionPathBuilder()
 				.addToPath(fromNode)
 				.addToPath(toNode);
 		
@@ -276,7 +245,7 @@ public class AccessibilityMatrixManager {
 		return null;
 	}
 	
-	private NodeAccessPath findPathBetween(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+	private ConstructionPath findPathBetween(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
 		boolean isArrayElement = (toNode instanceof ArrayElementVariableWrapper);
 		boolean isField = (toNode instanceof FieldVariableWrapper);
 		boolean isOther = (toNode instanceof OtherVariableWrapper);
@@ -306,24 +275,46 @@ public class AccessibilityMatrixManager {
 		return null;
 	}
 	
-	private NodeAccessPath findPathToArrayElement(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		// TODO
-		return null;
+	private ConstructionPath findPathToArrayElement(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		// Highly complex topic
+		// For now, fall back on the original behaviour of the previous algorithm
+		// For reachability, we only mark as reachable if the fromNode is the direct parent of the toNode
+		// i.e. it's the array
+		boolean isDirectParent = (toNode.parents != null && toNode.parents.contains(fromNode));
+		if (!isDirectParent) {
+			return null;
+		}
+		if (!(toNode instanceof ArrayElementVariableWrapper)) {
+			return null;
+		}
+		ArrayElementVariableWrapper toNode2 = (ArrayElementVariableWrapper) toNode;
+		BytecodeInstruction indexInstruction = null;
+		try {
+			indexInstruction = toNode2.var.getInstruction().getPreviousInstruction();
+		} catch (NullPointerException e) {
+			return null;
+		}
+		
+		return new ConstructionPathBuilder()
+				.addToPath(fromNode)
+				.addToPath(toNode)
+				.addToOperations(new ArrayElementAccess(indexInstruction))
+				.build();
 	}
 	
 	// Handles the case when the toNode represents a field (is a FieldVariableWrapper)
-	private NodeAccessPath findPathToField(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+	private ConstructionPath findPathToField(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
 		boolean isToNodeLeaf = toNode.children.isEmpty();
 		// TODO 
 		// Edge case here: if the field is an array, it will not be a leaf node
 		// even if we wish to set it. What to do here?
 		if (isToNodeLeaf) {
-			NodeAccessPath firstAttempt = validateDirectFieldSet(fromNode, toNode);
+			ConstructionPath firstAttempt = validateDirectFieldSet(fromNode, toNode);
 			if (firstAttempt != null) {
 				return firstAttempt;
 			}
 			
-			NodeAccessPath secondAttempt = validateMethodCallSet(fromNode, toNode);
+			ConstructionPath secondAttempt = validateMethodCallSet(fromNode, toNode);
 			if (secondAttempt != null) {
 				return secondAttempt;
 			}
@@ -331,12 +322,12 @@ public class AccessibilityMatrixManager {
 			// Could just return secondAttempt, but want to make it explicit.
 			return null;
 		} else {
-			NodeAccessPath firstAttempt = validateDirectFieldGet(fromNode, toNode);
+			ConstructionPath firstAttempt = validateDirectFieldGet(fromNode, toNode);
 			if (firstAttempt != null) {
 				return firstAttempt;
 			}
 			
-			NodeAccessPath secondAttempt = validateMethodCallGet(fromNode, toNode);
+			ConstructionPath secondAttempt = validateMethodCallGet(fromNode, toNode);
 			if (secondAttempt != null) {
 				return secondAttempt;
 			}
@@ -345,7 +336,7 @@ public class AccessibilityMatrixManager {
 		}
 	}
 	
-	private NodeAccessPath findPathToOther(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+	private ConstructionPath findPathToOther(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
 		// Other here is either a method invocation or ALOAD/ALOAD_*/DUP/DUP2
 		// If it's a method invocation, then find the method and return a path with that method?
 		// If it's ALOAD/ALOAD_*/DUP/DUP2, then do nothing?
@@ -354,7 +345,7 @@ public class AccessibilityMatrixManager {
 		}
 		
 		try {
-			NodeAccessPathBuilder builder = new NodeAccessPathBuilder()
+			ConstructionPathBuilder builder = new ConstructionPathBuilder()
 					.addToPath(fromNode)
 					.addToPath(toNode);
 			boolean isMethodInvocation = (toNode.var.getInstruction().isMethodCall());
@@ -375,24 +366,24 @@ public class AccessibilityMatrixManager {
 		return node.var.getParamOrder();
 	}
 	
-	private NodeAccessPath findPathToParameter(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+	private ConstructionPath findPathToParameter(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
 		// We should always be able to access parameters from any node
 		// NodeAccessPath should just contain a ParameterAccess containing the parameter order
 		if (!(toNode instanceof ParameterVariableWrapper)) {
 			return null;
 		}
 		
-		return new NodeAccessPathBuilder()
+		return new ConstructionPathBuilder()
 				.addToPath(fromNode)
 				.addToPath(toNode)
 				.addToOperations(new ParameterReference(getParameterOrder((ParameterVariableWrapper) toNode)))
 				.build();
 	}
 	
-	private NodeAccessPath findPathToThis(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+	private ConstructionPath findPathToThis(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
 		// We can always access 'this' from anywhere in the caller object.
 		// NodeAccessPath should just contain a ThisReference
-		return new NodeAccessPathBuilder()
+		return new ConstructionPathBuilder()
 				.addToPath(fromNode)
 				.addToPath(toNode)
 				.addToOperations(new ThisReference())
@@ -571,15 +562,7 @@ public class AccessibilityMatrixManager {
 		return neighbours;
 	}
 	
-	public NodeAccessPath getNodeAccessPath(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
-		return nodesToPath.get(new ConstructionPlan(fromNode, toNode));
-	}
-
-	public List<ConstructionPlan> getConstructionPlans() {
-		return constructionPlans;
-	}
-
-	public void setConstructionPlans(List<ConstructionPlan> constructionPlans) {
-		this.constructionPlans = constructionPlans;
+	public ConstructionPath getNodeAccessPath(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+		return nodesToPath.get(new NodePair(fromNode, toNode));
 	}
 }

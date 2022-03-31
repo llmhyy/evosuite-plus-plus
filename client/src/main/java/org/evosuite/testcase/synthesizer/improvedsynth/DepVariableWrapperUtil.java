@@ -7,15 +7,19 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.FieldVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.ThisVariableWrapper;
+import org.evosuite.testcase.synthesizer.var.VarRelevance;
+import org.evosuite.testcase.variable.VariableReference;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
@@ -105,7 +109,7 @@ public class DepVariableWrapperUtil {
 		}
 	}
 	
-	private static Field extractFieldFrom(DepVariableWrapper node) {
+	public static Field extractFieldFrom(DepVariableWrapper node) {
 		if (!(node instanceof FieldVariableWrapper)) {
 			return null;
 		}
@@ -631,5 +635,36 @@ public class DepVariableWrapperUtil {
 		} catch (NoSuchFieldException e) {
 			return null;
 		}
+	}
+	
+	public static VarRelevance getVarRelevanceFrom(ThisVariableWrapper node, TestCase testCase, Map<DepVariableWrapper, VarRelevance> nodeToVarRelevance) {
+		VariableReference generatedVariable = null;
+		
+		if (node.parents.isEmpty()) {
+			MethodStatement methodStatement = testCase.findTargetMethodCallStatement();
+			if(methodStatement != null) {
+				generatedVariable = methodStatement.getCallee();
+			}
+		} else {
+			for (DepVariableWrapper parentNode: node.parents) {
+				if (nodeToVarRelevance.get(parentNode) != null) {
+					generatedVariable = nodeToVarRelevance.get(parentNode).matchedVars.get(0);
+				}
+			}
+		}
+		List<VariableReference> variableReferences = new ArrayList<>();
+		if (generatedVariable != null) {
+			variableReferences.add(generatedVariable);
+		}
+		return new VarRelevance(variableReferences, variableReferences);
+	}
+	
+	public static VarRelevance generateVarRelevanceFrom(VariableReference variableReference) {
+		List<VariableReference> list = new ArrayList<>();
+		if (variableReference != null) {
+			list.add(variableReference);
+		}
+		
+		return new VarRelevance(list, list);
 	}
 }

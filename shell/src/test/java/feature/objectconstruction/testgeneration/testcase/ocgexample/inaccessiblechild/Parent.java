@@ -26,8 +26,7 @@ public class Parent {
 	}
 	
 	public void method() {
-		if ((this.child.grandchild.integer != 0) 
-				&& (this.child.grandchild.greatGrandchild.integer != 0)) {
+		if ((this.child.grandchild.integer != 0) && (this.child.grandchild.greatGrandchild.integer != 0)) {
 			System.currentTimeMillis();
 		}
 	}

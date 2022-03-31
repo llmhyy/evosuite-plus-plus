@@ -3,7 +3,7 @@ package feature.objectconstruction.testgeneration.testcase.ocgexample.arrayeleme
 public class Grandchild {
 	int[] integerArray = new int[10];
 	
-	public void setIntegerArray(int index) {
-		integerArray[index] = 5;
+	public int[] getIntegerArray() {
+		return integerArray;
 	}
 }

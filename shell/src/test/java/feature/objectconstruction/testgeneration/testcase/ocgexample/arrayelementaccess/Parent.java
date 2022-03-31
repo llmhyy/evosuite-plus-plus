@@ -3,12 +3,12 @@ package feature.objectconstruction.testgeneration.testcase.ocgexample.arrayeleme
 public class Parent {
 	private Child child = new Child();
 	
-	public Grandchild getGrandchild() {
-		return child.grandchild;
+	public Child getChild() {
+		return child;
 	}
 	
-	public void method(int index) {
-		if (this.child.grandchild.integerArray[index] != 0) {
+	public void method() {
+		if (this.child.grandchild.integerArray[3] != 0) {
 			System.currentTimeMillis();
 		}
 	}

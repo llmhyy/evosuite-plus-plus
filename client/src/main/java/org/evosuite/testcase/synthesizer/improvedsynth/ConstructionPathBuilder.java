@@ -5,25 +5,25 @@ import java.util.List;
 
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 
-public class NodeAccessPathBuilder {
+public class ConstructionPathBuilder {
 	List<DepVariableWrapper> path = new ArrayList<>();
 	List<Operation> operations = new ArrayList<>();
 	
-	public NodeAccessPathBuilder() {
+	public ConstructionPathBuilder() {
 		
 	}
 	
-	public NodeAccessPathBuilder addToPath(DepVariableWrapper node) {
+	public ConstructionPathBuilder addToPath(DepVariableWrapper node) {
 		path.add(node);
 		return this;
 	}
 	
-	public NodeAccessPathBuilder addToOperations(Operation operation) {
+	public ConstructionPathBuilder addToOperations(Operation operation) {
 		operations.add(operation);
 		return this;
 	}
 	
-	public NodeAccessPath build() {
-		return new NodeAccessPath(operations, path);
+	public ConstructionPath build() {
+		return new ConstructionPath(operations, path);
 	}
 }
