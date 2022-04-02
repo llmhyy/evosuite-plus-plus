@@ -144,7 +144,15 @@ public class DepVariableWrapperUtil {
 	
 	private static Class<?> extractArrayType(String fieldType) {
 		int dimension = getDimensionOfArrayFieldType(fieldType);
-		Class<?> baseClass = extractClassFrom(fieldType.replace("[", ""));
+		String formattedFieldType = fieldType
+				.replace("[", "")
+				.replace("/", ".")
+				.replace(";", "");
+		if (formattedFieldType.startsWith("L")) {
+			formattedFieldType = formattedFieldType.substring(1);
+		}
+		
+		Class<?> baseClass = extractClassFrom(formattedFieldType);
 		Class<?> toReturn = baseClass;
 		for (int i = 0; i < dimension; i++) {
 			toReturn = Array.newInstance(toReturn, 0).getClass();
