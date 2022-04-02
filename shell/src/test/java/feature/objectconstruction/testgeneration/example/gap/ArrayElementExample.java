@@ -7,7 +7,7 @@ public class ArrayElementExample {
 	
 	public void arrayElementAccess() {
 		boolean b = strList.remove("a very special string");
-		if(b) {
+		if (b) {
 			System.currentTimeMillis();
 		}
 	}

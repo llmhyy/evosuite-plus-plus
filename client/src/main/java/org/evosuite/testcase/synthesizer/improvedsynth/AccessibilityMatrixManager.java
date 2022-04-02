@@ -145,7 +145,13 @@ public class AccessibilityMatrixManager {
 			return null;
 		}
 		
-		Field toNodeField = DepVariableWrapperUtil.extractFieldFrom(fromNode, toNode);
+		Field toNodeField = null;
+		try {
+			toNodeField = DepVariableWrapperUtil.extractFieldFrom(fromNode, toNode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		if (toNodeField == null) {
 			return null;
 		}
@@ -170,7 +176,16 @@ public class AccessibilityMatrixManager {
 				.addToPath(toNode);
 		
 		boolean isPathFound = false;
-		Class<?> toNodeClass = DepVariableWrapperUtil.extractClassFrom(toNode);
+		Class<?> toNodeClass = null;
+		try {
+			toNodeClass = DepVariableWrapperUtil.extractClassFrom(toNode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (toNodeClass == null) {
+			return null;
+		}
+		
 		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsAccepting(fromNode, toNodeClass);
 		for (Method candidateMethod : candidateMethods) {
 			boolean isValidSetter = DepVariableWrapperUtil.testFieldSetter(candidateMethod, toNode);
@@ -200,12 +215,17 @@ public class AccessibilityMatrixManager {
 		// Direct field gets are only possible if
 		// 1) The toNode is a direct child of the fromNode
 		// 2) The field is public
-		boolean isDirectChild = fromNode.children.contains(toNode);
+		boolean isDirectChild = fromNode.children != null && fromNode.children.contains(toNode);
 		if (!isDirectChild) {
 			return null;
 		}
 		
-		Field toNodeField = DepVariableWrapperUtil.extractFieldFrom(fromNode, toNode);
+		Field toNodeField = null;
+		try {
+			toNodeField = DepVariableWrapperUtil.extractFieldFrom(fromNode, toNode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if (toNodeField == null) {
 			return null;
 		}
@@ -227,7 +247,16 @@ public class AccessibilityMatrixManager {
 				.addToPath(toNode);
 		
 		boolean isPathFound = false;
-		Class<?> toNodeClass = DepVariableWrapperUtil.extractClassFrom(toNode);
+		Class<?> toNodeClass = null;
+		try {
+			toNodeClass = DepVariableWrapperUtil.extractClassFrom(toNode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (toNodeClass == null) {
+			return null;
+		}
+		
 		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsReturning(fromNode, toNodeClass);
 		for (Method candidateMethod : candidateMethods) {
 			boolean isValidGetter = DepVariableWrapperUtil.testFieldGetter(candidateMethod, toNode);
