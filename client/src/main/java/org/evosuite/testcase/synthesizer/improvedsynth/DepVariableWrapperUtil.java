@@ -1,6 +1,7 @@
 package org.evosuite.testcase.synthesizer.improvedsynth;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -8,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
@@ -20,6 +20,7 @@ import org.evosuite.testcase.synthesizer.var.FieldVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.ThisVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.VariableReference;
+import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
@@ -117,7 +118,7 @@ public class DepVariableWrapperUtil {
 		try {
 			String fieldName = extractFieldName(node);
 			String fieldOwner = extractFieldOwner(node);
-			String fieldType = extractFieldType(node);
+//			String fieldType = extractFieldType(node);
 			Class<?> fieldOwnerClass = extractClassFrom(fieldOwner);
 			Field field = fieldOwnerClass.getDeclaredField(fieldName);
 			
@@ -324,13 +325,37 @@ public class DepVariableWrapperUtil {
 	    return formattedSignature;
 	}
 	
+	@SuppressWarnings("rawtypes")
+	private static void registerAllMethodsFor(Class<?> clazz) {
+		try {
+			for (Method method : clazz.getDeclaredMethods()) {
+				String methodName = method.getName() + MethodUtil.getSignature(method);
+				MethodUtil.registerMethod(clazz, methodName);
+			}
+			
+			for (Constructor constructor : clazz.getDeclaredConstructors()) {
+				String constructorName = "<init>" + MethodUtil.getSignature(constructor);
+				MethodUtil.registerMethod(clazz, constructorName);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private static List<BytecodeInstruction> getInstructionsFor(Method method) {
 		Class<?> clazz = method.getDeclaringClass();
 		String className = clazz.getCanonicalName();
 		String methodName = getSignatureOf(method);
 		
 		BytecodeInstructionPool bytecodeInstructionPool = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT());
+		boolean isClassRecordedInPool = bytecodeInstructionPool.knownClasses().contains(className);
+		if (!isClassRecordedInPool) {
+			// If the class doesn't show up in the pool, try recording it?
+			// Experimental
+			registerAllMethodsFor(clazz);
+		}
 		List<BytecodeInstruction> instructions = bytecodeInstructionPool.getInstructionsIn(className, methodName);
+		
 		
 		// Typically this occurs when the method accepts a generic type
 		// We need to strip the generic type information to match what's seen by the InstrumentingClassLoader
@@ -351,6 +376,7 @@ public class DepVariableWrapperUtil {
 		return instructions;
 	}
 	
+	@SuppressWarnings("unused")
 	private static boolean isInstructionGettingField(BytecodeInstruction instruction, DepVariableWrapper node) {
 		String desiredFieldName = extractFieldName(node);
 		String desiredFieldOwner = extractFieldOwner(node).replace(".", "/");
@@ -408,6 +434,11 @@ public class DepVariableWrapperUtil {
 	
 	public static boolean testFieldGetter(Method method, Field field) {
 		List<BytecodeInstruction> instructions = getInstructionsFor(method);
+		if (instructions == null) {
+			// Error state, panic
+			return false;
+		}
+		
 		for (BytecodeInstruction instruction : instructions) {
 			boolean isGetfieldForField = isInstructionGettingField(instruction, field);
 			if (isGetfieldForField) {
@@ -480,6 +511,7 @@ public class DepVariableWrapperUtil {
 	}
 	
 	// Assumes signature has already been stripped of method name (begins with '(')
+	@SuppressWarnings("unused")
 	private static int getParameterCountFromSignature(String signature) {
 		List<String> sigAsList = Arrays.asList(signature.split(""));
 		int paramCount = 0;
