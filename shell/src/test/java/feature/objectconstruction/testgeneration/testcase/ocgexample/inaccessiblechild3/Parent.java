@@ -1,11 +1,7 @@
 package feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild3;
 
 public class Parent {
-	private Child child;
-	
-	public Parent(Child child) {
-		this.child = child;
-	}
+	private Child child = new Child();
 	
 	public Grandchild getGrandchild() {
 		return this.child.getGrandchild();
