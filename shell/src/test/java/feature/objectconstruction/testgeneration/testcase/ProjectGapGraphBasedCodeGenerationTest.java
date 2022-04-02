@@ -85,6 +85,22 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 	}
 	
 	@Test
+	public void inaccessibleChild3() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild3.Parent.class;
+		String methodName = "method";
+		int numParams = 0;
+		setupClassAndMethod(clazz, methodName, numParams);
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		int branchConditionLineNumber = 15;
+//		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
+		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
+		
+		generateCode0(b, false, false);
+	}
+	
+	@Test
 	public void directLeafNodeSetter() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.directsetleafnode.Parent.class;
 		String methodName = "method";
