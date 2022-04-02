@@ -8,11 +8,11 @@ public class Parent {
 	}
 	
 	public Grandchild getGrandchild() {
-		return this.child.grandchild;
+		return this.child.getGrandchild();
 	}
 	
 	public void method() {
-		if ((this.child.grandchild.integer != 0) && (this.child.grandchild.greatGrandchild.integer != 0)) {
+		if ((this.child.getGrandchild().getInteger() != 0) && (this.child.getGrandchild().getGreatGrandchild().getInteger() != 0)) {
 			System.currentTimeMillis();
 		}
 	}
