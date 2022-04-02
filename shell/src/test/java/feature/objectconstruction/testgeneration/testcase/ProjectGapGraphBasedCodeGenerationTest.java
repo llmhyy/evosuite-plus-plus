@@ -9,13 +9,11 @@ import org.evosuite.coverage.branch.Branch;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.improvedsynth.DepVariableWrapperUtil;
 import org.evosuite.utils.MethodUtil;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import common.TestUtil;
 import common.TestUtility;
-import feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild.Parent;
 
 public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 	@Before
@@ -48,6 +46,25 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		Branch b = TestUtil.searchBranch(rankedList, 10);
 		
 		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		generateCode(b, false, false);
+	}
+	
+	@Test
+	public void testGap2() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.objectconstruction.testgeneration.example.gap.ArrayElementExample.class;
+		
+		Properties.TARGET_CLASS = clazz.getCanonicalName();
+
+		Method method = TestUtility.getTargetMethod("arrayElementAccess", clazz, 0);
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+
+		Properties.TARGET_METHOD = targetMethod;
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		Branch b = TestUtil.searchBranch(rankedList, 10);
+		
+		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
 		generateCode0(b, false, false);
 	}
 	
@@ -60,6 +77,8 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		setupClassAndMethod(clazz, methodName, numParams);
 
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		System.out.println("test");
 		
 		int branchConditionLineNumber = 29;
 //		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
