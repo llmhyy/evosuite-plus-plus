@@ -109,6 +109,32 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testNewApproach() {
+		String projectId = SF100Project.P43;
+		String[] targetMethods = new String[]{
+//			"ch.bluepenguin.tapestry.components.menu.renderer.impl.HyperlinkMenuItemRenderer#startRender(Lorg/apache/tapestry/IMarkupWriter;Lch/bluepenguin/tapestry/components/menu/model/IMenuItem;)V"
+//			"dash.performance.sequential.consumers.DirectConsumer#getComponent()Ldash/examples/component/IComponent;"
+//			"com.objectmentors.state.Event#equals(Lcom/objectmentors/state/Event;)Z"
+			"de.huxhorn.lilith.services.clipboard.AccessUriFormatter#isCompatible(Ljava/lang/Object;)Z"
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 300;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
 	public void testJiggler() {
 		String projectId = SF100Project.P89;
 		String[] targetMethods = new String[]{

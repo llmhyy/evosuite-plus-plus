@@ -57,6 +57,8 @@ import org.evosuite.utils.generic.GenericField;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.FieldInsnNode;
 
+import javassist.compiler.ast.FieldDecl;
+
 public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthesizer {
 	private AccessibilityMatrixManager accessibilityMatrixManager;
 	
@@ -499,6 +501,15 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 			return;
 		}
 		
+		// If the field is primitive, we need to change the value of "fieldType"
+		// The field type encoding that VariableCodeGenerationUtil.generatePublicFieldSetterOrGetter
+		// expects is the JNI style field types (e.g. I for int), which is not what field.getType().getCanonicalName()
+		// returns (e.g. "int" for int). Hence, we need to "translate" it back
+		if (field.getType().isPrimitive()) {
+			fieldType = translatePrimitiveTypeToJniStyle(fieldType);
+		}
+		// TODO: Check if the method expects JNI style field types for e.g. arrays
+		
 		// Try three times before we give up
 		for (int i = 0; i < 3; i++) {
 			try {
@@ -508,6 +519,29 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 			} catch(ConstructionFailedException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	private String translatePrimitiveTypeToJniStyle(String fieldType) {
+		switch (fieldType) {
+		case "boolean":
+			return "Z";
+		case "byte":
+			return "B";
+		case "char":
+			return "C";
+		case "short":
+			return "S";
+		case "int":
+			return "I";
+		case "long":
+			return "J";
+		case "float":
+			return "F";
+		case "double":
+			return "D";
+		default:
+			return fieldType;
 		}
 	}
 	

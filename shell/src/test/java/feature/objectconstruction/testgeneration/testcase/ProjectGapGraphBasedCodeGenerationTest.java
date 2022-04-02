@@ -68,7 +68,23 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		generateCode0(b, false, false);
 	}
 	
+	@Test
+	public void parameterRef() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.parameterref.Parent.class;
+		String methodName = "method";
+		int numParams = 1;
+		setupClassAndMethod(clazz, methodName, numParams);
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		int branchConditionLineNumber = 15;
+//		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
+		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
+		
+		generateCode0(b, false, false);
+	}
 	
+	// Test inaccessible child
 	@Test
 	public void inaccessibleChild() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild.Parent.class;
@@ -81,6 +97,40 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		System.out.println("test");
 		
 		int branchConditionLineNumber = 29;
+//		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
+		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
+		
+		generateCode0(b, false, false);
+	}
+	
+	// Test null fields that need to be set during construction
+	@Test
+	public void inaccessibleChild2() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild2.Parent.class;
+		String methodName = "method";
+		int numParams = 0;
+		setupClassAndMethod(clazz, methodName, numParams);
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		int branchConditionLineNumber = 15;
+//		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
+		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
+		
+		generateCode0(b, false, false);
+	}
+	
+	// Test direct field access
+	@Test
+	public void inaccessibleChild3() throws ClassNotFoundException, RuntimeException {
+		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild3.Parent.class;
+		String methodName = "method";
+		int numParams = 0;
+		setupClassAndMethod(clazz, methodName, numParams);
+
+		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
+		
+		int branchConditionLineNumber = 15;
 //		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
 		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
 		

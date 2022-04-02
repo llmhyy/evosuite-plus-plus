@@ -44,6 +44,7 @@ import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
+import org.evosuite.testcase.synthesizer.improvedsynth.ImprovedConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.VariableReference;
@@ -59,7 +60,9 @@ import org.slf4j.LoggerFactory;
  * @author Gordon Fraser
  */
 public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome> {
-
+	public static final boolean IS_USE_NEW_APPROACH = true;
+	private static final String SYNTH_USED = IS_USE_NEW_APPROACH ? "ImprovedConstructionPathSynthesizer" : "ConstructionPathSynthesizer";
+	
 	public static int legitimizationTrials = 0;
 	public static int legitimizationSuccess = 0;
 	
@@ -155,14 +158,19 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 				try {
 					System.currentTimeMillis();
 					long t0 = System.currentTimeMillis();
-					ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(false);
+					ConstructionPathSynthesizer cpSynthesizer;
+					if (IS_USE_NEW_APPROACH) {
+						cpSynthesizer = new ImprovedConstructionPathSynthesizer(false);
+					} else {
+						cpSynthesizer = new ConstructionPathSynthesizer(false);
+					}
 					cpSynthesizer.buildNodeStatementCorrespondence(test, b, allowNullValue);
 					if(!allowNullValue) {
 						mutateNullStatements(test);						
 					}
 					long t1 = System.currentTimeMillis();
-					logger.warn("construction time: " + (t1-t0));
-					logger.warn("graph size: " + cpSynthesizer.getPartialGraph().getGraphSize());
+					logger.warn("[" + SYNTH_USED + "] " + "construction time: " + (t1-t0));
+					logger.warn("[" + SYNTH_USED + "] " + "graph size: " + cpSynthesizer.getPartialGraph().getGraphSize());
 					
 					if(cpSynthesizer.getPartialGraph().getGraphSize() == 0) {
 						System.currentTimeMillis();

@@ -1045,9 +1045,16 @@ public class TestCluster {
 			}
 			generator = Randomness.choice(generators);
 		} else {
-			if (!hasGenerator(clazz))
+			if (!hasGenerator(clazz)) {
+				if (clazz.getBoxedType().equals(Object.class)) {
+					// Special case for Object.class
+					// Return the default constructor
+					GenericConstructor objectConstructor = new GenericConstructor(Object.class.getConstructors()[0], Object.class);
+					return objectConstructor;
+				}
+			
 				throw new ConstructionFailedException("No generators of type " + clazz);
-
+			}
 			generator = Randomness.choice(generatorCache.get(clazz));
 		}
 

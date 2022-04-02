@@ -439,7 +439,8 @@ public class VariableCodeGenerationUtil {
 				
 			}
 			catch (ConstructionFailedException e) {
-				e.printStackTrace();
+				// The stack traces aren't even of interest to us in this case
+				// Skip printing the stack traces
 				return true;
 			}
 			
@@ -869,7 +870,7 @@ public class VariableCodeGenerationUtil {
 		}
 	}
 	
-	public static VariableReference generatePublicFieldSetterOrGetter(TestCase test, VariableReference targetObjectReference,
+public static VariableReference generatePublicFieldSetterOrGetter(TestCase test, VariableReference targetObjectReference,
 			String fieldType, GenericField genericField, boolean allowNullValue) throws ConstructionFailedException {
 		AbstractStatement stmt;
 		if (CollectionUtil.existIn(fieldType, "Z", "B", "C", "S", "I", "J", "F", "D")) {
