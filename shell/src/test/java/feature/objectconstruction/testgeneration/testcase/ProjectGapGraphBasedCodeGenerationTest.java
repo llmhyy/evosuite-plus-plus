@@ -51,7 +51,7 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		generateCode0(b, false, false);
 	}
 	
-	
+	// Test inaccessible child
 	@Test
 	public void inaccessibleChild() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild.Parent.class;
@@ -68,6 +68,7 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		generateCode0(b, false, false);
 	}
 	
+	// Test null fields that need to be set during construction
 	@Test
 	public void inaccessibleChild2() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild2.Parent.class;
@@ -84,6 +85,7 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		generateCode0(b, false, false);
 	}
 	
+	// Test direct field access
 	@Test
 	public void inaccessibleChild3() throws ClassNotFoundException, RuntimeException {
 		Class<?> clazz = feature.objectconstruction.testgeneration.testcase.ocgexample.inaccessiblechild3.Parent.class;
