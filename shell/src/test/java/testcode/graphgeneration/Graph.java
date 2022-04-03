@@ -20,6 +20,7 @@ import guru.nidi.graphviz.attribute.Rank.RankDir;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.LinkSource;
+import testcode.graphgeneration.model.ClassModel;
 
 public class Graph {
 	public static String path = "D://linyun/";
@@ -256,8 +257,6 @@ public class Graph {
 	}
 
 	public void labelAccessibility() {
-		// TODO Darien
-		
 		/**
 		 * for every pair of ancestor-descendant, we random decide whether the ancestor can access descendant
 		 * store the relation in {@code this.accessbilityMap},
@@ -313,10 +312,30 @@ public class Graph {
 	}
 
 	public void generateCode() {
-		// TODO Auto-generated method stub
+		// TODO Darien
 		
+		/**
+		 * step 1: build an intermediate model to describe the relations of class, field, method
+		 */
+		ClassModel classModel = parseModel();
+		
+		
+		/**
+		 * step 2: generate public method to access
+		 */
+		classModel.enhance(this.accessibilityMap);
+		
+		/**
+		 * step 3: generate graph
+		 */
+		classModel.transformToCode();
 	}
 	
+	private ClassModel parseModel() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public List<GraphNode> getDescendantsOf(GraphNode node) {
 		List<GraphNode> descendants = new ArrayList<>();
 		descendants.addAll(node.getChildren());
