@@ -35,7 +35,7 @@ public class OCGGenerator {
 		
 		int count = 0;
 		
-		for(int layer=0; layer<depth; layer++) {
+		for (int layer = 0; layer < depth; layer++) {
 			/**
 			 * at least one node at each layer
 			 */
@@ -43,36 +43,35 @@ public class OCGGenerator {
 			randomWidth = Math.max(1, randomWidth);
 			
 			ArrayList<GraphNode> list = new ArrayList<GraphNode>();
-			for(int i=0; i<randomWidth; i++) {
+			for (int i = 0; i < randomWidth; i++) {
 				GraphNode node = new GraphNode(count++);
 				
-				if(layer != 0) {
+				if (layer != 0) {
 					/**
 					 * shall guarantee parents still have the quota of children
 					 */
 					int parentNum = Math.max(1, RANDOM.nextInt(maxParentNum - node.getParents().size()));
-					for(int k=0; k<parentNum; k++) {
+					for (int k = 0; k < parentNum; k++) {
 						GraphNode selectedParent = selectParent(graphLayers, layer);
-						if(selectedParent!=null &&
-								selectedParent.getChildren().size()<this.maxChildNum && 
-								node.getParents().size()<this.maxParentNum) {
+						if (selectedParent!=null &&
+								selectedParent.getChildren().size() < this.maxChildNum && 
+								node.getParents().size() < this.maxParentNum) {
 							selectedParent.addChild(node);							
 							node.addParent(selectedParent);
 						}
 					}
-					
 				}
 				
-				if(allowLoop) {
+				if (allowLoop) {
 					double r = RANDOM.nextDouble();
-					if(r<0.1) {
+					if (r < 0.1) {
 						/**
 						 * generate loop
 						 */
 						GraphNode parent = selectParentForLoop(graphLayers, layer);
-						if(parent!=null && 
-								parent.getParents().size()<this.maxParentNum &&
-								node.getChildren().size()<this.maxChildNum){
+						if (parent != null && 
+								parent.getParents().size() < this.maxParentNum &&
+								node.getChildren().size() < this.maxChildNum) {
 							parent.addParent(node);
 							node.addChild(parent);
 						}

@@ -103,5 +103,8 @@ public class GraphNode {
 				this.children.size()==1;
 	}
 
-	
+	@Override
+	public String toString() { 
+		return "(" + this.index + "," + this.nodeType.getType() + "," + this.nodeType.getName() + ")";
+	}
 }

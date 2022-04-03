@@ -5,13 +5,13 @@ import static guru.nidi.graphviz.model.Factory.node;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-
-import org.apache.commons.collections.map.HashedMap;
 
 import guru.nidi.graphviz.attribute.Rank;
 import guru.nidi.graphviz.attribute.Rank.RankDir;
@@ -22,7 +22,17 @@ import guru.nidi.graphviz.model.LinkSource;
 public class Graph {
 	public static String path = "D://linyun/";
 	private List<GraphNode> nodeSet = new ArrayList<>();
-	private Map<GraphNode, List<GraphNode>> accessbilityMap = new HashedMap();
+	private Map<GraphNode, List<GraphNode>> accessibilityMap = new HashMap();
+	private static final String[] PRIMITIVE_TYPES = {
+			"boolean",
+			"byte",
+			"char",
+			"short",
+			"float",
+			"double",
+			"int",
+			"long"
+	};
 
 	public void addNode(GraphNode node) {
 		if(!nodeSet.contains(node)) {
@@ -73,8 +83,10 @@ public class Graph {
 		guru.nidi.graphviz.model.Graph g = graph(fileName).directed().graphAttr()
 				.with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
 		try {
-			File f = new File(path + folderName + File.separator + fileName + ".png");
+			String filePath = path + folderName + File.separator + fileName + ".png";
+			File f = new File(filePath);
 			Graphviz.fromGraph(g).height(resolution).render(Format.PNG).toFile(f);
+			System.out.println("Saved graph to " + filePath);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -106,8 +118,10 @@ public class Graph {
 		guru.nidi.graphviz.model.Graph g = graph(fileName).directed().graphAttr()
 				.with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
 		try {
-			File f = new File(path + folderName + File.separator + fileName + ".png");
+			String filePath = path + folderName + File.separator + fileName + ".png";
+			File f = new File(filePath);
 			Graphviz.fromGraph(g).height(resolution).render(Format.PNG).toFile(f);
+			System.out.println("Saved graph to " + filePath);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -208,8 +222,7 @@ public class Graph {
 	}
 
 	private String randomPrimitiveType() {
-		// TODO Darien, please create more enriched primitive type
-		return "int";
+		return PRIMITIVE_TYPES[OCGGenerator.RANDOM.nextInt(PRIMITIVE_TYPES.length)];
 	}
 
 	private NodeType generateNodeType(Relation relation, String type, GraphNode node) {
@@ -239,11 +252,66 @@ public class Graph {
 		 * use OCGGenerator.RANDOM to for the random algorithm for debugging.
 		*/
 		
+		// We assume here that the accessibility map only records "first-hop" accessibility
+		// e.g. that A -> C if there is some method call/field access/etc. that returns us B from an instance of A
+		// This thus requires that A be one of
+		// 1) Object (only for field access, method call)
+		// 2) Array (only for array element access, type must be enforced)
+		// TODO: What do we do about parameters?
+		// We also need to enforce that some ancestor-descendant pairs are always accessible
+		// e.g. array -> array element
+		Queue<GraphNode> queue = new ArrayDeque<>();
+		for (GraphNode topLayerNode : this.getTopLayer()) {
+			queue.offer(topLayerNode);
+		}
+		while (!queue.isEmpty()) {
+			GraphNode ancestor = queue.poll();
+			if (!accessibilityMap.containsKey(ancestor)) {
+				accessibilityMap.put(ancestor, new ArrayList<>());
+			}
+			List<GraphNode> descendants = getDescendantsOf(ancestor);
+			NodeType ancestorNodeType = ancestor.getNodeType();
+			// Simple heuristics
+			// Starts with "Class" = object
+			// Ends with "[]" = array (we only consider the 1D case)
+			// Otherwise primitive
+			boolean isAncestorObject = ancestorNodeType.getType().startsWith("Class");
+			boolean isAncestorArray = ancestorNodeType.getType().endsWith("[]");
+			for (GraphNode descendant : descendants) {
+				if (isAncestorObject) {
+					// We assume that if the ancestor is object, all such ancestor-descendant pairs
+					// are valid, just add it into the map if RANDOM > 0.5
+					if (OCGGenerator.RANDOM.nextFloat() > 0.5) {
+						accessibilityMap.get(ancestor).add(descendant);
+					}
+				} else if (isAncestorArray) {
+					// Only allow array element if it's direct child
+					boolean isDescendantArrayElement = descendant.getNodeType().getName().contains("ARRAY_ELEMENT");
+					boolean isDescendantDirectChild = ancestor.getChildren().contains(descendant);
+					if (isDescendantArrayElement && isDescendantDirectChild) {
+						accessibilityMap.get(ancestor).add(descendant);
+					}
+				}
+			}
+			
+			for (GraphNode child : ancestor.getChildren()) {
+				queue.offer(child);
+			}
+		}
 	}
 
 	public void generateCode() {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public List<GraphNode> getDescendantsOf(GraphNode node) {
+		List<GraphNode> descendants = new ArrayList<>();
+		descendants.addAll(node.getChildren());
+		for (GraphNode child : node.getChildren()) {
+			descendants.addAll(getDescendantsOf(child));
+		}
+		return descendants;
 	}
 	
 }

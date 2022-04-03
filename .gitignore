@@ -25,3 +25,4 @@ master/dependency-reduced-pom.xml
 shaded/dependency-reduced-pom.xml
 standalone_runtime/dependency-reduced-pom.xml
 /.metadata/
+*.prefs
