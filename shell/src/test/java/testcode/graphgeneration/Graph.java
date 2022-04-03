@@ -2,6 +2,7 @@ package testcode.graphgeneration;
 
 import static guru.nidi.graphviz.model.Factory.graph;
 import static guru.nidi.graphviz.model.Factory.node;
+import static guru.nidi.graphviz.model.Link.to;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import guru.nidi.graphviz.attribute.Color;
 import guru.nidi.graphviz.attribute.Rank;
 import guru.nidi.graphviz.attribute.Rank.RankDir;
 import guru.nidi.graphviz.engine.Format;
@@ -77,6 +79,16 @@ public class Graph {
 				if (!links.contains(n)) {
 					links.add(n);
 				}
+			}
+			
+			List<GraphNode> accessibleChildren = this.accessibilityMap.get(source);
+			for(GraphNode child: accessibleChildren) {
+				guru.nidi.graphviz.model.Node n = node(source.getName())
+						.link(to(node(child.getName())).with(Color.GREEN, guru.nidi.graphviz.attribute.Style.DASHED));
+//				n.linkTo().with(Color.rgb("ffcc00"));
+//				n.linkTo(node(child.getName())).with(Color.rgb("ffcc00"), guru.nidi.graphviz.attribute.Style.DASHED);
+//				n.asLinkSource().asLinkTarget().with(Color.rgb("ffcc00"), guru.nidi.graphviz.attribute.Style.DASHED);
+				links.add(n);
 			}
 		}
 
