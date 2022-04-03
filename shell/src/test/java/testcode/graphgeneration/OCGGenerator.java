@@ -8,15 +8,15 @@ import java.util.Random;
 
 public class OCGGenerator {
 	
-	private Random rand;
+	public static Random RANDOM;
 	
 	private int maxParentNum = 2;
 	private int maxChildNum = 2;
 	
 	public OCGGenerator() {		
-		rand = new Random();
-		long rseed = 1234567892L;
-		rand.setSeed(rseed);
+		RANDOM = new Random();
+		long rseed = 1234567898L;
+		RANDOM.setSeed(rseed);
 	}
 	
 	public void generate(int depth, int width, boolean allowLoop) {
@@ -39,7 +39,7 @@ public class OCGGenerator {
 			/**
 			 * at least one node at each layer
 			 */
-			int randomWidth = rand.nextInt(width);
+			int randomWidth = RANDOM.nextInt(width);
 			randomWidth = Math.max(1, randomWidth);
 			
 			ArrayList<GraphNode> list = new ArrayList<GraphNode>();
@@ -50,7 +50,7 @@ public class OCGGenerator {
 					/**
 					 * shall guarantee parents still have the quota of children
 					 */
-					int parentNum = Math.max(1, rand.nextInt(maxParentNum - node.getParents().size()));
+					int parentNum = Math.max(1, RANDOM.nextInt(maxParentNum - node.getParents().size()));
 					for(int k=0; k<parentNum; k++) {
 						GraphNode selectedParent = selectParent(graphLayers, layer);
 						if(selectedParent!=null &&
@@ -64,7 +64,7 @@ public class OCGGenerator {
 				}
 				
 				if(allowLoop) {
-					double r = rand.nextDouble();
+					double r = RANDOM.nextDouble();
 					if(r<0.1) {
 						/**
 						 * generate loop
@@ -112,7 +112,7 @@ public class OCGGenerator {
 			}
 		}
 		
-		double dice = rand.nextDouble() * sum;
+		double dice = RANDOM.nextDouble() * sum;
 		
 		for(GraphNode parent: nodeMap.keySet()) {
 			double start = nodeStartMap.get(parent);
@@ -157,7 +157,7 @@ public class OCGGenerator {
 			}
 		}
 		
-		double dice = rand.nextDouble() * sum;
+		double dice = RANDOM.nextDouble() * sum;
 		
 		for(GraphNode parent: nodeMap.keySet()) {
 			double start = nodeStartMap.get(parent);

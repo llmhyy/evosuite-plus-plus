@@ -7,7 +7,8 @@ import java.util.Objects;
 public class GraphNode {
 
 	private int index;
-
+	private NodeType nodeType;
+	
 	public GraphNode(int index) {
 		this.index = index;
 	}
@@ -69,7 +70,23 @@ public class GraphNode {
 	}
 
 	public String getName() {
-		return String.valueOf(this.index);
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(this.index);
+		
+		if(this.nodeType != null) {
+			buffer.append("\n" + this.nodeType.getType());
+			buffer.append("\n" + this.nodeType.getName());
+		}
+		
+		return buffer.toString();
+	}
+
+	public NodeType getNodeType() {
+		return nodeType;
+	}
+
+	public void setNodeType(NodeType nodeType) {
+		this.nodeType = nodeType;
 	}
 
 	
