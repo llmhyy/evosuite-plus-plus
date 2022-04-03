@@ -6,8 +6,10 @@ import static guru.nidi.graphviz.model.Factory.node;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import org.apache.commons.collections.map.HashedMap;
 
@@ -29,6 +31,23 @@ public class Graph {
 		
 	}
 
+	public List<GraphNode> getTopLayer(){
+		List<GraphNode> topLayer = new ArrayList<GraphNode>();
+		for(GraphNode node: this.nodeSet) {
+			if(node.getParents().isEmpty()) {
+				topLayer.add(node);
+			}
+			
+			if(node.getIndex() == 0) {
+				if(!topLayer.contains(node)) {
+					topLayer.add(node);
+				}
+			}
+		}
+		
+		return topLayer;
+	}
+	
 	public void visualize(int resolution, String folderName, String fileName) {
 
 		List<LinkSource> links = new ArrayList<LinkSource>();
@@ -98,48 +117,88 @@ public class Graph {
 	public void labelNodeType() {
 		List<String> typePool = new ArrayList<String>();
 
-		String type = null;
-		for(GraphNode node: this.nodeSet) {
+		String dataType = null;
+		
+		List<GraphNode> topLayer = this.getTopLayer();
+		Queue<GraphNode> queue = new LinkedList<GraphNode>();
+		queue.addAll(topLayer);
+		
+		/**
+		 * make sure the parents are always processed before the children
+		 */
+		while(!queue.isEmpty()) {
+			GraphNode node = queue.poll();
+			
 			/**
 			 * non-leaf node, reference type access
 			 */
-			if(!node.getChildren().isEmpty()) {
+			if(!node.isLeaf()) {
 				if(typePool.isEmpty()) {
-					type = createRandomType();
+					dataType = createRandomType();
 				}
 				else {
 					if(OCGGenerator.RANDOM.nextDouble() > 0.5) {
-						type = createRandomType();
+						dataType = createRandomType();
 					}
 					else {
 						int index = OCGGenerator.RANDOM.nextInt(typePool.size());
-						type = typePool.get(index);
+						dataType = typePool.get(index);
 					}
 				}
 				
-				if(!typePool.contains(type)) {
-					typePool.add(type);
+				if(!typePool.contains(dataType)) {
+					typePool.add(dataType);
 				}
 			}
 			/**
 			 * leaf node, primitive type access
 			 */
 			else {
-				type = randomPrimitiveType();
+				dataType = randomPrimitiveType();
 			}
 			
 			/**
-			 * either parameter, field access, array element access, or method call
+			 * either field access or method call here
 			 */
 			Relation relation = Relation.randomRelation();
+			
+			/**
+			 * constraint 1: the top layer can only be parameter or field
+			 */
 			if(node.getParents().isEmpty()) {
-				relation = Relation.PARAM;
+				if(OCGGenerator.RANDOM.nextDouble() < 0.5) {
+					relation = Relation.PARAM;
+				}
+				else {
+					relation = Relation.FIELD;					
+				}
 			}
 			
-			NodeType accessType = generateNodeType(relation, type, node);
+			/**
+			 * constraint 2: leaf node can only be field or array element, if it is array element, its parent's data type
+			 * must be an array.
+			 */
+			if(node.isLeaf() && node.isSingleParent()) {
+				GraphNode par = node.getParents().get(0);
+				if(par.isSingleChild()) {
+					if(OCGGenerator.RANDOM.nextDouble() < 0.9) {
+						relation = Relation.ARRAY_ELEMENT;
+
+						/**
+						 * if the leaf is an array element access, we need to change the data type in the parent access.
+						 */
+						NodeType parentAccessType = par.getNodeType();
+						parentAccessType.setType(dataType + "[]");
+					}
+				}
+				
+			}
+			
+			NodeType accessType = generateNodeType(relation, dataType, node);
 			
 			node.setNodeType(accessType);
 			
+			queue.addAll(node.getChildren());
 		}
 		
 	}
@@ -155,7 +214,7 @@ public class Graph {
 
 	private NodeType generateNodeType(Relation relation, String type, GraphNode node) {
 		String name = relation.name() + node.getName();
-		if(relation.equals(Relation.ARRAY)) {
+		if(relation.equals(Relation.ARRAY_ELEMENT)) {
 			return new ArrayElementAccess(type, name);
 		}
 		else if(relation.equals(Relation.FIELD)) {

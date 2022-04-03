@@ -89,5 +89,19 @@ public class GraphNode {
 		this.nodeType = nodeType;
 	}
 
+	public boolean isLeaf() {
+		return this.children.isEmpty();
+	}
+
+	public boolean isSingleParent() {
+		return !this.parents.isEmpty() &&
+				this.parents.size()==1;
+	}
+
+	public boolean isSingleChild() {
+		return !this.children.isEmpty() &&
+				this.children.size()==1;
+	}
+
 	
 }
