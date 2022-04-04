@@ -293,7 +293,19 @@ public class Graph {
 					// We assume that if the ancestor is object, all such ancestor-descendant pairs
 					// are valid, just add it into the map if RANDOM > 0.5
 					if (OCGGenerator.RANDOM.nextFloat() > 0.5) {
-						accessibilityMap.get(ancestor).add(descendant);
+						// Special case if the descendant is a method call
+						// We only allow its direct parent to access it
+						boolean isDescendantMethodCall = descendant.getName().startsWith("METHOD");
+						boolean isAncestorDirectParent = ancestor.getChildren().contains(descendant);
+						if (isDescendantMethodCall) {
+							if (isAncestorDirectParent) {
+								accessibilityMap.get(ancestor).add(descendant);
+							} else {
+								continue;
+							}
+						} else {
+							accessibilityMap.get(ancestor).add(descendant);
+						}
 					}
 				} else if (isAncestorArray) {
 					// Only allow array element if it's direct child
