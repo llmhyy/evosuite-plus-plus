@@ -109,6 +109,39 @@ public class SF100OverallTest {
 	}
 	
 	@Test
+	public void testNewApproachOnCustom() {
+		String projectId = "0_custom";
+		String[] targetMethods = new String[]{
+//			"org.example.custom.arrayelementaccess.Parent#method()V", // Tested
+//			"org.example.custom.arraylistexample.Parent#method()V", // Tested
+//			"org.example.custom.directsetleafnode.Parent#method()V", // Tested
+//			"org.example.custom.directsetleafnode2.Parent#method()V", // Tested
+//			"org.example.custom.inaccessiblechild.Parent#method()V", // Tested
+//			"org.example.custom.inaccessiblechild2.Parent#method()V", // Tested
+//			"org.example.custom.inaccessiblechild3.Parent#method()V", // Tested
+//			"org.example.custom.longgettercase.Parent#method()V", // Tested
+//			"org.example.custom.longgettercase2.Parent#method()V", // Tested
+//			"org.example.custom.parameterref.Parent#method(I)V", // Tested
+//			"org.example.custom.recursivecase.LinkedListNode#method()V", // Tested
+		};
+		
+		List<EvoTestResult> resultsF = new ArrayList<EvoTestResult>();
+		int repeatTime = 1;
+		int budget = 150;
+		Long seed = null;
+		
+		String fitnessApproach = "branch";
+		
+		
+		boolean aor = true;
+		resultsF = CommonTestUtil.evoTestSingleMethod(projectId,  
+				targetMethods, fitnessApproach, repeatTime, budget, true, 
+				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+		
+		System.currentTimeMillis();
+	}
+	
+	@Test
 	public void testNewApproach() {
 		String projectId = SF100Project.P43;
 		String[] targetMethods = new String[]{

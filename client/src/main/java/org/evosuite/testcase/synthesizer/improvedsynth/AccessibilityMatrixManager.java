@@ -385,7 +385,12 @@ public class AccessibilityMatrixManager {
 			}
 			
 			// No operation if it's ALOAD/ALOAD_*/DUP/DUP2?
-			return builder.build();
+			try {
+				return builder.build();
+			} catch (IllegalArgumentException e) {
+				// Build failed
+				return null;
+			}
 		} catch (NullPointerException e) {
 			return null;
 		}

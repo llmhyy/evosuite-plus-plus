@@ -2,6 +2,10 @@ package testcode.graphgeneration.model;
 
 import java.util.List;
 
+/**
+ * Abstract representation of concrete class?
+ * Might need to support interface in the future ("abstract" classes)
+ */
 public class Type {
 	private String name;
 	

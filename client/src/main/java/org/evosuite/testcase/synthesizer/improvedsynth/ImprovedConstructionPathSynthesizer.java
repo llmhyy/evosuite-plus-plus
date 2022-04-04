@@ -208,7 +208,7 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 	// the index accessed in the branch is
 	// This will allow us to build a similar index for getter/setter during object construction
 	private static int generateArrayIndexFrom(BytecodeInstruction hintInstruction, int arrayLength) {
-		int defaultReturnValue = Randomness.nextInt(arrayLength - 1);
+		int defaultReturnValue = arrayLength > 1 ? Randomness.nextInt(arrayLength - 1) : 0;
 		if (hintInstruction == null) {
 			return defaultReturnValue;
 		}
@@ -234,8 +234,6 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 		} catch (NullPointerException e) {
 			return defaultReturnValue;
 		}
-		
-		
 		
 		// TODO: deal with ALOAD/ILOAD etc. and generate the appropriate index
 	}
