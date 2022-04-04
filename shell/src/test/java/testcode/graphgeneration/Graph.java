@@ -256,6 +256,11 @@ public class Graph {
 		return null;
 	}
 
+	private void setAsAccessible(GraphNode ancestor, GraphNode descendant) {
+		System.out.println("ACCESSIBILITY: " + ancestor + " -> " + descendant);
+		accessibilityMap.get(ancestor).add(descendant);
+	}
+	
 	public void labelAccessibility() {
 		/**
 		 * for every pair of ancestor-descendant, we random decide whether the ancestor can access descendant
@@ -290,29 +295,27 @@ public class Graph {
 			boolean isAncestorArray = ancestorNodeType.getType().endsWith("[]");
 			for (GraphNode descendant : descendants) {
 				if (isAncestorObject) {
-					// We assume that if the ancestor is object, all such ancestor-descendant pairs
-					// are valid, just add it into the map if RANDOM > 0.5
-					if (OCGGenerator.RANDOM.nextFloat() > 0.5) {
-						// Special case if the descendant is a method call
-						// We only allow its direct parent to access it
-						boolean isDescendantMethodCall = descendant.getName().startsWith("METHOD");
-						boolean isAncestorDirectParent = ancestor.getChildren().contains(descendant);
-						if (isDescendantMethodCall) {
-							if (isAncestorDirectParent) {
-								accessibilityMap.get(ancestor).add(descendant);
-							} else {
-								continue;
-							}
-						} else {
-							accessibilityMap.get(ancestor).add(descendant);
+					boolean isDescendantMethodCall = descendant.getNodeType().getName().startsWith("METHOD");
+					boolean isAncestorDirectParent = ancestor.getChildren().contains(descendant);
+					// Special check, if the descendant is a method call
+					// only add if the ancestor is the direct parent
+					if (isDescendantMethodCall) {
+						if (isAncestorDirectParent) {
+							setAsAccessible(ancestor, descendant);
 						}
+						continue;
+					}
+					
+					if (OCGGenerator.RANDOM.nextFloat() > 0.5f) {
+						setAsAccessible(ancestor, descendant);
 					}
 				} else if (isAncestorArray) {
 					// Only allow array element if it's direct child
 					boolean isDescendantArrayElement = descendant.getNodeType().getName().contains("ARRAY_ELEMENT");
 					boolean isDescendantDirectChild = ancestor.getChildren().contains(descendant);
 					if (isDescendantArrayElement && isDescendantDirectChild) {
-						accessibilityMap.get(ancestor).add(descendant);
+						setAsAccessible(ancestor, descendant);
+//						accessibilityMap.get(ancestor).add(descendant);
 					}
 				}
 			}
