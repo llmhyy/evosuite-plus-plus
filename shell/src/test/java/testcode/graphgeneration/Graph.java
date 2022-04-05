@@ -41,7 +41,10 @@ public class Graph {
 		if(!nodeSet.contains(node)) {
 			nodeSet.add(node);
 		}
-		
+	}
+	
+	public List<GraphNode> getNodesAccessibleFrom(GraphNode node) {
+		return new ArrayList<>(accessibilityMap.get(node));
 	}
 
 	public List<GraphNode> getTopLayer(){
@@ -332,23 +335,13 @@ public class Graph {
 		/**
 		 * step 1: build an intermediate model to describe the relations of class, field, method
 		 */
-		ClassModel classModel = parseModel();
+		ClassModel classModel = new ClassModel(this);
 		
-		
-		/**
-		 * step 2: generate public method to access
-		 */
-		classModel.enhance(this.accessibilityMap);
 		
 		/**
 		 * step 3: generate graph
 		 */
 		classModel.transformToCode();
-	}
-	
-	private ClassModel parseModel() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public List<GraphNode> getDescendantsOf(GraphNode node) {

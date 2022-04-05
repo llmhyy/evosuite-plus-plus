@@ -25,10 +25,18 @@ public class Class {
 	}
 	
 	public void addField(Field field) {
+		if (field == null) {
+			System.err.println("WARNING: Attempted to add a null field to " + this.getName() + "!");
+			return;
+		}
 		this.fields.add(field);
 	}
 	
 	public void addMethod(Method method) {
+		if (method == null) {
+			System.err.println("WARNING: Attempted to add a null method to " + this.getName() + "!");
+			return;
+		}
 		this.methods.add(method);
 	}
 	

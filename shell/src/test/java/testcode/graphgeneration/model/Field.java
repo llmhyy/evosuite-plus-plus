@@ -1,7 +1,9 @@
 package testcode.graphgeneration.model;
 
+import testcode.graphgeneration.Visibility;
+
 public class Field {
-	private String visibility = "private";
+	private Visibility visibility = Visibility.PRIVATE;
 	private String name;
 	private String dataType;
 
@@ -11,11 +13,11 @@ public class Field {
 		this.dataType = dataType;
 	}
 
-	public String getVisibility() {
+	public Visibility getVisibility() {
 		return visibility;
 	}
 
-	public void setVisibility(String visibility) {
+	public void setVisibility(Visibility visibility) {
 		this.visibility = visibility;
 	}
 
@@ -38,5 +40,9 @@ public class Field {
 	@Override
 	public String toString() {
 		return this.getVisibility() + " " + this.getDataType() + " " + this.getName(); 
+	}
+	
+	public boolean isArray() {
+		return this.dataType.endsWith("[]");
 	}
 }

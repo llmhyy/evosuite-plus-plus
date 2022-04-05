@@ -1,24 +1,9 @@
 package testcode.graphgeneration.model;
 
-public class Method {
-	public static enum MethodVisibility {
-		PUBLIC("public"),
-		PRIVATE("private"),
-		PROTECTED("protected"),
-		DEFAULT("");
-		
-		String stringRepresentation;
-		MethodVisibility(String stringRepresentation) {
-			this.stringRepresentation = stringRepresentation;
-		}
-		
-		@Override
-		public String toString() {
-			return this.stringRepresentation;
-		}
-	};
-	
-	private MethodVisibility visibility = MethodVisibility.PRIVATE;
+import testcode.graphgeneration.Visibility;
+
+public class Method {	
+	private Visibility visibility = Visibility.PRIVATE;
 	private String name;
 	private String returnType;
 	private String declaringClass;
@@ -29,25 +14,25 @@ public class Method {
 		this.name = name;
 		this.returnType = returnType;
 	}
-
-	public MethodVisibility getVisibility() {
+	
+	public Visibility getVisibility() {
 		return visibility;
 	}
 	
 	public void setAsPublic() {
-		visibility = MethodVisibility.PUBLIC;
+		visibility = Visibility.PUBLIC;
 	}
 	
 	public void setAsPrivate() {
-		visibility = MethodVisibility.PRIVATE;
+		visibility = Visibility.PRIVATE;
 	}
 
 	public void setAsProtected() {
-		visibility = MethodVisibility.PROTECTED;
+		visibility = Visibility.PROTECTED;
 	}
 	
 	public void setAsDefaultVisibility() {
-		visibility = MethodVisibility.DEFAULT;
+		visibility = Visibility.DEFAULT;
 	}
 	
 	public String getName() {
@@ -64,6 +49,10 @@ public class Method {
 
 	public void setReturnType(String returnType) {
 		this.returnType = returnType;
+	}
+	
+	public String getDeclaringClass() { 
+		return this.declaringClass;
 	}
 	
 	@Override
