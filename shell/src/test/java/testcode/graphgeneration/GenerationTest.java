@@ -2,6 +2,8 @@ package testcode.graphgeneration;
 
 import org.junit.Test;
 
+import testcode.graphgeneration.model.ClassModel;
+
 public class GenerationTest {
 
 	@Test
@@ -37,5 +39,15 @@ public class GenerationTest {
 		graph.labelAccessibility();
 		graph.generateCode();
 		graph.visualize(1000, "graph", "graph");
+	}
+	
+	@Test
+	public void testClassModelGeneration() {
+		OCGGenerator generator = new OCGGenerator();
+		Graph graph = generator.generateGraph(5, 6, false);
+		graph.labelNodeType();
+		graph.labelAccessibility();
+		ClassModel classModel = new ClassModel(graph);
+		System.currentTimeMillis();
 	}
 }

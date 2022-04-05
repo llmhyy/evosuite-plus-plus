@@ -34,5 +34,9 @@ public class Field {
 	public void setDataType(String dataType) {
 		this.dataType = dataType;
 	}
-
+	
+	@Override
+	public String toString() {
+		return this.getVisibility() + " " + this.getDataType() + " " + this.getName(); 
+	}
 }

@@ -26,7 +26,7 @@ public class Graph {
 	public static String path = "D://linyun/";
 	private List<GraphNode> nodeSet = new ArrayList<>();
 	private Map<GraphNode, List<GraphNode>> accessibilityMap = new HashMap();
-	private static final String[] PRIMITIVE_TYPES = {
+	public static final String[] PRIMITIVE_TYPES = {
 			"boolean",
 			"byte",
 			"char",
