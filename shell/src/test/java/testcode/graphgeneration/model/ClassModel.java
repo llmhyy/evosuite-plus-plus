@@ -1,5 +1,6 @@
 package testcode.graphgeneration.model;
 
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +10,18 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
+import org.eclipse.jdt.core.dom.PrimitiveType;
+import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+
+import testcode.graphgeneration.CodeUtil;
 import testcode.graphgeneration.Graph;
 import testcode.graphgeneration.GraphNode;
 import testcode.graphgeneration.GraphNodeUtil;
@@ -236,8 +249,97 @@ public class ClassModel {
 	public List<Class> getClasses() {
 		return new ArrayList<>(classNameToClass.values());
 	}
-
+	
 	public void transformToCode() {
+		AST ast = AST.newAST(AST.JLS4);
+		
+		/**
+		 * we generate skeleton first
+		 */
+		for(String className: classNameToClass.keySet()) {
+			Class clazz = classNameToClass.get(className);
+			
+			CompilationUnit cu = ast.newCompilationUnit();
+			
+			/**
+			 * the package is always to be "test"
+			 */
+			PackageDeclaration p1 = ast.newPackageDeclaration();
+			p1.setName(ast.newSimpleName("test"));
+			cu.setPackage(p1);
+			
+			TypeDeclaration td = ast.newTypeDeclaration();
+			td.setName(ast.newSimpleName(className));
+			cu.types().add(td);
+			
+			for(Field f: clazz.getFields()) {
+				VariableDeclarationFragment fragment = ast.newVariableDeclarationFragment();
+				fragment.setName(ast.newSimpleName(f.getName()));
+				FieldDeclaration field = ast.newFieldDeclaration(fragment);
+				
+//				field.setModifiers(Modifier.PRIVATE);
+				
+				if(CodeUtil.isPrimitive(f.getDataType())) {
+					//TODO Darien
+					PrimitiveType pType = ast.newPrimitiveType(PrimitiveType.INT);
+					field.setType(pType);
+				}
+				else {
+					SimpleName name = ast.newSimpleName(f.getDataType());
+					SimpleType sType = ast.newSimpleType(name);
+					field.setType(sType);
+				}
+				
+				field.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
+				td.bodyDeclarations().add(field);
+			}
+			
+			
+			for(Method m: clazz.getMethods()) {
+				
+			}
+			
+			System.out.println(cu);
+			
+		}
+		
+		/**
+		 * we construct the dependencies
+		 */
+		
+		
+//		CompilationUnit cu = ast.newCompilationUnit();
+//		
+//		PackageDeclaration p1 = ast.newPackageDeclaration();
+//		p1.setName(ast.newSimpleName("test"));
+//		cu.setPackage(p1);
+//
+//		ImportDeclaration id = ast.newImportDeclaration();
+//		id.setName(ast.newName(new String[] { "java", "util", "Set" }));
+//		cu.imports().add(id);
+//
+//		TypeDeclaration td = ast.newTypeDeclaration();
+//		td.setName(ast.newSimpleName("Foo"));
+//		TypeParameter tp = ast.newTypeParameter();
+//		tp.setName(ast.newSimpleName("X"));
+//		td.typeParameters().add(tp);
+//		cu.types().add(td);
+//
+//		MethodDeclaration md = ast.newMethodDeclaration();
+//		td.bodyDeclarations().add(md);
+//
+//		Block block = ast.newBlock();
+//		md.setBody(block);
+//
+//		MethodInvocation mi = ast.newMethodInvocation();
+//		mi.setName(ast.newSimpleName("x"));
+//
+//		ExpressionStatement e = ast.newExpressionStatement(mi);
+//		block.statements().add(e);
+//
+		
+		
+		
 		// TODO Auto-generated method stub
 		
 	}

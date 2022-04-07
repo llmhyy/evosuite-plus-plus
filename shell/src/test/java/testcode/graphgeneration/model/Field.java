@@ -45,4 +45,5 @@ public class Field {
 	public boolean isArray() {
 		return this.dataType.endsWith("[]");
 	}
+	
 }

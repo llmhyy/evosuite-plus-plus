@@ -48,6 +48,7 @@ public class GenerationTest {
 		graph.labelNodeType();
 		graph.labelAccessibility();
 		ClassModel classModel = new ClassModel(graph);
+		classModel.transformToCode();
 		System.currentTimeMillis();
 	}
 }
