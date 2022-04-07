@@ -3,7 +3,7 @@ package testcode.graphgeneration.model;
 import testcode.graphgeneration.Visibility;
 
 public class Method {	
-	private Visibility visibility = Visibility.PRIVATE;
+	private Visibility visibility = Visibility.PUBLIC;
 	private String name;
 	private String returnType;
 	private String declaringClass;
