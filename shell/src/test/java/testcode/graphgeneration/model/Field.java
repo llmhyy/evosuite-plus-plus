@@ -1,5 +1,8 @@
 package testcode.graphgeneration.model;
 
+import java.util.Arrays;
+
+import testcode.graphgeneration.Graph;
 import testcode.graphgeneration.Visibility;
 
 public class Field {
@@ -44,6 +47,10 @@ public class Field {
 	
 	public boolean isArray() {
 		return this.dataType.endsWith("[]");
+	}
+	
+	public boolean isPrimitive() {
+		return Arrays.asList(Graph.PRIMITIVE_TYPES).contains(dataType);
 	}
 	
 }

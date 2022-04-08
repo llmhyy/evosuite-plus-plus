@@ -1,5 +1,7 @@
 package testcode.graphgeneration;
 
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
 
 import testcode.graphgeneration.model.ClassModel;
@@ -48,7 +50,23 @@ public class GenerationTest {
 		graph.labelNodeType();
 		graph.labelAccessibility();
 		ClassModel classModel = new ClassModel(graph);
-		classModel.transformToCode();
 		System.currentTimeMillis();
+	}
+	
+	@Test
+	public void testCodeGeneration() {
+		try {
+			OCGGenerator generator = new OCGGenerator();
+			Graph graph = generator.generateGraph(5, 6, false);
+			graph.labelNodeType();
+			graph.labelAccessibility();
+			ClassModel classModel = new ClassModel(graph);
+			classModel.transformToCode();
+			System.currentTimeMillis();
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			fail();
+		}
 	}
 }

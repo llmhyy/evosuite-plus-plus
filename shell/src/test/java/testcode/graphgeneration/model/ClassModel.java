@@ -11,20 +11,26 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
+import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
-import testcode.graphgeneration.CodeUtil;
+import testcode.graphgeneration.ClassModelUtil;
 import testcode.graphgeneration.Graph;
 import testcode.graphgeneration.GraphNode;
 import testcode.graphgeneration.GraphNodeUtil;
+import testcode.graphgeneration.Visibility;
 
 public class ClassModel {
 	private Map<String, Class> classNameToClass = new HashMap<>();
@@ -250,99 +256,131 @@ public class ClassModel {
 		return new ArrayList<>(classNameToClass.values());
 	}
 	
-	public void transformToCode() {
-		AST ast = AST.newAST(AST.JLS4);
+	@SuppressWarnings("unchecked")
+	private void addFieldToAst(Field fieldRepresentation, AST ast, TypeDeclaration typeDeclaration) {
+		VariableDeclarationFragment variableDeclarationFragment = ast.newVariableDeclarationFragment();
+		variableDeclarationFragment.setName(ast.newSimpleName(fieldRepresentation.getName()));
+		FieldDeclaration fieldDeclaration = ast.newFieldDeclaration(variableDeclarationFragment);
 		
-		/**
-		 * we generate skeleton first
-		 */
-		for(String className: classNameToClass.keySet()) {
-			Class clazz = classNameToClass.get(className);
-			
-			CompilationUnit cu = ast.newCompilationUnit();
-			
-			/**
-			 * the package is always to be "test"
-			 */
-			PackageDeclaration p1 = ast.newPackageDeclaration();
-			p1.setName(ast.newSimpleName("test"));
-			cu.setPackage(p1);
-			
-			TypeDeclaration td = ast.newTypeDeclaration();
-			td.setName(ast.newSimpleName(className));
-			cu.types().add(td);
-			
-			for(Field f: clazz.getFields()) {
-				VariableDeclarationFragment fragment = ast.newVariableDeclarationFragment();
-				fragment.setName(ast.newSimpleName(f.getName()));
-				FieldDeclaration field = ast.newFieldDeclaration(fragment);
-				
-//				field.setModifiers(Modifier.PRIVATE);
-				
-				if(CodeUtil.isPrimitive(f.getDataType())) {
-					//TODO Darien
-					PrimitiveType pType = ast.newPrimitiveType(PrimitiveType.INT);
-					field.setType(pType);
-				}
-				else {
-					SimpleName name = ast.newSimpleName(f.getDataType());
-					SimpleType sType = ast.newSimpleType(name);
-					field.setType(sType);
-				}
-				
-				field.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
-				td.bodyDeclarations().add(field);
+		Type fieldType = ClassModelUtil.extractTypeFrom(ast, fieldRepresentation);
+		if (fieldType == null) {
+			System.err.println("Failed to generate an appropriate Type for " + fieldRepresentation);
+			return;
+		}
+		fieldDeclaration.setType(fieldType);
+		
+		Modifier fieldModifier;
+		if (!fieldRepresentation.getVisibility().equals(Visibility.DEFAULT)) {
+			Modifier.ModifierKeyword fieldModifierKeyword = ClassModelUtil.visibilityToModifierKeyword(fieldRepresentation.getVisibility());
+			if (fieldModifierKeyword == null) {
+				// Error state, skip
+				System.err.println("Failed to find an appropriate Modifier.ModifierKeyword for " + fieldRepresentation.getVisibility());
+				return;
 			}
-			
-			
-			for(Method m: clazz.getMethods()) {
-				
-			}
-			
-			System.out.println(cu);
-			
+			fieldModifier = ast.newModifier(fieldModifierKeyword);
+			fieldDeclaration.modifiers().add(fieldModifier);
 		}
 		
-		/**
-		 * we construct the dependencies
-		 */
+		typeDeclaration.bodyDeclarations().add(fieldDeclaration);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private MethodDeclaration generateMethodSkeletonFrom(Method method, AST ast) {
+		MethodDeclaration methodDeclaration = ast.newMethodDeclaration();
+		Type returnType = ClassModelUtil.extractReturnTypeFrom(ast, method);
+		if (returnType == null) {
+			System.err.println("Failed to generate an appropriate Type for " + method.getReturnType());
+			return null;
+		}
+		methodDeclaration.setReturnType2(returnType);
+		if (method.getVisibility() != Visibility.DEFAULT) {
+			methodDeclaration.modifiers().add(ClassModelUtil.extractModifierFrom(ast, method));
+		}
+		methodDeclaration.setName(ast.newSimpleName(method.getName()));
+		return methodDeclaration;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void addMethodToAst(Method method, AST ast, TypeDeclaration typeDeclaration) {
+		boolean isGetter = (method instanceof Getter);
+		boolean isFieldSetter = (method instanceof Setter);
+		boolean isFieldArrayElementSetter = (method instanceof FieldArrayElementSetter);
+		boolean isMethodArrayElementSetter = (method instanceof MethodArrayElementSetter);
+		boolean isSetter = (isFieldSetter || isFieldArrayElementSetter || isMethodArrayElementSetter);
+		boolean isRegularMethod = !(isGetter || isFieldSetter || isFieldArrayElementSetter || isMethodArrayElementSetter);
+		if (isGetter || isRegularMethod) {
+			MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(method, ast);
+			typeDeclaration.bodyDeclarations().add(methodDeclaration);
+			return;
+		} else if (isSetter) {
+			MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(method, ast);
+			
+			Type parameterType = null;
+			if (isFieldSetter) {
+				Setter setter = (Setter) method;
+				parameterType = ClassModelUtil.extractTypeFrom(ast, setter.getSetField());
+			} else if (isFieldArrayElementSetter) {
+				FieldArrayElementSetter fieldArrayElementSetter = (FieldArrayElementSetter) method;
+				ArrayType arrayType = (ArrayType) ClassModelUtil.extractTypeFrom(ast, fieldArrayElementSetter.getArray());
+				parameterType = ClassModelUtil.getCopyOfType(ast, arrayType.getComponentType());
+			} else if (isMethodArrayElementSetter) {
+				MethodArrayElementSetter methodArrayElementSetter = (MethodArrayElementSetter) method;
+				ArrayType arrayType = (ArrayType) ClassModelUtil.extractReturnTypeFrom(ast, methodArrayElementSetter.getArray());
+				parameterType = ClassModelUtil.getCopyOfType(ast, arrayType.getComponentType());
+			}
+			
+			if (parameterType == null) {
+				System.err.println("Failed to generate a parameterType for " + method);
+				return;
+			}
+			SingleVariableDeclaration parameter = ast.newSingleVariableDeclaration();
+			parameter.setType(parameterType);
+			// TODO: Extend for multiple parameters
+			parameter.setName(ast.newSimpleName("arg0"));
+			methodDeclaration.parameters().add(parameter);
+			
+			typeDeclaration.bodyDeclarations().add(methodDeclaration);
+		}
 		
 		
-//		CompilationUnit cu = ast.newCompilationUnit();
-//		
-//		PackageDeclaration p1 = ast.newPackageDeclaration();
-//		p1.setName(ast.newSimpleName("test"));
-//		cu.setPackage(p1);
-//
-//		ImportDeclaration id = ast.newImportDeclaration();
-//		id.setName(ast.newName(new String[] { "java", "util", "Set" }));
-//		cu.imports().add(id);
-//
-//		TypeDeclaration td = ast.newTypeDeclaration();
-//		td.setName(ast.newSimpleName("Foo"));
-//		TypeParameter tp = ast.newTypeParameter();
-//		tp.setName(ast.newSimpleName("X"));
-//		td.typeParameters().add(tp);
-//		cu.types().add(td);
-//
-//		MethodDeclaration md = ast.newMethodDeclaration();
-//		td.bodyDeclarations().add(md);
-//
-//		Block block = ast.newBlock();
-//		md.setBody(block);
-//
-//		MethodInvocation mi = ast.newMethodInvocation();
-//		mi.setName(ast.newSimpleName("x"));
-//
-//		ExpressionStatement e = ast.newExpressionStatement(mi);
-//		block.statements().add(e);
-//
-		
-		
-		
-		// TODO Auto-generated method stub
 		
 	}
 	
+	@SuppressWarnings("unchecked")
+	private String generateSkeletonCodeFromClass(String className) {
+		AST ast = AST.newAST(AST.JLS4);
+		Class classRepresentation = classNameToClass.get(className);
+		if (classRepresentation == null) {
+			return "";
+		}
+		
+		CompilationUnit compilationUnit = ast.newCompilationUnit();
+		PackageDeclaration packageDeclaration = ast.newPackageDeclaration();
+		packageDeclaration.setName(ast.newSimpleName("test"));
+		compilationUnit.setPackage(packageDeclaration);
+		
+		TypeDeclaration typeDeclaration = ast.newTypeDeclaration();
+		typeDeclaration.setName(ast.newSimpleName(className));
+		compilationUnit.types().add(typeDeclaration);
+		
+		for (Field fieldRepresentation : classRepresentation.getFields()) {
+			addFieldToAst(fieldRepresentation, ast, typeDeclaration);
+		}
+		
+		for (Method methodRepresentation : classRepresentation.getMethods()) {
+			addMethodToAst(methodRepresentation, ast, typeDeclaration);
+		}
+		
+		return compilationUnit.toString();
+	}
 	
+	public void transformToCode() {
+		Map<String, String> classNameToCode = new HashMap<>();
+		
+		for (String className : classNameToClass.keySet()) {
+			String compilationUnitString = generateSkeletonCodeFromClass(className);
+			classNameToCode.put(className, compilationUnitString);
+			System.out.println(compilationUnitString);
+		}
+	}
 }
