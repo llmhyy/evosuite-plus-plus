@@ -260,7 +260,7 @@ public class Graph {
 	}
 
 	private void setAsAccessible(GraphNode ancestor, GraphNode descendant) {
-		System.out.println("ACCESSIBILITY: " + ancestor + " -> " + descendant);
+//		System.out.println("ACCESSIBILITY: " + ancestor + " -> " + descendant);
 		accessibilityMap.get(ancestor).add(descendant);
 	}
 	
