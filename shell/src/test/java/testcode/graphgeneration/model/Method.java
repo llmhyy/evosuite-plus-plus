@@ -1,5 +1,7 @@
 package testcode.graphgeneration.model;
 
+import java.util.Objects;
+
 import testcode.graphgeneration.Visibility;
 
 public class Method extends CodeElement{	
@@ -59,4 +61,24 @@ public class Method extends CodeElement{
 	public String toString() {
 		return this.getVisibility() + " " + this.getReturnType() + " " + this.getName();
 	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(declaringClass, name, returnType);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Method other = (Method) obj;
+		return Objects.equals(declaringClass, other.declaringClass) && Objects.equals(name, other.name)
+				&& Objects.equals(returnType, other.returnType);
+	}
+	
+	
 }
