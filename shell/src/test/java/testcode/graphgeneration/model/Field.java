@@ -1,11 +1,12 @@
 package testcode.graphgeneration.model;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import testcode.graphgeneration.Graph;
 import testcode.graphgeneration.Visibility;
 
-public class Field {
+public class Field extends CodeElement{
 	private Visibility visibility = Visibility.PRIVATE;
 	private String name;
 	private String dataType;
@@ -52,5 +53,23 @@ public class Field {
 	public boolean isPrimitive() {
 		return Arrays.asList(Graph.PRIMITIVE_TYPES).contains(dataType);
 	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(dataType, name);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Field other = (Field) obj;
+		return Objects.equals(dataType, other.dataType) && Objects.equals(name, other.name);
+	}
+	
 	
 }

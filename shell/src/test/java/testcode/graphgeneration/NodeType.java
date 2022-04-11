@@ -1,7 +1,13 @@
 package testcode.graphgeneration;
 
 public class NodeType {
+	/**
+	 * data type of the variable
+	 */
 	private String type;
+	/**
+	 * variable name (field name, method name, array name ..)
+	 */
 	private String name;
 
 	

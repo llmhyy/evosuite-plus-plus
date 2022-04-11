@@ -60,6 +60,7 @@ public class GenerationTest {
 			Graph graph = generator.generateGraph(5, 6, false);
 			graph.labelNodeType();
 			graph.labelAccessibility();
+			graph.visualize(1000, "graph", "graph");
 			ClassModel classModel = new ClassModel(graph);
 			classModel.transformToCode();
 			System.currentTimeMillis();

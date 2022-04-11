@@ -2,12 +2,13 @@ package testcode.graphgeneration.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Abstract representation of concrete class?
  * Might need to support interface in the future ("abstract" classes)
  */
-public class Class {
+public class Class extends CodeElement{
 	private final String name;
 	
 	private List<Field> fields;
@@ -52,4 +53,23 @@ public class Class {
 	public String toString() {
 		return "(" + this.getName() + ",\n fields: " + this.getFields() + ",\n methods: " + this.getMethods() + ")";
 	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(name);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Class other = (Class) obj;
+		return Objects.equals(name, other.name);
+	}
+	
+	
 }

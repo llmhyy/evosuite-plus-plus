@@ -2,7 +2,7 @@ package testcode.graphgeneration.model;
 
 import testcode.graphgeneration.Visibility;
 
-public class Method {	
+public class Method extends CodeElement{	
 	private Visibility visibility = Visibility.PUBLIC;
 	private String name;
 	private String returnType;

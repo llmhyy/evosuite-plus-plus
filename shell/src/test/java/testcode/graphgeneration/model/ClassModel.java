@@ -11,6 +11,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -34,10 +35,14 @@ import testcode.graphgeneration.Visibility;
 
 public class ClassModel {
 	private Map<String, Class> classNameToClass = new HashMap<>();
+	private Graph graph = null;
+	private Set<GraphNode> processedNodes = null;
 	
 	public ClassModel(Graph graph) {
+		this.graph = graph;
+		
 		// Process all graph nodes in order
-		Set<GraphNode> processedNodes = new HashSet<>();
+		this.processedNodes = new HashSet<>();
 		Queue<GraphNode> queue = new ArrayDeque<>();
 		queue.addAll(graph.getTopLayer());
 		while (!queue.isEmpty()) {
@@ -59,61 +64,6 @@ public class ClassModel {
 			}
 		}
 		
-		for (GraphNode currentNode : processedNodes) {
-			boolean isArray = GraphNodeUtil.isArray(currentNode);
-			if (isArray) {
-				continue;
-			}
-			
-			List<GraphNode> accessibleNodes = graph.getNodesAccessibleFrom(currentNode);
-			for (GraphNode accessibleNode : accessibleNodes) {
-				
-				boolean isField = GraphNodeUtil.isField(accessibleNode);
-				boolean isArrayElement = GraphNodeUtil.isArrayElement(accessibleNode);
-				if (isField || isArrayElement) {
-					// Generate a method returning this field.
-					Field field = null;
-					if (isField) {
-						field = getCorrespondingField(accessibleNode);
-						if (field == null) {
-							// Note warning
-							System.err.println("ERROR: Attempted to find a corresponding field for " + accessibleNode + ", but could not find anything.");
-							continue;
-						}
-					}				
-					
-					Class classRepresentation = classNameToClass.get(GraphNodeUtil.getDeclaredClass(currentNode));
-					if (classRepresentation == null) {
-						// Note warning
-						System.err.println("ERROR: Attempted to find a corresponding class for " + currentNode + ", but could not find anything.");
-						continue;
-					}
-					
-					if (isArrayElement) {
-						// Array elements are always leaf nodes
-						// Generate a setter for the array element
-						// We indicate that it's an array element setter
-						// by indicating the array that we want to set
-						Method setter = generateSetterForArrayElement(accessibleNode);
-						classRepresentation.addMethod(setter);
-					}
-					
-					if (isField) {
-						// If it's a leaf node, generate a setter
-						// Else generate a getter
-						if (accessibleNode.isLeaf()) {
-							// Generate setter
-							Method setter = new Setter(GraphNodeUtil.getDeclaredClass(currentNode), "setNode" + accessibleNode.getIndex(), "void", field);
-							classRepresentation.addMethod(setter);
-						} else {
-							// Generate getter
-							Method getter = new Getter(GraphNodeUtil.getDeclaredClass(currentNode), "getNode" + accessibleNode.getIndex(), GraphNodeUtil.getDeclaredClass(accessibleNode), field);
-							classRepresentation.addMethod(getter);
-						}
-					}
-				}
-			}
-		}
 	}
 	
 	private Method generateSetterForArrayElement(GraphNode node) {
@@ -257,7 +207,7 @@ public class ClassModel {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void addFieldToAst(Field fieldRepresentation, AST ast, TypeDeclaration typeDeclaration) {
+	private FieldDeclaration addFieldToAst(Field fieldRepresentation, AST ast, TypeDeclaration typeDeclaration) {
 		VariableDeclarationFragment variableDeclarationFragment = ast.newVariableDeclarationFragment();
 		variableDeclarationFragment.setName(ast.newSimpleName(fieldRepresentation.getName()));
 		FieldDeclaration fieldDeclaration = ast.newFieldDeclaration(variableDeclarationFragment);
@@ -265,7 +215,7 @@ public class ClassModel {
 		Type fieldType = ClassModelUtil.extractTypeFrom(ast, fieldRepresentation);
 		if (fieldType == null) {
 			System.err.println("Failed to generate an appropriate Type for " + fieldRepresentation);
-			return;
+			return null;
 		}
 		fieldDeclaration.setType(fieldType);
 		
@@ -275,13 +225,15 @@ public class ClassModel {
 			if (fieldModifierKeyword == null) {
 				// Error state, skip
 				System.err.println("Failed to find an appropriate Modifier.ModifierKeyword for " + fieldRepresentation.getVisibility());
-				return;
+				return null;
 			}
 			fieldModifier = ast.newModifier(fieldModifierKeyword);
 			fieldDeclaration.modifiers().add(fieldModifier);
 		}
 		
 		typeDeclaration.bodyDeclarations().add(fieldDeclaration);
+		
+		return fieldDeclaration;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -301,7 +253,7 @@ public class ClassModel {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void addMethodToAst(Method method, AST ast, TypeDeclaration typeDeclaration) {
+	private MethodDeclaration addMethodToAst(Method method, AST ast, TypeDeclaration typeDeclaration) {
 		boolean isGetter = (method instanceof Getter);
 		boolean isFieldSetter = (method instanceof Setter);
 		boolean isFieldArrayElementSetter = (method instanceof FieldArrayElementSetter);
@@ -311,7 +263,7 @@ public class ClassModel {
 		if (isGetter || isRegularMethod) {
 			MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(method, ast);
 			typeDeclaration.bodyDeclarations().add(methodDeclaration);
-			return;
+			return methodDeclaration;
 		} else if (isSetter) {
 			MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(method, ast);
 			
@@ -331,7 +283,7 @@ public class ClassModel {
 			
 			if (parameterType == null) {
 				System.err.println("Failed to generate a parameterType for " + method);
-				return;
+				return null;
 			}
 			SingleVariableDeclaration parameter = ast.newSingleVariableDeclaration();
 			parameter.setType(parameterType);
@@ -339,19 +291,30 @@ public class ClassModel {
 			parameter.setName(ast.newSimpleName("arg0"));
 			methodDeclaration.parameters().add(parameter);
 			
+			// TODO Darien we shall generate method body here
+			// e.g., we new a variable of specific type and return it. 
+			
+			
 			typeDeclaration.bodyDeclarations().add(methodDeclaration);
+			
+			return methodDeclaration;
 		}
 		
-		
-		
+		return null;
 	}
 	
+	
+	HashMap<CodeElement, ASTNode> node2CodeMap = new HashMap<>();
+	
 	@SuppressWarnings("unchecked")
-	private String generateSkeletonCodeFromClass(String className) {
+	private CompilationUnit generateSkeletonCodeFromClass(Class clazz) {
+		
+		String className = clazz.getName();
+		
 		AST ast = AST.newAST(AST.JLS4);
 		Class classRepresentation = classNameToClass.get(className);
 		if (classRepresentation == null) {
-			return "";
+			return null;
 		}
 		
 		CompilationUnit compilationUnit = ast.newCompilationUnit();
@@ -363,24 +326,106 @@ public class ClassModel {
 		typeDeclaration.setName(ast.newSimpleName(className));
 		compilationUnit.types().add(typeDeclaration);
 		
+		node2CodeMap.put(clazz, compilationUnit);
+		
 		for (Field fieldRepresentation : classRepresentation.getFields()) {
-			addFieldToAst(fieldRepresentation, ast, typeDeclaration);
+			FieldDeclaration f =  addFieldToAst(fieldRepresentation, ast, typeDeclaration);
+			node2CodeMap.put(fieldRepresentation, f);
 		}
 		
 		for (Method methodRepresentation : classRepresentation.getMethods()) {
-			addMethodToAst(methodRepresentation, ast, typeDeclaration);
+			MethodDeclaration m = addMethodToAst(methodRepresentation, ast, typeDeclaration);
+			node2CodeMap.put(methodRepresentation, m);
 		}
 		
-		return compilationUnit.toString();
+		return compilationUnit;
 	}
 	
 	public void transformToCode() {
-		Map<String, String> classNameToCode = new HashMap<>();
+		Map<String, CompilationUnit> classNameToCode = new HashMap<>();
 		
 		for (String className : classNameToClass.keySet()) {
-			String compilationUnitString = generateSkeletonCodeFromClass(className);
-			classNameToCode.put(className, compilationUnitString);
-			System.out.println(compilationUnitString);
+			Class clazz = classNameToClass.get(className);
+			CompilationUnit compilationUnit = generateSkeletonCodeFromClass(clazz);
+			classNameToCode.put(className, compilationUnit);
+			System.out.println(compilationUnit.toString());
 		}
+		
+		generateAccessibilityCode();
+	}
+
+	private void generateAccessibilityCode() {
+		/**
+		 * build accessibility
+		 */
+		for (GraphNode currentNode : processedNodes) {
+			boolean isArray = GraphNodeUtil.isArray(currentNode);
+			if (isArray) {
+				continue;
+			}
+			
+			List<GraphNode> accessibleNodes = graph.getNodesAccessibleFrom(currentNode);
+			for (GraphNode accessibleNode : accessibleNodes) {
+				
+				boolean isField = GraphNodeUtil.isField(accessibleNode);
+				boolean isArrayElement = GraphNodeUtil.isArrayElement(accessibleNode);
+				if (isField || isArrayElement) {
+					// Generate a method returning this field.
+					Field field = null;
+					if (isField) {
+						field = getCorrespondingField(accessibleNode);
+						if (field == null) {
+							// Note warning
+							System.err.println("ERROR: Attempted to find a corresponding field for " + accessibleNode + ", but could not find anything.");
+							continue;
+						}
+					}				
+					
+					Class classRepresentation = classNameToClass.get(GraphNodeUtil.getDeclaredClass(currentNode));
+					if (classRepresentation == null) {
+						// Note warning
+						System.err.println("ERROR: Attempted to find a corresponding class for " + currentNode + ", but could not find anything.");
+						continue;
+					}
+					
+					if (isArrayElement) {
+						// Array elements are always leaf nodes
+						// Generate a setter for the array element
+						// We indicate that it's an array element setter
+						// by indicating the array that we want to set
+						Method setter = generateSetterForArrayElement(accessibleNode);
+						classRepresentation.addMethod(setter);
+						
+						CompilationUnit cu = (CompilationUnit)node2CodeMap.get(classRepresentation);
+						// TODO Darien: generate a path from currentNode to accessibleNode
+						// TODO then, we generate a method with its body including the path.
+						
+					}
+					
+					if (isField) {
+						// If it's a leaf node, generate a setter
+						// Else generate a getter
+						if (accessibleNode.isLeaf()) {
+							// Generate setter
+							Method setter = new Setter(GraphNodeUtil.getDeclaredClass(currentNode), "setNode" + accessibleNode.getIndex(), "void", field);
+							classRepresentation.addMethod(setter);
+							
+							CompilationUnit cu = (CompilationUnit)node2CodeMap.get(classRepresentation);
+							// TODO Darien: generate a path from currentNode to accessibleNode
+							// TODO then, we generate a method with its body including the path.
+						} else {
+							// Generate getter
+							Method getter = new Getter(GraphNodeUtil.getDeclaredClass(currentNode), "getNode" + accessibleNode.getIndex(), GraphNodeUtil.getDeclaredClass(accessibleNode), field);
+							classRepresentation.addMethod(getter);
+							
+							CompilationUnit cu = (CompilationUnit)node2CodeMap.get(classRepresentation);
+							// TODO Darien: generate a path from currentNode to accessibleNode
+							// TODO then, we generate a method with its body including the path.
+						}
+					}
+				}
+			}
+		}
+		
 	}
 }
