@@ -358,9 +358,11 @@ public class ClassModel {
 			for (int i = 0; i < arrayLength; i++) {
 				if (isBaseTypePrimitive) {
 					arrayInitializer.expressions().add(ClassModelUtil.getRandomPrimitiveLiteral(ast, baseType));
+				} else {
+					ClassInstanceCreation classInstanceCreation = ast.newClassInstanceCreation();
+					classInstanceCreation.setType(ast.newSimpleType(ast.newSimpleName(baseType)));
+					arrayInitializer.expressions().add(classInstanceCreation);
 				}
-				
-				// TODO: What if the array isn't primitive?
 			}
 			arrayCreation.setInitializer(arrayInitializer);
 			
@@ -607,6 +609,7 @@ public class ClassModel {
 	}
 	
 	// TODO, not complete
+	// Need to add multi-arg support for setters
 	@SuppressWarnings("unchecked")
 	private Block generateSetterBodyFromPath(AST ast, List<GraphNode> path) {
 		Block methodBody = ast.newBlock();
