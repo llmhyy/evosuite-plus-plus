@@ -8,7 +8,7 @@ import java.util.Objects;
  * Abstract representation of concrete class?
  * Might need to support interface in the future ("abstract" classes)
  */
-public class Class extends CodeElement{
+public class Class extends CodeElement {
 	private final String name;
 	
 	private List<Field> fields;

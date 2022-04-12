@@ -5,7 +5,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.jdt.core.dom.ArrayType;
+import org.eclipse.jdt.core.dom.BooleanLiteral;
+import org.eclipse.jdt.core.dom.CharacterLiteral;
+import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.Type;
@@ -151,7 +155,6 @@ public class ClassModelUtil {
 		} else {
 			baseType = stringToSimpleType(ast, baseTypeAsString);
 		}
-		
 		return ast.newArrayType(baseType, dimensions);
 	}
 	
@@ -171,6 +174,75 @@ public class ClassModelUtil {
 				return null;
 			default:
 				return null;
+		}
+	}
+
+	public static boolean isObject(String dataType) {
+		return dataType.startsWith("Class");
+	}
+	
+	public static NumberLiteral randomByteExpression(AST ast) {
+		return ast.newNumberLiteral(Byte.toString((byte) (OCGGenerator.RANDOM.nextInt(127 - (-128)) - 128)));
+	}
+	
+	public static NumberLiteral randomShortExpression(AST ast) {
+		return ast.newNumberLiteral(Short.toString((short) (OCGGenerator.RANDOM.nextInt(32767 - (-32768)) - 32767)));
+	}
+	
+	public static NumberLiteral randomIntExpression(AST ast) {
+		return ast.newNumberLiteral(Integer.toString(OCGGenerator.RANDOM.nextInt()));
+	}
+	
+	public static NumberLiteral randomLongExpression(AST ast) {
+		return ast.newNumberLiteral(Long.toString(OCGGenerator.RANDOM.nextLong()));
+	}
+	
+	public static NumberLiteral randomFloatExpression(AST ast) {
+		return ast.newNumberLiteral(Float.toString(OCGGenerator.RANDOM.nextFloat()));
+	}
+	
+	public static NumberLiteral randomDoubleExpression(AST ast) {
+		return ast.newNumberLiteral(Double.toString(OCGGenerator.RANDOM.nextDouble()));
+	}
+	
+	public static CharacterLiteral randomCharExpression(AST ast) {
+		CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+		characterLiteral.setCharValue((char) OCGGenerator.RANDOM.nextInt(65535));
+		return characterLiteral;
+	}
+	
+	public static BooleanLiteral randomBooleanExpression(AST ast) {
+		return ast.newBooleanLiteral(OCGGenerator.RANDOM.nextBoolean());
+	}
+	
+	public static String extractBaseTypeFromArray(String dataType) {
+		return extractBaseTypeFrom(dataType);
+	}
+	
+	public static Expression getRandomPrimitiveLiteral(AST ast, String dataType) {
+		if (!isPrimitive(dataType)) {
+			return null;
+		}
+		
+		switch (dataType) {
+			case "byte":
+				return ClassModelUtil.randomByteExpression(ast);
+			case "short":
+				return ClassModelUtil.randomShortExpression(ast);
+			case "int":
+				return ClassModelUtil.randomIntExpression(ast);
+			case "long":
+				return ClassModelUtil.randomLongExpression(ast);
+			case "float":
+				return ClassModelUtil.randomFloatExpression(ast);
+			case "double":
+				return ClassModelUtil.randomDoubleExpression(ast);
+			case "char":
+				return ClassModelUtil.randomCharExpression(ast);
+			case "boolean":
+				return ClassModelUtil.randomBooleanExpression(ast);
+			default:
+				throw new IllegalArgumentException("Found a primitive type that was unrecognised (" + dataType + ")");
 		}
 	}
 }

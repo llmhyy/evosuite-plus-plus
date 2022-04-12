@@ -9,10 +9,12 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import guru.nidi.graphviz.attribute.Color;
 import guru.nidi.graphviz.attribute.Rank;
@@ -23,6 +25,33 @@ import guru.nidi.graphviz.model.LinkSource;
 import testcode.graphgeneration.model.ClassModel;
 
 public class Graph {
+	private class GraphNodeWrapper {
+		private GraphNode node;
+		private List<GraphNode> path;
+		
+		public GraphNodeWrapper(GraphNode node, List<GraphNode> path) {
+			this.node = node;
+			this.path = new ArrayList<>(path);
+		}
+		
+		public GraphNodeWrapper(GraphNode node) {
+			this.node = node;
+			this.path = new ArrayList<>();
+		}
+		
+		public void addToPath(GraphNode node) {
+			this.path.add(node);
+		}
+		
+		public GraphNode getNode() {
+			return node;
+		}
+		
+		public List<GraphNode> getPath() {
+			return new ArrayList<>(path);
+		}
+	}
+	
 	public static String path = "D://linyun/";
 	private List<GraphNode> nodeSet = new ArrayList<>();
 	private Map<GraphNode, List<GraphNode>> accessibilityMap = new HashMap();
@@ -354,4 +383,55 @@ public class Graph {
 		return descendants;
 	}
 	
+	public List<GraphNode> getPath(GraphNode fromNode, GraphNode toNode) {
+		if (!getDescendantsOf(fromNode).contains(toNode)) {
+			return null;
+		}
+		
+		// We want to determine the path between a pair of nodes 
+		// that does not use a particular edge (if it exists)
+		// To do that, we remove this edge from the accessibility map
+		// before the BFS and add it back after
+		// Don't do this if the toNode is a direct child of the fromNode,
+		// since in this case removing the edge will ensure that we can never get a path
+		boolean isToNodeAccessibleFromFromNode = getNodesAccessibleFrom(fromNode).contains(toNode);
+		boolean isDirectChild = fromNode.getChildren().contains(toNode);
+		if (isToNodeAccessibleFromFromNode && !isDirectChild) {
+			accessibilityMap.get(fromNode).remove(toNode);
+		}
+		
+		// Enhanced BFS to track the path taken
+		// See https://stackoverflow.com/questions/8922060/how-to-trace-the-path-in-a-breadth-first-search/50575971#50575971
+		Set<GraphNode> visitedNodes = new HashSet<>();
+		List<GraphNode> path = null;
+		
+		Queue<GraphNodeWrapper> queue = new ArrayDeque<>();
+		List<GraphNode> initialPath = new ArrayList<>();
+		initialPath.add(fromNode);
+		queue.offer(new GraphNodeWrapper(fromNode, initialPath));
+		visitedNodes.add(fromNode);
+		while (!queue.isEmpty()) {
+			GraphNodeWrapper currentNodeWrapper = queue.poll();
+			List<GraphNode> currentPath = currentNodeWrapper.getPath();
+			if (currentNodeWrapper.getNode().equals(toNode)) {
+				path = currentPath;
+				break;
+			}
+			List<GraphNode> currentNodeNeighbours = getNodesAccessibleFrom(currentNodeWrapper.getNode());
+			for (GraphNode neighbour : currentNodeNeighbours) {
+				if (!visitedNodes.contains(neighbour)) {
+					visitedNodes.add(neighbour);
+					List<GraphNode> currentPathPlusNeighbour = new ArrayList<>(currentPath);
+					currentPathPlusNeighbour.add(neighbour);
+					queue.offer(new GraphNodeWrapper(neighbour, currentPathPlusNeighbour));
+				}
+			}
+		}
+		
+		if (isToNodeAccessibleFromFromNode && !isDirectChild) {
+			accessibilityMap.get(fromNode).add(toNode);
+		}
+		
+		return path;
+	}
 }

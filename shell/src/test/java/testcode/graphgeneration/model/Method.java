@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import testcode.graphgeneration.Visibility;
 
-public class Method extends CodeElement{	
+public class Method extends CodeElement {	
 	private Visibility visibility = Visibility.PUBLIC;
 	private String name;
 	private String returnType;

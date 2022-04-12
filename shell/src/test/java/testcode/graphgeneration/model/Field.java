@@ -6,8 +6,8 @@ import java.util.Objects;
 import testcode.graphgeneration.Graph;
 import testcode.graphgeneration.Visibility;
 
-public class Field extends CodeElement{
-	private Visibility visibility = Visibility.PRIVATE;
+public class Field extends CodeElement {
+	private Visibility visibility = Visibility.DEFAULT;
 	private String name;
 	private String dataType;
 
