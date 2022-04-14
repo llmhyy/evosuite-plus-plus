@@ -6,7 +6,7 @@ public class NodeType {
 	 */
 	private String type;
 	/**
-	 * variable name (field name, method name, array name ..)
+	 * variable name (field name, array name ..)
 	 */
 	private String name;
 

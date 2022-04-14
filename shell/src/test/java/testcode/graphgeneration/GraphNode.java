@@ -105,6 +105,13 @@ public class GraphNode {
 
 	@Override
 	public String toString() { 
-		return "(" + this.index + "," + this.nodeType.getType() + "," + this.nodeType.getName() + ")";
+		
+		if(this.nodeType!=null) {
+			return "(" + this.index + "," + this.nodeType.getType() + "," + this.nodeType.getName() + ")";			
+		}
+		else {
+			return String.valueOf(this.index);
+		}
+		
 	}
 }

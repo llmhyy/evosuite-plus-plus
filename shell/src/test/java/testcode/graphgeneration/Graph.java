@@ -233,21 +233,26 @@ public class Graph {
 				}
 			}
 			
-			/**
-			 * constraint 2: leaf node can only be field or array element, if it is array element, its parent's data type
-			 * must be an array.
-			 */
-			if(node.isLeaf() && node.isSingleParent()) {
-				GraphNode par = node.getParents().get(0);
-				if(par.isSingleChild()) {
-					if(OCGGenerator.RANDOM.nextDouble() < 0.9) {
-						relation = Relation.ARRAY_ELEMENT;
-
-						/**
-						 * if the leaf is an array element access, we need to change the data type in the parent access.
-						 */
-						NodeType parentAccessType = par.getNodeType();
-						parentAccessType.setType(dataType + "[]");
+			
+			if(node.isLeaf()) {
+				relation = Relation.FIELD;
+				
+				/**
+				 * constraint 2: leaf node can only be field or array element, if it is array element, its parent's data type
+				 * must be an array.
+				 */
+				if(node.isSingleParent()) {
+					GraphNode par = node.getParents().get(0);
+					if(par.isSingleChild()) {
+						if(OCGGenerator.RANDOM.nextDouble() < 0.9) {
+							relation = Relation.ARRAY_ELEMENT;
+							
+							/**
+							 * if the leaf is an array element access, we need to change the data type in the parent access.
+							 */
+							NodeType parentAccessType = par.getNodeType();
+							parentAccessType.setType(dataType + "[]");
+						}
 					}
 				}
 				
@@ -278,9 +283,9 @@ public class Graph {
 		else if(relation.equals(Relation.FIELD)) {
 			return new FieldAccess(type, name);
 		}
-		else if(relation.equals(Relation.METHOD)) {
-			return new MethodCallAccess(type, name);
-		}
+//		else if(relation.equals(Relation.METHOD)) {
+//			return new MethodCallAccess(type, name);
+//		}
 		else if(relation.equals(Relation.PARAM)) {
 			return new Parameter(type, name);
 		}
