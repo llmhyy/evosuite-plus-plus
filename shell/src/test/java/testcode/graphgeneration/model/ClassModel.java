@@ -43,7 +43,7 @@ public class ClassModel {
 	private Map<String, Class> classNameToClass = new HashMap<>();
 	private Graph graph = null;
 	private Set<GraphNode> processedNodes = null;
-	private Map<CodeElement, ASTNode> node2CodeMap = new HashMap<>();
+	private Map<CodeElement, ASTNode> nodeToCode = new HashMap<>();
 	
 	private boolean isFieldsAndMethodsGenerated = false;
 	private boolean isGettersAndSettersGenerated = false;
@@ -99,19 +99,29 @@ public class ClassModel {
 		if (isParentField) {
 			// Generate a FieldArrayElementSetter
 			Field parentField = getCorrespondingField(parentNode);
-			if (parentField == null) {
-				System.err.println("Failed to find a corresponding field for " + parentNode + ".");
+			if (_nullCheck(parentField, "Failed to find a corresponding field for " + parentNode + ".")) {
 				return null;
 			}
-			return new FieldArrayElementSetter(GraphNodeUtil.getDeclaredClass(parentNode), "setNode" + toNode.getIndex(), "void", parentField, path);
+			return new FieldArrayElementSetter(
+					GraphNodeUtil.getDeclaredClass(parentNode), 
+					ClassModelUtil.getGetterNameFor(toNode), 
+					"void", 
+					parentField, 
+					path
+				);
 		}
 		if (isParentMethod) {
 			Method parentMethod = getCorrespondingMethod(parentNode);
-			if (parentMethod == null) {
-				System.err.println("Failed to find a corresponding method for " + parentNode + ".");
+			if (_nullCheck(parentMethod, "Failed to find a corresponding method for " + parentNode + ".")) {
 				return null;
 			}
-			return new MethodArrayElementSetter(GraphNodeUtil.getDeclaredClass(parentNode), "setNode" + toNode.getIndex(), "void", parentMethod, path);
+			return new MethodArrayElementSetter(
+					GraphNodeUtil.getDeclaredClass(parentNode), 
+					ClassModelUtil.getSetterNameFor(toNode), 
+					"void", 
+					parentMethod, 
+					path
+				);
 		}
 		
 		return null;
@@ -125,7 +135,7 @@ public class ClassModel {
 		// Strictly speaking, we should also use the method's declaring class
 		// to uniquely identify the method. However, since we use unique names for each method
 		// this should be sufficient too.
-		String desiredMethodName = "method" + node.getIndex();
+		String desiredMethodName = ClassModelUtil.getMethodNameFor(node);
 		String desiredMethodReturnType = GraphNodeUtil.getDeclaredClass(node);
 		for (Class clazz : classNameToClass.values()) {
 			List<Method> methods = clazz.getMethods();
@@ -151,7 +161,7 @@ public class ClassModel {
 			return null;
 		}
 		
-		String desiredFieldName = GraphNodeUtil.getDeclaredClass(node) + "_" + node.getIndex();
+		String desiredFieldName = ClassModelUtil.getFieldNameFor(node);
 		String desiredFieldType = GraphNodeUtil.getDeclaredClass(node);
 		for (Class clazz : classNameToClass.values()) {
 			List<Field> fields = clazz.getFields();
@@ -207,12 +217,12 @@ public class ClassModel {
 				boolean isMethod = GraphNodeUtil.isMethod(childNode);
 				String childDeclaredClass = GraphNodeUtil.getDeclaredClass(childNode);
 				if (isField) {
-					Field childField = new Field(childDeclaredClass + "_" + childNode.getIndex(), childDeclaredClass);
+					Field childField = new Field(ClassModelUtil.getFieldNameFor(childNode), childDeclaredClass);
 					classRepresentation.addField(childField);
 				}
 				
 				if (isMethod) {
-					Method childMethod = new Method(declaredClass, "method" + childNode.getIndex(), childDeclaredClass);
+					Method childMethod = new Method(declaredClass, ClassModelUtil.getMethodNameFor(childNode), childDeclaredClass);
 					classRepresentation.addMethod(childMethod);
 				}
 			}
@@ -230,8 +240,7 @@ public class ClassModel {
 		FieldDeclaration fieldDeclaration = ast.newFieldDeclaration(variableDeclarationFragment);
 		
 		Type fieldType = ClassModelUtil.extractTypeFrom(ast, fieldRepresentation);
-		if (fieldType == null) {
-			System.err.println("Failed to generate an appropriate Type for " + fieldRepresentation);
+		if (_nullCheck(fieldType, "Failed to generate an appropriate Type for " + fieldRepresentation)) {
 			return null;
 		}
 		fieldDeclaration.setType(fieldType);
@@ -239,9 +248,7 @@ public class ClassModel {
 		Modifier fieldModifier;
 		if (!fieldRepresentation.getVisibility().equals(Visibility.DEFAULT)) {
 			Modifier.ModifierKeyword fieldModifierKeyword = ClassModelUtil.visibilityToModifierKeyword(fieldRepresentation.getVisibility());
-			if (fieldModifierKeyword == null) {
-				// Error state, skip
-				System.err.println("Failed to find an appropriate Modifier.ModifierKeyword for " + fieldRepresentation.getVisibility());
+			if (_nullCheck(fieldModifierKeyword, "Failed to find an appropriate Modifier.ModifierKeyword for " + fieldRepresentation.getVisibility())) {
 				return null;
 			}
 			fieldModifier = ast.newModifier(fieldModifierKeyword);
@@ -257,8 +264,7 @@ public class ClassModel {
 	private MethodDeclaration generateMethodSkeletonFrom(Method method, AST ast) {
 		MethodDeclaration methodDeclaration = ast.newMethodDeclaration();
 		Type returnType = ClassModelUtil.extractReturnTypeFrom(ast, method);
-		if (returnType == null) {
-			System.err.println("Failed to generate an appropriate Type for " + method.getReturnType());
+		if (_nullCheck(returnType, "Failed to generate an appropriate Type for " + method.getReturnType())) {
 			return null;
 		}
 		methodDeclaration.setReturnType2(returnType);
@@ -270,50 +276,52 @@ public class ClassModel {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private MethodDeclaration addMethodToAst(Method method, AST ast, TypeDeclaration typeDeclaration) {
+	private void addMethodToAst(Method method, AST ast, TypeDeclaration typeDeclaration) {
 		boolean isGetter = (method instanceof Getter);
 		boolean isFieldSetter = (method instanceof Setter);
 		boolean isFieldArrayElementSetter = (method instanceof FieldArrayElementSetter);
 		boolean isMethodArrayElementSetter = (method instanceof MethodArrayElementSetter);
 		boolean isSetter = (isFieldSetter || isFieldArrayElementSetter || isMethodArrayElementSetter);
 		boolean isRegularMethod = !(isGetter || isFieldSetter || isFieldArrayElementSetter || isMethodArrayElementSetter);
+		MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(method, ast);
 		if (isGetter || isRegularMethod) {
-			MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(method, ast);
+			Block methodBody = null;
 			typeDeclaration.bodyDeclarations().add(methodDeclaration);
 			if (isGetter) {
-				Block getterBody = generateGetterBodyFromPath(ast, ((Getter) method).getPathToReturnedField());
-				methodDeclaration.setBody(getterBody);
+				methodBody = generateGetterBodyFromPath(ast, ((Getter) method).getPathToReturnedField());
 			} else {
-				Block regularMethodBody = generateRegularMethodBody(ast, method);
-				methodDeclaration.setBody(regularMethodBody);
+				methodBody = generateRegularMethodBody(ast, method);
 			}
-			return methodDeclaration;
+			methodDeclaration.setBody(methodBody);
 		} else if (isSetter) {
-			MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(method, ast);
+			Block methodBody = null;
 			Type parameterType = null;
 			if (isFieldSetter) {
 				Setter setter = (Setter) method;
 				parameterType = ClassModelUtil.extractTypeFrom(ast, setter.getSetField());
-				Block setterBody = generateSetterBodyFromPath(ast, setter.getPathToSetField());
-				methodDeclaration.setBody(setterBody);
+				methodBody = generateSetterBodyFromPath(ast, setter.getPathToSetField());
 			} else if (isFieldArrayElementSetter) {
 				FieldArrayElementSetter fieldArrayElementSetter = (FieldArrayElementSetter) method;
 				ArrayType arrayType = (ArrayType) ClassModelUtil.extractTypeFrom(ast, fieldArrayElementSetter.getArray());
 				parameterType = ClassModelUtil.getCopyOfType(ast, arrayType.getComponentType());
-				Block arrayElementSetterBody = generateArrayElementSetterBodyFromPath(ast, fieldArrayElementSetter.getPath());
-				methodDeclaration.setBody(arrayElementSetterBody);
+				methodBody = generateArrayElementSetterBodyFromPath(ast, fieldArrayElementSetter.getPath());
 			} else if (isMethodArrayElementSetter) {
 				MethodArrayElementSetter methodArrayElementSetter = (MethodArrayElementSetter) method;
 				ArrayType arrayType = (ArrayType) ClassModelUtil.extractReturnTypeFrom(ast, methodArrayElementSetter.getArray());
 				parameterType = ClassModelUtil.getCopyOfType(ast, arrayType.getComponentType());
-				Block arrayElementSetterBody = generateArrayElementSetterBodyFromPath(ast, methodArrayElementSetter.getPath());
-				methodDeclaration.setBody(arrayElementSetterBody);
+				methodBody = generateArrayElementSetterBodyFromPath(ast, methodArrayElementSetter.getPath());
 			}
 			
-			if (parameterType == null) {
-				System.err.println("Failed to generate a parameterType for " + method);
-				return null;
+			if (_nullCheck(methodBody, "Failed to generate a method body for " + method)) {
+				return;
 			}
+			
+			methodDeclaration.setBody(methodBody);
+			
+			if (_nullCheck(parameterType, "Failed to generate a parameterType for " + method)) {
+				return;
+			}
+			
 			SingleVariableDeclaration parameter = ast.newSingleVariableDeclaration();
 			parameter.setType(parameterType);
 			// TODO: Extend for multiple parameters
@@ -321,12 +329,8 @@ public class ClassModel {
 			parameter.setName(ast.newSimpleName("arg0"));
 			methodDeclaration.parameters().add(parameter);			
 			
-			typeDeclaration.bodyDeclarations().add(methodDeclaration);
-			
-			return methodDeclaration;
+			typeDeclaration.bodyDeclarations().add(methodDeclaration);	
 		}
-		
-		return null;
 	}
 	
 	
@@ -343,77 +347,24 @@ public class ClassModel {
 		boolean isObject = ClassModelUtil.isObject(returnType);
 		
 		Block methodBody = ast.newBlock();
+		ReturnStatement returnStatement = ast.newReturnStatement();
 		if (isPrimitive) {
-			ReturnStatement returnStatement = ast.newReturnStatement();
-			returnStatement.setExpression(ClassModelUtil.getRandomPrimitiveLiteral(ast, returnType));
-			methodBody.statements().add(returnStatement);
+			returnStatement.setExpression(ClassModelUtil.randomPrimitiveExpression(ast, returnType));
 		} else if (isArray) {
-			ArrayCreation arrayCreation = ast.newArrayCreation();
-			arrayCreation.setType(ClassModelUtil.stringToArrayType(ast, returnType));
-			
-			String baseType = ClassModelUtil.extractBaseTypeFromArray(returnType);
-			boolean isBaseTypePrimitive = ClassModelUtil.isPrimitive(baseType);
-			ArrayInitializer arrayInitializer = ast.newArrayInitializer();
-			int arrayLength = OCGGenerator.RANDOM.nextInt(9) + 1;
-			for (int i = 0; i < arrayLength; i++) {
-				if (isBaseTypePrimitive) {
-					arrayInitializer.expressions().add(ClassModelUtil.getRandomPrimitiveLiteral(ast, baseType));
-				} else {
-					ClassInstanceCreation classInstanceCreation = ast.newClassInstanceCreation();
-					classInstanceCreation.setType(ast.newSimpleType(ast.newSimpleName(baseType)));
-					arrayInitializer.expressions().add(classInstanceCreation);
-				}
-			}
-			arrayCreation.setInitializer(arrayInitializer);
-			
-			ReturnStatement returnStatement = ast.newReturnStatement();
-			returnStatement.setExpression(arrayCreation);
-			methodBody.statements().add(returnStatement);
+			returnStatement.setExpression(
+					ClassModelUtil.randomArrayCreation(ast, returnType, 1 + OCGGenerator.RANDOM.nextInt(9)));
 		} else if (isObject) {
-			ReturnStatement returnStatement = ast.newReturnStatement();
-			ClassInstanceCreation classInstanceCreation = ast.newClassInstanceCreation();
-			classInstanceCreation.setType(ast.newSimpleType(ast.newSimpleName(returnType)));
-			returnStatement.setExpression(classInstanceCreation);
-			methodBody.statements().add(returnStatement);
+			returnStatement.setExpression(ClassModelUtil.newClassInstance(ast, returnType));
 		}
-		
+		methodBody.statements().add(returnStatement);
 		return methodBody;
 	}
 	
 	@SuppressWarnings("unchecked")
 	private Block generateGetterBodyFromPath(AST ast, List<GraphNode> path) {
 		Block methodBody = ast.newBlock();
-		Expression previousExpression = ast.newThisExpression();
-		for (int i = 0; i < path.size(); i++) {
-			GraphNode currentNode = path.get(i);
-			boolean isParam = GraphNodeUtil.isParameter(currentNode);
-			if (isParam) {
-				continue;
-			}
-			
-			boolean isField = GraphNodeUtil.isField(currentNode);
-			if (isField) {
-				FieldAccess fieldAccess = ast.newFieldAccess();
-				try {
-					fieldAccess.setExpression(previousExpression);
-				} catch (Exception e) {
-					System.currentTimeMillis();
-				}
-				fieldAccess.setName(ast.newSimpleName(GraphNodeUtil.getDeclaredClass(currentNode) + "_" + currentNode.getIndex()));
-				previousExpression = fieldAccess;
-			}
-			
-			boolean isMethod = GraphNodeUtil.isMethod(currentNode);
-			if (isMethod) {
-				MethodInvocation methodInvocation = ast.newMethodInvocation();
-				methodInvocation.setExpression(previousExpression);
-				methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
-				previousExpression = methodInvocation;
-			}
-		}
-		
 		ReturnStatement returnStatement = ast.newReturnStatement();
-		returnStatement.setExpression(previousExpression);
+		returnStatement.setExpression(ClassModelUtil.generateGetterExpressionFromPath(ast, path));
 		methodBody.statements().add(returnStatement);
 		
 		return methodBody;
@@ -423,64 +374,17 @@ public class ClassModel {
 	@SuppressWarnings("unchecked")
 	private Block generateArrayElementSetterBodyFromPath(AST ast, List<GraphNode> path) {
 		Block methodBody = ast.newBlock();
-		Expression previousExpression = ast.newThisExpression();
-		for (int i = 0; i < path.size(); i++) {
-			GraphNode currentNode = path.get(i);
-			boolean isParam = GraphNodeUtil.isParameter(currentNode);
-			if (isParam) {
-				continue;
-			}
-			
-			if (i < path.size() - 1) {
-				// Non-terminal node
-				boolean isField = GraphNodeUtil.isField(currentNode);
-				if (isField) {
-					// Assume all fields as package private
-					// i.e. we can access it directly
-					FieldAccess fieldAccess = ast.newFieldAccess();
-					fieldAccess.setExpression(previousExpression);
-					fieldAccess.setName(ast.newSimpleName(GraphNodeUtil.getDeclaredClass(currentNode) + "_" + currentNode.getIndex()));
-					previousExpression = fieldAccess;
-				}
-				
-				boolean isMethod = GraphNodeUtil.isMethod(currentNode);
-				if (isMethod) {
-					MethodInvocation methodInvocation = ast.newMethodInvocation();
-					methodInvocation.setExpression(previousExpression);
-					methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
-					previousExpression = methodInvocation;
-				}
-			} else {
-				// Terminal node
-				// Last element should always be an array element
-				if (!GraphNodeUtil.isArrayElement(currentNode)) {
-					throw new IllegalArgumentException("Last node in path for array element setter must be an array element!");
-				}
-				
-				ArrayAccess arrayAccess = ast.newArrayAccess();
-				arrayAccess.setArray(previousExpression);
-				arrayAccess.setIndex(ast.newNumberLiteral("0"));
-				Assignment assignment = ast.newAssignment();
-				assignment.setLeftHandSide(arrayAccess);
-				assignment.setRightHandSide(ast.newSimpleName("arg0"));
-				
-				methodBody.statements().add(ast.newExpressionStatement(assignment));
-			}
-		}
-		
+		methodBody.statements().add(
+				ast.newExpressionStatement(
+						ClassModelUtil.generateArrayElementSetterExpressionFromPath(ast, path)
+				)
+		);
 		return methodBody;
 	}
-
+	
 	@SuppressWarnings("unchecked")
-	private CompilationUnit generateSkeletonCodeFromClass(Class clazz) {
-		
-		String className = clazz.getName();
-		
+	private CompilationUnit generateCodeFromClass(Class clazz) {
 		AST ast = AST.newAST(AST.JLS4);
-		Class classRepresentation = classNameToClass.get(className);
-		if (classRepresentation == null) {
-			return null;
-		}
 		
 		CompilationUnit compilationUnit = ast.newCompilationUnit();
 		PackageDeclaration packageDeclaration = ast.newPackageDeclaration();
@@ -488,31 +392,31 @@ public class ClassModel {
 		compilationUnit.setPackage(packageDeclaration);
 		
 		TypeDeclaration typeDeclaration = ast.newTypeDeclaration();
-		typeDeclaration.setName(ast.newSimpleName(className));
+		typeDeclaration.setName(ast.newSimpleName(clazz.getName()));
 		compilationUnit.types().add(typeDeclaration);
 		
-		node2CodeMap.put(clazz, compilationUnit);
-		
-		for (Field fieldRepresentation : classRepresentation.getFields()) {
-			FieldDeclaration f =  addFieldToAst(fieldRepresentation, ast, typeDeclaration);
-			node2CodeMap.put(fieldRepresentation, f);
+		for (Field fieldRepresentation : clazz.getFields()) {
+			addFieldToAst(fieldRepresentation, ast, typeDeclaration);
 		}
 		
-		for (Method methodRepresentation : classRepresentation.getMethods()) {
-			MethodDeclaration m = addMethodToAst(methodRepresentation, ast, typeDeclaration);
-			node2CodeMap.put(methodRepresentation, m);
+		// Generate a constructor that initialises all fields
+		// either to a random value (if primitive)
+		// or a new object instance (if non-primitive)
+		typeDeclaration.bodyDeclarations().add(ClassModelUtil.generateConstructorFor(ast, clazz));
+		
+		for (Method methodRepresentation : clazz.getMethods()) {
+			addMethodToAst(methodRepresentation, ast, typeDeclaration);
 		}
 		
 		return compilationUnit;
 	}
 	
-	public void transformToCode() {
-		Map<String, CompilationUnit> classNameToCode = new HashMap<>();
-		
+	public void transformToCode() {		
 		for (String className : classNameToClass.keySet()) {
 			Class clazz = classNameToClass.get(className);
-			CompilationUnit compilationUnit = generateSkeletonCodeFromClass(clazz);
-			classNameToCode.put(className, compilationUnit);
+			CompilationUnit compilationUnit = generateCodeFromClass(clazz);
+			nodeToCode.put(clazz, compilationUnit);
+			
 			System.out.println(compilationUnit.toString());
 		}
 	}
@@ -522,9 +426,6 @@ public class ClassModel {
 			throw new IllegalStateException("Attempted to generate getters and setters before fields and methods were generated!");
 		}
 		
-		/**
-		 * build accessibility
-		 */
 		for (GraphNode currentNode : processedNodes) {
 			boolean isArray = GraphNodeUtil.isArray(currentNode);
 			if (isArray) {
@@ -533,55 +434,45 @@ public class ClassModel {
 			
 			List<GraphNode> accessibleNodes = graph.getNodesAccessibleFrom(currentNode);
 			for (GraphNode accessibleNode : accessibleNodes) {
-				
 				boolean isField = GraphNodeUtil.isField(accessibleNode);
 				boolean isArrayElement = GraphNodeUtil.isArrayElement(accessibleNode);
-				if (isField || isArrayElement) {
-					// Generate a method returning this field.
-					Field field = null;
-					if (isField) {
-						field = getCorrespondingField(accessibleNode);
-						if (field == null) {
-							// Note warning
-							System.err.println("ERROR: Attempted to find a corresponding field for " + accessibleNode + ", but could not find anything.");
-							continue;
-						}
-					}				
-					
-					Class classRepresentation = classNameToClass.get(GraphNodeUtil.getDeclaredClass(currentNode));
-					if (classRepresentation == null) {
-						// Note warning
-						System.err.println("ERROR: Attempted to find a corresponding class for " + currentNode + ", but could not find anything.");
+				Class classRepresentation = classNameToClass.get(GraphNodeUtil.getDeclaredClass(currentNode));
+				if (_nullCheck(classRepresentation, "ERROR: Attempted to find a corresponding class for " + currentNode + ", but could not find anything.")) {
+					continue;
+				}
+				
+				if (isField) {
+					Field field = getCorrespondingField(accessibleNode);
+					if (_nullCheck(field, "ERROR: Attempted to find a corresponding field for " + accessibleNode + ", but could not find anything.")) {
 						continue;
 					}
-					
-					if (isArrayElement) {
-						// Array elements are always leaf nodes
-						// Generate a setter for the array element
-						// We indicate that it's an array element setter
-						// by indicating the array that we want to set
-						Method setter = generateSetterForArrayElement(currentNode, accessibleNode);
-						classRepresentation.addMethod(setter);
+					Method method;
+					if (accessibleNode.isLeaf()) {
+						method = generateSetterForField(currentNode, accessibleNode, field);
+					} else {
+						method = generateGetterForField(currentNode, accessibleNode, field);
 					}
-					
-					if (isField) {
-						// If it's a leaf node, generate a setter
-						// Else generate a getter
-						if (accessibleNode.isLeaf()) {
-							// Generate setter
-							Method setter = generateSetterForField(currentNode, accessibleNode, field);
-							classRepresentation.addMethod(setter);
-						} else {
-							// Generate getter
-							Method getter = generateGetterForField(currentNode, accessibleNode, field);
-							classRepresentation.addMethod(getter);
-						}
-					}
+					classRepresentation.addMethod(method);
+				} else if (isArrayElement) {
+					// Array elements are always leaf nodes
+					// Generate a setter for the array element
+					// We indicate that it's an array element setter
+					// by indicating the array that we want to set
+					Method setter = generateSetterForArrayElement(currentNode, accessibleNode);
+					classRepresentation.addMethod(setter);
 				}
 			}
 		}
 		
 		isGettersAndSettersGenerated = true;
+	}
+	
+	private boolean _nullCheck(Object object, String errorMessage) {
+		if (object == null) {
+			System.err.println(errorMessage);
+			return true;
+		}
+		return false;
 	}
 
 	private Method generateGetterForField(GraphNode fromNode, GraphNode toNode, Field field) {
@@ -634,7 +525,7 @@ public class ClassModel {
 						fieldAccess.setExpression(previousExpression);
 						previousExpression = fieldAccess;
 					}
-					fieldAccess.setName(ast.newSimpleName(GraphNodeUtil.getDeclaredClass(currentNode) + "_" + currentNode.getIndex()));
+					fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
 				}
 				
 				boolean isMethod = GraphNodeUtil.isMethod(currentNode);
@@ -647,7 +538,7 @@ public class ClassModel {
 						methodInvocation.setExpression(previousExpression);
 						previousExpression = methodInvocation;
 					}
-					methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
+					methodInvocation.setName(ast.newSimpleName(ClassModelUtil.getMethodNameFor(currentNode)));
 				}
 			} else {
 				Assignment assignment = ast.newAssignment();

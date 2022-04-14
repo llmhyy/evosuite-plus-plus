@@ -1,13 +1,20 @@
 package testcode.graphgeneration;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.jdt.core.dom.ArrayType;
+import org.eclipse.jdt.core.dom.Assignment;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
+import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.FieldAccess;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PrimitiveType;
@@ -18,8 +25,39 @@ import testcode.graphgeneration.model.Field;
 import testcode.graphgeneration.model.Method;
 
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ArrayAccess;
+import org.eclipse.jdt.core.dom.ArrayCreation;
+import org.eclipse.jdt.core.dom.ArrayInitializer;
 
 public class ClassModelUtil {
+	public static String getFieldNameFor(GraphNode node) {
+		if (!GraphNodeUtil.isField(node)) {
+			return null;
+		}
+		
+		return GraphNodeUtil.getDeclaredClass(node) + "_" + node.getIndex();
+	}
+	
+	public static String getMethodNameFor(GraphNode node) {
+		if (!GraphNodeUtil.isMethod(node)) {
+			return null;
+		}
+		
+		return "method" + node.getIndex();
+	}
+	
+	public static String getGetterNameFor(GraphNode node) {
+		if (!GraphNodeUtil.isField(node)) {
+			return null;
+		}
+		
+		return "getNode" + node.getIndex();
+	}
+	
+	public static String getSetterNameFor(GraphNode node) {
+		return "setNode" + node.getIndex();
+	}
+	
 	public static boolean isPrimitive(String dataType) {
 		return dataType.equals("void") || Arrays.asList(Graph.PRIMITIVE_TYPES).contains(dataType);
 	}
@@ -219,7 +257,7 @@ public class ClassModelUtil {
 		return extractBaseTypeFrom(dataType);
 	}
 	
-	public static Expression getRandomPrimitiveLiteral(AST ast, String dataType) {
+	public static Expression randomPrimitiveExpression(AST ast, String dataType) {
 		if (!isPrimitive(dataType)) {
 			return null;
 		}
@@ -244,5 +282,146 @@ public class ClassModelUtil {
 			default:
 				throw new IllegalArgumentException("Found a primitive type that was unrecognised (" + dataType + ")");
 		}
+	}
+	
+	/**
+	 * Generates an ArrayCreation instance that initialises an array with the given length
+	 * Elements of the array are randomised instances if primitive, or new object instances if non-primitive.
+	 * @param ast The AST to use for code generation.
+	 * @param dataType The array datatype (including square braces)
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public static ArrayCreation randomArrayCreation(AST ast, String dataType, int arrayLength) {
+		ArrayCreation arrayCreation = ast.newArrayCreation();
+		arrayCreation.setType(ClassModelUtil.stringToArrayType(ast, dataType));
+		
+		String baseType = ClassModelUtil.extractBaseTypeFromArray(dataType);
+		boolean isBaseTypePrimitive = ClassModelUtil.isPrimitive(baseType);
+		ArrayInitializer arrayInitializer = ast.newArrayInitializer();
+		for (int i = 0; i < arrayLength; i++) {
+			if (isBaseTypePrimitive) {
+				arrayInitializer.expressions().add(ClassModelUtil.randomPrimitiveExpression(ast, baseType));
+			} else {
+				ClassInstanceCreation classInstanceCreation = ast.newClassInstanceCreation();
+				classInstanceCreation.setType(ast.newSimpleType(ast.newSimpleName(baseType)));
+				arrayInitializer.expressions().add(classInstanceCreation);
+			}
+		}
+		arrayCreation.setInitializer(arrayInitializer);
+		return arrayCreation;
+	}
+	
+	public static ClassInstanceCreation newClassInstance(AST ast, String dataType) {
+		ClassInstanceCreation classInstanceCreation = ast.newClassInstanceCreation();
+		classInstanceCreation.setType(ast.newSimpleType(ast.newSimpleName(dataType)));
+		return classInstanceCreation;
+	}
+	
+	public static Expression generateGetterExpressionFromPath(AST ast, List<GraphNode> path) {
+		Expression previousExpression = ast.newThisExpression();
+		for (int i = 0; i < path.size(); i++) {
+			GraphNode currentNode = path.get(i);
+			boolean isParam = GraphNodeUtil.isParameter(currentNode);
+			if (isParam) {
+				continue;
+			}
+			
+			boolean isField = GraphNodeUtil.isField(currentNode);
+			if (isField) {
+				FieldAccess fieldAccess = ast.newFieldAccess();
+				try {
+					fieldAccess.setExpression(previousExpression);
+				} catch (Exception e) {
+					System.currentTimeMillis();
+				}
+				fieldAccess.setName(ast.newSimpleName(GraphNodeUtil.getDeclaredClass(currentNode) + "_" + currentNode.getIndex()));
+				previousExpression = fieldAccess;
+			}
+			
+			boolean isMethod = GraphNodeUtil.isMethod(currentNode);
+			if (isMethod) {
+				MethodInvocation methodInvocation = ast.newMethodInvocation();
+				methodInvocation.setExpression(previousExpression);
+				methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
+				previousExpression = methodInvocation;
+			}
+		}
+		return previousExpression;
+	}
+	
+	public static Expression generateArrayElementSetterExpressionFromPath(AST ast, List<GraphNode> path) {
+		Expression previousExpression = ast.newThisExpression();
+		for (int i = 0; i < path.size(); i++) {
+			GraphNode currentNode = path.get(i);
+			boolean isParam = GraphNodeUtil.isParameter(currentNode);
+			if (isParam) {
+				continue;
+			}
+			
+			if (i < path.size() - 1) {
+				// Non-terminal node
+				boolean isField = GraphNodeUtil.isField(currentNode);
+				if (isField) {
+					// Assume all fields as package private
+					// i.e. we can access it directly
+					FieldAccess fieldAccess = ast.newFieldAccess();
+					fieldAccess.setExpression(previousExpression);
+					fieldAccess.setName(ast.newSimpleName(GraphNodeUtil.getDeclaredClass(currentNode) + "_" + currentNode.getIndex()));
+					previousExpression = fieldAccess;
+				}
+				
+				boolean isMethod = GraphNodeUtil.isMethod(currentNode);
+				if (isMethod) {
+					MethodInvocation methodInvocation = ast.newMethodInvocation();
+					methodInvocation.setExpression(previousExpression);
+					methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
+					previousExpression = methodInvocation;
+				}
+			} else {
+				// Terminal node
+				// Last element should always be an array element
+				if (!GraphNodeUtil.isArrayElement(currentNode)) {
+					throw new IllegalArgumentException("Last node in path for array element setter must be an array element!");
+				}
+				
+				ArrayAccess arrayAccess = ast.newArrayAccess();
+				arrayAccess.setArray(previousExpression);
+				arrayAccess.setIndex(ast.newNumberLiteral("0"));
+				Assignment assignment = ast.newAssignment();
+				assignment.setLeftHandSide(arrayAccess);
+				assignment.setRightHandSide(ast.newSimpleName("arg0"));
+				previousExpression = assignment;
+			}
+		}
+		return previousExpression;
+	}
+	
+	public static MethodDeclaration generateConstructorFor(AST ast, testcode.graphgeneration.model.Class clazz) {
+		MethodDeclaration methodDeclaration = ast.newMethodDeclaration();
+		methodDeclaration.setConstructor(true);
+		methodDeclaration.setName(ast.newSimpleName(clazz.getName()));
+		methodDeclaration.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD));
+		Block methodBody = ast.newBlock();
+		methodDeclaration.setBody(methodBody);
+		
+		for (Field field : clazz.getFields()) {
+			Assignment assignment = ast.newAssignment();
+			FieldAccess fieldAccess = ast.newFieldAccess();
+			fieldAccess.setExpression(ast.newThisExpression());
+			fieldAccess.setName(ast.newSimpleName(field.getName()));
+			assignment.setLeftHandSide(fieldAccess);
+			if (field.isPrimitive()) {
+				assignment.setRightHandSide(randomPrimitiveExpression(ast, field.getDataType()));
+			} else if (field.isArray()) {
+				assignment.setRightHandSide(randomArrayCreation(ast, field.getDataType(), 1 + OCGGenerator.RANDOM.nextInt(9)));
+			} else {
+				assignment.setRightHandSide(newClassInstance(ast, field.getDataType()));
+			}
+			
+			methodBody.statements().add(ast.newExpressionStatement(assignment));
+		}
+		
+		return methodDeclaration;
 	}
 }
