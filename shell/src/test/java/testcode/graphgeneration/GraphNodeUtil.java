@@ -2,6 +2,9 @@ package testcode.graphgeneration;
 
 import java.util.Arrays;
 
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.Type;
+
 public class GraphNodeUtil {
 	private GraphNodeUtil() {}
 	

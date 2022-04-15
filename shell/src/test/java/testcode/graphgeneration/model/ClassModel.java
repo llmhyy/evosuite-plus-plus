@@ -19,18 +19,24 @@ import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
+import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
+import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 import testcode.graphgeneration.ClassModelUtil;
 import testcode.graphgeneration.Graph;
@@ -44,6 +50,7 @@ public class ClassModel {
 	private Graph graph = null;
 	private Set<GraphNode> processedNodes = null;
 	private Map<CodeElement, ASTNode> nodeToCode = new HashMap<>();
+	private String targetClass = null;
 	
 	private boolean isFieldsAndMethodsGenerated = false;
 	private boolean isGettersAndSettersGenerated = false;
@@ -56,6 +63,15 @@ public class ClassModel {
 	}
 	
 	private void generateFieldsAndMethods() {
+		// Select an arbitrary top layer node to be the target method-holding class
+		// We place the target method in one of these classes to leverage the fact that
+		// internal methods can always access direct members regardless of access modifiers.
+		targetClass = GraphNodeUtil.getDeclaredClass(
+				graph.getTopLayer().get(
+						OCGGenerator.RANDOM.nextInt(graph.getTopLayer().size())
+				)
+		);
+		
 		// Process all graph nodes in order
 		this.processedNodes = new HashSet<>();
 		Queue<GraphNode> queue = new ArrayDeque<>();
@@ -104,7 +120,7 @@ public class ClassModel {
 			}
 			return new FieldArrayElementSetter(
 					GraphNodeUtil.getDeclaredClass(parentNode), 
-					ClassModelUtil.getGetterNameFor(toNode), 
+					ClassModelUtil.getSetterNameFor(toNode), 
 					"void", 
 					parentField, 
 					path
@@ -261,7 +277,7 @@ public class ClassModel {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private MethodDeclaration generateMethodSkeletonFrom(Method method, AST ast) {
+	private MethodDeclaration generateMethodSkeletonFrom(AST ast, Method method) {
 		MethodDeclaration methodDeclaration = ast.newMethodDeclaration();
 		Type returnType = ClassModelUtil.extractReturnTypeFrom(ast, method);
 		if (_nullCheck(returnType, "Failed to generate an appropriate Type for " + method.getReturnType())) {
@@ -283,7 +299,7 @@ public class ClassModel {
 		boolean isMethodArrayElementSetter = (method instanceof MethodArrayElementSetter);
 		boolean isSetter = (isFieldSetter || isFieldArrayElementSetter || isMethodArrayElementSetter);
 		boolean isRegularMethod = !(isGetter || isFieldSetter || isFieldArrayElementSetter || isMethodArrayElementSetter);
-		MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(method, ast);
+		MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(ast, method);
 		if (isGetter || isRegularMethod) {
 			Block methodBody = null;
 			typeDeclaration.bodyDeclarations().add(methodDeclaration);
@@ -408,9 +424,92 @@ public class ClassModel {
 			addMethodToAst(methodRepresentation, ast, typeDeclaration);
 		}
 		
+		// If this class is the one designated to contain the target method, create the target method
+		if (clazz.getName().equals(targetClass)) {
+			generateTargetMethod(ast, typeDeclaration);
+		}
+		
 		return compilationUnit;
 	}
 	
+	@SuppressWarnings("unchecked")
+	private void generateTargetMethod(AST ast, TypeDeclaration typeDeclaration) {
+		MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(ast, new Method(targetClass, "targetMethod", "void"));
+		Block methodBody = generateTargetMethodBody(ast, typeDeclaration);
+		methodDeclaration.setBody(methodBody);
+		typeDeclaration.bodyDeclarations().add(methodDeclaration);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Block generateTargetMethodBody(AST ast, TypeDeclaration typeDeclaration) {
+		Block methodBody = ast.newBlock();
+		int variableCount = 0;
+		Map<Integer, Type> varIndexToType = new HashMap<>();
+		
+		GraphNode fromNode = null;
+		for (GraphNode topLayerNode : graph.getTopLayer()) {
+			if (GraphNodeUtil.getDeclaredClass(topLayerNode).equals(targetClass)) {
+				fromNode = topLayerNode;
+				break;
+			}
+		}
+		
+		if (_nullCheck(fromNode, "Unable to find an appropriate top layer node of class " + targetClass)) {
+			return null;
+		}
+		
+		// For each leaf node, generate a variable.
+		for (GraphNode leafNode : graph.getLeafNodes()) {
+			List<GraphNode> path = graph.getPath(fromNode, leafNode);
+			if (_nullCheck(path, "Unable to find a path from " + fromNode + " to " + leafNode + "!")) {
+				return null;
+			}
+			Expression getterExpression = ClassModelUtil.generateGetterExpressionFromPath(ast, path);
+			VariableDeclarationFragment variableDeclarationFragment = ast.newVariableDeclarationFragment();
+			variableDeclarationFragment.setName(ast.newSimpleName("var" + variableCount));
+			variableDeclarationFragment.setInitializer(getterExpression);
+			VariableDeclarationStatement variableDeclarationStatement = ast.newVariableDeclarationStatement(variableDeclarationFragment);
+			Type variableType = ClassModelUtil.extractTypeFrom(ast, leafNode);
+			if (_nullCheck(variableType, "Unable to generate a variable type from " + leafNode)) {
+				return null;
+			}
+
+			variableDeclarationStatement.setType(variableType);
+			methodBody.statements().add(variableDeclarationStatement);
+			
+			varIndexToType.put(variableCount, variableType);
+			variableCount++;
+		}
+		
+		// For each variable generated, generate an appropriate if statement
+		// We simply do a NEQ with the default value for that primitive type
+		for (Map.Entry<Integer, Type> variableIndexAndType : varIndexToType.entrySet()) {
+			String variableName = "var" + variableIndexAndType.getKey();
+			String type = variableIndexAndType.getValue().toString();
+			Expression defaultValueOfType = ClassModelUtil.defaultPrimitiveExpression(ast, type);
+			
+			MethodInvocation systemCurrentTimeMillisInvocation = ast.newMethodInvocation();
+			systemCurrentTimeMillisInvocation.setExpression(ast.newSimpleName("System"));
+			systemCurrentTimeMillisInvocation.setName(ast.newSimpleName("currentTimeMillis"));
+						
+			InfixExpression neqExpression = ast.newInfixExpression();
+			neqExpression.setLeftOperand(ast.newSimpleName(variableName));
+			neqExpression.setOperator(InfixExpression.Operator.NOT_EQUALS);
+			neqExpression.setRightOperand(defaultValueOfType);
+			
+			Block ifStatementContents = ast.newBlock();
+			ifStatementContents.statements().add(ast.newExpressionStatement(systemCurrentTimeMillisInvocation));
+			
+			IfStatement ifStatement = ast.newIfStatement();
+			ifStatement.setExpression(neqExpression);
+			ifStatement.setThenStatement(ifStatementContents);
+			
+			methodBody.statements().add(ifStatement);
+		}
+		
+		return methodBody;
+	}
+
 	public void transformToCode() {		
 		for (String className : classNameToClass.keySet()) {
 			Class clazz = classNameToClass.get(className);
@@ -524,9 +623,9 @@ public class ClassModel {
 	// Need to add multi-arg support for setters
 	@SuppressWarnings("unchecked")
 	private Block generateSetterBodyFromPath(AST ast, List<GraphNode> path) {
-		System.currentTimeMillis();
 		Block methodBody = ast.newBlock();
 		Expression previousExpression = ast.newThisExpression();
+		
 		for (int i = 0; i < path.size(); i++) {
 			GraphNode currentNode = path.get(i);
 			boolean isParam = GraphNodeUtil.isParameter(currentNode);
@@ -534,30 +633,39 @@ public class ClassModel {
 				continue;
 			}
 			
-			if (i != path.size() - 1) {
-				boolean isField = GraphNodeUtil.isField(currentNode);
+			boolean isLastNode = (i == path.size() - 1);
+			boolean isField = GraphNodeUtil.isField(currentNode);
+			boolean isMethod = GraphNodeUtil.isMethod(currentNode);
+			boolean isArrayElement = GraphNodeUtil.isArrayElement(currentNode);
+			if (!isLastNode) {
 				if (isField) {
 					// Assume all fields as package private
 					// i.e. we can access it directly
 					FieldAccess fieldAccess = ast.newFieldAccess();
 					fieldAccess.setExpression(previousExpression);
-					previousExpression = fieldAccess;
 					fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
-				}
-				
-				boolean isMethod = GraphNodeUtil.isMethod(currentNode);
-				if (isMethod) {
+					previousExpression = fieldAccess;
+				} else if (isMethod) {
 					MethodInvocation methodInvocation = ast.newMethodInvocation();
-					if (i == 1) {
-						methodInvocation.setExpression(ast.newThisExpression());
-						previousExpression = methodInvocation;
-					} else {
-						methodInvocation.setExpression(previousExpression);
-						previousExpression = methodInvocation;
-					}
+					methodInvocation.setExpression(previousExpression);
 					methodInvocation.setName(ast.newSimpleName(ClassModelUtil.getMethodNameFor(currentNode)));
+					previousExpression = methodInvocation;
 				}
 			} else {
+				if (isField) {
+					// Assume all fields as package private
+					// i.e. we can access it directly
+					FieldAccess fieldAccess = ast.newFieldAccess();
+					fieldAccess.setExpression(previousExpression);
+					fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
+					previousExpression = fieldAccess;
+				} else if (isArrayElement) {
+					ArrayAccess arrayAccess = ast.newArrayAccess();
+					arrayAccess.setArray(previousExpression);
+					arrayAccess.setIndex(ast.newNumberLiteral("0")); // TODO: How to determine this value?
+					previousExpression = arrayAccess;
+				}
+				
 				Assignment assignment = ast.newAssignment();
 				assignment.setLeftHandSide(previousExpression);
 				assignment.setRightHandSide(ast.newSimpleName("arg0"));

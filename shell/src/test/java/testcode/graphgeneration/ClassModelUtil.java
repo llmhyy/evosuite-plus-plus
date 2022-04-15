@@ -91,6 +91,10 @@ public class ClassModelUtil {
 	
 	public static Type extractReturnTypeFrom(AST ast, Method method) {
 		String methodReturnTypeAsString = method.getReturnType();
+		return extractReturnTypeFrom(ast, methodReturnTypeAsString);
+	}
+	
+	private static Type extractReturnTypeFrom(AST ast, String methodReturnTypeAsString) {
 		boolean isPrimitive = isPrimitive(methodReturnTypeAsString);
 		boolean isArray = isArray(methodReturnTypeAsString);
 		
@@ -124,6 +128,27 @@ public class ClassModelUtil {
 			fieldType = ClassModelUtil.stringToSimpleType(ast, field.getDataType());
 		}
 		return fieldType;
+	}
+	
+	public static Type extractTypeFrom(AST ast, GraphNode node) {
+		// This can represent different things depending on the node
+		// If the node represents a method, then the return type
+		// If the node represents a field, then the field type
+		// If the node represents an array element, then the type of the array element
+		Type nodeType = null;
+		String declaredClass = GraphNodeUtil.getDeclaredClass(node);
+		if (GraphNodeUtil.isField(node) || GraphNodeUtil.isArrayElement(node)) {
+			if (GraphNodeUtil.isPrimitive(node)) {
+				nodeType = ClassModelUtil.stringToPrimitiveType(ast, declaredClass);
+			} else if (GraphNodeUtil.isArray(node)) {
+				nodeType = ClassModelUtil.stringToArrayType(ast, declaredClass);
+			} else {
+				nodeType = ClassModelUtil.stringToSimpleType(ast, declaredClass);
+			}
+		} else if (GraphNodeUtil.isMethod(node)) {
+			nodeType = ClassModelUtil.extractReturnTypeFrom(ast, declaredClass);
+		}
+		return nodeType;
 	}
 	
 	public static PrimitiveType.Code stringToPrimitiveTypeCode(String dataType) {
@@ -377,23 +402,23 @@ public class ClassModelUtil {
 			}
 			
 			boolean isField = GraphNodeUtil.isField(currentNode);
+			boolean isMethod = GraphNodeUtil.isMethod(currentNode);
+			boolean isArrayElement = GraphNodeUtil.isArrayElement(currentNode);
 			if (isField) {
 				FieldAccess fieldAccess = ast.newFieldAccess();
-				try {
-					fieldAccess.setExpression(previousExpression);
-				} catch (Exception e) {
-					System.currentTimeMillis();
-				}
+				fieldAccess.setExpression(previousExpression);
 				fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
 				previousExpression = fieldAccess;
-			}
-			
-			boolean isMethod = GraphNodeUtil.isMethod(currentNode);
-			if (isMethod) {
+			} else if (isMethod) {
 				MethodInvocation methodInvocation = ast.newMethodInvocation();
 				methodInvocation.setExpression(previousExpression);
-				methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
+				methodInvocation.setName(ast.newSimpleName(ClassModelUtil.getMethodNameFor(currentNode)));
 				previousExpression = methodInvocation;
+			} else if (isArrayElement) {
+				ArrayAccess arrayAccess = ast.newArrayAccess();
+				arrayAccess.setArray(previousExpression);
+				arrayAccess.setIndex(ast.newNumberLiteral("0"));
+				previousExpression = arrayAccess;
 			}
 		}
 		return previousExpression;

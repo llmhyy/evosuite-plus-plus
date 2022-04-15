@@ -78,19 +78,29 @@ public class Graph {
 
 	public List<GraphNode> getTopLayer(){
 		List<GraphNode> topLayer = new ArrayList<GraphNode>();
-		for(GraphNode node: this.nodeSet) {
-			if(node.getParents().isEmpty()) {
+		for (GraphNode node: this.nodeSet) {
+			if (node.getParents().isEmpty()) {
 				topLayer.add(node);
 			}
 			
-			if(node.getIndex() == 0) {
-				if(!topLayer.contains(node)) {
+			if (node.getIndex() == 0) {
+				if (!topLayer.contains(node)) {
 					topLayer.add(node);
 				}
 			}
 		}
 		
 		return topLayer;
+	}
+	
+	public List<GraphNode> getLeafNodes() {
+		List<GraphNode> leafNodes = new ArrayList<>();
+		for (GraphNode node : this.nodeSet) {
+			if (node.getChildren() == null || node.getChildren().isEmpty()) {
+				leafNodes.add(node);
+			}
+		}
+		return leafNodes;
 	}
 	
 	public void visualize(int resolution, String folderName, String fileName) {
