@@ -441,26 +441,32 @@ public class ClassModel {
 					continue;
 				}
 				
+				Method method = null;
 				if (isField) {
 					Field field = getCorrespondingField(accessibleNode);
 					if (_nullCheck(field, "ERROR: Attempted to find a corresponding field for " + accessibleNode + ", but could not find anything.")) {
 						continue;
 					}
-					Method method;
+					
 					if (accessibleNode.isLeaf()) {
 						method = generateSetterForField(currentNode, accessibleNode, field);
 					} else {
 						method = generateGetterForField(currentNode, accessibleNode, field);
 					}
-					classRepresentation.addMethod(method);
+					
 				} else if (isArrayElement) {
 					// Array elements are always leaf nodes
 					// Generate a setter for the array element
 					// We indicate that it's an array element setter
 					// by indicating the array that we want to set
-					Method setter = generateSetterForArrayElement(currentNode, accessibleNode);
-					classRepresentation.addMethod(setter);
+					method = generateSetterForArrayElement(currentNode, accessibleNode);
 				}
+				
+				if (_nullCheck(method, null)) {
+					continue;
+				}
+				
+				classRepresentation.addMethod(method);
 			}
 		}
 		
@@ -469,7 +475,9 @@ public class ClassModel {
 	
 	private boolean _nullCheck(Object object, String errorMessage) {
 		if (object == null) {
-			System.err.println(errorMessage);
+			if (errorMessage != null) {
+				System.err.println(errorMessage);
+			}
 			return true;
 		}
 		return false;
@@ -477,6 +485,13 @@ public class ClassModel {
 
 	private Method generateGetterForField(GraphNode fromNode, GraphNode toNode, Field field) {
 		List<GraphNode> path = graph.getPath(fromNode, toNode);
+		if (_nullCheck(path, "WARNING: Failed to generate getter from " + fromNode + " to " + toNode)) {
+			// Note it is currently possible to generate a graph where it is not possible to generate a getter
+			// as a valid path from the source to the sink does not exist. It is, however, still possible
+			// that the generated code can still be covered by a test case, since alternate paths to the sink
+			// may still exist, just not from this source. As such, we simply skip this getter.
+			return null;
+		}
 		
 		return new Getter(
 				GraphNodeUtil.getDeclaredClass(fromNode), 
@@ -489,7 +504,13 @@ public class ClassModel {
 
 	private Setter generateSetterForField(GraphNode fromNode, GraphNode toNode, Field field) {
 		List<GraphNode> path = graph.getPath(fromNode, toNode);
-		
+		if (_nullCheck(path, "WARNING: Failed to generate setter from " + fromNode + " to " + toNode)) {
+			// Note it is currently possible to generate a graph where it is not possible to generate a setter
+			// as a valid path from the source to the sink does not exist. It is, however, still possible
+			// that the generated code can still be covered by a test case, since alternate paths to the sink
+			// may still exist, just not from this source. As such, we simply skip this setter.
+			return null;
+		}
 		return new Setter(
 				GraphNodeUtil.getDeclaredClass(fromNode), 
 				"setNode" + toNode.getIndex(), 
@@ -503,8 +524,9 @@ public class ClassModel {
 	// Need to add multi-arg support for setters
 	@SuppressWarnings("unchecked")
 	private Block generateSetterBodyFromPath(AST ast, List<GraphNode> path) {
+		System.currentTimeMillis();
 		Block methodBody = ast.newBlock();
-		Expression previousExpression = null;
+		Expression previousExpression = ast.newThisExpression();
 		for (int i = 0; i < path.size(); i++) {
 			GraphNode currentNode = path.get(i);
 			boolean isParam = GraphNodeUtil.isParameter(currentNode);
@@ -518,13 +540,8 @@ public class ClassModel {
 					// Assume all fields as package private
 					// i.e. we can access it directly
 					FieldAccess fieldAccess = ast.newFieldAccess();
-					if (i == 1) {
-						fieldAccess.setExpression(ast.newThisExpression());
-						previousExpression = fieldAccess;
-					} else {
-						fieldAccess.setExpression(previousExpression);
-						previousExpression = fieldAccess;
-					}
+					fieldAccess.setExpression(previousExpression);
+					previousExpression = fieldAccess;
 					fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
 				}
 				

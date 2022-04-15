@@ -30,12 +30,15 @@ import org.eclipse.jdt.core.dom.ArrayCreation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
 
 public class ClassModelUtil {
+	public static final boolean IS_CONSTRUCTOR_USE_DEFAULT_VALUES = true;
+	public static final int MAXIMUM_ARRAY_SIZE = 10;
+	
 	public static String getFieldNameFor(GraphNode node) {
 		if (!GraphNodeUtil.isField(node)) {
 			return null;
 		}
 		
-		return GraphNodeUtil.getDeclaredClass(node) + "_" + node.getIndex();
+		return GraphNodeUtil.getDeclaredClass(node).replace("[]", "Array") + "_" + node.getIndex();
 	}
 	
 	public static String getMethodNameFor(GraphNode node) {
@@ -46,11 +49,7 @@ public class ClassModelUtil {
 		return "method" + node.getIndex();
 	}
 	
-	public static String getGetterNameFor(GraphNode node) {
-		if (!GraphNodeUtil.isField(node)) {
-			return null;
-		}
-		
+	public static String getGetterNameFor(GraphNode node) {		
 		return "getNode" + node.getIndex();
 	}
 	
@@ -284,6 +283,35 @@ public class ClassModelUtil {
 		}
 	}
 	
+	public static Expression defaultPrimitiveExpression(AST ast, String dataType) {
+		if (!isPrimitive(dataType)) {
+			return null;
+		}
+		
+		switch (dataType) {
+			case "byte":
+				return ast.newNumberLiteral(Byte.toString((byte) 0));
+			case "short":
+				return ast.newNumberLiteral(Short.toString((short) 0));
+			case "int":
+				return ast.newNumberLiteral(Integer.toString(0));
+			case "long":
+				return ast.newNumberLiteral(Long.toString(0L));
+			case "float":
+				return ast.newNumberLiteral(Float.toString(0.0f));
+			case "double":
+				return ast.newNumberLiteral(Double.toString((double) 0.0));
+			case "char":
+				CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+				characterLiteral.setCharValue(Character.MIN_VALUE);
+				return characterLiteral;
+			case "boolean":
+				return ast.newBooleanLiteral(false);
+			default:
+				throw new IllegalArgumentException("Found a primitive type that was unrecognised (" + dataType + ")");
+		}
+	}
+	
 	/**
 	 * Generates an ArrayCreation instance that initialises an array with the given length
 	 * Elements of the array are randomised instances if primitive, or new object instances if non-primitive.
@@ -302,6 +330,27 @@ public class ClassModelUtil {
 		for (int i = 0; i < arrayLength; i++) {
 			if (isBaseTypePrimitive) {
 				arrayInitializer.expressions().add(ClassModelUtil.randomPrimitiveExpression(ast, baseType));
+			} else {
+				ClassInstanceCreation classInstanceCreation = ast.newClassInstanceCreation();
+				classInstanceCreation.setType(ast.newSimpleType(ast.newSimpleName(baseType)));
+				arrayInitializer.expressions().add(classInstanceCreation);
+			}
+		}
+		arrayCreation.setInitializer(arrayInitializer);
+		return arrayCreation;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static ArrayCreation defaultArrayCreation(AST ast, String dataType, int arrayLength) {
+		ArrayCreation arrayCreation = ast.newArrayCreation();
+		arrayCreation.setType(ClassModelUtil.stringToArrayType(ast, dataType));
+		
+		String baseType = ClassModelUtil.extractBaseTypeFromArray(dataType);
+		boolean isBaseTypePrimitive = ClassModelUtil.isPrimitive(baseType);
+		ArrayInitializer arrayInitializer = ast.newArrayInitializer();
+		for (int i = 0; i < arrayLength; i++) {
+			if (isBaseTypePrimitive) {
+				arrayInitializer.expressions().add(ClassModelUtil.defaultPrimitiveExpression(ast, baseType));
 			} else {
 				ClassInstanceCreation classInstanceCreation = ast.newClassInstanceCreation();
 				classInstanceCreation.setType(ast.newSimpleType(ast.newSimpleName(baseType)));
@@ -335,7 +384,7 @@ public class ClassModelUtil {
 				} catch (Exception e) {
 					System.currentTimeMillis();
 				}
-				fieldAccess.setName(ast.newSimpleName(GraphNodeUtil.getDeclaredClass(currentNode) + "_" + currentNode.getIndex()));
+				fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
 				previousExpression = fieldAccess;
 			}
 			
@@ -367,7 +416,7 @@ public class ClassModelUtil {
 					// i.e. we can access it directly
 					FieldAccess fieldAccess = ast.newFieldAccess();
 					fieldAccess.setExpression(previousExpression);
-					fieldAccess.setName(ast.newSimpleName(GraphNodeUtil.getDeclaredClass(currentNode) + "_" + currentNode.getIndex()));
+					fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
 					previousExpression = fieldAccess;
 				}
 				
@@ -397,6 +446,7 @@ public class ClassModelUtil {
 		return previousExpression;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static MethodDeclaration generateConstructorFor(AST ast, testcode.graphgeneration.model.Class clazz) {
 		MethodDeclaration methodDeclaration = ast.newMethodDeclaration();
 		methodDeclaration.setConstructor(true);
@@ -412,9 +462,29 @@ public class ClassModelUtil {
 			fieldAccess.setName(ast.newSimpleName(field.getName()));
 			assignment.setLeftHandSide(fieldAccess);
 			if (field.isPrimitive()) {
-				assignment.setRightHandSide(randomPrimitiveExpression(ast, field.getDataType()));
+				if (IS_CONSTRUCTOR_USE_DEFAULT_VALUES) {
+					assignment.setRightHandSide(defaultPrimitiveExpression(ast, field.getDataType()));
+				} else {
+					assignment.setRightHandSide(randomPrimitiveExpression(ast, field.getDataType()));
+				}
 			} else if (field.isArray()) {
-				assignment.setRightHandSide(randomArrayCreation(ast, field.getDataType(), 1 + OCGGenerator.RANDOM.nextInt(9)));
+				if (IS_CONSTRUCTOR_USE_DEFAULT_VALUES) {
+					assignment.setRightHandSide(
+							defaultArrayCreation(
+									ast, 
+									field.getDataType(), 
+									1 + OCGGenerator.RANDOM.nextInt(MAXIMUM_ARRAY_SIZE - 1)
+							)
+					);
+				} else {
+					assignment.setRightHandSide(
+							randomArrayCreation(
+									ast, 
+									field.getDataType(), 
+									1 + OCGGenerator.RANDOM.nextInt(MAXIMUM_ARRAY_SIZE - 1)
+							)
+					);
+				}
 			} else {
 				assignment.setRightHandSide(newClassInstance(ast, field.getDataType()));
 			}

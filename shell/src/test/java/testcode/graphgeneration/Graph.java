@@ -393,12 +393,29 @@ public class Graph {
 			return null;
 		}
 		
+		// Note that the access rules are slightly different for immediate children
+		// We need to consider immediate children as "always accessible"
+		// since we are generating an internal method, which can always access fields
+		// regardless of access modifiers. To allow this, we replace the entry in the accessibility map for
+		// our fromNode, and reinstate the old entry at the end.
+		List<GraphNode> oldAccessibilityMapValue = accessibilityMap.get(fromNode);
+		List<GraphNode> temporaryAccessibilityMapValue = new ArrayList<>(oldAccessibilityMapValue);
+		for (GraphNode directChildNode : fromNode.getChildren()) {
+			if (!temporaryAccessibilityMapValue.contains(directChildNode)) {
+				temporaryAccessibilityMapValue.add(directChildNode);
+			}
+		}
+		accessibilityMap.put(fromNode, temporaryAccessibilityMapValue);
+		
 		// We want to determine the path between a pair of nodes 
 		// that does not use a particular edge (if it exists)
 		// To do that, we remove this edge from the accessibility map
 		// before the BFS and add it back after
 		// Don't do this if the toNode is a direct child of the fromNode,
 		// since in this case removing the edge will ensure that we can never get a path
+		// IMPORTANT NOTE: We don't add the edge back after, since this will modify a temporary value
+		// that will be replaced later on. This is done in preceding section of code (the old/temporaryAccessibilityMapValue).
+		// If that section of code is replaced, the code to add the edge back in should be reinstated.
 		boolean isToNodeAccessibleFromFromNode = getNodesAccessibleFrom(fromNode).contains(toNode);
 		boolean isDirectChild = fromNode.getChildren().contains(toNode);
 		if (isToNodeAccessibleFromFromNode && !isDirectChild) {
@@ -433,9 +450,8 @@ public class Graph {
 			}
 		}
 		
-		if (isToNodeAccessibleFromFromNode && !isDirectChild) {
-			accessibilityMap.get(fromNode).add(toNode);
-		}
+		// Reinstate the old accessibility map entry for fromNode
+		accessibilityMap.put(fromNode, oldAccessibilityMapValue);
 		
 		return path;
 	}
