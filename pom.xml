@@ -233,6 +233,21 @@
 							<outputDirectory>${jars-destination}</outputDirectory>
 						</configuration>
 					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<outputDirectory>${jars-destination}</outputDirectory>
+						</configuration>
+				   </plugin>
 					<!-- copy generated evosuite jars to -->
 					<!-- <plugin> -->
 					<!-- <artifactId>maven-dependency-plugin</artifactId> -->
