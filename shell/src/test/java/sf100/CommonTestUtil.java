@@ -189,7 +189,7 @@ public class CommonTestUtil {
 		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
 		
 		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
-			throw new Exception("The dataset in SFConfiguration.sfBenchmarkFolder" + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
+			throw new Exception("The dataset in SFConfiguration.sfBenchmarkFolder " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
 		}
 		
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
