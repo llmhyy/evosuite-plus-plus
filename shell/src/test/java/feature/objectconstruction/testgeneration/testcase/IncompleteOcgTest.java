@@ -35,7 +35,7 @@ public class IncompleteOcgTest {
 	}
 	
 	@Test
-	public void firstExample() {
+	public void firstExample() throws Exception {
 		String projectId = SF100Project.P69;
 		String[] targetMethods = new String[]{
 			"macaw.presentationLayer.VariableSearchPanel#hasSearchResults()Z"
@@ -58,7 +58,7 @@ public class IncompleteOcgTest {
 	}
 	
 	@Test
-	public void secondExample() {
+	public void secondExample() throws Exception {
 		String projectId = "125_jedit";
 		String[] targetMethods = new String[]{
 			"org.gjt.sp.jedit.gui.PasteSpecialDialog#ok()V"

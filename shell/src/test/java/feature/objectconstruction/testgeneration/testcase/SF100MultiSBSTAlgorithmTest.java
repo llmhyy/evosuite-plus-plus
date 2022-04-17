@@ -15,7 +15,7 @@ import sf100.CommonTestUtil;
 
 public class SF100MultiSBSTAlgorithmTest {
 	@Before
-	public void beforeTest() {
+	public void beforeTest() throws Exception {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
@@ -25,7 +25,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 
 	@Test
-	public void testDynaMOSA1() {
+	public void testDynaMOSA1() throws Exception {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.ifxfv3.beans.CustDiscRec#equals(Ljava/lang/Object;)Z"
@@ -61,7 +61,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testDynaMOSA2() {
+	public void testDynaMOSA2() throws Exception {
 		String projectId = "13_jdbacl";
 		String[] targetMethods = new String[]{
 				"org.databene.jdbacl.model.DBDataType#equals(Ljava/lang/Object;)Z"
@@ -97,7 +97,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testDynaMOSA3() {
+	public void testDynaMOSA3() throws Exception {
 		String projectId = "45_lotus";
 		String[] targetMethods = new String[]{
 				"lotus.core.phases.DeclareBlockersPhase#doPhase()V"
@@ -133,7 +133,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testDynaMOSA4() {
+	public void testDynaMOSA4() throws Exception {
 		String projectId = "83_xbus";
 		String[] targetMethods = new String[]{
 				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
@@ -169,7 +169,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testDynaMOSA5() {
+	public void testDynaMOSA5() throws Exception {
 		String projectId = "6_jnfe";
 		String[] targetMethods = new String[]{
 				"br.com.jnfe.core.filter.JNFeFilterAdapter#doFilter(Lorg/helianto/core/criteria/OrmCriteriaBuilder;)V"
@@ -205,7 +205,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testDynaMOSA6() {
+	public void testDynaMOSA6() throws Exception {
 		String projectId = "80_wheelwebtool";
 		String[] targetMethods = new String[]{
 				"wheel.components.Checkbox#renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V"
@@ -241,7 +241,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testDynaMOSA7() {
+	public void testDynaMOSA7() throws Exception {
 		String projectId = "44_summa";
 		String[] targetMethods = new String[]{
 				"dk.statsbiblioteket.summa.storage.api.filter.UpdateFromFulldumpFilter#init(Ldk/statsbiblioteket/summa/common/configuration/Configuration;Ldk/statsbiblioteket/summa/storage/api/WritableStorage;Ldk/statsbiblioteket/summa/storage/api/ReadableStorage;)V"
@@ -277,7 +277,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testDynaMOSA8() {
+	public void testDynaMOSA8() throws Exception {
 		String projectId = "35_corina";
 		String[] targetMethods = new String[]{
 				"corina.index.Polynomial#index()V"
@@ -313,7 +313,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testDynaMOSA9() {
+	public void testDynaMOSA9() throws Exception {
 		String projectId = "32_httpanalyzer";
 		String[] targetMethods = new String[]{
 				"httpanalyzer.ParamsUrlTools#splitUrl(Ljava/lang/String;Ljavax/swing/JFrame;)[Ljava/lang/String;"
@@ -349,7 +349,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testMOSA1() {
+	public void testMOSA1() throws Exception {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.ifxfv3.beans.AcctInqRsSequence#equals(Ljava/lang/Object;)Z"
@@ -385,7 +385,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testMonotonicGA1() {
+	public void testMonotonicGA1() throws Exception {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.ifxfv3.beans.CreditAuthCanRsSequence2#equals(Ljava/lang/Object;)Z"
@@ -421,7 +421,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testMonotonicGA2() {
+	public void testMonotonicGA2() throws Exception {
 		String projectId = "96_heal";
 		String[] targetMethods = new String[]{
 				"org.heal.module.metadata.ContributorBean#equals(Ljava/lang/Object;)Z"
@@ -457,7 +457,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 //	@Test
-	public void testMOSA() {
+	public void testMOSA() throws Exception {
 		String projectId = "27_gangup";
 		String[] targetMethods = new String[]{
 				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
@@ -493,7 +493,7 @@ public class SF100MultiSBSTAlgorithmTest {
 	}
 	
 	@Test
-	public void testMonotonicGA() {
+	public void testMonotonicGA() throws Exception {
 		String projectId = "27_gangup";
 		String[] targetMethods = new String[]{
 				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"

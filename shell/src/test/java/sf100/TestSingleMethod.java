@@ -14,7 +14,7 @@ import evosuite.shell.TempGlobalVariables;
 public class TestSingleMethod {
 	
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
 //		SFConfiguration.sfBenchmarkFolder = BenchmarkAddress.address;
 		
 //		Properties.DEBUG = true;
@@ -32,7 +32,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runTullibee() {
+	public void runTullibee() throws Exception {
 		String projectId = "1_tullibee";
 		String[] targetMethods = new String[]{
 //				"com.ib.client.EReader#processMsg(I)Z"
@@ -64,7 +64,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runA4j() {
+	public void runA4j() throws Exception{
 		String projectId = "2_a4j";
 		String[] targetMethods = new String[]{
 				"net.kencochrane.a4j.file.FileUtil#getASINFile(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;"
@@ -93,7 +93,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJigen() {
+	public void runJigen() throws Exception{
 		String projectId = "3_jigen";
 		String[] targetMethods = new String[]{
 				"com.jigen.msi.ResourcesDirectory#debug(Ljava/lang/String;)V"
@@ -122,7 +122,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runTemplateit() {
+	public void runTemplateit() throws Exception{
 		String projectId = "5_templateit";
 		String[] targetMethods = new String[]{
 				"org.apache.poi.hssf.usermodel.HSSFDataFormat#getBuiltinFormat(Ljava/lang/String;)S"
@@ -151,7 +151,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJnfe() {
+	public void runJnfe() throws Exception{
 		String projectId = "6_jnfe";
 		String[] targetMethods = new String[]{
 				"br.com.jnfe.util.CNPJUtils#getKey(Lorg/helianto/partner/Partner;Ljava/lang/String;)Ljava/lang/String;"
@@ -180,7 +180,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runGfarcegestionfa() {
+	public void runGfarcegestionfa() throws Exception {
 		String projectId = "8_gfarcegestionfa";
 		String[] targetMethods = new String[]{
 //				"fr.unice.gfarce.interGraph.ModifTableStockage#fusionnerColonnes(I)Lfr/unice/gfarce/interGraph/TableStockage;"
@@ -210,7 +210,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runImsmart() {
+	public void runImsmart() throws Exception {
 		String projectId = "11_imsmart";
 		String[] targetMethods = new String[]{
 				"com.momed.main.MMigrater#main([Ljava/lang/String;)V"
@@ -239,7 +239,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runDsachat() {
+	public void runDsachat() throws Exception {
 		String projectId = "12_dsachat";
 		String[] targetMethods = new String[]{
 				"dsachat.gm.gui.InternalGmHeroFrame#valueChanged(Ljavax/swing/event/TreeSelectionEvent;)V"
@@ -268,7 +268,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJwbf() {
+	public void runJwbf() throws Exception {
 		String projectId = "23_jwbf";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.jwbf.core.contentRep.Article#getRevisionId()Ljava/lang/String;"
@@ -297,7 +297,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runGangup() {
+	public void runGangup() throws Exception {
 		String projectId = "27_gangup";
 		String[] targetMethods = new String[]{
 				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
@@ -326,7 +326,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJdbacl() {
+	public void runJdbacl() throws Exception {
 		String projectId = "13_jdbacl";
 		String[] targetMethods = new String[]{
 //				"org.databene.jdbacl.DBUtil#getConnectData(Ljava/lang/String;)Lorg/databene/commons/JDBCConnectData;"
@@ -362,7 +362,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runBeanbin() {
+	public void runBeanbin() throws Exception {
 		String projectId = "15_beanbin";
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.beanbin.data.ejb3.HibernateEntityManagerFactoryBuilder#getFactory(Ljava/util/List;Z)Ljavax/persistence/EntityManagerFactory;"
@@ -396,7 +396,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runInspirento() {
+	public void runInspirento() throws Exception {
 		String projectId = "17_inspirento";
 		String[] targetMethods = new String[]{
 //				"com.allenstudio.ir.util.XmlIO#startElement(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/xml/sax/Attributes;)V"
@@ -427,7 +427,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJmca() {
+	public void runJmca() throws Exception {
 		String projectId = "19_jmca";
 		String[] targetMethods = new String[]{
 //				"com.soops.CEN4010.JMCA.JParser.SimpleNode#dump(Ljava/lang/String;Ljava/io/Writer;)V"
@@ -458,7 +458,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runByuic() {
+	public void runByuic() throws Exception {
 		String projectId = "22_byuic";
 		String[] targetMethods = new String[]{
 //				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"
@@ -488,7 +488,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJniinchi() {
+	public void runJniinchi() throws Exception {
 		String projectId = "25_jni-inchi";
 		String[] targetMethods = new String[]{
 				"net.sf.jniinchi.JniInchiWrapper#checkOptions(Ljava/lang/String;)Ljava/lang/String;"
@@ -517,7 +517,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJipa() {
+	public void runJipa() throws Exception {
 		String projectId = "26_jipa";
 		String[] targetMethods = new String[]{
 				"jipa.Main#processInstruction(Ljava/lang/String;)V"
@@ -546,7 +546,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runApbsmem() {
+	public void runApbsmem() throws Exception {
 		String projectId = "29_apbsmem";
 		String[] targetMethods = new String[]{
 //				"apbs_mem_gui.FileEditor#getEnergy(Ljava/lang/String;)[Ljava/lang/String;"
@@ -576,7 +576,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runXisemele() {
+	public void runXisemele() throws Exception {
 		String projectId = "31_xisemele";
 		String[] targetMethods = new String[]{
 				"net.sf.xisemele.impl.OperationsHelperImpl#find(Lorg/w3c/dom/Document;Ljava/lang/String;)Lorg/w3c/dom/Node;"
@@ -606,7 +606,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runHttpanalyzer() {
+	public void runHttpanalyzer() throws Exception {
 		String projectId = "32_httpanalyzer";
 		String[] targetMethods = new String[]{
 				"httpanalyzer.HttpPreference#savePreference(Lhttpanalyzer/HttpAnalyzerView;Ljavax/swing/JFrame;Ljava/lang/String;)V"
@@ -635,7 +635,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJavaviewcontrol() {
+	public void runJavaviewcontrol() throws Exception {
 		String projectId = "33_javaviewcontrol";
 		String[] targetMethods = new String[]{
 //				"com.pmdesigns.jvc.JVCRequestContext#getParamMap(Ljava/lang/String;)Ljava/util/Map;"
@@ -665,7 +665,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runSbmlreader2() {
+	public void runSbmlreader2() throws Exception {
 		String projectId = "34_sbmlreader2";
 		String[] targetMethods = new String[]{
 //				"jigcell.sbml2.KineticLaw#print(Ljigcell/sbml2/XMLPrinter;Ljava/lang/String;)Ljigcell/sbml2/XMLPrinter;"
@@ -695,7 +695,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void run10() {
+	public void run10() throws Exception {
 		String projectId = "10_water-simulator";
 		String[] targetMethods = new String[]{
 				"simulator.CA.BehaviourReplyNeighbour#action()V"
@@ -725,7 +725,7 @@ public class TestSingleMethod {
 	}	
 	
 	@Test
-	public void run75() {
+	public void run75() throws Exception {
 		String projectId = "75_openhre";
 		String[] targetMethods = new String[]{
 				"com.browsersoft.openhre.hl7.impl.regular.ExpressionNodeList#addExpressionList(Lcom/browsersoft/openhre/hl7/impl/regular/ExpressionNodeList;)V"
@@ -755,7 +755,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void run84() {
+	public void run84() throws Exception {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.ifxfv3.beans.AcctBal#equals(Ljava/lang/Object;)Z"
@@ -785,7 +785,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void run85() {
+	public void run85() throws Exception {
 		String projectId = "85_shop";
 		String[] targetMethods = new String[]{
 				"umd.cs.shop.JSListConjuncts#<init>(Ljava/io/StreamTokenizer;)V"
@@ -815,7 +815,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJDBACL() {
+	public void runJDBACL() throws Exception {
 		String projectId = "13_jdbacl";
 		String[] targetMethods = new String[]{
 //				"org.databene.jdbacl.model.DefaultDatabase#getTable(Ljava/lang/String;Z)Lorg/databene/jdbacl/model/DBTable;" 
@@ -847,7 +847,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runSumma() {
+	public void runSumma() throws Exception {
 		String projectId = "44_summa";
 		String[] targetMethods = new String[]{
 				"dk.statsbiblioteket.summa.common.index.IndexGroup#isMatch(Ljava/lang/String;Ljava/lang/String;)Z"
@@ -877,7 +877,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJiprof() {
+	public void runJiprof() throws Exception {
 		String projectId = "51_jiprof";
 		String[] targetMethods = new String[]{
 //				"com.mentorgen.tools.profile.output.FrameDump#dump(Ljava/io/PrintWriter;Lcom/mentorgen/tools/profile/runtime/Frame;I)V"
@@ -910,7 +910,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJhandballmove() {
+	public void runJhandballmove() throws Exception {
 		String projectId = "56_jhandballmoves";
 		String[] targetMethods = new String[]{
 				"visu.handball.moves.actions.NewPassEventAction#actionPerformed(Ljava/awt/event/ActionEvent;)V"
@@ -940,7 +940,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runCorina() {
+	public void runCorina() throws Exception {
 		String projectId = "35_corina";
 		String[] targetMethods = new String[]{
 				"corina.map.PngEncoderB#pngEncode(Z)[B"
@@ -970,7 +970,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runSchemaspy() {
+	public void runSchemaspy() throws Exception {
 		String projectId = "36_schemaspy";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.schemaspy.util.Inflection#pluralize(Ljava/lang/String;)Ljava/lang/String;" 
@@ -1000,7 +1000,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runLilith() {
+	public void runLilith() throws Exception {
 		String projectId = "43_lilith";
 		String[] targetMethods = new String[]{
 //				"de.huxhorn.lilith.data.logging.protobuf.LoggingEventProtobufDecoder#convert(Lde/huxhorn/lilith/data/logging/protobuf/generated/LoggingProto$Message;)Lde/huxhorn/lilith/data/logging/Message;"
@@ -1032,7 +1032,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJavathena() {
+	public void runJavathena() throws Exception {
 		String projectId = "81_javathena";
 		String[] targetMethods = new String[]{
 				"org.javathena.login.UserManagement#connectionOfClient(Lorg/javathena/core/data/Socket_data;[BZ)V" 
@@ -1062,7 +1062,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runDbeverywhere() {
+	public void runDbeverywhere() throws Exception {
 		String projectId = "54_db-everywhere";
 		String[] targetMethods = new String[]{
 //				"com.gbshape.dbe.struts.action.SQLQueryAction#execute(Lorg/apache/struts/action/ActionMapping;Lorg/apache/struts/action/ActionForm;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)Lorg/apache/struts/action/ActionForward;"
@@ -1094,7 +1094,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runColt() {
+	public void runColt() throws Exception {
 		String projectId = "102_colt";
 		String[] targetMethods = new String[]{
 				"cern.colt.Sorting#mergeSortInPlace([III)V"
@@ -1125,7 +1125,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runTest() {
+	public void runTest() throws Exception {
 		String projectId = "175_test";
 		String[] targetMethods = new String[]{
 //				"cern.jet.random.sampling.RandomSamplingAssistant#test(JJ)V"
@@ -1163,7 +1163,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runWeka() {
+	public void runWeka() throws Exception {
 		String projectId = "101_weka";
 		String[] targetMethods = new String[]{
 //				"weka.gui.boundaryvisualizer.KDDataGenerator#generateInstances([I)[[D"
@@ -1232,7 +1232,7 @@ public class TestSingleMethod {
 	
 	
 	@Test
-	public void runSpring() {
+	public void runSpring() throws Exception {
 		String projectId = "114_spring";
 		String[] targetMethods = new String[]{
 //				"java_cup.runtime.lr_parser#error_recovery(Z)Z",
@@ -1274,7 +1274,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJBlas() {
+	public void runJBlas() throws Exception {
 		String projectId = "103_jblas";
 		String[] targetMethods = new String[]{
 //				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
@@ -1311,7 +1311,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runMath() {
+	public void runMath() throws Exception {
 		String projectId = "105_math";
 		String[] targetMethods = new String[]{
 //				"org.apache.commons.math.util.MathUtils#equalsIncludingNaN(FF)Z"
@@ -1363,7 +1363,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJFreechart() {
+	public void runJFreechart() throws Exception {
 		String projectId = "106_jfreechart";
 		String[] targetMethods = new String[]{
 //				"cern.colt.matrix.DoubleMatrix1D#assign(Lcern/colt/matrix/DoubleMatrix1D;)Lcern/colt/matrix/DoubleMatrix1D;"
@@ -1402,7 +1402,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJScience() {
+	public void runJScience() throws Exception {
 		String projectId = "104_jscience";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1436,7 +1436,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runBerkeleydb() {
+	public void runBerkeleydb() throws Exception {
 		String projectId = "107_berkeleydb";
 		String[] targetMethods = new String[]{	
 //				"com.sleepycat.je.log.JEFileFilter#accept(Ljava/io/File;Ljava/lang/String;)Z"
@@ -1466,7 +1466,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runBouncycastle() {
+	public void runBouncycastle() throws Exception {
 		String projectId = "108_bouncycastle-jce";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1501,7 +1501,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runEdenlib() {
+	public void runEdenlib() throws Exception {
 		String projectId = "109_edenlib";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1535,7 +1535,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runLdapsdk() {
+	public void runLdapsdk() throws Exception {
 		String projectId = "110_ldapsdk";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1570,7 +1570,7 @@ public class TestSingleMethod {
 	
 	
 	@Test
-	public void runGlengineer() {
+	public void runGlengineer() throws Exception {
 		String projectId = "40_glengineer";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1606,7 +1606,7 @@ public class TestSingleMethod {
 	
 	
 	@Test
-	public void runJython() {
+	public void runJython() throws Exception {
 		String projectId = "111_jython";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1640,7 +1640,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJavabullboard() {
+	public void runJavabullboard() throws Exception {
 		String projectId = "38_javabullboard";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1679,7 +1679,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runXbus() {
+	public void runXbus() throws Exception {
 		String projectId = "83_xbus";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1716,7 +1716,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runCvslib() {
+	public void runCvslib() throws Exception {
 		String projectId = "112_cvslib";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1750,7 +1750,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runQuartz() {
+	public void runQuartz() throws Exception {
 		String projectId = "113_quartz";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1784,7 +1784,7 @@ public class TestSingleMethod {
 	}
 	
 //	@Test
-//	public void runSpring() {
+//	public void runSpring() throws Exception {
 //		String projectId = "114_spring";
 //		String[] targetMethods = new String[]{
 ////				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1818,7 +1818,7 @@ public class TestSingleMethod {
 //	}
 	
 	@Test
-	public void runTurbine() {
+	public void runTurbine() throws Exception {
 		String projectId = "115_turbine";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1852,7 +1852,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runFindbugs() {
+	public void runFindbugs() throws Exception {
 		String projectId = "116_findbugs";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1887,7 +1887,7 @@ public class TestSingleMethod {
 	
 	
 	@Test
-	public void runMx4j() {
+	public void runMx4j() throws Exception {
 		String projectId = "117_mx4j";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1921,7 +1921,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runInstagram() {
+	public void runInstagram() throws Exception {
 		String projectId = "118_instagram";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1955,7 +1955,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runAptconvert() {
+	public void runAptconvert() throws Exception {
 		String projectId = "119_aptconvert";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -1989,7 +1989,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runCocoon() {
+	public void runCocoon() throws Exception {
 		String projectId = "120_cocoon";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2023,7 +2023,7 @@ public class TestSingleMethod {
 	}
 
 	@Test
-	public void runCaloriecount() {
+	public void runCaloriecount() throws Exception {
 		String projectId = "78_caloriecount";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2061,7 +2061,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runCrimson() {
+	public void runCrimson() throws Exception {
 		String projectId = "121_crimson";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2096,7 +2096,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runKawa() {
+	public void runKawa() throws Exception {
 		String projectId = "122_kawa";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2130,7 +2130,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runProxool() {
+	public void runProxool() throws Exception {
 		String projectId = "123_proxool";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2164,7 +2164,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runAspectj() {
+	public void runAspectj() throws Exception {
 		String projectId = "124_aspectj";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2199,7 +2199,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJedit() {
+	public void runJedit() throws Exception {
 		String projectId = "125_jedit";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2234,7 +2234,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runPoi() {
+	public void runPoi() throws Exception {
 		String projectId = "126_poi";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2268,7 +2268,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runHibernate() {
+	public void runHibernate() throws Exception {
 		String projectId = "127_hibernate";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2303,7 +2303,7 @@ public class TestSingleMethod {
 	
 	
 	@Test
-	public void runDbEverywhere() {
+	public void runDbEverywhere() throws Exception {
 		String projectId = "54_dbeverywhere";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2339,7 +2339,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runDiffi() {
+	public void runDiffi() throws Exception {
 		String projectId = "39_diffi";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2376,7 +2376,7 @@ public class TestSingleMethod {
 	
 	
 	@Test
-	public void runLagoon() {
+	public void runLagoon() throws Exception {
 		String projectId = "52_lagoon";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2417,7 +2417,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJdiff() {
+	public void runJdiff() throws Exception {
 		String projectId = "128_jdiff";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2451,7 +2451,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runClover() {
+	public void runClover() throws Exception {
 		String projectId = "129_clover";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2487,7 +2487,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runGuava() {
+	public void runGuava() throws Exception {
 		String projectId = "130_guava";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2522,7 +2522,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJmf() {
+	public void runJmf() throws Exception {
 		String projectId = "131_jmf";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2557,7 +2557,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runAshkelon() {
+	public void runAshkelon() throws Exception {
 		String projectId = "132_ashkelon";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2592,7 +2592,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runAspectwerkz() {
+	public void runAspectwerkz() throws Exception {
 		String projectId = "133_aspectwerkz";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2627,7 +2627,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runBsf() {
+	public void runBsf() throws Exception {
 		String projectId = "134_bsf";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2662,7 +2662,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runBurlap() {
+	public void runBurlap() throws Exception {
 		String projectId = "135_burlap";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2697,7 +2697,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runCastor() {
+	public void runCastor() throws Exception {
 		String projectId = "136_castor";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2732,7 +2732,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runCommonsMath() {
+	public void runCommonsMath() throws Exception {
 		String projectId = "137_commons-math";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2767,7 +2767,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runDwr() {
+	public void runDwr() throws Exception {
 		String projectId = "138_dwr";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2802,7 +2802,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runHsqldb() {
+	public void runHsqldb() throws Exception {
 		String projectId = "139_hsqldb";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2838,7 +2838,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runHtmlUnit() {
+	public void runHtmlUnit() throws Exception {
 		String projectId = "140_htmlunit";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2873,7 +2873,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runHivemind() {
+	public void runHivemind() throws Exception {
 		String projectId = "141_hivemind";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2908,7 +2908,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runEsper() {
+	public void runEsper() throws Exception {
 		String projectId = "142_esper";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2943,7 +2943,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runExist() {
+	public void runExist() throws Exception {
 		String projectId = "143_exist";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -2978,7 +2978,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runExolabcore() {
+	public void runExolabcore() throws Exception {
 		String projectId = "144_exolabcore";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3013,7 +3013,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runFesi() {
+	public void runFesi() throws Exception {
 		String projectId = "145_fesi";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3048,7 +3048,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runFop() {
+	public void runFop() throws Exception {
 		String projectId = "146_fop";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3084,7 +3084,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runGrizzly() {
+	public void runGrizzly() throws Exception {
 		String projectId = "147_grizzly";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3119,7 +3119,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runCommonsLang() {
+	public void runCommonsLang() throws Exception {
 		String projectId = "148_commons-lang";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3154,7 +3154,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runHttpunit() {
+	public void runHttpunit() throws Exception {
 		String projectId = "149_httpunit";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3189,7 +3189,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runIdb() {
+	public void runIdb() throws Exception {
 		String projectId = "150_idb";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3224,7 +3224,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJanino() {
+	public void runJanino() throws Exception {
 		String projectId = "151_janino";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3259,7 +3259,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runIsorelax() {
+	public void runIsorelax() throws Exception {
 		String projectId = "152_isorelax";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3294,7 +3294,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runItext() {
+	public void runItext() throws Exception {
 		String projectId = "153_itext";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3329,7 +3329,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJacl() {
+	public void runJacl() throws Exception {
 		String projectId = "154_jacl";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3365,7 +3365,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJalopy() {
+	public void runJalopy() throws Exception {
 		String projectId = "155_jalopy";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3401,7 +3401,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJavaCup() {
+	public void runJavaCup() throws Exception {
 		String projectId = "158_java-cup";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3436,7 +3436,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJavacc() {
+	public void runJavacc() throws Exception {
 		String projectId = "159_javacc";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3471,7 +3471,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJavagroups() {
+	public void runJavagroups() throws Exception {
 		String projectId = "161_javagroups";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3506,7 +3506,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJaxen() {
+	public void runJaxen() throws Exception {
 		String projectId = "162_jaxen";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"
@@ -3541,7 +3541,7 @@ public class TestSingleMethod {
 	}
 	
 	@Test
-	public void runJcifs() {
+	public void runJcifs() throws Exception {
 		String projectId = "163_jcifs";
 		String[] targetMethods = new String[]{
 //				"org.jscience.JScience#multiplyMatrices([[D)V"

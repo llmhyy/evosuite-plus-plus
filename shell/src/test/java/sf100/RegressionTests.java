@@ -25,7 +25,7 @@ public class RegressionTests {
 	}
 	
 	@Test
-	public void runMultiplyTest() {
+	public void runMultiplyTest() throws Exception {
 		String projectId = "105_math";
 		String[] targetMethods = new String[]{
 //				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
@@ -57,7 +57,7 @@ public class RegressionTests {
 	}
 	
 	@Test
-	public void runSummaryStatisticsEquals() {
+	public void runSummaryStatisticsEquals() throws Exception {
 		String projectId = "105_math";
 		String[] targetMethods = new String[]{
 //				"cern.colt.matrix.impl.Benchmark#benchmark(IILjava/lang/String;ZIDDD)V"
