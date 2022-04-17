@@ -56,7 +56,7 @@ public class FieldVariableWrapper extends DepVariableWrapper{
 	
 	
 	public VariableReference generateOrFind(TestCase test, boolean isLeaf, VariableInTest variable,
-			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue) {
+			Map<DepVariableWrapper, VarRelevance> map, Branch b, boolean allowNullValue){
 		FieldInsnNode fieldNode = (FieldInsnNode) this.var.getInstruction().getASMNode();
 		String fieldType = fieldNode.desc;
 		String fieldOwner = fieldNode.owner.replace("/", ".");
@@ -93,6 +93,11 @@ public class FieldVariableWrapper extends DepVariableWrapper{
 					.loadClass(fieldOwner);
 //			registerAllMethods(fieldDeclaringClass);	
 			Field field = VariableCodeGenerationUtil.searchForField(fieldDeclaringClass, fieldName);
+			
+			if(field == null) {
+				return null;
+			}
+			
 			/**
 			 * if the field is leaf, check if there is setter in the testcase
 			 * if the field is not leaf, check if there is getter in the testcase
