@@ -66,16 +66,29 @@ public class Graph {
 			"long"
 	};
 
+	/**
+	 * Adds a node to the graph.
+	 * @param node The node to add.
+	 */
 	public void addNode(GraphNode node) {
 		if(!nodeSet.contains(node)) {
 			nodeSet.add(node);
 		}
 	}
 	
+	/**
+	 * Returns the nodes accessible from the given node.
+	 * @param node The given node.
+	 * @return A list of nodes accessible from the given node, as determined by the accessibility mapping.
+	 */
 	public List<GraphNode> getNodesAccessibleFrom(GraphNode node) {
 		return new ArrayList<>(accessibilityMap.get(node));
 	}
 
+	/**
+	 * Returns a list of root nodes.
+	 * @return A list of root (parentless) nodes.
+	 */
 	public List<GraphNode> getTopLayer(){
 		List<GraphNode> topLayer = new ArrayList<GraphNode>();
 		for (GraphNode node: this.nodeSet) {
@@ -93,6 +106,10 @@ public class Graph {
 		return topLayer;
 	}
 	
+	/**
+	 * Returns all the leaf nodes of the graph.
+	 * @return A list of leaf nodes (childless nodes).
+	 */
 	public List<GraphNode> getLeafNodes() {
 		List<GraphNode> leafNodes = new ArrayList<>();
 		for (GraphNode node : this.nodeSet) {
@@ -103,8 +120,13 @@ public class Graph {
 		return leafNodes;
 	}
 	
+	/**
+	 * Generates a image representation of the graph.
+	 * @param resolution The desired resolution of the image.
+	 * @param folderName The folder to save it to (resolved relative to {@code path}).
+	 * @param fileName The filename to use.
+	 */
 	public void visualize(int resolution, String folderName, String fileName) {
-
 		List<LinkSource> links = new ArrayList<LinkSource>();
 
 		for (GraphNode source: nodeSet) {
@@ -147,42 +169,10 @@ public class Graph {
 		}
 
 	}
-	
-	public void visualizeStep2(int resolution, String folderName, String fileName) {
 
-		List<LinkSource> links = new ArrayList<LinkSource>();
-
-		for (GraphNode source: nodeSet) {
-			for (GraphNode target : source.getChildren()) {
-				guru.nidi.graphviz.model.Node n = node(source.getName())
-						.link(node(target.getName()));
-				if (!links.contains(n)) {
-					links.add(n);
-				}
-
-			}
-
-			if (source.getChildren().isEmpty()) {
-				guru.nidi.graphviz.model.Node n = node(source.getName());
-				if (!links.contains(n)) {
-					links.add(n);
-				}
-			}
-		}
-
-		guru.nidi.graphviz.model.Graph g = graph(fileName).directed().graphAttr()
-				.with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
-		try {
-			String filePath = path + folderName + File.separator + fileName + ".png";
-			File f = new File(filePath);
-			Graphviz.fromGraph(g).height(resolution).render(Format.PNG).toFile(f);
-			System.out.println("Saved graph to " + filePath);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
-
+	/**
+	 * Labels the node type of each node in the graph (the access method, concrete type and semantic role (field, method, etc.).
+	 */
 	public void labelNodeType() {
 		List<String> typePool = new ArrayList<String>();
 
@@ -304,10 +294,12 @@ public class Graph {
 	}
 
 	private void setAsAccessible(GraphNode ancestor, GraphNode descendant) {
-//		System.out.println("ACCESSIBILITY: " + ancestor + " -> " + descendant);
 		accessibilityMap.get(ancestor).add(descendant);
 	}
 	
+	/**
+	 * Labels the accessibility of each node (whether, from outside the package, a given node can access another node through a chain of field accesses/method calls).
+	 */
 	public void labelAccessibility() {
 		/**
 		 * for every pair of ancestor-descendant, we random decide whether the ancestor can access descendant
@@ -373,22 +365,19 @@ public class Graph {
 		}
 	}
 
-	public void generateCode() {
-		// TODO Darien
-		
-		/**
-		 * step 1: build an intermediate model to describe the relations of class, field, method
-		 */
+	/**
+	 * Transforms the graph to code.
+	 * @return A list of source code strings, each corresponding to a single class.
+	 */
+	public List<String> transformToCode() {
 		ClassModel classModel = new ClassModel(this);
-		
-		
-		
-		/**
-		 * step 3: generate graph
-		 */
-		classModel.transformToCode();
+		return classModel.transformToCode();
 	}
 
+	/**
+	 * @param node The given node.
+	 * @return A list of nodes that are descendants of the given node.
+	 */
 	public List<GraphNode> getDescendantsOf(GraphNode node) {
 		List<GraphNode> descendants = new ArrayList<>();
 		descendants.addAll(node.getChildren());
@@ -398,37 +387,22 @@ public class Graph {
 		return descendants;
 	}
 	
-	public List<GraphNode> getPath(GraphNode fromNode, GraphNode toNode) {
+	/**
+	 * Generates a list of {@code GraphNode}s that indicate a path from the given fromNode to the given toNode.
+	 * @param fromNode The source.
+	 * @param toNode The destination.
+	 * @param isSamePackage Whether the path will be used in the same package or not (used when considering whether to count children as always accessible or not).
+	 * @return The path if it exists, or {@code null} otherwise. 
+	 */
+	public List<GraphNode> getPath(GraphNode fromNode, GraphNode toNode, boolean isSamePackage) {
 		if (!getDescendantsOf(fromNode).contains(toNode)) {
 			return null;
 		}
 		
-		// Note that the access rules are slightly different for immediate children
-		// We need to consider immediate children as "always accessible"
-		// since we are generating an internal method, which can always access fields
-		// regardless of access modifiers. To allow this, we replace the entry in the accessibility map for
-		// our fromNode, and reinstate the old entry at the end.
-		List<GraphNode> oldAccessibilityMapValue = accessibilityMap.get(fromNode);
-		List<GraphNode> temporaryAccessibilityMapValue = new ArrayList<>(oldAccessibilityMapValue);
-		for (GraphNode directChildNode : fromNode.getChildren()) {
-			if (!temporaryAccessibilityMapValue.contains(directChildNode)) {
-				temporaryAccessibilityMapValue.add(directChildNode);
-			}
-		}
-		accessibilityMap.put(fromNode, temporaryAccessibilityMapValue);
-		
-		// We want to determine the path between a pair of nodes 
-		// that does not use a particular edge (if it exists)
-		// To do that, we remove this edge from the accessibility map
-		// before the BFS and add it back after
-		// Don't do this if the toNode is a direct child of the fromNode,
-		// since in this case removing the edge will ensure that we can never get a path
-		// IMPORTANT NOTE: We don't add the edge back after, since this will modify a temporary value
-		// that will be replaced later on. This is done in preceding section of code (the old/temporaryAccessibilityMapValue).
-		// If that section of code is replaced, the code to add the edge back in should be reinstated.
+		// Remove the accessibility link between fromNode and toNode if it exists, add it back after the search
+		// We want to find a path that *doesn't* use this link.
 		boolean isToNodeAccessibleFromFromNode = getNodesAccessibleFrom(fromNode).contains(toNode);
-		boolean isDirectChild = fromNode.getChildren().contains(toNode);
-		if (isToNodeAccessibleFromFromNode && !isDirectChild) {
+		if (isToNodeAccessibleFromFromNode) {
 			accessibilityMap.get(fromNode).remove(toNode);
 		}
 		
@@ -450,6 +424,15 @@ public class Graph {
 				break;
 			}
 			List<GraphNode> currentNodeNeighbours = getNodesAccessibleFrom(currentNodeWrapper.getNode());
+			if (isSamePackage) {
+				List<GraphNode> children = currentNodeWrapper.getNode().getChildren();
+				for (GraphNode child : children) {
+					if (currentNodeNeighbours.contains(child)) {
+						continue;
+					}
+					currentNodeNeighbours.add(child);
+				}
+			}
 			for (GraphNode neighbour : currentNodeNeighbours) {
 				if (!visitedNodes.contains(neighbour)) {
 					visitedNodes.add(neighbour);
@@ -460,8 +443,9 @@ public class Graph {
 			}
 		}
 		
-		// Reinstate the old accessibility map entry for fromNode
-		accessibilityMap.put(fromNode, oldAccessibilityMapValue);
+		if (isToNodeAccessibleFromFromNode) {
+			accessibilityMap.get(fromNode).add(toNode);
+		}
 		
 		return path;
 	}

@@ -10,16 +10,11 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ArrayAccess;
-import org.eclipse.jdt.core.dom.ArrayCreation;
-import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -29,10 +24,8 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
-import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
-import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
@@ -49,7 +42,6 @@ public class ClassModel {
 	private Map<String, Class> classNameToClass = new HashMap<>();
 	private Graph graph = null;
 	private Set<GraphNode> processedNodes = null;
-	private Map<CodeElement, ASTNode> nodeToCode = new HashMap<>();
 	private String targetClass = null;
 	
 	private boolean isFieldsAndMethodsGenerated = false;
@@ -111,7 +103,7 @@ public class ClassModel {
 		GraphNode parentNode = toNode.getParents().get(0);
 		boolean isParentField = GraphNodeUtil.isField(parentNode);
 		boolean isParentMethod = GraphNodeUtil.isMethod(parentNode);
-		List<GraphNode> path = graph.getPath(fromNode, toNode);
+		List<GraphNode> path = graph.getPath(fromNode, toNode, true);
 		if (isParentField) {
 			// Generate a FieldArrayElementSetter
 			Field parentField = getCorrespondingField(parentNode);
@@ -245,6 +237,9 @@ public class ClassModel {
 		}
 	}
 	
+	/**
+	 * @return A list of {@code Class} objects corresponding to the graph given.
+	 */
 	public List<Class> getClasses() {
 		return new ArrayList<>(classNameToClass.values());
 	}
@@ -460,8 +455,8 @@ public class ClassModel {
 		
 		// For each leaf node, generate a variable.
 		for (GraphNode leafNode : graph.getLeafNodes()) {
-			List<GraphNode> path = graph.getPath(fromNode, leafNode);
-			if (_nullCheck(path, "Unable to find a path from " + fromNode + " to " + leafNode + "!")) {
+			List<GraphNode> path = graph.getPath(fromNode, leafNode, true);
+			if (_nullCheck(path, "[ClassModel#generateTargetMethodBody]: Unable to find a path from " + fromNode + " to " + leafNode + "!")) {
 				return null;
 			}
 			Expression getterExpression = ClassModelUtil.generateGetterExpressionFromPath(ast, path);
@@ -510,14 +505,22 @@ public class ClassModel {
 		return methodBody;
 	}
 
-	public void transformToCode() {		
+	/**
+	 * @return A list of source code strings, each corresponding to a single class.
+	 */
+	public List<String> transformToCode() {
+		List<String> classesAsString = new ArrayList<>();
+		
 		for (String className : classNameToClass.keySet()) {
 			Class clazz = classNameToClass.get(className);
 			CompilationUnit compilationUnit = generateCodeFromClass(clazz);
-			nodeToCode.put(clazz, compilationUnit);
+			classesAsString.add(compilationUnit.toString());
 			
 			System.out.println(compilationUnit.toString());
+			
 		}
+		
+		return classesAsString;
 	}
 
 	private void generateGettersAndSetters() {
@@ -583,8 +586,8 @@ public class ClassModel {
 	}
 
 	private Method generateGetterForField(GraphNode fromNode, GraphNode toNode, Field field) {
-		List<GraphNode> path = graph.getPath(fromNode, toNode);
-		if (_nullCheck(path, "WARNING: Failed to generate getter from " + fromNode + " to " + toNode)) {
+		List<GraphNode> path = graph.getPath(fromNode, toNode, true);
+		if (_nullCheck(path, "[ClassModel#generateGetterForField] WARNING: Failed to generate getter from " + fromNode + " to " + toNode)) {
 			// Note it is currently possible to generate a graph where it is not possible to generate a getter
 			// as a valid path from the source to the sink does not exist. It is, however, still possible
 			// that the generated code can still be covered by a test case, since alternate paths to the sink
@@ -602,8 +605,8 @@ public class ClassModel {
 	}
 
 	private Setter generateSetterForField(GraphNode fromNode, GraphNode toNode, Field field) {
-		List<GraphNode> path = graph.getPath(fromNode, toNode);
-		if (_nullCheck(path, "WARNING: Failed to generate setter from " + fromNode + " to " + toNode)) {
+		List<GraphNode> path = graph.getPath(fromNode, toNode, true);
+		if (_nullCheck(path, "[ClassModel#generateSetterForField]: WARNING: Failed to generate setter from " + fromNode + " to " + toNode)) {
 			// Note it is currently possible to generate a graph where it is not possible to generate a setter
 			// as a valid path from the source to the sink does not exist. It is, however, still possible
 			// that the generated code can still be covered by a test case, since alternate paths to the sink

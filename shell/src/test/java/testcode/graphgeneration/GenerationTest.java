@@ -39,7 +39,7 @@ public class GenerationTest {
 		Graph graph = generator.generateGraph(5, 6, false);
 		graph.labelNodeType();
 		graph.labelAccessibility();
-		graph.generateCode();
+		graph.transformToCode();
 		graph.visualize(1000, "graph", "graph");
 	}
 	
@@ -55,19 +55,13 @@ public class GenerationTest {
 	
 	@Test
 	public void testCodeGeneration() {
-		try {
-			OCGGenerator generator = new OCGGenerator();
-			Graph graph = generator.generateGraph(5, 6, false);
-			graph.labelNodeType();
-			graph.labelAccessibility();
-			graph.visualize(1000, "graph", "graph");
-			ClassModel classModel = new ClassModel(graph);
-			classModel.transformToCode();
-			System.currentTimeMillis();
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			fail();
-		}
+//		long seed = -3065197042041757523L;
+//		OCGGenerator generator = new OCGGenerator(seed);
+		OCGGenerator generator = new OCGGenerator();
+		Graph graph = generator.generate(5, 6, false);
+		graph.visualize(1000, "graph", "graph");
+		
+		ClassModel classModel = new ClassModel(graph);
+		classModel.transformToCode();
 	}
 }

@@ -30,9 +30,16 @@ import org.eclipse.jdt.core.dom.ArrayCreation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
 
 public class ClassModelUtil {
+	// Whether constructor generation uses default or random values to initialise fields.
 	public static final boolean IS_CONSTRUCTOR_USE_DEFAULT_VALUES = true;
+	// The maximum possible size of arrays for array initialisation.
 	public static final int MAXIMUM_ARRAY_SIZE = 10;
 	
+	/**
+	 * Generates a field name for the given {@code GraphNode}. This is used to identify the field that the node represents.
+	 * @param node The given node.
+	 * @return {@code null} if the given node does not represent a field, a {@code String} representation of a field name otherwise.
+	 */
 	public static String getFieldNameFor(GraphNode node) {
 		if (!GraphNodeUtil.isField(node)) {
 			return null;
@@ -41,6 +48,11 @@ public class ClassModelUtil {
 		return GraphNodeUtil.getDeclaredClass(node).replace("[]", "Array") + "_" + node.getIndex();
 	}
 	
+	/**
+	 * Generates a method name for the given {@code GraphNode}. This is used to identify the method that the node represents.
+	 * @param node The given node.
+	 * @return {@code null} if the given node does not represent a method, a {@code String} representation of a method name otherwise.
+	 */
 	public static String getMethodNameFor(GraphNode node) {
 		if (!GraphNodeUtil.isMethod(node)) {
 			return null;
@@ -49,22 +61,46 @@ public class ClassModelUtil {
 		return "method" + node.getIndex();
 	}
 	
+	/**
+	 * Generates a getter name for the given {@code GraphNode}.
+	 * @param node The given node.
+	 * @return A {@code String} representation of a getter name.
+	 */
 	public static String getGetterNameFor(GraphNode node) {		
 		return "getNode" + node.getIndex();
 	}
 	
+	/**
+	 * Generates a setter name for the given {@code GraphNode}.
+	 * @param node The given node.
+	 * @return A {@code String} representation of a setter name.
+	 */
 	public static String getSetterNameFor(GraphNode node) {
 		return "setNode" + node.getIndex();
 	}
 	
+	/**
+	 * @param dataType The {@code String} representation of the given datatype.
+	 * @return {@code true} if the given datatype is primitive, {@code false} otherwise.
+	 */
 	public static boolean isPrimitive(String dataType) {
 		return dataType.equals("void") || Arrays.asList(Graph.PRIMITIVE_TYPES).contains(dataType);
 	}
 	
+	/**
+	 * @param dataType The {@code String} representation of the given datatype.
+	 * @return {@code true} if the given datatype is an array type, {@code false} otherwise.
+	 */
 	public static boolean isArray(String dataType) {
 		return dataType.endsWith("[]");
 	}
 	
+	/**
+	 * Generates a copy of the given {@code Type} from the given {@code AST}. Only supports {@code PrimitiveType, SimpleType, ArrayType}.
+	 * @param ast The given {@code AST} instance.
+	 * @param type The given {@code Type} instance.
+	 * @return A copy of the given {@code Type} instance, relative to the given {@code AST}, or {@code null} if the given {@code Type} is unsupported.
+	 */
 	public static Type getCopyOfType(AST ast, Type type) {
 		boolean isPrimitive = (type instanceof PrimitiveType);
 		boolean isSimple = (type instanceof SimpleType);
@@ -89,6 +125,12 @@ public class ClassModelUtil {
 		return null;
 	}
 	
+	/**
+	 * Returns a {@code Type} instance representing the return type of the given method.
+	 * @param ast The given {@code AST} instance.
+	 * @param method The given {@code Method} instance.
+	 * @return A {@code Type} instance representing the return type of the given method.
+	 */
 	public static Type extractReturnTypeFrom(AST ast, Method method) {
 		String methodReturnTypeAsString = method.getReturnType();
 		return extractReturnTypeFrom(ast, methodReturnTypeAsString);
@@ -109,6 +151,12 @@ public class ClassModelUtil {
 		return methodReturnType;
 	}
 	
+	/**
+	 * Generates a {@code Modifier} instance representing the access modifier of the given method.
+	 * @param ast The given {@code AST} instance.
+	 * @param method The given {@code Method} instance.
+	 * @return A {@code Modifier} instance representing the access modifier of the given method.
+	 */
 	public static Modifier extractModifierFrom(AST ast, Method method) {
 		if (method.getVisibility() == Visibility.DEFAULT) {
 			return null;
@@ -118,6 +166,12 @@ public class ClassModelUtil {
 		return modifier;
 	}
 	
+	/**
+	 * Returns a {@code Type} instance representing the type of the given field.
+	 * @param ast The given {@code AST} instance.
+	 * @param field The given {@code Field} instance.
+	 * @return A {@code Type} instance representing the type of the given field.
+	 */
 	public static Type extractTypeFrom(AST ast, Field field) {
 		Type fieldType = null;
 		if (field.isPrimitive()) {
@@ -130,6 +184,12 @@ public class ClassModelUtil {
 		return fieldType;
 	}
 	
+	/**
+	 * Returns a {@code Type} instance representing the type of the given {@code GraphNode}. This can be the return type of a method, the type of a field, etc.
+	 * @param ast The given {@code AST} instance.
+	 * @param node The given {@code GraphNode} instance.
+	 * @return A {@code Type} instance representing the type of the given {@code GraphNode}.
+	 */
 	public static Type extractTypeFrom(AST ast, GraphNode node) {
 		// This can represent different things depending on the node
 		// If the node represents a method, then the return type
@@ -151,6 +211,11 @@ public class ClassModelUtil {
 		return nodeType;
 	}
 	
+	/**
+	 * Helper method to convert a primitive datatype into a {@code PrimitiveType.Code} instance.
+	 * @param dataType The given primitive datatype.
+	 * @return {@code null} if the given datatype is non-primitive, and the appropriate {@code PrimitiveType.Code} instance otherwise.
+	 */
 	public static PrimitiveType.Code stringToPrimitiveTypeCode(String dataType) {
 		if (!isPrimitive(dataType)) {
 			return null;
@@ -180,10 +245,16 @@ public class ClassModelUtil {
 		}
 	}
 	
+	/**
+	 * Helper method to convert a primitive datatype into a {@code PrimitiveType} instance.
+	 * @param ast The given {@code AST} instance.
+	 * @param dataType The given primitive datatype.
+	 * @return {@code null} if the given datatype is non-primitive, and the appropriate {@code PrimitiveType} instance otherwise.
+	 */
 	public static PrimitiveType stringToPrimitiveType(AST ast, String dataType) {
 		PrimitiveType.Code primitiveTypeCode = stringToPrimitiveTypeCode(dataType);
 		if (primitiveTypeCode == null) {
-			System.err.println("Failed to get an appropriate PrimitiveType.Code for " + dataType);
+			System.err.println("[ClassModelUtil#stringToPrimitiveType]: Failed to get an appropriate PrimitiveType.Code for " + dataType);
 			return null;
 		}
 		return ast.newPrimitiveType(primitiveTypeCode);
@@ -207,7 +278,17 @@ public class ClassModelUtil {
 		return dataType.substring(0, firstIndexOfLeftSquareBracket);
 	}
 	
+	/**
+	 * Helper method to convert a string representation of an array type into an {@code ArrayType} instance.
+	 * @param ast The given {@code AST} instance.
+	 * @param dataType The given datatype.
+	 * @return {@code null} if the given datatype is not an array type, and an {@code ArrayType} instance corresponding to the given datatype otherwise.
+	 */
 	public static ArrayType stringToArrayType(AST ast, String dataType) {
+		if (!dataType.contains("[]")) {
+			return null;
+		}
+		
 		int dimensions = findNumberOfOccurrencesInString("[]", dataType);
 		String baseTypeAsString = extractBaseTypeFrom(dataType);
 		boolean isPrimitive = isPrimitive(baseTypeAsString);
@@ -220,10 +301,21 @@ public class ClassModelUtil {
 		return ast.newArrayType(baseType, dimensions);
 	}
 	
+	/**
+	 * Helper method to convert a String representation of a custom datatype into a {@code SimpleType} instance.
+	 * @param ast The given {@code AST} instance.
+	 * @param dataType The given datatype. 
+	 * @return A {@code SimpleType} instance corresponding to the given datatype.
+	 */
 	public static SimpleType stringToSimpleType(AST ast, String dataType) {
 		return ast.newSimpleType(ast.newSimpleName(dataType));
 	}
 	
+	/**
+	 * Helper method to translate a given {@code Visibility} instance into a {@code Modifier.ModifierKeyword} instance.
+	 * @param visibility The given {@code Visibility} instance. 
+	 * @return The corresponding {@code Modifier.ModifierKeyword} instance.
+	 */
 	public static Modifier.ModifierKeyword visibilityToModifierKeyword(Visibility visibility) {
 		switch	(visibility) {
 			case PUBLIC:
@@ -239,48 +331,63 @@ public class ClassModelUtil {
 		}
 	}
 
+	/**
+	 * @param dataType The given datatype.
+	 * @return {@code true} if the datatype represents a custom class, {@code false} otherwise.
+	 */
 	public static boolean isObject(String dataType) {
 		return dataType.startsWith("Class");
 	}
 	
-	public static NumberLiteral randomByteExpression(AST ast) {
+	private static NumberLiteral randomByteExpression(AST ast) {
 		return ast.newNumberLiteral(Byte.toString((byte) (OCGGenerator.RANDOM.nextInt(127 - (-128)) - 128)));
 	}
 	
-	public static NumberLiteral randomShortExpression(AST ast) {
+	private static NumberLiteral randomShortExpression(AST ast) {
 		return ast.newNumberLiteral(Short.toString((short) (OCGGenerator.RANDOM.nextInt(32767 - (-32768)) - 32767)));
 	}
 	
-	public static NumberLiteral randomIntExpression(AST ast) {
+	private static NumberLiteral randomIntExpression(AST ast) {
 		return ast.newNumberLiteral(Integer.toString(OCGGenerator.RANDOM.nextInt()));
 	}
 	
-	public static NumberLiteral randomLongExpression(AST ast) {
+	private static NumberLiteral randomLongExpression(AST ast) {
 		return ast.newNumberLiteral(Long.toString(OCGGenerator.RANDOM.nextLong()));
 	}
 	
-	public static NumberLiteral randomFloatExpression(AST ast) {
+	private static NumberLiteral randomFloatExpression(AST ast) {
 		return ast.newNumberLiteral(Float.toString(OCGGenerator.RANDOM.nextFloat()));
 	}
 	
-	public static NumberLiteral randomDoubleExpression(AST ast) {
+	private static NumberLiteral randomDoubleExpression(AST ast) {
 		return ast.newNumberLiteral(Double.toString(OCGGenerator.RANDOM.nextDouble()));
 	}
 	
-	public static CharacterLiteral randomCharExpression(AST ast) {
+	private static CharacterLiteral randomCharExpression(AST ast) {
 		CharacterLiteral characterLiteral = ast.newCharacterLiteral();
 		characterLiteral.setCharValue((char) OCGGenerator.RANDOM.nextInt(65535));
 		return characterLiteral;
 	}
 	
-	public static BooleanLiteral randomBooleanExpression(AST ast) {
+	private static BooleanLiteral randomBooleanExpression(AST ast) {
 		return ast.newBooleanLiteral(OCGGenerator.RANDOM.nextBoolean());
 	}
 	
+	/**
+	 * Returns a {@code String} representation of the base type of the given array type.
+	 * @param dataType The given array type.
+	 * @return A {@code String} representation of the base type of the given array type.
+	 */
 	public static String extractBaseTypeFromArray(String dataType) {
 		return extractBaseTypeFrom(dataType);
 	}
 	
+	/**
+	 * Returns an {@code Expression} instance representing a randomly initialized primitive type.
+	 * @param ast The given {@code AST} instance.
+	 * @param dataType The given datatype.
+	 * @return {@code null} if the datatype is non-primitive, and an {@code Expression} instance representing a randomly initialized primitive type corresponding to the given datatype otherwise.
+	 */
 	public static Expression randomPrimitiveExpression(AST ast, String dataType) {
 		if (!isPrimitive(dataType)) {
 			return null;
@@ -308,6 +415,12 @@ public class ClassModelUtil {
 		}
 	}
 	
+	/**
+	 * Returns an {@code Expression} instance representing a primitive type initialised to its default value.
+	 * @param ast The given {@code AST} instance.
+	 * @param dataType The given datatype.
+	 * @return {@code null} if the datatype is non-primitive, and an {@code Expression} instance representing a default-initialized primitive type corresponding to the given datatype otherwise.
+	 */
 	public static Expression defaultPrimitiveExpression(AST ast, String dataType) {
 		if (!isPrimitive(dataType)) {
 			return null;
@@ -338,11 +451,11 @@ public class ClassModelUtil {
 	}
 	
 	/**
-	 * Generates an ArrayCreation instance that initialises an array with the given length
+	 * Generates an {@code ArrayCreation} instance that initialises an array with the given length
 	 * Elements of the array are randomised instances if primitive, or new object instances if non-primitive.
-	 * @param ast The AST to use for code generation.
+	 * @param ast The {@code AST} to use for code generation.
 	 * @param dataType The array datatype (including square braces)
-	 * @return
+	 * @return An {@code ArrayCreation} instance that initialises an array with the given length
 	 */
 	@SuppressWarnings("unchecked")
 	public static ArrayCreation randomArrayCreation(AST ast, String dataType, int arrayLength) {
@@ -365,6 +478,13 @@ public class ClassModelUtil {
 		return arrayCreation;
 	}
 	
+	/**
+	 * Generates an {@code ArrayCreation} instance that initialises an array with the given length
+	 * Elements of the array are default instances if primitive, or new object instances if non-primitive.
+	 * @param ast The {@code AST} to use for code generation.
+	 * @param dataType The array datatype (including square braces)
+	 * @return An {@code ArrayCreation} instance that initialises an array with the given length
+	 */
 	@SuppressWarnings("unchecked")
 	public static ArrayCreation defaultArrayCreation(AST ast, String dataType, int arrayLength) {
 		ArrayCreation arrayCreation = ast.newArrayCreation();
@@ -386,12 +506,24 @@ public class ClassModelUtil {
 		return arrayCreation;
 	}
 	
+	/**
+	 * Generates a {@code ClassInstanceCreation} instance corresponding to an initialisation of the given custom class.
+	 * @param ast The given {@code AST} instance.
+	 * @param dataType The given datatype.
+	 * @return A {@code ClassInstanceCreation} instance corresponding to an initialisation of the given custom class.
+	 */
 	public static ClassInstanceCreation newClassInstance(AST ast, String dataType) {
 		ClassInstanceCreation classInstanceCreation = ast.newClassInstanceCreation();
 		classInstanceCreation.setType(ast.newSimpleType(ast.newSimpleName(dataType)));
 		return classInstanceCreation;
 	}
 	
+	/**
+	 * Generates an {@code Expression} instance corresponding to a retrieval statement that matches the given path.
+	 * @param ast The given {@code AST} instance.
+	 * @param path The given path of {@code GraphNode}s.
+	 * @return An {@code Expression} instance corresponding to a retrieval statement that matches the given path.
+	 */
 	public static Expression generateGetterExpressionFromPath(AST ast, List<GraphNode> path) {
 		Expression previousExpression = ast.newThisExpression();
 		for (int i = 0; i < path.size(); i++) {
@@ -424,6 +556,12 @@ public class ClassModelUtil {
 		return previousExpression;
 	}
 	
+	/**
+	 * Generates an {@code Expression} instance corresponding to a setter statement for an array element that matches the given path.
+	 * @param ast The given {@code AST} instance.
+	 * @param path The given path of {@code GraphNode}s.
+	 * @return An {@code Expression} instance corresponding to a setter statement for an array element that matches the given path.
+	 */
 	public static Expression generateArrayElementSetterExpressionFromPath(AST ast, List<GraphNode> path) {
 		Expression previousExpression = ast.newThisExpression();
 		for (int i = 0; i < path.size(); i++) {
@@ -471,6 +609,12 @@ public class ClassModelUtil {
 		return previousExpression;
 	}
 	
+	/**
+	 * Generates a {@code MethodDeclaration} instance that corresponds to a constructor for the given {@code Class}.
+	 * @param ast The given {@code AST} instance.
+	 * @param clazz The given {@code Class} instance.
+	 * @return A {@code MethodDeclaration} instance that corresponds to a constructor for the given {@code Class}.
+	 */
 	@SuppressWarnings("unchecked")
 	public static MethodDeclaration generateConstructorFor(AST ast, testcode.graphgeneration.model.Class clazz) {
 		MethodDeclaration methodDeclaration = ast.newMethodDeclaration();

@@ -94,13 +94,11 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 
 		ArrayList<Branch> rankedList = buildObjectConstructionGraph();
 		
-		System.out.println("test");
-		
 		int branchConditionLineNumber = 29;
 //		Branch b = TestUtil.searchBranch(rankedList, branchConditionLineNumber);
 		Branch b = TestUtil.getLongestBranch(rankedList, branchConditionLineNumber);
 		
-		generateCode0(b, false, false);
+		generateCode0(b, true, false);
 	}
 	
 	// Test null fields that need to be set during construction

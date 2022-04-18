@@ -13,18 +13,29 @@ public class OCGGenerator {
 	private int maxParentNum = 2;
 	private int maxChildNum = 2;
 	
-	public OCGGenerator() {		
-		RANDOM = new Random();
-		long rseed = 1234567898L;
-		RANDOM.setSeed(rseed);
+	public OCGGenerator(long seed) {
+		if (RANDOM == null) {
+			RANDOM = new Random();
+			RANDOM.setSeed(seed);
+			System.out.println("Seed for OCGGenerator: " + seed);
+		}
 	}
 	
-	public void generate(int depth, int width, boolean allowLoop) {
-		
+	public OCGGenerator() {
+		if (RANDOM == null) {
+			RANDOM = new Random();
+			long seed = new Random().nextLong();
+			RANDOM.setSeed(seed);
+			System.out.println("Seed for OCGGenerator: " + seed);
+		}
+	}
+	
+	public Graph generate(int depth, int width, boolean allowLoop) {
 		Graph graph = generateGraph(depth, width, allowLoop);
 		graph.labelNodeType();
 		graph.labelAccessibility();
-		graph.generateCode();
+		graph.transformToCode();
+		return graph;
 	}
 
 	public Graph generateGraph(int depth, int width, boolean allowLoop) {
