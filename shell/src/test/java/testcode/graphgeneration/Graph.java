@@ -180,6 +180,7 @@ public class Graph {
 		
 		List<GraphNode> topLayer = this.getTopLayer();
 		Queue<GraphNode> queue = new LinkedList<GraphNode>();
+		Set<GraphNode> processedNodes = new HashSet<>();
 		queue.addAll(topLayer);
 		
 		/**
@@ -187,6 +188,9 @@ public class Graph {
 		 */
 		while(!queue.isEmpty()) {
 			GraphNode node = queue.poll();
+			if (processedNodes.contains(node)) {
+				continue;
+			}
 			
 			/**
 			 * non-leaf node, reference type access
@@ -261,7 +265,7 @@ public class Graph {
 			NodeType accessType = generateNodeType(relation, dataType, node);
 			
 			node.setNodeType(accessType);
-			
+			processedNodes.add(node);
 			queue.addAll(node.getChildren());
 		}
 		
@@ -315,12 +319,17 @@ public class Graph {
 		// TODO: What do we do about parameters?
 		// We also need to enforce that some ancestor-descendant pairs are always accessible
 		// e.g. array -> array element
+		Set<GraphNode> processedNodes = new HashSet<>();
 		Queue<GraphNode> queue = new ArrayDeque<>();
 		for (GraphNode topLayerNode : this.getTopLayer()) {
 			queue.offer(topLayerNode);
 		}
 		while (!queue.isEmpty()) {
 			GraphNode ancestor = queue.poll();
+			if (processedNodes.contains(ancestor)) {
+				continue;
+			}
+			
 			if (!accessibilityMap.containsKey(ancestor)) {
 				accessibilityMap.put(ancestor, new ArrayList<>());
 			}
@@ -362,6 +371,7 @@ public class Graph {
 			for (GraphNode child : ancestor.getChildren()) {
 				queue.offer(child);
 			}
+			processedNodes.add(ancestor);
 		}
 	}
 
@@ -380,11 +390,17 @@ public class Graph {
 	 */
 	public List<GraphNode> getDescendantsOf(GraphNode node) {
 		List<GraphNode> descendants = new ArrayList<>();
-		descendants.addAll(node.getChildren());
-		for (GraphNode child : node.getChildren()) {
-			descendants.addAll(getDescendantsOf(child));
-		}
+		getDescendantsOf(node, descendants);
 		return descendants;
+	}
+	
+	private void getDescendantsOf(GraphNode node, List<GraphNode> descendants) {
+		for (GraphNode child : node.getChildren()) {
+			if (!descendants.contains(child)) {
+				descendants.add(child);
+				getDescendantsOf(child, descendants);
+			}
+		}
 	}
 	
 	/**

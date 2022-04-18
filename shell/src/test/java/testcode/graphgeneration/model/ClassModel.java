@@ -75,6 +75,7 @@ public class ClassModel {
 					|| currentNode.getParents().size() == 0 
 					|| processedNodes.containsAll(currentNode.getParents());
 			if (!isAllParentsProcessed) {
+				// TODO: edge case, you are your own parent
 				queue.offer(currentNode);
 				continue;
 			}
