@@ -629,7 +629,7 @@ public class ClassModel {
 		Block methodBody = ast.newBlock();
 		Expression previousExpression = ast.newThisExpression();
 		
-		for (int i = 0; i < path.size(); i++) {
+		for (int i = 1; i < path.size(); i++) {
 			GraphNode currentNode = path.get(i);
 			boolean isParam = GraphNodeUtil.isParameter(currentNode);
 			if (isParam) {

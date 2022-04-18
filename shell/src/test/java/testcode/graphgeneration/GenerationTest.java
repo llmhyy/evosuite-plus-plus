@@ -50,18 +50,14 @@ public class GenerationTest {
 		graph.labelNodeType();
 		graph.labelAccessibility();
 		ClassModel classModel = new ClassModel(graph);
-		System.currentTimeMillis();
 	}
 	
 	@Test
 	public void testCodeGeneration() {
-//		long seed = -3065197042041757523L;
-//		OCGGenerator generator = new OCGGenerator(seed);
-		OCGGenerator generator = new OCGGenerator();
+		long seed = 3592892424846158605L;
+		OCGGenerator generator = new OCGGenerator(seed);
+//		OCGGenerator generator = new OCGGenerator();
 		Graph graph = generator.generate(5, 6, false);
 		graph.visualize(1000, "graph", "graph");
-		
-		ClassModel classModel = new ClassModel(graph);
-		classModel.transformToCode();
 	}
 }
