@@ -37,7 +37,7 @@ public class SF100TestUilty {
 //			String option,
 //			String strategy,
 //			String cp
-			) {
+			) throws Exception {
 		/* configure */
 		
 		/* run */
@@ -45,8 +45,7 @@ public class SF100TestUilty {
 		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
 		
 		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
-			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
-			return null;
+			throw new Exception("The dataset in SFConfiguration.sfBenchmarkFolder" + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
 		}
 		
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");

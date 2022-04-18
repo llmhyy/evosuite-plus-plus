@@ -362,7 +362,13 @@ public class ConstructionPathSynthesizer {
 		DepVariableWrapper node = testVariable.getNode();
 		boolean isLeaf = node.children.isEmpty();
 		
-		VarRelevance relevance = node.generateOrFindStatement(test, isLeaf, testVariable, map, b, allowNullValue, recommendation);
+		VarRelevance relevance = null;
+		try {
+			 relevance = node.generateOrFindStatement(test, isLeaf, testVariable, map, b, allowNullValue, recommendation);
+		}
+		catch(Exception e) {
+//			e.printStackTrace();
+		}
 //		List<VariableReference> generatedVariables = node.generateOrFindStatement(test, isLeaf, testVariable, map, b, allowNullValue);
 		if (relevance != null) {
 			VarRelevance rel = map.get(node);

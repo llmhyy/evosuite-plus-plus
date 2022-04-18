@@ -147,8 +147,11 @@ public class Properties {
 	@Parameter(key = "test_carving", group = "Test Creation", description = "Enable test carving")
 	public static boolean TEST_CARVING = false;
 	
-	@Parameter(key = "apply_object_rule", group = "Test Creation", description = "Ask the tool to analyze the branch-dependant variables")
+	@Parameter(key = "apply_object_rule", group = "Test Creation", description = "apply object sythesis via evoobj")
 	public static boolean APPLY_OBJECT_RULE = false;
+	
+	@Parameter(key = "apply_optimized_object_rule", group = "Test Creation", description = "apply object sythesis via evosyn")
+	public static boolean APPLY_OPTIMIZED_OBJECT_RULE = false;
 	
 	@Parameter(key = "apply_interprocedural_graph_analysis", group = "Test Creation", description = "Ask the tool to analyze the interprocedural graph")
 	public static boolean APPLY_INTERPROCEDURAL_GRAPH_ANALYSIS = false;

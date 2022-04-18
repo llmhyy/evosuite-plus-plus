@@ -29,7 +29,7 @@ public class SFHybridTest {
 //		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 	}
 	@Test
-	public void runTullibee() {
+	public void runTullibee() throws Exception {
 //		Properties.HYBRID_OPTION = new HybridOption[]{
 //		    	HybridOption.RANDOM
 ////		    	HybridOption.DSE
@@ -59,7 +59,7 @@ public class SFHybridTest {
 		
 	}
 	@Test
-	public void testBugExample() {
+	public void testBugExample() throws Exception {
 //		Properties.HYBRID_OPTION = new HybridOption[]{
 ////		    	HybridOption.RANDOM
 //		    	HybridOption.DSE
@@ -96,7 +96,7 @@ public class SFHybridTest {
 	}
 	
 	@Test
-	public void testProtectedExample() {
+	public void testProtectedExample() throws Exception {
 		String projectId = "10_water-simulator";
 		String[] targetMethods = new String[]{
 				"simulator.WSA.BehaviourQueryConsumers#handleInform(Ljade/lang/acl/ACLMessage;)V"
@@ -117,7 +117,7 @@ public class SFHybridTest {
 	}
 	
 	@Test
-	public void runA4j() {
+	public void runA4j() throws Exception {
 		String projectId = "2_a4j";
 		String[] targetMethods = new String[]{
 				"net.kencochrane.a4j.file.FileUtil#getASINFile(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;"
@@ -135,7 +135,7 @@ public class SFHybridTest {
 	}
 	
 	@Test
-	public void runQuartz() {
+	public void runQuartz() throws Exception {
 		String projectId = "113_quartz";
 		String[] targetMethods = new String[]{
 				"org.quartz.SchedulerContext#setAllowsTransientData(Z)V"

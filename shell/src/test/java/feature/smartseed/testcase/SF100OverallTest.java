@@ -17,7 +17,7 @@ import sf100.CommonTestUtil;
 public class SF100OverallTest {
 	public static long allConsumeTime;
 	@Before
-	public void beforeTest() {
+	public void beforeTest() throws Exception {
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.CSV;
 
@@ -41,7 +41,7 @@ public class SF100OverallTest {
 	
 
 	@Test
-	public void testBugExample1() {
+	public void testBugExample1() throws Exception {
 		String projectId = SF100Project.P5;
 		String[] targetMethods = new String[]{
 //				"org.dom4j.tree.LazyList#getEntryHeader(I)Lorg/dom4j/tree/LazyList$Entry;"//62
@@ -100,7 +100,7 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testBugExample7() {
+	public void testBugExample7() throws Exception {
 		String projectId = SF100Project.P13;
 		String[] targetMethods = new String[]{
 //				"com.yahoo.platform.yui.compressor.YUICompressor#main([Ljava/lang/String;)V"//22 
@@ -155,7 +155,7 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testBugExample8() {
+	public void testBugExample8() throws Exception {
 		String projectId = SF100Project.P19;
 		String[] targetMethods = new String[]{
 //				"de.huxhorn.lilith.swing.ApplicationPreferences#createCondition(Ljava/lang/String;Ljava/lang/String;)Lde/huxhorn/sulky/conditions/Condition;"//43 
@@ -208,7 +208,7 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testWorseExample1() {
+	public void testWorseExample1() throws Exception {
 		String projectId = SF100Project.P46;
 		String[] targetMethods = new String[]{
 				"ch.bfh.egov.nutzenportfolio.common.AutoGrowingList#get(I)Ljava/lang/Object;"
@@ -252,7 +252,7 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testWorseExample2() {
+	public void testWorseExample2() throws Exception {
 		String projectId = SF100Project.P62;
 		String[] targetMethods = new String[]{
 //				"org.dom4j.tree.LazyList#getEntryHeader(I)Lorg/dom4j/tree/LazyList$Entry;"
@@ -297,7 +297,7 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testWorseExample3() {
+	public void testWorseExample3() throws Exception {
 		String projectId = SF100Project.P66;
 		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.BankSvcRs_Type#setBankSvcRs_TypeSequence(ILnet/sourceforge/ifxfv3/beans/BankSvcRs_TypeSequence;)V" //84
@@ -342,7 +342,7 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testCharServerToAuthentify() {
+	public void testCharServerToAuthentify() throws Exception {
 		String projectId = SF100Project.P81;
 		String[] targetMethods = new String[]{
 				"org.javathena.login.UserManagement#charServerToAuthentify(Lorg/javathena/core/data/Socket_data;[B)V"//81
@@ -385,7 +385,7 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testCharif() {
+	public void testCharif() throws Exception {
 		String projectId = SF100Project.P81;
 		String[] targetMethods = new String[]{
 				"org.javathena.login.UserManagement#charif_sendallwos(I[B)I"//81
@@ -428,7 +428,7 @@ public class SF100OverallTest {
 	}
 	
 //	@Test
-//	public void testBugExample2() {
+//	public void testBugExample2() throws Exception {
 //		
 ////		String projectId = "84_ifx-framework";
 ////		String projectId = "27_gangup";
@@ -463,9 +463,9 @@ public class SF100OverallTest {
 //		double initCoverage = 0;
 //		double time = 0;
 //		double iteration  = 0;
-//		for(EvoTestResult res: results) {
+//		for(EvoTestResult res: results) throws Exception {
 //			
-//			if(res == null) {
+//			if(res == null) throws Exception {
 //				repeatTime--;
 //				continue;
 //			}
@@ -484,7 +484,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testBugExample3() {
+//	public void testBugExample3() throws Exception {
 //		
 ////		String projectId = "84_ifx-framework";
 ////		String projectId = "27_gangup";
@@ -519,9 +519,9 @@ public class SF100OverallTest {
 //		double initCoverage = 0;
 //		double time = 0;
 //		double iteration  = 0;
-//		for(EvoTestResult res: results) {
+//		for(EvoTestResult res: results) throws Exception {
 //			
-//			if(res == null) {
+//			if(res == null) throws Exception {
 //				repeatTime--;
 //				continue;
 //			}
@@ -540,7 +540,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testBugExample4() {
+//	public void testBugExample4() throws Exception {
 //		
 ////		String projectId = "84_ifx-framework";
 ////		String projectId = "27_gangup";
@@ -575,9 +575,9 @@ public class SF100OverallTest {
 //		double initCoverage = 0;
 //		double time = 0;
 //		double iteration  = 0;
-//		for(EvoTestResult res: results) {
+//		for(EvoTestResult res: results) throws Exception {
 //			
-//			if(res == null) {
+//			if(res == null) throws Exception {
 //				repeatTime--;
 //				continue;
 //			}
@@ -596,7 +596,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testBugExample5() {
+//	public void testBugExample5() throws Exception {
 //		
 ////		String projectId = "84_ifx-framework";
 ////		String projectId = "27_gangup";
@@ -631,9 +631,9 @@ public class SF100OverallTest {
 //		double initCoverage = 0;
 //		double time = 0;
 //		double iteration  = 0;
-//		for(EvoTestResult res: results) {
+//		for(EvoTestResult res: results) throws Exception {
 //			
-//			if(res == null) {
+//			if(res == null) throws Exception {
 //				repeatTime--;
 //				continue;
 //			}
@@ -652,7 +652,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testBugExample6() {
+//	public void testBugExample6() throws Exception {
 //		
 ////		String projectId = "84_ifx-framework";
 ////		String projectId = "27_gangup";
@@ -687,9 +687,9 @@ public class SF100OverallTest {
 //		double initCoverage = 0;
 //		double time = 0;
 //		double iteration  = 0;
-//		for(EvoTestResult res: results) {
+//		for(EvoTestResult res: results) throws Exception {
 //			
-//			if(res == null) {
+//			if(res == null) throws Exception {
 //				repeatTime--;
 //				continue;
 //			}
@@ -708,7 +708,7 @@ public class SF100OverallTest {
 //	}
 	
 	@Test
-	public void testProtectedExample() {
+	public void testProtectedExample() throws Exception {
 		String projectId = "10_water-simulator";
 		String[] targetMethods = new String[]{
 				"simulator.WSA.BehaviourQueryConsumers#handleInform(Ljade/lang/acl/ACLMessage;)V"
@@ -732,7 +732,7 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testEqualExampleDynaMOSA1() {
+	public void testEqualExampleDynaMOSA1() throws Exception {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.ifxfv3.beans.AcctInqRq#equals(Ljava/lang/Object;)Z"
@@ -756,7 +756,7 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testEqualExampleDynaMOSA2() {
+	public void testEqualExampleDynaMOSA2() throws Exception {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.ifxfv3.beans.MediaAcctAdjInqRs#equals(Ljava/lang/Object;)Z"
@@ -780,7 +780,7 @@ public class SF100OverallTest {
 	}
 	
 	@Test
-	public void testEqualExampleMonotonicGA() {
+	public void testEqualExampleMonotonicGA() throws Exception {
 		String projectId = "84_ifx-framework";
 		String[] targetMethods = new String[]{
 				"net.sourceforge.ifxfv3.beans.AcctInqRq#equals(Ljava/lang/Object;)Z"
@@ -804,7 +804,7 @@ public class SF100OverallTest {
 	}
 	
 //	@Test
-//	public void test11Example() {
+//	public void test11Example() throws Exception {
 //		String projectId = "11_imsmart";
 //		String[] targetMethods = new String[]{
 //				"com.momed.cms.MContentManagerFileNet#checkInContent(Ljava/io/File;)Z"
@@ -828,7 +828,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void test20Example() {
+//	public void test20Example() throws Exception {
 //		String projectId = "20_nekomud";
 //		String[] targetMethods = new String[]{
 //				"net.sourceforge.nekomud.nio.Connection#handleRead(Ljava/nio/channels/SelectionKey;)V"
@@ -854,7 +854,7 @@ public class SF100OverallTest {
 //	
 //	
 	@Test
-	public void testGangupBasicRulesExample() {
+	public void testGangupBasicRulesExample() throws Exception {
 		String projectId = "27_gangup";
 		String[] targetMethods = new String[]{
 				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
@@ -879,7 +879,7 @@ public class SF100OverallTest {
 	}
 //	
 //	@Test
-//	public void testCascadingCallExample() {
+//	public void testCascadingCallExample() throws Exception {
 //		Class<?> clazz = regression.objectconstruction.testgeneration.example.cascadecall.CascadingCallExample.class;
 //
 //		String methodName = "targetM";
@@ -899,7 +899,7 @@ public class SF100OverallTest {
 //
 //		try {
 //			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-//		} catch (Exception e) {
+//		} catch (Exception e) throws Exception {
 //			resultT = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 //		}
 //
@@ -907,7 +907,7 @@ public class SF100OverallTest {
 //		
 //		try {
 //			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
-//		} catch (Exception e) {
+//		} catch (Exception e) throws Exception {
 //			resultF = TestUtility.evosuite(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 //		}
 //
@@ -926,7 +926,7 @@ public class SF100OverallTest {
 //	
 //	// pending debugging
 //	@Test
-//	public void testCorinaPngencoderExample() {
+//	public void testCorinaPngencoderExample() throws Exception {
 //		String projectId = "35_corina";
 //		String[] targetMethods = new String[]{
 //				"corina.map.PngEncoderB#pngEncode(Z)[B"
@@ -963,7 +963,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testDsachatFrameExample() {
+//	public void testDsachatFrameExample() throws Exception {
 //		String projectId = "12_dsachat";
 //		String[] targetMethods = new String[]{
 //				"dsachat.gm.gui.InternalGmHeroFrame#valueChanged(Ljavax/swing/event/TreeSelectionEvent;)V"
@@ -1002,7 +1002,7 @@ public class SF100OverallTest {
 //	
 //	
 //	@Test
-//	public void testJfxExample() {
+//	public void testJfxExample() throws Exception {
 //		String projectId = "84_ifx-framework";
 //		String[] targetMethods = new String[]{
 //				"net.sourceforge.ifxfv3.beans.ChkOrdAudRs_TypeSequence2#equals(Ljava/lang/Object;)Z"
@@ -1039,7 +1039,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testJhandballMovesExample() {
+//	public void testJhandballMovesExample() throws Exception {
 //		String projectId = "56_jhandballmoves";
 //		String[] targetMethods = new String[]{
 //				"visu.handball.moves.model.HandballModel#setMoveName(Ljava/lang/String;)V"
@@ -1076,7 +1076,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testJwbfArticleExample() {
+//	public void testJwbfArticleExample() throws Exception {
 //		String projectId = "23_jwbf";
 //		String[] targetMethods = new String[]{
 //				"net.sourceforge.jwbf.core.contentRep.Article#getRevisionId()Ljava/lang/String;"
@@ -1113,7 +1113,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testLilithExample() {
+//	public void testLilithExample() throws Exception {
 //		String projectId = "43_lilith";
 //		String[] targetMethods = new String[]{
 //				"de.huxhorn.lilith.data.logging.protobuf.LoggingEventProtobufDecoder#convert(Lde/huxhorn/lilith/data/logging/protobuf/generated/LoggingProto$LoggingEvent;)Lde/huxhorn/lilith/data/logging/LoggingEvent;"
@@ -1150,7 +1150,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testObjectexplorerExample() {
+//	public void testObjectexplorerExample() throws Exception {
 //		String projectId = "63_objectexplorer";
 //		String[] targetMethods = new String[]{
 //				"de.paragon.explorer.figure.ListBoxFigureBuilder#setStaticAttributesVisible(Lde/paragon/explorer/figure/ListBoxFigure;)V"
@@ -1187,7 +1187,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testOpenhreExample() {
+//	public void testOpenhreExample() throws Exception {
 //		String projectId = "75_openhre";
 //		String[] targetMethods = new String[]{
 //				"com.browsersoft.openhre.hl7.impl.regular.ExpressionNodeList#addExpressionList(Lcom/browsersoft/openhre/hl7/impl/regular/ExpressionNodeList;)V"
@@ -1224,7 +1224,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testOpenjmsExample() {
+//	public void testOpenjmsExample() throws Exception {
 //		String projectId = "66_openjms";
 //		String[] targetMethods = new String[]{
 //				"org.exolab.jms.net.rmi.RMIManagedConnectionAcceptor#close()V"
@@ -1261,7 +1261,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testSummaExample() {
+//	public void testSummaExample() throws Exception {
 //		String projectId = "44_summa";
 //		String[] targetMethods = new String[]{
 //				"dk.statsbiblioteket.summa.common.filter.object.MUXFilter#pump()Z"
@@ -1298,7 +1298,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testWekaArjarchiveentryExample() {
+//	public void testWekaArjarchiveentryExample() throws Exception {
 //		String projectId = "101_weka";
 //		String[] targetMethods = new String[]{
 //				"org.apache.commons.compress.archivers.arj.ArjArchiveEntry#isDirectory()Z"
@@ -1335,7 +1335,7 @@ public class SF100OverallTest {
 //	}
 //	
 //	@Test
-//	public void testXbusFtpsenderExample() {
+//	public void testXbusFtpsenderExample() throws Exception {
 //		String projectId = "83_xbus";
 //		String[] targetMethods = new String[]{
 //				"net.sf.xbus.technical.ftp.FTPSender#execute(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"

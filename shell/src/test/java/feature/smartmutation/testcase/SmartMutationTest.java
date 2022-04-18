@@ -87,7 +87,7 @@ public class SmartMutationTest {
 	}
 	
 	@Test
-	public void runWekaJ48Example() {
+	public void runWekaJ48Example() throws Exception {
 		String projectId = "101_weka";
 		String[] targetMethods = new String[]{
 				"weka.classifiers.trees.J48#buildClassifier(Lweka/core/Instances;)V"

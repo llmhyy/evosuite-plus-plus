@@ -1651,7 +1651,7 @@ public class BytecodeInstruction extends ASMWrapper implements Serializable,
 			if (this.asmNode.getOpcode() == Opcodes.INVOKESPECIAL) {
 				return this.getCalledMethodsArgumentCount() + 1;
 			}
-			if(this.isCallToStaticMethod()) {
+			if(this.asmNode.getOpcode() == Opcodes.INVOKESTATIC) {
 				return this.getCalledMethodsArgumentCount();
 			}
 			else {

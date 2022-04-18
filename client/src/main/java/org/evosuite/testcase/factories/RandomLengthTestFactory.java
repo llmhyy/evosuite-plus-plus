@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,7 +46,6 @@ import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.testcase.synthesizer.improvedsynth.ImprovedConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.VarRelevance;
-import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +58,8 @@ import org.slf4j.LoggerFactory;
  * @author Gordon Fraser
  */
 public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome> {
-	public static final boolean IS_USE_NEW_APPROACH = true;
-	private static final String SYNTH_USED = IS_USE_NEW_APPROACH ? "ImprovedConstructionPathSynthesizer" : "ConstructionPathSynthesizer";
+//	public static final boolean IS_USE_NEW_APPROACH = true;
+//	private static final String SYNTH_USED = IS_USE_NEW_APPROACH ? "ImprovedConstructionPathSynthesizer" : "ConstructionPathSynthesizer";
 	
 	public static int legitimizationTrials = 0;
 	public static int legitimizationSuccess = 0;
@@ -159,10 +157,13 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					System.currentTimeMillis();
 					long t0 = System.currentTimeMillis();
 					ConstructionPathSynthesizer cpSynthesizer;
-					if (IS_USE_NEW_APPROACH) {
+					String SYNTH_USED = null;
+					if (Properties.APPLY_OPTIMIZED_OBJECT_RULE) {
 						cpSynthesizer = new ImprovedConstructionPathSynthesizer(false);
+						SYNTH_USED = "EvoSyn";
 					} else {
 						cpSynthesizer = new ConstructionPathSynthesizer(false);
+						SYNTH_USED = "EvoObj";
 					}
 					cpSynthesizer.buildNodeStatementCorrespondence(test, b, allowNullValue);
 					if(!allowNullValue) {

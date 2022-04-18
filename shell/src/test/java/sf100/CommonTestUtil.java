@@ -22,7 +22,7 @@ public class CommonTestUtil {
 			String algorithm,
 			double primitivePool,
 			double dynamicPool
-			) {
+			) throws Exception {
 		/* configure */
 	
 		/* run */
@@ -30,8 +30,7 @@ public class CommonTestUtil {
 		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
 		
 		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
-			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
-			return null;
+			throw new Exception("The dataset in SFConfiguration.sfBenchmarkFolder" + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
 		}
 		
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
@@ -103,7 +102,7 @@ public class CommonTestUtil {
 			double primitivePool,
 			double dynamicPool,
 			boolean applySmartSeed
-			) {
+			) throws Exception {
 		/* configure */
 	
 		/* run */
@@ -111,8 +110,7 @@ public class CommonTestUtil {
 		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
 		
 		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
-			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
-			return null;
+			throw new Exception("The dataset in SFConfiguration.sfBenchmarkFolder" + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
 		}
 		
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
@@ -183,7 +181,7 @@ public class CommonTestUtil {
 			String option,
 			String strategy,
 			String algorithm
-			) {
+			) throws Exception {
 		/* configure */
 	
 		/* run */
@@ -191,8 +189,7 @@ public class CommonTestUtil {
 		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
 		
 		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
-			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
-			return null;
+			throw new Exception("The dataset in SFConfiguration.sfBenchmarkFolder " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
 		}
 		
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
@@ -256,7 +253,7 @@ public class CommonTestUtil {
 	
 	public static List<EvoTestResult> evoTestSingleMethod(String projectId,
 			String[] targetMethods, String fitnessAppraoch, int iteration, 
-			long seconds, boolean context, Long seed, boolean applyObjectRule) {
+			long seconds, boolean context, Long seed, boolean applyObjectRule) throws Exception {
 		/* configure */
 	
 		/* run */
@@ -264,8 +261,7 @@ public class CommonTestUtil {
 		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
 		
 		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
-			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
-			return null;
+			throw new Exception("The dataset in SFConfiguration.sfBenchmarkFolder" + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
 		}
 		
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
@@ -354,7 +350,7 @@ public class CommonTestUtil {
 	
 	public static List<EvoTestResult> evoTestSingleMethod(String projectId,
 			String[] targetMethods, String fitnessAppraoch, int iteration, 
-			long seconds, boolean context, Long seed) {
+			long seconds, boolean context, Long seed) throws Exception {
 		/* configure */
 	
 		/* run */
@@ -362,8 +358,7 @@ public class CommonTestUtil {
 		String projectName = projectId.substring(projectId.indexOf("_")+1, projectId.length());
 		
 		if(!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
-			System.err.println("The dataset in " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
-			return null;
+			throw new Exception("The dataset in SFConfiguration.sfBenchmarkFolder" + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
 		}
 		
 		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
