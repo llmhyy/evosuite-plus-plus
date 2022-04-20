@@ -643,7 +643,7 @@ public class ClassModel {
 		}
 		return new Setter(
 				GraphNodeUtil.getDeclaredClass(fromNode), 
-				"setNode" + toNode.getIndex(), 
+				ClassModelUtil.getSetterNameFor(toNode), 
 				"void", 
 				field, 
 				path

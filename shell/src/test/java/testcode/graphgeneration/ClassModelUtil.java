@@ -44,7 +44,17 @@ public class ClassModelUtil {
 	 * @return {@code null} if the given node does not represent a field, a {@code String} representation of a field name otherwise.
 	 */
 	public static String getFieldNameFor(GraphNode node) {
-		if (!GraphNodeUtil.isField(node)) {
+		return getFieldNameFor(node, false);
+	}
+	
+	/**
+	 * Generates a field name for the given {@code GraphNode}. Overloaded version that allows disabling of sanity checks.
+	 * @param node The given node.
+	 * @param isOverrideSafetyChecks Whether sanity checks should be overriden or not.
+	 * @return {@code null} if the given node does not represent a field, a {@code String} representation of a field name otherwise.
+	 */
+	public static String getFieldNameFor(GraphNode node, boolean isOverrideSafetyChecks) {
+		if (!isOverrideSafetyChecks && !GraphNodeUtil.isField(node)) {
 			return null;
 		}
 		
@@ -70,7 +80,7 @@ public class ClassModelUtil {
 	 * @return A {@code String} representation of a getter name.
 	 */
 	public static String getGetterNameFor(GraphNode node) {		
-		return "getNode" + node.getIndex();
+		return "get" + capitalise(getFieldNameFor(node, true));
 	}
 	
 	/**
@@ -79,7 +89,22 @@ public class ClassModelUtil {
 	 * @return A {@code String} representation of a setter name.
 	 */
 	public static String getSetterNameFor(GraphNode node) {
-		return "setNode" + node.getIndex();
+		return "set" + capitalise(getFieldNameFor(node, true));
+	}
+	
+	private static String capitalise(String string) {
+		if (string == null || string.length() == 0) {
+			return string;
+		}
+		
+		if (string.length() == 1) {
+			return string.toUpperCase();
+		}
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append(string.substring(0,1).toUpperCase());
+		builder.append(string.substring(1));
+		return builder.toString();
 	}
 	
 	/**
