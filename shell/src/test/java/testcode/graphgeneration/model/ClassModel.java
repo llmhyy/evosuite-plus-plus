@@ -63,7 +63,7 @@ public class ClassModel {
 		// layer nodes (fields, methods).
 		List<GraphNode> topLayer = graph.getTopLayer();
 		GraphNode temporaryNode = null;
-		boolean isSingleTopLayer = topLayer.size() == 1;
+		boolean isSingleTopLayer = topLayer.size() == 1 && !GraphNodeUtil.isParameter(topLayer.get(0));
 		if (isSingleTopLayer) {
 			targetClass = GraphNodeUtil.getDeclaredClass(topLayer.get(0));
 		} else {
