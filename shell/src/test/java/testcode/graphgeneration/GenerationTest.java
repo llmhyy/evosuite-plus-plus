@@ -96,36 +96,39 @@ public class GenerationTest {
 		
 		String folderName = Long.toString(RandomNumberGenerator.getSeed()) + "L";
 		writeToFiles(fileNameToSourceCode, folderName);
-		compile(folderName);
+		compile(folderName, "");
 	}
 	
 	@Test
 	public void massValidateCodeSyntax() throws IOException {
-		for (int i = 0; i < 100; i++) {
-			RandomNumberGenerator.setSeed(new Random().nextLong());
-			OCGGenerator generator = new OCGGenerator();
-			Graph graph = generator.generateGraph(5, 6, false);
-			String folderName = Long.toString(RandomNumberGenerator.getSeed()) + "L";
-			graph.labelNodeType();
-			graph.labelAccessibility();
-			graph.visualize(1000, getSeedSpecificPath(RandomNumberGenerator.getSeed()), "graph");
-			Map<String, String> fileNameToSourceCode = graph.transformToCode();
-			
-			
-			writeToFiles(fileNameToSourceCode, folderName);
-			compile(folderName);
+		for (int depth = 5; depth < 20; depth++) {
+			for (int width = 6; width < 20; width++) {
+				for (int i = 0; i < 10; i++) {
+					RandomNumberGenerator.setSeed(new Random().nextLong());
+					OCGGenerator generator = new OCGGenerator();
+					Graph graph = generator.generateGraph(5, 6, false);
+					String folderName = Long.toString(RandomNumberGenerator.getSeed()) + "L";
+					graph.labelNodeType();
+					graph.labelAccessibility();
+					graph.visualize(1000, getSeedSpecificPath(RandomNumberGenerator.getSeed()), "graph");
+					Map<String, String> fileNameToSourceCode = graph.transformToCode();
+					
+					writeToFiles(fileNameToSourceCode, folderName);
+					String outputPrefix = "[" + folderName + ", depth = " + depth + ", width = " + width + "]: ";
+					compile(folderName, outputPrefix);
+				}
+			}
 		}
 	}
 	
-	private static void compile(String folderName) throws IOException {
+	private static void compile(String folderName, String outputPrefix) throws IOException {
 		String compileCommand = "javac " + CODE_ABSOLUTE_PATH + File.separator + folderName + File.separator + "*.java";
 		Runtime runtime = Runtime.getRuntime();
-		System.out.println("Output of " + compileCommand);
 		Process process = runtime.exec(compileCommand);
 		BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 		String stderrOutput = null;
 		while ((stderrOutput = stderr.readLine()) != null ) {
-			System.err.println(stderrOutput);
+			System.err.println(outputPrefix + stderrOutput);
 		}
 	}
 	

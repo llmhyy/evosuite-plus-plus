@@ -167,7 +167,7 @@ public class Graph {
 			String filePath = folderName + File.separator + fileName + ".png";
 			File f = new File(filePath);
 			Graphviz.fromGraph(g).height(resolution).render(Format.PNG).toFile(f);
-			System.out.println("Saved graph to " + filePath);
+//			System.out.println("Saved graph to " + filePath);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
