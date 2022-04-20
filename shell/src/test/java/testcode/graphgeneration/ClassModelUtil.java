@@ -379,37 +379,37 @@ public class ClassModelUtil {
 	}
 	
 	private static NumberLiteral randomByteExpression(AST ast) {
-		return ast.newNumberLiteral(Byte.toString((byte) (OCGGenerator.RANDOM.nextInt(127 - (-128)) - 128)));
+		return ast.newNumberLiteral(Byte.toString((byte) (RandomNumberGenerator.getInstance().nextInt(127 - (-128)) - 128)));
 	}
 	
 	private static NumberLiteral randomShortExpression(AST ast) {
-		return ast.newNumberLiteral(Short.toString((short) (OCGGenerator.RANDOM.nextInt(32767 - (-32768)) - 32767)));
+		return ast.newNumberLiteral(Short.toString((short) (RandomNumberGenerator.getInstance().nextInt(32767 - (-32768)) - 32767)));
 	}
 	
 	private static NumberLiteral randomIntExpression(AST ast) {
-		return ast.newNumberLiteral(Integer.toString(OCGGenerator.RANDOM.nextInt()));
+		return ast.newNumberLiteral(Integer.toString(RandomNumberGenerator.getInstance().nextInt()));
 	}
 	
 	private static NumberLiteral randomLongExpression(AST ast) {
-		return ast.newNumberLiteral(Long.toString(OCGGenerator.RANDOM.nextLong()));
+		return ast.newNumberLiteral(Long.toString(RandomNumberGenerator.getInstance().nextLong()));
 	}
 	
 	private static NumberLiteral randomFloatExpression(AST ast) {
-		return ast.newNumberLiteral(Float.toString(OCGGenerator.RANDOM.nextFloat()));
+		return ast.newNumberLiteral(Float.toString(RandomNumberGenerator.getInstance().nextFloat()));
 	}
 	
 	private static NumberLiteral randomDoubleExpression(AST ast) {
-		return ast.newNumberLiteral(Double.toString(OCGGenerator.RANDOM.nextDouble()));
+		return ast.newNumberLiteral(Double.toString(RandomNumberGenerator.getInstance().nextDouble()));
 	}
 	
 	private static CharacterLiteral randomCharExpression(AST ast) {
 		CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-		characterLiteral.setCharValue((char) OCGGenerator.RANDOM.nextInt(65535));
+		characterLiteral.setCharValue((char) RandomNumberGenerator.getInstance().nextInt(65535));
 		return characterLiteral;
 	}
 	
 	private static BooleanLiteral randomBooleanExpression(AST ast) {
-		return ast.newBooleanLiteral(OCGGenerator.RANDOM.nextBoolean());
+		return ast.newBooleanLiteral(RandomNumberGenerator.getInstance().nextBoolean());
 	}
 	
 	/**
@@ -475,7 +475,8 @@ public class ClassModelUtil {
 			case "long":
 				return ast.newNumberLiteral(Long.toString(0L));
 			case "float":
-				return ast.newNumberLiteral(Float.toString(0.0f));
+				// We have to manually specify here that it's 0.0f to avoid lossy conversion errors.
+				return ast.newNumberLiteral("0.0f");
 			case "double":
 				return ast.newNumberLiteral(Double.toString((double) 0.0));
 			case "char":
@@ -561,9 +562,10 @@ public class ClassModelUtil {
 	 * Generates an {@code Expression} instance corresponding to a retrieval statement that matches the given path.
 	 * @param ast The given {@code AST} instance.
 	 * @param path The given path of {@code GraphNode}s.
+	 * @param thisReference The class declaring the getter. This is used to distinguish between a reference to a parameter, and a reference to {@code this}.
 	 * @return An {@code Expression} instance corresponding to a retrieval statement that matches the given path.
 	 */
-	public static Expression generateGetterExpressionFromPath(AST ast, List<GraphNode> path) {
+	public static Expression generateGetterExpressionFromPath(AST ast, List<GraphNode> path, String thisReference) {
 		Expression previousExpression = ast.newThisExpression();
 		for (int i = 0; i < path.size(); i++) {
 			GraphNode currentNode = path.get(i);
@@ -571,6 +573,23 @@ public class ClassModelUtil {
 			boolean isField = GraphNodeUtil.isField(currentNode);
 			boolean isMethod = GraphNodeUtil.isMethod(currentNode);
 			boolean isArrayElement = GraphNodeUtil.isArrayElement(currentNode);
+			
+			// We handle the cases differently
+			// Consider two possible paths
+			// 1) Starts with a parameter
+			// 2) Starts with "this"
+			// In the first case, we need to set the `previousExpression` variable to the correct parameter
+			// In the second case, we need to "skip" the first node (since it's `this`)
+			// The code below handles this.
+			boolean isFirstNode = (i == 0);
+			boolean isThisReference = GraphNodeUtil.getDeclaredClass(currentNode).equals(thisReference);
+			if (isFirstNode) {
+				if (isParam && !isThisReference) {
+					previousExpression = ast.newSimpleName(ClassModelUtil.getParameterNameFor(currentNode));
+				}
+				continue;
+			}
+			
 			if (isParam) {
 				previousExpression = ast.newSimpleName(ClassModelUtil.getParameterNameFor(currentNode));
 			} else if (isField) {
@@ -604,29 +623,19 @@ public class ClassModelUtil {
 		for (int i = 0; i < path.size(); i++) {
 			GraphNode currentNode = path.get(i);
 			
-			boolean isNonTerminalNode = (i < path.size() - 1);
-			if (isNonTerminalNode) {
-				// Non-terminal node
-				boolean isParam = GraphNodeUtil.isParameter(currentNode);
-				boolean isField = GraphNodeUtil.isField(currentNode);
-				boolean isMethod = GraphNodeUtil.isMethod(currentNode);
-				if (isParam) {
+			boolean isFirstNode = (i == 0);
+			boolean isLastNode = (i == path.size() - 1);
+			boolean isParameter = GraphNodeUtil.isParameter(currentNode);
+			boolean isField = GraphNodeUtil.isField(currentNode);
+			boolean isMethod = GraphNodeUtil.isMethod(currentNode);
+			if (isFirstNode) {
+				if (isParameter) {
 					previousExpression = ast.newSimpleName(ClassModelUtil.getParameterNameFor(currentNode));
-				} else if (isField) {
-					// Assume all fields as package private
-					// i.e. we can access it directly
-					FieldAccess fieldAccess = ast.newFieldAccess();
-					fieldAccess.setExpression(previousExpression);
-					fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
-					previousExpression = fieldAccess;
-				} else if (isMethod) {
-					MethodInvocation methodInvocation = ast.newMethodInvocation();
-					methodInvocation.setExpression(previousExpression);
-					methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
-					previousExpression = methodInvocation;
 				}
-			} else {
-				// Terminal node
+				continue;
+			}
+			
+			if (isLastNode) {
 				// Last element should always be an array element
 				if (!GraphNodeUtil.isArrayElement(currentNode)) {
 					throw new IllegalArgumentException("Last node in path for array element setter must be an array element!");
@@ -639,6 +648,21 @@ public class ClassModelUtil {
 				assignment.setLeftHandSide(arrayAccess);
 				assignment.setRightHandSide(ast.newSimpleName("arg0"));
 				previousExpression = assignment;
+				continue;
+			}
+				
+			if (isField) {
+				// Assume all fields as package private
+				// i.e. we can access it directly
+				FieldAccess fieldAccess = ast.newFieldAccess();
+				fieldAccess.setExpression(previousExpression);
+				fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
+				previousExpression = fieldAccess;
+			} else if (isMethod) {
+				MethodInvocation methodInvocation = ast.newMethodInvocation();
+				methodInvocation.setExpression(previousExpression);
+				methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
+				previousExpression = methodInvocation;
 			}
 		}
 		return previousExpression;
@@ -691,7 +715,7 @@ public class ClassModelUtil {
 							defaultArrayCreation(
 									ast, 
 									field.getDataType(), 
-									1 + OCGGenerator.RANDOM.nextInt(MAXIMUM_ARRAY_SIZE - 1)
+									1 + RandomNumberGenerator.getInstance().nextInt(MAXIMUM_ARRAY_SIZE - 1)
 							)
 					);
 				} else {
@@ -699,7 +723,7 @@ public class ClassModelUtil {
 							randomArrayCreation(
 									ast, 
 									field.getDataType(), 
-									1 + OCGGenerator.RANDOM.nextInt(MAXIMUM_ARRAY_SIZE - 1)
+									1 + RandomNumberGenerator.getInstance().nextInt(MAXIMUM_ARRAY_SIZE - 1)
 							)
 					);
 				}
