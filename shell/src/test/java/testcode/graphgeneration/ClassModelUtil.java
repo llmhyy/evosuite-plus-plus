@@ -1,7 +1,9 @@
 package testcode.graphgeneration;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +21,7 @@ import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Type;
 
 import testcode.graphgeneration.model.Field;
@@ -77,6 +80,15 @@ public class ClassModelUtil {
 	 */
 	public static String getSetterNameFor(GraphNode node) {
 		return "setNode" + node.getIndex();
+	}
+	
+	/**
+	 * Generates a parameter name for the given {@code GraphNode}.
+	 * @param node The given node.
+	 * @return A {@code String} representation of a parameter name.
+	 */
+	public static String getParameterNameFor(GraphNode node) {
+		return "arg" + node.getIndex();
 	}
 	
 	/**
@@ -197,7 +209,9 @@ public class ClassModelUtil {
 		// If the node represents an array element, then the type of the array element
 		Type nodeType = null;
 		String declaredClass = GraphNodeUtil.getDeclaredClass(node);
-		if (GraphNodeUtil.isField(node) || GraphNodeUtil.isArrayElement(node)) {
+		if (GraphNodeUtil.isParameter(node) 
+				|| GraphNodeUtil.isField(node) 
+				|| GraphNodeUtil.isArrayElement(node)) {
 			if (GraphNodeUtil.isPrimitive(node)) {
 				nodeType = ClassModelUtil.stringToPrimitiveType(ast, declaredClass);
 			} else if (GraphNodeUtil.isArray(node)) {
@@ -529,14 +543,12 @@ public class ClassModelUtil {
 		for (int i = 0; i < path.size(); i++) {
 			GraphNode currentNode = path.get(i);
 			boolean isParam = GraphNodeUtil.isParameter(currentNode);
-			if (isParam) {
-				continue;
-			}
-			
 			boolean isField = GraphNodeUtil.isField(currentNode);
 			boolean isMethod = GraphNodeUtil.isMethod(currentNode);
 			boolean isArrayElement = GraphNodeUtil.isArrayElement(currentNode);
-			if (isField) {
+			if (isParam) {
+				previousExpression = ast.newSimpleName(ClassModelUtil.getParameterNameFor(currentNode));
+			} else if (isField) {
 				FieldAccess fieldAccess = ast.newFieldAccess();
 				fieldAccess.setExpression(previousExpression);
 				fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
@@ -566,25 +578,23 @@ public class ClassModelUtil {
 		Expression previousExpression = ast.newThisExpression();
 		for (int i = 0; i < path.size(); i++) {
 			GraphNode currentNode = path.get(i);
-			boolean isParam = GraphNodeUtil.isParameter(currentNode);
-			if (isParam) {
-				continue;
-			}
 			
-			if (i < path.size() - 1) {
+			boolean isNonTerminalNode = (i < path.size() - 1);
+			if (isNonTerminalNode) {
 				// Non-terminal node
+				boolean isParam = GraphNodeUtil.isParameter(currentNode);
 				boolean isField = GraphNodeUtil.isField(currentNode);
-				if (isField) {
+				boolean isMethod = GraphNodeUtil.isMethod(currentNode);
+				if (isParam) {
+					previousExpression = ast.newSimpleName(ClassModelUtil.getParameterNameFor(currentNode));
+				} else if (isField) {
 					// Assume all fields as package private
 					// i.e. we can access it directly
 					FieldAccess fieldAccess = ast.newFieldAccess();
 					fieldAccess.setExpression(previousExpression);
 					fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
 					previousExpression = fieldAccess;
-				}
-				
-				boolean isMethod = GraphNodeUtil.isMethod(currentNode);
-				if (isMethod) {
+				} else if (isMethod) {
 					MethodInvocation methodInvocation = ast.newMethodInvocation();
 					methodInvocation.setExpression(previousExpression);
 					methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
@@ -624,6 +634,20 @@ public class ClassModelUtil {
 		Block methodBody = ast.newBlock();
 		methodDeclaration.setBody(methodBody);
 		
+		Map<Field, String> fieldToParameterName = new HashMap<>();
+		for (Field field : clazz.getFields()) {
+			// Run through and find all fields with custom type
+			// Generate a parameter for each one and store the mapping for later
+			if (!field.isCustomClass()) {
+				continue;
+			}
+			
+			Type parameterType = extractTypeFrom(ast, field);
+			String parameterName = field.getName();
+			fieldToParameterName.put(field, parameterName);
+			addParameterToMethod(ast, methodDeclaration, parameterType, parameterName);
+		}
+		
 		for (Field field : clazz.getFields()) {
 			Assignment assignment = ast.newAssignment();
 			FieldAccess fieldAccess = ast.newFieldAccess();
@@ -654,13 +678,44 @@ public class ClassModelUtil {
 							)
 					);
 				}
-			} else {
-				assignment.setRightHandSide(newClassInstance(ast, field.getDataType()));
+			} else if (field.isCustomClass()) {
+				// Default initialisation of custom classes can cause infinite recursion
+				// in cases where a class has itself as a transitive field. To avoid this, we set
+				// the class from a parameter passed into the constructor.
+				assignment.setRightHandSide(ast.newSimpleName(fieldToParameterName.get(field)));
 			}
 			
 			methodBody.statements().add(ast.newExpressionStatement(assignment));
 		}
 		
 		return methodDeclaration;
+	}
+	
+	/**
+	 * Helper method to add a parameter to a given method. Auto-generates parameter type and name from the 
+	 * given {@code GraphNode} instance.
+	 * @param ast The {@code AST} instance to use.
+	 * @param methodDeclaration The {@code MethodDeclaration} instance to add the parameter to.
+	 * @param node The {@code GraphNode} instance that provides context.
+	 */
+	public static void addParameterToMethod(AST ast, MethodDeclaration methodDeclaration, GraphNode node) {
+		Type parameterType = ClassModelUtil.extractTypeFrom(ast, node);
+		String parameterName = ClassModelUtil.getParameterNameFor(node);
+		addParameterToMethod(ast, methodDeclaration, parameterType, parameterName);
+	}
+	
+	/**
+	 * Overloaded version of {@code addParameterToMethod} that allows more fine-grained control over
+	 * parameter type and name.
+	 * @param ast The {@code AST} instance to use.
+	 * @param methodDeclaration The {@code MethodDeclaration} instance to add the parameter to.
+	 * @param parameterType The type of the parameter.
+	 * @param parameterName The name of the parameter.
+	 */
+	public static void addParameterToMethod(AST ast, MethodDeclaration methodDeclaration, Type parameterType, String parameterName) {
+		SingleVariableDeclaration parameter = ast.newSingleVariableDeclaration();
+		parameter.setType(parameterType);
+		parameter.setName(ast.newSimpleName(parameterName));
+		methodDeclaration.parameters().add(parameter);
 	}
 }

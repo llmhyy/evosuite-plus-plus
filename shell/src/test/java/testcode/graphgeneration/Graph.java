@@ -74,6 +74,10 @@ public class Graph {
 		if(!nodeSet.contains(node)) {
 			nodeSet.add(node);
 		}
+		
+		if (!accessibilityMap.containsKey(node)) {
+			accessibilityMap.put(node, new ArrayList<>());
+		}
 	}
 	
 	/**
@@ -404,13 +408,26 @@ public class Graph {
 	}
 	
 	/**
+	 * Generates a list of {@code GraphNode}s that indicate a path from the given fromNode to the given toNode
+	 * using only the links in the OCG (no links from the accessibility map).
+	 * 
+	 * @param fromNode The source.
+	 * @param toNode The destination.
+	 * @return The path if it exists, or {@code null} otherwise.
+	 */
+	public List<GraphNode> getNonAccessibilityPath(GraphNode fromNode, GraphNode toNode) {
+		return getPath(fromNode, toNode, true, false);
+	}
+	
+	/**
 	 * Generates a list of {@code GraphNode}s that indicate a path from the given fromNode to the given toNode.
 	 * @param fromNode The source.
 	 * @param toNode The destination.
 	 * @param isSamePackage Whether the path will be used in the same package or not (used when considering whether to count children as always accessible or not).
+	 * @param isUseAccessibilityMap Whether the path can use edges generated in the accessibility map (as opposed to those in the OCG proper).
 	 * @return The path if it exists, or {@code null} otherwise. 
 	 */
-	public List<GraphNode> getPath(GraphNode fromNode, GraphNode toNode, boolean isSamePackage) {
+	private List<GraphNode> getPath(GraphNode fromNode, GraphNode toNode, boolean isSamePackage, boolean isUseAccessibilityMap) {
 		if (!getDescendantsOf(fromNode).contains(toNode)) {
 			return null;
 		}
@@ -439,16 +456,22 @@ public class Graph {
 				path = currentPath;
 				break;
 			}
-			List<GraphNode> currentNodeNeighbours = getNodesAccessibleFrom(currentNodeWrapper.getNode());
-			if (isSamePackage) {
-				List<GraphNode> children = currentNodeWrapper.getNode().getChildren();
-				for (GraphNode child : children) {
-					if (currentNodeNeighbours.contains(child)) {
-						continue;
+			List<GraphNode> currentNodeNeighbours;
+			if (isUseAccessibilityMap) {
+				currentNodeNeighbours = getNodesAccessibleFrom(currentNodeWrapper.getNode());
+				if (isSamePackage) {
+					List<GraphNode> children = currentNodeWrapper.getNode().getChildren();
+					for (GraphNode child : children) {
+						if (currentNodeNeighbours.contains(child)) {
+							continue;
+						}
+						currentNodeNeighbours.add(child);
 					}
-					currentNodeNeighbours.add(child);
 				}
+			} else {
+				currentNodeNeighbours = currentNodeWrapper.getNode().getChildren();
 			}
+			
 			for (GraphNode neighbour : currentNodeNeighbours) {
 				if (!visitedNodes.contains(neighbour)) {
 					visitedNodes.add(neighbour);

@@ -42,7 +42,7 @@ public class GraphNodeUtil {
 	 * @return {@code true} if the node represents a custom class, {@code false} otherwise.
 	 */
 	public static boolean isObject(GraphNode node) {
-		return node.getNodeType().getType().startsWith("Class");
+		return node.getNodeType().getType().startsWith("Class") || node.getNodeType().getType().equals("Parent");
 	}
 	
 	/**

@@ -30,7 +30,10 @@ public class Class extends CodeElement {
 			System.err.println("WARNING: Attempted to add a null field to " + this.getName() + "!");
 			return;
 		}
-		this.fields.add(field);
+		
+		if (!fields.contains(field)) {
+			this.fields.add(field);
+		}
 	}
 	
 	public void addMethod(Method method) {
@@ -38,7 +41,10 @@ public class Class extends CodeElement {
 			System.err.println("WARNING: Attempted to add a null method to " + this.getName() + "!");
 			return;
 		}
-		this.methods.add(method);
+		
+		if (!methods.contains(method)) {
+			this.methods.add(method);
+		}
 	}
 	
 	public List<Field> getFields() {

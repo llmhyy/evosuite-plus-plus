@@ -1,7 +1,5 @@
 package testcode.graphgeneration;
 
-import static org.junit.Assert.fail;
-
 import org.junit.Test;
 
 import testcode.graphgeneration.model.ClassModel;
@@ -54,9 +52,9 @@ public class GenerationTest {
 	
 	@Test
 	public void testCodeGeneration() {
-//		long seed = -2220534647818254570L;
-//		OCGGenerator generator = new OCGGenerator(seed); // Specific seed
-		OCGGenerator generator = new OCGGenerator(); // Random seed
+		long seed = -2220534647818254570L;
+		OCGGenerator generator = new OCGGenerator(seed); // Specific seed
+//		OCGGenerator generator = new OCGGenerator(); // Random seed
 		Graph graph = generator.generateGraph(5, 6, false);
 		graph.labelNodeType();
 		graph.labelAccessibility();

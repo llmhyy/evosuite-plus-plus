@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -35,6 +36,7 @@ import testcode.graphgeneration.ClassModelUtil;
 import testcode.graphgeneration.Graph;
 import testcode.graphgeneration.GraphNode;
 import testcode.graphgeneration.GraphNodeUtil;
+import testcode.graphgeneration.NodeType;
 import testcode.graphgeneration.OCGGenerator;
 import testcode.graphgeneration.Visibility;
 
@@ -54,20 +56,40 @@ public class ClassModel {
 		generateGettersAndSetters();	
 	}
 	
-	private void generateFieldsAndMethods() {
-		// Select an arbitrary top layer node to be the target method-holding class
-		// We place the target method in one of these classes to leverage the fact that
-		// internal methods can always access direct members regardless of access modifiers.
-		targetClass = GraphNodeUtil.getDeclaredClass(
-				graph.getTopLayer().get(
-						OCGGenerator.RANDOM.nextInt(graph.getTopLayer().size())
-				)
-		);
+	private void generateFieldsAndMethods() {		
+		// If there exists a single top layer non-parameter node, we can use it to hold our
+		// target method (take advantage of package-private modifiers). 
+		// Otherwise, we have to create a separate class to hold our target method and top
+		// layer nodes (fields, methods).
+		List<GraphNode> topLayer = graph.getTopLayer();
+		GraphNode temporaryNode = null;
+		boolean isSingleTopLayer = topLayer.size() == 1;
+		if (isSingleTopLayer) {
+			targetClass = GraphNodeUtil.getDeclaredClass(topLayer.get(0));
+		} else {
+			// We will need to construct a separate Class object to hold our top layer nodes.
+			// We can re-use our graph node processing by creating a temporary node that becomes the 
+			// parent of all the top layer nodes, processing it, and then removing it from the graph.
+			// This method of node addition doesn't respect the graph preconditions, so be careful
+			// when doing further manipulations.
+			temporaryNode = new GraphNode(-1);
+			temporaryNode.setNodeType(new NodeType("Parent", "TEMPORARY"));
+			graph.addNode(temporaryNode);
+			for (GraphNode topLayerNode : topLayer) {
+				temporaryNode.addChild(topLayerNode);
+			}
+			targetClass = GraphNodeUtil.getDeclaredClass(temporaryNode);
+		}
 		
 		// Process all graph nodes in order
 		this.processedNodes = new HashSet<>();
 		Queue<GraphNode> queue = new ArrayDeque<>();
-		queue.addAll(graph.getTopLayer());
+		if (isSingleTopLayer) {
+			queue.addAll(graph.getTopLayer());
+		} else {
+			queue.add(temporaryNode);
+		}
+		
 		while (!queue.isEmpty()) {
 			GraphNode currentNode = queue.poll();
 			boolean isAllParentsProcessed = 
@@ -104,7 +126,7 @@ public class ClassModel {
 		GraphNode parentNode = toNode.getParents().get(0);
 		boolean isParentField = GraphNodeUtil.isField(parentNode);
 		boolean isParentMethod = GraphNodeUtil.isMethod(parentNode);
-		List<GraphNode> path = graph.getPath(fromNode, toNode, true);
+		List<GraphNode> path = graph.getNonAccessibilityPath(fromNode, toNode);
 		if (isParentField) {
 			// Generate a FieldArrayElementSetter
 			Field parentField = getCorrespondingField(parentNode);
@@ -334,12 +356,7 @@ public class ClassModel {
 				return;
 			}
 			
-			SingleVariableDeclaration parameter = ast.newSingleVariableDeclaration();
-			parameter.setType(parameterType);
-			// TODO: Extend for multiple parameters
-			// If and when we do this, we'll need to fix the setter bodies as well
-			parameter.setName(ast.newSimpleName("arg0"));
-			methodDeclaration.parameters().add(parameter);			
+			ClassModelUtil.addParameterToMethod(ast, methodDeclaration, parameterType, "arg0");	
 			
 			typeDeclaration.bodyDeclarations().add(methodDeclaration);	
 		}
@@ -404,7 +421,8 @@ public class ClassModel {
 		compilationUnit.setPackage(packageDeclaration);
 		
 		TypeDeclaration typeDeclaration = ast.newTypeDeclaration();
-		typeDeclaration.setName(ast.newSimpleName(clazz.getName()));
+		SimpleName classSimpleName = ast.newSimpleName(clazz.getName());
+		typeDeclaration.setName(classSimpleName);
 		compilationUnit.types().add(typeDeclaration);
 		
 		for (Field fieldRepresentation : clazz.getFields()) {
@@ -431,6 +449,15 @@ public class ClassModel {
 	@SuppressWarnings("unchecked")
 	private void generateTargetMethod(AST ast, TypeDeclaration typeDeclaration) {
 		MethodDeclaration methodDeclaration = generateMethodSkeletonFrom(ast, new Method(targetClass, "targetMethod", "void"));
+		// Add parameters according to how many top layer parameter nodes there are
+		// We only consider top layer parameter nodes, since parameter nodes must always be top layer
+		for (GraphNode node : graph.getTopLayer()) {
+			if (!GraphNodeUtil.isParameter(node)) {
+				continue;
+			}
+			ClassModelUtil.addParameterToMethod(ast, methodDeclaration, node);
+		}
+		
 		Block methodBody = generateTargetMethodBody(ast, typeDeclaration);
 		methodDeclaration.setBody(methodBody);
 		typeDeclaration.bodyDeclarations().add(methodDeclaration);
@@ -456,13 +483,13 @@ public class ClassModel {
 		
 		// For each leaf node, generate a variable.
 		for (GraphNode leafNode : graph.getLeafNodes()) {
-			List<GraphNode> path = graph.getPath(fromNode, leafNode, true);
+			List<GraphNode> path = graph.getNonAccessibilityPath(fromNode, leafNode);
 			if (_nullCheck(path, "[ClassModel#generateTargetMethodBody]: Unable to find a path from " + fromNode + " to " + leafNode + "!")) {
 				return null;
 			}
 			Expression getterExpression = ClassModelUtil.generateGetterExpressionFromPath(ast, path);
 			VariableDeclarationFragment variableDeclarationFragment = ast.newVariableDeclarationFragment();
-			variableDeclarationFragment.setName(ast.newSimpleName("var" + variableCount));
+			variableDeclarationFragment.setName(ast.newSimpleName("var" + leafNode.getIndex()));
 			variableDeclarationFragment.setInitializer(getterExpression);
 			VariableDeclarationStatement variableDeclarationStatement = ast.newVariableDeclarationStatement(variableDeclarationFragment);
 			Type variableType = ClassModelUtil.extractTypeFrom(ast, leafNode);
@@ -587,7 +614,7 @@ public class ClassModel {
 	}
 
 	private Method generateGetterForField(GraphNode fromNode, GraphNode toNode, Field field) {
-		List<GraphNode> path = graph.getPath(fromNode, toNode, true);
+		List<GraphNode> path = graph.getNonAccessibilityPath(fromNode, toNode);
 		if (_nullCheck(path, "[ClassModel#generateGetterForField] WARNING: Failed to generate getter from " + fromNode + " to " + toNode)) {
 			// Note it is currently possible to generate a graph where it is not possible to generate a getter
 			// as a valid path from the source to the sink does not exist. It is, however, still possible
@@ -606,7 +633,7 @@ public class ClassModel {
 	}
 
 	private Setter generateSetterForField(GraphNode fromNode, GraphNode toNode, Field field) {
-		List<GraphNode> path = graph.getPath(fromNode, toNode, true);
+		List<GraphNode> path = graph.getNonAccessibilityPath(fromNode, toNode);
 		if (_nullCheck(path, "[ClassModel#generateSetterForField]: WARNING: Failed to generate setter from " + fromNode + " to " + toNode)) {
 			// Note it is currently possible to generate a graph where it is not possible to generate a setter
 			// as a valid path from the source to the sink does not exist. It is, however, still possible
