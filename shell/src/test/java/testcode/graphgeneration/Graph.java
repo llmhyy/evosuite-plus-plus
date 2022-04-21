@@ -23,6 +23,7 @@ import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.LinkSource;
 import testcode.graphgeneration.model.ClassModel;
+import testcode.graphgeneration.model.GeneratedCodeUnit;
 
 public class Graph {
 	private class GraphNodeWrapper {
@@ -383,7 +384,7 @@ public class Graph {
 	 * Transforms the graph to code.
 	 * @return A list of source code strings, each corresponding to a single class.
 	 */
-	public Map<String, String> transformToCode() {
+	public GeneratedCodeUnit transformToCode() {
 		ClassModel classModel = new ClassModel(this);
 		return classModel.transformToCode();
 	}

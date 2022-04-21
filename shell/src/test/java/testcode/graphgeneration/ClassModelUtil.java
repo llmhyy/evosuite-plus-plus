@@ -18,8 +18,10 @@ import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PrimitiveType;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Type;
@@ -90,6 +92,35 @@ public class ClassModelUtil {
 	 */
 	public static String getSetterNameFor(GraphNode node) {
 		return "set" + capitalise(getFieldNameFor(node, true));
+	}
+
+	/**
+	 * Generates the package name for the given code. 
+	 * @return A generated package name.
+	 */
+	public static String getPackageName() {
+		String prefix = "test._";
+		long seed = RandomNumberGenerator.getSeed();
+		if (seed < 0) {
+			// We need to change the hyphen as it's not allowed in a package name.
+			// JLS indicates we should change it to an underscore.
+			return prefix + Long.toString(seed).replace("-", "_");
+		}
+		return prefix + seed;
+	}
+	
+	public static Name getPackageNameAsJdtName(AST ast) {
+		String[] packageNameSplitByPeriod = getPackageName().split(Pattern.quote("."));
+		if (packageNameSplitByPeriod.length == 1) {
+			return ast.newSimpleName(packageNameSplitByPeriod[0]);
+		}
+		
+		// Else assume length >= 2
+		QualifiedName qualifiedName = ast.newQualifiedName(ast.newSimpleName(packageNameSplitByPeriod[0]), ast.newSimpleName(packageNameSplitByPeriod[1]));
+		for (int i = 2; i < packageNameSplitByPeriod.length; i++) {
+			qualifiedName = ast.newQualifiedName(qualifiedName, ast.newSimpleName(packageNameSplitByPeriod[i]));
+		}
+		return qualifiedName;
 	}
 	
 	private static String capitalise(String string) {
@@ -282,6 +313,43 @@ public class ClassModelUtil {
 			default:
 				return null;
 		}
+	}
+	
+	/**
+	 * Converts a datatype in {@code String} format to the appropriate JNI type signature. See https://docs.oracle.com/javase/7/docs/technotes/guides/jni/spec/types.html for more details.
+	 * @param dataType The datatype in {@code String} format (either a primitive type, array type, or unqualified class).
+	 * @return The type signature as used by the JVM.
+	 */
+	public static String stringToTypeSignature(String dataType) {		
+		switch (dataType) {
+			case "boolean":
+				return "Z";
+			case "byte":
+				return "B";
+			case "char":
+				return "C";
+			case "short":
+				return "S";
+			case "float":
+				return "F";
+			case "double":
+				return "D";
+			case "int":
+				return "I";
+			case "long":
+				return "J";
+			case "void":
+				return "V";
+			default:
+				// Two cases, array type or unqualified class
+				if (isArray(dataType)) {
+					return "[" + stringToTypeSignature(dataType.substring(0, dataType.length() - 2));
+				} else if (isObject(dataType)) {
+					return "L" + getPackageName().replace(".", "/") + "/" + dataType + ";";
+				}
+		}
+		
+		return null;
 	}
 	
 	/**

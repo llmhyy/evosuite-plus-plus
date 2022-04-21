@@ -46,6 +46,7 @@ public class ClassModel {
 	private Graph graph = null;
 	private Set<GraphNode> processedNodes = null;
 	private String targetClass = null;
+	private String targetMethodSignature = null;
 	
 	private boolean isFieldsAndMethodsGenerated = false;
 	private boolean isGettersAndSettersGenerated = false;
@@ -406,7 +407,7 @@ public class ClassModel {
 		
 		CompilationUnit compilationUnit = ast.newCompilationUnit();
 		PackageDeclaration packageDeclaration = ast.newPackageDeclaration();
-		packageDeclaration.setName(ast.newSimpleName("test"));
+		packageDeclaration.setName(ClassModelUtil.getPackageNameAsJdtName(ast));
 		compilationUnit.setPackage(packageDeclaration);
 		
 		TypeDeclaration typeDeclaration = ast.newTypeDeclaration();
@@ -450,6 +451,25 @@ public class ClassModel {
 		Block methodBody = generateTargetMethodBody(ast, typeDeclaration);
 		methodDeclaration.setBody(methodBody);
 		typeDeclaration.bodyDeclarations().add(methodDeclaration);
+		
+		targetMethodSignature = generateTargetMethodSignature(methodDeclaration);
+	}
+	
+	private String generateTargetMethodSignature(MethodDeclaration methodDeclaration) {
+		StringBuilder signatureBuilder = new StringBuilder();
+		String prefix = ClassModelUtil.getPackageName() + "." + targetClass + "#targetMethod(";
+		signatureBuilder.append(prefix);
+		for (Object parameterAsObject : methodDeclaration.parameters()) {
+			// Assume SingleVariableDeclaration
+			if (!(parameterAsObject instanceof SingleVariableDeclaration)) {
+				System.err.println("[ClassModel#generateTargetMethodSignature]: WARNING: Encountered a parameter that is not of type SingleVariableDeclaration.");
+			}
+			SingleVariableDeclaration parameter = (SingleVariableDeclaration) parameterAsObject;
+			String parameterTypeSignature = ClassModelUtil.stringToTypeSignature(parameter.getType().toString());
+			signatureBuilder.append(parameterTypeSignature);
+		}
+		signatureBuilder.append(")V");
+		return signatureBuilder.toString();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -525,7 +545,7 @@ public class ClassModel {
 	/**
 	 * @return A list of source code strings, each corresponding to a single class.
 	 */
-	public Map<String, String> transformToCode() {
+	public GeneratedCodeUnit transformToCode() {
 		Map<String, String> fileNameToSourceCode = new HashMap<>();
 		
 		for (String className : classNameToClass.keySet()) {
@@ -534,7 +554,7 @@ public class ClassModel {
 			fileNameToSourceCode.put(className + ".java", compilationUnit.toString());			
 		}
 		
-		return fileNameToSourceCode;
+		return new GeneratedCodeUnit(fileNameToSourceCode, targetMethodSignature);
 	}
 
 	private void generateGettersAndSetters() {

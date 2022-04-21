@@ -16,18 +16,23 @@ import java.util.Random;
 import org.junit.Test;
 
 import testcode.graphgeneration.model.ClassModel;
+import testcode.graphgeneration.model.GeneratedCodeUnit;
 
 public class GenerationTest {
-	public static final String CODE_FOLDER = "generated-code";
-	public static final String CODE_ABSOLUTE_PATH = Paths.get(System.getProperty("user.dir")).resolve(CODE_FOLDER).toString();
+//	public static final String ROOT_FOLDER = System.getProperty("user.dir");
+	public static final String ROOT_FOLDER = "D:\\Github\\generated-code\\";
+	public static final String CODE_ABSOLUTE_PATH = Paths.get(ROOT_FOLDER).resolve("src").resolve("main").resolve("java").resolve("test").toString();
+	public static final String TARGET_METHOD_FILENAME = "targetMethods.txt";
+	
+	public static final int MINIMUM_DEPTH = 5;
+	public static final int MAXIMUM_DEPTH = 20;
+	public static final int MINIMUM_WIDTH = 6;
+	public static final int MAXIMUM_WIDTH = 20;
 	
 	private static String getGraphVizPath() {
 		return "D:" + File.separator + "linyun" + File.separator + "graph";
 	}
 
-	private static String getSeedSpecificPath(long seed) {
-		return System.getProperty("user.dir") + File.separator + "generated-code" + File.separator + Long.toString(seed) + "L";
-	}
 	@Test
 	public void testStep1() {
 		OCGGenerator generator = new OCGGenerator();
@@ -86,39 +91,62 @@ public class GenerationTest {
 	
 	@Test
 	public void validateCodeSyntax() throws IOException {
-//		RandomNumberGenerator.setSeed(-975324895466187908L);
-		OCGGenerator generator = new OCGGenerator();
-		Graph graph = generator.generateGraph(5, 6, false);
-		graph.labelNodeType();
-		graph.labelAccessibility();
-		graph.visualize(1000, getGraphVizPath(), "graph");
-		Map<String, String> fileNameToSourceCode = graph.transformToCode();
-		
-		String folderName = Long.toString(RandomNumberGenerator.getSeed()) + "L";
-		writeToFiles(fileNameToSourceCode, folderName);
-		compile(folderName, "");
+		generateAndCompile(5, 6, new Random().nextLong());
 	}
 	
 	@Test
 	public void massValidateCodeSyntax() throws IOException {
 		for (int depth = 5; depth < 20; depth++) {
-			for (int width = 6; width < 20; width++) {
+			for (int width = 5; width < 20; width++) {
 				for (int i = 0; i < 10; i++) {
-					RandomNumberGenerator.setSeed(new Random().nextLong());
-					OCGGenerator generator = new OCGGenerator();
-					Graph graph = generator.generateGraph(5, 6, false);
-					String folderName = Long.toString(RandomNumberGenerator.getSeed()) + "L";
-					graph.labelNodeType();
-					graph.labelAccessibility();
-					graph.visualize(1000, getSeedSpecificPath(RandomNumberGenerator.getSeed()), "graph");
-					Map<String, String> fileNameToSourceCode = graph.transformToCode();
-					
-					writeToFiles(fileNameToSourceCode, folderName);
-					String outputPrefix = "[" + folderName + ", depth = " + depth + ", width = " + width + "]: ";
-					compile(folderName, outputPrefix);
+					generateAndCompile(depth, width, new Random().nextLong());
 				}
 			}
 		}
+	}
+	
+	@Test
+	public void massGenerateMethods() throws IOException {
+		int numberOfMethods = 5000;
+		
+		for (int i = 0; i < numberOfMethods; i++) {
+			int depth = new Random().nextInt(MAXIMUM_DEPTH - MINIMUM_DEPTH) + MINIMUM_DEPTH; 
+			int width = new Random().nextInt(MAXIMUM_WIDTH - MINIMUM_WIDTH) + MINIMUM_WIDTH;
+			generateAndCompile(depth, width, new Random().nextLong());
+		}
+	}
+	
+	private static void generateAndCompile(int depth, int width, long seed) throws IOException {
+		RandomNumberGenerator.setSeed(seed);
+		OCGGenerator generator = new OCGGenerator();
+		Graph graph = generator.generateGraph(5, 6, false);
+		String folderName = Long.toString(RandomNumberGenerator.getSeed()).replace("-", "_") + "L";
+		graph.labelNodeType();
+		graph.labelAccessibility();
+		graph.visualize(1000, Paths.get(CODE_ABSOLUTE_PATH).resolve(folderName).toString(), "graph");
+		GeneratedCodeUnit generatedCodeUnit = graph.transformToCode();
+		Map<String, String> fileNameToSourceCode = generatedCodeUnit.getFilenameToSourceCode();
+		String targetMethodSignature = generatedCodeUnit.getTargetMethodSignature();
+		
+		writeToFiles(fileNameToSourceCode, folderName);
+		writeSignatureToSignatureFile(targetMethodSignature);
+		String outputPrefix = "[" + folderName + ", depth = " + depth + ", width = " + width + "]: ";
+		compile(folderName, outputPrefix);
+	}
+	
+	private static void writeSignatureToSignatureFile(String signature) throws IOException {
+		Path path = Paths.get(ROOT_FOLDER).resolve(TARGET_METHOD_FILENAME);
+		File signatureFile = path.toFile();
+		if (!signatureFile.exists()) {
+			signatureFile.createNewFile();
+			StringBuilder headerBuilder = new StringBuilder();
+			headerBuilder.append("#------------------------------------------------------------------------");
+			headerBuilder.append("#Project=generatedcode  -   0_generatedcode");
+			headerBuilder.append("#------------------------------------------------------------------------");
+			Files.write(path, headerBuilder.toString().getBytes(StandardCharsets.UTF_8));
+		}
+		
+		Files.write(path, signature.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	private static void compile(String folderName, String outputPrefix) throws IOException {
@@ -134,8 +162,7 @@ public class GenerationTest {
 	
 	private static List<File> writeToFiles(Map<String, String> fileNameToSourceCode, String folderName) throws IOException {
 		List<File> files = new ArrayList<>();
-		Path rootFolder = Paths.get(System.getProperty("user.dir"));
-		Path testFolderPath = rootFolder.resolve("generated-code").resolve(folderName);
+		Path testFolderPath = Paths.get(CODE_ABSOLUTE_PATH).resolve(folderName.replace("-", "_"));
 		File testFolder = testFolderPath.toFile();
 		if (!testFolder.exists()) {
 			testFolder.mkdir();
