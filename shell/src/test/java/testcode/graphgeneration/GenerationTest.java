@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -107,13 +108,15 @@ public class GenerationTest {
 	
 	@Test
 	public void massGenerateMethods() throws IOException {
-		int numberOfMethods = 5000;
+		int numberOfMethods = 30000;
 		
 		for (int i = 0; i < numberOfMethods; i++) {
 			int depth = new Random().nextInt(MAXIMUM_DEPTH - MINIMUM_DEPTH) + MINIMUM_DEPTH; 
 			int width = new Random().nextInt(MAXIMUM_WIDTH - MINIMUM_WIDTH) + MINIMUM_WIDTH;
 			generateAndCompile(depth, width, new Random().nextLong());
 		}
+		
+		Runtime.getRuntime().exec("shutdown /s /f /t: 0");
 	}
 	
 	private static void generateAndCompile(int depth, int width, long seed) throws IOException {
@@ -141,12 +144,16 @@ public class GenerationTest {
 			signatureFile.createNewFile();
 			StringBuilder headerBuilder = new StringBuilder();
 			headerBuilder.append("#------------------------------------------------------------------------");
+			headerBuilder.append(System.lineSeparator());
 			headerBuilder.append("#Project=generatedcode  -   0_generatedcode");
+			headerBuilder.append(System.lineSeparator());
 			headerBuilder.append("#------------------------------------------------------------------------");
+			headerBuilder.append(System.lineSeparator());
 			Files.write(path, headerBuilder.toString().getBytes(StandardCharsets.UTF_8));
 		}
 		
-		Files.write(path, signature.getBytes(StandardCharsets.UTF_8));
+		signature = signature + System.lineSeparator();
+		Files.write(path, signature.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
 	}
 	
 	private static void compile(String folderName, String outputPrefix) throws IOException {
