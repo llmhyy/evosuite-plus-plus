@@ -48,7 +48,7 @@ For example:
       <exists>C:\Program Files\Java\jdk1.8.0_261\libs\tools.jar</exists>
     </file>
     </activation>
-    <properties>
+    </properties>
        <toolsjar>C:\Program Files\Java\jdk1.8.0_261\libs\tools.jar</toolsjar>
     </properties>
 ```
