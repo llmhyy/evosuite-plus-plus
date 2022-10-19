@@ -62,6 +62,7 @@ public class ProjectOverallTest extends TestUtility{
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
 		Properties.TIMEOUT = 100;
+		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
 		String fitnessApproach = "branch";
@@ -73,6 +74,7 @@ public class ProjectOverallTest extends TestUtility{
 				targetMethod, timeBudget, true, aor, cp, fitnessApproach, 
 				"generateMOSuite", "MOSUITE", "DynaMOSA");
 		
+		System.out.println("coverage is:" + coverage);
 		assert coverage > 0.1;
 		
 	}
