@@ -102,4 +102,5 @@ public class SF100Project {
 	public final static String P98 = "98_trans-locator";
 	public final static String P99 = "99_newzgrabber";
 	public final static String P100 = "100_jgaap";
+	public final static String P106 = "106_jfreechart";
 }
