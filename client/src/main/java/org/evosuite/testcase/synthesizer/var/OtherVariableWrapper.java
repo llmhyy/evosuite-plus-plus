@@ -62,6 +62,11 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 				opcode == Opcode.INVOKESTATIC || 
 				opcode == Opcode.INVOKEDYNAMIC ||
 				opcode == Opcode.INVOKEINTERFACE){
+			
+			if(callerObject == null) {
+				return null;
+			}
+			
 			VariableReference generatedVariable = generateMethodCallStatement(test, map, callerObject, allowNullValue);
 			return generatedVariable;
 		}
@@ -108,6 +113,10 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 				Map<Integer, VariableReference> paramRefMap = new HashMap<>();
 
 				for (DepVariableWrapper par : this.parents) {
+					if(map.get(par) == null) {
+						continue;
+					}
+					
 					VariableReference parRef = map.get(par).matchedVars.get(0);
 					int position = par.findRelationPosition(this);
 					if (position > -1) {
@@ -169,6 +178,14 @@ public class OtherVariableWrapper extends DepVariableWrapper {
 	}
 
 	private MethodStatement findMethodCall(Method call, VariableReference callerObject, TestCase test) {
+		if(callerObject == null) {
+			System.currentTimeMillis();
+		}
+		
+		if(test == null) {
+			System.currentTimeMillis();
+		}
+		
 		for(int i=callerObject.getStPosition(); i<test.size(); i++) {
 			Statement s = test.getStatement(i);
 			if(s instanceof MethodStatement) {
