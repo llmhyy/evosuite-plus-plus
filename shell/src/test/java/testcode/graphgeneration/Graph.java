@@ -23,6 +23,7 @@ import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.LinkSource;
 import testcode.graphgeneration.model.ClassModel;
+import testcode.graphgeneration.model.GeneratedCodeUnit;
 
 public class Graph {
 	private class GraphNodeWrapper {
@@ -73,6 +74,10 @@ public class Graph {
 	public void addNode(GraphNode node) {
 		if(!nodeSet.contains(node)) {
 			nodeSet.add(node);
+		}
+		
+		if (!accessibilityMap.containsKey(node)) {
+			accessibilityMap.put(node, new ArrayList<>());
 		}
 	}
 	
@@ -160,10 +165,10 @@ public class Graph {
 		guru.nidi.graphviz.model.Graph g = graph(fileName).directed().graphAttr()
 				.with(Rank.dir(RankDir.LEFT_TO_RIGHT)).with(links);
 		try {
-			String filePath = path + folderName + File.separator + fileName + ".png";
+			String filePath = folderName + File.separator + fileName + ".png";
 			File f = new File(filePath);
 			Graphviz.fromGraph(g).height(resolution).render(Format.PNG).toFile(f);
-			System.out.println("Saved graph to " + filePath);
+//			System.out.println("Saved graph to " + filePath);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -200,11 +205,11 @@ public class Graph {
 					dataType = createRandomType();
 				}
 				else {
-					if(OCGGenerator.RANDOM.nextDouble() > 0.5) {
+					if(RandomNumberGenerator.getInstance().nextDouble() > 0.5) {
 						dataType = createRandomType();
 					}
 					else {
-						int index = OCGGenerator.RANDOM.nextInt(typePool.size());
+						int index = RandomNumberGenerator.getInstance().nextInt(typePool.size());
 						dataType = typePool.get(index);
 					}
 				}
@@ -229,7 +234,7 @@ public class Graph {
 			 * constraint 1: the top layer can only be parameter or field
 			 */
 			if(node.getParents().isEmpty()) {
-				if(OCGGenerator.RANDOM.nextDouble() < 0.5) {
+				if(RandomNumberGenerator.getInstance().nextDouble() < 0.5) {
 					relation = Relation.PARAM;
 				}
 				else {
@@ -248,7 +253,7 @@ public class Graph {
 				if(node.isSingleParent()) {
 					GraphNode par = node.getParents().get(0);
 					if(par.isSingleChild()) {
-						if(OCGGenerator.RANDOM.nextDouble() < 0.9) {
+						if(RandomNumberGenerator.getInstance().nextDouble() < 0.9) {
 							relation = Relation.ARRAY_ELEMENT;
 							
 							/**
@@ -272,11 +277,11 @@ public class Graph {
 	}
 
 	private String createRandomType() {
-		return "Class" + OCGGenerator.RANDOM.nextInt(100);
+		return "Class" + RandomNumberGenerator.getInstance().nextInt(100);
 	}
 
 	private String randomPrimitiveType() {
-		return PRIMITIVE_TYPES[OCGGenerator.RANDOM.nextInt(PRIMITIVE_TYPES.length)];
+		return PRIMITIVE_TYPES[RandomNumberGenerator.getInstance().nextInt(PRIMITIVE_TYPES.length)];
 	}
 
 	private NodeType generateNodeType(Relation relation, String type, GraphNode node) {
@@ -308,7 +313,7 @@ public class Graph {
 		/**
 		 * for every pair of ancestor-descendant, we random decide whether the ancestor can access descendant
 		 * store the relation in {@code this.accessbilityMap},
-		 * use OCGGenerator.RANDOM to for the random algorithm for debugging.
+		 * use RandomNumberGenerator.getRandom() to for the random algorithm for debugging.
 		*/
 		
 		// We assume here that the accessibility map only records "first-hop" accessibility
@@ -354,7 +359,7 @@ public class Graph {
 						continue;
 					}
 					
-					if (OCGGenerator.RANDOM.nextFloat() > 0.5f) {
+					if (RandomNumberGenerator.getInstance().nextFloat() > 0.5f) {
 						setAsAccessible(ancestor, descendant);
 					}
 				} else if (isAncestorArray) {
@@ -379,7 +384,7 @@ public class Graph {
 	 * Transforms the graph to code.
 	 * @return A list of source code strings, each corresponding to a single class.
 	 */
-	public List<String> transformToCode() {
+	public GeneratedCodeUnit transformToCode() {
 		ClassModel classModel = new ClassModel(this);
 		return classModel.transformToCode();
 	}
@@ -404,13 +409,26 @@ public class Graph {
 	}
 	
 	/**
+	 * Generates a list of {@code GraphNode}s that indicate a path from the given fromNode to the given toNode
+	 * using only the links in the OCG (no links from the accessibility map).
+	 * 
+	 * @param fromNode The source.
+	 * @param toNode The destination.
+	 * @return The path if it exists, or {@code null} otherwise.
+	 */
+	public List<GraphNode> getNonAccessibilityPath(GraphNode fromNode, GraphNode toNode) {
+		return getPath(fromNode, toNode, true, false);
+	}
+	
+	/**
 	 * Generates a list of {@code GraphNode}s that indicate a path from the given fromNode to the given toNode.
 	 * @param fromNode The source.
 	 * @param toNode The destination.
 	 * @param isSamePackage Whether the path will be used in the same package or not (used when considering whether to count children as always accessible or not).
+	 * @param isUseAccessibilityMap Whether the path can use edges generated in the accessibility map (as opposed to those in the OCG proper).
 	 * @return The path if it exists, or {@code null} otherwise. 
 	 */
-	public List<GraphNode> getPath(GraphNode fromNode, GraphNode toNode, boolean isSamePackage) {
+	private List<GraphNode> getPath(GraphNode fromNode, GraphNode toNode, boolean isSamePackage, boolean isUseAccessibilityMap) {
 		if (!getDescendantsOf(fromNode).contains(toNode)) {
 			return null;
 		}
@@ -439,16 +457,22 @@ public class Graph {
 				path = currentPath;
 				break;
 			}
-			List<GraphNode> currentNodeNeighbours = getNodesAccessibleFrom(currentNodeWrapper.getNode());
-			if (isSamePackage) {
-				List<GraphNode> children = currentNodeWrapper.getNode().getChildren();
-				for (GraphNode child : children) {
-					if (currentNodeNeighbours.contains(child)) {
-						continue;
+			List<GraphNode> currentNodeNeighbours;
+			if (isUseAccessibilityMap) {
+				currentNodeNeighbours = getNodesAccessibleFrom(currentNodeWrapper.getNode());
+				if (isSamePackage) {
+					List<GraphNode> children = currentNodeWrapper.getNode().getChildren();
+					for (GraphNode child : children) {
+						if (currentNodeNeighbours.contains(child)) {
+							continue;
+						}
+						currentNodeNeighbours.add(child);
 					}
-					currentNodeNeighbours.add(child);
 				}
+			} else {
+				currentNodeNeighbours = currentNodeWrapper.getNode().getChildren();
 			}
+			
 			for (GraphNode neighbour : currentNodeNeighbours) {
 				if (!visitedNodes.contains(neighbour)) {
 					visitedNodes.add(neighbour);

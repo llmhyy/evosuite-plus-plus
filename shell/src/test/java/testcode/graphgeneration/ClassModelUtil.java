@@ -1,7 +1,9 @@
 package testcode.graphgeneration;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,9 +18,12 @@ import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PrimitiveType;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Type;
 
 import testcode.graphgeneration.model.Field;
@@ -41,7 +46,17 @@ public class ClassModelUtil {
 	 * @return {@code null} if the given node does not represent a field, a {@code String} representation of a field name otherwise.
 	 */
 	public static String getFieldNameFor(GraphNode node) {
-		if (!GraphNodeUtil.isField(node)) {
+		return getFieldNameFor(node, false);
+	}
+	
+	/**
+	 * Generates a field name for the given {@code GraphNode}. Overloaded version that allows disabling of sanity checks.
+	 * @param node The given node.
+	 * @param isOverrideSafetyChecks Whether sanity checks should be overriden or not.
+	 * @return {@code null} if the given node does not represent a field, a {@code String} representation of a field name otherwise.
+	 */
+	public static String getFieldNameFor(GraphNode node, boolean isOverrideSafetyChecks) {
+		if (!isOverrideSafetyChecks && !GraphNodeUtil.isField(node)) {
 			return null;
 		}
 		
@@ -67,7 +82,7 @@ public class ClassModelUtil {
 	 * @return A {@code String} representation of a getter name.
 	 */
 	public static String getGetterNameFor(GraphNode node) {		
-		return "getNode" + node.getIndex();
+		return "get" + capitalise(getFieldNameFor(node, true));
 	}
 	
 	/**
@@ -76,7 +91,60 @@ public class ClassModelUtil {
 	 * @return A {@code String} representation of a setter name.
 	 */
 	public static String getSetterNameFor(GraphNode node) {
-		return "setNode" + node.getIndex();
+		return "set" + capitalise(getFieldNameFor(node, true));
+	}
+
+	/**
+	 * Generates the package name for the given code. 
+	 * @return A generated package name.
+	 */
+	public static String getPackageName() {
+		String prefix = "test._";
+		long seed = RandomNumberGenerator.getSeed();
+		if (seed < 0) {
+			// We need to change the hyphen as it's not allowed in a package name.
+			// JLS indicates we should change it to an underscore.
+			return prefix + Long.toString(seed).replace("-", "_");
+		}
+		return prefix + seed;
+	}
+	
+	public static Name getPackageNameAsJdtName(AST ast) {
+		String[] packageNameSplitByPeriod = getPackageName().split(Pattern.quote("."));
+		if (packageNameSplitByPeriod.length == 1) {
+			return ast.newSimpleName(packageNameSplitByPeriod[0]);
+		}
+		
+		// Else assume length >= 2
+		QualifiedName qualifiedName = ast.newQualifiedName(ast.newSimpleName(packageNameSplitByPeriod[0]), ast.newSimpleName(packageNameSplitByPeriod[1]));
+		for (int i = 2; i < packageNameSplitByPeriod.length; i++) {
+			qualifiedName = ast.newQualifiedName(qualifiedName, ast.newSimpleName(packageNameSplitByPeriod[i]));
+		}
+		return qualifiedName;
+	}
+	
+	private static String capitalise(String string) {
+		if (string == null || string.length() == 0) {
+			return string;
+		}
+		
+		if (string.length() == 1) {
+			return string.toUpperCase();
+		}
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append(string.substring(0,1).toUpperCase());
+		builder.append(string.substring(1));
+		return builder.toString();
+	}
+	
+	/**
+	 * Generates a parameter name for the given {@code GraphNode}.
+	 * @param node The given node.
+	 * @return A {@code String} representation of a parameter name.
+	 */
+	public static String getParameterNameFor(GraphNode node) {
+		return "arg" + node.getIndex();
 	}
 	
 	/**
@@ -197,7 +265,9 @@ public class ClassModelUtil {
 		// If the node represents an array element, then the type of the array element
 		Type nodeType = null;
 		String declaredClass = GraphNodeUtil.getDeclaredClass(node);
-		if (GraphNodeUtil.isField(node) || GraphNodeUtil.isArrayElement(node)) {
+		if (GraphNodeUtil.isParameter(node) 
+				|| GraphNodeUtil.isField(node) 
+				|| GraphNodeUtil.isArrayElement(node)) {
 			if (GraphNodeUtil.isPrimitive(node)) {
 				nodeType = ClassModelUtil.stringToPrimitiveType(ast, declaredClass);
 			} else if (GraphNodeUtil.isArray(node)) {
@@ -243,6 +313,43 @@ public class ClassModelUtil {
 			default:
 				return null;
 		}
+	}
+	
+	/**
+	 * Converts a datatype in {@code String} format to the appropriate JNI type signature. See https://docs.oracle.com/javase/7/docs/technotes/guides/jni/spec/types.html for more details.
+	 * @param dataType The datatype in {@code String} format (either a primitive type, array type, or unqualified class).
+	 * @return The type signature as used by the JVM.
+	 */
+	public static String stringToTypeSignature(String dataType) {		
+		switch (dataType) {
+			case "boolean":
+				return "Z";
+			case "byte":
+				return "B";
+			case "char":
+				return "C";
+			case "short":
+				return "S";
+			case "float":
+				return "F";
+			case "double":
+				return "D";
+			case "int":
+				return "I";
+			case "long":
+				return "J";
+			case "void":
+				return "V";
+			default:
+				// Two cases, array type or unqualified class
+				if (isArray(dataType)) {
+					return "[" + stringToTypeSignature(dataType.substring(0, dataType.length() - 2));
+				} else if (isObject(dataType)) {
+					return "L" + getPackageName().replace(".", "/") + "/" + dataType + ";";
+				}
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -340,37 +447,37 @@ public class ClassModelUtil {
 	}
 	
 	private static NumberLiteral randomByteExpression(AST ast) {
-		return ast.newNumberLiteral(Byte.toString((byte) (OCGGenerator.RANDOM.nextInt(127 - (-128)) - 128)));
+		return ast.newNumberLiteral(Byte.toString((byte) (RandomNumberGenerator.getInstance().nextInt(127 - (-128)) - 128)));
 	}
 	
 	private static NumberLiteral randomShortExpression(AST ast) {
-		return ast.newNumberLiteral(Short.toString((short) (OCGGenerator.RANDOM.nextInt(32767 - (-32768)) - 32767)));
+		return ast.newNumberLiteral(Short.toString((short) (RandomNumberGenerator.getInstance().nextInt(32767 - (-32768)) - 32767)));
 	}
 	
 	private static NumberLiteral randomIntExpression(AST ast) {
-		return ast.newNumberLiteral(Integer.toString(OCGGenerator.RANDOM.nextInt()));
+		return ast.newNumberLiteral(Integer.toString(RandomNumberGenerator.getInstance().nextInt()));
 	}
 	
 	private static NumberLiteral randomLongExpression(AST ast) {
-		return ast.newNumberLiteral(Long.toString(OCGGenerator.RANDOM.nextLong()));
+		return ast.newNumberLiteral(Long.toString(RandomNumberGenerator.getInstance().nextLong()));
 	}
 	
 	private static NumberLiteral randomFloatExpression(AST ast) {
-		return ast.newNumberLiteral(Float.toString(OCGGenerator.RANDOM.nextFloat()));
+		return ast.newNumberLiteral(Float.toString(RandomNumberGenerator.getInstance().nextFloat()));
 	}
 	
 	private static NumberLiteral randomDoubleExpression(AST ast) {
-		return ast.newNumberLiteral(Double.toString(OCGGenerator.RANDOM.nextDouble()));
+		return ast.newNumberLiteral(Double.toString(RandomNumberGenerator.getInstance().nextDouble()));
 	}
 	
 	private static CharacterLiteral randomCharExpression(AST ast) {
 		CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-		characterLiteral.setCharValue((char) OCGGenerator.RANDOM.nextInt(65535));
+		characterLiteral.setCharValue((char) RandomNumberGenerator.getInstance().nextInt(65535));
 		return characterLiteral;
 	}
 	
 	private static BooleanLiteral randomBooleanExpression(AST ast) {
-		return ast.newBooleanLiteral(OCGGenerator.RANDOM.nextBoolean());
+		return ast.newBooleanLiteral(RandomNumberGenerator.getInstance().nextBoolean());
 	}
 	
 	/**
@@ -436,7 +543,8 @@ public class ClassModelUtil {
 			case "long":
 				return ast.newNumberLiteral(Long.toString(0L));
 			case "float":
-				return ast.newNumberLiteral(Float.toString(0.0f));
+				// We have to manually specify here that it's 0.0f to avoid lossy conversion errors.
+				return ast.newNumberLiteral("0.0f");
 			case "double":
 				return ast.newNumberLiteral(Double.toString((double) 0.0));
 			case "char":
@@ -522,21 +630,37 @@ public class ClassModelUtil {
 	 * Generates an {@code Expression} instance corresponding to a retrieval statement that matches the given path.
 	 * @param ast The given {@code AST} instance.
 	 * @param path The given path of {@code GraphNode}s.
+	 * @param thisReference The class declaring the getter. This is used to distinguish between a reference to a parameter, and a reference to {@code this}.
 	 * @return An {@code Expression} instance corresponding to a retrieval statement that matches the given path.
 	 */
-	public static Expression generateGetterExpressionFromPath(AST ast, List<GraphNode> path) {
+	public static Expression generateGetterExpressionFromPath(AST ast, List<GraphNode> path, String thisReference) {
 		Expression previousExpression = ast.newThisExpression();
 		for (int i = 0; i < path.size(); i++) {
 			GraphNode currentNode = path.get(i);
 			boolean isParam = GraphNodeUtil.isParameter(currentNode);
-			if (isParam) {
-				continue;
-			}
-			
 			boolean isField = GraphNodeUtil.isField(currentNode);
 			boolean isMethod = GraphNodeUtil.isMethod(currentNode);
 			boolean isArrayElement = GraphNodeUtil.isArrayElement(currentNode);
-			if (isField) {
+			
+			// We handle the cases differently
+			// Consider two possible paths
+			// 1) Starts with a parameter
+			// 2) Starts with "this"
+			// In the first case, we need to set the `previousExpression` variable to the correct parameter
+			// In the second case, we need to "skip" the first node (since it's `this`)
+			// The code below handles this.
+			boolean isFirstNode = (i == 0);
+			boolean isThisReference = GraphNodeUtil.getDeclaredClass(currentNode).equals(thisReference);
+			if (isFirstNode) {
+				if (isParam && !isThisReference) {
+					previousExpression = ast.newSimpleName(ClassModelUtil.getParameterNameFor(currentNode));
+				}
+				continue;
+			}
+			
+			if (isParam) {
+				previousExpression = ast.newSimpleName(ClassModelUtil.getParameterNameFor(currentNode));
+			} else if (isField) {
 				FieldAccess fieldAccess = ast.newFieldAccess();
 				fieldAccess.setExpression(previousExpression);
 				fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
@@ -566,32 +690,20 @@ public class ClassModelUtil {
 		Expression previousExpression = ast.newThisExpression();
 		for (int i = 0; i < path.size(); i++) {
 			GraphNode currentNode = path.get(i);
-			boolean isParam = GraphNodeUtil.isParameter(currentNode);
-			if (isParam) {
+			
+			boolean isFirstNode = (i == 0);
+			boolean isLastNode = (i == path.size() - 1);
+			boolean isParameter = GraphNodeUtil.isParameter(currentNode);
+			boolean isField = GraphNodeUtil.isField(currentNode);
+			boolean isMethod = GraphNodeUtil.isMethod(currentNode);
+			if (isFirstNode) {
+				if (isParameter) {
+					previousExpression = ast.newSimpleName(ClassModelUtil.getParameterNameFor(currentNode));
+				}
 				continue;
 			}
 			
-			if (i < path.size() - 1) {
-				// Non-terminal node
-				boolean isField = GraphNodeUtil.isField(currentNode);
-				if (isField) {
-					// Assume all fields as package private
-					// i.e. we can access it directly
-					FieldAccess fieldAccess = ast.newFieldAccess();
-					fieldAccess.setExpression(previousExpression);
-					fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
-					previousExpression = fieldAccess;
-				}
-				
-				boolean isMethod = GraphNodeUtil.isMethod(currentNode);
-				if (isMethod) {
-					MethodInvocation methodInvocation = ast.newMethodInvocation();
-					methodInvocation.setExpression(previousExpression);
-					methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
-					previousExpression = methodInvocation;
-				}
-			} else {
-				// Terminal node
+			if (isLastNode) {
 				// Last element should always be an array element
 				if (!GraphNodeUtil.isArrayElement(currentNode)) {
 					throw new IllegalArgumentException("Last node in path for array element setter must be an array element!");
@@ -604,6 +716,21 @@ public class ClassModelUtil {
 				assignment.setLeftHandSide(arrayAccess);
 				assignment.setRightHandSide(ast.newSimpleName("arg0"));
 				previousExpression = assignment;
+				continue;
+			}
+				
+			if (isField) {
+				// Assume all fields as package private
+				// i.e. we can access it directly
+				FieldAccess fieldAccess = ast.newFieldAccess();
+				fieldAccess.setExpression(previousExpression);
+				fieldAccess.setName(ast.newSimpleName(ClassModelUtil.getFieldNameFor(currentNode)));
+				previousExpression = fieldAccess;
+			} else if (isMethod) {
+				MethodInvocation methodInvocation = ast.newMethodInvocation();
+				methodInvocation.setExpression(previousExpression);
+				methodInvocation.setName(ast.newSimpleName("method" + currentNode.getIndex()));
+				previousExpression = methodInvocation;
 			}
 		}
 		return previousExpression;
@@ -624,6 +751,20 @@ public class ClassModelUtil {
 		Block methodBody = ast.newBlock();
 		methodDeclaration.setBody(methodBody);
 		
+		Map<Field, String> fieldToParameterName = new HashMap<>();
+		for (Field field : clazz.getFields()) {
+			// Run through and find all fields with custom type
+			// Generate a parameter for each one and store the mapping for later
+			if (!field.isCustomClass()) {
+				continue;
+			}
+			
+			Type parameterType = extractTypeFrom(ast, field);
+			String parameterName = field.getName();
+			fieldToParameterName.put(field, parameterName);
+			addParameterToMethod(ast, methodDeclaration, parameterType, parameterName);
+		}
+		
 		for (Field field : clazz.getFields()) {
 			Assignment assignment = ast.newAssignment();
 			FieldAccess fieldAccess = ast.newFieldAccess();
@@ -642,7 +783,7 @@ public class ClassModelUtil {
 							defaultArrayCreation(
 									ast, 
 									field.getDataType(), 
-									1 + OCGGenerator.RANDOM.nextInt(MAXIMUM_ARRAY_SIZE - 1)
+									1 + RandomNumberGenerator.getInstance().nextInt(MAXIMUM_ARRAY_SIZE - 1)
 							)
 					);
 				} else {
@@ -650,17 +791,48 @@ public class ClassModelUtil {
 							randomArrayCreation(
 									ast, 
 									field.getDataType(), 
-									1 + OCGGenerator.RANDOM.nextInt(MAXIMUM_ARRAY_SIZE - 1)
+									1 + RandomNumberGenerator.getInstance().nextInt(MAXIMUM_ARRAY_SIZE - 1)
 							)
 					);
 				}
-			} else {
-				assignment.setRightHandSide(newClassInstance(ast, field.getDataType()));
+			} else if (field.isCustomClass()) {
+				// Default initialisation of custom classes can cause infinite recursion
+				// in cases where a class has itself as a transitive field. To avoid this, we set
+				// the class from a parameter passed into the constructor.
+				assignment.setRightHandSide(ast.newSimpleName(fieldToParameterName.get(field)));
 			}
 			
 			methodBody.statements().add(ast.newExpressionStatement(assignment));
 		}
 		
 		return methodDeclaration;
+	}
+	
+	/**
+	 * Helper method to add a parameter to a given method. Auto-generates parameter type and name from the 
+	 * given {@code GraphNode} instance.
+	 * @param ast The {@code AST} instance to use.
+	 * @param methodDeclaration The {@code MethodDeclaration} instance to add the parameter to.
+	 * @param node The {@code GraphNode} instance that provides context.
+	 */
+	public static void addParameterToMethod(AST ast, MethodDeclaration methodDeclaration, GraphNode node) {
+		Type parameterType = ClassModelUtil.extractTypeFrom(ast, node);
+		String parameterName = ClassModelUtil.getParameterNameFor(node);
+		addParameterToMethod(ast, methodDeclaration, parameterType, parameterName);
+	}
+	
+	/**
+	 * Overloaded version of {@code addParameterToMethod} that allows more fine-grained control over
+	 * parameter type and name.
+	 * @param ast The {@code AST} instance to use.
+	 * @param methodDeclaration The {@code MethodDeclaration} instance to add the parameter to.
+	 * @param parameterType The type of the parameter.
+	 * @param parameterName The name of the parameter.
+	 */
+	public static void addParameterToMethod(AST ast, MethodDeclaration methodDeclaration, Type parameterType, String parameterName) {
+		SingleVariableDeclaration parameter = ast.newSingleVariableDeclaration();
+		parameter.setType(parameterType);
+		parameter.setName(ast.newSimpleName(parameterName));
+		methodDeclaration.parameters().add(parameter);
 	}
 }

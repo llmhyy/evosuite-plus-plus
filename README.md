@@ -48,7 +48,7 @@ For example:
       <exists>C:\Program Files\Java\jdk1.8.0_261\libs\tools.jar</exists>
     </file>
     </activation>
-    <properties>
+    </properties>
        <toolsjar>C:\Program Files\Java\jdk1.8.0_261\libs\tools.jar</toolsjar>
     </properties>
 ```
@@ -86,4 +86,15 @@ After compilation, the "evosuite-master" project may have some compilation error
 1. If you encounter **com.sun** dependency issue:
 
     > Please replace the corresponding tools.jar with the absolute path of the jdk tools.jar and the error will go
-                                                      away. 
+                                                      away.
+2. If you encounter **CUTxxx** class not found issue:
+
+This issue occurred because some code on which evosuite master depends is not correctly generated as expected. 
+To remedy this in Eclipse IDE, we need to manually generate the code. This can be done via `Run Configurations` under options of the Run button.
+Right click the Maven Build tab and click New Configuration. 
+
+Enter `${workspace_loc:/evosuite-master}` for Base Directory and `jaxb2:xjc` for Goals. Give any arbitrary name and hit Run.
+
+The above Maven job will generate required classes. 
+
+Furthermore, in order to run unit test cases in GenerationTest class, navigate to `shell` module, mark src/test/java and src/test/resources folders as src. Now, you are all set, run unit tests one by one and see the graph generation process for yourself :).

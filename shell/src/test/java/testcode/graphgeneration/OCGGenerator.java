@@ -7,27 +7,10 @@ import java.util.Map;
 import java.util.Random;
 
 public class OCGGenerator {
-	
-	public static Random RANDOM;
-	
 	private int maxParentNum = 2;
 	private int maxChildNum = 2;
 	
-	public OCGGenerator(long seed) {
-		if (RANDOM == null) {
-			RANDOM = new Random();
-			RANDOM.setSeed(seed);
-			System.out.println("Seed for OCGGenerator: " + seed);
-		}
-	}
-	
 	public OCGGenerator() {
-		if (RANDOM == null) {
-			RANDOM = new Random();
-			long seed = new Random().nextLong();
-			RANDOM.setSeed(seed);
-			System.out.println("Seed for OCGGenerator: " + seed);
-		}
 	}
 	
 	public Graph generate(int depth, int width, boolean allowLoop) {
@@ -50,7 +33,7 @@ public class OCGGenerator {
 			/**
 			 * at least one node at each layer
 			 */
-			int randomWidth = RANDOM.nextInt(width);
+			int randomWidth = RandomNumberGenerator.getInstance().nextInt(width);
 			randomWidth = Math.max(1, randomWidth);
 			
 			ArrayList<GraphNode> list = new ArrayList<GraphNode>();
@@ -61,7 +44,7 @@ public class OCGGenerator {
 					/**
 					 * shall guarantee parents still have the quota of children
 					 */
-					int parentNum = Math.max(1, RANDOM.nextInt(maxParentNum - node.getParents().size()));
+					int parentNum = Math.max(1, RandomNumberGenerator.getInstance().nextInt(maxParentNum - node.getParents().size()));
 					for (int k = 0; k < parentNum; k++) {
 						GraphNode selectedParent = selectParent(graphLayers, layer);
 						if (selectedParent!=null &&
@@ -74,7 +57,7 @@ public class OCGGenerator {
 				}
 				
 				if (allowLoop) {
-					double r = RANDOM.nextDouble();
+					double r = RandomNumberGenerator.getInstance().nextDouble();
 					if (r < 0.1) {
 						/**
 						 * generate loop
@@ -122,7 +105,7 @@ public class OCGGenerator {
 			}
 		}
 		
-		double dice = RANDOM.nextDouble() * sum;
+		double dice = RandomNumberGenerator.getInstance().nextDouble() * sum;
 		
 		for(GraphNode parent: nodeMap.keySet()) {
 			double start = nodeStartMap.get(parent);
@@ -167,7 +150,7 @@ public class OCGGenerator {
 			}
 		}
 		
-		double dice = RANDOM.nextDouble() * sum;
+		double dice = RandomNumberGenerator.getInstance().nextDouble() * sum;
 		
 		for(GraphNode parent: nodeMap.keySet()) {
 			double start = nodeStartMap.get(parent);

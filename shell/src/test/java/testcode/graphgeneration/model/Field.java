@@ -53,10 +53,14 @@ public class Field extends CodeElement {
 	public boolean isPrimitive() {
 		return Arrays.asList(Graph.PRIMITIVE_TYPES).contains(dataType);
 	}
+	
+	public boolean isCustomClass() {
+		return this.dataType.startsWith("Class");
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(dataType, name);
+		return name.hashCode() + 31 * dataType.hashCode();
 	}
 
 	@Override

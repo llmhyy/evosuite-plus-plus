@@ -11,6 +11,6 @@ public enum Relation {
 	private static final int SIZE = VALUES.size();
 
 	public static Relation randomRelation() {
-		return VALUES.get(OCGGenerator.RANDOM.nextInt(SIZE-2));
+		return VALUES.get(RandomNumberGenerator.getInstance().nextInt(SIZE-2));
 	}
 }
