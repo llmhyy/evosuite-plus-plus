@@ -52,7 +52,7 @@ public class ListMethods {
 		
 		
 		//TODO Cheng Yan, read the excel/csv file to include a method list
-		interestedMethods = readCSVFile();
+		//interestedMethods = readCSVFile();
 		
 		StringBuilder headerSb = new StringBuilder();
 //		headerSb.append("\n");
@@ -94,10 +94,10 @@ public class ListMethods {
 				tMethodSb = new StringBuilder();
 				for (String methodName : testableMethods) {
 					//TODO Cheng Yan shall comment this code later
-					String methodSig = className + "#" + methodName;
-					if(interestedMethods.contains(methodSig)) {
-						tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
-					}
+					//String methodSig = className + "#" + methodName;
+					//if(interestedMethods.contains(methodSig)) {
+					//	tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
+					//}
 					
 					//TODO Cheng Yan shall comment this code later
 					//tMethodSb.append(CommonUtility.getMethodId(className, methodName)).append("\n");
