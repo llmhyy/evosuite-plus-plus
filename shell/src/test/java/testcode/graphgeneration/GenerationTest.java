@@ -21,8 +21,9 @@ import java.util.Random;
 public class GenerationTest {
 //	public static final String ROOT_FOLDER = System.getProperty("user.dir");
 //	public static final String ROOT_FOLDER = "D:\\Github\\generated-code\\";
-	public static final String ROOT_FOLDER = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/generated-code";
-	public static final String CODE_ABSOLUTE_PATH = Paths.get(ROOT_FOLDER).resolve("src").resolve("main").resolve("java").resolve("test").toString();
+	public static final String ROOT_FOLDER = "";
+//	public static final String CODE_ABSOLUTE_PATH = Paths.get(ROOT_FOLDER).resolve("src").resolve("main").resolve("java").resolve("test").toString();
+	public static final String CODE_ABSOLUTE_PATH = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/generated-code/src/main/java/test";
 	public static final String TARGET_METHOD_FILENAME = "targetMethods.txt";
 	
 	public static final int MINIMUM_DEPTH = 5;
