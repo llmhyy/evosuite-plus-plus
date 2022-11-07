@@ -1,16 +1,7 @@
 package evosuite.experiment;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import org.evosuite.symbolic.expr.Comparator;
-import org.evosuite.symbolic.expr.Constraint;
-import org.evosuite.symbolic.expr.Expression;
-import org.evosuite.symbolic.expr.IntegerConstraint;
-import org.evosuite.symbolic.expr.Operator;
+import com.opencsv.CSVWriter;
+import org.evosuite.symbolic.expr.*;
 import org.evosuite.symbolic.expr.bv.IntegerBinaryExpression;
 import org.evosuite.symbolic.expr.bv.IntegerConstant;
 import org.evosuite.symbolic.expr.bv.IntegerValue;
@@ -21,7 +12,11 @@ import org.evosuite.symbolic.solver.SolverFactory;
 import org.evosuite.symbolic.solver.SolverResult;
 import org.evosuite.symbolic.vm.ExpressionFactory;
 
-import com.opencsv.CSVWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class IntegerGenerateConstraint {
 
@@ -350,8 +345,8 @@ public class IntegerGenerateConstraint {
 
 		try {
 			// create FileWriter object with file as parameter
-			FileWriter test_file = new FileWriter("D:\\xianglin\\git_space\\bi-direct-rnn\\input\\test.csv", false);
-			FileWriter test_label_file = new FileWriter("D:\\xianglin\\git_space\\bi-direct-rnn\\input\\test_label.csv",
+			FileWriter test_file = new FileWriter("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/bi-direct-rnn/input/test.csv", false);
+			FileWriter test_label_file = new FileWriter("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/bi-direct-rnn/input/test_label.csv",
 					false);
 			CSVWriter writer1 = new CSVWriter(test_file, ',', '\0');
 			CSVWriter writer2 = new CSVWriter(test_label_file, ',', '\0');

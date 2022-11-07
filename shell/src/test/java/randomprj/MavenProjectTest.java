@@ -1,14 +1,14 @@
 package randomprj;
 
-import java.io.File;
-import java.util.List;
-
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.result.TestGenerationResult;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
+import java.util.List;
 
 public class MavenProjectTest{
 	
@@ -39,7 +39,7 @@ public class MavenProjectTest{
 	public void testBugExample() {
 		String targetClass = "com.alibaba.fastjson.JSONObject";
 		String targetMethod = "(Ljava/lang/String;)F";
-		String projectRoot = "D:\\linyun\\git_space\\reg\\subject-repo\\fastjason\\project\\";
+		String projectRoot = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/reg/subject-repo/fastjason/project/";
 		
 		//TODO we may still need to parse maven class path
 		String cp = projectRoot + File.separator + "target/classes" + File.pathSeparator + 

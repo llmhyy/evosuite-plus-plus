@@ -1,13 +1,12 @@
 package visualization.controller;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.Arrays;
-import java.util.List;
-
 import javafx.fxml.FXML;
 import javafx.stage.Stage;
 import visualization.utils.Constants;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainController {
 
@@ -38,7 +37,7 @@ public class MainController {
 	public void initialize() {
 		System.out.println("Application started");
 		toolBarController.init(this);
-//		fName = "D:\\linyun\\test\\I110 Branch 43 IFNONNULL L103";
+//		fName = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/I110 Branch 43 IFNONNULL L103";
 //		String leftTestCaseName = "40-CreditAuthInfo#equals#74.txt";
 //		String rightTestCaseName = "41-CreditAuthInfo#equals#117.txt";
 //		loadFiles(fName + "\\" + leftTestCaseName, fName + "\\" + rightTestCaseName, "");

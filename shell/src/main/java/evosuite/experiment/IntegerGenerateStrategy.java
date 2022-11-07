@@ -1,5 +1,9 @@
 package evosuite.experiment;
 
+import com.opencsv.CSVWriter;
+import org.evosuite.Properties.Strategy;
+import org.evosuite.symbolic.expr.Constraint;
+
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -7,11 +11,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import org.evosuite.Properties.Strategy;
-import org.evosuite.symbolic.expr.Constraint;
-
-import com.opencsv.CSVWriter;
 
 public class IntegerGenerateStrategy {
 	
@@ -68,7 +67,7 @@ public class IntegerGenerateStrategy {
 	}
 	
 	public static void Output() throws IOException {
-		OutputStream f = new FileOutputStream("D:\\xianglin\\git_space\\evosuite\\EvosuiteTest\\src\\com\\generate\\IntegerOutcome.txt");
+		OutputStream f = new FileOutputStream("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/evosuite/EvosuiteTest/src/com/generate/IntegerOutcome.txt");
 		for(int i=0;i<Outcome.size();i++) {
 			List<Outcome> outcome=new ArrayList<Outcome>();
 			outcome=Outcome.get(i);
@@ -106,7 +105,7 @@ public class IntegerGenerateStrategy {
 
 		try { 
 	        // create FileWriter object with file as parameter 
-	        FileWriter outputfile = new FileWriter("D:\\xianglin\\git_space\\bi-direct-rnn\\input\\test_label.csv",false); 
+	        FileWriter outputfile = new FileWriter("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/bi-direct-rnn/input/test_label.csv",false);
 
 	        CSVWriter writer = new CSVWriter(outputfile,',','\0'); 
 	  

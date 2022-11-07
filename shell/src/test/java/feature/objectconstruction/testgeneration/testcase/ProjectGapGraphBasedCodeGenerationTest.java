@@ -1,9 +1,7 @@
 package feature.objectconstruction.testgeneration.testcase;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-
+import common.TestUtil;
+import common.TestUtility;
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
@@ -12,15 +10,16 @@ import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import common.TestUtil;
-import common.TestUtility;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 	@Before
 	public void setupTestEnvironmentParameters() {
 		Properties.RANDOM_SEED = 1634620626101L;
 		setup();
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 	}
 	
 	private void setupClassAndMethod(Class<?> clazz, String methodName, int numParams) {
@@ -45,7 +44,7 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		
 		Branch b = TestUtil.searchBranch(rankedList, 10);
 		
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 		generateCode(b, false, false);
 	}
 	
@@ -64,7 +63,7 @@ public class ProjectGapGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		
 		Branch b = TestUtil.searchBranch(rankedList, 10);
 		
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 		generateCode0(b, false, false);
 	}
 	

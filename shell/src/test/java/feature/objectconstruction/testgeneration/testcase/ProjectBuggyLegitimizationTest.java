@@ -1,8 +1,7 @@
 package feature.objectconstruction.testgeneration.testcase;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-
+import common.TestUtility;
+import feature.objectconstruction.testgeneration.example.cascadecall.CascadingCallExample;
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
@@ -10,8 +9,8 @@ import org.evosuite.utils.MethodUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import common.TestUtility;
-import feature.objectconstruction.testgeneration.example.cascadecall.CascadingCallExample;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 public class ProjectBuggyLegitimizationTest extends ObjectOrientedTest{
 	@Before
@@ -35,7 +34,7 @@ public class ProjectBuggyLegitimizationTest extends ObjectOrientedTest{
 //				Branch b = Randomness.choice(interestedBranches.keySet());
 		Branch b = rankedList.get(0);
 
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\test";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test";
 		assertLegitimization(b, true, false);
 		
 	}

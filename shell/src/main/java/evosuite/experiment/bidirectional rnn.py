@@ -20,8 +20,8 @@ def load_data(mode='train'):
     :param mode:train or test
     :return data and the corresponding labels
     """
-    l=pd.read_csv("D:\\xianglin\git_space\\bi-direct-rnn\\input\\test_label.csv")
-    d=pd.read_csv("D:\\xianglin\git_space\\bi-direct-rnn\\input\\test.csv")
+    l=pd.read_csv("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/bi-direct-rnn/input/test_label.csv")
+    d=pd.read_csv("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/bi-direct-rnn/input/test.csv")
     
     la=l.values.tolist()    #200000*2
     da=d.values.tolist()    #200000*8 
