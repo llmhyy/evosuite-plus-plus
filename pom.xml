@@ -459,7 +459,7 @@
 				<!-- LGPL 2.1 -->
 				<groupId>org.hibernate</groupId>
 				<artifactId>hibernate-core</artifactId>
-				<version>5.2.13.Final</version>
+				<version>5.3.20.Final</version>
 			</dependency>
 			<dependency>
 				<!-- Apache 2 -->
