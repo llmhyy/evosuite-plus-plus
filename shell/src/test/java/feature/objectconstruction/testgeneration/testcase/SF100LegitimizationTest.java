@@ -1,9 +1,7 @@
 package feature.objectconstruction.testgeneration.testcase;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
+import common.TestUtil;
+import evosuite.shell.experiment.SFBenchmarkUtils;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.Branch;
@@ -11,8 +9,9 @@ import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.junit.Before;
 import org.junit.Test;
 
-import common.TestUtil;
-import evosuite.shell.experiment.SFBenchmarkUtils;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class SF100LegitimizationTest extends ObjectOrientedTest{
@@ -55,7 +54,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 //		generateCode(b, true);
 		
 		assertLegitimization(b, false, false);
@@ -92,7 +91,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 //		generateCode(b, true);
 		
 		assertLegitimization(b, true, false);
@@ -129,7 +128,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 //		generateCode(b, true);
 		
 		assertLegitimization(b, false, false);
@@ -167,7 +166,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 //		generateCode(b, true);
 		
 		assertLegitimization(b, false, false);
@@ -204,7 +203,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 //		generateCode(b, true);
 		
 		assertLegitimization(b, true, false);
@@ -241,7 +240,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 //		generateCode(b, true);
 		
 		assertLegitimization(b, true, false);
@@ -278,7 +277,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 //		generateCode(b, true);
 		
 		assertLegitimization(b, true, false);
@@ -315,7 +314,7 @@ public class SF100LegitimizationTest extends ObjectOrientedTest{
 		
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 //		generateCode(b, true);
 		
 		assertLegitimization(b, true, false);

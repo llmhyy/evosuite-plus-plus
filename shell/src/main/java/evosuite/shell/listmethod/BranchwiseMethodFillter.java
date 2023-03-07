@@ -1,39 +1,5 @@
 package evosuite.shell.listmethod;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.evosuite.Properties;
-import org.evosuite.Properties.Criterion;
-import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.classpath.ClassPathHandler;
-import org.evosuite.coverage.branch.Branch;
-import org.evosuite.graphs.GraphPool;
-import org.evosuite.graphs.cfg.ActualControlFlowGraph;
-import org.evosuite.graphs.cfg.BytecodeAnalyzer;
-import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
-import org.evosuite.graphs.interprocedural.var.DepVariable;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
-import org.evosuite.seeding.ConstantPoolManager;
-import org.evosuite.seeding.StaticConstantPool;
-import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
-import org.evosuite.setup.DependencyAnalysis;
-import org.evosuite.utils.MethodUtil;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.analysis.AnalyzerException;
-import org.slf4j.Logger;
-
 import evosuite.shell.EvoTestResult;
 import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.FileUtils;
@@ -42,6 +8,25 @@ import evosuite.shell.excel.ExcelWriter;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.SFConfiguration;
 import evosuite.shell.utils.LoggerUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.evosuite.Properties;
+import org.evosuite.Properties.Criterion;
+import org.evosuite.classpath.ClassPathHandler;
+import org.evosuite.coverage.branch.Branch;
+import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
+import org.evosuite.graphs.interprocedural.var.DepVariable;
+import org.evosuite.seeding.ConstantPoolManager;
+import org.evosuite.seeding.StaticConstantPool;
+import org.evosuite.seeding.smart.SeedingApplicationEvaluator;
+import org.evosuite.setup.DependencyAnalysis;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.slf4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 	private static Logger log = LoggerUtils.getLogger(BranchwiseMethodFillter.class);
@@ -66,7 +51,7 @@ public class BranchwiseMethodFillter extends MethodFlagCondFilter {
 		if (newFile.exists()) {
 			newFile.delete();
 		}
-		writer = new ExcelWriter(FileUtils.newFile("D:\\linyun\\git_space\\SF100-clean\\evoTest-reports\\all_branchwiseMethods.xlsx"));
+		writer = new ExcelWriter(FileUtils.newFile("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/SF100-clean/evoTest-reports/all_branchwiseMethods.xlsx"));
 //		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data",
 				new String[] { "ProjectId", "Class","Method", "Branch-Type" ,"Num"},

@@ -1,14 +1,14 @@
 package evosuite.experiment;
 
+import org.evosuite.Properties.Strategy;
+import org.evosuite.symbolic.expr.Constraint;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import org.evosuite.Properties.Strategy;
-import org.evosuite.symbolic.expr.Constraint;
 
 public class RealGenerateStrategy {
 
@@ -66,7 +66,7 @@ public class RealGenerateStrategy {
 	}
 	
 	public static void Output() throws IOException{
-		OutputStream f = new FileOutputStream("D:\\xianglin\\git_space\\evosuite\\EvosuiteTest\\src\\com\\generate\\RealOutcome.txt");
+		OutputStream f = new FileOutputStream("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/evosuite/EvosuiteTest/src/com/generate/RealOutcome.txt");
 		for(int i=0;i<Outcome.size();i++) {
 			List<Outcome> outcome=new ArrayList<Outcome>();
 			outcome=Outcome.get(i);
@@ -95,7 +95,7 @@ public class RealGenerateStrategy {
 		init();
 		Random(Integer.parseInt(argv[0]));
 		//Output();	
-		OutputStream f = new FileOutputStream("D:\\xianglin\\git_space\\evosuite\\EvosuiteTest\\src\\com\\generate\\input\\RealOutcome.txt");
+		OutputStream f = new FileOutputStream("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/evosuite/EvosuiteTest/src/com/generate/input/RealOutcome.txt");
 		for(int i=0;i<Outcome.size();i++) {
 			List<Outcome> outcome=new ArrayList<Outcome>();
 			outcome=Outcome.get(i);
