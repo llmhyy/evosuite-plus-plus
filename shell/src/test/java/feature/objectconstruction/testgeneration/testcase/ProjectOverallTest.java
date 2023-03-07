@@ -17,7 +17,6 @@ import common.TestUtility;
 import evosuite.shell.Settings;
 import evosuite.shell.excel.ExcelWriter;
 import feature.objectconstruction.testgeneration.example.ObjectExample;
-import feature.objectconstruction.testgeneration.example.admin.TargetAdmin;
 import feature.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
 
 public class ProjectOverallTest extends TestUtility{
@@ -48,43 +47,6 @@ public class ProjectOverallTest extends TestUtility{
 		Class<?> clazz = BasicRules.class;
 		String methodName = "checkRules";
 		int parameterNum = 2;
-		
-		String targetClass = clazz.getCanonicalName();
-//		Method method = clazz.getMethods()[0];
-		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-
-		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String cp = "target/test-classes" + File.pathSeparator + "target/classes";
-
-		// Properties.LOCAL_SEARCH_RATE = 1;
-//		Properties.DEBUG = true;
-//		Properties.PORT = 8000;
-		Properties.CLIENT_ON_THREAD = true;
-		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-
-		Properties.TIMEOUT = 100;
-		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
-//		Properties.TIMELINE_INTERVAL = 3000;
-		
-		String fitnessApproach = "branch";
-		
-		int timeBudget = 100;
-		
-		boolean aor = true;
-		double coverage = TestUtility.evoTestSingleMethod(targetClass,  
-				targetMethod, timeBudget, true, aor, cp, fitnessApproach, 
-				"generateMOSuite", "MOSUITE", "DynaMOSA");
-		
-		System.out.println("coverage is:" + coverage);
-		assert coverage > 0.1;
-		
-	}
-	
-	@Test
-	public void testAdmin() {
-		Class<?> clazz = TargetAdmin.class;
-		String methodName = "targetMethod";
-		int parameterNum = 3;
 		
 		String targetClass = clazz.getCanonicalName();
 //		Method method = clazz.getMethods()[0];

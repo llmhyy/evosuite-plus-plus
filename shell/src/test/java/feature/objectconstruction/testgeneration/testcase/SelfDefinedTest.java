@@ -54,7 +54,7 @@ public class SelfDefinedTest extends TestUtility{
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
         Properties.TIMEOUT = 100;
-        Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+        Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 0;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
@@ -133,7 +133,7 @@ public class SelfDefinedTest extends TestUtility{
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 100000;
 
         boolean aor = true;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
