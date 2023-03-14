@@ -24,6 +24,8 @@
 
 package org.evosuite.runtime.util;
 
+import org.evosuite.runtime.EvoRunner;
+import org.evosuite.runtime.EvoRunnerParameters;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static shaded.org.evosuite.runtime.EvoAssertions.*;
