@@ -1,6 +1,6 @@
-package feature.objectconstruction.testgeneration.example.set2;
+package feature.objectconstruction.testgeneration.example.set3;
 
-public class Target2 {
+public class Target3 {
     // targetMethod
     public int crossLayer(OuterMost outerMost) {
         int value = outerMost.getValue();

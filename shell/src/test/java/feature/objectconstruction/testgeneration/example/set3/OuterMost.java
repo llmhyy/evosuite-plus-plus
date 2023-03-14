@@ -1,4 +1,4 @@
-package feature.objectconstruction.testgeneration.example.set2;
+package feature.objectconstruction.testgeneration.example.set3;
 
 class OuterMost {
     private Layer1 layer1;
@@ -11,19 +11,19 @@ class OuterMost {
         return layer1;
     }
 
+//    public int getValue() {
+//        return layer1.getLayer2().getInnerMost().getValue();
+//    }
+
+    // fast retrieval method
     public int getValue() {
-        return layer1.getLayer2().getInnerMost().getValue();
+        return layer1.getValue();
     }
 
     // fast retrieval method
-//    public int getValue() {
-//        return layer1.getValue();
-//    }
-
-    // fast retrieval method
-//    public void setValue(int value) {
-//        layer1.setValue(value);
-//    }
+    public void setValue(int value) {
+        layer1.setValue(value);
+    }
 
 //    public boolean isValueGreaterThan(int x) {
 //        return getValue() > x;
