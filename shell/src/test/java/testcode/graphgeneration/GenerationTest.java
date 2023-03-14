@@ -1,5 +1,9 @@
 package testcode.graphgeneration;
 
+import org.junit.Test;
+import testcode.graphgeneration.model.ClassModel;
+import testcode.graphgeneration.model.GeneratedCodeUnit;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -14,25 +18,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.junit.Test;
-
-import testcode.graphgeneration.model.ClassModel;
-import testcode.graphgeneration.model.GeneratedCodeUnit;
-
 public class GenerationTest {
 //	public static final String ROOT_FOLDER = System.getProperty("user.dir");
 	public static final String ROOT_FOLDER = "/Users/diwuyi/data";
 	public static final String CODE_ABSOLUTE_PATH = Paths.get(ROOT_FOLDER).resolve("src").resolve("main").resolve("java").resolve("test").toString();
+
 	public static final String TARGET_METHOD_FILENAME = "targetMethods.txt";
 	
 	public static final int MINIMUM_DEPTH = 5;
 	public static final int MAXIMUM_DEPTH = 20;
 	public static final int MINIMUM_WIDTH = 6;
 	public static final int MAXIMUM_WIDTH = 20;
-	
+
 	private static String getGraphVizPath() {
 		return "/Users/diwuyi/data" + File.separator + "linyun" + File.separator + "graph";
+//		return "D:" + File.separator + "linyun" + File.separator + "graph";
 	}
+
+
 
 	@Test
 	public void testStep1() {

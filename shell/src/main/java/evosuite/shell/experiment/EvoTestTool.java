@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
 
 public class EvoTestTool {
 	
@@ -15,6 +16,15 @@ public class EvoTestTool {
 			cleanUpPropertiesFile(args[1]); // SF100 path
 		}
 		System.out.println("Finish!");
+	}
+	
+	@Test
+	public void testRunUpdateFile() {
+		try {
+			cleanUpPropertiesFile(SFConfiguration.sfBenchmarkFolder);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void cleanUpPropertiesFile(String rootFolder) throws IOException {
@@ -31,16 +41,21 @@ public class EvoTestTool {
 						System.out.println(line);
 						String[] cp = line.trim().split("=");
 						if (cp.length > 1) {
-							if (cp[1].contains(File.pathSeparator)) {
-								cp = cp[1].split(File.pathSeparator);
-							} else {
+							if (cp[1].contains(":")) {
+								cp = cp[1].split(":");
+							} 
+							else if(cp[1].contains(";")) {
+								cp = cp[1].split(";");
+							}
+							else {
 								cp = new String[] {cp[1]};
 							}
 							List<String> entries = new ArrayList<>();
-							entries.add(projectName + ".jar");
+//							entries.add(projectName + ".jar");
 							for (String path : cp) {
-								File clp = new File(projFolder.getAbsolutePath() + File.separator + path);
-								if (clp.exists() && clp.getName().endsWith(".jar") && !entries.contains(path)) {
+//								File clp = new File(projFolder.getAbsolutePath() + File.separator + path);
+//								clp.exists() && clp.getName().endsWith(".jar") &&  
+								if (!entries.contains(path)) {
 									entries.add(path);
 								}
 							}

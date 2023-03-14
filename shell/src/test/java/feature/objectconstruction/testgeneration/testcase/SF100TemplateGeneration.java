@@ -44,7 +44,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 		//29
 		Branch b = rankedList.get(12);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 		generateCode(b, false, false);
 	}
 	
@@ -78,7 +78,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 		//29
 		Branch b = rankedList.get(12);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 		generateCode(b, true, false);
 	}
 	
@@ -112,7 +112,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 		//29
 		Branch b = rankedList.get(5);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 		generateCode(b, true, false);
 	}
 	
@@ -147,7 +147,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 		
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 		generateCode(b, true, false);
 	}
 
@@ -182,7 +182,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 		
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 		generateCode(b, false, false);
 	}
 	
@@ -217,7 +217,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 		generateCode(b, false, false);
 	}
 	
@@ -251,7 +251,7 @@ public class SF100TemplateGeneration extends ObjectOrientedTest {
 
 		Branch b = TestUtil.searchBranch(rankedList, lineNumber);
 		System.out.println(b);
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 		generateCode(b, true, false);
 	}
 }

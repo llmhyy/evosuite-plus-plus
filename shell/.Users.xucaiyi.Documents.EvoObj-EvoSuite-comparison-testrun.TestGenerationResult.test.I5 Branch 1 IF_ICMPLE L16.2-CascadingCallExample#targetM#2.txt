@@ -1,0 +1,4 @@
+ClassA classA0 = new ClassA();
+ClassB classB0 = new ClassB();
+CascadingCallExample cascadingCallExample0 = new CascadingCallExample(classA0, classB0);
+cascadingCallExample0.targetM();

@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 
 public class ConfigurationTransformer {
 
-	public static String fileLocation = "D:\\linyun\\git_space\\SF100-clean";
+	public static String fileLocation = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/SF100-clean";
 	
 	public static void main(String[] args) throws IOException {
 		File folder = new File(fileLocation);

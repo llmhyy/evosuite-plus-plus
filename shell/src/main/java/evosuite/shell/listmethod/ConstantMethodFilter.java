@@ -1,48 +1,32 @@
 package evosuite.shell.listmethod;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import evosuite.shell.EvosuiteForMethod;
+import evosuite.shell.FileUtils;
+import evosuite.shell.Settings;
+import evosuite.shell.excel.ExcelWriter;
+import evosuite.shell.utils.LoggerUtils;
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
-import org.evosuite.Properties.Criterion;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.graphs.GraphPool;
-import org.evosuite.graphs.ccfg.ClassControlFlowGraph;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeAnalyzer;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
 import org.evosuite.graphs.interprocedural.DefUseAnalyzer;
-import org.evosuite.graphs.interprocedural.var.DepVariable;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.seeding.ConstantPoolManager;
 import org.evosuite.seeding.StaticConstantPool;
 import org.evosuite.setup.DependencyAnalysis;
-import org.evosuite.utils.CollectionUtil;
-import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.IntInsnNode;
-import org.objectweb.asm.tree.LdcInsnNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.*;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Value;
 import org.slf4j.Logger;
 
-import evosuite.shell.EvosuiteForMethod;
-import evosuite.shell.FileUtils;
-import evosuite.shell.Settings;
-import evosuite.shell.excel.ExcelWriter;
-import evosuite.shell.utils.LoggerUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class ConstantMethodFilter extends MethodFlagCondFilter {
 	private static Logger log = LoggerUtils.getLogger(ConstantMethodFilter.class);
@@ -62,7 +46,7 @@ public class ConstantMethodFilter extends MethodFlagCondFilter {
 			newFile.delete();
 		}
 		writer = new ExcelWriter(
-				FileUtils.newFile("D:\\linyun\\git_space\\SF100-clean\\evoTest-reports\\all_constantMethod.xlsx"));
+				FileUtils.newFile("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/SF100-clean/evoTest-reports/all_constantMethod.xlsx"));
 //		writer = new ExcelWriter(new File(statisticFile));
 		writer.getSheet("data", new String[] { "ProjectId", "Class", "Method", "ConstantNum" }, 0);
 	}

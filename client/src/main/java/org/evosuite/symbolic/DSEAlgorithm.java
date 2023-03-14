@@ -1,33 +1,7 @@
 package org.evosuite.symbolic;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRichTextString;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.*;
 import org.evosuite.Properties;
-import org.evosuite.coverage.branch.Branch;
-import org.evosuite.coverage.fbranch.FBranchTestFitness;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.metaheuristics.Hybridable;
 import org.evosuite.runtime.classhandling.ClassResetter;
@@ -53,6 +27,10 @@ import org.evosuite.utils.Randomness;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.lang.reflect.*;
+import java.util.*;
 
 /**
  * This class implements a DSE algorithm *as* a subclass of genetic algorithm.
@@ -219,7 +197,7 @@ public class DSEAlgorithm extends GeneticAlgorithm<TestSuiteChromosome> implemen
 
 	private void recordPathConditionList(PathCondition pathCondition, Method staticEntryMethod) {
 		// TODO Auto-generated method stub
-		String path = "D:\\linyun\\experiment\\";
+		String path = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/experiment/";
 		String targetfileName = "DSEPathConditionList.xlsx";
 		
 		File files = new File(path);
