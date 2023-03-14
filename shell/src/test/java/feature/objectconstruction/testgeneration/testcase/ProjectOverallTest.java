@@ -66,7 +66,7 @@ public class ProjectOverallTest extends TestUtility{
 		
 		String fitnessApproach = "branch";
 		
-		int timeBudget = 100;
+		int timeBudget = 10;
 		
 		boolean aor = true;
 		double coverage = TestUtility.evoTestSingleMethod(targetClass,  
@@ -101,7 +101,7 @@ public class ProjectOverallTest extends TestUtility{
 		
 		String fitnessApproach = "branch";
 		
-		int timeBudget = 100;
+		int timeBudget = 10;
 		
 		boolean aor = false;
 		double coverage = TestUtility.evoTestSingleMethod(targetClass,  
@@ -136,7 +136,7 @@ public class ProjectOverallTest extends TestUtility{
 		
 		String fitnessApproach = "branch";
 		
-		int timeBudget = 10000;
+		int timeBudget = 100;
 		
 		boolean aor = true;
 		TestUtility.evoTestSingleMethod(targetClass,  
@@ -169,7 +169,7 @@ public class ProjectOverallTest extends TestUtility{
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 30000;
+		int timeBudget = 300;
 		TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 	
@@ -197,7 +197,7 @@ public class ProjectOverallTest extends TestUtility{
 		
 		String fitnessApproach = "fbranch";
 		
-		int timeBudget = 30000;
+		int timeBudget = 300;
 		TestUtility.evosuiteFlagBranch(targetClass, targetMethod, cp, timeBudget, true, fitnessApproach);
 	}
 	

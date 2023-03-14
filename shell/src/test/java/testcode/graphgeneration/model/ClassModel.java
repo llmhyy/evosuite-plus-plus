@@ -100,6 +100,7 @@ public class ClassModel {
 					|| processedNodes.containsAll(currentNode.getParents());
 			if (!isAllParentsProcessed) {
 				// TODO: edge case, you are your own parent
+				// Potential infinite loop
 				queue.offer(currentNode);
 				continue;
 			}

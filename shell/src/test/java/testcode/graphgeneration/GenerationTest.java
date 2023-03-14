@@ -21,7 +21,7 @@ import testcode.graphgeneration.model.GeneratedCodeUnit;
 
 public class GenerationTest {
 //	public static final String ROOT_FOLDER = System.getProperty("user.dir");
-	public static final String ROOT_FOLDER = "D:\\Github\\generated-code\\";
+	public static final String ROOT_FOLDER = "/Users/diwuyi/data";
 	public static final String CODE_ABSOLUTE_PATH = Paths.get(ROOT_FOLDER).resolve("src").resolve("main").resolve("java").resolve("test").toString();
 	public static final String TARGET_METHOD_FILENAME = "targetMethods.txt";
 	
@@ -31,7 +31,7 @@ public class GenerationTest {
 	public static final int MAXIMUM_WIDTH = 20;
 	
 	private static String getGraphVizPath() {
-		return "D:" + File.separator + "linyun" + File.separator + "graph";
+		return "/Users/diwuyi/data" + File.separator + "linyun" + File.separator + "graph";
 	}
 
 	@Test
@@ -126,6 +126,7 @@ public class GenerationTest {
 		String folderName = Long.toString(RandomNumberGenerator.getSeed()).replace("-", "_") + "L";
 		graph.labelNodeType();
 		graph.labelAccessibility();
+		System.out.println(Paths.get(CODE_ABSOLUTE_PATH).resolve(folderName).toString());
 		graph.visualize(1000, Paths.get(CODE_ABSOLUTE_PATH).resolve(folderName).toString(), "graph");
 		GeneratedCodeUnit generatedCodeUnit = graph.transformToCode();
 		Map<String, String> fileNameToSourceCode = generatedCodeUnit.getFilenameToSourceCode();
@@ -160,6 +161,7 @@ public class GenerationTest {
 		String compileCommand = "javac " + CODE_ABSOLUTE_PATH + File.separator + folderName + File.separator + "*.java";
 		Runtime runtime = Runtime.getRuntime();
 		Process process = runtime.exec(compileCommand);
+		System.out.println(System.getProperty("user.dir"));
 		BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 		String stderrOutput = null;
 		while ((stderrOutput = stderr.readLine()) != null ) {
