@@ -40,14 +40,16 @@ public class RegressionTest extends TestUtility{
 	@Test
 	public void testBasicRulesObj() {
 		Class<?> clazz = RegressionExample.class;
-		
+		// where to find target class
 		String targetClass = clazz.getCanonicalName();
+		System.out.println(targetClass);
 //		Method method = clazz.getMethods()[0];
 //		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
 //		String targetMethod = method.getName() + MethodUtil.getSignature(method);
-		String original = "D:\\workspace\\workspace-for-testing2\\original\\bin";
-		String regression = "D:\\workspace\\workspace-for-testing2\\regression\\bin";
+		//path to origin and regression
+		String original = "/Users/diwuyi/Library/Mobile Documents/com~apple~CloudDocs/Documents/GitHub/evosuite-plus-plus/shell/src/test/java/feature/regression/example1";
+		String regression = "/Users/diwuyi/Library/Mobile Documents/com~apple~CloudDocs/Documents/GitHub/evosuite-plus-plus/shell/src/test/java/feature/regression/example2";
 
 		// Properties.LOCAL_SEARCH_RATE = 1;
 //		Properties.DEBUG = true;
@@ -117,5 +119,4 @@ public class RegressionTest extends TestUtility{
 		return 0;
 
 	}
-	
 }
