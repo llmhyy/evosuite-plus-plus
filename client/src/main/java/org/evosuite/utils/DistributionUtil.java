@@ -15,11 +15,16 @@ public class DistributionUtil {
 	public static Map<Integer, Integer> constructDistributionMap(List<BranchCoverageTestFitness> branchGoals ) {
 		Map<Integer, Integer> distributionMap = new HashMap<>();
 		for (BranchCoverageTestFitness goal : branchGoals) {
-			Integer key = goal.getBranch().getActualBranchId();
-			if (!goal.getValue()) {
-				key = -key;
+			
+			if(goal.getBranch() != null) {
+				Integer key = goal.getBranch().getActualBranchId();
+				if (!goal.getValue()) {
+					key = -key;
+				}
+				distributionMap.put(key, 0);
 			}
-			distributionMap.put(key, 0);
+			
+			
 		}
 		
 		return distributionMap;
@@ -93,9 +98,11 @@ public class DistributionUtil {
 		List<BranchCoverageGoal> uncoveredGoals = new ArrayList<>();
 		for(BranchCoverageTestFitness ff: branchGoals) {
 			BranchCoverageGoal goal = ff.getBranchGoal();
-			int key = goal.getValue() ? goal.getId() : -goal.getId();
-			if(distributionMap.get(key) == 0) {
-				uncoveredGoals.add(goal);
+			if(goal != null && goal.getBranch() != null) {
+				int key = goal.getValue() ? goal.getId() : -goal.getId();
+				if(distributionMap.get(key) == 0) {
+					uncoveredGoals.add(goal);
+				}				
 			}
 		}
 		return uncoveredGoals;

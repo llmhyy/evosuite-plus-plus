@@ -474,7 +474,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 	private List<BranchInfo> getMissingBranches(List<T> population,List<BranchCoverageTestFitness> branchGoals) {
 		List<BranchInfo> missingBranches = new ArrayList<>();
 		for (BranchCoverageTestFitness tf : branchGoals) {
-			int branchID = tf.getBranch().getActualBranchId();
+			
+			if(tf.getBranch()==null) continue;
+			
 			boolean value = tf.getValue();
 			BranchInfo branchInfo = new BranchInfo(tf.getBranch(),value);
 			missingBranches.add(branchInfo);
@@ -488,6 +490,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 				ExecutionResult result = test.getLastExecutionResult();
 				if (result != null) {
 					for (BranchCoverageTestFitness tf : branchGoals) {
+						
+						if(tf.getBranch() == null) continue;
+						
 						int branchID = tf.getBranch().getActualBranchId();
 						boolean value = tf.getValue();
 						BranchInfo branchInfo = new BranchInfo(tf.getBranch(),value);
@@ -527,6 +532,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 				ExecutionResult result = test.getLastExecutionResult();
 				if (result != null) {
 					for (BranchCoverageTestFitness tf : branchGoals) {
+						
+						if(tf.getBranch()==null)continue;
+						
 						int branchID = tf.getBranch().getActualBranchId();
 						boolean value = tf.getValue();
 
@@ -565,6 +573,9 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 			for (ExecutionResult result : testsuite.getLastExecutionResults()) {
 				if (result != null) {
 					for (BranchCoverageTestFitness tf : branchGoals) {
+						
+						if(tf.getBranch() == null) continue;
+						
 						int branchID = tf.getBranch().getActualBranchId();
 						boolean value = tf.getValue();
 
@@ -890,7 +901,7 @@ public class MonotonicGA<T extends Chromosome> extends GeneticAlgorithm<T> imple
 			// printUncoveredBranches(distributionMap, branchGoals);
 			// printUncoveredBranches(getBestIndividual(), branchGoals);
 
-			logger.error("Best fitness: " + bestFitness + ", Coverage: " + getBestIndividual().getCoverage());
+//			logger.error("Best fitness: " + bestFitness + ", Coverage: " + getBestIndividual().getCoverage());
 			logger.info("Current iteration: " + currentIteration);
 			this.notifyIteration();
 

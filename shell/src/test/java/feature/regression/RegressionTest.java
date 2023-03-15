@@ -39,9 +39,11 @@ public class RegressionTest extends TestUtility{
 	
 	@Test
 	public void testBasicRulesObj() {
-		Class<?> clazz = RegressionExample.class;
+//		Class<?> clazz = RegressionExample.class;
+//		String targetClass = clazz.getCanonicalName();
 		
-		String targetClass = clazz.getCanonicalName();
+		String targetClass = "com.RegressionExample";
+		
 //		Method method = clazz.getMethods()[0];
 //		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
@@ -59,7 +61,7 @@ public class RegressionTest extends TestUtility{
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		int timeBudget = 100;
+		int timeBudget = 10;
 		
 		double coverage = evoTestRegressionSingleMethod(targetClass,  
 				null, timeBudget, true, original, regression);
