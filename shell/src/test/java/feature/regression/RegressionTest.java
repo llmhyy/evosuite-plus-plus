@@ -44,6 +44,7 @@ public class RegressionTest extends TestUtility{
 		//String targetClass = clazz.getCanonicalName();
 		String targetClass = "com.RegressionExample";
 		System.out.println(targetClass);
+
 //		Method method = clazz.getMethods()[0];
 //		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
 
@@ -63,7 +64,7 @@ public class RegressionTest extends TestUtility{
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
-		int timeBudget = 100;
+		int timeBudget = 10;
 		
 		double coverage = evoTestRegressionSingleMethod(targetClass,  
 				null, timeBudget, true, original, regression);
