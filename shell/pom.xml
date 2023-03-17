@@ -54,7 +54,61 @@
 		<evosuite.version>1.0.7-SNAPSHOT</evosuite.version>
 		<poi.version>3.11</poi.version>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>jgit-repository</id>
+			<url>http://download.eclipse.org/jgit/maven</url>
+		</repository>
+
+	</repositories>
 	<dependencies>
+		<dependency>
+			<groupId>com.github.tsantalis</groupId>
+			<artifactId>refactoring-miner</artifactId>
+			<version>2.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jgit</groupId>
+			<artifactId>org.eclipse.jgit</artifactId>
+			<version>5.13.0.202109080827-r</version>
+		</dependency>
+		<dependency>
+			<groupId>org.soot-oss</groupId>
+			<artifactId>sootup.core</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.soot-oss</groupId>
+			<artifactId>sootup.java.core</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.soot-oss</groupId>
+			<artifactId>sootup.java.sourcecode</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.soot-oss</groupId>
+			<artifactId>sootup.java.bytecode</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.soot-oss</groupId>
+			<artifactId>sootup.jimple.parser</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.soot-oss</groupId>
+			<artifactId>sootup.callgraph</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.soot-oss</groupId>
+			<artifactId>sootup.analysis</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.evosuite</groupId>
 			<artifactId>evosuite-client</artifactId>
