@@ -212,21 +212,51 @@ public class RegressionTest extends TestUtility{
 		System.out.println("Working Directory = " + System.getProperty("user.dir"));
 		String[] arguments = new String[] {"/bin/bash", "-c", "java -jar evosuite-1.0.6.jar -regressionSuite -projectCP jsoup-1.13.1-SNAPSHOT_correct.jar -Dregressioncp=\"jsoup-1.11.3-SNAPSHOT.jar\" -class org.jsoup.parser.CharacterReader"};
 		// 调evosuite 的 api 接口
-		//
+		// current code below is not working
 
-		Process process = new ProcessBuilder(arguments).start();
-		BufferedReader procReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-		String ln = "";
-		while ((ln = procReader.readLine()) != null) {
-			System.out.println(ln + "\n");
-		}
-		try {
-			process.waitFor();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		Runtime.getRuntime().exec("/bin/bash -c java -jar evosuite-1.0.6.jar -Dtools_jar_location=/Library/Java/JavaVirtualMachines/jdk1.8.0_333.jdk/Contents/Home/lib/tools.jar -regressionSuite -projectCP jsoup-1.13.1-SNAPSHOT_correct.jar -Dregressioncp=\"jsoup-1.11.3-SNAPSHOT.jar\" -class org.jsoup.parser.CharacterReader");
-		//process.waitFor();
+//		Process process = new ProcessBuilder(arguments).start();
+//		BufferedReader procReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//		String ln = "";
+//		while ((ln = procReader.readLine()) != null) {
+//			System.out.println(ln + "\n");
+//		}
+//		try {
+//			process.waitFor();
+//		} catch (InterruptedException e) {
+//			throw new RuntimeException(e);
+//		}
+//		Runtime.getRuntime().exec("/bin/bash -c java -jar evosuite-1.0.6.jar -Dtools_jar_location=/Library/Java/JavaVirtualMachines/jdk1.8.0_333.jdk/Contents/Home/lib/tools.jar -regressionSuite -projectCP jsoup-1.13.1-SNAPSHOT_correct.jar -Dregressioncp=\"jsoup-1.11.3-SNAPSHOT.jar\" -class org.jsoup.parser.CharacterReader");
+//		//process.waitFor();
+
+		String targetClass = "com.RegressionExample";
+		System.out.println(targetClass);
+
+//		Method method = clazz.getMethods()[0];
+//		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+//		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		//path to origin and regression
+//		String original = "/Users/diwuyi/Library/Mobile Documents/com~apple~CloudDocs/Documents/GitHub/evosuite-plus-plus/shell/src/test/java/feature/regression/example1";
+//		String regression = "/Users/diwuyi/Library/Mobile Documents/com~apple~CloudDocs/Documents/GitHub/evosuite-plus-plus/shell/src/test/java/feature/regression/example2";
+		String original = "/Users/diwuyi/Desktop/target-example/original/bin";
+		String regression = "/Users/diwuyi/Desktop/target-example/regression/bin";
+		// Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.DEBUG = true;
+//		Properties.PORT = 8000;
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+		Properties.TIMEOUT = 100;
+		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+//		Properties.TIMELINE_INTERVAL = 3000;
+
+		int timeBudget = 10;
+
+		double coverage = evoTestRegressionSingleMethod(targetClass,
+				null, timeBudget, true, original, regression);
+
+		System.out.println("coverage is:" + coverage);
+
 		System.out.println("Execution of differential testing is done");
 
 
