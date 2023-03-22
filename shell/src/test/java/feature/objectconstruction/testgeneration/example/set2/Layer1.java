@@ -1,6 +1,6 @@
 package feature.objectconstruction.testgeneration.example.set2;
 
-class Layer1 {
+public class Layer1 {
     private Layer2 layer2;
 
     public void setLayer2(Layer2 layer2) {
