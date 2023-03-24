@@ -58,8 +58,10 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
+
         Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
