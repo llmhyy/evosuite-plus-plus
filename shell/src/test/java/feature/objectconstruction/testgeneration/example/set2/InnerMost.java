@@ -1,6 +1,6 @@
 package feature.objectconstruction.testgeneration.example.set2;
 
-class InnerMost {
+public class InnerMost {
     private int value;
 
     public void setValue(int value) {

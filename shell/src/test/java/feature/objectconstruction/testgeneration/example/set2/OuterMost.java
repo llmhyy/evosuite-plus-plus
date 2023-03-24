@@ -1,6 +1,6 @@
 package feature.objectconstruction.testgeneration.example.set2;
 
-class OuterMost {
+public class OuterMost {
     private Layer1 layer1;
 
     public void setLayer1(Layer1 layer1) {

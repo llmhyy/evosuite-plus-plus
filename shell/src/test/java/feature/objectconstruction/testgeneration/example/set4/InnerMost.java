@@ -1,4 +1,4 @@
-package feature.objectconstruction.testgeneration.example.set3;
+package feature.objectconstruction.testgeneration.example.set4;
 
 public class InnerMost {
     private int value;

@@ -1,4 +1,4 @@
-package feature.objectconstruction.testgeneration.example.set2;
+package feature.objectconstruction.testgeneration.example.set4;
 
 public class Layer1 {
     private Layer2 layer2;

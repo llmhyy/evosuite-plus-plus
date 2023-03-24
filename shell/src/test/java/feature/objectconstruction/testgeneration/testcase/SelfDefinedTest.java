@@ -1,8 +1,11 @@
 package feature.objectconstruction.testgeneration.testcase;
 
 import common.TestUtility;
+import feature.objectconstruction.testgeneration.example.set1.Target;
 import feature.objectconstruction.testgeneration.example.set2.Target2;
 import feature.objectconstruction.testgeneration.example.set3.Target3;
+import feature.objectconstruction.testgeneration.example.set4.Target4;
+import feature.objectconstruction.testgeneration.example.set5.Target5;
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
@@ -35,7 +38,7 @@ public class SelfDefinedTest extends TestUtility{
 ////		Properties.SANDBOX_MODE = Sandbox.SandboxMode.OFF;
 //	}
 
-    /*
+
     @Test
     public void testSet1Method1() {
         Class<?> clazz = Target.class;
@@ -55,13 +58,13 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-        Properties.TIMEOUT = 100;
+        Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 10;
 
         boolean aor = true;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
@@ -92,13 +95,13 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-        Properties.TIMEOUT = 100;
+        Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 10;
 
         boolean aor = false;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
@@ -108,7 +111,7 @@ public class SelfDefinedTest extends TestUtility{
         System.out.println("coverage is:" + coverage);
         assert coverage > 0.1;
 
-    }*/
+    }
 
     @Test
     public void testSet2Method1() {
@@ -129,13 +132,13 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-        Properties.TIMEOUT = 100;
+        Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 10;
 
         boolean aor = true;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
@@ -167,13 +170,13 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-        Properties.TIMEOUT = 100;
+        Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 10;
 
         boolean aor = false;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
@@ -204,13 +207,13 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-        Properties.TIMEOUT = 100;
+        Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 10;
 
         boolean aor = true;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
@@ -241,13 +244,13 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-        Properties.TIMEOUT = 100;
+        Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 10;
 
         boolean aor = false;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
@@ -279,13 +282,13 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-        Properties.TIMEOUT = 100;
+        Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 10;
 
         boolean aor = true;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
@@ -317,13 +320,13 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-        Properties.TIMEOUT = 100;
+        Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 10;
 
         boolean aor = false;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
@@ -354,13 +357,13 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-        Properties.TIMEOUT = 100;
+        Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 10;
 
         boolean aor = true;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
@@ -391,13 +394,13 @@ public class SelfDefinedTest extends TestUtility{
         Properties.CLIENT_ON_THREAD = true;
         Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 
-        Properties.TIMEOUT = 100;
+        Properties.TIMEOUT = 10;
         Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 //		Properties.TIMELINE_INTERVAL = 3000;
 
         String fitnessApproach = "branch";
 
-        int timeBudget = 100;
+        int timeBudget = 10;
 
         boolean aor = false;
         double coverage = TestUtility.evoTestSingleMethod(targetClass,
@@ -409,6 +412,229 @@ public class SelfDefinedTest extends TestUtility{
 
     }
 
+    @Test
+    public void testSet4Method1() {
+        Class<?> clazz = Target4.class;
+        String methodName = "crossLayer";
+        int parameterNum = 1;
 
+        String targetClass = clazz.getCanonicalName();
+//		Method method = clazz.getMethods()[0];
+        Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+        String targetMethod = method.getName() + MethodUtil.getSignature(method);
+        String cp = "target/test-classes" + File.pathSeparator + "target/classes";
+
+        // Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.DEBUG = true;
+//		Properties.PORT = 8000;
+        Properties.CLIENT_ON_THREAD = true;
+        Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+        Properties.TIMEOUT = 10;
+        Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+//		Properties.TIMELINE_INTERVAL = 3000;
+
+        String fitnessApproach = "branch";
+
+        int timeBudget = 10;
+
+        boolean aor = true;
+        double coverage = TestUtility.evoTestSingleMethod(targetClass,
+                targetMethod, timeBudget, true, aor, cp, fitnessApproach,
+                "generateMOSuite", "MOSUITE", "DynaMOSA");
+
+        System.out.println("coverage is:" + coverage);
+        assert coverage > 0.1;
+
+    }
+
+
+    @Test
+    public void testSet4Method1NoObjectRule() {
+        Class<?> clazz = Target4.class;
+        String methodName = "crossLayer";
+        int parameterNum = 1;
+
+        String targetClass = clazz.getCanonicalName();
+//		Method method = clazz.getMethods()[0];
+        Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+        String targetMethod = method.getName() + MethodUtil.getSignature(method);
+        String cp = "target/test-classes" + File.pathSeparator + "target/classes";
+
+        // Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.DEBUG = true;
+//		Properties.PORT = 8000;
+        Properties.CLIENT_ON_THREAD = true;
+        Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+        Properties.TIMEOUT = 10;
+        Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+//		Properties.TIMELINE_INTERVAL = 3000;
+
+        String fitnessApproach = "branch";
+
+        int timeBudget = 10;
+
+        boolean aor = false;
+        double coverage = TestUtility.evoTestSingleMethod(targetClass,
+                targetMethod, timeBudget, true, aor, cp, fitnessApproach,
+                "generateMOSuite", "MOSUITE", "DynaMOSA");
+
+        System.out.println("coverage is:" + coverage);
+        assert coverage > 0.1;
+
+    }
+
+    @Test
+    public void testSet5Method1() {
+        Class<?> clazz = Target5.class;
+        String methodName = "checkLength";
+        int parameterNum = 1;
+
+        String targetClass = clazz.getCanonicalName();
+//		Method method = clazz.getMethods()[0];
+        Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+        String targetMethod = method.getName() + MethodUtil.getSignature(method);
+        String cp = "target/test-classes" + File.pathSeparator + "target/classes";
+
+        // Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.DEBUG = true;
+//		Properties.PORT = 8000;
+        Properties.CLIENT_ON_THREAD = true;
+        Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+        Properties.TIMEOUT = 10;
+        Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+//		Properties.TIMELINE_INTERVAL = 3000;
+
+        String fitnessApproach = "branch";
+
+        int timeBudget = 10;
+
+        boolean aor = true;
+        double coverage = TestUtility.evoTestSingleMethod(targetClass,
+                targetMethod, timeBudget, true, aor, cp, fitnessApproach,
+                "generateMOSuite", "MOSUITE", "DynaMOSA");
+
+        System.out.println("coverage is:" + coverage);
+        assert coverage > 0.1;
+
+    }
+
+
+    @Test
+    public void testSet5Method1NoObjectRule() {
+        Class<?> clazz = Target5.class;
+        String methodName = "checkLength";
+        int parameterNum = 1;
+
+        String targetClass = clazz.getCanonicalName();
+//		Method method = clazz.getMethods()[0];
+        Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+        String targetMethod = method.getName() + MethodUtil.getSignature(method);
+        String cp = "target/test-classes" + File.pathSeparator + "target/classes";
+
+        // Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.DEBUG = true;
+//		Properties.PORT = 8000;
+        Properties.CLIENT_ON_THREAD = true;
+        Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+        Properties.TIMEOUT = 10;
+        Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+//		Properties.TIMELINE_INTERVAL = 3000;
+
+        String fitnessApproach = "branch";
+
+        int timeBudget = 10;
+
+        boolean aor = false;
+        double coverage = TestUtility.evoTestSingleMethod(targetClass,
+                targetMethod, timeBudget, true, aor, cp, fitnessApproach,
+                "generateMOSuite", "MOSUITE", "DynaMOSA");
+
+        System.out.println("coverage is:" + coverage);
+        assert coverage > 0.1;
+
+    }
+
+    @Test
+    public void testSet5Method2() {
+        Class<?> clazz = Target5.class;
+        String methodName = "checkValueAtIndex5";
+        int parameterNum = 1;
+
+        String targetClass = clazz.getCanonicalName();
+//		Method method = clazz.getMethods()[0];
+        Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+        String targetMethod = method.getName() + MethodUtil.getSignature(method);
+        String cp = "target/test-classes" + File.pathSeparator + "target/classes";
+
+        // Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.DEBUG = true;
+//		Properties.PORT = 8000;
+        Properties.CLIENT_ON_THREAD = true;
+        Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+        Properties.TIMEOUT = 10;
+        Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+//		Properties.TIMELINE_INTERVAL = 3000;
+
+        String fitnessApproach = "branch";
+
+        int timeBudget = 10;
+
+        boolean aor = true;
+        double coverage = TestUtility.evoTestSingleMethod(targetClass,
+                targetMethod, timeBudget, true, aor, cp, fitnessApproach,
+                "generateMOSuite", "MOSUITE", "DynaMOSA");
+
+        System.out.println("coverage is:" + coverage);
+        assert coverage > 0.1;
+
+    }
+
+
+    @Test
+    public void testSet5Method2NoObjectRule() {
+        Class<?> clazz = Target5.class;
+        String methodName = "checkValueAtIndex5";
+        int parameterNum = 1;
+
+        String targetClass = clazz.getCanonicalName();
+//		Method method = clazz.getMethods()[0];
+        Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+        String targetMethod = method.getName() + MethodUtil.getSignature(method);
+        String cp = "target/test-classes" + File.pathSeparator + "target/classes";
+
+        // Properties.LOCAL_SEARCH_RATE = 1;
+//		Properties.DEBUG = true;
+//		Properties.PORT = 8000;
+        Properties.CLIENT_ON_THREAD = true;
+        Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+
+        Properties.TIMEOUT = 10;
+        Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+//		Properties.TIMELINE_INTERVAL = 3000;
+
+        String fitnessApproach = "branch";
+
+        int timeBudget = 10;
+
+        boolean aor = false;
+        double coverage = TestUtility.evoTestSingleMethod(targetClass,
+                targetMethod, timeBudget, true, aor, cp, fitnessApproach,
+                "generateMOSuite", "MOSUITE", "DynaMOSA");
+
+        System.out.println("coverage is:" + coverage);
+        assert coverage > 0.1;
+
+    }
 
 }

@@ -1,6 +1,6 @@
 package feature.objectconstruction.testgeneration.example.set3;
 
-class Layer2 {
+public class Layer2 {
     private InnerMost innerMost;
 
     public void setInnerMost(InnerMost innerMost) {
