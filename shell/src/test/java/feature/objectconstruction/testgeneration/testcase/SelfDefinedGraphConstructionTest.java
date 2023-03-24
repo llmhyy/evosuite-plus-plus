@@ -3,6 +3,8 @@ package feature.objectconstruction.testgeneration.testcase;
 import common.TestUtility;
 import feature.objectconstruction.testgeneration.example.set2.Target2;
 import feature.objectconstruction.testgeneration.example.set3.Target3;
+import feature.objectconstruction.testgeneration.example.set4.Target4;
+import feature.objectconstruction.testgeneration.example.set5.Target5;
 import org.evosuite.Properties;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.branch.Branch;
@@ -104,6 +106,86 @@ public class SelfDefinedGraphConstructionTest {
 
 //			GraphVisualizer.visualizeComputationGraph(b, 10000);
             GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "Self_set3ComputationGraphTest");
+        }
+    }
+
+    @Test
+    public void testSet4() throws ClassNotFoundException {
+
+        setup();
+
+        Properties.TARGET_CLASS = Target4.class.getCanonicalName();
+
+        Method method = TestUtility.getTargetMethod("crossLayer", Target4.class, 1);
+        String targetMethod = method.getName() + MethodUtil.getSignature(method);
+
+        Properties.TARGET_METHOD = targetMethod;
+
+        ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+        String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//		TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(Properties.TARGET_CLASS);
+
+//		List<String> classpath = new ArrayList<>();
+//		String cp = System.getProperty("user.dir") + "/target/test-classes";
+//		classpath.add(cp);
+//		ClassPathHandler.getInstance().addElementToTargetProjectClassPath(cp);
+
+        Properties.APPLY_OBJECT_RULE = true;
+        DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+
+//		Dataflow.initializeDataflow();
+
+//		TestFactory testFactory = TestFactory.getInstance();
+        ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(false);
+        Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
+
+        for (Branch b : map.keySet()) {
+            PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+
+            List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+
+//			GraphVisualizer.visualizeComputationGraph(b, 10000);
+            GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "Self_set4ComputationGraphTest");
+        }
+    }
+
+    @Test
+    public void testSet5() throws ClassNotFoundException {
+
+        setup();
+
+        Properties.TARGET_CLASS = Target5.class.getCanonicalName();
+
+        Method method = TestUtility.getTargetMethod("checkValueAtIndex5", Target5.class, 1);
+        String targetMethod = method.getName() + MethodUtil.getSignature(method);
+
+        Properties.TARGET_METHOD = targetMethod;
+
+        ClassPathHandler.getInstance().changeTargetCPtoTheSameAsEvoSuite();
+        String cp0 = ClassPathHandler.getInstance().getTargetProjectClasspath();
+//		TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(Properties.TARGET_CLASS);
+
+//		List<String> classpath = new ArrayList<>();
+//		String cp = System.getProperty("user.dir") + "/target/test-classes";
+//		classpath.add(cp);
+//		ClassPathHandler.getInstance().addElementToTargetProjectClassPath(cp);
+
+        Properties.APPLY_OBJECT_RULE = true;
+        DependencyAnalysis.analyzeClass(Properties.TARGET_CLASS, Arrays.asList(cp0.split(File.pathSeparator)));
+
+//		Dataflow.initializeDataflow();
+
+//		TestFactory testFactory = TestFactory.getInstance();
+        ConstructionPathSynthesizer cpSynthesizer = new ConstructionPathSynthesizer(false);
+        Map<Branch, Set<DepVariable>> map = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
+
+        for (Branch b : map.keySet()) {
+            PartialGraph partialGraph = cpSynthesizer.constructPartialComputationGraph(b);
+
+            List<DepVariableWrapper> topLayer = partialGraph.getTopLayer();
+
+//			GraphVisualizer.visualizeComputationGraph(b, 10000);
+            GraphVisualizer.visualizeComputationGraph(partialGraph, 1000, "Self_set5ComputationGraphTest");
         }
     }
 
