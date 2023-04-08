@@ -1,26 +1,14 @@
 package org.evosuite.testcase.synthesizer.improvedsynth;
 
+import org.ejml.simple.SimpleMatrix;
+import org.evosuite.graphs.cfg.BytecodeInstruction;
+import org.evosuite.testcase.synthesizer.PartialGraph;
+import org.evosuite.testcase.synthesizer.var.*;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Stack;
-
-import org.ejml.simple.SimpleMatrix;
-import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.synthesizer.PartialGraph;
-import org.evosuite.testcase.synthesizer.var.ArrayElementVariableWrapper;
-import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
-import org.evosuite.testcase.synthesizer.var.FieldVariableWrapper;
-import org.evosuite.testcase.synthesizer.var.OtherVariableWrapper;
-import org.evosuite.testcase.synthesizer.var.ParameterVariableWrapper;
-import org.evosuite.testcase.synthesizer.var.ThisVariableWrapper;
+import java.util.*;
 
 /**
  * Manager for an internal accessibility matrix.
@@ -102,7 +90,20 @@ public class AccessibilityMatrixManager {
 		for (int i = 0; i < size; i++) {
 			_unsafeSet(i, i, true);
 		}
-		
+
+		// change of structure
+		LinkedHashMap<DepVariableWrapper, Stack<DepVariableWrapper>> map = buildMap(partialGraph);
+		// it contains every top-descendant pair
+		// key is top node. values are stack of lower nodes
+		// iterate all layers.
+
+		for (DepVariableWrapper node: map.keySet()) {
+			while (!map.get(node).isEmpty()) {
+				generateAccessibilityMatrixEntriesForPair(node, map.get(node).pop());
+			}
+		}
+
+		/* comment out : previous approach
 		// Generate the accessibility matrix entries for each node
 		Queue<DepVariableWrapper> queue = new ArrayDeque<>();
 		for (DepVariableWrapper topLayerNode : partialGraph.getTopLayer()) {
@@ -114,11 +115,71 @@ public class AccessibilityMatrixManager {
 			for (DepVariableWrapper childNode : node.children) {
 				queue.offer(childNode);
 			}
-		}
+		}*/
 		
 		powerCache.put(1, internalMatrix);
 		
 		isInitialised = true;
+	}
+
+	private void generateAccessibilityMatrixEntriesForPair(DepVariableWrapper parentNode, DepVariableWrapper childNode) {
+		ConstructionPath nodeAccessPath = findPathBetween(parentNode, childNode);
+		if (nodeAccessPath != null) {
+			_unsafeSet(_getIndexFor(parentNode), _getIndexFor(childNode), true);
+			nodesToPath.put(new NodePair(parentNode, childNode), nodeAccessPath);
+		}
+	}
+
+	private LinkedHashMap<DepVariableWrapper, Stack<DepVariableWrapper>> initialiseMap(PartialGraph partialGraph) {
+		LinkedHashMap<DepVariableWrapper, Stack<DepVariableWrapper>> map = new LinkedHashMap<>();
+		Queue<DepVariableWrapper> queue = new ArrayDeque<>();
+		for (DepVariableWrapper topLayerNode : partialGraph.getTopLayer()) {
+			queue.offer(topLayerNode);
+		}
+
+		while (!queue.isEmpty()) {
+			DepVariableWrapper node = queue.poll();
+			map.put(node, new Stack<DepVariableWrapper>());
+			for (DepVariableWrapper childNode : node.children) {
+				queue.offer(childNode);
+			}
+		}
+		return map;
+	}
+
+	private LinkedHashMap<DepVariableWrapper, Stack<DepVariableWrapper>> buildMap(PartialGraph partialGraph) {
+		LinkedHashMap<DepVariableWrapper, Stack<DepVariableWrapper>> map = initialiseMap(partialGraph);
+		for (DepVariableWrapper topLayerNode : partialGraph.getTopLayer()) {
+			iterateNode(topLayerNode, map);
+		}
+
+		return map;
+	}
+
+	private void iterateNode(DepVariableWrapper node, LinkedHashMap<DepVariableWrapper, Stack<DepVariableWrapper>> map) {
+		for (DepVariableWrapper childNode : node.children) {
+			Stack<DepVariableWrapper> temp = map.getOrDefault(node, new Stack<DepVariableWrapper>());
+			temp.push(childNode);
+			map.put(node, temp);
+		}
+		for (DepVariableWrapper childNode : node.children) {
+			iterateNode(childNode, map);
+			Stack<DepVariableWrapper> s1 = map.getOrDefault(node, new Stack<DepVariableWrapper>());
+			Stack<DepVariableWrapper> s2 = map.getOrDefault(childNode, new Stack<DepVariableWrapper>());
+			addStack(s1, s2);
+		}
+	}
+
+	private void addStack(Stack<DepVariableWrapper> s1, Stack<DepVariableWrapper> s2) {
+		// add s2 to s1
+		Stack<DepVariableWrapper> temp = new Stack<>();
+		while (!s2.empty()) {
+			temp.push(s2.pop());
+		}
+
+		while(!temp.empty()) {
+			s1.push(temp.pop());
+		}
 	}
 
 	private void generateAccessibilityMatrixEntriesFor(DepVariableWrapper node) {
@@ -185,8 +246,22 @@ public class AccessibilityMatrixManager {
 		if (toNodeClass == null) {
 			return null;
 		}
-		
+
+		// changed here @caiyi
+//		String fromName = fromNode.getVariableName();
+//		String toName = toNode.getVariableName();
+//		ArrayList<String> relevantVarNames = new ArrayList<>(Arrays.asList(fromName, toName));
+//		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsRelating(fromNode, relevantVarNames);
+
 		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsAccepting(fromNode, toNodeClass);
+
+		Method add = candidateMethods.get(1);
+		String x = toNode.getVariableName();
+		if (!x.equals("value")) {
+			boolean isValidSetter_0 = DepVariableWrapperUtil.testFieldSetter(add, toNode);
+		}
+
+/*
 		for (Method candidateMethod : candidateMethods) {
 			boolean isValidSetter = DepVariableWrapperUtil.testFieldSetter(candidateMethod, toNode);
 			if (isValidSetter) {
@@ -194,7 +269,7 @@ public class AccessibilityMatrixManager {
 				isPathFound = true;
 				break;
 			}
-		}
+		}*/
 		
 		if (isPathFound) {
 			return builder.build();
@@ -256,8 +331,9 @@ public class AccessibilityMatrixManager {
 		if (toNodeClass == null) {
 			return null;
 		}
-		
+
 		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsReturning(fromNode, toNodeClass);
+
 		for (Method candidateMethod : candidateMethods) {
 			boolean isValidGetter = DepVariableWrapperUtil.testFieldGetter(candidateMethod, toNode);
 			if (isValidGetter) {
@@ -338,12 +414,12 @@ public class AccessibilityMatrixManager {
 		// Edge case here: if the field is an array, it will not be a leaf node
 		// even if we wish to set it. What to do here?
 		if (isToNodeLeaf) {
-			ConstructionPath firstAttempt = validateDirectFieldSet(fromNode, toNode);
+			ConstructionPath firstAttempt = validateDirectFieldSet(fromNode, toNode); // setters may not exist
 			if (firstAttempt != null) {
 				return firstAttempt;
 			}
 			
-			ConstructionPath secondAttempt = validateMethodCallSet(fromNode, toNode);
+			ConstructionPath secondAttempt = validateMethodCallSet(fromNode, toNode); // take note !
 			if (secondAttempt != null) {
 				return secondAttempt;
 			}
@@ -562,7 +638,11 @@ public class AccessibilityMatrixManager {
 		}
 		
 		for (int i = 1; i <= size; i++) {
-			boolean isPathOfLengthIExists = getPower(i).get(_getIndexFor(fromNode), _getIndexFor(toNode)) > 0;
+			SimpleMatrix temp = getPower(i);
+			int from = _getIndexFor(fromNode);
+			int to = _getIndexFor(toNode);
+			boolean isPathOfLengthIExists = temp.get(from, to) > 0;
+			//boolean isPathOfLengthIExists = getPower(i).get(_getIndexFor(fromNode), _getIndexFor(toNode)) > 0;
 			if (isPathOfLengthIExists) {
 				return i;
 			}
