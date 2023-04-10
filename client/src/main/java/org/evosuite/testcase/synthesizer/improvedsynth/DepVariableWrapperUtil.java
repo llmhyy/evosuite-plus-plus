@@ -296,7 +296,7 @@ public class DepVariableWrapperUtil {
 
 		return body;
 	}
-	
+
 	/**
 	 * Returns methods that we can call from an instance of the class enclosed in the node, where the methods
 	 * accept a parameter of type desiredParameterType.
@@ -315,8 +315,7 @@ public class DepVariableWrapperUtil {
 				}
 			}
 		}
-		// return methodsToReturn; // just to debug; will revertttt
-		return candidateMethods;
+		return methodsToReturn;
 	}
 	
 	/*
@@ -602,7 +601,40 @@ public class DepVariableWrapperUtil {
 		Field field = extractFieldFrom(toNode);
 		return testFieldSetter(method, field);
 	}
-	
+
+	/*
+	public static boolean testArrayFieldSetter(Method method, DepVariableWrapper fromNode) {
+		String arrName = fromNode.getVariableName();
+		return testArrayFieldSetter(method, arrName);
+	}*/
+
+
+	public static boolean testArrayFieldSetter(Method method, String arrName) {
+		if (method == null || arrName == null) {
+			return false;
+		}
+
+		List<BytecodeInstruction> instructions = getInstructionsFor(method);
+		if (instructions == null) {
+			return false;
+		}
+
+		BytecodeInstruction ins = instructions.get(3);
+		boolean x = ins.isFieldGet();
+
+		if (x) {
+			String varName = ins.getVariableName();
+			String parts[] = varName.split("\\.");
+			varName = parts[parts.length - 1]; // clean varName with out .path // which is "list" in this case
+
+			if (varName.equals(arrName)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * 
 	 * @param method
