@@ -223,15 +223,15 @@ public class AccessibilityMatrixManager {
 		List<DepVariableWrapper> descendants = getAllDescendantsOf(node);
 		for (DepVariableWrapper descendant : descendants) {
 			// for debugging only
-			/* if (descendant instanceof ArrayElementVariableWrapper) {
+			if (descendant instanceof ArrayElementVariableWrapper) {
 				ConstructionPath nodeAccessPath = findPathBetween(node, descendant);
-			} else { continue; }*/
-
+			} else { continue; }
+			/*
 			ConstructionPath nodeAccessPath = findPathBetween(node, descendant);
 			if (nodeAccessPath != null) {
 				_unsafeSet(_getIndexFor(node), _getIndexFor(descendant), true);
 				nodesToPath.put(new NodePair(node, descendant), nodeAccessPath);
-			}
+			}*/
 		}
 	}
 	
@@ -285,7 +285,7 @@ public class AccessibilityMatrixManager {
 			if (isValidSetter) {
 				builder.addToOperations(new MethodCall(candidateMethod));
 				isPathFound = true;
-				break;
+				break; // danger: checkLength is before add
 			}
 		}
 		/* // debug specifically
@@ -476,7 +476,7 @@ public class AccessibilityMatrixManager {
 				if (getAllDescendantsOf(directChild).contains(toNode) && directChild instanceof FieldVariableWrapper)
 					// && directChild.var.getType() == DepVariable.ARRAY_ELEMENT)
 					potentialNodes.add(directChild);
-			}
+			} // list/ field variable arraylist
 
 			if (!potentialNodes.isEmpty()) {
 				for (DepVariableWrapper node : potentialNodes) {
