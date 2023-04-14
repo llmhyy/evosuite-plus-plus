@@ -155,6 +155,10 @@ public abstract class ASMWrapper {
 
 	// methods for branch analysis
 
+	public boolean isAload() {
+		return asmNode.getOpcode() == Opcodes.ALOAD;
+	}
+
 	/**
 	 * <p>
 	 * isActualBranch
@@ -521,6 +525,18 @@ public abstract class ASMWrapper {
 		return isFieldDefinition() || isLocalVariableDefinition();
 	}
 
+	public boolean isFieldGet() {
+		return asmNode.getOpcode() == Opcodes.GETFIELD;
+	}
+
+	// AASTORE, BASTORE, CASTORE, DASTORE, FASTORE, IASTORE, LASTORE, SASTORE
+	public boolean isStore() {
+		return asmNode.getOpcode() == Opcodes.AASTORE || asmNode.getOpcode() == Opcodes.BASTORE
+				|| asmNode.getOpcode() == Opcodes.CASTORE || asmNode.getOpcode() == Opcodes.DASTORE
+				|| asmNode.getOpcode() == Opcodes.FASTORE || asmNode.getOpcode() == Opcodes.IASTORE
+				|| asmNode.getOpcode() == Opcodes.LASTORE || asmNode.getOpcode() == Opcodes.SASTORE;
+	}
+
 	/**
 	 * <p>
 	 * isUse
@@ -548,6 +564,13 @@ public abstract class ASMWrapper {
 		        || asmNode.getOpcode() == Opcodes.PUTSTATIC || isFieldArrayDefinition()
 		        || isFieldMethodCallDefinition();
 	}
+
+	/* isFieldDefinition : related Opcodes
+	* PUTFIELD
+	* PUTSTATIC
+	*
+	*
+	* */
 
 	/**
 	 * <p>

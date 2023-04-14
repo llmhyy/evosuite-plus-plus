@@ -25,6 +25,7 @@ import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericField;
+import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.FieldInsnNode;
 
@@ -51,18 +52,24 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 		List<DepVariableWrapper> leafNodes = partialGraph.getLeaves();
 		for (DepVariableWrapper leafNode : leafNodes) {
 			for (DepVariableWrapper rootNode : rootNodes) {
-				boolean isPathExists = accessibilityMatrixManager.findShortestPathLength(rootNode, leafNode) > 0;
-				if (isPathExists) {
-					List<DepVariableWrapper> path = getPathBetween(rootNode, leafNode);
-					if (path == null || path.size() < 2) {
-						continue;
-					}
-					
-					List<Operation> operations = generateOperations(path);	
-					ConstructionPath constructionPath = new ConstructionPath(operations, path);
+				ConstructionPath constructionPath = accessibilityMatrixManager.findPathBetween(rootNode, leafNode);
+				if (constructionPath != null) {
 					constructionPaths.add(constructionPath);
-					break;
 				}
+				// break; // why break?
+
+				// comment out previous approach
+				//boolean isPathExists = accessibilityMatrixManager.findShortestPathLength(rootNode, leafNode) > 0;
+				//if (isPathExists) {
+				//	List<DepVariableWrapper> path = getPathBetween(rootNode, leafNode);
+				//	if (path == null || path.size() < 2) {
+				//		continue;
+				//	}
+				//	List<Operation> operations = generateOperations(path);
+				//	ConstructionPath constructionPath = new ConstructionPath(operations, path);
+				//	constructionPaths.add(constructionPath);
+				//	break;
+				//}
 			}
 		}
 
@@ -295,6 +302,29 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 		}
 	}
 
+	private void generateMethodDirectly(DepVariableWrapper prevNode, MethodCall methodCall, TestCase test,
+										Map<DepVariableWrapper, VarRelevance> nodeToVarRelevance) {
+		Method method = methodCall.getMethod();
+		if (method != null) {
+			int addElementNum = 2; //Randomness.nextInt(0, 3); // do we need random here?
+
+			VariableInTest variableInTest = getCallerObject(nodeToVarRelevance, prevNode);
+
+			for(int i = 0; i < addElementNum; i++) {
+				GenericMethod gMethod = new GenericMethod(method, method.getDeclaringClass());
+				try {
+					int position = variableInTest.callerObject.getStPosition() + 1; // 1; // see if this works
+					// legitimately it should be callerObject.getStPosition() + 1;
+					// in other usage, callerObject is of type VariableReference
+					// Can we do this? Can we find this?
+					TestFactory.getInstance().addMethod(test, gMethod, position, 1);
+				} catch (ConstructionFailedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	private void generateMethodCallStatement(
 			DepVariableWrapper prevNode,
 			DepVariableWrapper currentNode, 
@@ -305,6 +335,17 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 		) {
 		Method method = methodCall.getMethod();
 		Field field = DepVariableWrapperUtil.extractFieldFrom(currentNode);
+
+		// changed here
+		if (field == null) {
+			try {
+				generateMethodDirectly(prevNode, methodCall, testCase, nodeToVarRelevance);
+				return;
+			} catch (Exception e) {
+				String message = "failed";
+			}
+		}
+
 		boolean isStaticField = Modifier.isStatic(field.getModifiers());
 		boolean isInstanceField = !isStaticField;
 		VariableInTest variableInTest = getCallerObject(nodeToVarRelevance, currentNode);

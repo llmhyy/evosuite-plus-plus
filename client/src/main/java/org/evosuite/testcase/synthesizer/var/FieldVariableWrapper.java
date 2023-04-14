@@ -1,12 +1,5 @@
 package org.evosuite.testcase.synthesizer.var;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.ConstructionFailedException;
@@ -22,6 +15,13 @@ import org.evosuite.testcase.synthesizer.improvedsynth.Operation;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.generic.GenericField;
 import org.objectweb.asm.tree.FieldInsnNode;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public class FieldVariableWrapper extends DepVariableWrapper{
 
@@ -155,13 +155,29 @@ public class FieldVariableWrapper extends DepVariableWrapper{
 			 */
 			if (!isLeaf) {
 				//TODO
-				VariableReference getterObject = VariableCodeGenerationUtil.generateFieldGetterInTest(test, variable.callerObject, map, fieldDeclaringClass, field,
+				VariableReference getterObject = VariableCodeGenerationUtil.generateFieldGetterInTest(test,
+						variable.callerObject, map, fieldDeclaringClass, field,
 						usedRefSearcher, b);
 				return getterObject;
+
+//				VariableReference setterObject = VariableCodeGenerationUtil.generateFieldSetterInTest(test,
+//						variable.callerObject, map, fieldDeclaringClass, field, allowNullValue);
+//				if(setterObject != null) {
+//					Statement statement = test.getStatement(setterObject.getStPosition());
+//					if(statement instanceof MethodStatement) {
+//						MethodStatement mStat = (MethodStatement)statement;
+//						if(!mStat.getParameterReferences().isEmpty()) {
+//							VariableReference ref = mStat.getParameterReferences().get(0);
+//							return ref;
+//						}
+//					}
+//				}
+//				return setterObject;
 			} 
 			else {
 				//TODO
-				VariableReference setterObject = VariableCodeGenerationUtil.generateFieldSetterInTest(test, variable.callerObject, map, fieldDeclaringClass, field, allowNullValue);
+				VariableReference setterObject = VariableCodeGenerationUtil.generateFieldSetterInTest(test,
+						variable.callerObject, map, fieldDeclaringClass, field, allowNullValue);
 				if(setterObject != null) {
 					Statement statement = test.getStatement(setterObject.getStPosition());
 					if(statement instanceof MethodStatement) {

@@ -374,7 +374,8 @@ public class DepVariableWrapperUtil {
 	private static List<BytecodeInstruction> getInstructionsFor(Method method) {
 		Class<?> clazz = method.getDeclaringClass();
 		String className = clazz.getCanonicalName();
-		String methodName = getSignatureOf(method);
+		//String methodName = getSignatureOf(method);
+		String methodName = method.getName() + MethodUtil.getSignature(method);
 		
 		BytecodeInstructionPool bytecodeInstructionPool = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT());
 		boolean isClassRecordedInPool = bytecodeInstructionPool.knownClasses().contains(className);
@@ -498,7 +499,7 @@ public class DepVariableWrapperUtil {
 		return false;
 	}
 	
-	public static Method getInvokedMethod(BytecodeInstruction instruction) {
+	public static Method getInvokedMethod(Method notUsed, BytecodeInstruction instruction) {
 		boolean isMethodCall = instruction.isMethodCall();
 		if (!isMethodCall) {
 			return null;
@@ -509,8 +510,43 @@ public class DepVariableWrapperUtil {
 			String methodName = methodNode.name;
 			String methodOwner = methodNode.owner;
 			String methodSignature = methodName + methodNode.desc;
+
 			Class<?> methodOwningClass = extractClassFrom(methodOwner.replace("/", "."));
 			Method[] methods = methodOwningClass.getDeclaredMethods();
+
+			// return methods[1]; // debug only
+
+			for (Method currentMethod : methods) {
+				// Just compare signatures
+				// String currentSignature = getSignatureOf(currentMethod);
+				String currentSignature = currentMethod.getName() + MethodUtil.getSignature(currentMethod);
+				if (methodSignature.equals(currentSignature)) {
+					return currentMethod;
+				}
+			}
+		} catch (NullPointerException e) {
+			return null;
+		}
+		
+		return null;
+	}
+
+	public static Method getInvokedMethod(BytecodeInstruction instruction) {
+		boolean isMethodCall = instruction.isMethodCall();
+		if (!isMethodCall) {
+			return null;
+		}
+
+		try {
+			MethodInsnNode methodNode = (MethodInsnNode) instruction.getASMNode();
+			String methodName = methodNode.name;
+			String methodOwner = methodNode.owner;
+			String methodSignature = methodName + methodNode.desc;
+			Class<?> methodOwningClass = extractClassFrom(methodOwner.replace("/", "."));
+			Method[] methods = methodOwningClass.getDeclaredMethods();
+
+			//return methods[1]; // debug only
+
 			for (Method currentMethod : methods) {
 				// Just compare signatures
 				String currentSignature = getSignatureOf(currentMethod);
@@ -521,7 +557,7 @@ public class DepVariableWrapperUtil {
 		} catch (NullPointerException e) {
 			return null;
 		}
-		
+
 		return null;
 	}
 	
@@ -619,16 +655,58 @@ public class DepVariableWrapperUtil {
 			return false;
 		}
 
-		BytecodeInstruction ins = instructions.get(3);
-		boolean x = ins.isFieldGet();
+		if (!matchFieldName(instructions, arrName)) { // must match name
+			return false;
+		}
 
-		if (x) {
-			String varName = ins.getVariableName();
-			String parts[] = varName.split("\\.");
-			varName = parts[parts.length - 1]; // clean varName with out .path // which is "list" in this case
+		if (checkStore(instructions)) { // store operation can be through method calls
+			return true;
+		} else {
+			return recursivelyCheckStore(method, instructions);
+		}
 
-			if (varName.equals(arrName)) {
+	}
+
+	public static boolean checkStore(List<BytecodeInstruction> instructions) {
+		for (BytecodeInstruction instruction : instructions) {
+			boolean isStore = instruction.isStore();
+			if (isStore) {
 				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean recursivelyCheckStore(Method prev, List<BytecodeInstruction> instructions) {
+		for (BytecodeInstruction instruction : instructions) {
+			boolean isMethodCall = instruction.isMethodCall();
+			if (isMethodCall) {
+				try {
+					Method invokedMethod = getInvokedMethod(prev, instruction);
+					boolean isInvokedMethodDesiredSetter = checkStore(getInstructionsFor(invokedMethod));
+					if (isInvokedMethodDesiredSetter) {
+						return true;
+					}
+				} catch (Exception e) {
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static boolean matchFieldName(List<BytecodeInstruction> instructions, String arrName) {
+		// BytecodeInstruction ins = instructions.get(3); // debug purpose
+		for (BytecodeInstruction instruction : instructions) {
+			boolean fieldGet = instruction.isFieldGet();
+			if (fieldGet) {
+				String varName = instruction.getVariableName();
+				String parts[] = varName.split("\\.");
+				varName = parts[parts.length - 1]; // clean varName with out .path // which is "list" in this case
+
+				if (varName.equals(arrName)) {
+					return true;
+				}
 			}
 		}
 
@@ -668,36 +746,12 @@ public class DepVariableWrapperUtil {
 			return false;
 		}
 
-		BytecodeInstruction ins = instructions.get(3);
-		boolean x = ins.isFieldGet();
-
-		if (x) {
-			String varName = ins.getVariableName();
-			String parts[] = varName.split("\\.");
-			varName = parts[parts.length - 1]; // clean varName with out .path // which is "list" in this case
-
-			String fieldName = field.getName();
-			if (varName == fieldName) {
-				return true;
-			}
-		}
-
-		/*
 		for (BytecodeInstruction instruction : instructions) {
 			// Three cases
 			// 1) Non-relevant instruction (ignore)
 			// 2) Field definition instruction (check if field is correct)
 			// 3) method call (recursively check if it's a setter)
 			boolean isFieldDef = instruction.isFieldDefinition();
-			boolean isFieldGet = instruction.isFieldGet();
-
-			if (isFieldGet) {
-				String varName = instruction.getVariableName();
-				String fieldName = field.getName();
-				if (varName == fieldName) {
-					return true;
-				}
-			}
 
 			if (isFieldDef) {
 				// BytecodeInstruction#isFieldDefinition also includes certain cases for method calls
@@ -730,7 +784,7 @@ public class DepVariableWrapperUtil {
 					return true;
 				}
 			}
-		} */
+		}
 		
 		return false;
 	}

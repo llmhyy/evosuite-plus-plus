@@ -22,31 +22,11 @@
  */
 package org.evosuite;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
-import org.evosuite.Properties.StatisticsBackend;
 import org.apache.commons.lang3.SystemUtils;
 import org.evosuite.classpath.ClassPathHacker;
-import org.evosuite.executionmode.Continuous;
-import org.evosuite.executionmode.Help;
-import org.evosuite.executionmode.ListClasses;
-import org.evosuite.executionmode.WriteDependencies;
-import org.evosuite.executionmode.ListParameters;
-import org.evosuite.executionmode.MeasureCoverage;
-import org.evosuite.executionmode.PrintStats;
-import org.evosuite.executionmode.Setup;
-import org.evosuite.executionmode.TestGeneration;
-import org.evosuite.executionmode.WriteDependencies;
+import org.evosuite.executionmode.*;
 import org.evosuite.junit.writer.TestSuiteWriterUtils;
 import org.evosuite.runtime.sandbox.MSecurityManager;
 import org.evosuite.runtime.util.JavaExecCmdUtil;
@@ -57,6 +37,12 @@ import org.evosuite.utils.Randomness;
 import org.evosuite.utils.SpawnProcessKeepAliveChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * <p>
@@ -79,7 +65,7 @@ public class EvoSuite {
     /**
      * Functional moved to @{@link JavaExecCmdUtil#getJavaBinExecutablePath()}
      * Constant
-     * <code>JAVA_CMD="javaHome + separator + bin + separatorj"{trunked}</code>
+     * <code>JAVA_CMD="javaHome + separator + bin + separator"{trunked}</code>
      */
     //public final static String JAVA_CMD = javaHome + separator + "bin" + separator + "java";
 

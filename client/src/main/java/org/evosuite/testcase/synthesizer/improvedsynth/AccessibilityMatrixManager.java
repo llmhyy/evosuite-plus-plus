@@ -223,15 +223,15 @@ public class AccessibilityMatrixManager {
 		List<DepVariableWrapper> descendants = getAllDescendantsOf(node);
 		for (DepVariableWrapper descendant : descendants) {
 			// for debugging only
-			if (descendant instanceof ArrayElementVariableWrapper) {
-				ConstructionPath nodeAccessPath = findPathBetween(node, descendant);
-			} else { continue; }
-			/*
+//			if (descendant instanceof ArrayElementVariableWrapper) {
+//				ConstructionPath nodeAccessPath = findPathBetween(node, descendant);
+//			} else { continue; }
+
 			ConstructionPath nodeAccessPath = findPathBetween(node, descendant);
 			if (nodeAccessPath != null) {
 				_unsafeSet(_getIndexFor(node), _getIndexFor(descendant), true);
 				nodesToPath.put(new NodePair(node, descendant), nodeAccessPath);
-			}*/
+			}
 		}
 	}
 	
@@ -328,20 +328,24 @@ public class AccessibilityMatrixManager {
 //		ArrayList<String> relevantVarNames = new ArrayList<>(Arrays.asList(fromName, toName));
 //		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsRelating(fromNode, relevantVarNames);
 
-		List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsAccepting(fromNode, toNodeClass);
-
-		for (Method candidateMethod : candidateMethods) {
-			boolean isValidSetter = DepVariableWrapperUtil.testFieldSetter(candidateMethod, toNode);
-			if (isValidSetter) {
-				builder.addToOperations(new MethodCall(candidateMethod));
-				isPathFound = true;
-				break;
+		try {
+			List<Method> candidateMethods = DepVariableWrapperUtil.extractMethodsAccepting(fromNode, toNodeClass);
+			for (Method candidateMethod : candidateMethods) {
+				boolean isValidSetter = DepVariableWrapperUtil.testFieldSetter(candidateMethod, toNode);
+				if (isValidSetter) {
+					builder.addToOperations(new MethodCall(candidateMethod));
+					isPathFound = true;
+					break;
+				}
 			}
+
+			if (isPathFound) {
+				return builder.build();
+			}
+		} catch (Exception e) {
+
 		}
-		
-		if (isPathFound) {
-			return builder.build();
-		}
+
 		
 		return null;
 	}
@@ -418,7 +422,7 @@ public class AccessibilityMatrixManager {
 		return null;
 	}
 	
-	private ConstructionPath findPathBetween(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
+	public ConstructionPath findPathBetween(DepVariableWrapper fromNode, DepVariableWrapper toNode) {
 		boolean isArrayElement = (toNode instanceof ArrayElementVariableWrapper);
 		boolean isField = (toNode instanceof FieldVariableWrapper);
 		boolean isOther = (toNode instanceof OtherVariableWrapper);
@@ -723,6 +727,10 @@ public class AccessibilityMatrixManager {
 	}
 	
 	private List<DepVariableWrapper> getAllDescendantsOf(DepVariableWrapper node) {
+		if (node == null) {
+			return new ArrayList<>();
+		}
+
 		if (nodeToDescendants.containsKey(node)) {
 			return nodeToDescendants.get(node);
 		}

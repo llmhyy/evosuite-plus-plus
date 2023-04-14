@@ -1,20 +1,5 @@
 package org.evosuite.testcase.synthesizer.var;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
@@ -29,19 +14,8 @@ import org.evosuite.testcase.TestFactory;
 import org.evosuite.testcase.execution.CodeUnderTestException;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.TestCaseExecutor;
-import org.evosuite.testcase.statements.AbstractStatement;
-import org.evosuite.testcase.statements.AssignmentStatement;
-import org.evosuite.testcase.statements.ConstructorStatement;
-import org.evosuite.testcase.statements.MethodStatement;
-import org.evosuite.testcase.statements.Statement;
-import org.evosuite.testcase.synthesizer.DataDependencyUtil;
-import org.evosuite.testcase.synthesizer.FieldInitializer;
-import org.evosuite.testcase.synthesizer.NonPrimitiveFieldInitializer;
-import org.evosuite.testcase.synthesizer.ParameterMatch;
-import org.evosuite.testcase.synthesizer.PrimitiveFieldInitializer;
-import org.evosuite.testcase.synthesizer.ReflectionUtil;
-import org.evosuite.testcase.synthesizer.UsedReferenceSearcher;
-import org.evosuite.testcase.synthesizer.ValueSettings;
+import org.evosuite.testcase.statements.*;
+import org.evosuite.testcase.synthesizer.*;
 import org.evosuite.testcase.variable.FieldReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.CollectionUtil;
@@ -49,6 +23,10 @@ import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericField;
 import org.evosuite.utils.generic.GenericMethod;
+
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class VariableCodeGenerationUtil {
 //	private static final Logger logger = LoggerFactory.getLogger(VariableCodeGenerationUtil.class);

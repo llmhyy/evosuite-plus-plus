@@ -1,31 +1,20 @@
 package evosuite.shell;
 
-import static evosuite.shell.EvosuiteForMethod.projectId;
-
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.evosuite.Properties;
-import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
+import com.alibaba.fastjson.JSON;
+import evosuite.shell.excel.ExcelWriter;
+import evosuite.shell.utils.LoggerUtils;
 import org.evosuite.result.BranchInfo;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.Event;
-import org.evosuite.statistics.logToExcel;
 import org.slf4j.Logger;
 
-import com.alibaba.fastjson.JSON;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.*;
 
-import evosuite.shell.excel.ExcelWriter;
-import evosuite.shell.utils.LoggerUtils;
+import static evosuite.shell.EvosuiteForMethod.projectId;
 
 /**
  * 
@@ -55,14 +44,14 @@ public class FitnessEffectiveRecorder extends ExperimentRecorder {
 		
 		
 		//json
-//		File jsonFile = null;
-//		jsonFile = new File(Settings.getReportFolder().toString() + '\\'+projectId + "_evotest.json");
-//		jsonFile.createNewFile();
-//		if (jsonFile.isFile()) {
-//		    // create jsonWriter
-//			System.out.println("file:" + jsonFile);
-//			jsonWriter = new OutputStreamWriter(new FileOutputStream(jsonFile), "UTF-8");
-//		}
+		File jsonFile = null;
+		jsonFile = new File(Settings.getReportFolder().toString() + File.separator +projectId + "_evotest.json");
+		jsonFile.createNewFile();
+		if (jsonFile.isFile()) {
+		    // create jsonWriter
+			System.out.println("file:" + jsonFile);
+			jsonWriter = new OutputStreamWriter(new FileOutputStream(jsonFile), "UTF-8");
+		}
 	    
 	}
 
