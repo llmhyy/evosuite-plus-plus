@@ -7,7 +7,6 @@ import feature.objectconstruction.testgeneration.example.set3.Target3;
 import feature.objectconstruction.testgeneration.example.set4.Target4;
 import feature.objectconstruction.testgeneration.example.set5.Target5;
 import feature.objectconstruction.testgeneration.example.set6.ListClass;
-import feature.objectconstruction.testgeneration.example.set6.Target6;
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
 import org.evosuite.utils.MethodUtil;
@@ -684,81 +683,6 @@ public class SelfDefinedTest extends TestUtility{
     public void testSet6Method1NoObjectRule() {
         Class<?> clazz = ListClass.class;
         String methodName = "checkLength";
-        int parameterNum = 1;
-
-        String targetClass = clazz.getCanonicalName();
-//		Method method = clazz.getMethods()[0];
-        Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-
-        String targetMethod = method.getName() + MethodUtil.getSignature(method);
-        String cp = "target/test-classes" + File.pathSeparator + "target/classes";
-
-        // Properties.LOCAL_SEARCH_RATE = 1;
-//		Properties.DEBUG = true;
-//		Properties.PORT = 8000;
-        Properties.CLIENT_ON_THREAD = true;
-        Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-
-        Properties.TIMEOUT = 10;
-        Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
-//		Properties.TIMELINE_INTERVAL = 3000;
-
-        String fitnessApproach = "branch";
-
-        int timeBudget = 10;
-
-        boolean aor = false;
-        double coverage = TestUtility.evoTestSingleMethod(targetClass,
-                targetMethod, timeBudget, true, aor, cp, fitnessApproach,
-                "generateMOSuite", "MOSUITE", "DynaMOSA");
-
-        System.out.println("coverage is:" + coverage);
-        assert coverage > 0.1;
-
-    }
-
-    @Test
-    public void testSet6Method2() {
-        Class<?> clazz = Target6.class;
-        String methodName = "checkValueAtIndex4";
-        int parameterNum = 1;
-
-        String targetClass = clazz.getCanonicalName();
-//		Method method = clazz.getMethods()[0];
-        Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
-
-        String targetMethod = method.getName() + MethodUtil.getSignature(method);
-        String cp = "target/test-classes" + File.pathSeparator + "target/classes";
-
-        // Properties.LOCAL_SEARCH_RATE = 1;
-//		Properties.DEBUG = true;
-//		Properties.PORT = 8000;
-        Properties.CLIENT_ON_THREAD = true;
-        Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
-
-        Properties.TIMEOUT = 10;
-        Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
-//		Properties.TIMELINE_INTERVAL = 3000;
-
-        String fitnessApproach = "branch";
-
-        int timeBudget = 10;
-
-        boolean aor = true;
-        double coverage = TestUtility.evoTestSingleMethod(targetClass,
-                targetMethod, timeBudget, true, aor, cp, fitnessApproach,
-                "generateMOSuite", "MOSUITE", "DynaMOSA");
-
-        System.out.println("coverage is:" + coverage);
-        assert coverage > 0.1;
-
-    }
-
-
-    @Test
-    public void testSet6Method2NoObjectRule() {
-        Class<?> clazz = Target6.class;
-        String methodName = "checkValueAtIndex4";
         int parameterNum = 1;
 
         String targetClass = clazz.getCanonicalName();

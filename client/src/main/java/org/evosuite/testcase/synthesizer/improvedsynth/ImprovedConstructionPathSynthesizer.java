@@ -590,6 +590,83 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 
 		return operations;
 	}
+
+	/* // Path Selection : Greedy Approach
+	* private List<Operation> generateOperationsGreedily(List<DepVariableWrapper> path, DepVariableWrapper current, int nextIndex) {
+		// current is new start node
+		// nextIndex is the next start node
+
+		// greedy: always try current to leaf node
+		List<Operation> operations = new ArrayList<>();
+		DepVariableWrapper greedyNode = path.get(path.size() - 1); // closer to leaf
+		DepVariableWrapper nextNode; // may not be used
+
+		ConstructionPath accessPath = accessibilityMatrixManager.getNodeAccessPath(current, greedyNode);
+		if (accessPath != null) {
+			operations.addAll(accessPath.getOperations());
+			return operations;
+		} else {
+			if (nextIndex >= path.size()) {
+				return new ArrayList<>();
+			} else {// safe & in range, get next node
+				nextNode = path.get(nextIndex);
+				accessPath = accessibilityMatrixManager.getNodeAccessPath(current, nextNode);
+				if (accessPath == null) {
+					return new ArrayList<>(); // Access chain is broken, failure
+				} else {
+					List<Operation> rest = generateOperationsGreedily(path, nextNode, nextIndex + 1);
+					operations.addAll(rest);
+				}
+			}
+			return operations;
+		}
+	}
+
+	private List<Operation> generateOperations(List<DepVariableWrapper> path) {
+		List<Operation> operations = new ArrayList<>();
+		DepVariableWrapper currentNode = path.get(0); // closer to root
+		DepVariableWrapper greedyNode = path.get(path.size() - 1); // closer to leaf
+		DepVariableWrapper nextNode; // may not be used
+
+		ConstructionPath accessPath = accessibilityMatrixManager.getNodeAccessPath(currentNode, greedyNode);
+		if (accessPath != null) {
+			operations.addAll(accessPath.getOperations());
+			return operations;
+		} // greedy in one step
+
+		if (path.size() <= 1)
+			return new ArrayList<>(); // nothing much to do
+
+		// else: till here, safe to retrieve next node
+		nextNode = path.get(1);
+		accessPath = accessibilityMatrixManager.getNodeAccessPath(currentNode, nextNode);
+		if (accessPath == null) {
+			return new ArrayList<>(); // Access chain is broken, failure
+		} else {
+			operations.addAll(accessPath.getOperations());
+			List<Operation> rest = generateOperationsGreedily(path, nextNode, 2);
+			operations.addAll(rest);
+		}
+
+		return operations;
+
+		// old approach
+//		for (int i = 1; i < path.size(); i++) {
+//			nextNode = path.get(i);
+//			accessPath = accessibilityMatrixManager.getNodeAccessPath(currentNode, nextNode);
+//			if (accessPath == null) {
+//				return new ArrayList<>(); // Access chain is broken, failure
+//			}
+//			operations.addAll(accessPath.getOperations());
+//			currentNode = nextNode;
+//		}
+//
+//		return operations;
+	}
+	*
+	*
+	*
+	* */
 	
 	private List<DepVariableWrapper> getPathBetween(DepVariableWrapper sourceNode, DepVariableWrapper endNode) {
 		// Enhanced BFS to track the path taken
