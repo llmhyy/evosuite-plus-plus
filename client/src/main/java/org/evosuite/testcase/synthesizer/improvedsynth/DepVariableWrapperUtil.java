@@ -265,10 +265,10 @@ public class DepVariableWrapperUtil {
 		List<Method> methodsToReturn = new ArrayList<>();
 		List<Method> candidateMethods = extractNonNativeMethodsFrom(node);
 		for (Method candidateMethod : candidateMethods) {
-//			Class<?> candidateMethodReturnType = candidateMethod.getReturnType();
-//			if (candidateMethodReturnType.equals(desiredReturnType)) {
-//				methodsToReturn.add(candidateMethod);
-//			}
+			Class<?> candidateMethodReturnType = candidateMethod.getReturnType();
+			if (candidateMethodReturnType.equals(desiredReturnType)) {
+				methodsToReturn.add(candidateMethod);
+			}
 
 			methodsToReturn.add(candidateMethod);
 		}
@@ -296,6 +296,7 @@ public class DepVariableWrapperUtil {
 
 		return body;
 	}
+	
 
 	/**
 	 * Returns methods that we can call from an instance of the class enclosed in the node, where the methods
@@ -686,9 +687,11 @@ public class DepVariableWrapperUtil {
 					boolean isInvokedMethodDesiredSetter = checkStore(getInstructionsFor(invokedMethod));
 					if (isInvokedMethodDesiredSetter) {
 						return true;
+					} else {
+						continue;
 					}
 				} catch (Exception e) {
-					return false;
+					//int a = 1;
 				}
 			}
 		}
