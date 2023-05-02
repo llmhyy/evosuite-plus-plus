@@ -44,9 +44,10 @@ public class SF100OverallTest {
 //		String projectId = "83_xbus";
 //		String projectId = "80_wheelwebtool";
 //		String projectId = "58_fps370";
-		String projectId = SF100Project.P1;
+		String projectId = SF100Project.P38;
 		
 		String[] targetMethods = new String[]{
+				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CustPayeeMsgRecChoice#equals(Ljava/lang/Object;)Z"
@@ -72,22 +73,22 @@ public class SF100OverallTest {
 //				"state.GameState#unpack([B)V"
 //				"de.beiri22.filedp.FileDiffPatch#createPatch(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V"
 //				"com.lts.xmlser.tags.CollectionTag#write(Lcom/lts/xmlser/XmlSerializer;Lcom/lts/io/IndentingPrintWriter;Ljava/lang/String;Ljava/lang/Object;Z)V"
-				"com.ib.client.Contract#equals(Ljava/lang/Object;)Z"
+//				"com.ib.client.Contract#equals(Ljava/lang/Object;)Z"
 //				"com.lts.xmlser.tags.CollectionTag#write(Lcom/lts/xmlser/XmlSerializer;Lcom/lts/io/IndentingPrintWriter;Ljava/lang/String;Ljava/lang/Object;Z)V"
 //				"org.jcvi.trace.sanger.chromatogram.BasicChromatogram#equals(Ljava/lang/Object;)Z"
 
 				};
 		
 		int repeatTime = 1;
-		int budget = 100000;
+		int budget = 100;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
 		
-		boolean aor = false;
+		boolean aor = true;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+				seed, aor, "generateMOSuite", "MOSUITE", "CodaMOSA");
 		
 		double coverage = 0;
 		double initCoverage = 0;
