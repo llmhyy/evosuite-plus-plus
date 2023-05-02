@@ -1,6 +1,7 @@
 package org.evosuite.ga.metaheuristics.mosa;
 
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
@@ -8,11 +9,23 @@ import org.evosuite.ga.comparators.NonduplicationComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
 import org.evosuite.seeding.smart.SensitivityMutator;
+import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.MutationPositionDiscriminator;
+import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
+import org.evosuite.testcase.statements.ConstructorStatement;
+import org.evosuite.testcase.statements.MethodStatement;
+import org.evosuite.testcase.statements.StringPrimitiveStatement;
+import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
+import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
+import org.evosuite.utils.generic.GenericConstructor;
+import org.evosuite.utils.generic.GenericMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,9 +215,14 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                     this.goalsManager.getCurrentGoals());
         }
 
-        int maxStallLen = 50;
+        int maxStallLen = 10;
         int stallLen = 0;
         boolean wasTargeted = false;
+
+        // Since current parsing is manual, add this so that
+        // the same test case is not added multiple times
+        // i.e. only 1 LLM is added at the moment
+        boolean isLlmQueried = false;
 
         // Get next generations
         TestCaseLegitimizer.startTime = System.currentTimeMillis();
@@ -218,11 +236,63 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
             }
 
             Set<FitnessFunction<T>> goalsBefore = this.goalsManager.getUncoveredGoals();
+            List<T> populationBefore = this.population;
 
-            if (stallLen > maxStallLen) {
+            if (stallLen > maxStallLen && !isLlmQueried) {
+                isLlmQueried = true;
                 wasTargeted = true;
-                // TODO(vani):
-                // query Codex for new test case
+                t1 = System.currentTimeMillis();
+                System.out.println("COVERAGE STALL DETECTED");
+                String raw;
+                TestCase tc = new DefaultTestCase();
+                try {
+                    // Manual creation of LLM test case. Should be refactored to proper parsing.
+                    ConstructorStatement stmt0 = new ConstructorStatement(tc,
+                            new GenericConstructor(ArrayList.class.getConstructor(), ArrayList.class),
+                            new ArrayList<VariableReference>());
+                    VariableReference col = tc.addStatement(stmt0);
+
+                    StringPrimitiveStatement stmt1 = new StringPrimitiveStatement(tc, "String Value");
+                    IntPrimitiveStatement stmt2 = new IntPrimitiveStatement(tc, 10);
+                    VariableReference item1 = tc.addStatement(stmt1);
+                    VariableReference item2 = tc.addStatement(stmt2);
+
+                    GenericMethod methodAdd = new GenericMethod(ArrayList.class.getMethod("add", Object.class), ArrayList.class);
+                    List<VariableReference> paras;
+
+                    paras = new ArrayList<VariableReference>();
+                    paras.add(item1);
+                    MethodStatement stmt3 = new MethodStatement(tc, methodAdd, col, paras);
+                    tc.addStatement(stmt3);
+
+                    paras = new ArrayList<VariableReference>();
+                    paras.add(item2);
+                    MethodStatement stmt4 = new MethodStatement(tc, methodAdd, col, paras);
+                    tc.addStatement(stmt4);
+
+                    paras = new ArrayList<VariableReference>();
+                    paras.add(col);
+                    Class<?> classUT = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(Properties.TARGET_CLASS);
+                    GenericMethod methodUT = new GenericMethod(classUT.getMethod("toCollection", Object.class), classUT);
+                    MethodStatement stmt5 = new MethodStatement(tc, methodUT, col, paras);
+                    tc.addStatement(stmt5);
+
+                    System.out.println("LLM TEST:");
+                    System.out.println(tc.toCode());
+
+                    // Execute new test case
+                    ExecutionResult exeRes = TestCaseExecutor.runTest(tc);
+                    TestChromosome newTest = new TestChromosome();
+                    newTest.setTestCase(tc);
+                    newTest.setLastExecutionResult(exeRes);
+
+                    this.population.add((T) newTest);
+                    this.evolve();
+                    t2 = System.currentTimeMillis();
+                    this.notifyIteration();
+                } catch (NoSuchMethodException | ClassNotFoundException e) {
+                    logger.error(e.getMessage());
+                }
             } else {
                 wasTargeted = false;
                 t1 = System.currentTimeMillis();
@@ -231,13 +301,14 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                 this.notifyIteration();
             }
 
-            if (wasTargeted /* && add check if the test suite is the same */) {
+            if (wasTargeted && comparePopulation(populationBefore, this.population)) {
                 maxStallLen *= 2;
             }
 
             Set<FitnessFunction<T>> goalsAfter = this.goalsManager.getUncoveredGoals();
             if (goalsAfter.equals(goalsBefore)) {
                 stallLen += 1;
+                System.out.println("NO NEW GOAL COVERED");
             } else {
                 stallLen = 0;
             }
@@ -262,5 +333,31 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         if (!oldGoalFingerPrint.equals(newGoalFingerprint)) {
             MutationPositionDiscriminator.discriminator.resetFrozenIteartion();
         }
+    }
+
+    /**
+     * Checks if the population is the same as before.
+     *
+     * @param populationBefore list of before test cases
+     * @return true if the population is the same, false otherwise
+     */
+    private boolean comparePopulation(List<T> populationBefore, List<T> populationAfter) {
+        int size;
+        List<T> lPopulation, sPopulation;
+        if (populationBefore.size() > populationAfter.size()) {
+            size = populationBefore.size();
+            lPopulation = populationBefore;
+            sPopulation = populationAfter;
+        } else {
+            size = populationAfter.size();
+            lPopulation = populationAfter;
+            sPopulation = populationBefore;
+        }
+        for (int i = 0; i < size; i++) {
+            if (!sPopulation.contains(lPopulation.get(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 }
