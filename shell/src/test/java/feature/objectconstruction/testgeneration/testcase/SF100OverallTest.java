@@ -48,35 +48,6 @@ public class SF100OverallTest {
 		
 		String[] targetMethods = new String[]{
 				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
-//				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
-//				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
-//				"net.sourceforge.ifxfv3.beans.CustPayeeMsgRecChoice#equals(Ljava/lang/Object;)Z"
-//				"org.objectweb.asm.jip.attrs.StackMapAttribute#getFrame(Lorg/objectweb/asm/jip/Label;)Lorg/objectweb/asm/jip/attrs/StackMapFrame;"
-//				"state.Party#remove(Lstate/Party;)V"
-//				"net.sourceforge.ifxfv3.beans.BankAcctTrnRec#equals(Ljava/lang/Object;)Z"
-//				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
-//				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
-//				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
-//				"wheel.components.Checkbox#renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V"
-//				"net.sourceforge.ifxfv3.beans.CCAcctStmtInqRs#equals(Ljava/lang/Object;)Z"
-//				"net.sourceforge.ifxfv3.beans.PmtMsgRecChoice#equals(Ljava/lang/Object;)Z"
-//				"de.paragon.explorer.model.AttributeModelComparator#compare(Lde/paragon/explorer/model/AttributeModel;Lde/paragon/explorer/model/AttributeModel;)I"
-//				"net.sourceforge.ifxfv3.beans.PmtLegalRptData#equals(Ljava/lang/Object;)Z"
-//				"corina.index.Horizontal#index()V"
-//				"com.lts.scheduler.Scheduler#cancel(Lcom/lts/scheduler/ScheduledEventListener;)V"
-//				"org.exolab.jms.gc.GarbageCollectionService#doStart()V"
-//				"com.lts.caloriecount.data.CalorieCountData#setFrequentFoods(Lcom/lts/application/data/IdApplicationDataList;)V"
-//				"de.outstare.fortbattleplayer.gui.battlefield.BattleFieldLayoutManager#layoutContainer(Ljava/awt/Container;)V"
-//				"org.jcvi.trace.frg.DefaultFragment#equals(Ljava/lang/Object;)Z"
-//				"com.lts.scheduler.Scheduler#cancel(Lcom/lts/scheduler/ScheduledEventListener;)V"
-//				"de.huxhorn.lilith.services.clipboard.AccessUriFormatter#isCompatible(Ljava/lang/Object;)Z"
-//				"state.GameState#unpack([B)V"
-//				"de.beiri22.filedp.FileDiffPatch#createPatch(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V"
-//				"com.lts.xmlser.tags.CollectionTag#write(Lcom/lts/xmlser/XmlSerializer;Lcom/lts/io/IndentingPrintWriter;Ljava/lang/String;Ljava/lang/Object;Z)V"
-//				"com.ib.client.Contract#equals(Ljava/lang/Object;)Z"
-//				"com.lts.xmlser.tags.CollectionTag#write(Lcom/lts/xmlser/XmlSerializer;Lcom/lts/io/IndentingPrintWriter;Ljava/lang/String;Ljava/lang/Object;Z)V"
-//				"org.jcvi.trace.sanger.chromatogram.BasicChromatogram#equals(Ljava/lang/Object;)Z"
-
 				};
 		
 		int repeatTime = 1;

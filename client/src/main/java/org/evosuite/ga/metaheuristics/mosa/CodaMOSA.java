@@ -8,6 +8,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.comparators.NonduplicationComparator;
 import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
+import org.evosuite.lm.OpenAiLanguageModel;
 import org.evosuite.seeding.smart.SensitivityMutator;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.MutationPositionDiscriminator;
@@ -16,6 +17,7 @@ import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
+import org.evosuite.testcase.parser.Parser;
 import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.StringPrimitiveStatement;
@@ -29,6 +31,10 @@ import org.evosuite.utils.generic.GenericMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
@@ -243,54 +249,42 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                 wasTargeted = true;
                 t1 = System.currentTimeMillis();
                 System.out.println("COVERAGE STALL DETECTED");
-                String raw;
-                TestCase tc = new DefaultTestCase();
                 try {
-                    // Manual creation of LLM test case. Should be refactored to proper parsing.
-                    ConstructorStatement stmt0 = new ConstructorStatement(tc,
-                            new GenericConstructor(ArrayList.class.getConstructor(), ArrayList.class),
-                            new ArrayList<VariableReference>());
-                    VariableReference col = tc.addStatement(stmt0);
+                    String dir = "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data";
+                    Path path = Paths.get(dir + "/38_javabullboard_toCollection.txt");
+                    String prompt = new String(Files.readAllBytes(path));
 
-                    StringPrimitiveStatement stmt1 = new StringPrimitiveStatement(tc, "String Value");
-                    IntPrimitiveStatement stmt2 = new IntPrimitiveStatement(tc, 10);
-                    VariableReference item1 = tc.addStatement(stmt1);
-                    VariableReference item2 = tc.addStatement(stmt2);
+                    OpenAiLanguageModel model = new OpenAiLanguageModel();
+                    model.setTestSrc(prompt);
 
-                    GenericMethod methodAdd = new GenericMethod(ArrayList.class.getMethod("add", Object.class), ArrayList.class);
-                    List<VariableReference> paras;
+//                    String testCaseStr = model.callCompletion("toCollection()", -1, -1);
+                    String testCaseStr = new String(Files.readAllBytes(Paths.get(
+                            dir + "/38_javabullboard_toCollection_testCase.txt")));
+                    Parser parser = new Parser();
+                    parser.parse(testCaseStr);
+                    TestCase testCase = parser.getTestCase();
 
-                    paras = new ArrayList<VariableReference>();
-                    paras.add(item1);
-                    MethodStatement stmt3 = new MethodStatement(tc, methodAdd, col, paras);
-                    tc.addStatement(stmt3);
-
-                    paras = new ArrayList<VariableReference>();
-                    paras.add(item2);
-                    MethodStatement stmt4 = new MethodStatement(tc, methodAdd, col, paras);
-                    tc.addStatement(stmt4);
-
-                    paras = new ArrayList<VariableReference>();
-                    paras.add(col);
-                    Class<?> classUT = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(Properties.TARGET_CLASS);
-                    GenericMethod methodUT = new GenericMethod(classUT.getMethod("toCollection", Object.class), classUT);
-                    MethodStatement stmt5 = new MethodStatement(tc, methodUT, col, paras);
-                    tc.addStatement(stmt5);
+//                    List<VariableReference> paras = new ArrayList<VariableReference>();
+//                    paras.add(col);
+//                    Class<?> classUT = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("framework.util.ObjectUtils");
+//                    GenericMethod methodUT = new GenericMethod(classUT.getMethod("toCollection", Object.class), classUT);
+//                    MethodStatement stmt5 = new MethodStatement(tc, methodUT, col, paras);
+//                    tc.addStatement(stmt5);
 
                     System.out.println("LLM TEST:");
-                    System.out.println(tc.toCode());
+                    System.out.println(testCase.toCode());
 
                     // Execute new test case
-                    ExecutionResult exeRes = TestCaseExecutor.runTest(tc);
+                    ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
                     TestChromosome newTest = new TestChromosome();
-                    newTest.setTestCase(tc);
+                    newTest.setTestCase(testCase);
                     newTest.setLastExecutionResult(exeRes);
 
                     this.population.add((T) newTest);
                     this.evolve();
                     t2 = System.currentTimeMillis();
                     this.notifyIteration();
-                } catch (NoSuchMethodException | ClassNotFoundException e) {
+                } catch (RuntimeException | IOException e) {
                     logger.error(e.getMessage());
                 }
             } else {

@@ -1,0 +1,21 @@
+public class ObjectUtilsTest {
+
+    @Test
+    public void testToCollection() {
+        // given
+        List<Object> expectedValue = new ArrayList<>();
+        expectedValue.add("String Value");
+        expectedValue.add(10);
+        //expectedValue.add(new URL("http://example.com"));
+
+        // when
+        Collection<Object> actualValue = ObjectUtils.toCollection(expectedValue);
+
+        // then
+        //assertNotNull(actualValue);
+        //Iterator<Object> iterator = actualValuer.iterator();
+        //for (Object obj : expectedValue) {
+        //    assertTrue(actualValue.contains(iterator.next()));
+        //}
+    }
+}

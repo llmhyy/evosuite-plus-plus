@@ -1,7 +1,6 @@
-package org.evosuite.languagemodels;
+package org.evosuite.lm;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -11,7 +10,7 @@ import com.theokanning.openai.edit.EditChoice;
 import com.theokanning.openai.edit.EditRequest;
 import com.theokanning.openai.service.OpenAiService;
 
-public class OpenAILanguageModel {
+public class OpenAiLanguageModel {
 
     private String testSrc;
     private String authorizationKey;
@@ -24,13 +23,13 @@ public class OpenAILanguageModel {
     public int numCodexCalls;
     public float timeCallingCodex;
 
-    public OpenAILanguageModel() {
+    public OpenAiLanguageModel() {
         maxQueryLen = 4000 - 200;
         tokenLenCache = new ArrayList<>();
         numCodexCalls = 0;
         timeCallingCodex = 0;
         // TODO(vani): refactor
-        setAuthorizationKey("INSERT_YOUR_OPEN_AI_TOKEN");
+        setAuthorizationKey("");
         setCompleteModel("text-davinci-003");
         setEditModel("code-davinci-edit-001");
         setTemperature(1.0);
