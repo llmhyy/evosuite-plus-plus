@@ -25,6 +25,9 @@ public class Parser {
     }
 
     public void parse(String testCaseStr) {
+        testCaseStr = removeAssertions(testCaseStr);
+        System.out.println("AFTER REMOVING ASSERTIONS");
+        System.out.println(testCaseStr);
         ParseResult<CompilationUnit> result = new JavaParser().parse(testCaseStr);
         if (result.isSuccessful() && result.getResult().isPresent()) {
             CompilationUnit compUnit = result.getResult().get();
@@ -41,6 +44,16 @@ public class Parser {
             }
             logger.error(result.getProblems().toString());
         }
+    }
+
+    private String removeAssertions(String testCaseStr) {
+        StringBuilder result = new StringBuilder();
+        for (String line : testCaseStr.split(System.lineSeparator())) {
+            if (!line.contains("assert")) {
+                result.append(line).append(System.lineSeparator());
+            }
+        }
+        return result.toString();
     }
 
     private String wrapClassDec(String test) {

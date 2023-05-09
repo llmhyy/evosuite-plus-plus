@@ -260,7 +260,10 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                     String testCaseStr = model.callCompletion("write unit test for toCollection()", -1, -1);
 //                    String testCaseStr = new String(Files.readAllBytes(Paths.get(
 //                            dir + "/38_javabullboard_toCollection_testCase.txt")));
-                    logger.info(testCaseStr);
+
+                    System.out.println("LLM TEST IN STRING:");
+                    System.out.println(testCaseStr);
+
                     Parser parser = new Parser();
                     parser.parse(testCaseStr);
                     TestCase testCase = parser.getTestCase();

@@ -307,6 +307,8 @@ public class ParserVisitor implements VoidVisitor<Object> {
         if (!n.getScope().isPresent()) {
             logger.error(n.getNameAsString() + ": callee is null");
             return;
+        } else if (n.getScope().get().toString().contains("assert")) {
+            return;
         }
         String callee = n.getScope().get().toString();
         String name = n.getNameAsString();

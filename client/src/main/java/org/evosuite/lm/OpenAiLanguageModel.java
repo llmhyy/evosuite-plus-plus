@@ -1,5 +1,6 @@
 package org.evosuite.lm;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -128,16 +129,16 @@ public class OpenAiLanguageModel {
     public String callCompletion(String functionHeader, int contextStart, int contextEnd) {
         String context = getMaximalSourceContent(contextStart, contextEnd, 0);
 
-        System.out.println(context);
+        System.out.println(functionHeader + "\n" + context);
 
-        OpenAiService service = new OpenAiService(authorizationKey);
+        OpenAiService service = new OpenAiService(authorizationKey, Duration.ofSeconds(30L));
 
         // We want to stop the generation before
         // it spits out a bunch of other tests,
         // because that slows things down
         CompletionRequest request = CompletionRequest.builder()
                 .model(completeModel)
-                .prompt(context + "\n" + functionHeader)
+                .prompt(functionHeader + "\n" + context)
                 .maxTokens(300)
                 .temperature(temperature)
                 //.stop(Arrays.asList("\npublic"))
