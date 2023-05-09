@@ -82,6 +82,12 @@
             <artifactId>cdi-api</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.core</groupId>
+            <artifactId>org.eclipse.core.resources</artifactId>
+            <version>3.7.100</version>
+            <scope>compile</scope>
+        </dependency>
 
     </dependencies>
 
@@ -112,7 +118,8 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-				<configuration>
+                <version>3.1.0</version>
+                <configuration>
 				  <artifactSet>
 		                    <excludes>
 		                      <!-- the eclipse plugin needs this -->
@@ -239,6 +246,7 @@
 					<plugin>
 		                <groupId>org.apache.maven.plugins</groupId>
 		                <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.1.0</version>
 		               	  <executions>
 	                        <execution>
 	                            <phase>none</phase>

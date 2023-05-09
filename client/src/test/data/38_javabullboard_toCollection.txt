@@ -1,5 +1,3 @@
-write unit test for toCollection()
-
 package framework.util;
 
 import java.beans.PropertyDescriptor;

@@ -137,7 +137,7 @@ public class OpenAiLanguageModel {
         // because that slows things down
         CompletionRequest request = CompletionRequest.builder()
                 .model(completeModel)
-                .prompt(context + "\n" /*+ functionHeader*/)
+                .prompt(context + "\n" + functionHeader)
                 .maxTokens(300)
                 .temperature(temperature)
                 //.stop(Arrays.asList("\npublic"))
