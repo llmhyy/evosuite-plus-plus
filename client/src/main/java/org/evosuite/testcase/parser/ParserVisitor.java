@@ -297,7 +297,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(NullLiteralExpr n, Object arg) {
-        Class<?> type = ParserUtil.loadClass(String.valueOf(arg));
+        Class<?> type = ParserUtil.loadClassByName(String.valueOf(arg));
         s = new NullStatement(testCase, type);
         r = testCase.addStatement(s);
     }
@@ -315,11 +315,11 @@ public class ParserVisitor implements VoidVisitor<Object> {
         Class<?> clazz = null;
         List<Class<?>> types = new ArrayList<>();
         if (Objects.equals(name, "add")) {
-            clazz = ParserUtil.loadClass("java.util.ArrayList");
-            types.add(ParserUtil.loadClass("java.lang.Object"));
+            clazz = ParserUtil.loadClassByName("java.util.ArrayList");
+            types.add(ParserUtil.loadClassByName("java.lang.Object"));
         } else if (Objects.equals(name, "toCollection")) {
-            clazz = ParserUtil.loadClass("framework.util.ObjectUtils");
-            types.add(ParserUtil.loadClass("java.lang.Object"));
+            clazz = ParserUtil.loadClassByName("framework.util.ObjectUtils");
+            types.add(ParserUtil.loadClassByName("java.lang.Object"));
         }
         List<VariableReference> args = new ArrayList<>();
         n.getArguments().forEach(a -> {
@@ -351,7 +351,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
         Class<?> clazz = null;
         List<Class<?>> types = new ArrayList<>();
         if (Objects.equals(type, "ArrayList<>")) {
-            clazz = ParserUtil.loadClass("java.util.ArrayList");
+            clazz = ParserUtil.loadClassByName("java.util.ArrayList");
         }
         List<VariableReference> args = new ArrayList<>();
         n.getArguments().forEach(a -> {
