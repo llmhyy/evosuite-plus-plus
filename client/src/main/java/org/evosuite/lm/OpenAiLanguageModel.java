@@ -129,8 +129,6 @@ public class OpenAiLanguageModel {
     public String callCompletion(String functionHeader, int contextStart, int contextEnd) {
         String context = getMaximalSourceContent(contextStart, contextEnd, 0);
 
-        System.out.println(functionHeader + "\n" + context);
-
         OpenAiService service = new OpenAiService(authorizationKey, Duration.ofSeconds(30L));
 
         // We want to stop the generation before
@@ -142,6 +140,37 @@ public class OpenAiLanguageModel {
                 .maxTokens(300)
                 .temperature(temperature)
                 //.stop(Arrays.asList("\npublic"))
+                .build();
+
+        long startTime = System.currentTimeMillis();
+
+        List<CompletionChoice> choices = service.createCompletion(request).getChoices();
+
+        timeCallingCodex += System.currentTimeMillis() - startTime;
+        numCodexCalls += 1;
+
+        return choices.get(0).getText();
+    }
+
+    /**
+     * Asks the model to provide a completion of the method signature
+     * given the simple class name and method name.
+     * @param simpleClassName the simple class name of the called on class/object
+     * @param simpleMethodName the simple name of the invoked method
+     * @return the result of calling the model to complete the function signature.
+     */
+    public String findMethodSignature(String simpleClassName, String simpleMethodName) {
+        String prompt = "return the full package name and its signature of method " +
+                simpleMethodName + "() called on an " +
+                simpleClassName + " object in Java bytecode";
+
+        OpenAiService service = new OpenAiService(authorizationKey, Duration.ofSeconds(30L));
+
+        CompletionRequest request = CompletionRequest.builder()
+                .model(completeModel)
+                .prompt(prompt)
+                .maxTokens(100)
+                .temperature(temperature)
                 .build();
 
         long startTime = System.currentTimeMillis();

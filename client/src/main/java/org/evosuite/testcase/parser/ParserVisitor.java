@@ -16,6 +16,7 @@ import org.evosuite.testcase.statements.*;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.numeric.*;
 import org.evosuite.testcase.variable.VariableReference;
+import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericMethod;
 import org.slf4j.Logger;
@@ -305,39 +306,26 @@ public class ParserVisitor implements VoidVisitor<Object> {
     @Override
     public void visit(MethodCallExpr n, Object arg) {
         if (!n.getScope().isPresent()) {
-            logger.error(n.getNameAsString() + ": callee is null");
-            return;
-        } else if (n.getScope().get().toString().contains("assert")) {
+            logger.error(n.getNameAsString() + ": callee/scope should not is null");
             return;
         }
-        String callee = n.getScope().get().toString();
+
         String name = n.getNameAsString();
-        Class<?> clazz = null;
-        List<Class<?>> types = new ArrayList<>();
-        if (Objects.equals(name, "add")) {
-            clazz = ParserUtil.loadClassByName("java.util.ArrayList");
-            types.add(ParserUtil.loadClassByName("java.lang.Object"));
-        } else if (Objects.equals(name, "toCollection")) {
-            clazz = ParserUtil.loadClassByName("framework.util.ObjectUtils");
-            types.add(ParserUtil.loadClassByName("java.lang.Object"));
-        }
-        List<VariableReference> args = new ArrayList<>();
+        String callee = n.getScope().get().toString();
+        VariableReference calleeRef = getReference(callee);
+        GenericClass calleeClass = calleeRef.getGenericClass();
+
+        List<VariableReference> argRefs = new ArrayList<>();
+        List<GenericClass> argClasses = new ArrayList<>();
         n.getArguments().forEach(a -> {
             a.accept(this, arg);
-            args.add(r);
+            argRefs.add(r);
+            argClasses.add(r.getGenericClass());
         });
-        try {
-            if (clazz == null) {
-                throw new NoSuchMethodException("clazz is null");
-            }
-            GenericMethod method = new GenericMethod(
-                    clazz.getMethod(name, types.toArray(new Class<?>[0])),
-                    clazz);
-            s = new MethodStatement(testCase, method, getReference(callee), args);
-            r = testCase.addStatement(s);
-        } catch (NoSuchMethodException e) {
-            logger.error(e.getMessage());
-        }
+
+        GenericMethod method = ParserUtil.loadGenericMethod(calleeClass, name, argClasses);
+        s = new MethodStatement(testCase, method, calleeRef, argRefs);
+        r = testCase.addStatement(s);
     }
 
     @Override

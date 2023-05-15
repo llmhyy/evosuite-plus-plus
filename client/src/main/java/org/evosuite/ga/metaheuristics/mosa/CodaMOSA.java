@@ -257,7 +257,8 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                     OpenAiLanguageModel model = new OpenAiLanguageModel();
                     model.setTestSrc(prompt);
 
-//                    String testCaseStr = model.callCompletion("write unit test for toCollection()", -1, -1);
+//                    String functionHeader = "write unit test for toCollection()";
+//                    String testCaseStr = model.callCompletion(functionHeader, -1, -1);
                     String testCaseStr = new String(Files.readAllBytes(Paths.get(
                             dir + "/38_javabullboard_toCollection_testCase.txt")));
 
