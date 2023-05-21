@@ -37,6 +37,8 @@ public class ParserVisitor implements VoidVisitor<Object> {
     public ParserVisitor() {
         this.testCase = new DefaultTestCase();
         this.references = new HashMap<>();
+        ParserUtil.initCaches();
+
     }
 
     private void updateReferences(String k, VariableReference v) {
@@ -298,7 +300,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(NullLiteralExpr n, Object arg) {
-        Class<?> type = ParserUtil.loadClassByName(String.valueOf(arg));
+        Class<?> type = ParserUtil.getClass(String.valueOf(arg));
         s = new NullStatement(testCase, type);
         r = testCase.addStatement(s);
     }
@@ -311,20 +313,27 @@ public class ParserVisitor implements VoidVisitor<Object> {
         }
 
         String name = n.getNameAsString();
-        String callee = n.getScope().get().toString();
-        VariableReference calleeRef = getReference(callee);
-        GenericClass calleeClass = calleeRef.getGenericClass();
+        String scope = n.getScope().get().toString();
+        VariableReference ref = getReference(scope);
+        GenericClass clazz = ref == null
+                ? ParserUtil.getGenericClass(scope)
+                : ref.getGenericClass();
 
         List<VariableReference> argRefs = new ArrayList<>();
-        List<GenericClass> argClasses = new ArrayList<>();
+        List<GenericClass> argTypes = new ArrayList<>();
         n.getArguments().forEach(a -> {
             a.accept(this, arg);
             argRefs.add(r);
-            argClasses.add(r.getGenericClass());
+            argTypes.add(r.getGenericClass());
         });
 
-        GenericMethod method = ParserUtil.loadGenericMethod(calleeClass, name, argClasses);
-        s = new MethodStatement(testCase, method, calleeRef, argRefs);
+        GenericMethod method = ParserUtil.getMethod(clazz, name, argTypes);
+        if (method == null) {
+            logger.error("could not find method " + name + "() of class " + clazz.getClassName());
+            return;
+        }
+
+        s = new MethodStatement(testCase, method, ref, argRefs);
         r = testCase.addStatement(s);
     }
 
@@ -335,29 +344,25 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(ObjectCreationExpr n, Object arg) {
-        String type = n.getTypeAsString();
-        Class<?> clazz = null;
-        List<Class<?>> types = new ArrayList<>();
-        if (Objects.equals(type, "ArrayList<>")) {
-            clazz = ParserUtil.loadClassByName("java.util.ArrayList");
-        }
-        List<VariableReference> args = new ArrayList<>();
+        Class<?> type = ParserUtil.getClass(n.getType().getNameWithScope());
+        GenericClass clazz = new GenericClass(type);
+
+        List<VariableReference> argRefs = new ArrayList<>();
+        List<GenericClass> argTypes = new ArrayList<>();
         n.getArguments().forEach(a -> {
             a.accept(this, arg);
-            args.add(r);
+            argRefs.add(r);
+            argTypes.add(r.getGenericClass());
         });
-        try {
-            if (clazz == null) {
-                throw new NoSuchMethodException("clazz is null");
-            }
-            GenericConstructor constructor = new GenericConstructor(
-                    clazz.getConstructor(types.toArray(new Class<?>[0])),
-                    clazz);
-            s = new ConstructorStatement(testCase, constructor, args);
-            r = testCase.addStatement(s);
-        } catch (NoSuchMethodException e) {
-            logger.error(e.getMessage());
+
+        GenericConstructor constructor = ParserUtil.getConstructor(clazz, argTypes);
+        if (constructor == null) {
+            logger.error("could not find constructor for class " + clazz.getClassName());
+            return;
         }
+
+        s = new ConstructorStatement(testCase, constructor, argRefs);
+        r = testCase.addStatement(s);
     }
 
     @Override
@@ -529,7 +534,8 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(NodeList n, Object arg) {
-        n.forEach((node) -> ((Node) node).accept(this, arg));
+        n.forEach(node ->
+                ((Node) node).accept(this, arg));
     }
 
     @Override
