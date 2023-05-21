@@ -239,7 +239,7 @@ public class ParserUtil {
         try {
             clazz = classCache.get(classSimpleName);
             if (clazz == null && Properties.TARGET_CLASS.contains(classSimpleName)) {
-                clazz = Class.forName(Properties.TARGET_CLASS);
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(Properties.TARGET_CLASS);
             }
         } catch (ClassNotFoundException e) {
             logger.error(e.toString());
