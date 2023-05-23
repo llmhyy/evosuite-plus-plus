@@ -15,6 +15,8 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.statements.*;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.numeric.*;
+import org.evosuite.testcase.variable.ArrayIndex;
+import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
@@ -214,17 +216,47 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(ArrayCreationExpr n, Object arg) {
+        if (n.getLevels().size() > 1) {
+            logger.error("array of size > 1 not supported");
+            return;
+        }
 
+        Class<?> elementType = ParserUtil.getClass(n.getElementType().toString());
+        Class<?> type = java.lang.reflect.Array.newInstance(elementType, 0).getClass();
+        n.getInitializer().ifPresent(i -> i.accept(this, type));
     }
 
     @Override
     public void visit(ArrayInitializerExpr n, Object arg) {
+        ArrayReference array = new ArrayReference(testCase, (Class<?>) arg);
+        s = new ArrayStatement(testCase, array, new int[] { n.getValues().size() });
+        r = testCase.addStatement(s);
 
+        int i = 0;
+        for (Expression v : n.getValues()) {
+            v.accept(this, arg);
+            ArrayIndex e = new ArrayIndex(testCase, array, i++);
+            s = new AssignmentStatement(testCase, e, r);
+            r = testCase.addStatement(s);
+        }
+
+        int pos = array.getStPosition();
+        s = testCase.getStatement(pos);
+        r = testCase.getReturnValue(pos);
     }
 
     @Override
     public void visit(AssignExpr n, Object arg) {
+        if (!(n.getTarget() instanceof NameExpr)) {
+            logger.error("assignment not supported target type: " + n.getTarget().getClass());
+            return;
+        }
 
+        String target = n.getTarget().asNameExpr().getNameAsString();
+        VariableReference var = getReference(target);
+        n.getValue().accept(this, arg);
+        s = new AssignmentStatement(testCase, var, r);
+        r = testCase.addStatement(s);
     }
 
     @Override
@@ -321,11 +353,11 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
         List<VariableReference> argRefs = new ArrayList<>();
         List<GenericClass> argTypes = new ArrayList<>();
-        n.getArguments().forEach(a -> {
+        for (Expression a : n.getArguments()) {
             a.accept(this, arg);
             argRefs.add(r);
             argTypes.add(r.getGenericClass());
-        });
+        }
 
         GenericMethod method = ParserUtil.getMethod(clazz, name, argTypes);
         if (method == null) {
@@ -333,6 +365,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
             return;
         }
 
+        argRefs = argRefs.subList(0, Math.min(method.getNumParameters(), argRefs.size()));
         s = new MethodStatement(testCase, method, ref, argRefs);
         r = testCase.addStatement(s);
     }
@@ -349,11 +382,11 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
         List<VariableReference> argRefs = new ArrayList<>();
         List<GenericClass> argTypes = new ArrayList<>();
-        n.getArguments().forEach(a -> {
+        for (Expression a : n.getArguments()) {
             a.accept(this, arg);
             argRefs.add(r);
             argTypes.add(r.getGenericClass());
-        });
+        }
 
         GenericConstructor constructor = ParserUtil.getConstructor(clazz, argTypes);
         if (constructor == null) {
@@ -361,6 +394,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
             return;
         }
 
+        argRefs = argRefs.subList(0, Math.min(constructor.getNumParameters(), argRefs.size()));
         s = new ConstructorStatement(testCase, constructor, argRefs);
         r = testCase.addStatement(s);
     }

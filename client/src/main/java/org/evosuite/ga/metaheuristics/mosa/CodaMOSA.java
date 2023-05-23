@@ -257,17 +257,20 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                     OpenAiLanguageModel model = new OpenAiLanguageModel();
                     model.setTestSrc(prompt);
 
-//                    String functionHeader = "write unit test for toCollection()";
-//                    String testCaseStr = model.callCompletion(functionHeader, -1, -1);
-                    String testCaseStr = new String(Files.readAllBytes(Paths.get(
-                            dir + "/38_javabullboard_toCollection_testCase.txt")));
+                    TestCase testCase = null;
+                    while (testCase == null || testCase.isEmpty()) {
+                        String functionHeader = "write unit test for toCollection()";
+//                        String testCaseStr = model.callCompletion(functionHeader, -1, -1);
+                        String testCaseStr = new String(Files.readAllBytes(Paths.get(dir + "/38_javabullboard_toCollection_testCase2.txt")));
 
-                    System.out.println("LLM TEST IN STRING:");
-                    System.out.println(testCaseStr);
+                        System.out.println("=============================================");
+                        System.out.println("LLM TEST IN STRING:");
+                        System.out.println(testCaseStr);
 
-                    Parser parser = new Parser();
-                    parser.parse(testCaseStr);
-                    TestCase testCase = parser.getTestCase();
+                        Parser parser = new Parser();
+                        parser.parse(testCaseStr);
+                        testCase = parser.getTestCase();
+                    }
 
                     System.out.println("LLM TEST:");
                     System.out.println(testCase.toCode());
