@@ -1,0 +1,31 @@
+public class ObjectUtilsTest {
+
+    @Test
+    public void toCollectionTest() {
+        //test with null value
+        Collection res1 = ObjectUtils.toCollection(null);
+        assertEquals(null,res1);
+
+        //test with collection of objects
+        Collection<String> cv = new ArrayList<String>();
+        cv.add("test1");
+        cv.add("test2");
+        Collection res2 = ObjectUtils.toCollection(cv);
+        assertEquals(cv.size(),res2.size());
+        Iterator<String> it1 = cv.iterator();
+        Iterator it2 = res2.iterator();
+        while(it1.hasNext()) {
+            assertEquals(it1.next(),it2.next());
+        }
+
+        //test with array of int
+        int[] av = new int[]{1,2,3};
+        Collection res3 = ObjectUtils.toCollection(av);
+        assertEquals(3,res3.size());
+        Iterator<Integer> it3 = res3.iterator();
+        int i=0;
+        while(it3.hasNext()) {
+            assertEquals(av[i++], (int)it3.next());
+        }
+    }
+}

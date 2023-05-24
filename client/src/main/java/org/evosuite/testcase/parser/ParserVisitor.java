@@ -142,7 +142,6 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(MethodDeclaration n, Object arg) {
-        // i.e. test case
         n.getBody().ifPresent(b -> b.accept(this, arg));
     }
 
@@ -164,7 +163,6 @@ public class ParserVisitor implements VoidVisitor<Object> {
     // - Type ----------------------------------------------
     @Override
     public void visit(ClassOrInterfaceType n, Object arg) {
-        // i.e. test suite
         n.getChildNodes().forEach(cn -> cn.accept(this, arg));
     }
 
@@ -416,7 +414,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(VariableDeclarationExpr n, Object arg) {
-        Type type = n.getElementType().asClassOrInterfaceType();
+        Type type = n.getElementType();
         n.getVariables().accept(this, type);
     }
 

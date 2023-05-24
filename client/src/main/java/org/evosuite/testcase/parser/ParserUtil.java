@@ -49,6 +49,7 @@ public class ParserUtil {
                 "java.util.Stack",
                 "java.util.Date",
                 "java.util.Calendar",
+                "java.util.Collection",
                 "java.text.SimpleDateFormat",
                 "java.io.File",
                 "java.util.Scanner",
@@ -93,6 +94,15 @@ public class ParserUtil {
                 logger.error(e.getMessage());
             }
         }
+
+        classCache.put("int", int.class);
+        classCache.put("long", long.class);
+        classCache.put("float", float.class);
+        classCache.put("double", double.class);
+        classCache.put("boolean", boolean.class);
+        classCache.put("byte", byte.class);
+        classCache.put("short", short.class);
+        classCache.put("char", char.class);
     }
 
     private static void initMethodCache() {

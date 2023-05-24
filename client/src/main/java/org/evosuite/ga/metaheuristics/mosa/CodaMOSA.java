@@ -225,11 +225,6 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         int stallLen = 0;
         boolean wasTargeted = false;
 
-        // Since current parsing is manual, add this so that
-        // the same test case is not added multiple times
-        // i.e. only 1 LLM is added at the moment
-        boolean isLlmQueried = false;
-
         // Get next generations
         TestCaseLegitimizer.startTime = System.currentTimeMillis();
         while (!isFinished() && this.goalsManager.getUncoveredGoals().size() > 0) {
@@ -244,8 +239,7 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
             Set<FitnessFunction<T>> goalsBefore = this.goalsManager.getUncoveredGoals();
             List<T> populationBefore = this.population;
 
-            if (stallLen > maxStallLen && !isLlmQueried) {
-                isLlmQueried = true;
+            if (stallLen > maxStallLen) {
                 wasTargeted = true;
                 t1 = System.currentTimeMillis();
                 System.out.println("COVERAGE STALL DETECTED");
@@ -260,8 +254,8 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                     TestCase testCase = null;
                     while (testCase == null || testCase.isEmpty()) {
                         String functionHeader = "write unit test for toCollection()";
-//                        String testCaseStr = model.callCompletion(functionHeader, -1, -1);
-                        String testCaseStr = new String(Files.readAllBytes(Paths.get(dir + "/38_javabullboard_toCollection_testCase2.txt")));
+                        String testCaseStr = model.callCompletion(functionHeader, -1, -1);
+                        //String testCaseStr = new String(Files.readAllBytes(Paths.get(dir + "/38_javabullboard_toCollection_testCase2.txt")));
 
                         System.out.println("=============================================");
                         System.out.println("LLM TEST IN STRING:");
