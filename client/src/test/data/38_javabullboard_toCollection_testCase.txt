@@ -1,21 +1,46 @@
-public class ObjectUtilsTest {
 
-    @Test
-    public void testToCollection() {
-        // given
-        List<Object> expectedValue = new ArrayList<>();
-        expectedValue.add("String Value");
-        expectedValue.add(10);
-        //expectedValue.add(new URL("http://example.com"));
+// Unit Test class
 
-        // when
-        Collection<Object> actualValue = ObjectUtils.toCollection(expectedValue);
+import static org.junit.Assert.*;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-        // then
-        //assertNotNull(actualValue);
-        //Iterator<Object> iterator = actualValuer.iterator();
-        //for (Object obj : expectedValue) {
-        //    assertTrue(actualValue.contains(iterator.next()));
-        //}
-    }
+public class ObjectUtilsTests {
+   @BeforeClass
+   public static void setupClass() throws Exception {
+      // No variables need to be set up in this class.
+   }
+
+   @Test
+   public void testNullInput() {
+      Collection result = ObjectUtils.toCollection(null);
+      assertNull(result);
+   }
+
+   @Test
+   public void testCollectionInput() {
+      Collection testColl = new ArrayList<>();
+      testColl.add(1);
+      testColl.add(2);
+      testColl.add(3);
+
+      Collection result = ObjectUtils.toCollection(testColl);
+      assertEquals(testColl, result);
+   }
+
+   @Test
+   public void testArrayInput() {
+      Object[] testArray = new Object[]{1, 2, 3};
+
+      Collection result = ObjectUtils.toCollection(testArray);
+      assertEquals(Arrays.asList(testArray), result);
+   }
+
+   @Test
+   public void testSingleValueInput() {
+      String testString = "test";
+
+      Collection result = ObjectUtils.toCollection(testString);
+      assertEquals(Arrays.asList(testString), result);
+   }
 }

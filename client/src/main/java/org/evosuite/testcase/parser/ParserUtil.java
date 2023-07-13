@@ -5,17 +5,25 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.lm.OpenAiLanguageModel;
 import org.evosuite.runtime.Reflection;
+import org.evosuite.utils.StringUtil;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 public class ParserUtil {
@@ -248,17 +256,34 @@ public class ParserUtil {
         Class<?> clazz = null;
         try {
             clazz = classCache.get(classSimpleName);
-            if (clazz == null && Properties.TARGET_CLASS.contains(classSimpleName)) {
+            if (clazz == null && classSimpleName.equals(Properties.TARGET_CLASS.substring(Properties.TARGET_CLASS.lastIndexOf('.') + 1))) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(Properties.TARGET_CLASS);
             }
+
+            else if (classSimpleName.equals("User")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.businessLayer.User");
+            } else if (classSimpleName.equals("Variable")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.businessLayer.Variable");
+            } else if (classSimpleName.equals("OntologyTerm")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.businessLayer.OntologyTerm");
+            } else if (classSimpleName.equals("InMemoryChangeEventManager")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemoryChangeEventManager");
+            } else if (classSimpleName.equals("InMemoryListChoiceManager")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemoryListChoiceManager");
+            } else if (classSimpleName.equals("InMemoryOntologyTermManager")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemoryOntologyTermManager");
+            } else if (classSimpleName.equals("InMemorySupportingDocumentsManager")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemorySupportingDocumentsManager");
+            }
         } catch (ClassNotFoundException e) {
-            logger.error(e.toString());
+            logger.error("class " + classSimpleName + " not found");
         }
         return clazz;
     }
 
     public static GenericClass getGenericClass(String classSimpleName) {
-        return new GenericClass(getClass(classSimpleName));
+        Class<?> clazz = getClass(classSimpleName);
+        return clazz == null ? null : new GenericClass(clazz);
     }
 
     public static Set<Constructor<?>> getConstructors(Class<?> clazz) {
@@ -276,6 +301,9 @@ public class ParserUtil {
 
     public static GenericConstructor getConstructor(GenericClass clazz,
                                                     List<GenericClass> argumentTypes) {
+        if (clazz.getSimpleName().equals("Variable")) {
+            System.currentTimeMillis();
+        }
         Class<?>[] argTypes = argumentTypes.stream()
                 .map(GenericClass::getRawClass)
                 .toArray(Class[]::new);
@@ -306,6 +334,11 @@ public class ParserUtil {
                 }
                 i++;
             }
+
+//            // TODO: temp fix ONLY
+//            if (paraTypes.length == 0 && argTypes.length > 0) {
+//                isMatched = false;
+//            }
 
             if (isMatched) {
                 return new GenericConstructor(constructor, clazz);
@@ -366,7 +399,12 @@ public class ParserUtil {
                         ? convertToWrapperClass(type.getRawClass())
                         : type.getRawClass())
                 .toArray(Class[]::new);
-        Set<Method> methods = getMethods(clazz.getRawClass(), simpleName);
+        Set<Method> methods = new HashSet<>();
+        try {
+            methods = getMethods(clazz.getRawClass(), simpleName);
+        } catch (Exception e) {
+            System.currentTimeMillis();
+        }
         for (Method method : methods) {
             Class<?>[] paraTypes = method.getParameterTypes();
             int i = 0;
@@ -427,4 +465,88 @@ public class ParserUtil {
         }
     }
 
+    public static String getClassDefinition(String pathNames, String className) {
+        logger.info("loading class definition for prompting for " + className);
+        for (String pathName : pathNames.split(":")) {
+            String classPath =
+                    pathName.replace(".jar", "/src/main/java/") +
+                    className.replace(".", "/") + ".java";
+            try {
+                List<String> lines = Files.readAllLines(Paths.get(classPath));
+                return String.join("\n", lines);
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+            }
+
+            /*
+            File jarFile = new File(pathName);
+
+            try (JarFile jar = new JarFile(jarFile)) {
+                JarEntry entry = jar.getJarEntry(className.replace('.', '/') + ".class");
+                if (entry == null) {
+                    continue;
+                }
+
+                InputStream inputStream = jar.getInputStream(entry);
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+                // Read the class file and write it to the output stream
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+
+                // Convert the byte array to a String representation
+                String classDefinition = outputStream.toString("UTF-8");
+
+                System.out.println(classDefinition);
+
+                return classDefinition;
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+                return "";
+            }
+            */
+        }
+        return "";
+    }
+
+    public static String getClassDeclaration(String classDefinition) {
+        String className = StringUtil.getClassSimpleName(Properties.TARGET_CLASS);
+        StringBuilder classDeclaration = new StringBuilder();
+        String[] lines = classDefinition.split("\\r?\\n");
+        for (String l : lines) {
+            classDeclaration.append(l).append("\n");
+            if (l.contains(className)) {
+                break;
+            }
+        }
+        return classDeclaration.toString();
+    }
+
+    public static String getClassNameFromList(List<String> classList, String classSimpleName) {
+        for (String className : classList) {
+            if (StringUtil.getClassSimpleName(className).equals(classSimpleName)) {
+                return className;
+            }
+        }
+        return null;
+    }
+
+    private static byte[] readClassBytes(JarFile jarFile, JarEntry entry) {
+        try {
+            InputStream is = jarFile.getInputStream(entry);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
+            return baos.toByteArray();
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            return new byte[]{};
+        }
+    }
 }

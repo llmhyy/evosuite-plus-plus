@@ -15,9 +15,7 @@ import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.statements.*;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.numeric.*;
-import org.evosuite.testcase.variable.ArrayIndex;
-import org.evosuite.testcase.variable.ArrayReference;
-import org.evosuite.testcase.variable.VariableReference;
+import org.evosuite.testcase.variable.*;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericMethod;
@@ -28,35 +26,66 @@ import java.util.*;
 
 public class ParserVisitor implements VoidVisitor<Object> {
 
-    private final TestCase testCase;
-    private final Map<String, VariableReference> references;
+    private final List<TestCase> testCases;
+    private final Map<String, VariableReference> commonRefs;
+    private final Map<String, VariableReference> testRefs;
+    private TestCase beforeTestCase;
+    private TestCase afterTestCase;
+    private TestCase testCase;
 
     private Statement s;
     private VariableReference r;
+    private boolean isCommon;
 
     private static final Logger logger = LoggerFactory.getLogger(ParserVisitor.class);
 
     public ParserVisitor() {
+        this.testCases = new ArrayList<>();
+        this.testRefs = new HashMap<>();
+        this.commonRefs = new HashMap<>();
+        this.beforeTestCase = new DefaultTestCase();
+        this.afterTestCase = new DefaultTestCase();
         this.testCase = new DefaultTestCase();
-        this.references = new HashMap<>();
+        this.isCommon = false;
         ParserUtil.initCaches();
-
     }
 
-    private void updateReferences(String k, VariableReference v) {
-        this.references.put(k, v);
+    public List<TestCase> getTestCases() {
+        return this.testCases;
+    }
+
+    private void updateReference(String k, VariableReference v) {
+        if (this.isCommon) {
+            this.commonRefs.put(k, v);
+        } else {
+            this.testRefs.put(k, v);
+        }
     }
 
     private VariableReference getReference(String k) {
-        return this.references.get(k);
+        return this.testRefs.containsKey(k)
+            ? this.testRefs.get(k)
+            : this.commonRefs.get(k);
+    }
+
+    public Map<String, VariableReference> getCommonRefs() {
+        return this.commonRefs;
+    }
+
+    public Map<String, VariableReference> getTestRefs() {
+        return this.testRefs;
     }
 
     public TestCase getTestCase() {
         return this.testCase;
     }
 
-    public Map<String, VariableReference> getReferences() {
-        return this.references;
+    public TestCase getBeforeTestCase() {
+        return this.beforeTestCase;
+    }
+
+    public TestCase getAfterTestCase() {
+        return this.afterTestCase;
     }
 
     // - Compilation Unit ----------------------------------
@@ -123,16 +152,21 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(FieldDeclaration n, Object arg) {
-
+        isCommon = true;
+        Type type = n.getElementType();
+        n.getVariables().accept(this, type);
+        isCommon = false;
     }
 
     @Override
     public void visit(VariableDeclarator n, Object arg) {
-        // type = (ClassOrInterfaceType) arg
+        Class<?> type = arg instanceof ClassOrInterfaceType ? ParserUtil.getClass(arg.toString()) : null;
         Optional<Expression> init = n.getInitializer();
         init.ifPresent(i -> i.accept(this, arg));
-        r = init.isPresent() ? r : null;
-        updateReferences(n.getName().asString(), r);
+
+        s = new NullStatement(testCase, type);
+        r = init.isPresent() ? r : testCase.addStatement(s);
+        updateReference(n.getName().asString(), r);
     }
 
     @Override
@@ -142,7 +176,27 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(MethodDeclaration n, Object arg) {
-        n.getBody().ifPresent(b -> b.accept(this, arg));
+        String annotation = n.getAnnotation(0).getNameAsString();
+
+        if (annotation.equals("Test")) {
+            testCase = beforeTestCase.clone();
+            n.getBody().ifPresent(b -> b.accept(this, arg));
+            testCases.add(testCase);
+        }
+
+        else if (annotation.equals("Before")) {
+            n.getBody().ifPresent(b -> b.accept(this, arg));
+            beforeTestCase = testCase.clone();
+        }
+
+        else if (annotation.equals("After")) {
+            for (TestCase tc : testCases) {
+                testCase = tc;
+                n.getBody().ifPresent(b -> b.accept(this, arg));
+            }
+        }
+
+        testRefs.clear();
     }
 
     @Override
@@ -226,7 +280,10 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(ArrayInitializerExpr n, Object arg) {
-        ArrayReference array = new ArrayReference(testCase, (Class<?>) arg);
+        // CHECK
+        Class<?> clazz = arg instanceof Class<?> ? (Class<?>) arg : null;
+        ArrayReference array = null;
+        array = new ArrayReference(testCase, clazz);
         s = new ArrayStatement(testCase, array, new int[] { n.getValues().size() });
         r = testCase.addStatement(s);
 
@@ -342,9 +399,17 @@ public class ParserVisitor implements VoidVisitor<Object> {
             return;
         }
 
+        if (n.getNameAsString().equals("addVariable")) {
+            System.currentTimeMillis();
+        }
+
         String name = n.getNameAsString();
-        String scope = n.getScope().get().toString();
+        String scope = n.getScope().get().toString(); // WRONG!!! can be chaining!!!!
         VariableReference ref = getReference(scope);
+        if (ref == null) {
+            System.currentTimeMillis();
+        }
+
         GenericClass clazz = ref == null
                 ? ParserUtil.getGenericClass(scope)
                 : ref.getGenericClass();
@@ -359,11 +424,22 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
         GenericMethod method = ParserUtil.getMethod(clazz, name, argTypes);
         if (method == null) {
-            logger.error("could not find method " + name + "() of class " + clazz.getClassName());
-            return;
+            String message = String.format(
+                    "%s: could not find method of %s#%s",
+                    "MethodCallExpr", clazz.getClassName(), name);
+            throw new RuntimeException(message);
         }
 
-        argRefs = argRefs.subList(0, Math.min(method.getNumParameters(), argRefs.size()));
+        int paraNum = method.getNumParameters();
+        int argNum = argRefs.size();
+        if (argNum < paraNum) {
+            String message = String.format(
+                    "%s: size mismatched in invoking method %s",
+                    "MethodCallExpr", name);
+            throw new RuntimeException(message);
+        }
+
+        argRefs = argRefs.subList(0, paraNum);
         s = new MethodStatement(testCase, method, ref, argRefs);
         r = testCase.addStatement(s);
     }
@@ -375,9 +451,16 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(ObjectCreationExpr n, Object arg) {
-        Class<?> type = ParserUtil.getClass(n.getType().getNameWithScope());
-        GenericClass clazz = new GenericClass(type);
+        String typeStr = n.getTypeAsString();
+        Class<?> type = ParserUtil.getClass(typeStr);
+        if (type == null) {
+            String message = String.format(
+                    "%s: could not find class %s",
+                    "ObjectCreationExpr", typeStr);
+            throw new RuntimeException(message);
+        }
 
+        GenericClass clazz = new GenericClass(type);
         List<VariableReference> argRefs = new ArrayList<>();
         List<GenericClass> argTypes = new ArrayList<>();
         for (Expression a : n.getArguments()) {
@@ -388,11 +471,22 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
         GenericConstructor constructor = ParserUtil.getConstructor(clazz, argTypes);
         if (constructor == null) {
-            logger.error("could not find constructor for class " + clazz.getClassName());
-            return;
+            String message = String.format(
+                    "%s: could not find constructor of %s",
+                    "ObjectCreationExpr", typeStr);
+            throw new RuntimeException(message);
         }
 
-        argRefs = argRefs.subList(0, Math.min(constructor.getNumParameters(), argRefs.size()));
+        int paraNum = constructor.getNumParameters();
+        int argNum = argRefs.size();
+        if (argNum < paraNum) {
+            String message = String.format(
+                    "%s: size mismatched in invoking constructor %s",
+                    "ObjectCreationExpr", typeStr);
+            throw new IllegalArgumentException(message);
+        }
+
+        argRefs = argRefs.subList(0, paraNum);
         s = new ConstructorStatement(testCase, constructor, argRefs);
         r = testCase.addStatement(s);
     }
@@ -541,7 +635,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(TryStmt n, Object arg) {
-
+        n.getTryBlock().accept(this, arg);
     }
 
     @Override
@@ -566,8 +660,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(NodeList n, Object arg) {
-        n.forEach(node ->
-                ((Node) node).accept(this, arg));
+        n.forEach(node -> ((Node) node).accept(this, arg));
     }
 
     @Override

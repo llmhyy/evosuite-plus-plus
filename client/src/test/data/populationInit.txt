@@ -1,0 +1,52 @@
+// Test case 1
+InMemoryVariableManager inMemoryVariableManager0 = null;
+User user0 = null;
+InMemoryChangeEventManager inMemoryChangeEventManager0 = new InMemoryChangeEventManager();
+InMemoryChangeEventManager inMemoryChangeEventManager1 = new InMemoryChangeEventManager();
+InMemoryListChoiceManager inMemoryListChoiceManager0 = new InMemoryListChoiceManager(inMemoryChangeEventManager1);
+InMemoryChangeEventManager inMemoryChangeEventManager2 = new InMemoryChangeEventManager();
+InMemoryOntologyTermManager inMemoryOntologyTermManager0 = new InMemoryOntologyTermManager(inMemoryChangeEventManager2);
+InMemoryChangeEventManager inMemoryChangeEventManager3 = new InMemoryChangeEventManager();
+InMemorySupportingDocumentsManager inMemorySupportingDocumentsManager0 = new InMemorySupportingDocumentsManager(inMemoryChangeEventManager3);
+InMemoryVariableManager inMemoryVariableManager1 = new InMemoryVariableManager(inMemoryChangeEventManager0, inMemoryListChoiceManager0, inMemoryOntologyTermManager0, inMemorySupportingDocumentsManager0);
+inMemoryVariableManager0 = inMemoryVariableManager1;
+User user1 = new User();
+user0 = user1;
+String string0 = "";
+Variable variable0 = inMemoryVariableManager0.getVariable(user0, string0);
+
+// Test case 2
+InMemoryVariableManager inMemoryVariableManager0 = null;
+User user0 = null;
+InMemoryChangeEventManager inMemoryChangeEventManager0 = new InMemoryChangeEventManager();
+InMemoryChangeEventManager inMemoryChangeEventManager1 = new InMemoryChangeEventManager();
+InMemoryListChoiceManager inMemoryListChoiceManager0 = new InMemoryListChoiceManager(inMemoryChangeEventManager1);
+InMemoryChangeEventManager inMemoryChangeEventManager2 = new InMemoryChangeEventManager();
+InMemoryOntologyTermManager inMemoryOntologyTermManager0 = new InMemoryOntologyTermManager(inMemoryChangeEventManager2);
+InMemoryChangeEventManager inMemoryChangeEventManager3 = new InMemoryChangeEventManager();
+InMemorySupportingDocumentsManager inMemorySupportingDocumentsManager0 = new InMemorySupportingDocumentsManager(inMemoryChangeEventManager3);
+InMemoryVariableManager inMemoryVariableManager1 = new InMemoryVariableManager(inMemoryChangeEventManager0, inMemoryListChoiceManager0, inMemoryOntologyTermManager0, inMemorySupportingDocumentsManager0);
+inMemoryVariableManager0 = inMemoryVariableManager1;
+User user1 = new User();
+user0 = user1;
+String string0 = "NonExistentVariable";
+Variable variable0 = inMemoryVariableManager0.getVariable(user0, string0);
+
+// Test case 3
+InMemoryVariableManager inMemoryVariableManager0 = null;
+User user0 = null;
+InMemoryChangeEventManager inMemoryChangeEventManager0 = new InMemoryChangeEventManager();
+InMemoryChangeEventManager inMemoryChangeEventManager1 = new InMemoryChangeEventManager();
+InMemoryListChoiceManager inMemoryListChoiceManager0 = new InMemoryListChoiceManager(inMemoryChangeEventManager1);
+InMemoryChangeEventManager inMemoryChangeEventManager2 = new InMemoryChangeEventManager();
+InMemoryOntologyTermManager inMemoryOntologyTermManager0 = new InMemoryOntologyTermManager(inMemoryChangeEventManager2);
+InMemoryChangeEventManager inMemoryChangeEventManager3 = new InMemoryChangeEventManager();
+InMemorySupportingDocumentsManager inMemorySupportingDocumentsManager0 = new InMemorySupportingDocumentsManager(inMemoryChangeEventManager3);
+InMemoryVariableManager inMemoryVariableManager1 = new InMemoryVariableManager(inMemoryChangeEventManager0, inMemoryListChoiceManager0, inMemoryOntologyTermManager0, inMemorySupportingDocumentsManager0);
+inMemoryVariableManager0 = inMemoryVariableManager1;
+User user1 = new User();
+user0 = user1;
+String string0 = "ExistingVariable";
+Variable variable0 = new Variable();
+inMemoryVariableManager0.addVariable(user0, variable0);
+Variable variable1 = inMemoryVariableManager0.getVariable(user0, string0);

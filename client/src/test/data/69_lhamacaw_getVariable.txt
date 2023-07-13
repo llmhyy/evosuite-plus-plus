@@ -1,0 +1,90 @@
+package macaw.persistenceLayer.demo;
+
+import macaw.businessLayer.User;
+import macaw.businessLayer.Variable;
+import macaw.system.MacawException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+public class TestSuite {
+
+
+	@Before
+	public void setUp() {
+  	  // Initialize the variable manager, InMemoryChangeEventManager, and user object for testing
+  	  InMemoryChangeEventManager eventManager = new InMemoryChangeEventManager();
+  	  InMemoryListChoiceManager listChoiceManager = new InMemoryListChoiceManager(eventManager);
+  	  InMemoryOntologyTermManager ontologyTermManager = new InMemoryOntologyTermManager(eventManager);
+  	  InMemorySupportingDocumentsManager supportingDocumentsManager = new InMemorySupportingDocumentsManager(eventManager);
+  	  InMemoryVariableManager variableManager = new InMemoryVariableManager(eventManager, listChoiceManager, ontologyTermManager, supportingDocumentsManager);
+  	  User user = new User();
+	}
+
+	@Test
+	public void testGetVariable_WhenVariableNameIsEmpty_ShouldReturnNull() throws MacawException {
+	  	  InMemoryChangeEventManager eventManager = new InMemoryChangeEventManager();
+      	  InMemoryListChoiceManager listChoiceManager = new InMemoryListChoiceManager(eventManager);
+      	  InMemoryOntologyTermManager ontologyTermManager = new InMemoryOntologyTermManager(eventManager);
+      	  InMemorySupportingDocumentsManager supportingDocumentsManager = new InMemorySupportingDocumentsManager(eventManager);
+      	  InMemoryVariableManager variableManager = new InMemoryVariableManager(eventManager, listChoiceManager, ontologyTermManager, supportingDocumentsManager);
+      	  User user = new User();
+  	  // Arrange
+  	  String variableName = "";
+
+  	  // Act
+  	  Variable result = variableManager.getVariable(user, variableName);
+
+  	  // Assert
+  	  assertNull(result);
+	}
+
+	@Test
+	public void testGetVariable_WhenVariableNameDoesNotMatchAnyVariable_ShouldReturnNull() throws MacawException {
+	  	  InMemoryChangeEventManager eventManager = new InMemoryChangeEventManager();
+      	  InMemoryListChoiceManager listChoiceManager = new InMemoryListChoiceManager(eventManager);
+      	  InMemoryOntologyTermManager ontologyTermManager = new InMemoryOntologyTermManager(eventManager);
+      	  InMemorySupportingDocumentsManager supportingDocumentsManager = new InMemorySupportingDocumentsManager(eventManager);
+      	  InMemoryVariableManager variableManager = new InMemoryVariableManager(eventManager, listChoiceManager, ontologyTermManager, supportingDocumentsManager);
+      	  User user = new User();
+  	  // Arrange
+  	  String variableName = "NonExistentVariable";
+
+  	  // Act
+  	  Variable result = variableManager.getVariable(user, variableName);
+
+  	  // Assert
+  	  assertNull(result);
+	}
+
+	@Test
+	public void testGetVariable_WhenVariableNameMatchesVariable_ShouldReturnClonedVariable() throws MacawException {
+	  	  InMemoryChangeEventManager eventManager = new InMemoryChangeEventManager();
+      	  InMemoryListChoiceManager listChoiceManager = new InMemoryListChoiceManager(eventManager);
+      	  InMemoryOntologyTermManager ontologyTermManager = new InMemoryOntologyTermManager(eventManager);
+      	  InMemorySupportingDocumentsManager supportingDocumentsManager = new InMemorySupportingDocumentsManager(eventManager);
+      	  InMemoryVariableManager variableManager = new InMemoryVariableManager(eventManager, listChoiceManager, ontologyTermManager, supportingDocumentsManager);
+      	  User user = new User();
+  	  // Arrange
+  	  String variableName = "ExistingVariable";
+  	  Variable existingVariable = new Variable(variableName);
+  	  variableManager.addVariable(existingVariable);
+
+  	  // Act
+  	  Variable result = variableManager.getVariable(user, variableName);
+
+  	  // Assert
+  	  assertNotNull(result);
+  	  assertNotSame(existingVariable, result);
+  	  assertEquals(existingVariable, result);
+	}
+
+	@After
+	public void tearDown() {
+  	  // Reset any changes made during test cases, if necessary
+	}
+}
+
+

@@ -1,0 +1,80 @@
+package macaw.persistenceLayer.demo;
+
+import macaw.businessLayer.User;
+import macaw.businessLayer.Variable;
+import macaw.system.MacawException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+public class TestSuite {
+
+	@Test
+	public void testGetVariable_WhenVariableNameIsEmpty_ShouldReturnNull() throws MacawException {
+	    InMemoryVariableManager variableManager;
+	    User user;
+
+	    // Initialize the variable manager and user object for testing
+        variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(),
+                new InMemoryListChoiceManager(), new InMemoryOntologyTermManager(),
+                new InMemorySupportingDocumentsManager());
+        user = new User();
+
+    	// Arrange
+    	String variableName = "";
+
+    	// Act
+    	Variable result = variableManager.getVariable(user, variableName);
+
+    	// Assert
+    	assertNull(result);
+	}
+
+	@Test
+	public void testGetVariable_WhenVariableNameDoesNotMatchAnyVariable_ShouldReturnNull() throws MacawException {
+        InMemoryVariableManager variableManager;
+        User user;
+
+        // Initialize the variable manager and user object for testing
+        variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(),
+                new InMemoryListChoiceManager(), new InMemoryOntologyTermManager(),
+                new InMemorySupportingDocumentsManager());
+        user = new User();
+
+    	// Arrange
+    	String variableName = "NonExistentVariable";
+
+    	// Act
+    	Variable result = variableManager.getVariable(user, variableName);
+
+    	// Assert
+    	assertNull(result);
+	}
+
+	@Test
+	public void testGetVariable_WhenVariableNameMatchesVariable_ShouldReturnClonedVariable() throws MacawException {
+	    InMemoryVariableManager variableManager;
+	    User user;
+
+	    // Initialize the variable manager and user object for testing
+        variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(),
+                new InMemoryListChoiceManager(), new InMemoryOntologyTermManager(),
+                new InMemorySupportingDocumentsManager());
+        user = new User();
+
+    	// Arrange
+    	String variableName = "ExistingVariable";
+    	Variable existingVariable = new Variable(variableName);
+    	variableManager.addVariable(user, existingVariable);
+
+    	// Act
+    	Variable result = variableManager.getVariable(user, variableName);
+
+    	// Assert
+    	assertNotNull(result);
+    	assertNotSame(existingVariable, result);
+    	assertEquals(existingVariable, result);
+	}
+}

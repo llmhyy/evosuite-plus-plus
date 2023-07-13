@@ -1,7 +1,6 @@
 package org.evosuite.ga.metaheuristics.mosa;
 
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
@@ -10,7 +9,6 @@ import org.evosuite.ga.metaheuristics.mosa.structural.MultiCriteriaManager;
 import org.evosuite.ga.operators.ranking.CrowdingDistance;
 import org.evosuite.lm.OpenAiLanguageModel;
 import org.evosuite.seeding.smart.SensitivityMutator;
-import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.MutationPositionDiscriminator;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -18,22 +16,16 @@ import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.factories.RandomLengthTestFactory;
 import org.evosuite.testcase.parser.Parser;
-import org.evosuite.testcase.statements.ConstructorStatement;
-import org.evosuite.testcase.statements.MethodStatement;
-import org.evosuite.testcase.statements.StringPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
+import org.evosuite.testcase.parser.ParserUtil;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
-import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
-import org.evosuite.utils.generic.GenericConstructor;
-import org.evosuite.utils.generic.GenericMethod;
+import org.evosuite.utils.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -52,6 +44,9 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
     protected ExceptionBranchEnhancer<T> exceptionBranchEnhancer = new ExceptionBranchEnhancer<>(goalsManager);
 
+    private String[] targetSummary;
+    private List<String> relevantClasses;
+
     /**
      * Constructor based on the abstract class {@link AbstractMOSA}.
      *
@@ -59,6 +54,123 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
      */
     public CodaMOSA(ChromosomeFactory<T> factory) {
         super(factory);
+        targetSummary = new String[3];
+        relevantClasses = new ArrayList<>();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void initializePopulation() {
+        logger.info("executing initializePopulation function");
+
+        this.notifySearchStarted();
+        this.currentIteration = 0;
+
+        OpenAiLanguageModel model = new OpenAiLanguageModel();
+
+        String targetClassDef = ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS);
+        String targetClassDec = ParserUtil.getClassDeclaration(targetClassDef);
+        String targetClass = StringUtil.getClassSimpleName(Properties.TARGET_CLASS);
+        String targetMethod = StringUtil.getMethodSimpleSignature(Properties.TARGET_METHOD);
+
+        // targetSummary = model.getTargetSummary(targetClassDef, targetClass, targetMethod);
+        String targetSummaryStr = targetClassDec +
+                targetSummary[1] + "\n" +
+                targetSummary[2] + "\n" +
+                targetSummary[0] + "\n";
+
+        // TODO: to remove, for testing
+        try {
+            targetSummaryStr = new String(Files.readAllBytes(Paths.get(
+                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetSummary.txt")));
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+        System.out.println("TARGET_SUMMARY:\n" + Arrays.toString(targetSummary));
+
+        relevantClasses = model.getTargetRelevantClasses(targetSummaryStr);
+
+        String populationStr = "";
+        // populationStr = model.getInitialPopulation(targetMethod, targetSummaryStr);
+
+        // TODO: testing, to be removed
+        try {
+            populationStr = new String(Files.readAllBytes(Paths.get(
+                    // "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetClass.txt"
+            )));
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+
+        List<TestCase> population = new ArrayList<>();
+        Parser parser = new Parser();
+        // populationStr = parser.transformTestSuite(populationStr);
+
+        // TODO: refactor
+        final String CLASS_NOT_FOUND_ERR = "could not find class ";
+        final String METHOD_NOT_FOUND_ERR = "could not find method of ";
+        final String METHOD_ARG_MISMATCHED_ERR = "size mismatched in invoking method ";
+        final String CONSTRUCTOR_NOT_FOUND_ERR = "could not find constructor of ";
+        final String CONSTRUCTOR_ARG_MISMATCHED_ERR = "size mismatched in invoking constructor ";
+
+        boolean isError = false;
+        for (int i = 0; i < 10 && (i == 0 || isError); ++i) {
+            try {
+                System.out.println("POPULATION:");
+                System.out.println(populationStr);
+
+                parser.parse(populationStr);
+                population.addAll(parser.getTestCases());
+                isError = false;
+            } catch (RuntimeException e) {
+                population.addAll(parser.getTestCases());
+                isError = true;
+
+                String message = e.getMessage();
+                // String nodeTypeError = message.substring(0, Math.max(0, message.indexOf(':')));
+
+                if (message.contains(CLASS_NOT_FOUND_ERR)) {
+
+                } else if (message.contains(METHOD_NOT_FOUND_ERR)) {
+                    int index = message.indexOf(METHOD_NOT_FOUND_ERR) + METHOD_NOT_FOUND_ERR.length();
+                    String method = message.substring(index);
+                    String methodName = method.substring(method.indexOf('#')+1);
+                    String className = method.substring(0, method.indexOf('#'));
+                    String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
+                    populationStr = model.fixMethodNotFound(populationStr, className, methodName, classDefinition);
+                } else if (message.contains(METHOD_ARG_MISMATCHED_ERR)) {
+
+                } else if (message.contains(CONSTRUCTOR_NOT_FOUND_ERR)) {
+
+                } else if (message.contains(CONSTRUCTOR_ARG_MISMATCHED_ERR)) {
+                    int index = message.indexOf(CONSTRUCTOR_ARG_MISMATCHED_ERR) + CONSTRUCTOR_ARG_MISMATCHED_ERR.length();
+                    String className = ParserUtil.getClassNameFromList(relevantClasses, message.substring(index));
+                    String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
+                    populationStr = model.fixConstructorNotFound(populationStr, className, classDefinition);
+                }
+
+                System.out.println("EXCEPTION MESSAGE:");
+                System.out.println(e.getMessage());
+                System.out.println("POPULATION AFTER EXCEPTION:");
+                System.out.println(populationStr);
+            }
+        }
+
+        System.out.println("LLM TEST:");
+        for (TestCase testCase : population) {
+            System.out.println(testCase.toCode());
+            // Execute new test case
+            ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
+            TestChromosome newTest = new TestChromosome();
+            newTest.setTestCase(testCase);
+            newTest.setLastExecutionResult(exeRes);
+            this.population.add((T) newTest);
+        }
+
+        // Determine fitness
+        this.calculateFitness(true);
+        this.notifyIteration();
     }
 
     /** {@inheritDoc} */
@@ -221,7 +333,7 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                     this.goalsManager.getCurrentGoals());
         }
 
-        int maxStallLen = 10;
+        int maxStallLen = 5;
         int stallLen = 0;
         boolean wasTargeted = false;
 
@@ -240,48 +352,116 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
             List<T> populationBefore = this.population;
 
             if (stallLen > maxStallLen) {
+                System.out.println("POPULATION WHEN STALL DETECTED:");
+                System.out.println("=============================================");
+                for (int i = 0; i < this.population.size(); i++) {
+                    System.out.println("TEST " + i + ":");
+                    System.out.println(this.population.get(i).toString());
+                }
+                System.out.println("=============================================");
+
                 wasTargeted = true;
                 t1 = System.currentTimeMillis();
                 System.out.println("COVERAGE STALL DETECTED");
+
                 try {
-                    String dir = "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data";
-                    Path path = Paths.get(dir + "/38_javabullboard_toCollection.txt");
-                    String prompt = new String(Files.readAllBytes(path));
-
                     OpenAiLanguageModel model = new OpenAiLanguageModel();
-                    model.setTestSrc(prompt);
+                    String populationStr = "";
+                    // populationStr = model.getInitialPopulation(targetMethod, targetSummaryStr);
 
-                    TestCase testCase = null;
-                    while (testCase == null || testCase.isEmpty()) {
-                        String functionHeader = "write unit test for toCollection()";
-                        String testCaseStr = model.callCompletion(functionHeader, -1, -1);
-                        //String testCaseStr = new String(Files.readAllBytes(Paths.get(dir + "/38_javabullboard_toCollection_testCase2.txt")));
+                    // TODO: testing, to be removed
+                    try {
+                        populationStr = new String(Files.readAllBytes(Paths.get(
+                                // "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+                                "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
+                        )));
+                    } catch (IOException e) {
+                        logger.error(e.getMessage());
+                    }
 
-                        System.out.println("=============================================");
-                        System.out.println("LLM TEST IN STRING:");
-                        System.out.println(testCaseStr);
+                    List<TestCase> population = new ArrayList<>();
+                    Parser parser = new Parser();
+                    // populationStr = parser.transformTestSuite(populationStr);
 
-                        Parser parser = new Parser();
-                        parser.parse(testCaseStr);
-                        testCase = parser.getTestCase();
+                    String newBranch = "while(!var3.valueExactlyMatches(var6));";
+                    String targetClassName = StringUtil.getClassSimpleName(Properties.TARGET_CLASS);
+                    String newClassFullName = "macaw.util.SearchUtility";
+                    String newClassName = "SearchUtility";
+
+                    String targetSum = "";
+                    // TODO: testing, to be removed
+                    try {
+                        targetSum = new String(Files.readAllBytes(Paths.get(
+                                // "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+                                "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetSummary.txt"
+                        )));
+                    } catch (IOException e) {
+                        logger.error(e.getMessage());
+                    }
+
+                    populationStr = model.coverNewBranch(populationStr, newBranch,
+//                            targetClassName, ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS),
+                            targetClassName, targetSum,
+                            newClassName, ParserUtil.getClassDefinition(Properties.CP, newClassFullName));
+
+                    // TODO: refactor
+                    final String CLASS_NOT_FOUND_ERR = "could not find class ";
+                    final String METHOD_NOT_FOUND_ERR = "could not find method of ";
+                    final String METHOD_ARG_MISMATCHED_ERR = "size mismatched in invoking method ";
+                    final String CONSTRUCTOR_NOT_FOUND_ERR = "could not find constructor of ";
+                    final String CONSTRUCTOR_ARG_MISMATCHED_ERR = "size mismatched in invoking constructor ";
+
+                    boolean isError = false;
+                    for (int i = 0; i < 10 && (i == 0 || isError); ++i) {
+                        try {
+                            parser.parse(populationStr);
+                            population.addAll(parser.getTestCases());
+                            isError = false;
+                        } catch (RuntimeException e) {
+                            population.addAll(parser.getTestCases());
+                            isError = true;
+
+                            String message = e.getMessage();
+                            String nodeTypeError = message.substring(0, Math.max(0, message.indexOf(':')));
+
+                            if (message.contains(CLASS_NOT_FOUND_ERR)) {
+
+                            } else if (message.contains(METHOD_NOT_FOUND_ERR)) {
+                                int index = message.indexOf(METHOD_NOT_FOUND_ERR) + METHOD_NOT_FOUND_ERR.length();
+                                String method = message.substring(index);
+                                String methodName = method.substring(method.indexOf('#')+1);
+                                String className = method.substring(0, method.indexOf('#'));
+                                String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
+                                populationStr = model.fixMethodNotFound(populationStr, className, methodName, classDefinition);
+                            } else if (message.contains(METHOD_ARG_MISMATCHED_ERR)) {
+
+                            } else if (message.contains(CONSTRUCTOR_NOT_FOUND_ERR)) {
+
+                            } else if (message.contains(CONSTRUCTOR_ARG_MISMATCHED_ERR)) {
+                                int index = message.indexOf(CONSTRUCTOR_ARG_MISMATCHED_ERR) + CONSTRUCTOR_ARG_MISMATCHED_ERR.length();
+                                String className = ParserUtil.getClassNameFromList(relevantClasses, message.substring(index));
+                                String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
+                                populationStr = model.fixConstructorNotFound(populationStr, className, classDefinition);
+                            }
+                        }
                     }
 
                     System.out.println("LLM TEST:");
-                    System.out.println(testCase.toCode());
-
-                    // Execute new test case
-                    ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
-                    TestChromosome newTest = new TestChromosome();
-                    newTest.setTestCase(testCase);
-                    newTest.setLastExecutionResult(exeRes);
-
-                    this.population.add((T) newTest);
-                    this.evolve();
-                    t2 = System.currentTimeMillis();
-                    this.notifyIteration();
-                } catch (RuntimeException | IOException e) {
+                    for (TestCase testCase : population) {
+                        System.out.println(testCase.toCode());
+                        // Execute new test case
+                        ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
+                        TestChromosome newTest = new TestChromosome();
+                        newTest.setTestCase(testCase);
+                        newTest.setLastExecutionResult(exeRes);
+                        this.population.add((T) newTest);
+                    }
+                } catch (RuntimeException e) {
                     logger.error(e.getMessage());
                 }
+                this.evolve();
+                t2 = System.currentTimeMillis();
+                this.notifyIteration();
             } else {
                 wasTargeted = false;
                 t1 = System.currentTimeMillis();
@@ -296,7 +476,7 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
             Set<FitnessFunction<T>> goalsAfter = this.goalsManager.getUncoveredGoals();
             if (goalsAfter.equals(goalsBefore)) {
-                stallLen += 1;
+                 stallLen += 1;
                 System.out.println("NO NEW GOAL COVERED");
             } else {
                 stallLen = 0;
@@ -348,5 +528,9 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
             }
         }
         return true;
+    }
+
+    public List<String> getRelevantClasses() {
+        return this.relevantClasses;
     }
 }

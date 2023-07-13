@@ -43,12 +43,29 @@ public class SF100OverallTest {
 //		String projectId = "27_gangup";
 //		String projectId = "83_xbus";
 //		String projectId = "80_wheelwebtool";
-//		String projectId = "58_fps370";
-		String projectId = SF100Project.P38;
-		
+//		String projectId = SF100Project.P6;
+//		String projectId = SF100Project.P23;
+//		String projectId = SF100Project.P31;
+//		String projectId = SF100Project.P38;
+//		String projectId = SF100Project.P66;
+		String projectId = SF100Project.P69;
+//		String projectId = SF100Project.P83;
+//		String projectId = SF100Project.P92;
+
 		String[] targetMethods = new String[]{
-				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
-				};
+//				"org.jcvi.assembly.cas.alignment.DefaultCasMatch#equals(Ljava/lang/Object;)Z"
+//				"br.com.jnfe.core.Ambiente#equals(Ljava/lang/Object;)Z"
+//				"org.exolab.jms.message.MessageProperties#setProperty(Ljava/lang/String;Ljava/lang/Object;)V"
+//				"net.sf.xisemele.impl.OperationsHelperImpl#find(Lorg/w3c/dom/Document;Ljava/lang/String;)Lorg/w3c/dom/Node;"
+//				"br.com.jnfe.core.EnvNFe#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.jwbf.core.bots.util.CachArticle#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.jwbf.mediawiki.contentRep.SimpleFile#equals(Ljava/lang/Object;)Z"
+//				"framework.util.ObjectUtils#copyProperties(Ljava/util/Map;Ljava/lang/Object;)V"
+//				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
+				"macaw.persistenceLayer.demo.InMemoryVariableManager#getVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Lmacaw/businessLayer/Variable;"
+//				"macaw.persistenceLayer.demo.InMemoryOntologyTermFilter#filterOntologyTerms(Lmacaw/businessLayer/User;Ljava/lang/String;Ljava/lang/String;)Ljava/util/ArrayList;"
+//				"net.sf.xbus.admin.html.JournalBean#getDetailsAsTable()Ljava/lang/String;"
+		};
 		
 		int repeatTime = 1;
 		int budget = 100;

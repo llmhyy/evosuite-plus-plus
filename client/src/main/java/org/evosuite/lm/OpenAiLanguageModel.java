@@ -2,11 +2,15 @@ package org.evosuite.lm;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.theokanning.openai.completion.chat.ChatCompletionChoice;
+import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.CompletionChoice;
 import com.theokanning.openai.completion.CompletionRequest;
+import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.edit.EditChoice;
 import com.theokanning.openai.edit.EditRequest;
 import com.theokanning.openai.service.OpenAiService;
@@ -15,25 +19,203 @@ public class OpenAiLanguageModel {
 
     private String testSrc;
     private String authorizationKey;
-    private String completeModel;
-    private String editModel;
+    private String modelId;
     private String logPath;
     private int maxQueryLen;
     private double temperature;
+    private int numCalls;
+    private float timeCalling;
     private List<Integer> tokenLenCache;
-    public int numCodexCalls;
-    public float timeCallingCodex;
 
     public OpenAiLanguageModel() {
-        maxQueryLen = 4000 - 200;
+        // setAuthorizationKey("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"); // nbvannhi
+        // setModelId("code-davinci-002");
+        authorizationKey = "INSERT_YOUR_API_KEY"; // to commit
+        modelId = "gpt-3.5-turbo-16k";
+        temperature = 1.0;
+        maxQueryLen = 16384 - 200;
+        numCalls = 0;
+        timeCalling = 0;
         tokenLenCache = new ArrayList<>();
-        numCodexCalls = 0;
-        timeCallingCodex = 0;
-        // TODO(vani): refactor
-        setAuthorizationKey("");
-        setCompleteModel("text-davinci-003");
-        setEditModel("code-davinci-edit-001");
-        setTemperature(1.0);
+    }
+
+    private String callChatCompletion(List<ChatMessage> messages) {
+        System.out.println(System.currentTimeMillis());
+        OpenAiService service = new OpenAiService(authorizationKey, Duration.ofSeconds(30L));
+        ChatCompletionRequest request = ChatCompletionRequest.builder()
+                .model(modelId)
+                .messages(messages)
+                .maxTokens(1000)
+                .temperature(temperature)
+                .build();
+
+        long startTime = System.currentTimeMillis();
+
+        List<ChatCompletionChoice> choices = service.createChatCompletion(request).getChoices();
+
+        timeCalling += System.currentTimeMillis() - startTime;
+        numCalls += 1;
+
+        return choices.get(0).getMessage().getContent();
+    }
+
+    private String callChatCompletion(String findPrompt) {
+        List<ChatMessage> messages = new ArrayList<>();
+        String response;
+
+        messages.add(new ChatMessage("user", findPrompt));
+        response = callChatCompletion(messages);
+
+        return response;
+    }
+
+    private String callChatCompletionFormat(String findPrompt, String formatPrompt) {
+        List<ChatMessage> messages = new ArrayList<>();
+        String response;
+
+        messages.add(new ChatMessage("user", findPrompt));
+        response = callChatCompletion(messages);
+        messages.add(new ChatMessage("assistant", response));
+
+        messages.add(new ChatMessage("user", formatPrompt));
+        response = callChatCompletion(messages);
+        System.out.println("RESPONSE:\n" + response);
+        response = extractCodeSnippet(response);
+
+        try {
+            System.out.println(System.currentTimeMillis());
+            Thread.sleep(15000);
+            System.out.println(System.currentTimeMillis());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        return response;
+    }
+
+    public String[] getTargetSummary(String targetClassDef, String targetClass, String targetMethod) {
+        String[] targetSummary = new String[3];
+        String findPrompt, formatPrompt;
+
+        // TODO: how to trim content if exceed token length effectively
+        String targetClassDefCode = wrapCodeBlock(targetClassDef);
+
+        // TARGET_METHOD
+        findPrompt = String.format(
+                "Below is the definition of %s class. What is the definition of %s?\n",
+                targetClass, targetMethod) +
+                targetClassDefCode;
+        formatPrompt = "Put it in the following format:\n" +
+                "```java\n" +
+                "DEFINITION\n" +
+                "```\n";
+        targetSummary[0] = callChatCompletionFormat(findPrompt, formatPrompt);
+
+        // TARGET_CLASS fields
+        findPrompt = String.format("What are the fields of %s?\n", targetClass) + targetClassDefCode;
+        formatPrompt = "Put them in the following format:\n" +
+                "```java\n" +
+                "public FIELD_1;\n" +
+                "private FIELD_2;\n" +
+                "```\n";
+        targetSummary[1] = callChatCompletionFormat(findPrompt, formatPrompt);
+
+        // TARGET_CLASS constructors
+        findPrompt = String.format("What are the definitions of the constructors of %s?\n", targetClass) + targetClassDefCode;
+        formatPrompt = "Put them in the following format:\n" +
+                "```java\n" +
+                "public CONSTRUCTOR_1( ) {\n" +
+                "// CONSTRUCTOR_BODY\n" +
+                "}\n" +
+                "private CONSTRUCTOR_2( ) {\n" +
+                "// CONSTRUCTOR_BODY\n" +
+                "}\n";
+        targetSummary[2] = callChatCompletionFormat(findPrompt, formatPrompt);
+
+        return targetSummary;
+    }
+
+    public List<String> getTargetRelevantClasses(String targetSummary) {
+        String prompt = "List all classes used in the code snippet below.\n" +
+                "Put them in the following format:\n" +
+                "org.classA\n" +
+                "org.classB\n" +
+                wrapCodeBlock(targetSummary);
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(new ChatMessage("user", prompt));
+        String[] classes = callChatCompletion(messages).split("\n");
+        String p = this.getInitialPopulation(",", "");
+        return new ArrayList<>(Arrays.asList(classes));
+    }
+
+    public String getInitialPopulation(String targetMethod, String targetSummary) {
+        String initPrompt = String.format("Write unit tests to cover all branches of %s.\n", targetMethod) +
+                wrapCodeBlock(targetSummary);
+        String formatPrompt = "Combine them into a test suite with the following format:\n" +
+                "```java\n" +
+                "public class TestSuite {\n" +
+                "@Before\n" +
+                "public void setUp() { INITIALIZATION_OF_TEST_CASES }\n" +
+                "@Test\n" +
+                "public void TEST_CASE_1() { }\n" +
+                "@Test\n" +
+                "public void TEST_CASE_2() { }\n" +
+                "@After\n" +
+                "public void tearDown() { RESET_OF_TEST_CASES }\n" +
+                "}\n" +
+                "```";
+        String testCases = callChatCompletionFormat(initPrompt, formatPrompt);
+        return extractCodeSnippet(testCases);
+    }
+
+    public String fixConstructorNotFound(String testSuite, String className, String classDefinition) {
+        String prompt = String.format(
+                "Below is the definition of %s class. " +
+                        "Based on that, modify the test suite below to use %s constructors correctly.\n\n" +
+                        "Test suite:\n" +
+                        "%s\n\n" +
+                        "Definition of %s class:\n" +
+                        "%s\n",
+                className, className,
+                wrapCodeBlock(testSuite),
+                className, wrapCodeBlock(classDefinition));
+        String testCases = callChatCompletion(prompt);
+        return extractCodeSnippet(testCases);
+    }
+
+    public String fixMethodNotFound(String testSuite, String className, String methodName, String classDefinition) {
+        String prompt = String.format(
+                "Below is the definition of %s class. " +
+                        "Based on that, modify the test suite below to use the method %s() correctly.\n\n" +
+                        "Test suite:\n" +
+                        "%s\n\n" +
+                        "Definition of %s class:\n" +
+                        "%s\n",
+                className, methodName,
+                wrapCodeBlock(testSuite),
+                className, wrapCodeBlock(classDefinition));
+        String testCases = callChatCompletion(prompt);
+        return extractCodeSnippet(testCases);
+    }
+
+    public String coverNewBranch(String testSuite, String newBranch,
+                                 String targetClassName, String targetClassDefinition,
+                                 String newClassName, String newClassDefinition) {
+        String prompt = String.format(
+                "Below is the definition of %s class and %s class. " +
+                        "Based on that, modify the test suite below to cover the branch `%s`.\n\n" +
+                        "Test suite:\n" +
+                        "%s\n\n" +
+                        "Definition of %s class:\n" +
+                        "%s\n\n" +
+                        "Definition of %s class:\n" +
+                        "%s\n",
+                targetClassName, newClassName, newBranch,
+                wrapCodeBlock(testSuite),
+                targetClassName, wrapCodeBlock(targetClassDefinition),
+                newClassName, wrapCodeBlock(newClassDefinition));
+        String testCases = callChatCompletion(prompt);
+        return extractCodeSnippet(testCases);
     }
 
     /**
@@ -102,7 +284,7 @@ public class OpenAiLanguageModel {
         OpenAiService service = new OpenAiService(authorizationKey);
 
         EditRequest request = EditRequest.builder()
-                .model(editModel)
+                .model(modelId)
                 .input(context + "\n" + functionToMutate)
                 .instruction("Fill in the ??")
                 .temperature(temperature)
@@ -112,8 +294,8 @@ public class OpenAiLanguageModel {
 
         List<EditChoice> choices = service.createEdit(request).getChoices();
 
-        timeCallingCodex += System.currentTimeMillis() - startTime;
-        numCodexCalls += 1;
+        timeCalling += System.currentTimeMillis() - startTime;
+        numCalls += 1;
 
         return choices.get(0).getText();
     }
@@ -129,15 +311,15 @@ public class OpenAiLanguageModel {
     public String callCompletion(String functionHeader, int contextStart, int contextEnd) {
         String context = getMaximalSourceContent(contextStart, contextEnd, 0);
 
-        OpenAiService service = new OpenAiService(authorizationKey, Duration.ofSeconds(30L));
+        OpenAiService service = new OpenAiService(authorizationKey);
 
         // We want to stop the generation before
         // it spits out a bunch of other tests,
         // because that slows things down
         CompletionRequest request = CompletionRequest.builder()
-                .model(completeModel)
+                .model(modelId)
                 .prompt(functionHeader + "\n" + context)
-                .maxTokens(300)
+                .maxTokens(1000)
                 .temperature(temperature)
                 //.stop(Arrays.asList("\npublic"))
                 .build();
@@ -146,10 +328,36 @@ public class OpenAiLanguageModel {
 
         List<CompletionChoice> choices = service.createCompletion(request).getChoices();
 
-        timeCallingCodex += System.currentTimeMillis() - startTime;
-        numCodexCalls += 1;
+        timeCalling += System.currentTimeMillis() - startTime;
+        numCalls += 1;
 
         return choices.get(0).getText();
+    }
+
+    public String callChatCompletion(String functionHeader, int contextStart, int contextEnd) {
+        String context = getMaximalSourceContent(contextStart, contextEnd, functionHeader.length());
+
+        OpenAiService service = new OpenAiService(authorizationKey);
+
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(new ChatMessage("user", functionHeader));
+
+        ChatCompletionRequest request = ChatCompletionRequest.builder()
+                .model(modelId)
+                .messages(messages)
+                .maxTokens(1000)
+                .temperature(temperature)
+                //.stop(new ArrayList<>())
+                .build();
+
+        long startTime = System.currentTimeMillis();
+
+        List<ChatCompletionChoice> choices = service.createChatCompletion(request).getChoices();
+
+        timeCalling += System.currentTimeMillis() - startTime;
+        numCalls += 1;
+
+        return choices.get(0).getMessage().getContent();
     }
 
     /**
@@ -164,10 +372,10 @@ public class OpenAiLanguageModel {
                 simpleMethodName + "() called on an " +
                 simpleClassName + " object in Java bytecode";
 
-        OpenAiService service = new OpenAiService(authorizationKey, Duration.ofSeconds(30L));
+        OpenAiService service = new OpenAiService(authorizationKey);
 
         CompletionRequest request = CompletionRequest.builder()
-                .model(completeModel)
+                .model(modelId)
                 .prompt(prompt)
                 .maxTokens(100)
                 .temperature(temperature)
@@ -177,8 +385,8 @@ public class OpenAiLanguageModel {
 
         List<CompletionChoice> choices = service.createCompletion(request).getChoices();
 
-        timeCallingCodex += System.currentTimeMillis() - startTime;
-        numCodexCalls += 1;
+        timeCalling += System.currentTimeMillis() - startTime;
+        numCalls += 1;
 
         return choices.get(0).getText();
     }
@@ -239,6 +447,21 @@ public class OpenAiLanguageModel {
         }
     }
 
+    public String wrapCodeBlock(String codeString) {
+        return String.format("```java\n%s\n```\n", codeString);
+    }
+
+    public String extractCodeSnippet(String response) {
+        String codeSnippet = "";
+        try {
+            codeSnippet = response.substring(response.indexOf("```java") + 7);
+            codeSnippet = codeSnippet.substring(0, codeSnippet.indexOf("```"));
+        } catch (StringIndexOutOfBoundsException e) {
+            System.out.println(response);
+        }
+        return codeSnippet;
+    }
+
     public String getTestSrc() {
         return this.testSrc;
     }
@@ -247,12 +470,8 @@ public class OpenAiLanguageModel {
         return this.authorizationKey;
     }
 
-    public String getCompleteModel() {
-        return this.completeModel;
-    }
-
-    public String getEditModel() {
-        return this.editModel;
+    public String getModelId() {
+        return this.modelId;
     }
 
     public double getTemperature() {
@@ -267,12 +486,8 @@ public class OpenAiLanguageModel {
         this.authorizationKey = authorizationKey;
     }
 
-    public void setCompleteModel(String completeModel) {
-        this.completeModel = completeModel;
-    }
-
-    public void setEditModel(String editModel) {
-        this.editModel = editModel;
+    public void setModelId(String modelId) {
+        this.modelId = modelId;
     }
 
     public void setTemperature(double temperature) {
