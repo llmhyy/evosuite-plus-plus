@@ -1,5 +1,13 @@
 package instrumenter;
 
+import org.evosuite.instrumentation.BytecodeInstrumentation;
+import org.evosuite.runtime.RuntimeSettings;
+import org.junit.Test;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.ClassNode;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -8,14 +16,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.evosuite.instrumentation.BytecodeInstrumentation;
-import org.evosuite.runtime.RuntimeSettings;
-import org.junit.Test;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.tree.ClassNode;
 
 /**
  * @author LLT
@@ -38,7 +38,7 @@ public class InstrumenterTestForRealCode {
 		FileOutputStream out = new FileOutputStream(outFile);
 		System.out.println(outFile.getAbsolutePath());
 		
-		File inFile = new File("D:/_1_Projects/evosuite/experiment/colt/cern/jet/random/Gamma.class");
+		File inFile = new File("/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/_1_Projects/evosuite/experiment/colt/cern/jet/random/Gamma.class");
 		FileInputStream in = new FileInputStream(inFile);
 		className = "cern/jet/random/Gamma";
 		byte[] data = new byte[100000];

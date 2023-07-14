@@ -1,18 +1,11 @@
 package common;
 
-import static evosuite.shell.EvosuiteForMethod.projectId;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.alibaba.fastjson.JSON;
+import evosuite.shell.EvoTestResult;
+import evosuite.shell.FileUtils;
+import evosuite.shell.FitnessEffectiveRecorder;
+import evosuite.shell.excel.ExcelWriter;
+import evosuite.shell.utils.LoggerUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -23,18 +16,10 @@ import org.evosuite.result.BranchInfo;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.seedexpr.BranchCoveringEvent;
 import org.evosuite.result.seedexpr.Event;
-import org.evosuite.testcase.TestFitnessFunction;
 import org.slf4j.Logger;
 
-import com.alibaba.fastjson.JSON;
-
-import evosuite.shell.EvoTestResult;
-import evosuite.shell.ExperimentRecorder;
-import evosuite.shell.FileUtils;
-import evosuite.shell.FitnessEffectiveRecorder;
-import evosuite.shell.Settings;
-import evosuite.shell.excel.ExcelWriter;
-import evosuite.shell.utils.LoggerUtils;
+import java.io.*;
+import java.util.*;
 
 public class SeedStrategyUtil {
 	private static Logger log = LoggerUtils.getLogger(FitnessEffectiveRecorder.class);
@@ -134,7 +119,7 @@ public class SeedStrategyUtil {
 		}
 	
 	private static void recordSegmentationList() throws IOException {
-		String path = "D:\\linyun\\experiment\\";
+		String path = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/experiment/";
 
 		excelWriter = new ExcelWriter(FileUtils.newFile(path + "Seed_evotest.xlsx"));
 		excelWriter.getSheet("data",

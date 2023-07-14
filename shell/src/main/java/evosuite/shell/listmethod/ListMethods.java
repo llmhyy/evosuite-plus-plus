@@ -1,13 +1,10 @@
 package evosuite.shell.listmethod;
 
-import static evosuite.shell.EvosuiteForMethod.projectId;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import evosuite.shell.EvosuiteForMethod;
+import evosuite.shell.FileUtils;
+import evosuite.shell.ParameterOptions;
+import evosuite.shell.utils.LoggerUtils;
+import evosuite.shell.utils.TargetMethodIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -24,14 +21,11 @@ import org.evosuite.utils.CollectionUtil;
 import org.evosuite.utils.CommonUtility;
 import org.slf4j.Logger;
 
-import evosuite.shell.EvosuiteForMethod;
-import evosuite.shell.FileUtils;
-import evosuite.shell.ParameterOptions;
-import evosuite.shell.Settings;
-import evosuite.shell.excel.ExcelReader;
-import evosuite.shell.excel.ExcelWriter;
-import evosuite.shell.utils.LoggerUtils;
-import evosuite.shell.utils.TargetMethodIOUtils;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -120,7 +114,7 @@ public class ListMethods {
 	}
 	
 	private static List<String> readCSVFile() throws IOException {
-		String path = "D:\\linyun\\git_space\\SF100-clean\\constantMethods-60.xls";
+		String path = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/git_space/SF100-clean/constantMethods-60.xls";
 		File f = new File(path);
 //		ExcelReader excelReader = new ExcelReader(f, 3);
 		POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(path));

@@ -1,19 +1,18 @@
 package feature.objectconstruction.testgeneration.testcase;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-
+import common.TestUtil;
+import common.TestUtility;
+import feature.objectconstruction.testgeneration.example.graphcontruction.AcctInqRq.AcctInqRq;
+import feature.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
+import feature.objectconstruction.testgeneration.example.graphcontruction.JNFE.AddressData;
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
 
-import common.TestUtil;
-import common.TestUtility;
-import feature.objectconstruction.testgeneration.example.graphcontruction.AcctInqRq.AcctInqRq;
-import feature.objectconstruction.testgeneration.example.graphcontruction.BasicRules.checkRules.BasicRules;
-import feature.objectconstruction.testgeneration.example.graphcontruction.JNFE.AddressData;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 public class ProjectGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 	
@@ -37,7 +36,7 @@ public class ProjectGraphBasedCodeGenerationTest extends ObjectOrientedTest {
 		
 		Branch b = TestUtil.searchBranch(rankedList, 15);
 		
-		ConstructionPathSynthesizer.debuggerFolder = "D:\\linyun\\test\\";
+		ConstructionPathSynthesizer.debuggerFolder = "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/test/";
 		generateCode(b, false, false);
 	}
 	

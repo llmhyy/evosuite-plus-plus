@@ -1,21 +1,15 @@
 package common;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.ArrayUtils;
+import evosuite.shell.EvoTestResult;
+import evosuite.shell.EvosuiteForMethod;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.ga.metaheuristics.RuntimeRecord;
 import org.evosuite.result.TestGenerationResult;
 
-import evosuite.shell.EvoTestResult;
-import evosuite.shell.EvosuiteForMethod;
-import evosuite.shell.FileUtils;
-import evosuite.shell.experiment.SFBenchmarkUtils;
-import evosuite.shell.experiment.SFConfiguration;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestUtility {
 	static List<EvoTestResult> re = new ArrayList<EvoTestResult>();
@@ -809,7 +803,7 @@ public class TestUtility {
 				"-generateSuiteUsingDSE",
 				"-Dstrategy","DSE",
 				"-Ddse_solver", "Z3_SOLVER",
-				"-Dz3_path", "D:\\linyun\\program\\z3-4.8.9-x64-win\\bin\\z3.exe",
+				"-Dz3_path", "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/program/z3-4.8.9-x64-win/bin/z3.exe",
 				
 				"-criterion", fitnessAppraoch, 
 				"-class", targetClass, 
@@ -898,7 +892,7 @@ public class TestUtility {
 				"-generateSuiteUsingDSE",
 				"-Dstrategy","DSE",
 				"-Ddse_solver", "CVC4_SOLVER",
-				"-Dcvc4_path", "D:\\linyun\\program\\cvc4-1.8-win64-opt.exe",
+				"-Dcvc4_path", "/Users/xucaiyi/Documents/EvoObj-EvoSuite-comparison-testrun/TestGenerationResult/program/cvc4-1.8-win64-opt.exe",
 				
 				
 				"-criterion", fitnessAppraoch, 
