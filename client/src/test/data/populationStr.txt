@@ -11,17 +11,20 @@ import static org.junit.Assert.*;
 
 public class TestSuite {
 
-	@Test
-	public void testGetVariable_WhenVariableNameIsEmpty_ShouldReturnNull() throws MacawException {
-	    InMemoryVariableManager variableManager;
-	    User user;
+    InMemoryVariableManager variableManager;
+    User user;
 
-	    // Initialize the variable manager and user object for testing
+    @Before
+    public void setUp() {
+        // Initialize the variable manager and user object for testing
         variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(),
                 new InMemoryListChoiceManager(), new InMemoryOntologyTermManager(),
                 new InMemorySupportingDocumentsManager());
         user = new User();
+    }
 
+	@Test
+	public void testGetVariable_WhenVariableNameIsEmpty_ShouldReturnNull() throws MacawException {
     	// Arrange
     	String variableName = "";
 
@@ -34,15 +37,6 @@ public class TestSuite {
 
 	@Test
 	public void testGetVariable_WhenVariableNameDoesNotMatchAnyVariable_ShouldReturnNull() throws MacawException {
-        InMemoryVariableManager variableManager;
-        User user;
-
-        // Initialize the variable manager and user object for testing
-        variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(),
-                new InMemoryListChoiceManager(), new InMemoryOntologyTermManager(),
-                new InMemorySupportingDocumentsManager());
-        user = new User();
-
     	// Arrange
     	String variableName = "NonExistentVariable";
 
@@ -55,15 +49,6 @@ public class TestSuite {
 
 	@Test
 	public void testGetVariable_WhenVariableNameMatchesVariable_ShouldReturnClonedVariable() throws MacawException {
-	    InMemoryVariableManager variableManager;
-	    User user;
-
-	    // Initialize the variable manager and user object for testing
-        variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(),
-                new InMemoryListChoiceManager(), new InMemoryOntologyTermManager(),
-                new InMemorySupportingDocumentsManager());
-        user = new User();
-
     	// Arrange
     	String variableName = "ExistingVariable";
     	Variable existingVariable = new Variable(variableName);
@@ -76,5 +61,10 @@ public class TestSuite {
     	assertNotNull(result);
     	assertNotSame(existingVariable, result);
     	assertEquals(existingVariable, result);
+	}
+
+	@After
+	public void tearDown() {
+
 	}
 }

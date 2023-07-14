@@ -1,11 +1,15 @@
 package org.evosuite.testcase.parser;
 
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.Statement;
 import com.google.common.reflect.ClassPath;
+import javafx.util.Pair;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.lm.OpenAiLanguageModel;
 import org.evosuite.runtime.Reflection;
-import org.evosuite.utils.StringUtil;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericMethod;
@@ -13,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -513,7 +516,7 @@ public class ParserUtil {
     }
 
     public static String getClassDeclaration(String classDefinition) {
-        String className = StringUtil.getClassSimpleName(Properties.TARGET_CLASS);
+        String className = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
         StringBuilder classDeclaration = new StringBuilder();
         String[] lines = classDefinition.split("\\r?\\n");
         for (String l : lines) {
@@ -527,7 +530,7 @@ public class ParserUtil {
 
     public static String getClassNameFromList(List<String> classList, String classSimpleName) {
         for (String className : classList) {
-            if (StringUtil.getClassSimpleName(className).equals(classSimpleName)) {
+            if (ParserUtil.getClassSimpleName(className).equals(classSimpleName)) {
                 return className;
             }
         }
@@ -548,5 +551,43 @@ public class ParserUtil {
             logger.error(e.getMessage());
             return new byte[]{};
         }
+    }
+
+
+
+    public static String getClassSimpleName(String className) {
+        return className.substring(className.lastIndexOf('.')+1);
+    }
+
+    public static Pair<String, String[]> getMethodSimpleSignature(String methodSignature) {
+        String name = methodSignature.substring(0, methodSignature.indexOf('('));
+        String[] paraList = methodSignature.substring(methodSignature.indexOf('(')+1, methodSignature.indexOf(')')).split(";");
+        String[] paraTypes = new String[paraList.length];
+        for (int i = 0; i < paraList.length; ++i) {
+            String paraType = paraList[i].substring(paraList[i].lastIndexOf('/')+1);
+            if (!paraType.isEmpty()) {
+                paraTypes[i] = paraType;
+            }
+        }
+        return new Pair<>(name, paraTypes);
+    }
+
+    public static String getMethodSimpleSignatureStr(String methodSignature) {
+        Pair<String, String[]> simpleSignature = getMethodSimpleSignature(methodSignature);
+        String name = simpleSignature.getKey();
+        String paraTypes = String.join(", ", simpleSignature.getValue());
+        return name + "(" + paraTypes + ")";
+    }
+
+    public static List<String> getMethodStatements(List<MethodDeclaration> methods) {
+        return methods
+                .stream()
+                .map(MethodDeclaration::getBody)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(BlockStmt::getStatements)
+                .flatMap(NodeList::stream)
+                .map(Statement::toString)
+                .collect(Collectors.toList());
     }
 }

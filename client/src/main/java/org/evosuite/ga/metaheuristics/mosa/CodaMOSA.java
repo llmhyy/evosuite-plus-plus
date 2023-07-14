@@ -1,5 +1,6 @@
 package org.evosuite.ga.metaheuristics.mosa;
 
+import javafx.util.Pair;
 import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
@@ -20,7 +21,6 @@ import org.evosuite.testcase.parser.ParserUtil;
 import org.evosuite.testcase.synthesizer.TestCaseLegitimizer;
 import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
-import org.evosuite.utils.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +44,7 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
     protected ExceptionBranchEnhancer<T> exceptionBranchEnhancer = new ExceptionBranchEnhancer<>(goalsManager);
 
-    private String[] targetSummary;
-    private List<String> relevantClasses;
+    private Parser.ParseResult targetSummary;
 
     /**
      * Constructor based on the abstract class {@link AbstractMOSA}.
@@ -54,8 +53,6 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
      */
     public CodaMOSA(ChromosomeFactory<T> factory) {
         super(factory);
-        targetSummary = new String[3];
-        relevantClasses = new ArrayList<>();
     }
 
     /** {@inheritDoc} */
@@ -66,99 +63,33 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         this.notifySearchStarted();
         this.currentIteration = 0;
 
-        OpenAiLanguageModel model = new OpenAiLanguageModel();
-
         String targetClassDef = ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS);
-        String targetClassDec = ParserUtil.getClassDeclaration(targetClassDef);
-        String targetClass = StringUtil.getClassSimpleName(Properties.TARGET_CLASS);
-        String targetMethod = StringUtil.getMethodSimpleSignature(Properties.TARGET_METHOD);
+        Pair<String, String[]> targetMethodSig = ParserUtil.getMethodSimpleSignature(Properties.TARGET_METHOD);
 
-        // targetSummary = model.getTargetSummary(targetClassDef, targetClass, targetMethod);
-        String targetSummaryStr = targetClassDec +
-                targetSummary[1] + "\n" +
-                targetSummary[2] + "\n" +
-                targetSummary[0] + "\n";
+        Parser parser = new Parser(targetClassDef, targetMethodSig.getKey(), targetMethodSig.getValue());
+        this.targetSummary = parser.getSummary();
 
-        // TODO: to remove, for testing
-        try {
-            targetSummaryStr = new String(Files.readAllBytes(Paths.get(
-                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetSummary.txt")));
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        }
-        System.out.println("TARGET_SUMMARY:\n" + Arrays.toString(targetSummary));
+        String targetClass = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
+        String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
+        String targetSummaryStr = this.targetSummary.toString();
 
-        relevantClasses = model.getTargetRelevantClasses(targetSummaryStr);
-
-        String populationStr = "";
-        // populationStr = model.getInitialPopulation(targetMethod, targetSummaryStr);
-
+        String populationStr = ""; // new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummary);
         // TODO: testing, to be removed
         try {
             populationStr = new String(Files.readAllBytes(Paths.get(
-                    // "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
                     "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetClass.txt"
             )));
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
 
-        List<TestCase> population = new ArrayList<>();
-        Parser parser = new Parser();
-        // populationStr = parser.transformTestSuite(populationStr);
-
-        // TODO: refactor
-        final String CLASS_NOT_FOUND_ERR = "could not find class ";
-        final String METHOD_NOT_FOUND_ERR = "could not find method of ";
-        final String METHOD_ARG_MISMATCHED_ERR = "size mismatched in invoking method ";
-        final String CONSTRUCTOR_NOT_FOUND_ERR = "could not find constructor of ";
-        final String CONSTRUCTOR_ARG_MISMATCHED_ERR = "size mismatched in invoking constructor ";
-
-        boolean isError = false;
-        for (int i = 0; i < 10 && (i == 0 || isError); ++i) {
-            try {
-                System.out.println("POPULATION:");
-                System.out.println(populationStr);
-
-                parser.parse(populationStr);
-                population.addAll(parser.getTestCases());
-                isError = false;
-            } catch (RuntimeException e) {
-                population.addAll(parser.getTestCases());
-                isError = true;
-
-                String message = e.getMessage();
-                // String nodeTypeError = message.substring(0, Math.max(0, message.indexOf(':')));
-
-                if (message.contains(CLASS_NOT_FOUND_ERR)) {
-
-                } else if (message.contains(METHOD_NOT_FOUND_ERR)) {
-                    int index = message.indexOf(METHOD_NOT_FOUND_ERR) + METHOD_NOT_FOUND_ERR.length();
-                    String method = message.substring(index);
-                    String methodName = method.substring(method.indexOf('#')+1);
-                    String className = method.substring(0, method.indexOf('#'));
-                    String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
-                    populationStr = model.fixMethodNotFound(populationStr, className, methodName, classDefinition);
-                } else if (message.contains(METHOD_ARG_MISMATCHED_ERR)) {
-
-                } else if (message.contains(CONSTRUCTOR_NOT_FOUND_ERR)) {
-
-                } else if (message.contains(CONSTRUCTOR_ARG_MISMATCHED_ERR)) {
-                    int index = message.indexOf(CONSTRUCTOR_ARG_MISMATCHED_ERR) + CONSTRUCTOR_ARG_MISMATCHED_ERR.length();
-                    String className = ParserUtil.getClassNameFromList(relevantClasses, message.substring(index));
-                    String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
-                    populationStr = model.fixConstructorNotFound(populationStr, className, classDefinition);
-                }
-
-                System.out.println("EXCEPTION MESSAGE:");
-                System.out.println(e.getMessage());
-                System.out.println("POPULATION AFTER EXCEPTION:");
-                System.out.println(populationStr);
-            }
-        }
+        parser = new Parser(populationStr);
+        parser.handleSetUpAndTearDown();
+        parser.parse(10);
 
         System.out.println("LLM TEST:");
-        for (TestCase testCase : population) {
+        for (TestCase testCase : parser.getTestCases()) {
             System.out.println(testCase.toCode());
             // Execute new test case
             ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
@@ -365,10 +296,16 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                 System.out.println("COVERAGE STALL DETECTED");
 
                 try {
-                    OpenAiLanguageModel model = new OpenAiLanguageModel();
-                    String populationStr = "";
-                    // populationStr = model.getInitialPopulation(targetMethod, targetSummaryStr);
+                    String newBranch = "while(!var3.valueExactlyMatches(var6));";
+                    String targetClassName = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
+                    String newClassFullName = "macaw.util.SearchUtility";
+                    String newClassName = "SearchUtility";
 
+                    String populationStr = "";
+                    populationStr = new OpenAiLanguageModel().coverNewBranch(populationStr, newBranch,
+//                            targetClassName, ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS),
+                            targetClassName, targetSummary.toString(),
+                            newClassName, ParserUtil.getClassDefinition(Properties.CP, newClassFullName));
                     // TODO: testing, to be removed
                     try {
                         populationStr = new String(Files.readAllBytes(Paths.get(
@@ -379,75 +316,12 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                         logger.error(e.getMessage());
                     }
 
-                    List<TestCase> population = new ArrayList<>();
-                    Parser parser = new Parser();
-                    // populationStr = parser.transformTestSuite(populationStr);
-
-                    String newBranch = "while(!var3.valueExactlyMatches(var6));";
-                    String targetClassName = StringUtil.getClassSimpleName(Properties.TARGET_CLASS);
-                    String newClassFullName = "macaw.util.SearchUtility";
-                    String newClassName = "SearchUtility";
-
-                    String targetSum = "";
-                    // TODO: testing, to be removed
-                    try {
-                        targetSum = new String(Files.readAllBytes(Paths.get(
-                                // "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
-                                "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetSummary.txt"
-                        )));
-                    } catch (IOException e) {
-                        logger.error(e.getMessage());
-                    }
-
-                    populationStr = model.coverNewBranch(populationStr, newBranch,
-//                            targetClassName, ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS),
-                            targetClassName, targetSum,
-                            newClassName, ParserUtil.getClassDefinition(Properties.CP, newClassFullName));
-
-                    // TODO: refactor
-                    final String CLASS_NOT_FOUND_ERR = "could not find class ";
-                    final String METHOD_NOT_FOUND_ERR = "could not find method of ";
-                    final String METHOD_ARG_MISMATCHED_ERR = "size mismatched in invoking method ";
-                    final String CONSTRUCTOR_NOT_FOUND_ERR = "could not find constructor of ";
-                    final String CONSTRUCTOR_ARG_MISMATCHED_ERR = "size mismatched in invoking constructor ";
-
-                    boolean isError = false;
-                    for (int i = 0; i < 10 && (i == 0 || isError); ++i) {
-                        try {
-                            parser.parse(populationStr);
-                            population.addAll(parser.getTestCases());
-                            isError = false;
-                        } catch (RuntimeException e) {
-                            population.addAll(parser.getTestCases());
-                            isError = true;
-
-                            String message = e.getMessage();
-                            String nodeTypeError = message.substring(0, Math.max(0, message.indexOf(':')));
-
-                            if (message.contains(CLASS_NOT_FOUND_ERR)) {
-
-                            } else if (message.contains(METHOD_NOT_FOUND_ERR)) {
-                                int index = message.indexOf(METHOD_NOT_FOUND_ERR) + METHOD_NOT_FOUND_ERR.length();
-                                String method = message.substring(index);
-                                String methodName = method.substring(method.indexOf('#')+1);
-                                String className = method.substring(0, method.indexOf('#'));
-                                String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
-                                populationStr = model.fixMethodNotFound(populationStr, className, methodName, classDefinition);
-                            } else if (message.contains(METHOD_ARG_MISMATCHED_ERR)) {
-
-                            } else if (message.contains(CONSTRUCTOR_NOT_FOUND_ERR)) {
-
-                            } else if (message.contains(CONSTRUCTOR_ARG_MISMATCHED_ERR)) {
-                                int index = message.indexOf(CONSTRUCTOR_ARG_MISMATCHED_ERR) + CONSTRUCTOR_ARG_MISMATCHED_ERR.length();
-                                String className = ParserUtil.getClassNameFromList(relevantClasses, message.substring(index));
-                                String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
-                                populationStr = model.fixConstructorNotFound(populationStr, className, classDefinition);
-                            }
-                        }
-                    }
+                    Parser parser = new Parser(populationStr);
+                    parser.handleSetUpAndTearDown();
+                    parser.parse(10);
 
                     System.out.println("LLM TEST:");
-                    for (TestCase testCase : population) {
+                    for (TestCase testCase : parser.getTestCases()) {
                         System.out.println(testCase.toCode());
                         // Execute new test case
                         ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
@@ -456,9 +330,11 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                         newTest.setLastExecutionResult(exeRes);
                         this.population.add((T) newTest);
                     }
+
                 } catch (RuntimeException e) {
                     logger.error(e.getMessage());
                 }
+
                 this.evolve();
                 t2 = System.currentTimeMillis();
                 this.notifyIteration();
@@ -528,9 +404,5 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
             }
         }
         return true;
-    }
-
-    public List<String> getRelevantClasses() {
-        return this.relevantClasses;
     }
 }

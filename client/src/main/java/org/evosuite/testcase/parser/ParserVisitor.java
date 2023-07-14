@@ -24,29 +24,23 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static org.evosuite.testcase.parser.ParseException.*;
+
 public class ParserVisitor implements VoidVisitor<Object> {
 
     private final List<TestCase> testCases;
-    private final Map<String, VariableReference> commonRefs;
-    private final Map<String, VariableReference> testRefs;
-    private TestCase beforeTestCase;
-    private TestCase afterTestCase;
+    private Map<String, VariableReference> testRefs;
     private TestCase testCase;
 
     private Statement s;
     private VariableReference r;
-    private boolean isCommon;
 
     private static final Logger logger = LoggerFactory.getLogger(ParserVisitor.class);
 
     public ParserVisitor() {
         this.testCases = new ArrayList<>();
         this.testRefs = new HashMap<>();
-        this.commonRefs = new HashMap<>();
-        this.beforeTestCase = new DefaultTestCase();
-        this.afterTestCase = new DefaultTestCase();
         this.testCase = new DefaultTestCase();
-        this.isCommon = false;
         ParserUtil.initCaches();
     }
 
@@ -55,37 +49,15 @@ public class ParserVisitor implements VoidVisitor<Object> {
     }
 
     private void updateReference(String k, VariableReference v) {
-        if (this.isCommon) {
-            this.commonRefs.put(k, v);
-        } else {
-            this.testRefs.put(k, v);
-        }
+        this.testRefs.put(k, v);
     }
 
     private VariableReference getReference(String k) {
-        return this.testRefs.containsKey(k)
-            ? this.testRefs.get(k)
-            : this.commonRefs.get(k);
-    }
-
-    public Map<String, VariableReference> getCommonRefs() {
-        return this.commonRefs;
-    }
-
-    public Map<String, VariableReference> getTestRefs() {
-        return this.testRefs;
+        return this.testRefs.get(k);
     }
 
     public TestCase getTestCase() {
         return this.testCase;
-    }
-
-    public TestCase getBeforeTestCase() {
-        return this.beforeTestCase;
-    }
-
-    public TestCase getAfterTestCase() {
-        return this.afterTestCase;
     }
 
     // - Compilation Unit ----------------------------------
@@ -152,10 +124,8 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(FieldDeclaration n, Object arg) {
-        isCommon = true;
         Type type = n.getElementType();
         n.getVariables().accept(this, type);
-        isCommon = false;
     }
 
     @Override
@@ -177,26 +147,9 @@ public class ParserVisitor implements VoidVisitor<Object> {
     @Override
     public void visit(MethodDeclaration n, Object arg) {
         String annotation = n.getAnnotation(0).getNameAsString();
-
-        if (annotation.equals("Test")) {
-            testCase = beforeTestCase.clone();
-            n.getBody().ifPresent(b -> b.accept(this, arg));
-            testCases.add(testCase);
-        }
-
-        else if (annotation.equals("Before")) {
-            n.getBody().ifPresent(b -> b.accept(this, arg));
-            beforeTestCase = testCase.clone();
-        }
-
-        else if (annotation.equals("After")) {
-            for (TestCase tc : testCases) {
-                testCase = tc;
-                n.getBody().ifPresent(b -> b.accept(this, arg));
-            }
-        }
-
-        testRefs.clear();
+        n.getBody().ifPresent(b -> b.accept(this, arg));
+        testRefs = new HashMap<>();
+        testCase = new DefaultTestCase();
     }
 
     @Override
@@ -413,6 +366,10 @@ public class ParserVisitor implements VoidVisitor<Object> {
         GenericClass clazz = ref == null
                 ? ParserUtil.getGenericClass(scope)
                 : ref.getGenericClass();
+        if (clazz == null) {
+            String reason = String.format("%s: %s", CLASS_NOT_FOUND, scope);
+            throw new ParseException(reason);
+        }
 
         List<VariableReference> argRefs = new ArrayList<>();
         List<GenericClass> argTypes = new ArrayList<>();
@@ -424,19 +381,15 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
         GenericMethod method = ParserUtil.getMethod(clazz, name, argTypes);
         if (method == null) {
-            String message = String.format(
-                    "%s: could not find method of %s#%s",
-                    "MethodCallExpr", clazz.getClassName(), name);
-            throw new RuntimeException(message);
+            String reason = String.format("%s: %s#%s", METHOD_NOT_FOUND, clazz.getClassName(), name);
+            throw new ParseException(reason);
         }
 
         int paraNum = method.getNumParameters();
         int argNum = argRefs.size();
         if (argNum < paraNum) {
-            String message = String.format(
-                    "%s: size mismatched in invoking method %s",
-                    "MethodCallExpr", name);
-            throw new RuntimeException(message);
+            String reason = String.format("%s: %s#%s", METHOD_NOT_FOUND, clazz.getClassName(), name);
+            throw new ParseException(reason);
         }
 
         argRefs = argRefs.subList(0, paraNum);
@@ -454,10 +407,8 @@ public class ParserVisitor implements VoidVisitor<Object> {
         String typeStr = n.getTypeAsString();
         Class<?> type = ParserUtil.getClass(typeStr);
         if (type == null) {
-            String message = String.format(
-                    "%s: could not find class %s",
-                    "ObjectCreationExpr", typeStr);
-            throw new RuntimeException(message);
+            String reason = String.format("%s: %s", CLASS_NOT_FOUND, typeStr);
+            throw new ParseException(reason);
         }
 
         GenericClass clazz = new GenericClass(type);
@@ -471,19 +422,15 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
         GenericConstructor constructor = ParserUtil.getConstructor(clazz, argTypes);
         if (constructor == null) {
-            String message = String.format(
-                    "%s: could not find constructor of %s",
-                    "ObjectCreationExpr", typeStr);
-            throw new RuntimeException(message);
+            String reason = String.format("%s: %s", CONSTRUCTOR_NOT_FOUND, clazz.getClassName());
+            throw new ParseException(reason);
         }
 
         int paraNum = constructor.getNumParameters();
         int argNum = argRefs.size();
         if (argNum < paraNum) {
-            String message = String.format(
-                    "%s: size mismatched in invoking constructor %s",
-                    "ObjectCreationExpr", typeStr);
-            throw new IllegalArgumentException(message);
+            String reason = String.format("%s: %s", CONSTRUCTOR_NOT_FOUND, clazz.getClassName());
+            throw new ParseException(reason);
         }
 
         argRefs = argRefs.subList(0, paraNum);

@@ -58,11 +58,22 @@ public class TestSuite {
 
     @Test
     public void testGetVariable_WhenVariableNameMatchesVariable_ShouldReturnClonedVariable() throws MacawException {
+        InMemoryVariableManager variableManager;
+        User user;
+
+        // Initialize the variable manager and user object for testing
+        variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(),
+                new InMemoryListChoiceManager(new InMemoryChangeEventManager()),
+                new InMemoryOntologyTermManager(new InMemoryChangeEventManager()),
+                new InMemorySupportingDocumentsManager(new InMemoryChangeEventManager()));
+        user = new User();
 
         // Arrange
         String variableName = "ExistingVariable";
         Variable existingVariable = new Variable(variableName);
-        variableManager.addVariable(user, existingVariable);
+        List<Variable> variables = variableManager.getVariables(user);
+        variables.add(existingVariable);
+        // variableManager.addVariable(user, existingVariable);
 
         // Act
         Variable result = variableManager.getVariable(user, variableName);

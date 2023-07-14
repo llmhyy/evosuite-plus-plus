@@ -1,195 +1,241 @@
 package org.evosuite.testcase.parser;
 
 import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseResult;
-import com.github.javaparser.Problem;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.stmt.BlockStmt;
-import com.github.javaparser.ast.stmt.Statement;
+import org.evosuite.Properties;
+import org.evosuite.lm.OpenAiLanguageModel;
 import org.evosuite.testcase.TestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.evosuite.testcase.parser.ParseException.*;
 
 public class Parser {
 
     private String source;
+    private ParseResult summary;
     private CompilationUnit compilation;
     private final ParserVisitor visitor;
 
-    private static final String CLASS_DEC_ERROR = "Parse error. Found \"void\", expected one of  \";\" \"@\" \"class\" \"enum\" \"interface\" \"module\" \"open\" \"record\"";
-
     private static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
-    public Parser() {
-        this.source = null;
-        this.compilation = null;
+    private static final String NEWLINE = System.lineSeparator();
+
+    public static class ParseResult {
+        private String declaration;
+        private String method;
+        private List<String> fields = new ArrayList<>();
+        private List<String> constructors = new ArrayList<>();
+        private List<String> imports = new ArrayList<>();
+
+        @Override
+        public String toString() {
+            return declaration + NEWLINE + NEWLINE +
+                    method + NEWLINE + NEWLINE +
+                    String.join(NEWLINE, fields) + NEWLINE + NEWLINE +
+                    String.join(NEWLINE, constructors) + NEWLINE + NEWLINE +
+                    "}" + NEWLINE;
+        }
+    }
+
+    public Parser(String source) {
+        this.source = source;
         this.visitor = new ParserVisitor();
-    }
 
-    public String transformTestSuite(String testSuiteStr) {
-        StringBuilder resultTestSuite = new StringBuilder();
-
-        ParseResult<CompilationUnit> result = new JavaParser().parse(testSuiteStr);
+        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(source);
         boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
-        if (!isSuccessful) {
-            return null;
+        if (isSuccessful) {
+            this.compilation = result.getResult().get();
+        }
+    }
+
+    public Parser(String source, String targetMethodName, String... targetMethodParaTypes) {
+        this(source);
+        this.summary = new ParseResult();
+        this.summary.declaration = getDeclaration();
+        this.summary.method = getMethodBySignature(targetMethodName, targetMethodParaTypes).get(0);
+        this.summary.fields = getFields();
+        this.summary.constructors = getConstructors();
+        this.summary.imports = getImports();
+    }
+
+    public String getDeclaration() {
+        Node root = compilation.getTypes().get(0);
+        if (!(root instanceof ClassOrInterfaceDeclaration)) {
+            return "";
         }
 
-        CompilationUnit compUnit = result.getResult().get();
-        Node rootNode = compUnit.getTypes().get(0);
+        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
+        return classDec.toString().split("\\r?\\n")[0];
+    }
 
-        ClassOrInterfaceDeclaration testSuite = (ClassOrInterfaceDeclaration) rootNode;
-        String testSuiteDec = testSuite.toString();
-        resultTestSuite.append(testSuiteDec, 0, testSuiteDec.indexOf("\n")+1).append("\n");
+    public List<String> getFields() {
+        Node root = compilation.getTypes().get(0);
+        if (!(root instanceof ClassOrInterfaceDeclaration)) {
+            return new ArrayList<>();
+        }
 
-        StringBuilder attributes = new StringBuilder();
-        StringBuilder before = new StringBuilder();
-        StringBuilder after = new StringBuilder();
-        List<String> tests = new ArrayList<>();
-        List<String> testDeclarations = new ArrayList<>();
+        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
+        return classDec.getFields()
+                .stream()
+                .map(FieldDeclaration::toString)
+                .collect(Collectors.toList());
+    }
 
-        for (Node node : testSuite.getMembers()) {
-            if (node instanceof FieldDeclaration) {
-                String fieldStr = node.toString();
-                FieldDeclaration field = (FieldDeclaration) node;
-                for (Modifier modifier : field.getModifiers()) {
-                    String modStr = modifier.toString();
-                    fieldStr = fieldStr.replace(modStr, "");
+    public List<String> getConstructors() {
+        Node root = compilation.getTypes().get(0);
+        if (!(root instanceof ClassOrInterfaceDeclaration)) {
+            return new ArrayList<>();
+        }
+
+        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
+        return classDec.getConstructors()
+                .stream()
+                .map(ConstructorDeclaration::toString)
+                .collect(Collectors.toList());
+    }
+
+    public List<String> getMethodBySignature(String name, String... paraTypes) {
+        Node root = compilation.getTypes().get(0);
+        if (!(root instanceof ClassOrInterfaceDeclaration)) {
+            return new ArrayList<>();
+        }
+
+        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
+        return classDec.getMethodsBySignature(name, paraTypes)
+                .stream()
+                .map(MethodDeclaration::toString)
+                .collect(Collectors.toList());
+    }
+
+    public List<MethodDeclaration> getMethodsByAnnotation(String annotation) {
+        Node root = compilation.getTypes().get(0);
+        if (!(root instanceof ClassOrInterfaceDeclaration)) {
+            return new ArrayList<>();
+        }
+
+        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
+        return classDec.getMethods()
+                .stream()
+                .filter(m -> m.isAnnotationPresent(annotation))
+                .collect(Collectors.toList());
+    }
+
+    public List<String> getImports() {
+        List<String> filter = Arrays.asList(
+                "java.lang.",
+                "java.util.",
+                "java.awt.");
+        return compilation.getImports()
+                .stream()
+                .map(ImportDeclaration::getNameAsString)
+                .filter(i -> filter.stream().noneMatch(i::startsWith))
+                .collect(Collectors.toList());
+    }
+
+    public void handleSetUpAndTearDown() {
+        StringBuilder testSuiteBuilder = new StringBuilder();
+
+        Node root = compilation.getTypes().get(0);
+        if (!(root instanceof ClassOrInterfaceDeclaration)) {
+            return;
+        }
+
+        String declaration = getDeclaration();
+        List<String> fields = getFields();
+        List<MethodDeclaration> tests = getMethodsByAnnotation("Test");
+        List<MethodDeclaration> before = getMethodsByAnnotation("Before");
+        List<MethodDeclaration> after = getMethodsByAnnotation("After");
+
+        List<String> beforeStatements = ParserUtil.getMethodStatements(before);
+        List<String> afterStatements = ParserUtil.getMethodStatements(after);
+
+        String fieldsStr = String.join(NEWLINE, fields);
+        String beforeStr = String.join(NEWLINE, beforeStatements);
+        String afterStr = String.join(NEWLINE, afterStatements);
+
+        testSuiteBuilder.append(declaration).append(NEWLINE).append(NEWLINE);
+
+        for (MethodDeclaration test : tests) {
+            String testDeclaration = test.getDeclarationAsString(true, true);
+            List<String> testStatements = ParserUtil.getMethodStatements(Collections.singletonList(test));
+            String testStr = String.join(NEWLINE, testStatements);
+
+            testSuiteBuilder.append("@Test").append(NEWLINE)
+                    .append(testDeclaration).append(" {").append(NEWLINE)
+                    .append(fieldsStr).append(fieldsStr.isEmpty() ? "" : NEWLINE)
+                    .append(beforeStr).append(beforeStr.isEmpty() ? "" : NEWLINE)
+                    .append(testStr).append(testStr.isEmpty() ? "" : NEWLINE)
+                    .append(afterStr).append(afterStr.isEmpty() ? "" : NEWLINE)
+                    .append("}").append(NEWLINE).append(NEWLINE);
+        }
+
+        testSuiteBuilder.append("}").append(NEWLINE);
+        String testSuiteStr = testSuiteBuilder.toString();
+
+        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(testSuiteStr);
+        boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
+        if (isSuccessful) {
+            source = testSuiteStr;
+            compilation = result.getResult().get();
+        }
+    }
+
+    public void parse(int maxTries) {
+        Node root = compilation.getTypes().get(0);
+        if (!(root instanceof ClassOrInterfaceDeclaration)) {
+            return;
+        }
+
+        do {
+            try {
+                maxTries--;
+                root.accept(visitor, null);
+            } catch (ParseException e) {
+                String[] message = e.getMessage().split(": ");
+                assert message.length == 2;
+                switch (message[0]) {
+                    case CLASS_NOT_FOUND: handleClassNotFound(message[1]); break;
+                    case CONSTRUCTOR_NOT_FOUND: handleConstructorNotFound(message[1]); break;
+                    case METHOD_NOT_FOUND: handleMethodNotFound(message[1]); break;
                 }
-                attributes.append(fieldStr).append("\n");
-            } else if (node instanceof MethodDeclaration) {
-                MethodDeclaration method = (MethodDeclaration) node;
-                BlockStmt body = method.getBody().get();
-                String annotation = method.getAnnotation(0).getNameAsString();
-
-                if (annotation.equals("Before")) {
-                    for (Statement statement : body.getStatements()) {
-                        before.append("\t\t").append(statement).append("\n");
-                    }
-                } else if (annotation.equals("After")) {
-                    for (Statement statement : body.getStatements()) {
-                        after.append("\t\t").append(statement).append("\n");
-                    }
-                } else if (annotation.equals("Test")) {
-                    StringBuilder test = new StringBuilder();
-                    for (Statement statement : body.getStatements()) {
-                        test.append("\t\t").append(statement).append("\n");
-                    }
-                    testDeclarations.add("\t@Test\n\t" + method.getDeclarationAsString() + " {\n");
-                    tests.add(test.toString());
-                }
             }
-        }
-
-        for (int i = 0; i < testDeclarations.size() && i < tests.size(); ++i) {
-            String testDec = testDeclarations.get(i);
-            String testBody = tests.get(i);
-
-            resultTestSuite.append(testDec);
-            resultTestSuite.append(attributes);
-            resultTestSuite.append(before);
-            resultTestSuite.append(testBody);
-            resultTestSuite.append(after);
-            resultTestSuite.append("}");
-            resultTestSuite.append("\n\n");
-        }
-
-        resultTestSuite.append("}\n");
-        return resultTestSuite.toString();
+        } while (maxTries > 0);
     }
 
-    public void parse(String testCaseStr) {
-        testCaseStr = removeAssertions(testCaseStr);
+    private void handleClassNotFound(String detail) {
 
-        ParseResult<CompilationUnit> result = new JavaParser().parse(testCaseStr);
-        if (result.isSuccessful() && result.getResult().isPresent()) {
-            CompilationUnit compUnit = result.getResult().get();
-            Node rootNode = compUnit.getTypes().get(0);
-            rootNode.accept(visitor, null);
-        } else {
-            List<String> errors = new ArrayList<>();
-            for (Problem problem : result.getProblems()) {
-                errors.add(problem.getMessage());
-            }
-            if (errors.contains(CLASS_DEC_ERROR)) {
-                testCaseStr = wrapClassDec(testCaseStr);
-                parse(testCaseStr);
-            }
-            logger.error(result.getProblems().toString());
-        }
     }
 
-    private String removeAssertions(String testSuiteStr) {
-        StringBuilder result = new StringBuilder();
-        for (String line : testSuiteStr.split(System.lineSeparator())) {
-            if (!line.contains("assert")) {
-                result.append(line).append(System.lineSeparator());
-            }
-        }
-        return result.toString();
+    private void handleConstructorNotFound(String detail) {
+        String className = detail;
+        String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
+        source = new OpenAiLanguageModel().fixConstructorNotFound(source, className, classDefinition);
     }
 
-    /**
-    private String handleSetUpAndTearDown(String testSuiteStr) {
-        // assuming that the testSuiteStr is in this format
-        // public class ... {
-        // ...
-        // @Before ...
-        // @Test ...
-        // @After ...
-
-        String className = StringUtil.getClassSimpleName(Properties.TARGET_CLASS);
-        String[] lines = testSuiteStr.split("\\\\r?\\\\n");
-
-        StringBuiler resultBuilder = new StringBuilder();
-        StringBuilder attrBuilder = new StringBuilder();
-        StringBuilder setUpBuilder = new StringBuilder();
-        StringBuilder tearDownBuilder = new StringBuilder();
-        StringBuilder testCaseBuilder = new StringBuilder();
-        boolean isAttr = false, isSetUp = false, isTearDown = false, isTestCase = false;
-
-        for (int i = 0; i < lines.length; ++i) {
-            if (!isAttr && lines[i].contains("public class ")) {
-                isAttr = true;
-                continue;
-            } else if (!isSetUp && lines[i++].contains("@Before")) {
-                isSetUp = true;
-                isAttr = false;
-                continue;
-            } else if (!isTearDown && lines[i++].contains("@After")) {
-                isTearDown = true;
-                isTestCase = false;
-                continue;
-            } else if (!isTestCase && lines[i++].contains("@Test")) {
-                isTestCase = true;
-                isSetUp = false;
-            }
-
-            if (isAttr) {
-                attrBuilder.append(lines[i]).append("\n");
-            } else if (isSetUp) {
-                setUpBuilder.append(lines[i]).append("\n");
-            } else if (isTearDown) {
-                tearDownBuilder.append(lines[i]).append("\n");
-            }
-        }
-    }*/
-
-    private String wrapClassDec(String test) {
-        String startDec = "public class SampleClass {\n";
-        String endDec = "\n}";
-        return startDec + test + endDec;
+    private void handleMethodNotFound(String detail) {
+        String[] method = detail.split("#");
+        assert method.length == 2;
+        String methodName = method[0];
+        String className = method[1];
+        String classDefinition = ParserUtil.getClassDefinition(org.evosuite.Properties.CP, className);
+        source = new OpenAiLanguageModel().fixMethodNotFound(source, className, methodName, classDefinition);
     }
 
     public List<TestCase> getTestCases() {
         return this.visitor.getTestCases();
+    }
+
+    public ParseResult getSummary() {
+        return this.summary;
     }
 }

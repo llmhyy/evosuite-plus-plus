@@ -19,6 +19,7 @@
  */
 package org.evosuite.utils;
 
+import javafx.util.Pair;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.ArrayList;
@@ -194,23 +195,5 @@ public abstract class StringUtil {
 			return shortestStrLen;
 		}
 		return firstDiff;
-	}
-
-	public static String getClassSimpleName(String className) {
-		return className.substring(className.lastIndexOf('.')+1);
-	}
-
-	public static String getMethodSimpleSignature(String methodSignature) {
-		String methodName = methodSignature.substring(0, methodSignature.indexOf('('));
-		String[] paraList = methodSignature.substring(methodSignature.indexOf('(')+1, methodSignature.indexOf(')')).split(";");
-		List<String> paraNames = new ArrayList<>();
-		for (String p : paraList) {
-			String paraName = p.substring(p.lastIndexOf('/')+1);
-			if (!paraName.isEmpty()) {
-				paraNames.add(paraName);
-			}
-		}
-		String paras = "(" + String.join(", ", paraNames) + ")";
-		return methodName + paras;
 	}
 }

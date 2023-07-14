@@ -28,8 +28,6 @@ public class OpenAiLanguageModel {
     private List<Integer> tokenLenCache;
 
     public OpenAiLanguageModel() {
-        // setAuthorizationKey("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"); // nbvannhi
-        // setModelId("code-davinci-002");
         authorizationKey = "INSERT_YOUR_API_KEY"; // to commit
         modelId = "gpt-3.5-turbo-16k";
         temperature = 1.0;
