@@ -515,19 +515,6 @@ public class ParserUtil {
         return "";
     }
 
-    public static String getClassDeclaration(String classDefinition) {
-        String className = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
-        StringBuilder classDeclaration = new StringBuilder();
-        String[] lines = classDefinition.split("\\r?\\n");
-        for (String l : lines) {
-            classDeclaration.append(l).append("\n");
-            if (l.contains(className)) {
-                break;
-            }
-        }
-        return classDeclaration.toString();
-    }
-
     public static String getClassNameFromList(List<String> classList, String classSimpleName) {
         for (String className : classList) {
             if (ParserUtil.getClassSimpleName(className).equals(classSimpleName)) {

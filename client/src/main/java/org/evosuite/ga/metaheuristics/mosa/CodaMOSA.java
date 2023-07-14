@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
@@ -46,13 +47,17 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
     private Parser.ParseResult targetSummary;
 
+    private Map<FitnessFunction<T>, String> nlBranchesMap;
+
     /**
      * Constructor based on the abstract class {@link AbstractMOSA}.
      *
-     * @param factory
+     * @param factory a {@link org.evosuite.ga.ChromosomeFactory} object
      */
     public CodaMOSA(ChromosomeFactory<T> factory) {
         super(factory);
+        this.targetSummary = new Parser.ParseResult();
+        this.nlBranchesMap = new LinkedHashMap<>();
     }
 
     /** {@inheritDoc} */
@@ -64,16 +69,19 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         this.currentIteration = 0;
 
         String targetClassDef = ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS);
-        Pair<String, String[]> targetMethodSig = ParserUtil.getMethodSimpleSignature(Properties.TARGET_METHOD);
+        Pair<String, String[]> targetMethodSignature = ParserUtil.getMethodSimpleSignature(Properties.TARGET_METHOD);
+        String targetMethodName = targetMethodSignature.getKey();
+        String[] targetMethodParaTypes = targetMethodSignature.getValue();
 
-        Parser parser = new Parser(targetClassDef, targetMethodSig.getKey(), targetMethodSig.getValue());
+        Parser parser = new Parser(targetClassDef, targetMethodName, targetMethodParaTypes);
         this.targetSummary = parser.getSummary();
+        this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
 
         String targetClass = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
         String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
         String targetSummaryStr = this.targetSummary.toString();
 
-        String populationStr = ""; // new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummary);
+        String populationStr = ""; // new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
         // TODO: testing, to be removed
         try {
             populationStr = new String(Files.readAllBytes(Paths.get(
@@ -296,16 +304,19 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                 System.out.println("COVERAGE STALL DETECTED");
 
                 try {
-                    String newBranch = "while(!var3.valueExactlyMatches(var6));";
+                    List<String> uncoveredBranches = this.getUncoveredBranches();
+                    String newBranch = uncoveredBranches.get(1);
+
                     String targetClassName = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
-                    String newClassFullName = "macaw.util.SearchUtility";
-                    String newClassName = "SearchUtility";
+                    String newClassName = ParserUtil.getClassNameFromList(targetSummary.getImports(), "SearchUtility");
+                    String targetClassDefinition = ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS);
+                    String newClassDefinition = ParserUtil.getClassDefinition(Properties.CP, newClassName);
 
                     String populationStr = "";
-                    populationStr = new OpenAiLanguageModel().coverNewBranch(populationStr, newBranch,
-//                            targetClassName, ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS),
-                            targetClassName, targetSummary.toString(),
-                            newClassName, ParserUtil.getClassDefinition(Properties.CP, newClassFullName));
+                    populationStr = new OpenAiLanguageModel().coverNewBranch(
+                            populationStr, newBranch,
+                            targetClassName, targetClassDefinition,
+                            newClassName, newClassDefinition);
                     // TODO: testing, to be removed
                     try {
                         populationStr = new String(Files.readAllBytes(Paths.get(
@@ -381,7 +392,20 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
     }
 
     /**
-     * Checks if the population is the same as before.
+     * Checks if the population i
+
+    public static String getClassDeclaration(String classDefinition) {
+        String className = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
+        StringBuilder classDeclaration = new StringBuilder();
+        String[] lines = classDefinition.split("\\r?\\n");
+        for (String l : lines) {
+            classDeclaration.append(l).append("\n");
+            if (l.contains(className)) {
+                break;
+            }
+        }
+        return classDeclaration.toString();
+    }s the same as before.
      *
      * @param populationBefore list of before test cases
      * @return true if the population is the same, false otherwise
@@ -404,5 +428,34 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
             }
         }
         return true;
+    }
+
+    private void initializeNLBranches(Map<Integer, String> lineBranchMap) {
+        Map<Integer, FitnessFunction<T>> branchCoverageTrueMap = goalsManager.getBranchCoverageTrueMap();
+        Map<Integer, FitnessFunction<T>> branchCoverageFalseMap = goalsManager.getBranchCoverageFalseMap();
+        assert branchCoverageTrueMap.keySet().equals(branchCoverageFalseMap.keySet()); // is this true?
+
+        List<FitnessFunction<T>> trueBranches = new ArrayList<>(branchCoverageTrueMap.values());
+        List<FitnessFunction<T>> falseBranches = new ArrayList<>(branchCoverageFalseMap.values());
+        List<String> nlBranches = new ArrayList<>(lineBranchMap.values());
+        assert trueBranches.size() == nlBranches.size() &&
+                falseBranches.size() == nlBranches.size();
+
+        Iterator<FitnessFunction<T>> trueIt = trueBranches.iterator();
+        Iterator<FitnessFunction<T>> falseIt = falseBranches.iterator();
+        Iterator<String> nlIt = nlBranches.iterator();
+        while (trueIt.hasNext() && falseIt.hasNext() && nlIt.hasNext()) {
+            String branch = nlIt.next();
+            nlBranchesMap.put(trueIt.next(), branch);
+            nlBranchesMap.put(falseIt.next(), branch);
+        }
+    }
+
+    private List<String> getUncoveredBranches() {
+        List<String> uncoveredBranches = new ArrayList<>();
+        this.getUncoveredGoals().forEach(g -> uncoveredBranches.add(nlBranchesMap.get(g)));
+        return uncoveredBranches.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

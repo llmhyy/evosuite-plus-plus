@@ -29,8 +29,8 @@ import static org.evosuite.testcase.parser.ParseException.*;
 public class ParserVisitor implements VoidVisitor<Object> {
 
     private final List<TestCase> testCases;
-    private Map<String, VariableReference> testRefs;
     private TestCase testCase;
+    private Map<String, VariableReference> testRefs;
 
     private Statement s;
     private VariableReference r;
@@ -148,8 +148,9 @@ public class ParserVisitor implements VoidVisitor<Object> {
     public void visit(MethodDeclaration n, Object arg) {
         String annotation = n.getAnnotation(0).getNameAsString();
         n.getBody().ifPresent(b -> b.accept(this, arg));
-        testRefs = new HashMap<>();
+        testCases.add(testCase);
         testCase = new DefaultTestCase();
+        testRefs = new HashMap<>();
     }
 
     @Override
@@ -348,7 +349,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
     @Override
     public void visit(MethodCallExpr n, Object arg) {
         if (!n.getScope().isPresent()) {
-            logger.error(n.getNameAsString() + ": callee/scope should not is null");
+            logger.error(n.getNameAsString() + ": callee/scope should not be null " + n);
             return;
         }
 

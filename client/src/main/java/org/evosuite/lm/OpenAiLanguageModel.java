@@ -166,6 +166,17 @@ public class OpenAiLanguageModel {
         return extractCodeSnippet(testCases);
     }
 
+    public String fixClassNotFound(String testSuite, String className) {
+        String prompt = String.format(
+                "The class %s does not exist." +
+                        "Modify the test suite below to be valid.\n\n" +
+                        "Test suite:\n" +
+                        "%s\n\n",
+                className, wrapCodeBlock(testSuite));
+        String testCases = callChatCompletion(prompt);
+        return extractCodeSnippet(testCases);
+    }
+
     public String fixConstructorNotFound(String testSuite, String className, String classDefinition) {
         String prompt = String.format(
                 "Below is the definition of %s class. " +
