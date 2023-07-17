@@ -2,7 +2,6 @@ package org.evosuite.lm;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -14,6 +13,8 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.edit.EditChoice;
 import com.theokanning.openai.edit.EditRequest;
 import com.theokanning.openai.service.OpenAiService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OpenAiLanguageModel {
 
@@ -27,6 +28,8 @@ public class OpenAiLanguageModel {
     private float timeCalling;
     private List<Integer> tokenLenCache;
 
+    private static final Logger logger = LoggerFactory.getLogger(OpenAiLanguageModel.class);
+
     public OpenAiLanguageModel() {
         authorizationKey = "INSERT_YOUR_API_KEY"; // to commit
         modelId = "gpt-3.5-turbo-16k";
@@ -37,8 +40,11 @@ public class OpenAiLanguageModel {
         tokenLenCache = new ArrayList<>();
     }
 
+    // main method that sends out requests to OpenAI
     private String callChatCompletion(List<ChatMessage> messages) {
-        System.out.println(System.currentTimeMillis());
+        logger.info("callChatCompletion(List<ChatMessage>) is called");
+        logger.info(messages.toString());
+
         OpenAiService service = new OpenAiService(authorizationKey, Duration.ofSeconds(30L));
         ChatCompletionRequest request = ChatCompletionRequest.builder()
                 .model(modelId)
@@ -54,7 +60,9 @@ public class OpenAiLanguageModel {
         timeCalling += System.currentTimeMillis() - startTime;
         numCalls += 1;
 
-        return choices.get(0).getMessage().getContent();
+        String response = choices.get(0).getMessage().getContent();
+        logger.info(response);
+        return response;
     }
 
     private String callChatCompletion(String findPrompt) {
@@ -89,61 +97,6 @@ public class OpenAiLanguageModel {
         }
 
         return response;
-    }
-
-    public String[] getTargetSummary(String targetClassDef, String targetClass, String targetMethod) {
-        String[] targetSummary = new String[3];
-        String findPrompt, formatPrompt;
-
-        // TODO: how to trim content if exceed token length effectively
-        String targetClassDefCode = wrapCodeBlock(targetClassDef);
-
-        // TARGET_METHOD
-        findPrompt = String.format(
-                "Below is the definition of %s class. What is the definition of %s?\n",
-                targetClass, targetMethod) +
-                targetClassDefCode;
-        formatPrompt = "Put it in the following format:\n" +
-                "```java\n" +
-                "DEFINITION\n" +
-                "```\n";
-        targetSummary[0] = callChatCompletionFormat(findPrompt, formatPrompt);
-
-        // TARGET_CLASS fields
-        findPrompt = String.format("What are the fields of %s?\n", targetClass) + targetClassDefCode;
-        formatPrompt = "Put them in the following format:\n" +
-                "```java\n" +
-                "public FIELD_1;\n" +
-                "private FIELD_2;\n" +
-                "```\n";
-        targetSummary[1] = callChatCompletionFormat(findPrompt, formatPrompt);
-
-        // TARGET_CLASS constructors
-        findPrompt = String.format("What are the definitions of the constructors of %s?\n", targetClass) + targetClassDefCode;
-        formatPrompt = "Put them in the following format:\n" +
-                "```java\n" +
-                "public CONSTRUCTOR_1( ) {\n" +
-                "// CONSTRUCTOR_BODY\n" +
-                "}\n" +
-                "private CONSTRUCTOR_2( ) {\n" +
-                "// CONSTRUCTOR_BODY\n" +
-                "}\n";
-        targetSummary[2] = callChatCompletionFormat(findPrompt, formatPrompt);
-
-        return targetSummary;
-    }
-
-    public List<String> getTargetRelevantClasses(String targetSummary) {
-        String prompt = "List all classes used in the code snippet below.\n" +
-                "Put them in the following format:\n" +
-                "org.classA\n" +
-                "org.classB\n" +
-                wrapCodeBlock(targetSummary);
-        List<ChatMessage> messages = new ArrayList<>();
-        messages.add(new ChatMessage("user", prompt));
-        String[] classes = callChatCompletion(messages).split("\n");
-        String p = this.getInitialPopulation(",", "");
-        return new ArrayList<>(Arrays.asList(classes));
     }
 
     public String getInitialPopulation(String targetMethod, String targetSummary) {

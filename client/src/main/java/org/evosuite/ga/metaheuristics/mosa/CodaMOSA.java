@@ -47,7 +47,7 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
     private Parser.ParseResult targetSummary;
 
-    private Map<FitnessFunction<T>, String> nlBranchesMap;
+    private final Map<FitnessFunction<T>, String> nlBranchesMap;
 
     /**
      * Constructor based on the abstract class {@link AbstractMOSA}.
@@ -81,7 +81,7 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
         String targetSummaryStr = this.targetSummary.toString();
 
-        String populationStr = ""; // new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
+        String populationStr = new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
         // TODO: testing, to be removed
         try {
             populationStr = new String(Files.readAllBytes(Paths.get(
@@ -93,6 +93,7 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         }
 
         parser = new Parser(populationStr);
+        parser.setSummary(targetSummary);
         parser.handleSetUpAndTearDown();
         parser.parse(10);
 
@@ -308,8 +309,9 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                     String newBranch = uncoveredBranches.get(1);
 
                     String targetClassName = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
+                    String targetClassDefinition = targetSummary.toString();
+
                     String newClassName = ParserUtil.getClassNameFromList(targetSummary.getImports(), "SearchUtility");
-                    String targetClassDefinition = ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS);
                     String newClassDefinition = ParserUtil.getClassDefinition(Properties.CP, newClassName);
 
                     String populationStr = "";

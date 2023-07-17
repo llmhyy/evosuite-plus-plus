@@ -136,12 +136,14 @@ public class Parser {
                 root.accept(visitor, null);
                 break;
             } catch (ParseException e) {
+                logger.error(e.getMessage());
                 String[] message = e.getMessage().split(": ");
                 assert message.length == 2;
                 switch (message[0]) {
                     case CLASS_NOT_FOUND: handleClassNotFound(message[1]); break;
                     case CONSTRUCTOR_NOT_FOUND: handleConstructorNotFound(message[1]); break;
                     case METHOD_NOT_FOUND: handleMethodNotFound(message[1]); break;
+                    default: handleOverallException(); break;
                 }
             }
         } while (maxTries > 0);
@@ -164,6 +166,12 @@ public class Parser {
         String className = signature[1];
         String classDefinition = ParserUtil.getClassDefinition(org.evosuite.Properties.CP, className);
         source = new OpenAiLanguageModel().fixMethodNotFound(source, className, methodName, classDefinition);
+    }
+
+    private void handleOverallException() {
+        String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
+        String targetSummaryStr = summary.toString();
+        source = new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
     }
 
     public String getDeclaration() {
@@ -316,5 +324,9 @@ public class Parser {
 
     public ParseResult getSummary() {
         return this.summary;
+    }
+
+    public void setSummary(ParseResult summary) {
+        this.summary = summary;
     }
 }
