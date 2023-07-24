@@ -49,6 +49,8 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
     private final Map<FitnessFunction<T>, String> nlBranchesMap;
 
+    private String populationInit;
+
     /**
      * Constructor based on the abstract class {@link AbstractMOSA}.
      *
@@ -75,25 +77,23 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
         Parser parser = new Parser(targetClassDef, targetMethodName, targetMethodParaTypes);
         this.targetSummary = parser.getSummary();
-        this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
+        //this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
 
-        String targetClass = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
         String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
         String targetSummaryStr = this.targetSummary.toString();
 
-        String populationStr = new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
+        String populationStr = "";//new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
         // TODO: testing, to be removed
         try {
             populationStr = new String(Files.readAllBytes(Paths.get(
-                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
-                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetClass.txt"
+                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetClass.txt"
             )));
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
 
-        parser = new Parser(populationStr);
-        parser.setSummary(targetSummary);
+        parser = new Parser(populationStr, targetSummary);
         parser.handleSetUpAndTearDown();
         parser.parse(10);
 
@@ -107,6 +107,9 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
             newTest.setLastExecutionResult(exeRes);
             this.population.add((T) newTest);
         }
+
+        // Record initial population
+        this.populationInit = populationStr;
 
         // Determine fitness
         this.calculateFitness(true);
@@ -314,22 +317,21 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
                     String newClassName = ParserUtil.getClassNameFromList(targetSummary.getImports(), "SearchUtility");
                     String newClassDefinition = ParserUtil.getClassDefinition(Properties.CP, newClassName);
 
-                    String populationStr = "";
-                    populationStr = new OpenAiLanguageModel().coverNewBranch(
-                            populationStr, newBranch,
+                    String newTestsStr = new OpenAiLanguageModel().coverNewBranch(
+                            populationInit, newBranch,
                             targetClassName, targetClassDefinition,
                             newClassName, newClassDefinition);
                     // TODO: testing, to be removed
-                    try {
-                        populationStr = new String(Files.readAllBytes(Paths.get(
-                                // "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
-                                "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
-                        )));
-                    } catch (IOException e) {
-                        logger.error(e.getMessage());
-                    }
+//                    try {
+//                        populationStr = new String(Files.readAllBytes(Paths.get(
+//                                // "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+//                                "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
+//                        )));
+//                    } catch (IOException e) {
+//                        logger.error(e.getMessage());
+//                    }
 
-                    Parser parser = new Parser(populationStr);
+                    Parser parser = new Parser(newTestsStr, targetSummary);
                     parser.handleSetUpAndTearDown();
                     parser.parse(10);
 
@@ -365,7 +367,7 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
             Set<FitnessFunction<T>> goalsAfter = this.goalsManager.getUncoveredGoals();
             if (goalsAfter.equals(goalsBefore)) {
-                 stallLen += 1;
+//                 stallLen += 1;
                 System.out.println("NO NEW GOAL COVERED");
             } else {
                 stallLen = 0;

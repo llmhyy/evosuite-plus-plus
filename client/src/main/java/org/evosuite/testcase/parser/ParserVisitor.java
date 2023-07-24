@@ -348,17 +348,24 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(MethodCallExpr n, Object arg) {
-        if (!n.getScope().isPresent()) {
-            logger.error(n.getNameAsString() + ": callee/scope should not be null " + n);
-            return;
+        String name = n.getNameAsString();
+        String scope = n.getScope().isPresent() ? n.getNameAsString() : ""; // WRONG!!! can be chaining!!!!
+
+        if (scope.isEmpty()) {
+            switch (name) {
+            case "mock": visitMock(n, arg); return;
+            case "when":
+            case "verify":
+            default:
+                logger.error(n.getNameAsString() + ": callee/scope should not be null " + n);
+                return;
+            }
         }
 
         if (n.getNameAsString().equals("addVariable")) {
             System.currentTimeMillis();
         }
 
-        String name = n.getNameAsString();
-        String scope = n.getScope().get().toString(); // WRONG!!! can be chaining!!!!
         VariableReference ref = getReference(scope);
         if (ref == null) {
             System.currentTimeMillis();
@@ -398,6 +405,44 @@ public class ParserVisitor implements VoidVisitor<Object> {
         r = testCase.addStatement(s);
     }
 
+    public void visitMock(MethodCallExpr n, Object arg) {
+        assert n.getNameAsString().equals("mock");
+        assert n.getArguments().size() == 1;
+
+        String type = n.getArguments().get(0).asClassExpr().getTypeAsString();
+        GenericClass clazz = ParserUtil.getGenericClass(type);
+        if (clazz == null) {
+            String reason = String.format("%s: %s", CLASS_NOT_FOUND, type);
+            throw new ParseException(reason);
+        }
+
+        Set<GenericConstructor> constructors = ParserUtil.getGenericConstructors(clazz.getRawClass());
+        GenericConstructor constructor = null;
+        for (GenericConstructor c : constructors) {
+            List<VariableReference> paraTypes = new ArrayList<>();
+            List<Statement> paraStatements = new ArrayList<>();
+
+            TestCase paraTest = new DefaultTestCase();
+            GenericClass paraClass;
+            GenericConstructor paraConstructor;
+            Statement paraStatement;
+            for (java.lang.reflect.Type paraType : c.getParameterTypes()) {
+                paraClass = new GenericClass(paraType);
+                paraConstructor = new GenericConstructor(c.getConstructor(), paraClass);
+                paraStatement = new ConstructorStatement(paraTest, paraConstructor, null);
+                System.currentTimeMillis();
+            }
+        }
+
+        if (constructor == null) {
+            String reason = String.format("%s: %s", CONSTRUCTOR_NOT_FOUND, clazz.getClassName());
+            throw new ParseException(reason);
+        }
+
+        s = new ConstructorStatement(testCase, constructor, null);
+        r = testCase.addStatement(s);
+    }
+
     @Override
     public void visit(NameExpr n, Object arg) {
         r = getReference(n.getNameAsString());
@@ -410,6 +455,10 @@ public class ParserVisitor implements VoidVisitor<Object> {
         if (type == null) {
             String reason = String.format("%s: %s", CLASS_NOT_FOUND, typeStr);
             throw new ParseException(reason);
+        }
+
+        if (n.getArguments().size() != 0) {
+            System.currentTimeMillis();
         }
 
         GenericClass clazz = new GenericClass(type);

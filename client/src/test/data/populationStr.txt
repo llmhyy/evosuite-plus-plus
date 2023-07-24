@@ -1,70 +1,51 @@
-package macaw.persistenceLayer.demo;
-
-import macaw.businessLayer.User;
-import macaw.businessLayer.Variable;
-import macaw.system.MacawException;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
-public class TestSuite {
-
-    InMemoryVariableManager variableManager;
-    User user;
-
-    @Before
-    public void setUp() {
-        // Initialize the variable manager and user object for testing
-        variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(),
-                new InMemoryListChoiceManager(), new InMemoryOntologyTermManager(),
-                new InMemorySupportingDocumentsManager());
-        user = new User();
-    }
+public class ListPanelTest {
 
 	@Test
-	public void testGetVariable_WhenVariableNameIsEmpty_ShouldReturnNull() throws MacawException {
-    	// Arrange
-    	String variableName = "";
+	public void testDoubleClick_withNonNullValueAndNonNullCallback() {
+    	// ListPanel listPanel = new ListPanel();
+    	// listPanel.setDoubleClickCallback(mock(Callback.class));
+    	// listPanel.setList(mock(JList.class));
+    	mock(JList.class);
+    	when(listPanel.getList().getSelectedValue()).thenReturn(mock(Object.class));
 
-    	// Act
-    	Variable result = variableManager.getVariable(user, variableName);
+    	listPanel.doubleClick(mock(Object.class));
 
-    	// Assert
-    	assertNull(result);
+    	// Verify that the callback is called
+// Test suite only aims at checking if the function is invoked rather than covering the branch
+    	verify(listPanel.getDoubleClickCallback()).callback(any());
+    	// Verify that the editElement method is not called
+    	verify(listPanel, never()).editElement(any());
 	}
 
 	@Test
-	public void testGetVariable_WhenVariableNameDoesNotMatchAnyVariable_ShouldReturnNull() throws MacawException {
-    	// Arrange
-    	String variableName = "NonExistentVariable";
+	public void testDoubleClick_withNonNullValueAndNullCallback() {
+    	ListPanel listPanel = new ListPanel();
+    	listPanel.setDoubleClickCallback(null);
+    	listPanel.setList(mock(JList.class));
+    	when(listPanel.getList().getSelectedValue()).thenReturn(mock(Object.class));
 
-    	// Act
-    	Variable result = variableManager.getVariable(user, variableName);
+    	listPanel.doubleClick(mock(Object.class));
 
-    	// Assert
-    	assertNull(result);
+    	// Verify that the editElement method is called
+    	verify(listPanel).editElement(any());
 	}
 
 	@Test
-	public void testGetVariable_WhenVariableNameMatchesVariable_ShouldReturnClonedVariable() throws MacawException {
-    	// Arrange
-    	String variableName = "ExistingVariable";
-    	Variable existingVariable = new Variable(variableName);
-    	variableManager.addVariable(user, existingVariable);
+	public void testDoubleClick_withNullValue() {
+    	ListPanel listPanel = new ListPanel();
+    	listPanel.setDoubleClickCallback(mock(Callback.class));
+    	listPanel.setList(mock(JList.class));
+    	when(listPanel.getList().getSelectedValue()).thenReturn(null);
 
-    	// Act
-    	Variable result = variableManager.getVariable(user, variableName);
+    	listPanel.doubleClick(mock(Object.class));
 
-    	// Assert
-    	assertNotNull(result);
-    	assertNotSame(existingVariable, result);
-    	assertEquals(existingVariable, result);
+    	// Verify that neither the callback nor the editElement method are called
+    	verify(listPanel, never()).getDoubleClickCallback();
+    	verify(listPanel, never()).editElement(any());
 	}
 
-	@After
-	public void tearDown() {
-
-	}
 }

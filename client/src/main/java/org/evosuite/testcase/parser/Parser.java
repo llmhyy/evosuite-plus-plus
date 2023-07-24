@@ -55,7 +55,26 @@ public class Parser {
         }
     }
 
-    public Parser(String source) {
+    // TODO: refactor the constructors
+    public Parser(String source, ParseResult summary) {
+        this.source = source;
+        this.summary = summary;
+        this.visitor = new ParserVisitor();
+
+        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(removeAssertions(source));
+        boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
+        if (isSuccessful) {
+            this.compilation = result.getResult().get();
+        } else {
+            logger.error("error when compiling test string");
+            logger.error(result.getProblems().toString());
+            logger.error(source);
+            logger.error("regenerating tests...");
+            handleOverallException();
+        }
+    }
+
+    public Parser(String source, String targetMethodName, String... targetMethodParaTypes) {
         this.source = source;
         this.visitor = new ParserVisitor();
 
@@ -63,11 +82,14 @@ public class Parser {
         boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
         if (isSuccessful) {
             this.compilation = result.getResult().get();
+        } else {
+            logger.error("error when compiling test string");
+            logger.error(result.getProblems().toString());
+            logger.error(source);
+            logger.error("regenerating tests...");
+            handleOverallException();
         }
-    }
 
-    public Parser(String source, String targetMethodName, String... targetMethodParaTypes) {
-        this(source);
         this.summary = new ParseResult();
         this.summary.declaration = getDeclaration();
         this.summary.method = getMethodBySignature(targetMethodName, targetMethodParaTypes);
@@ -118,7 +140,7 @@ public class Parser {
 
         com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(testSuiteStr);
         boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
-        if (isSuccessful) {
+        if (isSuccessful) { // should not fail since the test suite is already parsed in the constructor
             source = testSuiteStr;
             compilation = result.getResult().get();
         }
@@ -150,7 +172,8 @@ public class Parser {
     }
 
     private void handleClassNotFound(String classSimpleName) {
-        String className = ParserUtil.getClassNameFromList(summary.imports, classSimpleName);
+        String classFullName = ParserUtil.getClassNameFromList(summary.imports, classSimpleName);
+        String className = classFullName == null ? classSimpleName : classFullName;
         source = new OpenAiLanguageModel().fixClassNotFound(source, className);
     }
 
@@ -162,8 +185,8 @@ public class Parser {
     private void handleMethodNotFound(String methodSignature) {
         String[] signature = methodSignature.split("#");
         assert signature.length == 2;
-        String methodName = signature[0];
-        String className = signature[1];
+        String methodName = signature[1];
+        String className = signature[0];
         String classDefinition = ParserUtil.getClassDefinition(org.evosuite.Properties.CP, className);
         source = new OpenAiLanguageModel().fixMethodNotFound(source, className, methodName, classDefinition);
     }
@@ -324,9 +347,5 @@ public class Parser {
 
     public ParseResult getSummary() {
         return this.summary;
-    }
-
-    public void setSummary(ParseResult summary) {
-        this.summary = summary;
     }
 }

@@ -49,6 +49,7 @@ public class ParserUtil {
                 "java.lang.Integer",
                 "java.lang.Double",
                 "java.lang.Boolean",
+                "java.util.Vector",
                 "java.util.List",
                 "java.util.Map",
                 "java.util.Set",
@@ -95,7 +96,8 @@ public class ParserUtil {
                 "java.util.concurrent.ConcurrentHashMap",
                 "java.util.concurrent.CopyOnWriteArrayList",
                 "java.util.concurrent.Semaphore",
-                "java.util.concurrent.CountDownLatch");
+                "java.util.concurrent.CountDownLatch",
+                "javax.swing.JList");
         for (String fullName : fullClassNames) {
             String simpleName = fullName.substring(fullName.lastIndexOf('.') + 1);
             try {
@@ -302,6 +304,17 @@ public class ParserUtil {
         return constructors;
     }
 
+    public static Set<GenericConstructor> getGenericConstructors(Class<?> clazz) {
+        return getConstructors(clazz).stream()
+                .map(c -> new GenericConstructor(c, clazz))
+                .collect(Collectors.toSet());
+    }
+
+    public static GenericConstructor getConstructor(GenericClass clazz) {
+        List<Constructor<?>> constructors = new ArrayList<>(getConstructors(clazz.getRawClass()));
+        return constructors.isEmpty() ? null : new GenericConstructor(constructors.get(1), clazz);
+    }
+
     public static GenericConstructor getConstructor(GenericClass clazz,
                                                     List<GenericClass> argumentTypes) {
         if (clazz.getSimpleName().equals("Variable")) {
@@ -316,7 +329,11 @@ public class ParserUtil {
             int i = 0;
             boolean isMatched = true;
             while (i < paraTypes.length && i < argTypes.length) {
-                if (!paraTypes[i].isAssignableFrom(argTypes[i])) {
+                if (i == argTypes.length || (paraTypes.length == 0 && argTypes.length != 0)) {
+                    // not a match if there are more parameters
+                    isMatched = false;
+                    break;
+                } else if (!paraTypes[i].isAssignableFrom(argTypes[i])) {
                     // if the type is not assignable, check if the method has vararg and
                     // the current parameter type is the last type and is an array type
                     if (constructor.isVarArgs() && i == paraTypes.length-1 && paraTypes[i].isArray()) {
@@ -339,9 +356,9 @@ public class ParserUtil {
             }
 
 //            // TODO: temp fix ONLY
-//            if (paraTypes.length == 0 && argTypes.length > 0) {
-//                isMatched = false;
-//            }
+            if (paraTypes.length == 0 && argTypes.length > 0) {
+                isMatched = false;
+            }
 
             if (isMatched) {
                 return new GenericConstructor(constructor, clazz);
@@ -474,43 +491,15 @@ public class ParserUtil {
             String classPath =
                     pathName.replace(".jar", "/src/main/java/") +
                     className.replace(".", "/") + ".java";
+//            String classPath =
+//                    pathName.replace(".jar", "/") +
+//                            className.replace(".", "/") + ".java";
             try {
                 List<String> lines = Files.readAllLines(Paths.get(classPath));
                 return String.join("\n", lines);
             } catch (IOException e) {
                 logger.error(e.getMessage());
             }
-
-            /*
-            File jarFile = new File(pathName);
-
-            try (JarFile jar = new JarFile(jarFile)) {
-                JarEntry entry = jar.getJarEntry(className.replace('.', '/') + ".class");
-                if (entry == null) {
-                    continue;
-                }
-
-                InputStream inputStream = jar.getInputStream(entry);
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-                // Read the class file and write it to the output stream
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-
-                // Convert the byte array to a String representation
-                String classDefinition = outputStream.toString("UTF-8");
-
-                System.out.println(classDefinition);
-
-                return classDefinition;
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-                return "";
-            }
-            */
         }
         return "";
     }
