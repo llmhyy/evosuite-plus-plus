@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import javax.swing.JList;
 
 import static org.evosuite.testcase.parser.ParseException.*;
 
@@ -235,7 +236,9 @@ public class ParserVisitor implements VoidVisitor<Object> {
     @Override
     public void visit(ArrayInitializerExpr n, Object arg) {
         // CHECK
-        Class<?> clazz = arg instanceof Class<?> ? (Class<?>) arg : null;
+        Class<?> clazz = arg instanceof Class<?> ? (Class<?>) arg
+                : arg instanceof ClassOrInterfaceType ? ParserUtil.getClass(arg.toString())
+                : null;
         ArrayReference array = null;
         array = new ArrayReference(testCase, clazz);
         s = new ArrayStatement(testCase, array, new int[] { n.getValues().size() });
@@ -349,7 +352,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
     @Override
     public void visit(MethodCallExpr n, Object arg) {
         String name = n.getNameAsString();
-        String scope = n.getScope().isPresent() ? n.getNameAsString() : ""; // WRONG!!! can be chaining!!!!
+        String scope = n.getScope().isPresent() ? n.getScope().get().toString() : ""; // WRONG!!! can be chaining!!!!
 
         if (scope.isEmpty()) {
             switch (name) {
@@ -406,6 +409,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
     }
 
     public void visitMock(MethodCallExpr n, Object arg) {
+        // ParserUtil.getFilePathByClassName("javax.swing.JList");
         assert n.getNameAsString().equals("mock");
         assert n.getArguments().size() == 1;
 

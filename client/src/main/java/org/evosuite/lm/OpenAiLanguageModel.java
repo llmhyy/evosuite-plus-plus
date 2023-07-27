@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ast.CompilationUnit;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.CompletionChoice;
@@ -42,8 +44,10 @@ public class OpenAiLanguageModel {
 
     // main method that sends out requests to OpenAI
     private String callChatCompletion(List<ChatMessage> messages) {
-        logger.info("callChatCompletion(List<ChatMessage>) is called");
-        logger.info(messages.toString());
+        System.out.println("==================================================");
+        System.out.println("callChatCompletion(List<ChatMessage>) is called");
+        System.out.println(messages.toString());
+        System.out.println("==================================================");
 
         OpenAiService service = new OpenAiService(authorizationKey, Duration.ofSeconds(30L));
         ChatCompletionRequest request = ChatCompletionRequest.builder()
@@ -61,7 +65,10 @@ public class OpenAiLanguageModel {
         numCalls += 1;
 
         String response = choices.get(0).getMessage().getContent();
-        logger.info(response);
+        System.out.println("==================================================");
+        System.out.println("RESPONSE:");
+        System.out.println(response);
+        System.out.println("==================================================");
         return response;
     }
 
@@ -85,13 +92,13 @@ public class OpenAiLanguageModel {
 
         messages.add(new ChatMessage("user", formatPrompt));
         response = callChatCompletion(messages);
-        System.out.println("RESPONSE:\n" + response);
+//        System.out.println("RESPONSE:\n" + response);
         response = extractCodeSnippet(response);
 
         try {
-            System.out.println(System.currentTimeMillis());
+//            System.out.println(System.currentTimeMillis());
             Thread.sleep(15000);
-            System.out.println(System.currentTimeMillis());
+//            System.out.println(System.currentTimeMillis());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -100,7 +107,8 @@ public class OpenAiLanguageModel {
     }
 
     public String getInitialPopulation(String targetMethod, String targetSummary) {
-        String initPrompt = String.format("Write unit tests to cover all branches of %s.\n", targetMethod) +
+        String initPrompt =
+                String.format("Write unit tests to cover all branches of %s without using any mocking.\n", targetMethod) +
                 wrapCodeBlock(targetSummary);
         String formatPrompt = "Combine them into a test suite with the following format:\n" +
                 "```java\n" +
@@ -419,7 +427,14 @@ public class OpenAiLanguageModel {
             codeSnippet = response.substring(response.indexOf("```java") + 7);
             codeSnippet = codeSnippet.substring(0, codeSnippet.indexOf("```"));
         } catch (StringIndexOutOfBoundsException e) {
-            System.out.println(response);
+//            System.out.println(response);
+            com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(response);
+            boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
+            if (isSuccessful) {
+                return codeSnippet;
+            } else {
+                return "";
+            }
         }
         return codeSnippet;
     }

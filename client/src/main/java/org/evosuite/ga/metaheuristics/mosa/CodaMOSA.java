@@ -23,6 +23,8 @@ import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javax.swing.JList;
+import javax.swing.ListSelectionModel;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -86,7 +88,8 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         // TODO: testing, to be removed
         try {
             populationStr = new String(Files.readAllBytes(Paths.get(
-                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
                     //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetClass.txt"
             )));
         } catch (IOException e) {

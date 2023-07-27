@@ -1,52 +1,82 @@
-// Test case 1
-InMemoryVariableManager inMemoryVariableManager0 = null;
-User user0 = null;
-InMemoryChangeEventManager inMemoryChangeEventManager0 = new InMemoryChangeEventManager();
-InMemoryChangeEventManager inMemoryChangeEventManager1 = new InMemoryChangeEventManager();
-InMemoryListChoiceManager inMemoryListChoiceManager0 = new InMemoryListChoiceManager(inMemoryChangeEventManager1);
-InMemoryChangeEventManager inMemoryChangeEventManager2 = new InMemoryChangeEventManager();
-InMemoryOntologyTermManager inMemoryOntologyTermManager0 = new InMemoryOntologyTermManager(inMemoryChangeEventManager2);
-InMemoryChangeEventManager inMemoryChangeEventManager3 = new InMemoryChangeEventManager();
-InMemorySupportingDocumentsManager inMemorySupportingDocumentsManager0 = new InMemorySupportingDocumentsManager(inMemoryChangeEventManager3);
-InMemoryVariableManager inMemoryVariableManager1 = new InMemoryVariableManager(inMemoryChangeEventManager0, inMemoryListChoiceManager0, inMemoryOntologyTermManager0, inMemorySupportingDocumentsManager0);
-inMemoryVariableManager0 = inMemoryVariableManager1;
-User user1 = new User();
-user0 = user1;
-String string0 = "";
-Variable variable0 = inMemoryVariableManager0.getVariable(user0, string0);
+import org.junit.Test;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
-// Test case 2
-InMemoryVariableManager inMemoryVariableManager0 = null;
-User user0 = null;
-InMemoryChangeEventManager inMemoryChangeEventManager0 = new InMemoryChangeEventManager();
-InMemoryChangeEventManager inMemoryChangeEventManager1 = new InMemoryChangeEventManager();
-InMemoryListChoiceManager inMemoryListChoiceManager0 = new InMemoryListChoiceManager(inMemoryChangeEventManager1);
-InMemoryChangeEventManager inMemoryChangeEventManager2 = new InMemoryChangeEventManager();
-InMemoryOntologyTermManager inMemoryOntologyTermManager0 = new InMemoryOntologyTermManager(inMemoryChangeEventManager2);
-InMemoryChangeEventManager inMemoryChangeEventManager3 = new InMemoryChangeEventManager();
-InMemorySupportingDocumentsManager inMemorySupportingDocumentsManager0 = new InMemorySupportingDocumentsManager(inMemoryChangeEventManager3);
-InMemoryVariableManager inMemoryVariableManager1 = new InMemoryVariableManager(inMemoryChangeEventManager0, inMemoryListChoiceManager0, inMemoryOntologyTermManager0, inMemorySupportingDocumentsManager0);
-inMemoryVariableManager0 = inMemoryVariableManager1;
-User user1 = new User();
-user0 = user1;
-String string0 = "NonExistentVariable";
-Variable variable0 = inMemoryVariableManager0.getVariable(user0, string0);
+public class ListPanelTest {
 
-// Test case 3
-InMemoryVariableManager inMemoryVariableManager0 = null;
-User user0 = null;
-InMemoryChangeEventManager inMemoryChangeEventManager0 = new InMemoryChangeEventManager();
-InMemoryChangeEventManager inMemoryChangeEventManager1 = new InMemoryChangeEventManager();
-InMemoryListChoiceManager inMemoryListChoiceManager0 = new InMemoryListChoiceManager(inMemoryChangeEventManager1);
-InMemoryChangeEventManager inMemoryChangeEventManager2 = new InMemoryChangeEventManager();
-InMemoryOntologyTermManager inMemoryOntologyTermManager0 = new InMemoryOntologyTermManager(inMemoryChangeEventManager2);
-InMemoryChangeEventManager inMemoryChangeEventManager3 = new InMemoryChangeEventManager();
-InMemorySupportingDocumentsManager inMemorySupportingDocumentsManager0 = new InMemorySupportingDocumentsManager(inMemoryChangeEventManager3);
-InMemoryVariableManager inMemoryVariableManager1 = new InMemoryVariableManager(inMemoryChangeEventManager0, inMemoryListChoiceManager0, inMemoryOntologyTermManager0, inMemorySupportingDocumentsManager0);
-inMemoryVariableManager0 = inMemoryVariableManager1;
-User user1 = new User();
-user0 = user1;
-String string0 = "ExistingVariable";
-Variable variable0 = new Variable();
-inMemoryVariableManager0.addVariable(user0, variable0);
-Variable variable1 = inMemoryVariableManager0.getVariable(user0, string0);
+    @Test
+    public void testDoubleClickWithNonNullVar2AndNullCallbackAndEditOnDoubleClickTrue() {
+        Callback doubleClickCallback = null;
+        ListPanel listPanel = new ListPanel();
+        Object var2 = new Object();
+        listPanel.setEditOnDoubleClick(true);
+        listPanel.setDoubleClickCallback(doubleClickCallback);
+
+        listPanel.doubleClick(var2);
+
+        // Verify that the editElement method is called with var2
+        // assert...
+    }
+
+    @Test
+    public void testDoubleClickWithNonNullVar2AndNullCallbackAndEditOnDoubleClickFalse() {
+        ListPanel listPanel = new ListPanel();
+        Object var2 = new Object();
+        Callback doubleClickCallback = null;
+        listPanel.setEditOnDoubleClick(false);
+        listPanel.setDoubleClickCallback(doubleClickCallback);
+
+        listPanel.doubleClick(var2);
+
+        // Verify that neither the doubleClickCallback nor the editElement method is called
+        // assert...
+    }
+
+    @Test
+    public void testDoubleClickWithNullVar2() {
+        ListPanel listPanel = new ListPanel();
+        Object var2 = null;
+
+        listPanel.doubleClick(var2);
+
+        // Verify that neither the doubleClickCallback nor the editElement method is called
+        // assert...
+    }
+
+    @Test
+    public void testDoubleClickWithNonNullVar2AndNonNullCallback() {
+        ListPanel listPanel = new ListPanel();
+        Object var2 = new Object();
+        Callback doubleClickCallback = new DeleteFileCallback();
+        listPanel.setDoubleClickCallback(doubleClickCallback);
+
+        SimpleChangeableListModel var1 = new SimpleChangeableListModel();
+        listPanel.setListModel(var1);
+        JList list = new JList(var1);
+        listPanel.setList(list);
+
+        listPanel.doubleClick(var2);
+
+        // Verify that the callback method of DeleteFileCallback is called with var2
+        // assert...
+    }
+
+    @Test
+    public void testDoubleClickWithNonNullVar2AndNonNullCallback() {
+        ListPanel listPanel = new ListPanel();
+        Object var2 = new Object();
+        Callback doubleClickCallback = new DeleteFileCallback();
+        listPanel.setDoubleClickCallback(doubleClickCallback);
+
+        String[] items = new String[]{"Apple", "Banana", "Orange", "Grapes", "Mango"};
+        JList<String> itemList = new JList<>(items);
+        itemList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JList list = new JList(var1);
+        listPanel.setList(list);
+
+        listPanel.doubleClick(var2);
+
+        // Verify that the callback method of DeleteFileCallback is called with var2
+        // assert...
+    }
+}

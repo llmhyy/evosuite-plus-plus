@@ -33,6 +33,7 @@ public class ParserUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(ParserUtil.class);
 
+    public static final String TARGET_PROJECT_CP = getTargetProjectPath();
     private static final Map<String, Class<?>> classCache = new HashMap<>();
     private static final Map<Class<?>, Set<Method>> methodCache = new HashMap<>();
     private static final Map<Class<?>, Set<Constructor<?>>> constructorCache = new HashMap<>();
@@ -97,6 +98,7 @@ public class ParserUtil {
                 "java.util.concurrent.CopyOnWriteArrayList",
                 "java.util.concurrent.Semaphore",
                 "java.util.concurrent.CountDownLatch",
+                "javax.swing.ListSelectionModel",
                 "javax.swing.JList");
         for (String fullName : fullClassNames) {
             String simpleName = fullName.substring(fullName.lastIndexOf('.') + 1);
@@ -280,6 +282,16 @@ public class ParserUtil {
             } else if (classSimpleName.equals("InMemorySupportingDocumentsManager")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemorySupportingDocumentsManager");
             }
+
+            else if (classSimpleName.equals("ListPanel")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.swing.ListPanel");
+            } else if (classSimpleName.equals("Callback")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.event.Callback");
+            } else if (classSimpleName.equals("DeleteFileCallback")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.application.DeleteFileCallback");
+            } else if (classSimpleName.equals("SimpleChangeableListModel")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.swing.SimpleChangeableListModel");
+            }
         } catch (ClassNotFoundException e) {
             logger.error("class " + classSimpleName + " not found");
         }
@@ -414,10 +426,12 @@ public class ParserUtil {
     public static GenericMethod getMethod(GenericClass clazz,
                                           String simpleName,
                                           List<GenericClass> argumentTypes) {
+        if (simpleName.equals("setDoubleClickCallback")) {
+            System.currentTimeMillis();
+        }
+
         Class<?>[] argTypes = argumentTypes.stream()
-                .map(type -> type.isPrimitive()
-                        ? convertToWrapperClass(type.getRawClass())
-                        : type.getRawClass())
+                .map(type -> type.isPrimitive() ? convertToWrapperClass(type.getRawClass()) : type.getRawClass())
                 .toArray(Class[]::new);
         Set<Method> methods = new HashSet<>();
         try {
@@ -426,7 +440,9 @@ public class ParserUtil {
             System.currentTimeMillis();
         }
         for (Method method : methods) {
-            Class<?>[] paraTypes = method.getParameterTypes();
+            Class<?>[] paraTypes = Arrays.stream(method.getParameterTypes())
+                    .map(type -> type.isPrimitive() ? convertToWrapperClass(type) : type)
+                    .toArray(Class[]::new);
             int i = 0;
             boolean isMatched = true;
             while (i < paraTypes.length) {
@@ -565,5 +581,67 @@ public class ParserUtil {
                 .flatMap(NodeList::stream)
                 .map(Statement::toString)
                 .collect(Collectors.toList());
+    }
+
+    public static void getProjectClass(String pathNames, String className) {
+//        logger.info("loading class definition for prompting for " + className);
+//        for (String pathName : pathNames.split(":")) {
+////            String classPath =
+////                    pathName.replace(".jar", "/") +
+////                            className.replace(".", "/") + ".java";
+//            try {
+//                List<String> lines = Files.readAllLines(Paths.get(classPath));
+//                return String.join("\n", lines);
+//            } catch (IOException e) {
+//                logger.error(e.getMessage());
+//            }
+//        }
+//        return "";
+    }
+
+    private static String getTargetProjectPath() {
+        String projectPath = null;
+        String[] classPaths = Properties.CP.split(":");
+        String targetClass = Properties.TARGET_CLASS;
+        for (String path : classPaths) {
+            projectPath = path.substring(0, Math.max(0, path.indexOf(".jar")));
+            String classPath = projectPath + "/" + targetClass.replace(".", "/") + ".java";
+            try {
+                Files.readAllLines(Paths.get(classPath));
+                return projectPath;
+            } catch (IOException e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+            }
+        }
+        // should not be null as TARGET_PROJECT should exist in CP list
+        assert projectPath != null;
+        return projectPath;
+    }
+
+    public static String getClassUsage(String className) {
+        String classUsage = null;
+        try {
+            Files.walk(Paths.get(TARGET_PROJECT_CP))
+                    .filter(f -> f.toString().endsWith(".java"))
+                    .forEach(f -> {
+                        try {
+                            String content = new String(Files.readAllBytes(f));
+                            if (content.contains("class " + className)) {
+                                Parser parser = new Parser(content);
+                                List<String> imports = parser.getImports();
+                                //if (imports)
+                                //String summary = parser.getSummary().toString();
+                            }
+                        } catch (IOException e) {
+
+                        }
+                    });
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.error(e.getMessage());
+        }
+        assert classUsage != null;
+        return classUsage;
     }
 }

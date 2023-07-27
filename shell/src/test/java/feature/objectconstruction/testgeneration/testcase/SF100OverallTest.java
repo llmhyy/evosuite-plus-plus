@@ -47,12 +47,19 @@ public class SF100OverallTest {
 //		String projectId = SF100Project.P23;
 //		String projectId = SF100Project.P31;
 //		String projectId = SF100Project.P38;
+//		String projectId = SF100Project.P44;
 //		String projectId = SF100Project.P66;
-		String projectId = SF100Project.P69;
+//		String projectId = SF100Project.P69;
+		String projectId = SF100Project.P78;
 //		String projectId = SF100Project.P83;
 //		String projectId = SF100Project.P92;
 
 		String[] targetMethods = new String[]{
+//				"org.exolab.jms.tranlog.ExternalXid#equals(Ljava/lang/Object;)Z"
+//				"dk.statsbiblioteket.summa.common.index.IndexGroup#equals(Ljava/lang/Object;)Z"
+//				"br.com.jnfe.core.EnvNFe#equals(Ljava/lang/Object;)Z"
+//				"br.com.jnfe.core.CFOP#equals(Ljava/lang/Object;)Z"
+				"com.lts.swing.ListPanel#doubleClick(Ljava/lang/Object;)V"
 //				"org.jcvi.assembly.cas.alignment.DefaultCasMatch#equals(Ljava/lang/Object;)Z"
 //				"br.com.jnfe.core.Ambiente#equals(Ljava/lang/Object;)Z"
 //				"org.exolab.jms.message.MessageProperties#setProperty(Ljava/lang/String;Ljava/lang/Object;)V"
@@ -62,7 +69,7 @@ public class SF100OverallTest {
 //				"net.sourceforge.jwbf.mediawiki.contentRep.SimpleFile#equals(Ljava/lang/Object;)Z"
 //				"framework.util.ObjectUtils#copyProperties(Ljava/util/Map;Ljava/lang/Object;)V"
 //				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
-				"macaw.persistenceLayer.demo.InMemoryVariableManager#getVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Lmacaw/businessLayer/Variable;"
+//				"macaw.persistenceLayer.demo.InMemoryVariableManager#getVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Lmacaw/businessLayer/Variable;"
 //				"macaw.persistenceLayer.demo.InMemoryOntologyTermFilter#filterOntologyTerms(Lmacaw/businessLayer/User;Ljava/lang/String;Ljava/lang/String;)Ljava/util/ArrayList;"
 //				"net.sf.xbus.admin.html.JournalBean#getDetailsAsTable()Ljava/lang/String;"
 		};

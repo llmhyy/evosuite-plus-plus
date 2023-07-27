@@ -56,6 +56,29 @@ public class Parser {
     }
 
     // TODO: refactor the constructors
+    public Parser(String source) {
+        this.source = source;
+        this.visitor = new ParserVisitor();
+
+        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(removeAssertions(source));
+        boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
+        if (isSuccessful) {
+            this.compilation = result.getResult().get();
+        } else {
+            logger.error("error when compiling test string");
+            logger.error(result.getProblems().toString());
+            logger.error(source);
+            logger.error("regenerating tests...");
+            handleOverallException();
+        }
+
+        this.summary = new ParseResult();
+        this.summary.declaration = getDeclaration();
+        this.summary.fields = getFields();
+        this.summary.constructors = getConstructors();
+        this.summary.imports = getImports();
+    }
+
     public Parser(String source, ParseResult summary) {
         this.source = source;
         this.summary = summary;
@@ -335,6 +358,21 @@ public class Parser {
         return Arrays.stream(string.split("\\r?\\n"))
                 .filter(s -> !s.trim().startsWith("assert"))
                 .collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    private String getClassFromContent(String className) {
+        Node root = compilation.getTypes().get(0);
+        if (!(root instanceof ClassOrInterfaceDeclaration)) {
+            return null;
+        }
+
+        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
+        return classDec.getChildNodes().stream()
+                .filter(n -> n instanceof ClassOrInterfaceDeclaration)
+                .map(n -> (ClassOrInterfaceDeclaration) n)
+                .filter(n -> n.getNameAsString().equals(className))
+                .map(Node::toString)
+                .findAny().orElse("");
     }
 
     public List<TestCase> getTestCases() {
