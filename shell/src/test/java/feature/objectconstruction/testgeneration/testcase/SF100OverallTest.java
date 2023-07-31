@@ -90,6 +90,7 @@ public class SF100OverallTest {
 		double time = 0;
 		double iteration  = 0;
 		for(EvoTestResult res: results) {
+			if (res == null) continue;
 			coverage += res.getCoverage();
 			initCoverage += res.getInitialCoverage();
 			time += res.getTime();

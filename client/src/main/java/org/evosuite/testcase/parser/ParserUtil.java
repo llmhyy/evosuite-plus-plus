@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -503,13 +504,8 @@ public class ParserUtil {
 
     public static String getClassDefinition(String pathNames, String className) {
         logger.info("loading class definition for prompting for " + className);
-        for (String pathName : pathNames.split(":")) {
-            String classPath =
-                    pathName.replace(".jar", "/src/main/java/") +
-                    className.replace(".", "/") + ".java";
-//            String classPath =
-//                    pathName.replace(".jar", "/") +
-//                            className.replace(".", "/") + ".java";
+        for (String pathName : pathNames.split(File.pathSeparator)) {
+            String classPath = pathName.replace(".jar", "/") + className.replace(".", "/") + ".java";
             try {
                 List<String> lines = Files.readAllLines(Paths.get(classPath));
                 return String.join("\n", lines);
@@ -601,7 +597,7 @@ public class ParserUtil {
 
     private static String getTargetProjectPath() {
         String projectPath = null;
-        String[] classPaths = Properties.CP.split(":");
+        String[] classPaths = Properties.CP.split(File.pathSeparator);
         String targetClass = Properties.TARGET_CLASS;
         for (String path : classPaths) {
             projectPath = path.substring(0, Math.max(0, path.indexOf(".jar")));

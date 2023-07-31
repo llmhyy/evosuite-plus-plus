@@ -10,12 +10,8 @@ public class TestSuite {
     @Before
     public void setUp() {
         // Initialize the necessary objects for the test cases
-        InMemoryChangeEventManager eventManager = new InMemoryChangeEventManager();
-        InMemoryListChoiceManager listChoiceManager = new InMemoryListChoiceManager(eventManager);
-        InMemoryOntologyTermManager ontologyTermManager = new InMemoryOntologyTermManager(eventManager);
-        InMemorySupportingDocumentsManager supportingDocumentsManager = new InMemorySupportingDocumentsManager(eventManager);
-        variableManager = new InMemoryVariableManager(eventManager, listChoiceManager, ontologyTermManager, supportingDocumentsManager);
-        user = new User();
+        variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(), new InMemoryListChoiceManager(), new InMemoryOntologyTermManager(), new InMemorySupportingDocumentsManager());
+        user = new User("testUser");
     }
 
     @Test
@@ -26,9 +22,7 @@ public class TestSuite {
     @Test
     public void testValidVariableName() {
         Variable variable = new Variable("validVariable");
-        List<Variable> variables = variableManager.getVariables(user);
-        variables.add(variable);
-        //variableManager.addVariable(user, variable);
+        variableManager.addVariable(variable);
         Variable retrievedVariable = variableManager.getVariable(user, "validVariable");
         assertNotNull(retrievedVariable);
         assertEquals("validVariable", retrievedVariable.getName());
@@ -38,8 +32,7 @@ public class TestSuite {
     @Test
     public void testNonMatchingVariableName() {
         Variable variable = new Variable("nonMatchingVariable");
-        variableManager.addVariable(user, variable);
-        variableManager.getVariable(user, "invalidVariable");
+        variableManager.addVariable(variable);
         assertNull(variableManager.getVariable(user, "invalidVariable"));
     }
 
