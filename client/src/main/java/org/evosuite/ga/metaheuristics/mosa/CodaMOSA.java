@@ -88,8 +88,8 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         // TODO: testing, to be removed
         try {
             populationStr = new String(Files.readAllBytes(Paths.get(
-                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
-                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
+                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
                     //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetClass.txt"
             )));
         } catch (IOException e) {
@@ -100,7 +100,8 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         parser.parse(10);
 
         System.out.println("LLM TEST:");
-        for (TestCase testCase : parser.getTestCases()) {
+        List<TestCase> testCases = parser.getTestCases();
+        for (TestCase testCase : testCases) {
             System.out.println(testCase.toCode());
             // Execute new test case
             ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);

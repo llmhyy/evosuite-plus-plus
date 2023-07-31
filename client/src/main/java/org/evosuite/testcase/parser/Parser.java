@@ -27,6 +27,7 @@ import static org.evosuite.testcase.parser.ParseException.*;
 public class Parser {
 
     private String source;
+    private String originalSrc;
     private CompilationUnit compilation;
     private ParserVisitor visitor;
     private ParseResult summary;
@@ -84,10 +85,9 @@ public class Parser {
 
     public void parse(int maxTries) {
         do {
-            Node root = compilation.getTypes().get(0);
-            if (!(root instanceof ClassOrInterfaceDeclaration)) {
-                return;
-            }
+            assert compilation != null && !compilation.getTypes().isEmpty();
+            assert compilation.getType(0) instanceof ClassOrInterfaceDeclaration;
+            ClassOrInterfaceDeclaration root = (ClassOrInterfaceDeclaration) compilation.getType(0);
 
             try {
                 maxTries--;
@@ -110,14 +110,14 @@ public class Parser {
     private void handleClassNotFound(String classSimpleName) {
         String classFullName = ParserUtil.getClassNameFromList(summary.imports, classSimpleName);
         String className = classFullName == null ? classSimpleName : classFullName;
-        String newTests = new OpenAiLanguageModel().fixClassNotFound(source, className);
+        String newTests = new OpenAiLanguageModel().fixClassNotFound(originalSrc, className);
         setSource(newTests, true);
         setCompilation();
     }
 
     private void handleConstructorNotFound(String className) {
         String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
-        String newTests = new OpenAiLanguageModel().fixConstructorNotFound(source, className, classDefinition);
+        String newTests = new OpenAiLanguageModel().fixConstructorNotFound(originalSrc, className, classDefinition);
         setSource(newTests, true);
         setCompilation();
     }
@@ -128,7 +128,7 @@ public class Parser {
         String methodName = signature[1];
         String className = signature[0];
         String classDefinition = ParserUtil.getClassDefinition(org.evosuite.Properties.CP, className);
-        String newTests = new OpenAiLanguageModel().fixMethodNotFound(source, className, methodName, classDefinition);
+        String newTests = new OpenAiLanguageModel().fixMethodNotFound(originalSrc, className, methodName, classDefinition);
         setSource(newTests, true);
         setCompilation();
     }
@@ -339,6 +339,7 @@ public class Parser {
         s = isTestSuite ? removeAssertions(s) : s;
         s = isTestSuite ? mergeSetUpAndTearDown(s) : s;
         this.source = s;
+        this.originalSrc = source;
     }
 
     public void setCompilation() {

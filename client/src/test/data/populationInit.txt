@@ -1,82 +1,51 @@
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
 
-public class ListPanelTest {
+public class TestSuite {
+    private InMemoryVariableManager variableManager;
+    private User user;
 
-    @Test
-    public void testDoubleClickWithNonNullVar2AndNullCallbackAndEditOnDoubleClickTrue() {
-        Callback doubleClickCallback = null;
-        ListPanel listPanel = new ListPanel();
-        Object var2 = new Object();
-        listPanel.setEditOnDoubleClick(true);
-        listPanel.setDoubleClickCallback(doubleClickCallback);
-
-        listPanel.doubleClick(var2);
-
-        // Verify that the editElement method is called with var2
-        // assert...
+    @Before
+    public void setUp() {
+        // Initialize the necessary objects for the test cases
+        InMemoryChangeEventManager eventManager = new InMemoryChangeEventManager();
+        InMemoryListChoiceManager listChoiceManager = new InMemoryListChoiceManager(eventManager);
+        InMemoryOntologyTermManager ontologyTermManager = new InMemoryOntologyTermManager(eventManager);
+        InMemorySupportingDocumentsManager supportingDocumentsManager = new InMemorySupportingDocumentsManager(eventManager);
+        variableManager = new InMemoryVariableManager(eventManager, listChoiceManager, ontologyTermManager, supportingDocumentsManager);
+        user = new User();
     }
 
     @Test
-    public void testDoubleClickWithNonNullVar2AndNullCallbackAndEditOnDoubleClickFalse() {
-        ListPanel listPanel = new ListPanel();
-        Object var2 = new Object();
-        Callback doubleClickCallback = null;
-        listPanel.setEditOnDoubleClick(false);
-        listPanel.setDoubleClickCallback(doubleClickCallback);
-
-        listPanel.doubleClick(var2);
-
-        // Verify that neither the doubleClickCallback nor the editElement method is called
-        // assert...
+    public void testEmptyVariableName() {
+        assertNull(variableManager.getVariable(user, ""));
     }
 
     @Test
-    public void testDoubleClickWithNullVar2() {
-        ListPanel listPanel = new ListPanel();
-        Object var2 = null;
-
-        listPanel.doubleClick(var2);
-
-        // Verify that neither the doubleClickCallback nor the editElement method is called
-        // assert...
+    public void testValidVariableName() {
+        Variable variable = new Variable("validVariable");
+        List<Variable> variables = variableManager.getVariables(user);
+        variables.add(variable);
+        //variableManager.addVariable(user, variable);
+        Variable retrievedVariable = variableManager.getVariable(user, "validVariable");
+        assertNotNull(retrievedVariable);
+        assertEquals("validVariable", retrievedVariable.getName());
+        assertNotSame(variable, retrievedVariable);
     }
 
     @Test
-    public void testDoubleClickWithNonNullVar2AndNonNullCallback() {
-        ListPanel listPanel = new ListPanel();
-        Object var2 = new Object();
-        Callback doubleClickCallback = new DeleteFileCallback();
-        listPanel.setDoubleClickCallback(doubleClickCallback);
-
-        SimpleChangeableListModel var1 = new SimpleChangeableListModel();
-        listPanel.setListModel(var1);
-        JList list = new JList(var1);
-        listPanel.setList(list);
-
-        listPanel.doubleClick(var2);
-
-        // Verify that the callback method of DeleteFileCallback is called with var2
-        // assert...
+    public void testNonMatchingVariableName() {
+        Variable variable = new Variable("nonMatchingVariable");
+        variableManager.addVariable(user, variable);
+        variableManager.getVariable(user, "invalidVariable");
+        assertNull(variableManager.getVariable(user, "invalidVariable"));
     }
 
-    @Test
-    public void testDoubleClickWithNonNullVar2AndNonNullCallback() {
-        ListPanel listPanel = new ListPanel();
-        Object var2 = new Object();
-        Callback doubleClickCallback = new DeleteFileCallback();
-        listPanel.setDoubleClickCallback(doubleClickCallback);
-
-        String[] items = new String[]{"Apple", "Banana", "Orange", "Grapes", "Mango"};
-        JList<String> itemList = new JList<>(items);
-        itemList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JList list = new JList(var1);
-        listPanel.setList(list);
-
-        listPanel.doubleClick(var2);
-
-        // Verify that the callback method of DeleteFileCallback is called with var2
-        // assert...
+    @After
+    public void tearDown() {
+        variableManager = null;
+        user = null;
     }
 }

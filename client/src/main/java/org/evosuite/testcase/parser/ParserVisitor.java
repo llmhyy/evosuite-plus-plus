@@ -266,7 +266,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
         String target = n.getTarget().asNameExpr().getNameAsString();
         VariableReference var = getReference(target);
-        n.getValue().accept(this, arg);
+        n.getValue().accept(this, var.getType());
         s = new AssignmentStatement(testCase, var, r);
         r = testCase.addStatement(s);
     }
@@ -344,7 +344,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(NullLiteralExpr n, Object arg) {
-        Class<?> type = ParserUtil.getClass(String.valueOf(arg));
+        Class<?> type = arg instanceof Class<?> ? (Class<?>) arg : ParserUtil.getClass(String.valueOf(arg));
         s = new NullStatement(testCase, type);
         r = testCase.addStatement(s);
     }
