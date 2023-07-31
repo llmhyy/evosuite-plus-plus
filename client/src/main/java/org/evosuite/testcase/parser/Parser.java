@@ -4,6 +4,7 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -30,8 +31,6 @@ public class Parser {
     private ParserVisitor visitor;
     private ParseResult summary;
 
-    private boolean isCompiled = false;
-
     private static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
     private static final String NEWLINE = System.lineSeparator();
@@ -57,21 +56,15 @@ public class Parser {
         }
     }
 
-    public Parser(String source) {
-        setSource(source);
-        setCompilation();
-        setVisitor();
-    }
-
     public Parser(String source, ParseResult summary) {
-        setSource(source);
+        setSource(source, true);
         setCompilation();
         setVisitor();
         setSummary(summary);
     }
 
     public Parser(String source, String targetMethodName, String... targetMethodParaTypes) {
-        setSource(source);
+        setSource(source, false);
         setCompilation();
         setVisitor();
 
@@ -118,14 +111,14 @@ public class Parser {
         String classFullName = ParserUtil.getClassNameFromList(summary.imports, classSimpleName);
         String className = classFullName == null ? classSimpleName : classFullName;
         String newTests = new OpenAiLanguageModel().fixClassNotFound(source, className);
-        setSource(newTests);
+        setSource(newTests, true);
         setCompilation();
     }
 
     private void handleConstructorNotFound(String className) {
         String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
         String newTests = new OpenAiLanguageModel().fixConstructorNotFound(source, className, classDefinition);
-        setSource(newTests);
+        setSource(newTests, true);
         setCompilation();
     }
 
@@ -136,7 +129,7 @@ public class Parser {
         String className = signature[0];
         String classDefinition = ParserUtil.getClassDefinition(org.evosuite.Properties.CP, className);
         String newTests = new OpenAiLanguageModel().fixMethodNotFound(source, className, methodName, classDefinition);
-        setSource(newTests);
+        setSource(newTests, true);
         setCompilation();
     }
 
@@ -144,7 +137,7 @@ public class Parser {
         String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
         String targetSummaryStr = summary.toString();
         String newTests = new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
-        setSource(newTests);
+        setSource(newTests, true);
         setCompilation();
     }
 
@@ -156,6 +149,16 @@ public class Parser {
         return declaration.getFields()
                 .stream()
                 .map(FieldDeclaration::toString)
+                .collect(Collectors.toList());
+    }
+
+    public List<String> getFieldsWoModifiers(ClassOrInterfaceDeclaration declaration) {
+        List<String> modifiers = Arrays.asList("public ", "private ", "protected ");
+        return declaration.getFields()
+                .stream()
+                .map(f -> modifiers
+                        .stream()
+                        .reduce(f.toString(), (field, m) -> field.replaceAll(m, "")))
                 .collect(Collectors.toList());
     }
 
@@ -295,7 +298,7 @@ public class Parser {
         ClassOrInterfaceDeclaration root = (ClassOrInterfaceDeclaration) unit.getType(0);
 
         String declaration = getDeclaration(root);
-        List<String> fields = getFields(root);
+        List<String> fields = getFieldsWoModifiers(root);
         List<MethodDeclaration> tests = getMethodsByAnnotation(root, "Test");
         List<MethodDeclaration> before = getMethodsByAnnotation(root, "Before");
         List<MethodDeclaration> after = getMethodsByAnnotation(root, "After");
@@ -327,14 +330,14 @@ public class Parser {
         return testSuiteBuilder.toString();
     }
 
-    public void setSource(String source) {
+    public void setSource(String source, boolean isTestSuite) {
         if (!isParsable(source)) {
             throw new ParseException(GENERAL_ERR);
         }
 
         String s = source;
-        s = removeAssertions(s);
-        s = mergeSetUpAndTearDown(s);
+        s = isTestSuite ? removeAssertions(s) : s;
+        s = isTestSuite ? mergeSetUpAndTearDown(s) : s;
         this.source = s;
     }
 
@@ -342,7 +345,6 @@ public class Parser {
         com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(source);
         assert result.isSuccessful() && result.getResult().isPresent();
         this.compilation = result.getResult().get();
-        this.isCompiled = true;
     }
 
     public void setVisitor() {
