@@ -26,9 +26,11 @@ import static org.evosuite.testcase.parser.ParseException.*;
 public class Parser {
 
     private String source;
-    private ParseResult summary;
     private CompilationUnit compilation;
-    private final ParserVisitor visitor;
+    private ParserVisitor visitor;
+    private ParseResult summary;
+
+    private boolean isCompiled = false;
 
     private static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
@@ -55,127 +57,45 @@ public class Parser {
         }
     }
 
-    // TODO: refactor the constructors
     public Parser(String source) {
-        this.source = source;
-        this.visitor = new ParserVisitor();
-
-        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(removeAssertions(source));
-        boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
-        if (isSuccessful) {
-            this.compilation = result.getResult().get();
-        } else {
-            logger.error("error when compiling test string");
-            logger.error(result.getProblems().toString());
-            logger.error(source);
-            logger.error("regenerating tests...");
-            handleOverallException();
-        }
-
-        this.summary = new ParseResult();
-        this.summary.declaration = getDeclaration();
-        this.summary.fields = getFields();
-        this.summary.constructors = getConstructors();
-        this.summary.imports = getImports();
+        setSource(source);
+        setCompilation();
+        setVisitor();
     }
 
     public Parser(String source, ParseResult summary) {
-        this.source = source;
-        this.summary = summary;
-        this.visitor = new ParserVisitor();
-
-        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(removeAssertions(source));
-        boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
-        if (isSuccessful) {
-            this.compilation = result.getResult().get();
-        } else {
-            logger.error("error when compiling test string");
-            logger.error(result.getProblems().toString());
-            logger.error(source);
-            logger.error("regenerating tests...");
-            handleOverallException();
-        }
+        setSource(source);
+        setCompilation();
+        setVisitor();
+        setSummary(summary);
     }
 
     public Parser(String source, String targetMethodName, String... targetMethodParaTypes) {
-        this.source = source;
-        this.visitor = new ParserVisitor();
+        setSource(source);
+        setCompilation();
+        setVisitor();
 
-        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(removeAssertions(source));
-        boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
-        if (isSuccessful) {
-            this.compilation = result.getResult().get();
-        } else {
-            logger.error("error when compiling test string");
-            logger.error(result.getProblems().toString());
-            logger.error(source);
-            logger.error("regenerating tests...");
-            handleOverallException();
-        }
+        assert compilation != null && !compilation.getTypes().isEmpty();
+        assert compilation.getType(0) instanceof ClassOrInterfaceDeclaration;
+        ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) compilation.getType(0);
 
-        this.summary = new ParseResult();
-        this.summary.declaration = getDeclaration();
-        this.summary.method = getMethodBySignature(targetMethodName, targetMethodParaTypes);
-        this.summary.fields = getFields();
-        this.summary.constructors = getConstructors();
-        this.summary.imports = getImports();
-    }
+        ParseResult summary = new ParseResult();
+        summary.declaration = getDeclaration(declaration);
+        summary.method = getMethodBySignature(declaration, targetMethodName, targetMethodParaTypes);
+        summary.fields = getFields(declaration);
+        summary.constructors = getConstructors(declaration);
+        summary.imports = getImports(compilation);
 
-    public void handleSetUpAndTearDown() {
-        StringBuilder testSuiteBuilder = new StringBuilder();
-
-        Node root = compilation.getTypes().get(0);
-        if (!(root instanceof ClassOrInterfaceDeclaration)) {
-            return;
-        }
-
-        String declaration = getDeclaration();
-        List<String> fields = getFields();
-        List<MethodDeclaration> tests = getMethodsByAnnotation("Test");
-        List<MethodDeclaration> before = getMethodsByAnnotation("Before");
-        List<MethodDeclaration> after = getMethodsByAnnotation("After");
-
-        List<String> beforeStatements = ParserUtil.getMethodStatements(before);
-        List<String> afterStatements = ParserUtil.getMethodStatements(after);
-
-        String fieldsStr = String.join(NEWLINE, fields);
-        String beforeStr = String.join(NEWLINE, beforeStatements);
-        String afterStr = String.join(NEWLINE, afterStatements);
-
-        testSuiteBuilder.append(declaration).append(NEWLINE).append(NEWLINE);
-
-        for (MethodDeclaration test : tests) {
-            String testDeclaration = test.getDeclarationAsString(true, true);
-            List<String> testStatements = ParserUtil.getMethodStatements(Collections.singletonList(test));
-            String testStr = String.join(NEWLINE, testStatements);
-
-            testSuiteBuilder.append("@Test").append(NEWLINE)
-                    .append(testDeclaration).append(" {").append(NEWLINE)
-                    .append(fieldsStr).append(fieldsStr.isEmpty() ? "" : NEWLINE)
-                    .append(beforeStr).append(beforeStr.isEmpty() ? "" : NEWLINE)
-                    .append(testStr).append(testStr.isEmpty() ? "" : NEWLINE)
-                    .append(afterStr).append(afterStr.isEmpty() ? "" : NEWLINE)
-                    .append("}").append(NEWLINE).append(NEWLINE);
-        }
-
-        testSuiteBuilder.append("}").append(NEWLINE);
-        String testSuiteStr = testSuiteBuilder.toString();
-
-        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(testSuiteStr);
-        boolean isSuccessful = result.isSuccessful() && result.getResult().isPresent();
-        if (isSuccessful) { // should not fail since the test suite is already parsed in the constructor
-            source = testSuiteStr;
-            compilation = result.getResult().get();
-        }
+        setSummary(summary);
     }
 
     public void parse(int maxTries) {
-        Node root = compilation.getTypes().get(0);
-        if (!(root instanceof ClassOrInterfaceDeclaration)) {
-            return;
-        }
-
         do {
+            Node root = compilation.getTypes().get(0);
+            if (!(root instanceof ClassOrInterfaceDeclaration)) {
+                return;
+            }
+
             try {
                 maxTries--;
                 root.accept(visitor, null);
@@ -197,12 +117,16 @@ public class Parser {
     private void handleClassNotFound(String classSimpleName) {
         String classFullName = ParserUtil.getClassNameFromList(summary.imports, classSimpleName);
         String className = classFullName == null ? classSimpleName : classFullName;
-        source = new OpenAiLanguageModel().fixClassNotFound(source, className);
+        String newTests = new OpenAiLanguageModel().fixClassNotFound(source, className);
+        setSource(newTests);
+        setCompilation();
     }
 
     private void handleConstructorNotFound(String className) {
         String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
-        source = new OpenAiLanguageModel().fixConstructorNotFound(source, className, classDefinition);
+        String newTests = new OpenAiLanguageModel().fixConstructorNotFound(source, className, classDefinition);
+        setSource(newTests);
+        setCompilation();
     }
 
     private void handleMethodNotFound(String methodSignature) {
@@ -211,82 +135,56 @@ public class Parser {
         String methodName = signature[1];
         String className = signature[0];
         String classDefinition = ParserUtil.getClassDefinition(org.evosuite.Properties.CP, className);
-        source = new OpenAiLanguageModel().fixMethodNotFound(source, className, methodName, classDefinition);
+        String newTests = new OpenAiLanguageModel().fixMethodNotFound(source, className, methodName, classDefinition);
+        setSource(newTests);
+        setCompilation();
     }
 
     private void handleOverallException() {
         String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
         String targetSummaryStr = summary.toString();
-        source = new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
+        String newTests = new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
+        setSource(newTests);
+        setCompilation();
     }
 
-    public String getDeclaration() {
-        Node root = compilation.getTypes().get(0);
-        if (!(root instanceof ClassOrInterfaceDeclaration)) {
-            return "";
-        }
-
-        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
-        return classDec.toString().split("\\r?\\n")[0];
+    public String getDeclaration(ClassOrInterfaceDeclaration declaration) {
+        return declaration.toString().split("\\r?\\n")[0];
     }
 
-    public List<String> getFields() {
-        Node root = compilation.getTypes().get(0);
-        if (!(root instanceof ClassOrInterfaceDeclaration)) {
-            return new ArrayList<>();
-        }
-
-        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
-        return classDec.getFields()
+    public List<String> getFields(ClassOrInterfaceDeclaration declaration) {
+        return declaration.getFields()
                 .stream()
                 .map(FieldDeclaration::toString)
                 .collect(Collectors.toList());
     }
 
-    public List<String> getConstructors() {
-        Node root = compilation.getTypes().get(0);
-        if (!(root instanceof ClassOrInterfaceDeclaration)) {
-            return new ArrayList<>();
-        }
-
-        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
-        return classDec.getConstructors()
+    public List<String> getConstructors(ClassOrInterfaceDeclaration declaration) {
+        return declaration.getConstructors()
                 .stream()
                 .map(ConstructorDeclaration::toString)
                 .collect(Collectors.toList());
     }
 
-    public String getMethodBySignature(String name, String... paraTypes) {
-        Node root = compilation.getTypes().get(0);
-        if (!(root instanceof ClassOrInterfaceDeclaration)) {
-            return null;
-        }
-
-        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
-        List<MethodDeclaration> methods = classDec.getMethodsBySignature(name, paraTypes);
+    public String getMethodBySignature(ClassOrInterfaceDeclaration declaration, String name, String... paraTypes) {
+        List<MethodDeclaration> methods = declaration.getMethodsBySignature(name, paraTypes);
         assert methods.size() == 1;
         return methods.get(0).toString();
     }
 
-    public List<MethodDeclaration> getMethodsByAnnotation(String annotation) {
-        Node root = compilation.getTypes().get(0);
-        if (!(root instanceof ClassOrInterfaceDeclaration)) {
-            return new ArrayList<>();
-        }
-
-        ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
-        return classDec.getMethods()
+    public List<MethodDeclaration> getMethodsByAnnotation(ClassOrInterfaceDeclaration declaration, String annotation) {
+        return declaration.getMethods()
                 .stream()
                 .filter(m -> m.isAnnotationPresent(annotation))
                 .collect(Collectors.toList());
     }
 
-    public List<String> getImports() {
+    public List<String> getImports(CompilationUnit unit) {
         List<String> filter = Arrays.asList(
                 "java.lang.",
                 "java.util.",
                 "java.awt.");
-        return compilation.getImports()
+        return unit.getImports()
                 .stream()
                 .map(ImportDeclaration::getNameAsString)
                 .filter(i -> filter.stream().noneMatch(i::startsWith))
@@ -354,12 +252,6 @@ public class Parser {
         return Optional.of(new Pair<>(position.line, expression.toString()));
     }
 
-    private String removeAssertions(String string) {
-        return Arrays.stream(string.split("\\r?\\n"))
-                .filter(s -> !s.trim().startsWith("assert"))
-                .collect(Collectors.joining(System.lineSeparator()));
-    }
-
     private String getClassFromContent(String className) {
         Node root = compilation.getTypes().get(0);
         if (!(root instanceof ClassOrInterfaceDeclaration)) {
@@ -373,6 +265,92 @@ public class Parser {
                 .filter(n -> n.getNameAsString().equals(className))
                 .map(Node::toString)
                 .findAny().orElse("");
+    }
+
+    public boolean isParsable(String source) {
+        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(source);
+        boolean isParsable = result.isSuccessful() && result.getResult().isPresent();
+        if (!isParsable) {
+            logger.error("error when compiling test string");
+            logger.error(result.getProblems().toString());
+            logger.error(source);
+        }
+
+        return isParsable;
+    }
+
+    private String removeAssertions(String source) {
+        return Arrays.stream(source.split("\\r?\\n"))
+                .filter(s -> !s.trim().startsWith("assert"))
+                .collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    private String mergeSetUpAndTearDown(String source) {
+        StringBuilder testSuiteBuilder = new StringBuilder();
+
+        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(source);
+        assert result.isSuccessful() && result.getResult().isPresent();
+        CompilationUnit unit = result.getResult().get();
+        assert unit.getType(0) instanceof ClassOrInterfaceDeclaration;
+        ClassOrInterfaceDeclaration root = (ClassOrInterfaceDeclaration) unit.getType(0);
+
+        String declaration = getDeclaration(root);
+        List<String> fields = getFields(root);
+        List<MethodDeclaration> tests = getMethodsByAnnotation(root, "Test");
+        List<MethodDeclaration> before = getMethodsByAnnotation(root, "Before");
+        List<MethodDeclaration> after = getMethodsByAnnotation(root, "After");
+
+        List<String> beforeStatements = ParserUtil.getMethodStatements(before);
+        List<String> afterStatements = ParserUtil.getMethodStatements(after);
+
+        String fieldsStr = String.join(NEWLINE, fields);
+        String beforeStr = String.join(NEWLINE, beforeStatements);
+        String afterStr = String.join(NEWLINE, afterStatements);
+
+        testSuiteBuilder.append(declaration).append(NEWLINE).append(NEWLINE);
+
+        for (MethodDeclaration test : tests) {
+            String testDeclaration = test.getDeclarationAsString(true, true);
+            List<String> testStatements = ParserUtil.getMethodStatements(Collections.singletonList(test));
+            String testStr = String.join(NEWLINE, testStatements);
+
+            testSuiteBuilder.append("@Test").append(NEWLINE)
+                    .append(testDeclaration).append(" {").append(NEWLINE)
+                    .append(fieldsStr).append(fieldsStr.isEmpty() ? "" : NEWLINE)
+                    .append(beforeStr).append(beforeStr.isEmpty() ? "" : NEWLINE)
+                    .append(testStr).append(testStr.isEmpty() ? "" : NEWLINE)
+                    .append(afterStr).append(afterStr.isEmpty() ? "" : NEWLINE)
+                    .append("}").append(NEWLINE).append(NEWLINE);
+        }
+
+        testSuiteBuilder.append("}").append(NEWLINE);
+        return testSuiteBuilder.toString();
+    }
+
+    public void setSource(String source) {
+        if (!isParsable(source)) {
+            throw new ParseException(GENERAL_ERR);
+        }
+
+        String s = source;
+        s = removeAssertions(s);
+        s = mergeSetUpAndTearDown(s);
+        this.source = s;
+    }
+
+    public void setCompilation() {
+        com.github.javaparser.ParseResult<CompilationUnit> result = new JavaParser().parse(source);
+        assert result.isSuccessful() && result.getResult().isPresent();
+        this.compilation = result.getResult().get();
+        this.isCompiled = true;
+    }
+
+    public void setVisitor() {
+        this.visitor = new ParserVisitor();
+    }
+
+    public void setSummary(ParseResult summary) {
+        this.summary = summary;
     }
 
     public List<TestCase> getTestCases() {

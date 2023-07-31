@@ -79,7 +79,7 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
         Parser parser = new Parser(targetClassDef, targetMethodName, targetMethodParaTypes);
         this.targetSummary = parser.getSummary();
-        //this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
+        this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
 
         String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
         String targetSummaryStr = this.targetSummary.toString();
@@ -88,8 +88,8 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         // TODO: testing, to be removed
         try {
             populationStr = new String(Files.readAllBytes(Paths.get(
-                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
-                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
+                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
                     //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetClass.txt"
             )));
         } catch (IOException e) {
@@ -97,7 +97,6 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         }
 
         parser = new Parser(populationStr, targetSummary);
-        parser.handleSetUpAndTearDown();
         parser.parse(10);
 
         System.out.println("LLM TEST:");
@@ -335,7 +334,6 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 //                    }
 
                     Parser parser = new Parser(newTestsStr, targetSummary);
-                    parser.handleSetUpAndTearDown();
                     parser.parse(10);
 
                     System.out.println("LLM TEST:");

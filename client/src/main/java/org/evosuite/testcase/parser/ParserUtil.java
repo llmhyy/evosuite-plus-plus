@@ -629,7 +629,7 @@ public class ParserUtil {
                             String content = new String(Files.readAllBytes(f));
                             if (content.contains("class " + className)) {
                                 Parser parser = new Parser(content);
-                                List<String> imports = parser.getImports();
+                                //List<String> imports = parser.getImports();
                                 //if (imports)
                                 //String summary = parser.getSummary().toString();
                             }

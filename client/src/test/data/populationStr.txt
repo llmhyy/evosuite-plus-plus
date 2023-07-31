@@ -1,51 +1,44 @@
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
-public class ListPanelTest {
+public class TestSuite {
+    private InMemoryVariableManager variableManager;
+    private User user;
 
-	@Test
-	public void testDoubleClick_withNonNullValueAndNonNullCallback() {
-    	// ListPanel listPanel = new ListPanel();
-    	// listPanel.setDoubleClickCallback(mock(Callback.class));
-    	// listPanel.setList(mock(JList.class));
-    	mock(JList.class);
-    	when(listPanel.getList().getSelectedValue()).thenReturn(mock(Object.class));
+    @Before
+    public void setUp() {
+        // Initialize the necessary objects for the test cases
+        variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(), new InMemoryListChoiceManager(), new InMemoryOntologyTermManager(), new InMemorySupportingDocumentsManager());
+        user = new User("testUser");
+    }
 
-    	listPanel.doubleClick(mock(Object.class));
+    @Test
+    public void testEmptyVariableName() {
+        assertNull(variableManager.getVariable(user, ""));
+    }
 
-    	// Verify that the callback is called
-// Test suite only aims at checking if the function is invoked rather than covering the branch
-    	verify(listPanel.getDoubleClickCallback()).callback(any());
-    	// Verify that the editElement method is not called
-    	verify(listPanel, never()).editElement(any());
-	}
+    @Test
+    public void testValidVariableName() {
+        Variable variable = new Variable("validVariable");
+        variableManager.addVariable(variable);
+        Variable retrievedVariable = variableManager.getVariable(user, "validVariable");
+        assertNotNull(retrievedVariable);
+        assertEquals("validVariable", retrievedVariable.getName());
+        assertNotSame(variable, retrievedVariable);
+    }
 
-	@Test
-	public void testDoubleClick_withNonNullValueAndNullCallback() {
-    	ListPanel listPanel = new ListPanel();
-    	listPanel.setDoubleClickCallback(null);
-    	listPanel.setList(mock(JList.class));
-    	when(listPanel.getList().getSelectedValue()).thenReturn(mock(Object.class));
+    @Test
+    public void testNonMatchingVariableName() {
+        Variable variable = new Variable("nonMatchingVariable");
+        variableManager.addVariable(variable);
+        assertNull(variableManager.getVariable(user, "invalidVariable"));
+    }
 
-    	listPanel.doubleClick(mock(Object.class));
-
-    	// Verify that the editElement method is called
-    	verify(listPanel).editElement(any());
-	}
-
-	@Test
-	public void testDoubleClick_withNullValue() {
-    	ListPanel listPanel = new ListPanel();
-    	listPanel.setDoubleClickCallback(mock(Callback.class));
-    	listPanel.setList(mock(JList.class));
-    	when(listPanel.getList().getSelectedValue()).thenReturn(null);
-
-    	listPanel.doubleClick(mock(Object.class));
-
-    	// Verify that neither the callback nor the editElement method are called
-    	verify(listPanel, never()).getDoubleClickCallback();
-    	verify(listPanel, never()).editElement(any());
-	}
-
+    @After
+    public void tearDown() {
+        variableManager = null;
+        user = null;
+    }
 }
