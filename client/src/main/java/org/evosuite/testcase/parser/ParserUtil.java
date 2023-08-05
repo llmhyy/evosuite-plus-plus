@@ -35,6 +35,7 @@ public class ParserUtil {
     private static final Logger logger = LoggerFactory.getLogger(ParserUtil.class);
 
     public static final String TARGET_PROJECT_CP = getTargetProjectPath();
+    private static final Set<Class<?>> classSet = new HashSet<>();
     private static final Map<String, Class<?>> classCache = new HashMap<>();
     private static final Map<Class<?>, Set<Method>> methodCache = new HashMap<>();
     private static final Map<Class<?>, Set<Constructor<?>>> constructorCache = new HashMap<>();
@@ -119,6 +120,8 @@ public class ParserUtil {
         classCache.put("byte", byte.class);
         classCache.put("short", short.class);
         classCache.put("char", char.class);
+
+        // classSet.addAll(getAllClasses());
     }
 
     private static void initMethodCache() {
@@ -210,11 +213,6 @@ public class ParserUtil {
     }
 
     public static Class<?> loadClassByName(String className) {
-        if (Objects.equals(className, "ArrayList")) {
-            className = "java.util.ArrayList";
-        } else if (Objects.equals(className, "ObjectUtils")) {
-            className = "framework.util.ObjectUtils";
-        }
         Class<?> clazz;
         try {
             String fullyQualifiedName = findFullyQualifiedName(className);
@@ -245,6 +243,23 @@ public class ParserUtil {
         return packageName + "." + className;
     }
 
+    private static File findFileInFolder(File folder, String fileName) {
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    File foundFile = findFileInFolder(file, fileName);
+                    if (foundFile != null) {
+                        return foundFile;
+                    }
+                } else if (file.getName().equalsIgnoreCase(fileName)) {
+                    return file;
+                }
+            }
+        }
+        return null;
+    }
+
     private static Set<Class<?>> getAllClasses(String packageName) {
         try {
             return ClassPath.from(ClassLoader.getSystemClassLoader())
@@ -260,41 +275,68 @@ public class ParserUtil {
         }
     }
 
-    public static Class<?> getClass(String classSimpleName) {
+    private static Class<?> loadClass(String simpleName) {
+        try {
+            Class<?> clazz = ClassPath.from(ClassLoader.getSystemClassLoader())
+                    .getAllClasses()
+                    .stream()
+                    .filter(c -> c.getSimpleName().equalsIgnoreCase(simpleName))
+                    .map(ClassPath.ClassInfo::load)
+                    .findAny()
+                    .orElse(null);
+            if (clazz != null) {
+                classCache.put(simpleName, clazz);
+            }
+            return clazz;
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public static Class<?> getClass(String simpleName) {
         Class<?> clazz = null;
         try {
-            clazz = classCache.get(classSimpleName);
-            if (clazz == null && classSimpleName.equals(Properties.TARGET_CLASS.substring(Properties.TARGET_CLASS.lastIndexOf('.') + 1))) {
+            if (simpleName.equals("InMemoryVariableManager")) {
+                System.currentTimeMillis();
+            }
+
+            clazz = classCache.get(simpleName);
+            // clazz = clazz == null ? loadClass(simpleName) : clazz;
+
+            // clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fullName);
+
+            if (clazz == null && simpleName.equals(Properties.TARGET_CLASS.substring(Properties.TARGET_CLASS.lastIndexOf('.') + 1))) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(Properties.TARGET_CLASS);
             }
 
-            else if (classSimpleName.equals("User")) {
+            else if (simpleName.equals("User")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.businessLayer.User");
-            } else if (classSimpleName.equals("Variable")) {
+            } else if (simpleName.equals("Variable")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.businessLayer.Variable");
-            } else if (classSimpleName.equals("OntologyTerm")) {
+            } else if (simpleName.equals("OntologyTerm")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.businessLayer.OntologyTerm");
-            } else if (classSimpleName.equals("InMemoryChangeEventManager")) {
+            } else if (simpleName.equals("InMemoryChangeEventManager")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemoryChangeEventManager");
-            } else if (classSimpleName.equals("InMemoryListChoiceManager")) {
+            } else if (simpleName.equals("InMemoryListChoiceManager")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemoryListChoiceManager");
-            } else if (classSimpleName.equals("InMemoryOntologyTermManager")) {
+            } else if (simpleName.equals("InMemoryOntologyTermManager")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemoryOntologyTermManager");
-            } else if (classSimpleName.equals("InMemorySupportingDocumentsManager")) {
+            } else if (simpleName.equals("InMemorySupportingDocumentsManager")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemorySupportingDocumentsManager");
             }
 
-            else if (classSimpleName.equals("ListPanel")) {
+            else if (simpleName.equals("ListPanel")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.swing.ListPanel");
-            } else if (classSimpleName.equals("Callback")) {
+            } else if (simpleName.equals("Callback")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.event.Callback");
-            } else if (classSimpleName.equals("DeleteFileCallback")) {
+            } else if (simpleName.equals("DeleteFileCallback")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.application.DeleteFileCallback");
-            } else if (classSimpleName.equals("SimpleChangeableListModel")) {
+            } else if (simpleName.equals("SimpleChangeableListModel")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.swing.SimpleChangeableListModel");
             }
         } catch (ClassNotFoundException e) {
-            logger.error("class " + classSimpleName + " not found");
+            logger.error("class " + simpleName + " not found");
         }
         return clazz;
     }
@@ -510,7 +552,7 @@ public class ParserUtil {
                 List<String> lines = Files.readAllLines(Paths.get(classPath));
                 return String.join("\n", lines);
             } catch (IOException e) {
-                logger.error(e.getMessage());
+                logger.warn(e.getMessage());
             }
         }
         return "";
@@ -549,15 +591,44 @@ public class ParserUtil {
 
     public static Pair<String, String[]> getMethodSimpleSignature(String methodSignature) {
         String name = methodSignature.substring(0, methodSignature.indexOf('('));
-        String[] paraList = methodSignature.substring(methodSignature.indexOf('(')+1, methodSignature.indexOf(')')).split(";");
-        String[] paraTypes = new String[paraList.length];
-        for (int i = 0; i < paraList.length; ++i) {
-            String paraType = paraList[i].substring(paraList[i].lastIndexOf('/')+1);
-            if (!paraType.isEmpty()) {
-                paraTypes[i] = paraType;
+        String para = methodSignature.substring(methodSignature.indexOf('(')+1, methodSignature.indexOf(')'));
+        List<String> paraList = Arrays.stream(para.split(";"))
+                .filter(p -> !p.isEmpty())
+                .collect(Collectors.toList());
+        List<String> paraTypes = getMethodSimplePara(paraList);
+        return new Pair<>(name, paraTypes.toArray(new String[0]));
+    }
+
+    private static List<String> getMethodSimplePara(List<String> paraList) {
+        List<String> paraTypes = new ArrayList<>();
+        for (String p : paraList) {
+            for (int i = 0; i < p.length(); i++) {
+                char c = p.charAt(i);
+                if ("BCDFIJSZ".contains(Character.toString(c))) {
+                    paraTypes.add(convertBytecodeToType(c));
+                } else {
+                    String s = p.substring(i);
+                    s = s.substring(s.lastIndexOf('/')+1);
+                    paraTypes.add(s);
+                    break;
+                }
             }
         }
-        return new Pair<>(name, paraTypes);
+        return paraTypes;
+    }
+
+    private static String convertBytecodeToType(char bytecode) {
+        switch (bytecode) {
+        case 'B': return "byte";
+        case 'C': return "char";
+        case 'D': return "double";
+        case 'F': return "float";
+        case 'I': return "int";
+        case 'J': return "long";
+        case 'S': return "short";
+        case 'Z': return "boolean";
+        default: return Character.toString(bytecode);
+        }
     }
 
     public static String getMethodSimpleSignatureStr(String methodSignature) {

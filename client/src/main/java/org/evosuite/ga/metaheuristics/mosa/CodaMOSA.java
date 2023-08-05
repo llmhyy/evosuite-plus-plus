@@ -89,8 +89,10 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         try {
             populationStr = new String(Files.readAllBytes(Paths.get(
                     //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
-                    "/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
-                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/targetClass.txt"
+                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
+
+                    "D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationStr.txt"
+                    //"D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationInit.txt"
             )));
         } catch (IOException e) {
             logger.error(e.getMessage());
@@ -101,8 +103,15 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
         System.out.println("LLM TEST:");
         List<TestCase> testCases = parser.getTestCases();
-        for (TestCase testCase : testCases) {
+        StringBuilder builder = new StringBuilder("public class TestSuite {\n\n");
+
+        for (int i = 0; i < testCases.size(); i++) {
+            TestCase testCase = testCases.get(i);
+            builder.append("public void testCase").append(i+1).append("() {\n")
+                    .append(testCase.toCode())
+                    .append("}\n\n");
             System.out.println(testCase.toCode());
+
             // Execute new test case
             ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
             TestChromosome newTest = new TestChromosome();
@@ -112,7 +121,13 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
         }
 
         // Record initial population
-        this.populationInit = populationStr;
+        builder.append("}");
+        this.populationInit = builder.toString();
+
+        if (populationStr.isEmpty()) {
+            System.out.println("RANDOM POPULATION IS CHOSEN");
+            super.initializePopulation();
+        }
 
         // Determine fitness
         this.calculateFitness(true);
@@ -298,13 +313,13 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
             List<T> populationBefore = this.population;
 
             if (stallLen > maxStallLen) {
-                System.out.println("POPULATION WHEN STALL DETECTED:");
-                System.out.println("=============================================");
-                for (int i = 0; i < this.population.size(); i++) {
-                    System.out.println("TEST " + i + ":");
-                    System.out.println(this.population.get(i).toString());
-                }
-                System.out.println("=============================================");
+//                System.out.println("POPULATION WHEN STALL DETECTED:");
+//                System.out.println("=============================================");
+//                for (int i = 0; i < this.population.size(); i++) {
+//                    System.out.println("TEST " + i + ":");
+//                    System.out.println(this.population.get(i).toString());
+//                }
+//                System.out.println("=============================================");
 
                 wasTargeted = true;
                 t1 = System.currentTimeMillis();
@@ -312,18 +327,40 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
                 try {
                     List<String> uncoveredBranches = this.getUncoveredBranches();
-                    String newBranch = uncoveredBranches.get(1);
+                    String newBranch = uncoveredBranches.get(0);
 
                     String targetClassName = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
-                    String targetClassDefinition = targetSummary.toString();
+                    String targetClassDefinition = ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS);
+                    // String targetClassDefinition = targetSummary.toString();
 
-                    String newClassName = ParserUtil.getClassNameFromList(targetSummary.getImports(), "SearchUtility");
-                    String newClassDefinition = ParserUtil.getClassDefinition(Properties.CP, newClassName);
+                    // String newClassName = ParserUtil.getClassNameFromList(targetSummary.getImports(), "SearchUtility");
+                    // String newClassDefinition = ParserUtil.getClassDefinition(Properties.CP, newClassName);
 
-                    String newTestsStr = new OpenAiLanguageModel().coverNewBranch(
-                            populationInit, newBranch,
-                            targetClassName, targetClassDefinition,
-                            newClassName, newClassDefinition);
+                    for (String newClassName : targetSummary.getImports()) {
+                        String newClassDefinition = ParserUtil.getClassDefinition(Properties.CP, newClassName);
+                        String newTestsStr = new OpenAiLanguageModel().coverNewBranch(
+                                populationInit, newBranch,
+                                targetClassName, targetClassDefinition,
+                                ParserUtil.getClassSimpleName(newClassName), newClassDefinition);
+                        Parser parser = new Parser(newTestsStr, targetSummary);
+                        parser.parse(1);
+
+                        System.out.println("LLM TEST:");
+                        for (TestCase testCase : parser.getTestCases()) {
+                            System.out.println(testCase.toCode());
+                            // Execute new test case
+                            ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
+                            TestChromosome newTest = new TestChromosome();
+                            newTest.setTestCase(testCase);
+                            newTest.setLastExecutionResult(exeRes);
+                            this.population.add((T) newTest);
+                        }
+
+                        if (!parser.getTestCases().isEmpty()) {
+                            break;
+                        }
+                    }
+
                     // TODO: testing, to be removed
 //                    try {
 //                        populationStr = new String(Files.readAllBytes(Paths.get(
@@ -333,20 +370,6 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 //                    } catch (IOException e) {
 //                        logger.error(e.getMessage());
 //                    }
-
-                    Parser parser = new Parser(newTestsStr, targetSummary);
-                    parser.parse(10);
-
-                    System.out.println("LLM TEST:");
-                    for (TestCase testCase : parser.getTestCases()) {
-                        System.out.println(testCase.toCode());
-                        // Execute new test case
-                        ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
-                        TestChromosome newTest = new TestChromosome();
-                        newTest.setTestCase(testCase);
-                        newTest.setLastExecutionResult(exeRes);
-                        this.population.add((T) newTest);
-                    }
 
                 } catch (RuntimeException e) {
                     logger.error(e.getMessage());
@@ -369,7 +392,7 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 
             Set<FitnessFunction<T>> goalsAfter = this.goalsManager.getUncoveredGoals();
             if (goalsAfter.equals(goalsBefore)) {
-//                 stallLen += 1;
+                 stallLen += 1;
                 System.out.println("NO NEW GOAL COVERED");
             } else {
                 stallLen = 0;

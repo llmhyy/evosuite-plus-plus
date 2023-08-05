@@ -23,13 +23,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import javax.swing.JList;
 
 import static org.evosuite.testcase.parser.ParseException.*;
+import static org.evosuite.testcase.parser.ParseException.ParseExceptionType.*;
 
 public class ParserVisitor implements VoidVisitor<Object> {
 
     private final List<TestCase> testCases;
+    private final Set<String> classErrors;
+    private final Set<String> ctorErrors;
+    private final Set<String> methodErrors;
+
     private TestCase testCase;
     private Map<String, VariableReference> testRefs;
 
@@ -40,13 +44,33 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     public ParserVisitor() {
         this.testCases = new ArrayList<>();
-        this.testRefs = new HashMap<>();
+        this.classErrors = new HashSet<>();
+        this.ctorErrors = new HashSet<>();
+        this.methodErrors = new HashSet<>();
         this.testCase = new DefaultTestCase();
+        this.testRefs = new HashMap<>();
         ParserUtil.initCaches();
     }
 
-    public List<TestCase> getTestCases() {
-        return this.testCases;
+    private void handleException(ParseExceptionType type, String detail) {
+        switch (type) {
+        case CLASS_NOT_FOUND:
+            classErrors.add(detail);
+            logger.error(CLASS_NOT_FOUND_MSG + ": " + detail);
+            break;
+        case CTOR_NOT_FOUND:
+            ctorErrors.add(detail);
+            logger.error(CTOR_NOT_FOUND_MSG + ": " + detail);
+            break;
+        case METHOD_NOT_FOUND:
+            methodErrors.add(detail);
+            logger.error(METHOD_NOT_FOUND_MSG + ": " + detail);
+            break;
+        }
+
+        s = new NullStatement(testCase, Object.class);
+        s.addComment("exception");
+        r = testCase.addStatement(s);
     }
 
     private void updateReference(String k, VariableReference v) {
@@ -57,8 +81,20 @@ public class ParserVisitor implements VoidVisitor<Object> {
         return this.testRefs.get(k);
     }
 
-    public TestCase getTestCase() {
-        return this.testCase;
+    public List<TestCase> getTestCases() {
+        return this.testCases;
+    }
+
+    public Set<String> getClassErrors() {
+        return this.classErrors;
+    }
+
+    public Set<String> getCtorErrors() {
+        return this.ctorErrors;
+    }
+
+    public Set<String> getMethodErrors() {
+        return this.methodErrors;
     }
 
     // - Compilation Unit ----------------------------------
@@ -147,7 +183,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(MethodDeclaration n, Object arg) {
-        String annotation = n.getAnnotation(0).getNameAsString();
+        // String annotation = n.getAnnotation(0).getNameAsString();
         n.getBody().ifPresent(b -> b.accept(this, arg));
         testCases.add(testCase);
         testCase = new DefaultTestCase();
@@ -224,7 +260,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
     @Override
     public void visit(ArrayCreationExpr n, Object arg) {
         if (n.getLevels().size() > 1) {
-            logger.error("array of size > 1 not supported");
+            logger.error("array of levels > 1 not supported");
             return;
         }
 
@@ -239,8 +275,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
         Class<?> clazz = arg instanceof Class<?> ? (Class<?>) arg
                 : arg instanceof ClassOrInterfaceType ? ParserUtil.getClass(arg.toString())
                 : null;
-        ArrayReference array = null;
-        array = new ArrayReference(testCase, clazz);
+        ArrayReference array = new ArrayReference(testCase, clazz);
         s = new ArrayStatement(testCase, array, new int[] { n.getValues().size() });
         r = testCase.addStatement(s);
 
@@ -354,32 +389,13 @@ public class ParserVisitor implements VoidVisitor<Object> {
         String name = n.getNameAsString();
         String scope = n.getScope().isPresent() ? n.getScope().get().toString() : ""; // WRONG!!! can be chaining!!!!
 
-        if (scope.isEmpty()) {
-            switch (name) {
-            case "mock": visitMock(n, arg); return;
-            case "when":
-            case "verify":
-            default:
-                logger.error(n.getNameAsString() + ": callee/scope should not be null " + n);
-                return;
-            }
-        }
-
-        if (n.getNameAsString().equals("addVariable")) {
-            System.currentTimeMillis();
-        }
-
         VariableReference ref = getReference(scope);
-        if (ref == null) {
-            System.currentTimeMillis();
-        }
-
         GenericClass clazz = ref == null
                 ? ParserUtil.getGenericClass(scope)
                 : ref.getGenericClass();
         if (clazz == null) {
-            String reason = String.format("%s: %s", CLASS_NOT_FOUND, scope);
-            throw new ParseException(reason);
+            handleException(CLASS_NOT_FOUND, scope);
+            return;
         }
 
         List<VariableReference> argRefs = new ArrayList<>();
@@ -392,58 +408,19 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
         GenericMethod method = ParserUtil.getMethod(clazz, name, argTypes);
         if (method == null) {
-            String reason = String.format("%s: %s#%s", METHOD_NOT_FOUND, clazz.getClassName(), name);
-            throw new ParseException(reason);
+            handleException(METHOD_NOT_FOUND, clazz.getClassName() + "#" + name);
+            return;
         }
 
         int paraNum = method.getNumParameters();
         int argNum = argRefs.size();
         if (argNum < paraNum) {
-            String reason = String.format("%s: %s#%s", METHOD_NOT_FOUND, clazz.getClassName(), name);
-            throw new ParseException(reason);
+            handleException(METHOD_NOT_FOUND, clazz.getClassName() + "#" + name);
+            return;
         }
 
         argRefs = argRefs.subList(0, paraNum);
         s = new MethodStatement(testCase, method, ref, argRefs);
-        r = testCase.addStatement(s);
-    }
-
-    public void visitMock(MethodCallExpr n, Object arg) {
-        // ParserUtil.getFilePathByClassName("javax.swing.JList");
-        assert n.getNameAsString().equals("mock");
-        assert n.getArguments().size() == 1;
-
-        String type = n.getArguments().get(0).asClassExpr().getTypeAsString();
-        GenericClass clazz = ParserUtil.getGenericClass(type);
-        if (clazz == null) {
-            String reason = String.format("%s: %s", CLASS_NOT_FOUND, type);
-            throw new ParseException(reason);
-        }
-
-        Set<GenericConstructor> constructors = ParserUtil.getGenericConstructors(clazz.getRawClass());
-        GenericConstructor constructor = null;
-        for (GenericConstructor c : constructors) {
-            List<VariableReference> paraTypes = new ArrayList<>();
-            List<Statement> paraStatements = new ArrayList<>();
-
-            TestCase paraTest = new DefaultTestCase();
-            GenericClass paraClass;
-            GenericConstructor paraConstructor;
-            Statement paraStatement;
-            for (java.lang.reflect.Type paraType : c.getParameterTypes()) {
-                paraClass = new GenericClass(paraType);
-                paraConstructor = new GenericConstructor(c.getConstructor(), paraClass);
-                paraStatement = new ConstructorStatement(paraTest, paraConstructor, null);
-                System.currentTimeMillis();
-            }
-        }
-
-        if (constructor == null) {
-            String reason = String.format("%s: %s", CONSTRUCTOR_NOT_FOUND, clazz.getClassName());
-            throw new ParseException(reason);
-        }
-
-        s = new ConstructorStatement(testCase, constructor, null);
         r = testCase.addStatement(s);
     }
 
@@ -457,12 +434,8 @@ public class ParserVisitor implements VoidVisitor<Object> {
         String typeStr = n.getTypeAsString();
         Class<?> type = ParserUtil.getClass(typeStr);
         if (type == null) {
-            String reason = String.format("%s: %s", CLASS_NOT_FOUND, typeStr);
-            throw new ParseException(reason);
-        }
-
-        if (n.getArguments().size() != 0) {
-            System.currentTimeMillis();
+            handleException(CLASS_NOT_FOUND, typeStr);
+            return;
         }
 
         GenericClass clazz = new GenericClass(type);
@@ -476,15 +449,15 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
         GenericConstructor constructor = ParserUtil.getConstructor(clazz, argTypes);
         if (constructor == null) {
-            String reason = String.format("%s: %s", CONSTRUCTOR_NOT_FOUND, clazz.getClassName());
-            throw new ParseException(reason);
+            handleException(CTOR_NOT_FOUND, clazz.getClassName());
+            return;
         }
 
         int paraNum = constructor.getNumParameters();
         int argNum = argRefs.size();
         if (argNum < paraNum) {
-            String reason = String.format("%s: %s", CONSTRUCTOR_NOT_FOUND, clazz.getClassName());
-            throw new ParseException(reason);
+            handleException(CTOR_NOT_FOUND, clazz.getClassName());
+            return;
         }
 
         argRefs = argRefs.subList(0, paraNum);

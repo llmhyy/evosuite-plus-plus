@@ -6,9 +6,17 @@ public class ParseException extends RuntimeException {
 
     public static final String GENERAL_ERR = "general parsing error";
 
-    public static final String CLASS_NOT_FOUND = "could not find class";
-    public static final String CONSTRUCTOR_NOT_FOUND = "could not find constructor";
-    public static final String METHOD_NOT_FOUND = "could not find method";
+    public static final String CLASS_NOT_FOUND_MSG = "could not find class";
+    public static final String CTOR_NOT_FOUND_MSG = "could not find constructor";
+    public static final String METHOD_NOT_FOUND_MSG = "could not find method";
+
+    public enum ParseExceptionType {
+        CLASS_NOT_FOUND,
+        CTOR_NOT_FOUND,
+        CTOR_ARGS_NOT_MATCHED,
+        METHOD_NOT_FOUND,
+        METHOD_ARGS_NOT_MATCHED,
+    }
 
     /**
      * <p>Constructor for ParseException.</p>

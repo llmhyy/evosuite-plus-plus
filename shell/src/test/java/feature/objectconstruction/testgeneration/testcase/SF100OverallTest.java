@@ -70,6 +70,8 @@ public class SF100OverallTest {
 //				"framework.util.ObjectUtils#copyProperties(Ljava/util/Map;Ljava/lang/Object;)V"
 //				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
 				"macaw.persistenceLayer.demo.InMemoryVariableManager#getVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Lmacaw/businessLayer/Variable;"
+//				"macaw.presentationLayer.VariableLabelTableModel#setValueAt(Ljava/lang/Object;II)V"
+//				"macaw.persistenceLayer.demo.InMemoryVariableManager#getCategoriesForVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Ljava/util/ArrayList;"
 //				"macaw.persistenceLayer.demo.InMemoryOntologyTermFilter#filterOntologyTerms(Lmacaw/businessLayer/User;Ljava/lang/String;Ljava/lang/String;)Ljava/util/ArrayList;"
 //				"net.sf.xbus.admin.html.JournalBean#getDetailsAsTable()Ljava/lang/String;"
 		};

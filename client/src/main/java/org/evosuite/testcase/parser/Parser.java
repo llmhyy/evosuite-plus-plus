@@ -4,7 +4,6 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
-import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -92,19 +91,25 @@ public class Parser {
             try {
                 maxTries--;
                 root.accept(visitor, null);
+                checkForExceptions();
                 break;
             } catch (ParseException e) {
                 logger.error(e.getMessage());
                 String[] message = e.getMessage().split(": ");
                 assert message.length == 2;
                 switch (message[0]) {
-                    case CLASS_NOT_FOUND: handleClassNotFound(message[1]); break;
-                    case CONSTRUCTOR_NOT_FOUND: handleConstructorNotFound(message[1]); break;
-                    case METHOD_NOT_FOUND: handleMethodNotFound(message[1]); break;
+                    case CLASS_NOT_FOUND_MSG: handleClassNotFound(message[1]); break;
+                    case CTOR_NOT_FOUND_MSG: handleConstructorNotFound(message[1]); break;
+                    case METHOD_NOT_FOUND_MSG: handleMethodNotFound(message[1]); break;
                     default: handleOverallException(); break;
                 }
             }
         } while (maxTries > 0);
+    }
+
+    private void checkForExceptions() {
+        Set<String> ctorsDefinitions = new HashSet<>();
+        Set<String> methodDefinitions = new HashSet<>();
     }
 
     private void handleClassNotFound(String classSimpleName) {
@@ -116,8 +121,9 @@ public class Parser {
     }
 
     private void handleConstructorNotFound(String className) {
+        String simpleName = ParserUtil.getClassSimpleName(className);
         String classDefinition = ParserUtil.getClassDefinition(Properties.CP, className);
-        String newTests = new OpenAiLanguageModel().fixConstructorNotFound(originalSrc, className, classDefinition);
+        String newTests = new OpenAiLanguageModel().fixConstructorNotFound(originalSrc, simpleName, classDefinition);
         setSource(newTests, true);
         setCompilation();
     }
@@ -332,7 +338,8 @@ public class Parser {
 
     public void setSource(String source, boolean isTestSuite) {
         if (!isParsable(source)) {
-            throw new ParseException(GENERAL_ERR);
+            handleOverallException();
+            // throw new ParseException(GENERAL_ERR);
         }
 
         String s = source;
