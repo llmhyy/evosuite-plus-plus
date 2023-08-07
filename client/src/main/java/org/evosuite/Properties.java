@@ -378,7 +378,7 @@ public class Properties {
 		// mu-lambda
 		ONE_PLUS_LAMBDA_LAMBDA_GA, ONE_PLUS_ONE_EA, MU_PLUS_LAMBDA_EA, MU_LAMBDA_EA,
 		// many-objective algorithms
-		MOSA, DYNAMOSA, CODAMOSA, LIPS, MIO,
+		MOSA, DYNAMOSA, CODAMOSA, EVOLLM, LIPS, MIO,
 		// multiple-objective optimisation algorithms
 		NSGAII, SPEA2
 	}

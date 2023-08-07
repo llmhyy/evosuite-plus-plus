@@ -85,7 +85,7 @@ public class SF100OverallTest {
 		boolean aor = true;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
-				seed, aor, "generateMOSuite", "MOSUITE", "CodaMOSA");
+				seed, aor, "generateMOSuite", "MOSUITE", "EvoLLM");
 		
 		double coverage = 0;
 		double initCoverage = 0;
