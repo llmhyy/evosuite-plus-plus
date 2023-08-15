@@ -379,7 +379,11 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(NullLiteralExpr n, Object arg) {
-        Class<?> type = arg instanceof Class<?> ? (Class<?>) arg : ParserUtil.getClass(String.valueOf(arg));
+        Class<?> type = arg instanceof Class<?>
+                ? (Class<?>) arg
+                : arg == null
+                ? ParserUtil.getClass("Object")
+                : ParserUtil.getClass(String.valueOf(arg));
         s = new NullStatement(testCase, type);
         r = testCase.addStatement(s);
     }
@@ -404,6 +408,10 @@ public class ParserVisitor implements VoidVisitor<Object> {
             a.accept(this, arg);
             argRefs.add(r);
             argTypes.add(r.getGenericClass());
+        }
+
+        if (ParserUtil.getMethod(clazz, name, argTypes) == null) {
+            System.currentTimeMillis();
         }
 
         GenericMethod method = ParserUtil.getMethod(clazz, name, argTypes);
@@ -438,6 +446,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
             return;
         }
 
+        arg = null;
         GenericClass clazz = new GenericClass(type);
         List<VariableReference> argRefs = new ArrayList<>();
         List<GenericClass> argTypes = new ArrayList<>();
@@ -445,6 +454,10 @@ public class ParserVisitor implements VoidVisitor<Object> {
             a.accept(this, arg);
             argRefs.add(r);
             argTypes.add(r.getGenericClass());
+        }
+
+        if (ParserUtil.getConstructor(clazz, argTypes) == null) {
+            System.currentTimeMillis();
         }
 
         GenericConstructor constructor = ParserUtil.getConstructor(clazz, argTypes);

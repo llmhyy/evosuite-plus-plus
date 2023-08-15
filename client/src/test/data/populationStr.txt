@@ -1,44 +1,47 @@
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class TestSuite {
-    private InMemoryVariableManager variableManager;
-    private User user;
+public class DocumentResponseTest {
 
-    @Before
-    public void setUp() {
-        // Initialize the necessary objects for the test cases
-        variableManager = new InMemoryVariableManager(new InMemoryChangeEventManager(), new InMemoryListChoiceManager(), new InMemoryOntologyTermManager(), new InMemorySupportingDocumentsManager());
-        user = new User("testUser");
+    @Test
+    public void testToXML_withNullResultFieldsAndEmptyRecords() {
+        DocumentResponse response = new DocumentResponse("filter", "query", 0, 10, "sortKey", true, null, 1000, 100);
+        String xml = response.toXML();
+        assertTrue(xml.contains("<documentresult"));
+        assertFalse(xml.contains("fields="));
+        assertFalse(xml.contains("<record>"));
     }
 
     @Test
-    public void testEmptyVariableName() {
-        assertNull(variableManager.getVariable(user, ""));
+    public void testToXML_withNonNullResultFieldsAndEmptyRecords() {
+        String[] resultFields = new String[] {"field1", "field2"};
+        DocumentResponse response = new DocumentResponse("filter", "query", 0, 10, "sortKey", true, resultFields, 1000, 100);
+        String xml = response.toXML();
+        assertTrue(xml.contains("<documentresult"));
+        assertTrue(xml.contains("fields=\"field1, field2\""));
+        assertFalse(xml.contains("<record>"));
     }
 
     @Test
-    public void testValidVariableName() {
-        Variable variable = new Variable("validVariable");
-        variableManager.addVariable(variable);
-        Variable retrievedVariable = variableManager.getVariable(user, "validVariable");
-        assertNotNull(retrievedVariable);
-        assertEquals("validVariable", retrievedVariable.getName());
-        assertNotSame(variable, retrievedVariable);
+    public void testToXML_withNullResultFieldsAndNonEmptyRecords() {
+        DocumentResponse response = new DocumentResponse("filter", "query", 0, 10, "sortKey", true, null, 1000, 100);
+        List<Record> records = response.getRecords();
+        records.add(new Record());
+        String xml = response.toXML();
+        assertTrue(xml.contains("<documentresult"));
+        assertFalse(xml.contains("fields="));
+        assertTrue(xml.contains("<record>"));
     }
 
     @Test
-    public void testNonMatchingVariableName() {
-        Variable variable = new Variable("nonMatchingVariable");
-        variableManager.addVariable(variable);
-        assertNull(variableManager.getVariable(user, "invalidVariable"));
-    }
-
-    @After
-    public void tearDown() {
-        variableManager = null;
-        user = null;
+    public void testToXML_withNonNullResultFieldsAndNonEmptyRecords() {
+        String[] resultFields = new String[] {"field1", "field2"};
+        DocumentResponse response = new DocumentResponse("filter", "query", 0, 10, "sortKey", true, resultFields, 1000, 100);
+        List<Record> records = response.getRecords();
+        records.add(new Record());
+        String xml = response.toXML();
+        assertTrue(xml.contains("<documentresult"));
+        assertTrue(xml.contains("fields=\"field1, field2\""));
+        assertTrue(xml.contains("<record>"));
     }
 }

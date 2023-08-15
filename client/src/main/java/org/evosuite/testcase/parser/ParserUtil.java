@@ -301,6 +301,10 @@ public class ParserUtil {
                 System.currentTimeMillis();
             }
 
+            if (simpleName.contains("<>")) {
+                simpleName = simpleName.replace("<>", "");
+            }
+
             clazz = classCache.get(simpleName);
             // clazz = clazz == null ? loadClass(simpleName) : clazz;
 
@@ -334,6 +338,22 @@ public class ParserUtil {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.application.DeleteFileCallback");
             } else if (simpleName.equals("SimpleChangeableListModel")) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.swing.SimpleChangeableListModel");
+            }
+
+            else if (simpleName.equals("DestinationStore")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("org.exolab.jms.tools.migration.proxy.DestinationStore");
+            } else if (simpleName.equals("MapMessageImpl")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("org.exolab.jms.message.MapMessageImpl");
+            } else if (simpleName.equals("MapMessage")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("javax.jms.MapMessage");
+            } else if (simpleName.equals("Connection")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("java.sql.Connection");
+            }
+
+            else if (simpleName.equals("DocumentResponse")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("dk.statsbiblioteket.summa.search.api.document.DocumentResponse");
+            } else if (simpleName.equals("Record")) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("dk.statsbiblioteket.summa.search.api.document.DocumentResponse.Record");
             }
         } catch (ClassNotFoundException e) {
             logger.error("class " + simpleName + " not found");
@@ -388,7 +408,9 @@ public class ParserUtil {
                     // not a match if there are more parameters
                     isMatched = false;
                     break;
-                } else if (!paraTypes[i].isAssignableFrom(argTypes[i])) {
+                } else if (!paraTypes[i].isAssignableFrom(argTypes[i]) &&
+                        !argTypes[i].getCanonicalName().equals("java.lang.Object") &&
+                        !(paraTypes[i].equals(long.class) && argTypes[i].equals(int.class))) { // TODO: fix
                     // if the type is not assignable, check if the method has vararg and
                     // the current parameter type is the last type and is an array type
                     if (constructor.isVarArgs() && i == paraTypes.length-1 && paraTypes[i].isArray()) {
@@ -522,25 +544,26 @@ public class ParserUtil {
         return null;
     }
 
-    public static Class<?> convertToWrapperClass(Class<?> primitiveClass) {
-        if (primitiveClass == int.class) {
+    public static Class<?> convertToWrapperClass(Class<?> clazz) {
+        if (clazz == int.class) {
             return Integer.class;
-        } else if (primitiveClass == long.class) {
+        } else if (clazz == long.class) {
             return Long.class;
-        } else if (primitiveClass == float.class) {
+        } else if (clazz == float.class) {
             return Float.class;
-        } else if (primitiveClass == double.class) {
+        } else if (clazz == double.class) {
             return Double.class;
-        } else if (primitiveClass == boolean.class) {
+        } else if (clazz == boolean.class) {
             return Boolean.class;
-        } else if (primitiveClass == byte.class) {
+        } else if (clazz == byte.class) {
             return Byte.class;
-        } else if (primitiveClass == short.class) {
+        } else if (clazz == short.class) {
             return Short.class;
-        } else if (primitiveClass == char.class) {
+        } else if (clazz == char.class) {
             return Character.class;
         } else {
-            throw new IllegalArgumentException("Unsupported primitive class: " + primitiveClass);
+            return clazz;
+            // throw new IllegalArgumentException("Unsupported primitive class: " + clazz);
         }
     }
 

@@ -77,7 +77,7 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
 
         Parser parser = new Parser(targetClassDef, targetMethodName, targetMethodParaTypes);
         this.targetSummary = parser.getSummary();
-        this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
+        // this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
 
         String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
         String targetSummaryStr = this.targetSummary.toString();

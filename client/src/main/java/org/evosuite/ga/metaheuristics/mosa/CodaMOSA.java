@@ -23,8 +23,6 @@ import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -67,71 +65,16 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
     /** {@inheritDoc} */
     @Override
     public void initializePopulation() {
-        logger.info("executing initializePopulation function");
+        super.initializePopulation();
 
-        this.notifySearchStarted();
-        this.currentIteration = 0;
-
-        String targetClassDef = ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS);
+        /*String targetClassDef = ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS);
         Pair<String, String[]> targetMethodSignature = ParserUtil.getMethodSimpleSignature(Properties.TARGET_METHOD);
         String targetMethodName = targetMethodSignature.getKey();
         String[] targetMethodParaTypes = targetMethodSignature.getValue();
 
         Parser parser = new Parser(targetClassDef, targetMethodName, targetMethodParaTypes);
         this.targetSummary = parser.getSummary();
-        this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
-
-        String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
-        String targetSummaryStr = this.targetSummary.toString();
-
-        String populationStr = "";//new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
-        // TODO: testing, to be removed
-        try {
-            populationStr = new String(Files.readAllBytes(Paths.get(
-                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
-                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
-
-                    "D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationStr.txt"
-                    //"D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationInit.txt"
-            )));
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        }
-
-        parser = new Parser(populationStr, targetSummary);
-        parser.parse(10);
-
-        System.out.println("LLM TEST:");
-        List<TestCase> testCases = parser.getTestCases();
-        StringBuilder builder = new StringBuilder("public class TestSuite {\n\n");
-
-        for (int i = 0; i < testCases.size(); i++) {
-            TestCase testCase = testCases.get(i);
-            builder.append("public void testCase").append(i+1).append("() {\n")
-                    .append(testCase.toCode())
-                    .append("}\n\n");
-            System.out.println(testCase.toCode());
-
-            // Execute new test case
-            ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
-            TestChromosome newTest = new TestChromosome();
-            newTest.setTestCase(testCase);
-            newTest.setLastExecutionResult(exeRes);
-            this.population.add((T) newTest);
-        }
-
-        // Record initial population
-        builder.append("}");
-        this.populationInit = builder.toString();
-
-        if (populationStr.isEmpty()) {
-            System.out.println("RANDOM POPULATION IS CHOSEN");
-            super.initializePopulation();
-        }
-
-        // Determine fitness
-        this.calculateFitness(true);
-        this.notifyIteration();
+        this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));*/
     }
 
     /** {@inheritDoc} */
