@@ -44,17 +44,34 @@ public class SF100OverallTest {
 //		String projectId = "83_xbus";
 //		String projectId = "80_wheelwebtool";
 //		String projectId = SF100Project.P6;
+//		String projectId = SF100Project.P8;
+//		String projectId = SF100Project.P13;
 //		String projectId = SF100Project.P23;
 //		String projectId = SF100Project.P31;
 //		String projectId = SF100Project.P38;
-//		String projectId = SF100Project.P44;
+//		String projectId = SF100Project.P43;
+		String projectId = SF100Project.P44;
 //		String projectId = SF100Project.P66;
-		String projectId = SF100Project.P69;
+//		String projectId = SF100Project.P69;
 //		String projectId = SF100Project.P78;
 //		String projectId = SF100Project.P83;
+//		String projectId = SF100Project.P89;
 //		String projectId = SF100Project.P92;
 
 		String[] targetMethods = new String[]{
+				"dk.statsbiblioteket.summa.search.api.document.DocumentResponse#toXML()Ljava/lang/String;"
+//				"com.lts.xmlser.tags.ObjectTag#processProperty(Ljava/lang/String;Ljava/lang/Object;Lorg/w3c/dom/Element;Lcom/lts/xmlser/XmlSerializer;)V"
+//				"fr.unice.gfarce.interGraph.SharedListSelectionHandlerFormation#valueChanged(Ljavax/swing/event/ListSelectionEvent;)V"
+//				"com.lts.util.ArraySorter#quickSort([Ljava/lang/Object;Lcom/lts/util/CompareMethod;II)V"
+//				"de.huxhorn.lilith.swing.taskmanager.table.TaskTable#getTaskAt(Ljava/awt/Point;Z)Lde/huxhorn/sulky/tasks/Task;"
+//				"org.databene.jdbacl.model.DBNonUniqueIndex#isIdentical(Lorg/databene/jdbacl/model/DBObject;)Z"
+//				"com.lts.util.ArraySorter#quickSort([Ljava/lang/Object;Lcom/lts/util/CompareMethod;II)V"
+//				"jigl.math.Matrix#equals(Ljigl/math/Matrix;)Z"
+//				"org.exolab.jms.tranlog.ExternalXid#equals(Ljava/lang/Object;)Z"
+//				"org.exolab.jms.selector.LikeExpression#evaluate(Ljavax/jms/Message;)Lorg/exolab/jms/selector/SObject;"
+//				"org.exolab.jms.tools.migration.proxy.MapMessageHandler#setBody(Ljava/lang/Object;Ljavax/jms/Message;)V"
+//				"de.huxhorn.lilith.data.logging.LoggingEvents#equals(Ljava/lang/Object;)Z"
+//				"de.huxhorn.lilith.data.access.AccessEvents#equals(Ljava/lang/Object;)Z"
 //				"org.exolab.jms.tranlog.ExternalXid#equals(Ljava/lang/Object;)Z"
 //				"dk.statsbiblioteket.summa.common.index.IndexGroup#equals(Ljava/lang/Object;)Z"
 //				"br.com.jnfe.core.EnvNFe#equals(Ljava/lang/Object;)Z"
@@ -69,7 +86,7 @@ public class SF100OverallTest {
 //				"net.sourceforge.jwbf.mediawiki.contentRep.SimpleFile#equals(Ljava/lang/Object;)Z"
 //				"framework.util.ObjectUtils#copyProperties(Ljava/util/Map;Ljava/lang/Object;)V"
 //				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
-				"macaw.persistenceLayer.demo.InMemoryVariableManager#getVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Lmacaw/businessLayer/Variable;"
+//				"macaw.persistenceLayer.demo.InMemoryVariableManager#getVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Lmacaw/businessLayer/Variable;"
 //				"macaw.presentationLayer.VariableLabelTableModel#setValueAt(Ljava/lang/Object;II)V"
 //				"macaw.persistenceLayer.demo.InMemoryVariableManager#getCategoriesForVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Ljava/util/ArrayList;"
 //				"macaw.persistenceLayer.demo.InMemoryOntologyTermFilter#filterOntologyTerms(Lmacaw/businessLayer/User;Ljava/lang/String;Ljava/lang/String;)Ljava/util/ArrayList;"
@@ -79,7 +96,7 @@ public class SF100OverallTest {
 		int repeatTime = 1;
 		int budget = 100;
 		Long seed = null;
-		
+
 		String fitnessApproach = "branch";
 		
 		boolean aor = true;
