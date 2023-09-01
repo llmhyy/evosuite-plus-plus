@@ -264,6 +264,23 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 //                }
 //                System.out.println("=============================================");
 
+                List<Pair<String, Map<Integer, Throwable>>> data = new ArrayList<>();
+                List<Map<Integer, Throwable>> exceptions = this.population.stream()
+                        .map(t -> (TestChromosome) t)
+                        .filter(TestChromosome::hasException)
+                        .map(t -> {
+                            data.add(new Pair<>(t.toString(), t.getLastExecutionResult().exposeExceptionMapping()));
+                            return t.getLastExecutionResult().exposeExceptionMapping();
+                        })
+                        .collect(Collectors.toList());
+
+                StringBuilder dataBuilder = new StringBuilder();
+                for (Pair<String, Map<Integer, Throwable>> d : data) {
+                    dataBuilder.append(d.toString());
+                    dataBuilder.append(System.lineSeparator());
+                    dataBuilder.append(System.lineSeparator());
+                }
+
                 wasTargeted = true;
                 t1 = System.currentTimeMillis();
                 System.out.println("COVERAGE STALL DETECTED");
