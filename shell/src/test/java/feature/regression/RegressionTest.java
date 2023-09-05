@@ -69,7 +69,7 @@ public class RegressionTest extends TestUtility{
 		Properties.TIMEOUT = 10;
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
 		Properties.STRATEGY = Strategy.REGRESSION;
-		Properties.REGRESSION_FITNESS = RegressionMeasure.ALL_MEASURES;
+		Properties.REGRESSION_FITNESS = RegressionMeasure.COVERAGE;
 		Properties.ASSERTIONS = true;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
