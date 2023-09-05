@@ -6,7 +6,10 @@ import java.util.List;
 
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
+import org.evosuite.Properties.Criterion;
 import org.evosuite.Properties.StatisticsBackend;
+import org.evosuite.Properties.Strategy;
+import org.evosuite.regression.RegressionMeasure;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.utils.MethodUtil;
 import org.junit.Test;
@@ -39,14 +42,19 @@ public class RegressionTest extends TestUtility{
 	
 	@Test
 	public void testBasicRulesObj() {
-//		Class<?> clazz = RegressionExample.class;
+		Class<?> clazz = RegressionExample.class;
 //		String targetClass = clazz.getCanonicalName();
 		
 		String targetClass = "com.RegressionExample";
 		
-//		Method method = clazz.getMethods()[0];
-//		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+		String methodName = "example123";
+		int parameterNum = 1;
 
+		Method method = TestUtility.getTargetMethod(methodName, clazz, parameterNum);
+
+		String targetMethod = method.getName() + MethodUtil.getSignature(method);
+		
+//		Method method = clazz.getMethods()[0];
 //		String targetMethod = method.getName() + MethodUtil.getSignature(method);
 		String original = "D:\\workspace\\workspace-for-testing2\\original\\bin";
 		String regression = "D:\\workspace\\workspace-for-testing2\\regression\\bin";
@@ -56,9 +64,13 @@ public class RegressionTest extends TestUtility{
 //		Properties.PORT = 8000;
 		Properties.CLIENT_ON_THREAD = true;
 		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
+		Properties.CRITERION = new Criterion[] {Criterion.BRANCH};
 
-		Properties.TIMEOUT = 100;
+		Properties.TIMEOUT = 10;
 		Properties.INDIVIDUAL_LEGITIMIZATION_BUDGET = 10;
+		Properties.STRATEGY = Strategy.REGRESSION;
+		Properties.REGRESSION_FITNESS = RegressionMeasure.ALL_MEASURES;
+		Properties.ASSERTIONS = true;
 //		Properties.TIMELINE_INTERVAL = 3000;
 		
 		int timeBudget = 10;
