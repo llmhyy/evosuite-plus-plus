@@ -146,217 +146,43 @@ public class ParserUtil {
         constructorCache.put(clazz, constructors);
     }
 
-    public static GenericMethod loadGenericMethod(String simpleCalleeClassName,
-                                                  String simpleMethodName,
-                                                  List<GenericClass> argTypes) {
-        Class<?> clazz = classCache.get(simpleCalleeClassName);
-        GenericClass calleeClass = new GenericClass(clazz);
-        return loadGenericMethod(calleeClass, simpleMethodName, argTypes);
-    }
-
-    public static GenericMethod loadGenericMethod(GenericClass calleeClass,
-                                                  String simpleMethodName,
-                                                  List<GenericClass> argTypes) {
-        // note: this does not work very well with project-declared classes
-        // potentially due to the lack of information when prompting
-
-        // TODO: find effective prompting for argTypes to address overloading
-
-        // caching
-        String simpleClassName = calleeClass.getSimpleName();
-
-        OpenAiLanguageModel model = new OpenAiLanguageModel();
-        String signature = model.findMethodSignature(simpleClassName, simpleMethodName).trim();
-        String[] output = signature.split(" ");
-
-        // variations:
-        // java/util/ArrayList.add(Ljava/lang/Object;)Z
-        // java.util.ArrayList.add:(Ljava/lang/Object;)Z
-        // Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
-
-        for (String s : output) {
-            if (s.contains(simpleClassName) && s.contains(simpleClassName)) {
-                s = s.replaceAll("\"", "");
-                s = s.replaceAll("Ljava", "java");
-                signature = s;
-                break;
-            }
-        }
-
-        int startClass = signature.indexOf(simpleClassName);
-        String fullClass = signature.substring(0, startClass) + simpleClassName;
-        Class<?> clazz = calleeClass.getRawClass();
-
-        int startPara = signature.indexOf('(');
-        int endPara = signature.indexOf(')');
-        String[] fullParas = signature.substring(startPara + 1, endPara - 1).split(";");
-        List<Class<?>> paraTypes = new ArrayList<>();
-        for (String para : fullParas) {
-            try {
-                Class<?> type = Class.forName(para);
-                paraTypes.add(type);
-            } catch (ClassNotFoundException e) {
-                logger.error(para + " not found");
-            }
-        }
-
-        GenericMethod method = null;
-        try {
-            method = new GenericMethod(
-                    clazz.getMethod(simpleMethodName, paraTypes.toArray(new Class<?>[0])),
-                    clazz);
-        } catch (NoSuchMethodException e) {
-            logger.error("cannot find method matched signature " + signature);
-        }
-
-        return method;
-    }
-
-    public static Class<?> loadClassByName(String className) {
-        Class<?> clazz;
-        try {
-            String fullyQualifiedName = findFullyQualifiedName(className);
-            clazz = Class.forName(fullyQualifiedName);
-        } catch (ClassNotFoundException e1) {
-            try {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
-            } catch (ClassNotFoundException e2) {
-                logger.error(e2.getMessage());
-                System.out.println(className);
-                clazz = null;
-            }
-        }
-        return clazz;
-    }
-
-    private static String findFullyQualifiedName(String className) throws ClassNotFoundException {
-        String classFilePath = className.replace(".", "/") + ".class";
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        URL resource = classLoader.getResource(classFilePath);
-        if (resource == null) {
-            throw new ClassNotFoundException("Class " + className + " not found on classpath.");
-        }
-        String url = resource.toString();
-        int packageIndex = url.lastIndexOf(className.replace(".", "/"));
-        String packageName = url.substring(0, packageIndex);
-        packageName = packageName.substring(packageName.lastIndexOf("/") + 1);
-        return packageName + "." + className;
-    }
-
-    private static File findFileInFolder(File folder, String fileName) {
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    File foundFile = findFileInFolder(file, fileName);
-                    if (foundFile != null) {
-                        return foundFile;
+    private static String findFullyQualifiedName(String classSimpleName) {
+        String[] jarFilePaths = Properties.CP.split(File.pathSeparator);
+        for (String jarFilePath : jarFilePaths) {
+            try (JarFile jarFile = new JarFile(jarFilePath)) {
+                Enumeration<JarEntry> entries = jarFile.entries();
+                while (entries.hasMoreElements()) {
+                    JarEntry entry = entries.nextElement();
+                    if (entry.getName().endsWith(".class")) {
+                        // Get the fully qualified class name
+                        String className = entry.getName().replace("/", ".").replaceAll(".class$", "");
+                        if (className.endsWith("." + classSimpleName)) {
+                            return className;
+                        }
                     }
-                } else if (file.getName().equalsIgnoreCase(fileName)) {
-                    return file;
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
+
         return null;
     }
 
-    private static Set<Class<?>> getAllClasses(String packageName) {
-        try {
-            return ClassPath.from(ClassLoader.getSystemClassLoader())
-                    .getAllClasses()
-                    .stream()
-                    .filter(clazz -> clazz.getPackageName()
-                            .equalsIgnoreCase(packageName))
-                    .map(ClassPath.ClassInfo::load)
-                    .collect(Collectors.toSet());
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            return new HashSet<>();
-        }
-    }
-
-    private static Class<?> loadClass(String simpleName) {
-        try {
-            Class<?> clazz = ClassPath.from(ClassLoader.getSystemClassLoader())
-                    .getAllClasses()
-                    .stream()
-                    .filter(c -> c.getSimpleName().equalsIgnoreCase(simpleName))
-                    .map(ClassPath.ClassInfo::load)
-                    .findAny()
-                    .orElse(null);
-            if (clazz != null) {
-                classCache.put(simpleName, clazz);
-            }
+    public static Class<?> getClass(String classSimpleName) {
+        Class<?> clazz = classCache.get(classSimpleName);
+        if (clazz != null) {
             return clazz;
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            return null;
         }
-    }
 
-    public static Class<?> getClass(String simpleName) {
-        Class<?> clazz = null;
         try {
-            if (simpleName.equals("InMemoryVariableManager")) {
-                System.currentTimeMillis();
-            }
-
-            if (simpleName.contains("<>")) {
-                simpleName = simpleName.replace("<>", "");
-            }
-
-            clazz = classCache.get(simpleName);
-            // clazz = clazz == null ? loadClass(simpleName) : clazz;
-
-            // clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(fullName);
-
-            if (clazz == null && simpleName.equals(Properties.TARGET_CLASS.substring(Properties.TARGET_CLASS.lastIndexOf('.') + 1))) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(Properties.TARGET_CLASS);
-            }
-
-            else if (simpleName.equals("User")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.businessLayer.User");
-            } else if (simpleName.equals("Variable")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.businessLayer.Variable");
-            } else if (simpleName.equals("OntologyTerm")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.businessLayer.OntologyTerm");
-            } else if (simpleName.equals("InMemoryChangeEventManager")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemoryChangeEventManager");
-            } else if (simpleName.equals("InMemoryListChoiceManager")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemoryListChoiceManager");
-            } else if (simpleName.equals("InMemoryOntologyTermManager")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemoryOntologyTermManager");
-            } else if (simpleName.equals("InMemorySupportingDocumentsManager")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("macaw.persistenceLayer.demo.InMemorySupportingDocumentsManager");
-            }
-
-            else if (simpleName.equals("ListPanel")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.swing.ListPanel");
-            } else if (simpleName.equals("Callback")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.event.Callback");
-            } else if (simpleName.equals("DeleteFileCallback")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.application.DeleteFileCallback");
-            } else if (simpleName.equals("SimpleChangeableListModel")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("com.lts.swing.SimpleChangeableListModel");
-            }
-
-            else if (simpleName.equals("DestinationStore")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("org.exolab.jms.tools.migration.proxy.DestinationStore");
-            } else if (simpleName.equals("MapMessageImpl")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("org.exolab.jms.message.MapMessageImpl");
-            } else if (simpleName.equals("MapMessage")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("javax.jms.MapMessage");
-            } else if (simpleName.equals("Connection")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("java.sql.Connection");
-            }
-
-            else if (simpleName.equals("DocumentResponse")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("dk.statsbiblioteket.summa.search.api.document.DocumentResponse");
-            } else if (simpleName.equals("Record")) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass("dk.statsbiblioteket.summa.search.api.document.DocumentResponse.Record");
+            String className = findFullyQualifiedName(classSimpleName);
+            if (className != null) {
+                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
+                classCache.put(classSimpleName, clazz);
             }
         } catch (ClassNotFoundException e) {
-            logger.error("class " + simpleName + " not found");
+            logger.error("class " + classSimpleName + " not found");
         }
         return clazz;
     }
@@ -700,8 +526,8 @@ public class ParserUtil {
                 Files.readAllLines(Paths.get(classPath));
                 return projectPath;
             } catch (IOException e) {
-                e.printStackTrace();
-                logger.error(e.getMessage());
+                // e.printStackTrace();
+                // logger.error(e.getMessage());
             }
         }
         // should not be null as TARGET_PROJECT should exist in CP list

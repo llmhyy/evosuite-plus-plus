@@ -1,11 +1,13 @@
 package feature.objectconstruction.testgeneration.testcase;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.runtime.sandbox.Sandbox;
+import org.evosuite.testcase.TestChromosome;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -642,6 +644,24 @@ public class SF100OverallTest {
 		EvoTestResult resultF = resultsF.get(0);
 		
 		System.currentTimeMillis();
+	}
+
+	@Test
+	public void testLlmExample() throws Exception {
+		String projectId = SF100Project.P83;
+		String targetMethod = "net.sf.xbus.admin.html.JournalBean#getDetailsAsTable()Ljava/lang/String;";
+		String testSuiteStr = new String(Files.readAllBytes(Paths.get(
+				"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+				//"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
+
+				//"D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationStr.txt"
+				//"D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationInit.txt"
+			)));
+		int tries = 1;
+		List<TestChromosome> testChromosomes = CommonTestUtil.verifyLlmTests(projectId, targetMethod, testSuiteStr, tries);
+		for (TestChromosome tc : testChromosomes) {
+			System.out.println(tc.toString());
+		}
 	}
 	
 //	@Test

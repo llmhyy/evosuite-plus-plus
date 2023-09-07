@@ -63,6 +63,10 @@ public class Parser {
         setSummary(summary);
     }
 
+    public Parser(String testSuiteStr) {
+        this(testSuiteStr, null);
+    }
+
     public Parser(String source, String targetMethodName, String... targetMethodParaTypes) {
         setSource(source, false);
         setCompilation();
@@ -92,7 +96,6 @@ public class Parser {
                 maxTries--;
                 root.accept(visitor, null);
                 checkForExceptions();
-                break;
             } catch (ParseException e) {
                 logger.error(e.getMessage());
                 String[] message = e.getMessage().split(": ");

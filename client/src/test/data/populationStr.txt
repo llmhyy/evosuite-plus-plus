@@ -1,47 +1,12 @@
-import org.junit.Test;
-import static org.junit.Assert.*;
-
-public class DocumentResponseTest {
+public class TestSuite {
 
     @Test
-    public void testToXML_withNullResultFieldsAndEmptyRecords() {
-        DocumentResponse response = new DocumentResponse("filter", "query", 0, 10, "sortKey", true, null, 1000, 100);
-        String xml = response.toXML();
-        assertTrue(xml.contains("<documentresult"));
-        assertFalse(xml.contains("fields="));
-        assertFalse(xml.contains("<record>"));
-    }
-
-    @Test
-    public void testToXML_withNonNullResultFieldsAndEmptyRecords() {
-        String[] resultFields = new String[] {"field1", "field2"};
-        DocumentResponse response = new DocumentResponse("filter", "query", 0, 10, "sortKey", true, resultFields, 1000, 100);
-        String xml = response.toXML();
-        assertTrue(xml.contains("<documentresult"));
-        assertTrue(xml.contains("fields=\"field1, field2\""));
-        assertFalse(xml.contains("<record>"));
-    }
-
-    @Test
-    public void testToXML_withNullResultFieldsAndNonEmptyRecords() {
-        DocumentResponse response = new DocumentResponse("filter", "query", 0, 10, "sortKey", true, null, 1000, 100);
-        List<Record> records = response.getRecords();
-        records.add(new Record());
-        String xml = response.toXML();
-        assertTrue(xml.contains("<documentresult"));
-        assertFalse(xml.contains("fields="));
-        assertTrue(xml.contains("<record>"));
-    }
-
-    @Test
-    public void testToXML_withNonNullResultFieldsAndNonEmptyRecords() {
-        String[] resultFields = new String[] {"field1", "field2"};
-        DocumentResponse response = new DocumentResponse("filter", "query", 0, 10, "sortKey", true, resultFields, 1000, 100);
-        List<Record> records = response.getRecords();
-        records.add(new Record());
-        String xml = response.toXML();
-        assertTrue(xml.contains("<documentresult"));
-        assertTrue(xml.contains("fields=\"field1, field2\""));
-        assertTrue(xml.contains("<record>"));
+    public void testCase1() {
+        JournalBean journalBean0 = new JournalBean();
+        String string0 = "true";
+        journalBean0.setDetails(string0);
+        String string1 = "w<PRE<";
+        journalBean0.setMessage(string1);
+        String string2 = journalBean0.getDetailsAsTable();
     }
 }
