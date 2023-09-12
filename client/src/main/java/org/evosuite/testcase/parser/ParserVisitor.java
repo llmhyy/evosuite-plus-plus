@@ -442,6 +442,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
         String typeStr = n.getTypeAsString();
         Class<?> type = ParserUtil.getClass(typeStr);
         if (type == null) {
+            ParserUtil.getClass(typeStr);
             handleException(CLASS_NOT_FOUND, typeStr);
             return;
         }

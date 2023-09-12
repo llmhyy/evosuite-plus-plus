@@ -147,35 +147,61 @@ public class ParserUtil {
     }
 
     private static String findFullyQualifiedName(String classSimpleName) {
-        String[] jarFilePaths = Properties.CP.split(File.pathSeparator);
+        if (classSimpleName.equals("FieldVisitor")) {
+            System.currentTimeMillis();
+        }
+        List<String> jarFilePaths = Arrays.asList(Properties.CP.split(File.pathSeparator));
+        String targetProjectJarFilePath = jarFilePaths.stream()
+                .filter(path -> !path.contains("/lib/")).findFirst().get();
+        String fullClassName = findFullyQualifiedNameFromJarFile(classSimpleName, targetProjectJarFilePath);
+        if (fullClassName != null) {
+            return fullClassName;
+        }
         for (String jarFilePath : jarFilePaths) {
-            try (JarFile jarFile = new JarFile(jarFilePath)) {
-                Enumeration<JarEntry> entries = jarFile.entries();
-                while (entries.hasMoreElements()) {
-                    JarEntry entry = entries.nextElement();
-                    if (entry.getName().endsWith(".class")) {
-                        // Get the fully qualified class name
-                        String className = entry.getName().replace("/", ".").replaceAll(".class$", "");
-                        if (className.endsWith("." + classSimpleName)) {
-                            return className;
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            fullClassName = findFullyQualifiedNameFromJarFile(classSimpleName, jarFilePath);
+            if (fullClassName != null) {
+                return fullClassName;
             }
         }
 
         return null;
     }
 
+    private static String findFullyQualifiedNameFromJarFile(String classSimpleName, String jarFilePath) {
+        try (JarFile jarFile = new JarFile(jarFilePath)) {
+            Enumeration<JarEntry> entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.getName().endsWith(".class")) {
+                    // Get the fully qualified class name
+                    String className = entry.getName().replace("/", ".").replaceAll(".class$", "");
+                    if (className.endsWith("." + classSimpleName)) {
+                        return className;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static Class<?> getClass(String classSimpleName) {
+        // handle generics
+        if (classSimpleName.contains("<") && classSimpleName.contains(">")) {
+            classSimpleName = classSimpleName.substring(0, classSimpleName.indexOf("<"));
+        }
+
         Class<?> clazz = classCache.get(classSimpleName);
         if (clazz != null) {
             return clazz;
         }
 
         try {
+            if (classSimpleName.equals("LinkedList<ShortGlyph>")) {
+                System.currentTimeMillis();
+            }
+
             String className = findFullyQualifiedName(classSimpleName);
             if (className != null) {
                 clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
@@ -533,31 +559,5 @@ public class ParserUtil {
         // should not be null as TARGET_PROJECT should exist in CP list
         assert projectPath != null;
         return projectPath;
-    }
-
-    public static String getClassUsage(String className) {
-        String classUsage = null;
-        try {
-            Files.walk(Paths.get(TARGET_PROJECT_CP))
-                    .filter(f -> f.toString().endsWith(".java"))
-                    .forEach(f -> {
-                        try {
-                            String content = new String(Files.readAllBytes(f));
-                            if (content.contains("class " + className)) {
-                                //Parser parser = new Parser(content);
-                                //List<String> imports = parser.getImports();
-                                //if (imports)
-                                //String summary = parser.getSummary().toString();
-                            }
-                        } catch (IOException e) {
-
-                        }
-                    });
-        } catch (IOException e) {
-            e.printStackTrace();
-            logger.error(e.getMessage());
-        }
-        assert classUsage != null;
-        return classUsage;
     }
 }
