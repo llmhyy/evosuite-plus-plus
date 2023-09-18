@@ -648,13 +648,13 @@ public class SF100OverallTest {
 
 	@Test
 	public void testLlmExample() throws Exception {
-		String projectId = SF100Project.P83;
-		String targetMethod = "net.sf.xbus.admin.html.JournalBean#getDetailsAsTable()Ljava/lang/String;";
+		String projectId = SF100Project.P69;
+		String targetMethod = "macaw.presentationLayer.VariableSearchPanel#hasSearchResults()Z";
 		String testSuiteStr = new String(Files.readAllBytes(Paths.get(
-				"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+				//"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
 				//"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
 
-				//"D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationStr.txt"
+				"D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationStr.txt"
 				//"D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationInit.txt"
 			)));
 		int tries = 1;
