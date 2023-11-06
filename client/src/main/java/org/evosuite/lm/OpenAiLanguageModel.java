@@ -44,12 +44,7 @@ public class OpenAiLanguageModel {
 
     // main method that sends out requests to OpenAI
     private String callChatCompletion(List<ChatMessage> messages) {
-        System.out.println("==================================================");
-        System.out.println("callChatCompletion(List<ChatMessage>) is called");
-        System.out.println(messages.toString());
-        System.out.println("==================================================");
-
-        OpenAiService service = new OpenAiService(authorizationKey, Duration.ofSeconds(30L));
+        OpenAiService service = new OpenAiService(authorizationKey, Duration.ofSeconds(100L));
         ChatCompletionRequest request = ChatCompletionRequest.builder()
                 .model(modelId)
                 .messages(messages)
@@ -123,7 +118,12 @@ public class OpenAiLanguageModel {
                 "public void tearDown() { RESET_OF_TEST_CASES }\n" +
                 "}\n" +
                 "```";
-        String testCases = callChatCompletionFormat(initPrompt, formatPrompt);
+        System.out.println("==================================================");
+        System.out.println("getInitialPopulation() is called");
+        System.out.println("TARGET_METHOD="+targetMethod);
+        System.out.println(initPrompt);
+        System.out.println("==================================================");
+        String testCases = callChatCompletion(initPrompt);
         return extractCodeSnippet(testCases);
     }
 
@@ -134,6 +134,10 @@ public class OpenAiLanguageModel {
                         "Test suite:\n" +
                         "%s\n\n",
                 className, wrapCodeBlock(testSuite));
+        System.out.println("==================================================");
+        System.out.println("fixClassNotFound() is called");
+        System.out.println("CLASS_NOT_FOUND="+className);
+        System.out.println("==================================================");
         String testCases = callChatCompletion(prompt);
         return extractCodeSnippet(testCases);
     }
@@ -149,6 +153,10 @@ public class OpenAiLanguageModel {
                 className, className,
                 wrapCodeBlock(testSuite),
                 className, wrapCodeBlock(classDefinition));
+        System.out.println("==================================================");
+        System.out.println("fixConstructorNotFound() is called");
+        System.out.println("CTOR_NOT_FOUND="+className);
+        System.out.println("==================================================");
         String testCases = callChatCompletion(prompt);
         return extractCodeSnippet(testCases);
     }
@@ -164,6 +172,10 @@ public class OpenAiLanguageModel {
                 className, methodName,
                 wrapCodeBlock(testSuite),
                 className, wrapCodeBlock(classDefinition));
+        System.out.println("==================================================");
+        System.out.println("fixMethodNotFound() is called");
+        System.out.println("METHOD_NOT_FOUND="+className+"#"+methodName);
+        System.out.println("==================================================");
         String testCases = callChatCompletion(prompt);
         return extractCodeSnippet(testCases);
     }
@@ -184,6 +196,28 @@ public class OpenAiLanguageModel {
                 wrapCodeBlock(testSuite),
                 targetClassName, wrapCodeBlock(targetClassDefinition),
                 newClassName, wrapCodeBlock(newClassDefinition));
+        System.out.println("==================================================");
+        System.out.println("coverNewBranch() is called");
+        System.out.println("BRANCH_TO_COVER="+newBranch);
+        System.out.println("==================================================");
+        String testCases = callChatCompletion(prompt);
+        return extractCodeSnippet(testCases);
+    }
+
+    public String coverNewBranch(String targetMethod, String targetSummary, String newBranch) {
+        String prompt = String.format(
+                "Below is the definition of %s method. " +
+                        "Based on that, write a unit test to cover the branch `%s`.\n\n" +
+                        "Definition of %s method:\n" +
+                        "%s\n",
+                targetMethod,
+                newBranch,
+                targetMethod,
+                wrapCodeBlock(targetSummary));
+        System.out.println("==================================================");
+        System.out.println("coverNewBranch() is called");
+        System.out.println("BRANCH_TO_COVER="+newBranch);
+        System.out.println("==================================================");
         String testCases = callChatCompletion(prompt);
         return extractCodeSnippet(testCases);
     }

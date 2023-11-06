@@ -175,6 +175,9 @@ public class ParserUtil {
                 if (entry.getName().endsWith(".class")) {
                     // Get the fully qualified class name
                     String className = entry.getName().replace("/", ".").replaceAll(".class$", "");
+                    if (className.contains("VariableSearchPanel")) {
+                        System.currentTimeMillis();
+                    }
                     if (className.endsWith("." + classSimpleName)) {
                         return className;
                     }
@@ -198,14 +201,37 @@ public class ParserUtil {
         }
 
         try {
-            if (classSimpleName.equals("LinkedList<ShortGlyph>")) {
+            if (classSimpleName.equals("VariableSearchPanel")) {
                 System.currentTimeMillis();
             }
 
-            String className = findFullyQualifiedName(classSimpleName);
-            if (className != null) {
-                clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
-                classCache.put(classSimpleName, clazz);
+            if (classSimpleName.endsWith("[]")) {
+                final StringBuilder arrayTypeNameBuilder = new StringBuilder(30);
+
+                int index = 0;
+                while ((index = classSimpleName.indexOf('[', index)) != -1) {
+                    arrayTypeNameBuilder.append('[');
+                    index++;
+                }
+
+                // always needed for Object arrays
+                arrayTypeNameBuilder.append('L');
+                // get full name of element type
+                int indexOfBracket = classSimpleName.indexOf("[");
+                String elementTypeSimpleName = classSimpleName.substring(0, indexOfBracket);
+                String elementTypeFullName = getClass(elementTypeSimpleName).getCanonicalName();
+                arrayTypeNameBuilder.append(elementTypeFullName);
+                // finalize object array name
+                arrayTypeNameBuilder.append(';');
+
+                // (guess) only work with pre-defined type?
+                clazz = Class.forName(arrayTypeNameBuilder.toString());
+            } else {
+                String className = findFullyQualifiedName(classSimpleName);
+                if (className != null) {
+                    clazz = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);
+                    classCache.put(classSimpleName, clazz);
+                }
             }
         } catch (ClassNotFoundException e) {
             logger.error("class " + classSimpleName + " not found");
@@ -425,9 +451,10 @@ public class ParserUtil {
             String classPath = pathName.replace(".jar", "/") + className.replace(".", "/") + ".java";
             try {
                 List<String> lines = Files.readAllLines(Paths.get(classPath));
+                logger.info("Found class definition at " + classPath);
                 return String.join("\n", lines);
             } catch (IOException e) {
-                logger.warn(e.getMessage());
+                // logger.warn(e.getMessage());
             }
         }
         return "";

@@ -45,59 +45,61 @@ public class SF100OverallTest {
 //		String projectId = "27_gangup";
 //		String projectId = "83_xbus";
 //		String projectId = "80_wheelwebtool";
+//		String projectId = SF100Project.P2;
+//		String projectId = SF100Project.P3;
 //		String projectId = SF100Project.P6;
 //		String projectId = SF100Project.P8;
 //		String projectId = SF100Project.P13;
 //		String projectId = SF100Project.P23;
+//		String projectId = SF100Project.P30;
 //		String projectId = SF100Project.P31;
-//		String projectId = SF100Project.P38;
+//		String projectId = SF100Project.P35;
+//		String projectId = SF100Project.P37;
+		String projectId = SF100Project.P38;
 //		String projectId = SF100Project.P43;
-		String projectId = SF100Project.P44;
+//		String projectId = SF100Project.P44;
+//		String projectId = SF100Project.P63;
 //		String projectId = SF100Project.P66;
+//		String projectId = SF100Project.P68;
 //		String projectId = SF100Project.P69;
+//		String projectId = SF100Project.P77;
 //		String projectId = SF100Project.P78;
+//		String projectId = SF100Project.P80;
 //		String projectId = SF100Project.P83;
 //		String projectId = SF100Project.P89;
 //		String projectId = SF100Project.P92;
+//		String projectId = SF100Project.P93;
 
 		String[] targetMethods = new String[]{
-				"dk.statsbiblioteket.summa.search.api.document.DocumentResponse#toXML()Ljava/lang/String;"
-//				"com.lts.xmlser.tags.ObjectTag#processProperty(Ljava/lang/String;Ljava/lang/Object;Lorg/w3c/dom/Element;Lcom/lts/xmlser/XmlSerializer;)V"
-//				"fr.unice.gfarce.interGraph.SharedListSelectionHandlerFormation#valueChanged(Ljavax/swing/event/ListSelectionEvent;)V"
-//				"com.lts.util.ArraySorter#quickSort([Ljava/lang/Object;Lcom/lts/util/CompareMethod;II)V"
-//				"de.huxhorn.lilith.swing.taskmanager.table.TaskTable#getTaskAt(Ljava/awt/Point;Z)Lde/huxhorn/sulky/tasks/Task;"
-//				"org.databene.jdbacl.model.DBNonUniqueIndex#isIdentical(Lorg/databene/jdbacl/model/DBObject;)Z"
-//				"com.lts.util.ArraySorter#quickSort([Ljava/lang/Object;Lcom/lts/util/CompareMethod;II)V"
-//				"jigl.math.Matrix#equals(Ljigl/math/Matrix;)Z"
-//				"org.exolab.jms.tranlog.ExternalXid#equals(Ljava/lang/Object;)Z"
-//				"org.exolab.jms.selector.LikeExpression#evaluate(Ljavax/jms/Message;)Lorg/exolab/jms/selector/SObject;"
-//				"org.exolab.jms.tools.migration.proxy.MapMessageHandler#setBody(Ljava/lang/Object;Ljavax/jms/Message;)V"
-//				"de.huxhorn.lilith.data.logging.LoggingEvents#equals(Ljava/lang/Object;)Z"
-//				"de.huxhorn.lilith.data.access.AccessEvents#equals(Ljava/lang/Object;)Z"
-//				"org.exolab.jms.tranlog.ExternalXid#equals(Ljava/lang/Object;)Z"
-//				"dk.statsbiblioteket.summa.common.index.IndexGroup#equals(Ljava/lang/Object;)Z"
-//				"br.com.jnfe.core.EnvNFe#equals(Ljava/lang/Object;)Z"
-//				"br.com.jnfe.core.CFOP#equals(Ljava/lang/Object;)Z"
-//				"com.lts.swing.ListPanel#doubleClick(Ljava/lang/Object;)V"
-//				"org.jcvi.assembly.cas.alignment.DefaultCasMatch#equals(Ljava/lang/Object;)Z"
-//				"br.com.jnfe.core.Ambiente#equals(Ljava/lang/Object;)Z"
-//				"org.exolab.jms.message.MessageProperties#setProperty(Ljava/lang/String;Ljava/lang/Object;)V"
-//				"net.sf.xisemele.impl.OperationsHelperImpl#find(Lorg/w3c/dom/Document;Ljava/lang/String;)Lorg/w3c/dom/Node;"
-//				"br.com.jnfe.core.EnvNFe#equals(Ljava/lang/Object;)Z"
-//				"net.sourceforge.jwbf.core.bots.util.CachArticle#equals(Ljava/lang/Object;)Z"
-//				"net.sourceforge.jwbf.mediawiki.contentRep.SimpleFile#equals(Ljava/lang/Object;)Z"
-//				"framework.util.ObjectUtils#copyProperties(Ljava/util/Map;Ljava/lang/Object;)V"
-//				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
-//				"macaw.persistenceLayer.demo.InMemoryVariableManager#getVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Lmacaw/businessLayer/Variable;"
 //				"macaw.presentationLayer.VariableLabelTableModel#setValueAt(Ljava/lang/Object;II)V"
-//				"macaw.persistenceLayer.demo.InMemoryVariableManager#getCategoriesForVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Ljava/util/ArrayList;"
-//				"macaw.persistenceLayer.demo.InMemoryOntologyTermFilter#filterOntologyTerms(Lmacaw/businessLayer/User;Ljava/lang/String;Ljava/lang/String;)Ljava/util/ArrayList;"
-//				"net.sf.xbus.admin.html.JournalBean#getDetailsAsTable()Ljava/lang/String;"
+				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
+//				"jigl.math.Matrix#sub(Ljigl/math/Matrix;)Ljigl/math/Matrix;"
+//				"net.sf.xisemele.impl.OperationsHelperImpl#find(Lorg/w3c/dom/Document;Ljava/lang/String;)Lorg/w3c/dom/Node;"
+//				"org.petsoar.persistence.hibernate.HibernatePersistenceManager#find(Ljava/lang/String;[Ljava/lang/Object;[Ljava/lang/Class;)Ljava/util/List;"
+//				"org.exolab.jms.message.MessageProperties#setProperty(Ljava/lang/String;Ljava/lang/Object;)V"
+//				"de.paragon.explorer.gui.DisplayBoxComposer#compose(Lde/paragon/explorer/figure/CompositeFigure;)Lde/paragon/explorer/gui/DisplayBox;"
+//				"org.exolab.jms.selector.parser.SelectorParser#comparisonExpression(Lorg/exolab/jms/selector/parser/SelectorAST;)V"
+//				"jigl.image.ops.morph.Erode#apply(Ljigl/image/BinaryImage;Ljigl/image/ROI;)Ljigl/image/Image;"
+//				"corina.editor.DecadalModel#setValueAt(Ljava/lang/Object;II)V"
+//				"com.lts.xmlser.SerializationUtils#setField(Ljava/lang/Object;Lcom/lts/xmlser/FieldValue;Z)V"
+//				"com.lts.pest.tree.DirtyCleanTree#deepCopyData(Ljava/lang/Object;Ljava/util/Map;Z)V"
+//				"org.exolab.jms.net.rmi.RMIManagedConnectionFactory#createManagedConnectionAcceptor(Lorg/exolab/jms/net/connector/Authenticator;Lorg/exolab/jms/net/connector/ConnectionRequestInfo;)Lorg/exolab/jms/net/connector/ManagedConnectionAcceptor;"
+//				"br.com.jnfe.core.CFOP#equals(Ljava/lang/Object;)Z"
+//				"net.kencochrane.a4j.beans.Authors#toString()Ljava/lang/String;"
+//				"net.kencochrane.a4j.beans.Lists#toString()Ljava/lang/String;"
+//				"com.lts.xmlser.tags.ObjectTag#processProperty(Ljava/lang/String;Ljava/lang/Object;Lorg/w3c/dom/Element;Lcom/lts/xmlser/XmlSerializer;)V"
+//				"org.quickserver.net.server.QuickServer#configQuickServer(Lorg/quickserver/util/xmlreader/QuickServerConfig;)V"
+//				"jigl.image.MIPMap#get(FFF)[F"
+//				"org.exolab.jms.tranlog.ExternalXid#equals(Ljava/lang/Object;)Z"
+//				"corina.site.SiteDB#getSiteNames()Ljava/util/List;"
+//				"jigl.signal.ops.PoissonNoise#apply(Ljigl/signal/DiscreteSignal;Ljigl/signal/ROI;)Ljigl/signal/Signal;"
+//				"com.lts.swing.treetable.TreeTable#setRowHeight(I)V"
 		};
 		
 		int repeatTime = 1;
-		int budget = 100;
+		int budget = 200;
 		Long seed = null;
+		int parseTrials = 10;
 
 		String fitnessApproach = "branch";
 		

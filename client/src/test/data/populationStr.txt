@@ -1,12 +1,42 @@
-public class TestSuite {
+import static org.junit.Assert.assertEquals;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.junit.Test;
+
+public class ObjectUtilsTest {
 
     @Test
-    public void testCase1() {
-        JournalBean journalBean0 = new JournalBean();
-        String string0 = "true";
-        journalBean0.setDetails(string0);
-        String string1 = "w<PRE<";
-        journalBean0.setMessage(string1);
-        String string2 = journalBean0.getDetailsAsTable();
+    public void testToCollection_CollectionValue() {
+        List<String> value = new ArrayList<>();
+        value.add("element1");
+        value.add("element2");
+        Collection<?> result = ObjectUtils.toCollection(value);
+        assertEquals(value, result);
+    }
+
+    @Test
+    public void testToCollection_NullValue() {
+        Object value = null;
+        Collection<?> result = ObjectUtils.toCollection(value);
+        assertEquals(null, result);
+    }
+
+    @Test
+    public void testToCollection_ArrayValue() {
+        String[] value = { "element1", "element2" };
+        Collection<?> result = ObjectUtils.toCollection(value);
+        assertEquals(value.length, result.size());
+        assertEquals(value[0], result.toArray()[0]);
+        assertEquals(value[1], result.toArray()[1]);
+    }
+
+    @Test
+    public void testToCollection_SingleValue() {
+        String value = "element";
+        Collection<?> result = ObjectUtils.toCollection(value);
+        assertEquals(1, result.size());
+        assertEquals(value, result.toArray()[0]);
     }
 }

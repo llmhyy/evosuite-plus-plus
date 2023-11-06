@@ -264,21 +264,60 @@ public class CodaMOSA<T extends Chromosome> extends AbstractMOSA<T> {
 //                }
 //                System.out.println("=============================================");
 
-                List<Pair<String, Map<Integer, Throwable>>> data = new ArrayList<>();
-                List<Map<Integer, Throwable>> exceptions = this.population.stream()
-                        .map(t -> (TestChromosome) t)
-                        .filter(TestChromosome::hasException)
-                        .map(t -> {
-                            data.add(new Pair<>(t.toString(), t.getLastExecutionResult().exposeExceptionMapping()));
-                            return t.getLastExecutionResult().exposeExceptionMapping();
-                        })
-                        .collect(Collectors.toList());
+//                List<Pair<String, Map<Integer, Throwable>>> data = new ArrayList<>();
+//                List<Map<Integer, Throwable>> exceptions = this.population.stream()
+//                        .map(t -> (TestChromosome) t)
+//                        .filter(TestChromosome::hasException)
+//                        .map(t -> {
+//                            data.add(new Pair<>(t.toString(), t.getLastExecutionResult().exposeExceptionMapping()));
+//                            return t.getLastExecutionResult().exposeExceptionMapping();
+//                        })
+//                        .collect(Collectors.toList());
+//
+//                StringBuilder dataBuilder = new StringBuilder();
+//                for (Pair<String, Map<Integer, Throwable>> d : data) {
+//                    dataBuilder.append(d.toString());
+//                    dataBuilder.append(System.lineSeparator());
+//                    dataBuilder.append(System.lineSeparator());
+//                }
 
-                StringBuilder dataBuilder = new StringBuilder();
-                for (Pair<String, Map<Integer, Throwable>> d : data) {
-                    dataBuilder.append(d.toString());
-                    dataBuilder.append(System.lineSeparator());
-                    dataBuilder.append(System.lineSeparator());
+                String mostCommonThrowable = "";
+                int mostCommonCount = 0;
+                Map<String, Integer> throwableCount = new HashMap<>();
+                int totalExceptions = 0;
+                for (T t : population) {
+                    TestChromosome test = (TestChromosome) t;
+                    if (test.hasException()) {
+                        for (Throwable throwable : test.getLastExecutionResult().exposeExceptionMapping().values()) {
+                            String throwableStr = throwable.getClass().toString();
+                            int count = throwableCount.getOrDefault(throwableStr, 0);
+                            if (mostCommonCount < count) {
+                                mostCommonCount = count;
+                                mostCommonThrowable = throwableStr;
+                            }
+
+                            throwableCount.put(throwableStr, ++count);
+                            totalExceptions++;
+                        }
+                    }
+                }
+
+                double exceptionRatio = totalExceptions*1.0 / population.size();
+                double mostCommonRatio = mostCommonCount*1.0 / totalExceptions;
+
+                StringBuilder builder = new StringBuilder();
+                builder.append("TARGET_CLASS=").append(Properties.TARGET_CLASS).append(System.lineSeparator());
+                builder.append("TARGET_METHOD=").append(Properties.TARGET_METHOD).append(System.lineSeparator());
+                builder.append("population_size=").append(population.size()).append(System.lineSeparator());
+                builder.append("exception_num=").append(totalExceptions).append(System.lineSeparator());
+                builder.append("exception_ratio=").append(exceptionRatio).append(System.lineSeparator());
+                builder.append("most_common_exception_ratio={")
+                        .append(mostCommonThrowable).append("=")
+                        .append(mostCommonRatio).append("}")
+                        .append(System.lineSeparator());
+                for (Map.Entry<String, Integer> entry : throwableCount.entrySet()) {
+                    builder.append(entry);
+                    builder.append(System.lineSeparator());
                 }
 
                 wasTargeted = true;

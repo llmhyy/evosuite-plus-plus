@@ -244,6 +244,7 @@ public class CommonTestUtil {
 				"-Dprimitive_pool", "0.5",
 				"-Ddynamic_pool", "0.5",
 //				"-seed", "1556035769590"
+				"-Dmax_parse_trials", "9",
 				
 		};
 		

@@ -10,12 +10,14 @@ import com.github.javaparser.ast.modules.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.visitor.VoidVisitor;
+import org.evosuite.testcarver.testcase.EvoTestCaseCodeGenerator;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.statements.*;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.statements.numeric.*;
 import org.evosuite.testcase.variable.*;
+import org.evosuite.utils.StringUtil;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericMethod;
@@ -100,7 +102,10 @@ public class ParserVisitor implements VoidVisitor<Object> {
     // - Compilation Unit ----------------------------------
     @Override
     public void visit(CompilationUnit n, Object arg) {
-
+        assert n != null && !n.getTypes().isEmpty();
+        assert n.getType(0) instanceof ClassOrInterfaceDeclaration;
+        ClassOrInterfaceDeclaration dec = (ClassOrInterfaceDeclaration) n.getType(0);
+        dec.accept(this, arg);
     }
 
     @Override
@@ -271,12 +276,23 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(ArrayInitializerExpr n, Object arg) {
-        // CHECK
-        Class<?> clazz = arg instanceof Class<?> ? (Class<?>) arg
+        Class<?> arrayType = arg instanceof Class<?> ? (Class<?>) arg
                 : arg instanceof ClassOrInterfaceType ? ParserUtil.getClass(arg.toString())
                 : null;
-        ArrayReference array = new ArrayReference(testCase, clazz);
-        s = new ArrayStatement(testCase, array, new int[] { n.getValues().size() });
+        if (arrayType != null && !arrayType.isArray()) {
+            String initStr = n.toString();
+            StringBuilder type = new StringBuilder(arg.toString());
+            for (int i = 0; i < initStr.length(); i++) {
+                if (initStr.charAt(i) == '{') {
+                    type.append("[]");
+                }
+            }
+            arrayType = ParserUtil.getClass(type.toString());
+        }
+
+        int arraySize = n.getValues().size();
+        ArrayReference array = new ArrayReference(testCase, arrayType);
+        s = new ArrayStatement(testCase, array, new int[] { arraySize });
         r = testCase.addStatement(s);
 
         int i = 0;
@@ -391,7 +407,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
     @Override
     public void visit(MethodCallExpr n, Object arg) {
         String name = n.getNameAsString();
-        String scope = n.getScope().isPresent() ? n.getScope().get().toString() : ""; // WRONG!!! can be chaining!!!!
+        String scope = n.getScope().isPresent() ? n.getScope().get().toString() : ""; // false if chaining!!!!
 
         VariableReference ref = getReference(scope);
         GenericClass clazz = ref == null

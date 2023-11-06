@@ -384,7 +384,7 @@ public final class EvoTestCaseCodeGenerator implements ICodeGenerator<TestCase> 
 		//		}
 	}
 
-	private final Class<?> getClassForName(String type) {
+	public final Class<?> getClassForName(String type) {
 		try {
 			if (type.equals("boolean") || type.equals("java.lang.Boolean")) {
 				return Boolean.TYPE;

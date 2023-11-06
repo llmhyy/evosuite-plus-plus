@@ -87,6 +87,7 @@ public class Parser {
     }
 
     public void parse(int maxTries) {
+        boolean invalid = false;
         do {
             assert compilation != null && !compilation.getTypes().isEmpty();
             assert compilation.getType(0) instanceof ClassOrInterfaceDeclaration;
@@ -95,8 +96,10 @@ public class Parser {
             try {
                 maxTries--;
                 root.accept(visitor, null);
-                checkForExceptions();
+                // for prompting LLM in batch
+                //checkForExceptions();
             } catch (ParseException e) {
+                invalid = true;
                 logger.error(e.getMessage());
                 String[] message = e.getMessage().split(": ");
                 assert message.length == 2;
@@ -107,7 +110,7 @@ public class Parser {
                     default: handleOverallException(); break;
                 }
             }
-        } while (maxTries > 0);
+        } while (maxTries > 0 && invalid);
     }
 
     private void checkForExceptions() {

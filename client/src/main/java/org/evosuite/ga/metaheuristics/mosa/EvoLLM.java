@@ -38,6 +38,8 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
 
     public static long endTime;
 
+    public static boolean isRandom = false;
+
     /** Manager to determine the test goals to consider at each generation */
     protected MultiCriteriaManager<T> goalsManager = null;
 
@@ -45,11 +47,10 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
 
     protected ExceptionBranchEnhancer<T> exceptionBranchEnhancer = new ExceptionBranchEnhancer<>(goalsManager);
 
+    private String targetMethod;
     private Parser.ParseResult targetSummary;
 
     private final Map<FitnessFunction<T>, String> nlBranchesMap;
-
-    private String populationInit;
 
     /**
      * Constructor based on the abstract class {@link AbstractMOSA}.
@@ -76,56 +77,11 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
         String[] targetMethodParaTypes = targetMethodSignature.getValue();
 
         Parser parser = new Parser(targetClassDef, targetMethodName, targetMethodParaTypes);
+        this.targetMethod = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
         this.targetSummary = parser.getSummary();
-        // this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
+        this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
 
-        String targetMethodStr = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
-        String targetSummaryStr = this.targetSummary.toString();
-
-        String populationStr = "";//new OpenAiLanguageModel().getInitialPopulation(targetMethodStr, targetSummaryStr);
-        // TODO: testing, to be removed
-        try {
-            populationStr = new String(Files.readAllBytes(Paths.get(
-                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
-                    //"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
-
-                    "D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationStr.txt"
-                    //"D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationInit.txt"
-            )));
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        }
-
-        parser = new Parser(populationStr, targetSummary);
-        parser.parse(10);
-
-        System.out.println("LLM TEST:");
-        List<TestCase> testCases = parser.getTestCases();
-        StringBuilder builder = new StringBuilder("public class TestSuite {\n\n");
-
-        for (int i = 0; i < testCases.size(); i++) {
-            TestCase testCase = testCases.get(i);
-            builder.append("public void testCase").append(i+1).append("() {\n")
-                    .append(testCase.toCode())
-                    .append("}\n\n");
-            System.out.println(testCase.toCode());
-
-            // Execute new test case
-            ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
-            TestChromosome newTest = new TestChromosome();
-            newTest.setTestCase(testCase);
-            newTest.setLastExecutionResult(exeRes);
-            this.population.add((T) newTest);
-        }
-
-        // Record initial population
-        builder.append("}");
-        this.populationInit = builder.toString();
-
-        if (populationStr.isEmpty()) {
-            System.out.println("RANDOM POPULATION IS CHOSEN");
-            super.initializePopulation();
-        }
+        super.initializePopulation();
 
         // Determine fitness
         this.calculateFitness(true);
@@ -298,7 +254,7 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
 
         // Get next generations
         TestCaseLegitimizer.startTime = System.currentTimeMillis();
-        while (!isFinished() && this.goalsManager.getUncoveredGoals().size() > 0) {
+        while (!isFinished() && !this.goalsManager.getUncoveredGoals().isEmpty()) {
             MutationPositionDiscriminator.discriminator.setPurpose(this.goalsManager.getCurrentGoals());
 
             if (Properties.ENABLE_BRANCH_ENHANCEMENT) {
@@ -327,21 +283,38 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
                     List<String> uncoveredBranches = this.getUncoveredBranches();
                     String newBranch = uncoveredBranches.get(0);
 
-                    String targetClassName = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
+                    String newTestsStr = new OpenAiLanguageModel().coverNewBranch(
+                            targetMethod, targetSummary.toString(), newBranch);
+                    Parser parser = new Parser(newTestsStr, targetSummary);
+                    parser.parse(Properties.MAX_PARSE_TRIALS);
+
+                    System.out.println("LLM TEST:");
+                    for (TestCase testCase : parser.getTestCases()) {
+                        System.out.println(testCase.toCode());
+                        // Execute new test case
+                        ExecutionResult exeRes = TestCaseExecutor.runTest(testCase);
+                        TestChromosome newTest = new TestChromosome();
+                        newTest.setTestCase(testCase);
+                        newTest.setLastExecutionResult(exeRes);
+                        this.population.add((T) newTest);
+                    }
+
+                    if (!parser.getTestCases().isEmpty()) {
+                        break;
+                    }
+
+                    /*String targetClassName = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
                     String targetClassDefinition = ParserUtil.getClassDefinition(Properties.CP, Properties.TARGET_CLASS);
                     // String targetClassDefinition = targetSummary.toString();
 
                     // String newClassName = ParserUtil.getClassNameFromList(targetSummary.getImports(), "SearchUtility");
                     // String newClassDefinition = ParserUtil.getClassDefinition(Properties.CP, newClassName);
-
                     for (String newClassName : targetSummary.getImports()) {
                         String newClassDefinition = ParserUtil.getClassDefinition(Properties.CP, newClassName);
                         String newTestsStr = new OpenAiLanguageModel().coverNewBranch(
-                                populationInit, newBranch,
-                                targetClassName, targetClassDefinition,
-                                ParserUtil.getClassSimpleName(newClassName), newClassDefinition);
+                                targetMethod, targetSummary.toString(), newBranch);
                         Parser parser = new Parser(newTestsStr, targetSummary);
-                        parser.parse(1);
+                        parser.parse(Properties.MAX_PARSE_TRIALS);
 
                         System.out.println("LLM TEST:");
                         for (TestCase testCase : parser.getTestCases()) {
@@ -357,7 +330,7 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
                         if (!parser.getTestCases().isEmpty()) {
                             break;
                         }
-                    }
+                    }*/
 
                     // TODO: testing, to be removed
 //                    try {
