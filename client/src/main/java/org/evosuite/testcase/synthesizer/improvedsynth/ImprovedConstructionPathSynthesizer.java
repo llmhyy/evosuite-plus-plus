@@ -1,19 +1,5 @@
 package org.evosuite.testcase.synthesizer.improvedsynth;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.ConstructionFailedException;
@@ -21,33 +7,17 @@ import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.ActualControlFlowGraph;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.graphs.interprocedural.GraphVisualizer;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.runtime.System;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestFactory;
-import org.evosuite.testcase.statements.AssignmentStatement;
-import org.evosuite.testcase.statements.MethodStatement;
-import org.evosuite.testcase.statements.NullStatement;
-import org.evosuite.testcase.statements.PrimitiveStatement;
-import org.evosuite.testcase.statements.Statement;
-import org.evosuite.testcase.statements.numeric.BooleanPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.BytePrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.CharPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.FloatPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.LongPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.ShortPrimitiveStatement;
+import org.evosuite.testcase.statements.*;
+import org.evosuite.testcase.statements.numeric.*;
 import org.evosuite.testcase.synthesizer.ConstructionPathSynthesizer;
 import org.evosuite.testcase.synthesizer.PartialGraph;
 import org.evosuite.testcase.synthesizer.UsedReferenceSearcher;
 import org.evosuite.testcase.synthesizer.VariableInTest;
-import org.evosuite.testcase.synthesizer.var.ArrayElementVariableWrapper;
-import org.evosuite.testcase.synthesizer.var.DepVariableWrapper;
-import org.evosuite.testcase.synthesizer.var.ParameterVariableWrapper;
-import org.evosuite.testcase.synthesizer.var.ThisVariableWrapper;
-import org.evosuite.testcase.synthesizer.var.VarRelevance;
-import org.evosuite.testcase.synthesizer.var.VariableCodeGenerationUtil;
+import org.evosuite.testcase.synthesizer.var.*;
 import org.evosuite.testcase.variable.ArrayIndex;
 import org.evosuite.testcase.variable.ArrayReference;
 import org.evosuite.testcase.variable.VariableReference;
@@ -55,10 +25,15 @@ import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericField;
+import org.evosuite.utils.generic.GenericMethod;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.FieldInsnNode;
 
-import javassist.compiler.ast.FieldDecl;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthesizer {
 	private AccessibilityMatrixManager accessibilityMatrixManager;
@@ -77,20 +52,27 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 		List<DepVariableWrapper> leafNodes = partialGraph.getLeaves();
 		for (DepVariableWrapper leafNode : leafNodes) {
 			for (DepVariableWrapper rootNode : rootNodes) {
-				boolean isPathExists = accessibilityMatrixManager.findShortestPathLength(rootNode, leafNode) > 0;
-				if (isPathExists) {
-					List<DepVariableWrapper> path = getPathBetween(rootNode, leafNode);
-					if (path == null || path.size() < 2) {
-						continue;
-					}
-					
-					List<Operation> operations = generateOperations(path);	
-					ConstructionPath constructionPath = new ConstructionPath(operations, path);
+				ConstructionPath constructionPath = accessibilityMatrixManager.findPathBetween(rootNode, leafNode);
+				if (constructionPath != null) {
 					constructionPaths.add(constructionPath);
-					break;
 				}
+				// break; // why break?
+
+				// comment out previous approach
+				//boolean isPathExists = accessibilityMatrixManager.findShortestPathLength(rootNode, leafNode) > 0;
+				//if (isPathExists) {
+				//	List<DepVariableWrapper> path = getPathBetween(rootNode, leafNode);
+				//	if (path == null || path.size() < 2) {
+				//		continue;
+				//	}
+				//	List<Operation> operations = generateOperations(path);
+				//	ConstructionPath constructionPath = new ConstructionPath(operations, path);
+				//	constructionPaths.add(constructionPath);
+				//	break;
+				//}
 			}
 		}
+
 		return constructionPaths;
 	}
 	
@@ -98,9 +80,9 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 			throws ConstructionFailedException, ClassNotFoundException {
 		PartialGraph partialGraph = constructPartialComputationGraph(branch);
 		
-		if (isDebugger) {
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");
-		}
+//		if (isDebugger) {
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");
+//		}
 		
 		List<ConstructionPath> constructionPaths = getConstructionPathsFrom(partialGraph);
 		Map<DepVariableWrapper, VarRelevance> nodeToVarReference = new HashMap<>();
@@ -320,6 +302,29 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 		}
 	}
 
+	private void generateMethodDirectly(DepVariableWrapper prevNode, MethodCall methodCall, TestCase test,
+										Map<DepVariableWrapper, VarRelevance> nodeToVarRelevance) {
+		Method method = methodCall.getMethod();
+		if (method != null) {
+			int addElementNum = 2; //Randomness.nextInt(0, 3); // do we need random here?
+
+			VariableInTest variableInTest = getCallerObject(nodeToVarRelevance, prevNode);
+
+			for(int i = 0; i < addElementNum; i++) {
+				GenericMethod gMethod = new GenericMethod(method, method.getDeclaringClass());
+				try {
+					int position = variableInTest.callerObject.getStPosition() + 1; // 1; // see if this works
+					// legitimately it should be callerObject.getStPosition() + 1;
+					// in other usage, callerObject is of type VariableReference
+					// Can we do this? Can we find this?
+					TestFactory.getInstance().addMethod(test, gMethod, position, 1);
+				} catch (ConstructionFailedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	private void generateMethodCallStatement(
 			DepVariableWrapper prevNode,
 			DepVariableWrapper currentNode, 
@@ -330,6 +335,17 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 		) {
 		Method method = methodCall.getMethod();
 		Field field = DepVariableWrapperUtil.extractFieldFrom(currentNode);
+
+		// changed here
+		if (field == null) {
+			try {
+				generateMethodDirectly(prevNode, methodCall, testCase, nodeToVarRelevance);
+				return;
+			} catch (Exception e) {
+				String message = "failed";
+			}
+		}
+
 		boolean isStaticField = Modifier.isStatic(field.getModifiers());
 		boolean isInstanceField = !isStaticField;
 		VariableInTest variableInTest = getCallerObject(nodeToVarRelevance, currentNode);
@@ -551,19 +567,106 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 	
 	private List<Operation> generateOperations(List<DepVariableWrapper> path) {		
 		List<Operation> operations = new ArrayList<>();
-		DepVariableWrapper currentNode = path.get(0);
-		DepVariableWrapper nextNode;
+		DepVariableWrapper currentNode = path.get(0); // closer to root
+		DepVariableWrapper greedyNode = path.get(path.size() - 1); // closer to leaf
+		DepVariableWrapper nextNode; // not used
+
+		ConstructionPath accessPath = accessibilityMatrixManager.getNodeAccessPath(currentNode, greedyNode);
+		if (accessPath != null) {
+			operations.addAll(accessPath.getOperations());
+			return operations;
+		}
+
+		// old approach
 		for (int i = 1; i < path.size(); i++) {
 			nextNode = path.get(i);
-			ConstructionPath accessPath = accessibilityMatrixManager.getNodeAccessPath(currentNode, nextNode);
+			accessPath = accessibilityMatrixManager.getNodeAccessPath(currentNode, nextNode);
 			if (accessPath == null) {
 				return new ArrayList<>(); // Access chain is broken, failure
 			}
 			operations.addAll(accessPath.getOperations());
 			currentNode = nextNode;
 		}
+
 		return operations;
 	}
+
+	/* // Path Selection : Greedy Approach
+	* private List<Operation> generateOperationsGreedily(List<DepVariableWrapper> path, DepVariableWrapper current, int nextIndex) {
+		// current is new start node
+		// nextIndex is the next start node
+
+		// greedy: always try current to leaf node
+		List<Operation> operations = new ArrayList<>();
+		DepVariableWrapper greedyNode = path.get(path.size() - 1); // closer to leaf
+		DepVariableWrapper nextNode; // may not be used
+
+		ConstructionPath accessPath = accessibilityMatrixManager.getNodeAccessPath(current, greedyNode);
+		if (accessPath != null) {
+			operations.addAll(accessPath.getOperations());
+			return operations;
+		} else {
+			if (nextIndex >= path.size()) {
+				return new ArrayList<>();
+			} else {// safe & in range, get next node
+				nextNode = path.get(nextIndex);
+				accessPath = accessibilityMatrixManager.getNodeAccessPath(current, nextNode);
+				if (accessPath == null) {
+					return new ArrayList<>(); // Access chain is broken, failure
+				} else {
+					List<Operation> rest = generateOperationsGreedily(path, nextNode, nextIndex + 1);
+					operations.addAll(rest);
+				}
+			}
+			return operations;
+		}
+	}
+
+	private List<Operation> generateOperations(List<DepVariableWrapper> path) {
+		List<Operation> operations = new ArrayList<>();
+		DepVariableWrapper currentNode = path.get(0); // closer to root
+		DepVariableWrapper greedyNode = path.get(path.size() - 1); // closer to leaf
+		DepVariableWrapper nextNode; // may not be used
+
+		ConstructionPath accessPath = accessibilityMatrixManager.getNodeAccessPath(currentNode, greedyNode);
+		if (accessPath != null) {
+			operations.addAll(accessPath.getOperations());
+			return operations;
+		} // greedy in one step
+
+		if (path.size() <= 1)
+			return new ArrayList<>(); // nothing much to do
+
+		// else: till here, safe to retrieve next node
+		nextNode = path.get(1);
+		accessPath = accessibilityMatrixManager.getNodeAccessPath(currentNode, nextNode);
+		if (accessPath == null) {
+			return new ArrayList<>(); // Access chain is broken, failure
+		} else {
+			operations.addAll(accessPath.getOperations());
+			List<Operation> rest = generateOperationsGreedily(path, nextNode, 2);
+			operations.addAll(rest);
+		}
+
+		return operations;
+
+		// old approach
+//		for (int i = 1; i < path.size(); i++) {
+//			nextNode = path.get(i);
+//			accessPath = accessibilityMatrixManager.getNodeAccessPath(currentNode, nextNode);
+//			if (accessPath == null) {
+//				return new ArrayList<>(); // Access chain is broken, failure
+//			}
+//			operations.addAll(accessPath.getOperations());
+//			currentNode = nextNode;
+//		}
+//
+//		return operations;
+	}
+	*
+	*
+	*
+	* */
 	
 	private List<DepVariableWrapper> getPathBetween(DepVariableWrapper sourceNode, DepVariableWrapper endNode) {
 		// Enhanced BFS to track the path taken
@@ -663,9 +766,7 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 	
 	/**
 	 * check if current method is a valid getter for array element
-	 * 
-	 * @param className
-	 * @param methodName
+	 *
 	 * @param node
 	 * @param opcodeRead
 	 * @return
@@ -793,10 +894,7 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 	
 	/**
 	 * check if current method is a valid setter for array element
-	 * 
-	 * @param className
-	 * @param methodName
-	 * @param node
+	 *
 	 * @param opcodeWrite
 	 * @return
 	 */
@@ -862,7 +960,7 @@ public class ImprovedConstructionPathSynthesizer extends ConstructionPathSynthes
 					MethodStatement mStat = (MethodStatement) stat;
 					VariableReference ref = mStat.getCallee();
 					if (ref != null && ref.equals(variable.callerObject)) {
-						Integer parameterPosition = checkValidArrayElementSetter(mStat.getMethod().getMethod(), opcodeWrite, variable);
+						Integer parameterPosition = checkValidArrayElementSetter(mStat.getMethod().getMethod(), opcodeWrite, variable); // Write this method?
 						if(parameterPosition != -1) {
 							VariableReference param = mStat.getParameterReferences().get(parameterPosition);
 							variableList.add(param);

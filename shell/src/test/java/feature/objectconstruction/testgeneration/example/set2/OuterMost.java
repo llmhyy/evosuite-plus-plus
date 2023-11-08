@@ -11,21 +11,25 @@ public class OuterMost {
         return layer1;
     }
 
-    // fast retrieval method
     public int getValue() {
-        return layer1.getValue();
+        return layer1.getLayer2().getInnerMost().getValue();
     }
 
     // fast retrieval method
-    public void setValue(int value) {
-        layer1.setValue(value);
-    }
+//    public int getValue() {
+//        return layer1.getValue();
+//    }
 
-    public boolean isValueGreaterThan(int x) {
-        return getValue() > x;
-    }
+    // fast retrieval method
+//    public void setValue(int value) {
+//        layer1.setValue(value);
+//    }
 
-    public boolean isValueGreaterThan100() {
-        return getValue() > 100;
-    }
+//    public boolean isValueGreaterThan(int x) {
+//        return getValue() > x;
+//    }
+
+//    public boolean isValueGreaterThan100() {
+//        return getValue() > 100;
+//    }
 }

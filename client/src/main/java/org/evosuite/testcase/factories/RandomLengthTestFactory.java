@@ -19,13 +19,6 @@
  */
 package org.evosuite.testcase.factories;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.ga.ChromosomeFactory;
@@ -49,6 +42,8 @@ import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * <p>
@@ -104,7 +99,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			Properties.PRIMITIVE_REUSE_PROBABILITY = 0;
 		}
 		
-		boolean applyObjectRule = false;
+		boolean applyObjectRule = true;
 		if(Properties.APPLY_OBJECT_RULE) {
 			
 			if(workingBranch4ObjectGraph != null) {
@@ -135,6 +130,7 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 			 * the first call must be the target method, we add difficult branch support after the target method
 			 * is called in test case.
 			 */
+			applyObjectRule = true;
 			if(num == 1 && targetMethodCallPosition != -1 && applyObjectRule) {
 				
 				Map<Branch, Set<DepVariable>> interestedBranches = InterproceduralGraphAnalysis.branchInterestedVarsMap.get(Properties.TARGET_METHOD);
@@ -157,8 +153,10 @@ public class RandomLengthTestFactory implements ChromosomeFactory<TestChromosome
 					System.currentTimeMillis();
 					long t0 = System.currentTimeMillis();
 					ConstructionPathSynthesizer cpSynthesizer;
-					String SYNTH_USED = null;
-					if (Properties.APPLY_OPTIMIZED_OBJECT_RULE) {
+					String SYNTH_USED = "";
+					// if (!Properties.APPLY_OPTIMIZED_OBJECT_RULE) { // use optimized
+					if (true) { // use optimized
+					//if (false) { // not use optimized
 						cpSynthesizer = new ImprovedConstructionPathSynthesizer(false);
 						SYNTH_USED = "EvoSyn";
 					} else {

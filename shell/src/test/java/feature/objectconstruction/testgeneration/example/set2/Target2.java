@@ -2,14 +2,14 @@ package feature.objectconstruction.testgeneration.example.set2;
 
 public class Target2 {
     // targetMethod
-    public void crossLayer(OuterMost outerMost) {
+    public int crossLayer(OuterMost outerMost) {
         int value = outerMost.getValue();
         if (value > 10) {
-            System.out.println(">10");
+            return 10;
         } else if (value > 0) {
-            System.out.println(">0");
+            return 0;
         } else {
-            System.out.println("<=0");
+            return -1;
         }
     }
 

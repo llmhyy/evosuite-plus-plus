@@ -7,15 +7,15 @@ public class Layer2 {
         this.innerMost = innerMost;
     }
 
-    public void setValue(int value) {
-        innerMost.setValue(value);
-    }
+//    public void setValue(int value) {
+//        innerMost.setValue(value);
+//    }
 
     public InnerMost getInnerMost() {
         return innerMost;
     }
 
-    public int getValue() {
-        return innerMost.getValue();
-    }
+//    public int getValue() {
+//        return innerMost.getValue();
+//    }
 }

@@ -1,15 +1,5 @@
 package org.evosuite.testcase.synthesizer.improvedsynth;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
@@ -21,10 +11,16 @@ import org.evosuite.testcase.synthesizer.var.ThisVariableWrapper;
 import org.evosuite.testcase.synthesizer.var.VarRelevance;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.MethodUtil;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.Opcodes;
+
+import java.lang.reflect.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Helper class for manipulating DepVariableWrapper (OCG nodes).
@@ -205,9 +201,9 @@ public class DepVariableWrapperUtil {
 	public static Class<?> extractClassFrom(DepVariableWrapper node) {
 		boolean isField = (node instanceof FieldVariableWrapper);
 		boolean isThis = (node instanceof ThisVariableWrapper);
-		if (!isField && !isThis) {
-			return null;
-		}
+//		if (!isField && !isThis) {
+//			return null;
+//		}
 		
 		String classAsString = "";
 		
@@ -229,6 +225,7 @@ public class DepVariableWrapperUtil {
 		}
 		
 		try {
+			//classAsString = "java.util.List"; // edited
 			return TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(classAsString);
 		} catch (ClassNotFoundException e) {
 			return null;
@@ -272,10 +269,35 @@ public class DepVariableWrapperUtil {
 			if (candidateMethodReturnType.equals(desiredReturnType)) {
 				methodsToReturn.add(candidateMethod);
 			}
+
+			methodsToReturn.add(candidateMethod);
 		}
 		return methodsToReturn;
 	}
+
+	public static List<Method> extractMethodsRelating(DepVariableWrapper node, ArrayList<String> varNames) {
+		List<Method> methodsToReturn = new ArrayList<>();
+		List<Method> candidateMethods = extractNonNativeMethodsFrom(node);
+		for (Method candidateMethod : candidateMethods) {
+			for (String varName: varNames) {
+				String body = getMethodBodyAsString(candidateMethod);
+				if (body.contains(varName)) {
+					methodsToReturn.add(candidateMethod);
+					break;
+				}
+			}
+		}
+		return methodsToReturn;
+	}
+
+	// TODO: How to get method body?
+	public static String getMethodBodyAsString(Method method) {
+		String body = "";
+
+		return body;
+	}
 	
+
 	/**
 	 * Returns methods that we can call from an instance of the class enclosed in the node, where the methods
 	 * accept a parameter of type desiredParameterType.
@@ -353,7 +375,8 @@ public class DepVariableWrapperUtil {
 	private static List<BytecodeInstruction> getInstructionsFor(Method method) {
 		Class<?> clazz = method.getDeclaringClass();
 		String className = clazz.getCanonicalName();
-		String methodName = getSignatureOf(method);
+		//String methodName = getSignatureOf(method);
+		String methodName = method.getName() + MethodUtil.getSignature(method);
 		
 		BytecodeInstructionPool bytecodeInstructionPool = BytecodeInstructionPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT());
 		boolean isClassRecordedInPool = bytecodeInstructionPool.knownClasses().contains(className);
@@ -477,7 +500,7 @@ public class DepVariableWrapperUtil {
 		return false;
 	}
 	
-	public static Method getInvokedMethod(BytecodeInstruction instruction) {
+	public static Method getInvokedMethod(Method notUsed, BytecodeInstruction instruction) {
 		boolean isMethodCall = instruction.isMethodCall();
 		if (!isMethodCall) {
 			return null;
@@ -488,8 +511,43 @@ public class DepVariableWrapperUtil {
 			String methodName = methodNode.name;
 			String methodOwner = methodNode.owner;
 			String methodSignature = methodName + methodNode.desc;
+
 			Class<?> methodOwningClass = extractClassFrom(methodOwner.replace("/", "."));
 			Method[] methods = methodOwningClass.getDeclaredMethods();
+
+			// return methods[1]; // debug only
+
+			for (Method currentMethod : methods) {
+				// Just compare signatures
+				// String currentSignature = getSignatureOf(currentMethod);
+				String currentSignature = currentMethod.getName() + MethodUtil.getSignature(currentMethod);
+				if (methodSignature.equals(currentSignature)) {
+					return currentMethod;
+				}
+			}
+		} catch (NullPointerException e) {
+			return null;
+		}
+		
+		return null;
+	}
+
+	public static Method getInvokedMethod(BytecodeInstruction instruction) {
+		boolean isMethodCall = instruction.isMethodCall();
+		if (!isMethodCall) {
+			return null;
+		}
+
+		try {
+			MethodInsnNode methodNode = (MethodInsnNode) instruction.getASMNode();
+			String methodName = methodNode.name;
+			String methodOwner = methodNode.owner;
+			String methodSignature = methodName + methodNode.desc;
+			Class<?> methodOwningClass = extractClassFrom(methodOwner.replace("/", "."));
+			Method[] methods = methodOwningClass.getDeclaredMethods();
+
+			//return methods[1]; // debug only
+
 			for (Method currentMethod : methods) {
 				// Just compare signatures
 				String currentSignature = getSignatureOf(currentMethod);
@@ -500,7 +558,7 @@ public class DepVariableWrapperUtil {
 		} catch (NullPointerException e) {
 			return null;
 		}
-		
+
 		return null;
 	}
 	
@@ -580,7 +638,84 @@ public class DepVariableWrapperUtil {
 		Field field = extractFieldFrom(toNode);
 		return testFieldSetter(method, field);
 	}
-	
+
+	/*
+	public static boolean testArrayFieldSetter(Method method, DepVariableWrapper fromNode) {
+		String arrName = fromNode.getVariableName();
+		return testArrayFieldSetter(method, arrName);
+	}*/
+
+
+	public static boolean testArrayFieldSetter(Method method, String arrName) {
+		if (method == null || arrName == null) {
+			return false;
+		}
+
+		List<BytecodeInstruction> instructions = getInstructionsFor(method);
+		if (instructions == null) {
+			return false;
+		}
+
+		if (!matchFieldName(instructions, arrName)) { // must match name
+			return false;
+		}
+
+		if (checkStore(instructions)) { // store operation can be through method calls
+			return true;
+		} else {
+			return recursivelyCheckStore(method, instructions);
+		}
+
+	}
+
+	public static boolean checkStore(List<BytecodeInstruction> instructions) {
+		for (BytecodeInstruction instruction : instructions) {
+			boolean isStore = instruction.isStore();
+			if (isStore) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean recursivelyCheckStore(Method prev, List<BytecodeInstruction> instructions) {
+		for (BytecodeInstruction instruction : instructions) {
+			boolean isMethodCall = instruction.isMethodCall();
+			if (isMethodCall) {
+				try {
+					Method invokedMethod = getInvokedMethod(prev, instruction);
+					boolean isInvokedMethodDesiredSetter = checkStore(getInstructionsFor(invokedMethod));
+					if (isInvokedMethodDesiredSetter) {
+						return true;
+					} else {
+						continue;
+					}
+				} catch (Exception e) {
+					//int a = 1;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static boolean matchFieldName(List<BytecodeInstruction> instructions, String arrName) {
+		// BytecodeInstruction ins = instructions.get(3); // debug purpose
+		for (BytecodeInstruction instruction : instructions) {
+			boolean fieldGet = instruction.isFieldGet();
+			if (fieldGet) {
+				String varName = instruction.getVariableName();
+				String parts[] = varName.split("\\.");
+				varName = parts[parts.length - 1]; // clean varName with out .path // which is "list" in this case
+
+				if (varName.equals(arrName)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * 
 	 * @param method
@@ -606,18 +741,21 @@ public class DepVariableWrapperUtil {
 //		if (!isMethodHasFieldTypeAsParameterType) {
 //			return false;
 //		}
+
+		// method: public void java.util.ArrayList.add(int,java.lang.Object)
 		
 		List<BytecodeInstruction> instructions = getInstructionsFor(method);
 		if (instructions == null) {
 			return false;
 		}
-		
+
 		for (BytecodeInstruction instruction : instructions) {
 			// Three cases
 			// 1) Non-relevant instruction (ignore)
 			// 2) Field definition instruction (check if field is correct)
 			// 3) method call (recursively check if it's a setter)
 			boolean isFieldDef = instruction.isFieldDefinition();
+
 			if (isFieldDef) {
 				// BytecodeInstruction#isFieldDefinition also includes certain cases for method calls
 				// Check first if it's a method call
@@ -653,6 +791,8 @@ public class DepVariableWrapperUtil {
 		
 		return false;
 	}
+
+
 	
 	/**
 	 * 

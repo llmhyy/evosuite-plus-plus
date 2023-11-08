@@ -1,25 +1,5 @@
 package org.evosuite.testcase.synthesizer;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.branch.Branch;
@@ -30,7 +10,6 @@ import org.evosuite.coverage.fbranch.FBranchDefUseAnalyzer;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.interprocedural.ConstructionPath;
-import org.evosuite.graphs.interprocedural.GraphVisualizer;
 import org.evosuite.graphs.interprocedural.InterproceduralGraphAnalysis;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.runtime.System;
@@ -48,11 +27,19 @@ import org.evosuite.utils.MethodUtil;
 import org.evosuite.utils.Randomness;
 import org.evosuite.utils.generic.GenericConstructor;
 
+import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
+
 public class ConstructionPathSynthesizer {
 
 //	private TestFactory testFactory;
 //	private static final Logger logger = LoggerFactory.getLogger(ConstructionPathSynthesizer.class);
-	
+
+	boolean isDebugger;
 	public static String debuggerFolder = "";
 
 	public ConstructionPathSynthesizer(boolean isDebug) {
@@ -64,7 +51,7 @@ public class ConstructionPathSynthesizer {
 	/**
 	 * 
 	 * @param b
-	 * @param isBranchInTargetMethod
+
 	 * @return
 	 */
 	public PartialGraph constructPartialComputationGraph(Branch b) {
@@ -118,26 +105,20 @@ public class ConstructionPathSynthesizer {
 				}
 			}
 		}
-		
 		return graph;
 	}
 	
 	private PartialGraph partialGraph;
 	private Map<DepVariableWrapper, VarRelevance> graph2CodeMap;
 	
-	
-	public boolean isDebugger = false;
-	
 	public void buildNodeStatementCorrespondence(TestCase test, Branch b, boolean allowNullValue)
 			throws ConstructionFailedException, ClassNotFoundException {
 
 		PartialGraph partialGraph = constructPartialComputationGraph(b);
-		
-//		System.currentTimeMillis();
-//		GraphVisualizer.visualizeComputationGraph(b, 10000);
-		if(isDebugger) {
-			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");			
-		}
+
+//		if (isDebugger) {
+//			GraphVisualizer.visualizeComputationGraph(partialGraph, 5000, "test");
+//		}
 		
 		logTest(test, b, isDebugger, 0, null);
 		

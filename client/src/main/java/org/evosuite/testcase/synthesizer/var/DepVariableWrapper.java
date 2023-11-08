@@ -1,9 +1,5 @@
 package org.evosuite.testcase.synthesizer.var;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.evosuite.coverage.branch.Branch;
 import org.evosuite.graphs.interprocedural.var.DepVariable;
 import org.evosuite.testcase.TestCase;
@@ -14,11 +10,19 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public abstract class DepVariableWrapper {
 	public DepVariable var;
 	public List<DepVariableWrapper> children = new ArrayList<>();
 	public List<DepVariableWrapper> parents = new ArrayList<>();
-	
+
+	public String getVariableName() {
+		return var.getName();
+	}
+
 	/**
 	 * It means the variable has been accessed by the code of the enriching test code
 	 */

@@ -19,47 +19,13 @@
  */
 package org.evosuite.testcase;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServlet;
-
+import com.googlecode.gentyref.CaptureType;
+import com.googlecode.gentyref.GenericTypeReflector;
 import org.apache.commons.lang3.ClassUtils;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.TimeController;
-import org.evosuite.classpath.ResourceList;
 import org.evosuite.ga.ConstructionFailedException;
-import org.evosuite.graphs.GraphPool;
-import org.evosuite.graphs.cfg.ActualControlFlowGraph;
-import org.evosuite.graphs.cfg.BytecodeAnalyzer;
-import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.cfg.BytecodeInstructionPool;
-import org.evosuite.graphs.interprocedural.ConstructionPath;
-import org.evosuite.graphs.interprocedural.var.DepVariable;
-import org.evosuite.instrumentation.InstrumentingClassLoader;
 import org.evosuite.runtime.System;
 import org.evosuite.runtime.annotation.Constraints;
 import org.evosuite.runtime.javaee.injection.Injector;
@@ -69,68 +35,27 @@ import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.runtime.util.Inputs;
 import org.evosuite.seeding.CastClassManager;
 import org.evosuite.seeding.ObjectPoolManager;
-import org.evosuite.setup.DependencyAnalysis;
-import org.evosuite.setup.InheritanceTree;
-import org.evosuite.setup.TestCluster;
-import org.evosuite.setup.TestClusterGenerator;
-import org.evosuite.setup.TestUsageChecker;
+import org.evosuite.setup.*;
 import org.evosuite.testcase.jee.InjectionSupport;
 import org.evosuite.testcase.jee.InstanceOnlyOnce;
 import org.evosuite.testcase.jee.ServletSupport;
 import org.evosuite.testcase.mutation.RandomInsertion;
-import org.evosuite.testcase.statements.AbstractStatement;
-import org.evosuite.testcase.statements.ArrayStatement;
-import org.evosuite.testcase.statements.AssignmentStatement;
-import org.evosuite.testcase.statements.ConstructorStatement;
-import org.evosuite.testcase.statements.EntityWithParametersStatement;
-import org.evosuite.testcase.statements.FieldStatement;
-import org.evosuite.testcase.statements.FunctionalMockForAbstractClassStatement;
-import org.evosuite.testcase.statements.FunctionalMockStatement;
-import org.evosuite.testcase.statements.MethodStatement;
-import org.evosuite.testcase.statements.NullStatement;
-import org.evosuite.testcase.statements.PrimitiveStatement;
-import org.evosuite.testcase.statements.Statement;
-import org.evosuite.testcase.statements.StringPrimitiveStatement;
+import org.evosuite.testcase.statements.*;
 import org.evosuite.testcase.statements.environment.EnvironmentStatements;
-import org.evosuite.testcase.statements.numeric.BooleanPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.BytePrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.CharPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.DoublePrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.FloatPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.LongPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.NumericalPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.ShortPrimitiveStatement;
 import org.evosuite.testcase.statements.reflection.PrivateFieldStatement;
 import org.evosuite.testcase.statements.reflection.PrivateMethodStatement;
 import org.evosuite.testcase.statements.reflection.ReflectionFactory;
-import org.evosuite.testcase.variable.ArrayIndex;
-import org.evosuite.testcase.variable.ArrayReference;
-import org.evosuite.testcase.variable.ConstantValue;
-import org.evosuite.testcase.variable.FieldReference;
-import org.evosuite.testcase.variable.NullReference;
-import org.evosuite.testcase.variable.VariableReference;
-import org.evosuite.utils.CollectionUtil;
-import org.evosuite.utils.MethodUtil;
+import org.evosuite.testcase.variable.*;
 import org.evosuite.utils.Randomness;
-import org.evosuite.utils.generic.GenericAccessibleObject;
-import org.evosuite.utils.generic.GenericClass;
-import org.evosuite.utils.generic.GenericConstructor;
-import org.evosuite.utils.generic.GenericField;
-import org.evosuite.utils.generic.GenericMethod;
-import org.evosuite.utils.generic.GenericUtils;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TypeInsnNode;
+import org.evosuite.utils.generic.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.googlecode.gentyref.CaptureType;
-import com.googlecode.gentyref.GenericTypeReflector;
+import javax.servlet.http.HttpServlet;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author Gordon Fraser
@@ -614,7 +539,7 @@ public class TestFactory {
 			parameters = satisfyParameters(test, callee,
 					                       Arrays.asList(method.getParameterTypes()),
 					                       Arrays.asList(method.getMethod().getParameters()),
-					                       position, recursionDepth + 1, true, false, true);
+					                       position, recursionDepth + 1, false, false, true);
 
 		} catch (ConstructionFailedException e) {
 			// TODO: Re-insert in new test cluster
@@ -626,6 +551,7 @@ public class TestFactory {
 		position += (newLength - length);
 
 		Statement st = new MethodStatement(test, method, callee, parameters);
+
 		while (position > test.size()) {
 			test.addStatement(st, test.size());
 			st = new MethodStatement(test, method, callee, parameters);

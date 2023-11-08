@@ -1,19 +1,5 @@
 package org.evosuite.testcase.synthesizer;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
-
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.graphs.GraphPool;
@@ -25,11 +11,10 @@ import org.evosuite.runtime.System;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.utils.MethodUtil;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.*;
+
+import java.lang.reflect.*;
+import java.util.*;
 
 public class DataDependencyUtil {
 	/**
@@ -354,9 +339,13 @@ public class DataDependencyUtil {
 			insList = BytecodeInstructionPool.getInstance(classLoader).getAllInstructionsAtMethod(className, methodName);
 			
 			if(insList == null) {
-				GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+				try {
+					GraphPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).registerClass(className);
+				} catch (Exception e) {
+					System.currentTimeMillis();
+				}
 //				RawControlFlowGraph cfg = GraphPool.getInstance(classLoader).getRawCFG(className, methodName);
-				System.currentTimeMillis();
+
 				insList = BytecodeInstructionPool.getInstance(classLoader).getAllInstructionsAtMethod(className, methodName);
 				if(insList == null) {
 					Class<?> c = TestGenerationContext.getInstance().getClassLoaderForSUT().loadClass(className);

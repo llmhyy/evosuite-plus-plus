@@ -1,17 +1,15 @@
 package feature.objectconstruction.testgeneration.testcase;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.evosuite.Properties;
-import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.runtime.sandbox.Sandbox;
-import org.junit.Before;
-import org.junit.Test;
-
 import common.SF100Project;
 import evosuite.shell.EvoTestResult;
+import org.evosuite.Properties;
+import org.evosuite.Properties.StatisticsBackend;
+import org.junit.Before;
+import org.junit.Test;
 import sf100.CommonTestUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SF100OverallTest {
 	@Before
@@ -38,15 +36,42 @@ public class SF100OverallTest {
 
 	@Test
 	public void testBugExample() throws Exception {
-		
+		Properties.CLIENT_ON_THREAD = true;
+		Properties.STATISTICS_BACKEND = StatisticsBackend.DEBUG;
 //		String projectId = "84_ifx-framework";
 //		String projectId = "27_gangup";
 //		String projectId = "83_xbus";
 //		String projectId = "80_wheelwebtool";
 //		String projectId = "58_fps370";
+//		String projectId = "35_corina";
 		String projectId = SF100Project.P1;
 		
 		String[] targetMethods = new String[]{
+				// target 35
+				//"corina.manip.Truncate#uncrop()V"
+
+
+				// Consider that from results.xlsx, average of final coverage = 0.88, we assume < 0.88 or exception as bad performance
+				// P1
+				//"com.ib.client.ComboLeg#equals(Ljava/lang/Object;)Z", // good, final coverage = 1
+				//"com.ib.client.Contract#equals(Ljava/lang/Object;)Z", // good, final coverage = 1
+				//"com.ib.client.Execution#equals(Ljava/lang/Object;)Z", // good, final coverage = 1
+				//"com.ib.client.ExecutionFilter#equals(Ljava/lang/Object;)Z", // exception occurs (not always), final coverage = 0.94, 0.94, 0.72, 0.72
+//					// comp with evosuite, final coverage = 1
+//				"com.ib.client.Order#equals(Ljava/lang/Object;)Z", // init slow, coverage 0.10 -> 0.78 comparably bad performance
+//					// comp with evosuite, coverage 0.20 -> 0.20 improvement is even more trivial, multiple run 0.1->0.1, 0.01->0.01
+//				"com.ib.client.OrderState#equals(Ljava/lang/Object;)Z", // good, final coverage = 1
+//				"com.ib.client.TagValue#equals(Ljava/lang/Object;)Z", // good, final coverage = 1
+//				"com.ib.client.UnderComp#equals(Ljava/lang/Object;)Z" // good, final coverage = 1
+
+				// P10
+//				"simulator.CA.BehaviourReplyNeighbour#action()V" // null pointer exception frequently
+
+				// P11
+//				"com.momed.main.MMergeTIFF#saveMultiPageTif([Ljava/awt/image/RenderedImage;Ljava/lang/String;)V"
+
+				// Template
+//				"module.BasicRules#checkRules(Lstate/Action;Lstate/GameState;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
 //				"net.sourceforge.ifxfv3.beans.CustPayeeMsgRecChoice#equals(Ljava/lang/Object;)Z"
@@ -72,19 +97,20 @@ public class SF100OverallTest {
 //				"state.GameState#unpack([B)V"
 //				"de.beiri22.filedp.FileDiffPatch#createPatch(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V"
 //				"com.lts.xmlser.tags.CollectionTag#write(Lcom/lts/xmlser/XmlSerializer;Lcom/lts/io/IndentingPrintWriter;Ljava/lang/String;Ljava/lang/Object;Z)V"
-				"com.ib.client.Contract#equals(Ljava/lang/Object;)Z"
+//				"com.ib.client.Contract#equals(Ljava/lang/Object;)Z"
 //				"com.lts.xmlser.tags.CollectionTag#write(Lcom/lts/xmlser/XmlSerializer;Lcom/lts/io/IndentingPrintWriter;Ljava/lang/String;Ljava/lang/Object;Z)V"
 //				"org.jcvi.trace.sanger.chromatogram.BasicChromatogram#equals(Ljava/lang/Object;)Z"
 
 				};
 		
 		int repeatTime = 1;
-		int budget = 100000;
+		int budget = 10;
 		Long seed = null;
 		
 		String fitnessApproach = "branch";
 		
-		boolean aor = false;
+		//boolean aor = false;
+		boolean aor = true;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
 				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
