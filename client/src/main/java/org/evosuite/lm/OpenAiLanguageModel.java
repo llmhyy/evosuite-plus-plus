@@ -15,6 +15,7 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.edit.EditChoice;
 import com.theokanning.openai.edit.EditRequest;
 import com.theokanning.openai.service.OpenAiService;
+import org.evosuite.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,8 +34,8 @@ public class OpenAiLanguageModel {
     private static final Logger logger = LoggerFactory.getLogger(OpenAiLanguageModel.class);
 
     public OpenAiLanguageModel() {
-        authorizationKey = "INSERT_YOUR_API_KEY"; // to commit
-        modelId = "gpt-3.5-turbo-16k";
+        authorizationKey = Properties.OPENAI_AUTH_KEY;
+        modelId = Properties.OPENAI_MODEL;
         temperature = 1.0;
         maxQueryLen = 16384 - 200;
         numCalls = 0;
@@ -204,21 +205,29 @@ public class OpenAiLanguageModel {
         return extractCodeSnippet(testCases);
     }
 
-    public String coverNewBranch(String targetMethod, String targetSummary, String newBranch) {
+    public String coverNewBranch(String targetMethod, String targetSummary, List<String> uncoveredBranches) {
+        StringBuilder uncoveredBranchesStr = new StringBuilder();
+        for (String b : uncoveredBranches) {
+            uncoveredBranchesStr.append("`");
+            uncoveredBranchesStr.append(b);
+            uncoveredBranchesStr.append("`, ");
+        }
+
         String prompt = String.format(
                 "Below is the definition of %s method. " +
-                        "Based on that, write a unit test to cover the branch `%s`.\n\n" +
+                        "Based on that, write a test suite to cover the branches %s without using any mocking.\n\n" +
                         "Definition of %s method:\n" +
                         "%s\n",
                 targetMethod,
-                newBranch,
+                uncoveredBranchesStr,
                 targetMethod,
                 wrapCodeBlock(targetSummary));
         System.out.println("==================================================");
         System.out.println("coverNewBranch() is called");
-        System.out.println("BRANCH_TO_COVER="+newBranch);
+        System.out.println("BRANCH_TO_COVER="+uncoveredBranchesStr);
         System.out.println("==================================================");
         String testCases = callChatCompletion(prompt);
+        System.out.println(testCases);
         return extractCodeSnippet(testCases);
     }
 

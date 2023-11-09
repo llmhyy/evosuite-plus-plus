@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Ref;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -101,7 +102,9 @@ public class ParserUtil {
                 "java.util.concurrent.Semaphore",
                 "java.util.concurrent.CountDownLatch",
                 "javax.swing.ListSelectionModel",
-                "javax.swing.JList");
+                "javax.swing.JList",
+                "java.io.ByteArrayOutputStream",
+                "java.io.DataOutputStream");
         for (String fullName : fullClassNames) {
             String simpleName = fullName.substring(fullName.lastIndexOf('.') + 1);
             try {
@@ -315,6 +318,10 @@ public class ParserUtil {
                 isMatched = false;
             }
 
+            if (paraTypes.length > i || argTypes.length > i) {
+                isMatched = false;
+            }
+
             if (isMatched) {
                 return new GenericConstructor(constructor, clazz);
             }
@@ -355,11 +362,19 @@ public class ParserUtil {
             if (method.getName().equals(methodSimpleName))
                 methods.add(method);
         }
+        for (Method method : Reflection.getDeclaredMethods(clazz)) {
+            if (method.getName().equals(methodSimpleName))
+                methods.add(method);
+        }
         return methods;
     }
 
     public static Method getMethod(Class<?> clazz, String methodSimpleName) {
         for (Method method : Reflection.getMethods(clazz)) {
+            if (method.getName().equals(methodSimpleName))
+                return method;
+        }
+        for (Method method : Reflection.getDeclaredMethods(clazz)) {
             if (method.getName().equals(methodSimpleName))
                 return method;
         }
@@ -506,7 +521,24 @@ public class ParserUtil {
         for (String p : paraList) {
             for (int i = 0; i < p.length(); i++) {
                 char c = p.charAt(i);
-                if ("BCDFIJSZ".contains(Character.toString(c))) {
+                if (c == '[') {
+                    int j = i+1;
+                    StringBuilder arrayDim = new StringBuilder("[]");
+                    while (p.charAt(j) == '[') {
+                        arrayDim.append("[]");
+                    }
+
+                    char cType = p.charAt(++i);
+                    if ("BCDFIJSZ".contains(Character.toString(cType))) {
+                        paraTypes.add(convertBytecodeToType(cType) + arrayDim);
+                    } else {
+                        String s = p.substring(i);
+                        s = s.substring(s.lastIndexOf('/')+1);
+                        paraTypes.add(s + arrayDim);
+                        break;
+                    }
+
+                } else if ("BCDFIJSZ".contains(Character.toString(c))) {
                     paraTypes.add(convertBytecodeToType(c));
                 } else {
                     String s = p.substring(i);

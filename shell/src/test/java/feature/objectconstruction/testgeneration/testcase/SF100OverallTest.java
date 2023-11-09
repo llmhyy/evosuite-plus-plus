@@ -51,17 +51,21 @@ public class SF100OverallTest {
 //		String projectId = SF100Project.P8;
 //		String projectId = SF100Project.P13;
 //		String projectId = SF100Project.P23;
+//		String projectId = SF100Project.P27;
+//		String projectId = SF100Project.P29;
 //		String projectId = SF100Project.P30;
 //		String projectId = SF100Project.P31;
 //		String projectId = SF100Project.P35;
 //		String projectId = SF100Project.P37;
-		String projectId = SF100Project.P38;
+//		String projectId = SF100Project.P38;
 //		String projectId = SF100Project.P43;
 //		String projectId = SF100Project.P44;
 //		String projectId = SF100Project.P63;
+//		String projectId = SF100Project.P64;
+//		String projectId = SF100Project.P65;
 //		String projectId = SF100Project.P66;
 //		String projectId = SF100Project.P68;
-//		String projectId = SF100Project.P69;
+		String projectId = SF100Project.P69;
 //		String projectId = SF100Project.P77;
 //		String projectId = SF100Project.P78;
 //		String projectId = SF100Project.P80;
@@ -71,8 +75,70 @@ public class SF100OverallTest {
 //		String projectId = SF100Project.P93;
 
 		String[] targetMethods = new String[]{
+				// P23
+//				"net.sourceforge.jwbf.core.bots.util.CachArticle#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.jwbf.mediawiki.contentRep.SimpleFile#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.jwbf.mediawiki.actions.editing.GetRevision#processReturningText(Ljava/lang/String;Lnet/sourceforge/jwbf/core/actions/util/HttpAction;)Ljava/lang/String;"
+//				"net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot#readData(Ljava/lang/String;I)Lnet/sourceforge/jwbf/core/contentRep/SimpleArticle;"
+
+				// P27
+//				"state.GameState#unpack([B)V"
+
+				// P29
+//				"apbs_mem_gui.EFileFilter#addExtension(Ljava/lang/String;)V"
+//				"apbs_mem_gui.Exec#callChargeOff(Ljava/lang/String;)V"
+//				"apbs_mem_gui.Exec#callPullcomps(Ljava/lang/String;)V"
+
+				// P3
+//				"com.jigen.msi.ResourcesDirectory#addResource(Lcom/jigen/msi/ResourceDescriptor;Ljava/util/LinkedList;)V"
+//				"com.jigen.ant.Jigen#addProduct(Lcom/jigen/ant/Product;)V"
+
+				// P30
+//				"ch.bluepenguin.tapestry.components.menu.renderer.impl.GenericMarkupMenuItemRenderer#startRender(Lorg/apache/tapestry/IMarkupWriter;Lch/bluepenguin/tapestry/components/menu/model/IMenuItem;)V"
+
+				// P31
+//				"net.sf.xisemele.impl.AttributeImpl#equals(Ljava/lang/Object;)Z"
+//				"net.sf.xisemele.impl.OperationsHelperImpl#children(Lorg/w3c/dom/Node;)Ljava/util/List;"
+//				"net.sf.xisemele.impl.OperationsHelperImpl#find(Lorg/w3c/dom/Document;Ljava/lang/String;)Lorg/w3c/dom/Node;"
+//				"net.sf.xisemele.impl.ValidationsImpl#assertValidName(Ljava/lang/String;)V"
+
+				// P37
+//				"org.petsoar.persistence.hibernate.HibernatePersistenceManager#find(Ljava/lang/String;[Ljava/lang/Object;[Ljava/lang/Class;)Ljava/util/List;"
+
+				// P38
+//				"framework.util.ObjectUtils#copyProperties(Ljava/util/Map;Ljava/lang/Object;)V"
+//				"framework.util.ObjectUtils#getTargetClass(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Class;"
+//				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
+
+				// P64
+//				"fr.pingtimeout.jtail.gui.model.JTailMainModelEvent#equals(Ljava/lang/Object;)Z"
+//				"fr.pingtimeout.jtail.gui.action.ChooseFileAction#actionPerformed(Ljava/awt/event/ActionEvent;)V"
+//				"fr.pingtimeout.jtail.gui.action.CloseAllAction#actionPerformed(Ljava/awt/event/ActionEvent;)V"
+
+				// P65
+				// current
+//				"mindbright.ssh.SSHMiscDialogs#password(Ljava/lang/String;Ljava/lang/String;Ljava/awt/Frame;CLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
+//				"mindbright.ssh.SSHMiscDialogs#confirm(Ljava/lang/String;Ljava/lang/String;ZLjava/awt/Frame;)Z"
+
+				// P69
+//				"macaw.persistenceLayer.demo.InMemoryVariableManager#deleteDerivedVariables(Lmacaw/businessLayer/User;Ljava/util/ArrayList;)V"
+				"macaw.persistenceLayer.demo.InMemoryVariableManager#getVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Lmacaw/businessLayer/Variable;"
+//				"macaw.presentationLayer.BasketTree#updateSelectedBasketVariableReference(Lmacaw/businessLayer/BasketVariableReference;)V"
+//				"macaw.persistenceLayer.demo.InMemoryOntologyTermFilter#filterOntologyTerms(Lmacaw/businessLayer/User;Ljava/lang/String;Ljava/lang/String;)Ljava/util/ArrayList;"
 //				"macaw.presentationLayer.VariableLabelTableModel#setValueAt(Ljava/lang/Object;II)V"
-				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
+//				"macaw.persistenceLayer.demo.InMemoryVariableManager#getCategoriesForVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Ljava/util/ArrayList;"
+//				"macaw.persistenceLayer.demo.InMemorySupportingDocumentsManager#getAllSupportingDocuments(Lmacaw/businessLayer/User;)Ljava/util/ArrayList;"
+//				"macaw.presentationLayer.VariableSearchPanel#hasSearchResults()Z"
+
+				// P80
+//				"wheel.json.JSONObject#valueToString(Ljava/lang/Object;II)Ljava/lang/String;"
+//				"wheel.enhance.WheelFieldVisitor#visitEnd()V"
+
+				// P81
+//				"org.javathena.login.parse.FromAdmin#parse(Lorg/javathena/core/data/Socket_data;[B)I"
+
+//				"macaw.presentationLayer.VariableLabelTableModel#setValueAt(Ljava/lang/Object;II)V"
+//				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
 //				"jigl.math.Matrix#sub(Ljigl/math/Matrix;)Ljigl/math/Matrix;"
 //				"net.sf.xisemele.impl.OperationsHelperImpl#find(Lorg/w3c/dom/Document;Ljava/lang/String;)Lorg/w3c/dom/Node;"
 //				"org.petsoar.persistence.hibernate.HibernatePersistenceManager#find(Ljava/lang/String;[Ljava/lang/Object;[Ljava/lang/Class;)Ljava/util/List;"

@@ -1,0 +1,33 @@
+import org.junit.Assert;
+import org.junit.Test;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+public class ObjectUtilsTest {
+
+    @Test
+    public void testToCollection_NullValue_ReturnsNull() {
+        Object value = null;
+        Collection result = ObjectUtils.toCollection(value);
+    }
+
+    @Test
+    public void testToCollection_ValueIsCollection_ReturnsSameCollection() {
+        List<String> value = new ArrayList<>();
+        Collection result = ObjectUtils.toCollection(value);
+    }
+
+    @Test
+    public void testToCollection_ValueIsArray_ReturnsListFromArray() {
+        String[] value = new String[] {"a", "b", "c"};
+        Collection result = ObjectUtils.toCollection(value);
+    }
+
+    @Test
+    public void testToCollection_ValueIsSingleValue_ReturnsListWithSingleValue() {
+        String value = "hello";
+        Collection result = ObjectUtils.toCollection(value);
+    }
+}

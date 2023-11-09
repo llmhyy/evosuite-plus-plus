@@ -15,6 +15,7 @@ import javafx.util.Pair;
 import org.evosuite.Properties;
 import org.evosuite.lm.OpenAiLanguageModel;
 import org.evosuite.testcase.TestCase;
+import org.openxml4j.document.wordprocessing.Run;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,6 +110,8 @@ public class Parser {
                     case METHOD_NOT_FOUND_MSG: handleMethodNotFound(message[1]); break;
                     default: handleOverallException(); break;
                 }
+            } catch (RuntimeException e) {
+                logger.error(e.getMessage());
             }
         } while (maxTries > 0 && invalid);
     }
@@ -183,6 +186,11 @@ public class Parser {
 
     public String getMethodBySignature(ClassOrInterfaceDeclaration declaration, String name, String... paraTypes) {
         List<MethodDeclaration> methods = declaration.getMethodsBySignature(name, paraTypes);
+        if (methods.isEmpty()) {
+            methods = declaration.getMethodsByName(name)
+                    .stream().filter(m -> m.getParameters().size() == paraTypes.length)
+                    .collect(Collectors.toList());
+        }
         assert methods.size() == 1;
         return methods.get(0).toString();
     }
@@ -216,6 +224,11 @@ public class Parser {
 
         ClassOrInterfaceDeclaration classDec = (ClassOrInterfaceDeclaration) root;
         List<MethodDeclaration> methods = classDec.getMethodsBySignature(name, paraTypes);
+        if (methods.isEmpty()) {
+            methods = classDec.getMethodsByName(name)
+                    .stream().filter(m -> m.getParameters().size() == paraTypes.length)
+                    .collect(Collectors.toList());
+        }
         assert methods.size() == 1;
 
         List<Node> all = new ArrayList<>();

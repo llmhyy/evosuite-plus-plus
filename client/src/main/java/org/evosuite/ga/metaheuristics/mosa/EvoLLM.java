@@ -280,11 +280,21 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
                 System.out.println("COVERAGE STALL DETECTED");
 
                 try {
-                    List<String> uncoveredBranches = this.getUncoveredBranches();
-                    String newBranch = uncoveredBranches.get(0);
+                    Set<String> uncoveredBranchesNoDup = new HashSet<>(this.getUncoveredBranches());
+                    List<String> uncoveredBranches = new ArrayList<>(uncoveredBranchesNoDup);
 
-                    String newTestsStr = new OpenAiLanguageModel().coverNewBranch(
-                            targetMethod, targetSummary.toString(), newBranch);
+                    String newTestsStr = //"";
+                            new OpenAiLanguageModel().coverNewBranch(
+                            targetMethod, targetSummary.toString(), uncoveredBranches);
+//                    try {
+//                        newTestsStr = new String(Files.readAllBytes(Paths.get(
+////                                 "D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\38_javabullboard_toCollection_testCase1.txt"
+//                                 "D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationStr.txt"
+//                        )));
+//                    } catch (IOException e) {
+//                        logger.error(e.getMessage());
+//                    }
+
                     Parser parser = new Parser(newTestsStr, targetSummary);
                     parser.parse(Properties.MAX_PARSE_TRIALS);
 
@@ -433,13 +443,16 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
     private void initializeNLBranches(Map<Integer, String> lineBranchMap) {
         Map<Integer, FitnessFunction<T>> branchCoverageTrueMap = goalsManager.getBranchCoverageTrueMap();
         Map<Integer, FitnessFunction<T>> branchCoverageFalseMap = goalsManager.getBranchCoverageFalseMap();
-        assert branchCoverageTrueMap.keySet().equals(branchCoverageFalseMap.keySet()); // is this true?
+        if (!branchCoverageTrueMap.keySet().equals(branchCoverageFalseMap.keySet())) {
+            return;
+        }
 
         List<FitnessFunction<T>> trueBranches = new ArrayList<>(branchCoverageTrueMap.values());
         List<FitnessFunction<T>> falseBranches = new ArrayList<>(branchCoverageFalseMap.values());
         List<String> nlBranches = new ArrayList<>(lineBranchMap.values());
-        assert trueBranches.size() == nlBranches.size() &&
-                falseBranches.size() == nlBranches.size();
+        if (!(trueBranches.size() == nlBranches.size()) || !(falseBranches.size() == nlBranches.size())) {
+            return;
+        }
 
         Iterator<FitnessFunction<T>> trueIt = trueBranches.iterator();
         Iterator<FitnessFunction<T>> falseIt = falseBranches.iterator();

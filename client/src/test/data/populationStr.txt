@@ -1,42 +1,43 @@
-import static org.junit.Assert.assertEquals;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import org.apache.commons.beanutils.PropertyUtils;
+import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class ObjectUtilsTest {
+import java.util.HashMap;
 
-    @Test
-    public void testToCollection_CollectionValue() {
-        List<String> value = new ArrayList<>();
-        value.add("element1");
-        value.add("element2");
-        Collection<?> result = ObjectUtils.toCollection(value);
-        assertEquals(value, result);
+public class GenericMarkupMenuItemRendererTest {
+    GenericMarkupMenuItemRenderer renderer;
+    IMenuItem item;
+    MockMarkupWriter writer;
+
+    @Before
+    public void setUp() {
+        renderer = new GenericMarkupMenuItemRenderer();
+        item = new IMenuItem();  // Presuming IMenuItem has a default constructor
+        writer = new MockMarkupWriter();  // A mock object for testing, replace it with a real object in your context
     }
 
     @Test
-    public void testToCollection_NullValue() {
-        Object value = null;
-        Collection<?> result = ObjectUtils.toCollection(value);
-        assertEquals(null, result);
+    public void testStartRenderNoAttributes() {
+        renderer.startRender(writer, item);
+        // Asserts that writer.begin and writer.print were called with the correct arguments
+        assertTrue(writer.beginCalledWith(renderer.element));
+        assertTrue(writer.printCalledWith(renderer.text));
     }
 
     @Test
-    public void testToCollection_ArrayValue() {
-        String[] value = { "element1", "element2" };
-        Collection<?> result = ObjectUtils.toCollection(value);
-        assertEquals(value.length, result.size());
-        assertEquals(value[0], result.toArray()[0]);
-        assertEquals(value[1], result.toArray()[1]);
-    }
+    public void testStartRenderWithAttributes() {
+        renderer.attributes = new HashMap<>();
+        renderer.attributes.put("attribute1", "value1");
+        renderer.attributes.put("attribute2", "value2");
 
-    @Test
-    public void testToCollection_SingleValue() {
-        String value = "element";
-        Collection<?> result = ObjectUtils.toCollection(value);
-        assertEquals(1, result.size());
-        assertEquals(value, result.toArray()[0]);
+        renderer.startRender(writer, item);
+
+        // Asserts that writer.begin and writer.print were called with the correct arguments
+        assertTrue(writer.beginCalledWith(renderer.element));
+        assertTrue(writer.printCalledWith(renderer.text));
+
+        // Asserts that writer.attribute was called with the correct arguments
+        assertTrue(writer.attributeCalledWith("attribute1", "value1"));
+        assertTrue(writer.attributeCalledWith("attribute2", "value2"));
     }
 }

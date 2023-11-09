@@ -39,6 +39,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
     private TestCase testCase;
     private Map<String, VariableReference> testRefs;
 
+    private Class<?> c;
     private Statement s;
     private VariableReference r;
 
@@ -54,20 +55,23 @@ public class ParserVisitor implements VoidVisitor<Object> {
         ParserUtil.initCaches();
     }
 
-    private void handleException(ParseExceptionType type, String detail) {
+    private void handleException(ParseExceptionType type, String detail) throws ParseException {
         switch (type) {
         case CLASS_NOT_FOUND:
-            classErrors.add(detail);
-            logger.error(CLASS_NOT_FOUND_MSG + ": " + detail);
-            break;
+            throw new ParseException(CLASS_NOT_FOUND_MSG + ": " + detail);
+//            classErrors.add(detail);
+//            logger.error(CLASS_NOT_FOUND_MSG + ": " + detail);
+//            break;
         case CTOR_NOT_FOUND:
-            ctorErrors.add(detail);
-            logger.error(CTOR_NOT_FOUND_MSG + ": " + detail);
-            break;
+            throw new ParseException(CTOR_NOT_FOUND_MSG + ": " + detail);
+//            ctorErrors.add(detail);
+//            logger.error(CTOR_NOT_FOUND_MSG + ": " + detail);
+//            break;
         case METHOD_NOT_FOUND:
-            methodErrors.add(detail);
-            logger.error(METHOD_NOT_FOUND_MSG + ": " + detail);
-            break;
+            throw new ParseException(METHOD_NOT_FOUND_MSG + ": " + detail);
+//            methodErrors.add(detail);
+//            logger.error(METHOD_NOT_FOUND_MSG + ": " + detail);
+//            break;
         }
 
         s = new NullStatement(testCase, Object.class);
@@ -172,7 +176,7 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(VariableDeclarator n, Object arg) {
-        Class<?> type = arg instanceof ClassOrInterfaceType ? ParserUtil.getClass(arg.toString()) : null;
+        Class<?> type = arg instanceof Class<?> ? (Class<?>) arg : null;
         Optional<Expression> init = n.getInitializer();
         init.ifPresent(i -> i.accept(this, arg));
 
@@ -213,7 +217,11 @@ public class ParserVisitor implements VoidVisitor<Object> {
     // - Type ----------------------------------------------
     @Override
     public void visit(ClassOrInterfaceType n, Object arg) {
-        n.getChildNodes().forEach(cn -> cn.accept(this, arg));
+        if (n.getScope().isPresent()) {
+            n.getScope().get().accept(this, arg);
+        } else {
+            c = ParserUtil.getClass(n.getName().asString());
+        }
     }
 
     @Override
@@ -371,7 +379,10 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(LongLiteralExpr n, Object arg) {
-        s = new LongPrimitiveStatement(testCase, Long.parseLong(n.getValue()));
+        String value = n.getValue()
+                .replace("l", "")
+                .replace("L", "");
+        s = new LongPrimitiveStatement(testCase, Long.parseLong(value));
         r = testCase.addStatement(s);
     }
 
@@ -383,7 +394,12 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(DoubleLiteralExpr n, Object arg) {
-        s = new DoublePrimitiveStatement(testCase, Double.parseDouble(n.getValue()));
+        String value = n.getValue()
+                .replace("f", "")
+                .replace("F", "")
+                .replace("d", "")
+                .replace("D", "");
+        s = new DoublePrimitiveStatement(testCase, Double.parseDouble(value));
         r = testCase.addStatement(s);
     }
 
@@ -512,8 +528,8 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
     @Override
     public void visit(VariableDeclarationExpr n, Object arg) {
-        Type type = n.getElementType();
-        n.getVariables().accept(this, type);
+        n.getElementType().accept(this, arg);
+        n.getVariables().accept(this, c);
     }
 
     @Override
