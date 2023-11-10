@@ -15,7 +15,6 @@ import javafx.util.Pair;
 import org.evosuite.Properties;
 import org.evosuite.lm.OpenAiLanguageModel;
 import org.evosuite.testcase.TestCase;
-import org.openxml4j.document.wordprocessing.Run;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +30,9 @@ public class Parser {
     private CompilationUnit compilation;
     private ParserVisitor visitor;
     private ParseResult summary;
+
+    // TODO: refactor later
+    private Map<String, String> contextMap;
 
     private static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
@@ -85,6 +87,48 @@ public class Parser {
         summary.imports = getImports(compilation);
 
         setSummary(summary);
+    }
+
+    public Parser(Map<String, String> classDefMap, Map<String, List<Pair<String, String[]>>> classMethodMap) {
+        this.contextMap = new HashMap<>();
+
+        Set<String> classSet = classDefMap.keySet();
+        for (String className : classSet) {
+            String classDef = classDefMap.get(className);
+            List<Pair<String, String[]>> methodSignatureList = classMethodMap.get(className);
+
+            // Sanity check
+            if (classDef.isEmpty()) {
+                continue;
+            }
+
+            // Get AST of class definition
+            setSource(classDef, false);
+            setCompilation();
+            assert compilation != null && !compilation.getTypes().isEmpty();
+            assert compilation.getType(0) instanceof ClassOrInterfaceDeclaration;
+            ClassOrInterfaceDeclaration classDefNode = (ClassOrInterfaceDeclaration) compilation.getType(0);
+
+            // Extract class declaration
+            String classDec = getDeclaration(classDefNode);
+
+            // Extract method declarations
+            List<String> methodDefList = new ArrayList<>();
+            for (Pair<String, String[]> methodSignature : methodSignatureList) {
+                String methodName = methodSignature.getKey();
+                String[] methodParas = methodSignature.getValue();
+                String methodDef = getMethodBySignature(classDefNode, methodName, methodParas);
+                methodDefList.add(methodDef);
+            }
+
+            // Build summarized class definition
+            String summarizedClassDef = classDec + NEWLINE + NEWLINE +
+                    String.join(NEWLINE, methodDefList) + NEWLINE + NEWLINE +
+                    "}" + NEWLINE;
+
+            // Put entry to map context
+            contextMap.put(className, summarizedClassDef);
+        }
     }
 
     public void parse(int maxTries) {
@@ -191,8 +235,8 @@ public class Parser {
                     .stream().filter(m -> m.getParameters().size() == paraTypes.length)
                     .collect(Collectors.toList());
         }
-        assert methods.size() == 1;
-        return methods.get(0).toString();
+        // Add error handling for not finding method in definition
+        return methods.size() == 1 ? methods.get(0).toString() : "";
     }
 
     public List<MethodDeclaration> getMethodsByAnnotation(ClassOrInterfaceDeclaration declaration, String annotation) {
@@ -309,7 +353,7 @@ public class Parser {
 
     private String removeAssertions(String source) {
         return Arrays.stream(source.split("\\r?\\n"))
-                .filter(s -> !s.trim().startsWith("assert"))
+                .filter(s -> !s.trim().toLowerCase().startsWith("assert"))
                 .collect(Collectors.joining(System.lineSeparator()));
     }
 
@@ -392,5 +436,9 @@ public class Parser {
 
     public ParseResult getSummary() {
         return this.summary;
+    }
+
+    public Map<String, String> getContextMap() {
+        return this.contextMap;
     }
 }

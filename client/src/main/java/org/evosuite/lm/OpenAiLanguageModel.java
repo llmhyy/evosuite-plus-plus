@@ -3,6 +3,7 @@ package org.evosuite.lm;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.github.javaparser.JavaParser;
@@ -215,13 +216,49 @@ public class OpenAiLanguageModel {
 
         String prompt = String.format(
                 "Below is the definition of %s method. " +
-                        "Based on that, write a test suite to cover the branches %s without using any mocking.\n\n" +
+                        "Based on that, write a test suite to cover the branches %s without using any mocking and assertion.\n\n" +
                         "Definition of %s method:\n" +
                         "%s\n",
                 targetMethod,
                 uncoveredBranchesStr,
                 targetMethod,
                 wrapCodeBlock(targetSummary));
+        System.out.println("==================================================");
+        System.out.println("coverNewBranch() is called");
+        System.out.println("BRANCH_TO_COVER="+uncoveredBranchesStr);
+        System.out.println("==================================================");
+        String testCases = callChatCompletion(prompt);
+        System.out.println(testCases);
+        return extractCodeSnippet(testCases);
+    }
+
+    public String coverNewBranch(String targetMethod, String targetSummary,
+                                 List<String> uncoveredBranches,
+                                 Map<String, String> relatedClasses) {
+        StringBuilder uncoveredBranchesStr = new StringBuilder();
+        for (String b : uncoveredBranches) {
+            uncoveredBranchesStr.append("`");
+            uncoveredBranchesStr.append(b);
+            uncoveredBranchesStr.append("`, ");
+        }
+
+        StringBuilder relatedClassesStr = new StringBuilder();
+        for (String relatedClass : relatedClasses.keySet()) {
+            String definition = relatedClasses.get(relatedClass);
+            relatedClassesStr.append(String.format("Definition of class %s:\n", relatedClass));
+            relatedClassesStr.append(wrapCodeBlock(definition));
+            relatedClassesStr.append("\n\n");
+        }
+
+        String prompt = String.format(
+                "Below is the definition of %s method and all related classes. " +
+                        "Based on that, write a test suite to cover the branches %s without using any mocking.\n\n" +
+                        "Definition of %s method:\n" + "%s\n" +
+                        "Definitions of all related classes:\n\n" + "%s\n",
+                targetMethod,
+                uncoveredBranchesStr,
+                targetMethod, wrapCodeBlock(targetSummary),
+                relatedClassesStr);
         System.out.println("==================================================");
         System.out.println("coverNewBranch() is called");
         System.out.println("BRANCH_TO_COVER="+uncoveredBranchesStr);

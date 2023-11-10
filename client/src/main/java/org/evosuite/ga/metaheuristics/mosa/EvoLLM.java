@@ -50,6 +50,9 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
     private String targetMethod;
     private Parser.ParseResult targetSummary;
 
+    Map<String, String> relatedClasses;
+    Map<String, List<Pair<String, String[]>>> relatedMethods;
+
     private final Map<FitnessFunction<T>, String> nlBranchesMap;
 
     /**
@@ -80,6 +83,9 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
         this.targetMethod = ParserUtil.getMethodSimpleSignatureStr(Properties.TARGET_METHOD);
         this.targetSummary = parser.getSummary();
         this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
+
+        this.relatedClasses = ParserUtil.getFristOrderRelatedClassDefinition();
+        this.relatedMethods = ParserUtil.getFirstOrderRelatedMethods();
 
         super.initializePopulation();
 
@@ -248,7 +254,7 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
                     this.goalsManager.getCurrentGoals());
         }
 
-        int maxStallLen = 5;
+        int maxStallLen = 1;
         int stallLen = 0;
         boolean wasTargeted = false;
 
@@ -282,10 +288,19 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
                 try {
                     Set<String> uncoveredBranchesNoDup = new HashSet<>(this.getUncoveredBranches());
                     List<String> uncoveredBranches = new ArrayList<>(uncoveredBranchesNoDup);
+                    Map<String, String> contextMap = new HashMap<>();
+                    try {
+                        Parser contextParser = new Parser(relatedClasses, relatedMethods);
+                        contextMap = contextParser.getContextMap();
+                    } catch (RuntimeException e) {
+                        System.currentTimeMillis();
+                    }
 
                     String newTestsStr = //"";
                             new OpenAiLanguageModel().coverNewBranch(
-                            targetMethod, targetSummary.toString(), uncoveredBranches);
+                                    targetMethod, targetSummary.toString(),
+                                    uncoveredBranches,
+                                    contextMap);
 //                    try {
 //                        newTestsStr = new String(Files.readAllBytes(Paths.get(
 ////                                 "D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\38_javabullboard_toCollection_testCase1.txt"
@@ -307,10 +322,6 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
                         newTest.setTestCase(testCase);
                         newTest.setLastExecutionResult(exeRes);
                         this.population.add((T) newTest);
-                    }
-
-                    if (!parser.getTestCases().isEmpty()) {
-                        break;
                     }
 
                     /*String targetClassName = ParserUtil.getClassSimpleName(Properties.TARGET_CLASS);
