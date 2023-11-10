@@ -10,6 +10,10 @@ import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.lm.OpenAiLanguageModel;
 import org.evosuite.runtime.Reflection;
+import org.evosuite.setup.DependencyAnalysis;
+import org.evosuite.setup.callgraph.CallGraph;
+import org.evosuite.setup.callgraph.CallGraphEntry;
+import org.evosuite.setup.callgraph.PathFinderDFSIterator;
 import org.evosuite.utils.generic.GenericClass;
 import org.evosuite.utils.generic.GenericConstructor;
 import org.evosuite.utils.generic.GenericMethod;
@@ -473,6 +477,108 @@ public class ParserUtil {
             }
         }
         return "";
+    }
+
+    /**
+     * provide a HashMap<String, String> where key=CLASS_SIMPLE_NAME, value=CLASS_DEFINITION
+     * according to the callGraph
+     */
+    public static Map<String, String> getFristOrderRelatedClassDefinition(){
+        CallGraph callGraph = DependencyAnalysis.getCallGraph();
+        Map<String, String> relatedClassDefinition = new HashMap<>();
+        String className = Properties.TARGET_CLASS;
+        String methodName = Properties.TARGET_METHOD;
+        CallGraphEntry callGraphEntry = new CallGraphEntry(className, methodName);
+        for(CallGraphEntry reverseN : callGraph.getGraph().getReverseNeighbors(callGraphEntry)){
+            String relatedClassName = reverseN.getClassName();
+            relatedClassDefinition.put(ParserUtil.getClassSimpleName(relatedClassName), getClassDefinition(Properties.CP, relatedClassName));
+        }
+        return relatedClassDefinition;
+    }
+
+    public static Map<String, List<Pair<String, String[]>>> getFirstOrderRelatedMethods(){
+        CallGraph callGraph = DependencyAnalysis.getCallGraph();
+        Map<String, List<Pair<String, String[]>>> relatedMethodDefinition = new HashMap<>();
+        String className = Properties.TARGET_CLASS;
+        String methodName = Properties.TARGET_METHOD;
+        CallGraphEntry startingVertex = new CallGraphEntry(className, methodName);
+        Map<String, List<Pair<String, String[]>>> relatedMethods = new HashMap<>();
+        for(CallGraphEntry reverseN: callGraph.getGraph().getReverseEdges().get(startingVertex)){
+            Pair<String, String[]> nameParaPair = getMethodSimpleSignature(reverseN.getMethodName());
+            String relatedClassName = reverseN.getClassName();
+            String relatedMethodName = nameParaPair.getKey();
+            String[] paraName = nameParaPair.getValue();
+            if(!relatedMethods.containsKey(relatedClassName)){
+                Pair<String, String[]> p = new Pair<>(relatedMethodName, paraName);
+                List<Pair<String, String[]>> v = new ArrayList<>();
+                v.add(p);
+                relatedMethods.put(ParserUtil.getClassSimpleName(relatedClassName), v);
+            }
+            else{
+                List<Pair<String, String[]>> cur_v = relatedMethods.get(relatedClassName);
+                Pair<String, String[]> p = new Pair<>(relatedMethodName, paraName);
+                cur_v.add(p);
+                relatedMethods.put(ParserUtil.getClassSimpleName(relatedClassName), cur_v);
+            }
+        }
+        return relatedMethods;
+    }
+
+//    public static Map<String, List<Pair<String, String[]>>> getRelatedMethodDefinition(){
+//        CallGraph callGraph = DependencyAnalysis.getCallGraph();
+//        Map<String, List<Pair<String, String[]>>> relatedMethodDefinition = new HashMap<>();
+//        String className = Properties.TARGET_CLASS;
+//        String methodName = Properties.TARGET_METHOD;
+//        CallGraphEntry callGraphEntry = new CallGraphEntry(className, methodName);
+//        for(CallGraphEntry reverseN : callGraph.getGraph().getEdges(callGraphEntry)){
+//            String relatedClassName = reverseN.getClassName();
+//            List<Pair<String, String[]>> relatedMethods = new List<Pair<"", "">>;
+//            if(!relatedMethodDefinition.containsKey(relatedClassName)){
+//                relatedMethodDefinition.put(relatedClassName, new )
+//            }
+//
+//
+//            relatedMethodDefinition.put(relatedClassName, getClassDefinition(Properties.CP, relatedClassName));
+//        }
+//    }
+
+    public static Map<String, List<Pair<String, String[]>>> getAllRelatedMethods(){
+        CallGraph callGraph = DependencyAnalysis.getCallGraph();
+        Map<String, List<Pair<String, String[]>>> relatedMethodDefinition = new HashMap<>();
+        String className = Properties.TARGET_CLASS;
+        String methodName = Properties.TARGET_METHOD;
+        CallGraphEntry startingVertex = new CallGraphEntry(className, methodName);
+
+//        Set<String> classes = new HashSet<>();
+//        Set<String> methodclasses = new HashSet<>();
+        Map<String, List<Pair<String, String[]>>> relatedMethods = new HashMap<>();
+
+        PathFinderDFSIterator<CallGraphEntry> dfs = new PathFinderDFSIterator<>(
+                callGraph.getGraph(), startingVertex, true);
+        while (dfs.hasNext()) {
+            CallGraphEntry e = dfs.next();
+            Pair<String, String[]> nameParaPair = getMethodSimpleSignature(e.getMethodName());
+            String relatedClassName = e.getClassName();
+            String relatedMethodName = nameParaPair.getKey();
+            String[] paraName = nameParaPair.getValue();
+
+            if(!relatedMethods.containsKey(relatedClassName)){
+                Pair<String, String[]> p = new Pair(relatedMethodName, paraName);
+                List<Pair<String, String[]>> v = new ArrayList<>();
+                v.add(p);
+                relatedMethods.put(relatedClassName, v);
+            }
+            else{
+                List<Pair<String, String[]>> cur_v = relatedMethods.get(relatedClassName);
+                Pair<String, String[]> p = new Pair(relatedMethodName, paraName);
+                cur_v.add(p);
+                relatedMethods.put(relatedClassName, cur_v);
+            }
+
+//            classes.add(e.getClassName());
+//            methodclasses.add(e.getClassName() + e.getMethodName());
+        }
+        return relatedMethods;
     }
 
     public static String getClassNameFromList(List<String> classList, String classSimpleName) {
