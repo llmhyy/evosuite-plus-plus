@@ -101,7 +101,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.6</version>
+						<version>3.1.0</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
@@ -168,7 +168,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>findbugs-maven-plugin</artifactId>
-						<version>3.0.2</version>
+						<version>3.0.5</version>
 						<configuration>
 							<xmlOutput>true</xmlOutput>
 							<!-- tmp disabled due to issues that it does not get found in the 
@@ -180,7 +180,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-pmd-plugin</artifactId>
-						<version>3.9.0</version>
+						<version>3.21.2</version>
 						<configuration>
 							<targetJdk>1.8</targetJdk>
 						</configuration>
@@ -188,17 +188,17 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-project-info-reports-plugin</artifactId>
-						<version>2.9</version>
+						<version>3.4.5</version>
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-report-plugin</artifactId>
-						<version>2.20.1</version>
+						<version>3.2.2</version>
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-jxr-plugin</artifactId>
-						<version>2.5</version>
+						<version>3.3.1</version>
 					</plugin>
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
@@ -779,6 +779,14 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>org.evosuite.EvoSuite</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
@@ -961,7 +969,7 @@
 		<systemTests>**/*SystemTest.java</systemTests>
 		<integrationTests>**/*IntTest.java</integrationTests>
 		<rerunFailingTestsCount>0</rerunFailingTestsCount>
-		<jars-destination>${project.basedir}/../generated-jars</jars-destination>
+		<jars-destination>${project.basedir}/generated-jars</jars-destination>
 	</properties>
 
 	<dependencies>
