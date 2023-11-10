@@ -50,8 +50,7 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
     private String targetMethod;
     private Parser.ParseResult targetSummary;
 
-    Map<String, String> relatedClasses;
-    Map<String, List<Pair<String, String[]>>> relatedMethods;
+    Map<String, String> contextMap;
 
     private final Map<FitnessFunction<T>, String> nlBranchesMap;
 
@@ -84,8 +83,10 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
         this.targetSummary = parser.getSummary();
         this.initializeNLBranches(parser.getLineBranchMap(targetMethodName, targetMethodParaTypes));
 
-        this.relatedClasses = ParserUtil.getFristOrderRelatedClassDefinition();
-        this.relatedMethods = ParserUtil.getFirstOrderRelatedMethods();
+        Map<String, String> relatedClasses = ParserUtil.getFristOrderRelatedClassDefinition();
+        Map<String, List<Pair<String, String[]>>> relatedMethods = ParserUtil.getFirstOrderRelatedMethods();
+        Parser contextParser = new Parser(relatedClasses, relatedMethods);
+        this.contextMap = contextParser.getContextMap();
 
         super.initializePopulation();
 
@@ -288,13 +289,6 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
                 try {
                     Set<String> uncoveredBranchesNoDup = new HashSet<>(this.getUncoveredBranches());
                     List<String> uncoveredBranches = new ArrayList<>(uncoveredBranchesNoDup);
-                    Map<String, String> contextMap = new HashMap<>();
-                    try {
-                        Parser contextParser = new Parser(relatedClasses, relatedMethods);
-                        contextMap = contextParser.getContextMap();
-                    } catch (RuntimeException e) {
-                        System.currentTimeMillis();
-                    }
 
                     String newTestsStr = //"";
                             new OpenAiLanguageModel().coverNewBranch(
