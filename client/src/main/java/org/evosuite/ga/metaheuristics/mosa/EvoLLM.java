@@ -255,7 +255,7 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
                     this.goalsManager.getCurrentGoals());
         }
 
-        int maxStallLen = 1;
+        int maxStallLen = 10;
         int stallLen = 0;
         boolean wasTargeted = false;
 
@@ -455,17 +455,40 @@ public class EvoLLM<T extends Chromosome> extends AbstractMOSA<T> {
         List<FitnessFunction<T>> trueBranches = new ArrayList<>(branchCoverageTrueMap.values());
         List<FitnessFunction<T>> falseBranches = new ArrayList<>(branchCoverageFalseMap.values());
         List<String> nlBranches = new ArrayList<>(lineBranchMap.values());
-        if (!(trueBranches.size() == nlBranches.size()) || !(falseBranches.size() == nlBranches.size())) {
-            return;
-        }
 
-        Iterator<FitnessFunction<T>> trueIt = trueBranches.iterator();
-        Iterator<FitnessFunction<T>> falseIt = falseBranches.iterator();
+        ListIterator<FitnessFunction<T>> trueIt = trueBranches.listIterator();
+        ListIterator<FitnessFunction<T>> falseIt = falseBranches.listIterator();
         Iterator<String> nlIt = nlBranches.iterator();
+
+        int prevGoalTrue = 0;
+        int prevGoalFalse = 0;
+        String prevBranch = null;
+
         while (trueIt.hasNext() && falseIt.hasNext() && nlIt.hasNext()) {
-            String branch = nlIt.next();
-            nlBranchesMap.put(trueIt.next(), branch);
-            nlBranchesMap.put(falseIt.next(), branch);
+            FitnessFunction<T> currTrue = trueIt.next();
+            FitnessFunction<T> currFalse = falseIt.next();
+
+            int currGoalTrue = this.goalsManager.getBranchGoal(currTrue).getLineNumber();
+            int currGoalFalse = this.goalsManager.getBranchGoal(currFalse).getLineNumber();
+
+            boolean isOldGoal = currGoalTrue == prevGoalTrue && currGoalFalse == prevGoalFalse;
+            boolean isNewGoal = currGoalTrue != prevGoalTrue && currGoalFalse != prevGoalFalse;
+
+            String currBranch =
+                    isOldGoal ? prevBranch
+                    : isNewGoal ? nlIt.next()
+                    : null;
+
+            if (currBranch == null) {
+                return;
+            }
+
+            nlBranchesMap.put(currTrue, currBranch);
+            nlBranchesMap.put(currFalse, currBranch);
+
+            prevGoalTrue = currGoalTrue;
+            prevGoalFalse = currGoalFalse;
+            prevBranch = currBranch;
         }
     }
 
