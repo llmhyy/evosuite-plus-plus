@@ -9,6 +9,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.stmt.*;
 import javafx.util.Pair;
@@ -299,6 +300,10 @@ public class Parser {
             return Optional.empty();
         }
 
+        if (node instanceof ReturnStmt) {
+            System.currentTimeMillis();
+        }
+
         Expression expression = null;
 
         if (node instanceof IfStmt) {
@@ -315,6 +320,14 @@ public class Parser {
             expression = ((WhileStmt) node).getCondition();
         } else if (node instanceof DoStmt) {
             expression = ((DoStmt) node).getCondition();
+        }
+
+        else if (node instanceof ReturnStmt) {
+            expression = ((ReturnStmt) node).getExpression().orElse(null);
+            if (!(expression instanceof BinaryExpr)) {
+                expression = null;
+            }
+
         }
 
         if (expression == null) {
