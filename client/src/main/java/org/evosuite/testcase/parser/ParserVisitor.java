@@ -289,7 +289,10 @@ public class ParserVisitor implements VoidVisitor<Object> {
                 : null;
         if (arrayType != null && !arrayType.isArray()) {
             String initStr = n.toString();
-            StringBuilder type = new StringBuilder(arg.toString());
+            StringBuilder type = new StringBuilder(
+                    arg instanceof Class<?>
+                            ? ((Class<?>) arg).getSimpleName()
+                            : arg.toString());
             for (int i = 0; i < initStr.length(); i++) {
                 if (initStr.charAt(i) == '{') {
                     type.append("[]");
@@ -325,7 +328,11 @@ public class ParserVisitor implements VoidVisitor<Object> {
 
         String target = n.getTarget().asNameExpr().getNameAsString();
         VariableReference var = getReference(target);
-        n.getValue().accept(this, var.getType());
+        try {
+            n.getValue().accept(this, var.getType());
+        } catch (NullPointerException e) {
+            System.currentTimeMillis();
+        }
         s = new AssignmentStatement(testCase, var, r);
         r = testCase.addStatement(s);
     }
@@ -486,7 +493,11 @@ public class ParserVisitor implements VoidVisitor<Object> {
         for (Expression a : n.getArguments()) {
             a.accept(this, arg);
             argRefs.add(r);
-            argTypes.add(r.getGenericClass());
+            try {
+                argTypes.add(r.getGenericClass());
+            } catch (NullPointerException e) {
+                System.currentTimeMillis();
+            }
         }
 
         if (ParserUtil.getConstructor(clazz, argTypes) == null) {
