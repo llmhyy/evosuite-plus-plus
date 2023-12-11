@@ -366,7 +366,12 @@ public class Parser {
 
     private String removeAssertionsAndAnnotations(String source) {
         return Arrays.stream(source.split("\\r?\\n"))
-                .filter(s -> !s.trim().toLowerCase().startsWith("@"))
+                .filter(s -> {
+                    String a = s.trim().toLowerCase();
+                    return !(a.startsWith("@test") ||
+                            a.startsWith("@before") ||
+                            a.startsWith("@after"));
+                })
                 .filter(s -> !s.trim().toLowerCase().startsWith("assert"))
                 .collect(Collectors.joining(System.lineSeparator()));
     }
