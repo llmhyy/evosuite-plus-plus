@@ -364,8 +364,9 @@ public class Parser {
         return isParsable;
     }
 
-    private String removeAssertions(String source) {
+    private String removeAssertionsAndAnnotations(String source) {
         return Arrays.stream(source.split("\\r?\\n"))
+                .filter(s -> !s.trim().toLowerCase().startsWith("@"))
                 .filter(s -> !s.trim().toLowerCase().startsWith("assert"))
                 .collect(Collectors.joining(System.lineSeparator()));
     }
@@ -419,7 +420,7 @@ public class Parser {
         }
 
         String s = source;
-        s = isTestSuite ? removeAssertions(s) : s;
+        s = isTestSuite ? removeAssertionsAndAnnotations(s) : s;
         s = isTestSuite ? mergeSetUpAndTearDown(s) : s;
         this.source = s;
         this.originalSrc = source;
