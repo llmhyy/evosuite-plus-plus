@@ -150,7 +150,7 @@ public class MultiCriteriaManager<T extends Chromosome> extends StructuralGoalMa
 		}
 	}
 	
-	private BranchCoverageGoal getBranchGoal(FitnessFunction<T> ff) {
+	public BranchCoverageGoal getBranchGoal(FitnessFunction<T> ff) {
 		if (ff instanceof FBranchTestFitness) {
 			return ((FBranchTestFitness) ff).getBranchGoal();
 		} else if (ff instanceof BranchCoverageTestFitness) {

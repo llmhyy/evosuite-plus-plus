@@ -368,6 +368,15 @@ public class Properties {
 	@Parameter(key = "migrants_communication_rate", group = "Test Creation", description = "Determines amount of migrants per communication step")
 	public static int MIGRANTS_COMMUNICATION_RATE = 3;
 
+	@Parameter(key = "openai_auth_key", group = "Test SBST-LLM", description = "Open AI authorization key")
+	public static String OPENAI_AUTH_KEY = "INSERT_YOUR_KEY";
+
+	@Parameter(key = "openai_model", group = "Test SBST-LLM", description = "Open AI model")
+	public static String OPENAI_MODEL = "gpt-4";
+
+	@Parameter(key = "max_parse_trials", group = "Test SBST-LLM", description = "Number of times trying to reprompt LLM to fix test cases")
+	public static int MAX_PARSE_TRIALS = 3;
+
 	// ---------------------------------------------------------------
 	// Search algorithm
 	public enum Algorithm {
@@ -378,7 +387,7 @@ public class Properties {
 		// mu-lambda
 		ONE_PLUS_LAMBDA_LAMBDA_GA, ONE_PLUS_ONE_EA, MU_PLUS_LAMBDA_EA, MU_LAMBDA_EA,
 		// many-objective algorithms
-		MOSA, DYNAMOSA, LIPS, MIO,
+		MOSA, DYNAMOSA, CODAMOSA, EVOLLM, LIPS, MIO,
 		// multiple-objective optimisation algorithms
 		NSGAII, SPEA2
 	}

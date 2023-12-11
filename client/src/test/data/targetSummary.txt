@@ -1,0 +1,48 @@
+package macaw.persistenceLayer.demo;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import macaw.businessLayer.Variable;
+import macaw.businessLayer.User;
+import macaw.system.MacawException;
+
+public class InMemoryVariableManager extends InMemoryCurationConceptManager {
+   private ArrayList<Variable> variables;
+   private InMemoryListChoiceManager listChoiceManager;
+   private InMemoryOntologyTermManager ontologyTermManager;
+   private InMemorySupportingDocumentsManager supportingDocumentsManager;
+   private HashMap<Integer, Variable> variableFromIdentifier;
+   private int variableKey;
+
+   public InMemoryVariableManager(InMemoryChangeEventManager var1, InMemoryListChoiceManager var2, InMemoryOntologyTermManager var3, InMemorySupportingDocumentsManager var4) {
+  	super(var1);
+  	this.listChoiceManager = var2;
+  	this.ontologyTermManager = var3;
+  	this.supportingDocumentsManager = var4;
+  	this.variables = new ArrayList();
+  	this.variableFromIdentifier = new HashMap();
+   }
+
+   public Variable getVariable(User var1, String var2) throws MacawException {
+  	if (ValidationUtility.isEmptyValue(var2)) {
+     	return null;
+  	} else {
+     	SearchUtility var3 = new SearchUtility(var2);
+     	Iterator var4 = this.variables.iterator();
+
+     	Variable var5;
+     	String var6;
+     	do {
+        	if (!var4.hasNext()) {
+           	return null;
+        	}
+
+        	var5 = (Variable)var4.next();
+        	var6 = var5.getName();
+     	} while(!var3.valueExactlyMatches(var6));
+
+     	Variable var7 = (Variable)var5.clone();
+     	return var7;
+  	}
+   }
+}

@@ -19,7 +19,11 @@
  */
 package org.evosuite.utils;
 
+import javafx.util.Pair;
 import org.apache.commons.lang3.StringEscapeUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class StringUtil {
 

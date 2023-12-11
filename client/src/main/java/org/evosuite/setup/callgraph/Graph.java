@@ -41,6 +41,10 @@ public abstract class Graph<E> {
 	public Map<E, Set<E>> getEdges() {
 		return edges;
 	}
+
+	public Map<E, Set<E>> getReverseEdges() {
+		return reverseEdges;
+	}
 	
 	public synchronized void removeVertex(E vertex) {
 		edges.remove(vertex);

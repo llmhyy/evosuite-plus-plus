@@ -1,6 +1,7 @@
 package sf100;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -10,6 +11,11 @@ import evosuite.shell.EvosuiteForMethod;
 import evosuite.shell.FileUtils;
 import evosuite.shell.experiment.SFBenchmarkUtils;
 import evosuite.shell.experiment.SFConfiguration;
+import org.evosuite.testcase.TestCase;
+import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.execution.TestCaseExecutor;
+import org.evosuite.testcase.parser.Parser;
 
 public class CommonTestUtil {
 	
@@ -238,6 +244,7 @@ public class CommonTestUtil {
 				"-Dprimitive_pool", "0.5",
 				"-Ddynamic_pool", "0.5",
 //				"-seed", "1556035769590"
+				"-Dmax_parse_trials", "9",
 				
 		};
 		
@@ -514,5 +521,35 @@ public class CommonTestUtil {
 		
 //		SFBenchmarkUtils.setupProjectProperties(projectId);
 		EvosuiteForMethod.execute(args);
+	}
+
+	public static List<TestChromosome> verifyLlmTests(String projectId, String targetMethod, String testSuiteStr, int tries) throws Exception {
+		String projectName = projectId.substring(projectId.indexOf("_") + 1);
+
+		if (!new File(SFConfiguration.sfBenchmarkFolder + File.separator + "1_tullibee").exists()) {
+			throw new Exception("The dataset in SFConfiguration.sfBenchmarkFolder " + SFConfiguration.sfBenchmarkFolder + " does not exsit!");
+		}
+
+		File file = new File(SFConfiguration.sfBenchmarkFolder + "/tempInclusives.txt");
+		file.deleteOnExit();
+		SFBenchmarkUtils.writeInclusiveFile(file, false, projectName, targetMethod);
+		SFBenchmarkUtils.setupProjectProperties(projectId);
+
+		Parser parser = new Parser(testSuiteStr);
+		parser.parse(tries);
+
+		List<TestCase> testCases = parser.getTestCases();
+		List<TestChromosome> testChromosomes = new ArrayList<>();
+
+		for (TestCase testCase : testCases) {
+			// Execute new test case
+			ExecutionResult execution = TestCaseExecutor.runTest(testCase);
+			TestChromosome chromosome = new TestChromosome();
+			chromosome.setTestCase(testCase);
+			chromosome.setLastExecutionResult(execution);
+			testChromosomes.add(chromosome);
+		}
+
+		return testChromosomes;
 	}
 }

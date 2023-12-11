@@ -1,11 +1,13 @@
 package feature.objectconstruction.testgeneration.testcase;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.evosuite.Properties;
 import org.evosuite.Properties.StatisticsBackend;
-import org.evosuite.runtime.sandbox.Sandbox;
+import org.evosuite.testcase.TestChromosome;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,57 +45,141 @@ public class SF100OverallTest {
 //		String projectId = "27_gangup";
 //		String projectId = "83_xbus";
 //		String projectId = "80_wheelwebtool";
-//		String projectId = "58_fps370";
-		String projectId = SF100Project.P1;
-		
-		String[] targetMethods = new String[]{
-//				"net.sourceforge.ifxfv3.beans.CreditAuthAddRsSequence2#equals(Ljava/lang/Object;)Z"
-//				"net.sourceforge.ifxfv3.beans.CreditAuthModRsSequence2#equals(Ljava/lang/Object;)Z"
-//				"net.sourceforge.ifxfv3.beans.CustPayeeMsgRecChoice#equals(Ljava/lang/Object;)Z"
-//				"org.objectweb.asm.jip.attrs.StackMapAttribute#getFrame(Lorg/objectweb/asm/jip/Label;)Lorg/objectweb/asm/jip/attrs/StackMapFrame;"
-//				"state.Party#remove(Lstate/Party;)V"
-//				"net.sourceforge.ifxfv3.beans.BankAcctTrnRec#equals(Ljava/lang/Object;)Z"
-//				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
-//				"net.sourceforge.ifxfv3.beans.LoanInfoCommon#equals(Ljava/lang/Object;)Z"
-//				"net.sf.xbus.protocol.xml.XBUSXMLMessage#synchronizeResponseFields(Lnet/sf/xbus/base/xbussystem/XBUSSystem;)V"
-//				"wheel.components.Checkbox#renderComponent(Lorg/xmlpull/v1/XmlSerializer;)V"
-//				"net.sourceforge.ifxfv3.beans.CCAcctStmtInqRs#equals(Ljava/lang/Object;)Z"
-//				"net.sourceforge.ifxfv3.beans.PmtMsgRecChoice#equals(Ljava/lang/Object;)Z"
-//				"de.paragon.explorer.model.AttributeModelComparator#compare(Lde/paragon/explorer/model/AttributeModel;Lde/paragon/explorer/model/AttributeModel;)I"
-//				"net.sourceforge.ifxfv3.beans.PmtLegalRptData#equals(Ljava/lang/Object;)Z"
-//				"corina.index.Horizontal#index()V"
-//				"com.lts.scheduler.Scheduler#cancel(Lcom/lts/scheduler/ScheduledEventListener;)V"
-//				"org.exolab.jms.gc.GarbageCollectionService#doStart()V"
-//				"com.lts.caloriecount.data.CalorieCountData#setFrequentFoods(Lcom/lts/application/data/IdApplicationDataList;)V"
-//				"de.outstare.fortbattleplayer.gui.battlefield.BattleFieldLayoutManager#layoutContainer(Ljava/awt/Container;)V"
-//				"org.jcvi.trace.frg.DefaultFragment#equals(Ljava/lang/Object;)Z"
-//				"com.lts.scheduler.Scheduler#cancel(Lcom/lts/scheduler/ScheduledEventListener;)V"
-//				"de.huxhorn.lilith.services.clipboard.AccessUriFormatter#isCompatible(Ljava/lang/Object;)Z"
-//				"state.GameState#unpack([B)V"
-//				"de.beiri22.filedp.FileDiffPatch#createPatch(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V"
-//				"com.lts.xmlser.tags.CollectionTag#write(Lcom/lts/xmlser/XmlSerializer;Lcom/lts/io/IndentingPrintWriter;Ljava/lang/String;Ljava/lang/Object;Z)V"
-				"com.ib.client.Contract#equals(Ljava/lang/Object;)Z"
-//				"com.lts.xmlser.tags.CollectionTag#write(Lcom/lts/xmlser/XmlSerializer;Lcom/lts/io/IndentingPrintWriter;Ljava/lang/String;Ljava/lang/Object;Z)V"
-//				"org.jcvi.trace.sanger.chromatogram.BasicChromatogram#equals(Ljava/lang/Object;)Z"
+//		String projectId = SF100Project.P2;
+//		String projectId = SF100Project.P3;
+//		String projectId = SF100Project.P6;
+//		String projectId = SF100Project.P8;
+//		String projectId = SF100Project.P13;
+//		String projectId = SF100Project.P23;
+//		String projectId = SF100Project.P27;
+//		String projectId = SF100Project.P29;
+//		String projectId = SF100Project.P30;
+//		String projectId = SF100Project.P31;
+//		String projectId = SF100Project.P35;
+//		String projectId = SF100Project.P37;
+//		String projectId = SF100Project.P38;
+//		String projectId = SF100Project.P43;
+//		String projectId = SF100Project.P44;
+//		String projectId = SF100Project.P63;
+//		String projectId = SF100Project.P64;
+//		String projectId = SF100Project.P65;
+//		String projectId = SF100Project.P66;
+//		String projectId = SF100Project.P68;
+		String projectId = SF100Project.P69;
+//		String projectId = SF100Project.P77;
+//		String projectId = SF100Project.P78;
+//		String projectId = SF100Project.P80;
+//		String projectId = SF100Project.P83;
+//		String projectId = SF100Project.P89;
+//		String projectId = SF100Project.P92;
+//		String projectId = SF100Project.P93;
 
-				};
+		String[] targetMethods = new String[]{
+				// P23
+//				"net.sourceforge.jwbf.core.bots.util.CachArticle#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.jwbf.mediawiki.contentRep.SimpleFile#equals(Ljava/lang/Object;)Z"
+//				"net.sourceforge.jwbf.mediawiki.actions.editing.GetRevision#processReturningText(Ljava/lang/String;Lnet/sourceforge/jwbf/core/actions/util/HttpAction;)Ljava/lang/String;"
+//				"net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot#readData(Ljava/lang/String;I)Lnet/sourceforge/jwbf/core/contentRep/SimpleArticle;"
+
+				// P27
+//				"state.GameState#unpack([B)V"
+
+				// P29
+//				"apbs_mem_gui.EFileFilter#addExtension(Ljava/lang/String;)V"
+//				"apbs_mem_gui.Exec#callChargeOff(Ljava/lang/String;)V"
+//				"apbs_mem_gui.Exec#callPullcomps(Ljava/lang/String;)V"
+
+				// P3
+//				"com.jigen.msi.ResourcesDirectory#addResource(Lcom/jigen/msi/ResourceDescriptor;Ljava/util/LinkedList;)V"
+//				"com.jigen.ant.Jigen#addProduct(Lcom/jigen/ant/Product;)V"
+
+				// P30
+//				"ch.bluepenguin.tapestry.components.menu.renderer.impl.GenericMarkupMenuItemRenderer#startRender(Lorg/apache/tapestry/IMarkupWriter;Lch/bluepenguin/tapestry/components/menu/model/IMenuItem;)V"
+
+				// P31
+//				"net.sf.xisemele.impl.AttributeImpl#equals(Ljava/lang/Object;)Z"
+//				"net.sf.xisemele.impl.OperationsHelperImpl#children(Lorg/w3c/dom/Node;)Ljava/util/List;"
+//				"net.sf.xisemele.impl.OperationsHelperImpl#find(Lorg/w3c/dom/Document;Ljava/lang/String;)Lorg/w3c/dom/Node;"
+//				"net.sf.xisemele.impl.ValidationsImpl#assertValidName(Ljava/lang/String;)V"
+
+				// P37
+//				"org.petsoar.persistence.hibernate.HibernatePersistenceManager#find(Ljava/lang/String;[Ljava/lang/Object;[Ljava/lang/Class;)Ljava/util/List;"
+
+				// P38
+//				"framework.util.ObjectUtils#copyProperties(Ljava/util/Map;Ljava/lang/Object;)V"
+//				"framework.util.ObjectUtils#getTargetClass(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Class;"
+//				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
+
+				// P64
+//				"fr.pingtimeout.jtail.gui.model.JTailMainModelEvent#equals(Ljava/lang/Object;)Z"
+//				"fr.pingtimeout.jtail.gui.action.ChooseFileAction#actionPerformed(Ljava/awt/event/ActionEvent;)V"
+//				"fr.pingtimeout.jtail.gui.action.CloseAllAction#actionPerformed(Ljava/awt/event/ActionEvent;)V"
+
+				// P65
+				// current
+//				"mindbright.ssh.SSHMiscDialogs#password(Ljava/lang/String;Ljava/lang/String;Ljava/awt/Frame;CLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
+//				"mindbright.ssh.SSHMiscDialogs#confirm(Ljava/lang/String;Ljava/lang/String;ZLjava/awt/Frame;)Z"
+
+				// P69
+//				"macaw.persistenceLayer.demo.InMemoryVariableManager#deleteDerivedVariables(Lmacaw/businessLayer/User;Ljava/util/ArrayList;)V"
+				"macaw.persistenceLayer.demo.InMemoryVariableManager#getVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Lmacaw/businessLayer/Variable;"
+//				"macaw.presentationLayer.BasketTree#updateSelectedBasketVariableReference(Lmacaw/businessLayer/BasketVariableReference;)V"
+//				"macaw.persistenceLayer.demo.InMemoryOntologyTermFilter#filterOntologyTerms(Lmacaw/businessLayer/User;Ljava/lang/String;Ljava/lang/String;)Ljava/util/ArrayList;"
+//				"macaw.presentationLayer.VariableLabelTableModel#setValueAt(Ljava/lang/Object;II)V"
+//				"macaw.persistenceLayer.demo.InMemoryVariableManager#getCategoriesForVariable(Lmacaw/businessLayer/User;Ljava/lang/String;)Ljava/util/ArrayList;"
+//				"macaw.persistenceLayer.demo.InMemorySupportingDocumentsManager#getAllSupportingDocuments(Lmacaw/businessLayer/User;)Ljava/util/ArrayList;"
+//				"macaw.presentationLayer.VariableSearchPanel#hasSearchResults()Z"
+
+				// P80
+//				"wheel.json.JSONObject#valueToString(Ljava/lang/Object;II)Ljava/lang/String;"
+//				"wheel.enhance.WheelFieldVisitor#visitEnd()V"
+
+				// P81
+//				"org.javathena.login.parse.FromAdmin#parse(Lorg/javathena/core/data/Socket_data;[B)I"
+
+//				"macaw.presentationLayer.VariableLabelTableModel#setValueAt(Ljava/lang/Object;II)V"
+//				"framework.util.ObjectUtils#toCollection(Ljava/lang/Object;)Ljava/util/Collection;"
+//				"jigl.math.Matrix#sub(Ljigl/math/Matrix;)Ljigl/math/Matrix;"
+//				"net.sf.xisemele.impl.OperationsHelperImpl#find(Lorg/w3c/dom/Document;Ljava/lang/String;)Lorg/w3c/dom/Node;"
+//				"org.petsoar.persistence.hibernate.HibernatePersistenceManager#find(Ljava/lang/String;[Ljava/lang/Object;[Ljava/lang/Class;)Ljava/util/List;"
+//				"org.exolab.jms.message.MessageProperties#setProperty(Ljava/lang/String;Ljava/lang/Object;)V"
+//				"de.paragon.explorer.gui.DisplayBoxComposer#compose(Lde/paragon/explorer/figure/CompositeFigure;)Lde/paragon/explorer/gui/DisplayBox;"
+//				"org.exolab.jms.selector.parser.SelectorParser#comparisonExpression(Lorg/exolab/jms/selector/parser/SelectorAST;)V"
+//				"jigl.image.ops.morph.Erode#apply(Ljigl/image/BinaryImage;Ljigl/image/ROI;)Ljigl/image/Image;"
+//				"corina.editor.DecadalModel#setValueAt(Ljava/lang/Object;II)V"
+//				"com.lts.xmlser.SerializationUtils#setField(Ljava/lang/Object;Lcom/lts/xmlser/FieldValue;Z)V"
+//				"com.lts.pest.tree.DirtyCleanTree#deepCopyData(Ljava/lang/Object;Ljava/util/Map;Z)V"
+//				"org.exolab.jms.net.rmi.RMIManagedConnectionFactory#createManagedConnectionAcceptor(Lorg/exolab/jms/net/connector/Authenticator;Lorg/exolab/jms/net/connector/ConnectionRequestInfo;)Lorg/exolab/jms/net/connector/ManagedConnectionAcceptor;"
+//				"br.com.jnfe.core.CFOP#equals(Ljava/lang/Object;)Z"
+//				"net.kencochrane.a4j.beans.Authors#toString()Ljava/lang/String;"
+//				"net.kencochrane.a4j.beans.Lists#toString()Ljava/lang/String;"
+//				"com.lts.xmlser.tags.ObjectTag#processProperty(Ljava/lang/String;Ljava/lang/Object;Lorg/w3c/dom/Element;Lcom/lts/xmlser/XmlSerializer;)V"
+//				"org.quickserver.net.server.QuickServer#configQuickServer(Lorg/quickserver/util/xmlreader/QuickServerConfig;)V"
+//				"jigl.image.MIPMap#get(FFF)[F"
+//				"org.exolab.jms.tranlog.ExternalXid#equals(Ljava/lang/Object;)Z"
+//				"corina.site.SiteDB#getSiteNames()Ljava/util/List;"
+//				"jigl.signal.ops.PoissonNoise#apply(Ljigl/signal/DiscreteSignal;Ljigl/signal/ROI;)Ljigl/signal/Signal;"
+//				"com.lts.swing.treetable.TreeTable#setRowHeight(I)V"
+		};
 		
 		int repeatTime = 1;
-		int budget = 100000;
+		int budget = 200;
 		Long seed = null;
-		
+		int parseTrials = 10;
+
 		String fitnessApproach = "branch";
 		
-		boolean aor = false;
+		boolean aor = true;
 		List<EvoTestResult> results = CommonTestUtil.evoTestSingleMethod(projectId,  
 				targetMethods, fitnessApproach, repeatTime, budget, true, 
-				seed, aor, "generateMOSuite", "MOSUITE", "DynaMOSA");
+				seed, aor, "generateMOSuite", "MOSUITE", "EvoLLM");
 		
 		double coverage = 0;
 		double initCoverage = 0;
 		double time = 0;
 		double iteration  = 0;
 		for(EvoTestResult res: results) {
+			if (res == null) continue;
 			coverage += res.getCoverage();
 			initCoverage += res.getInitialCoverage();
 			time += res.getTime();
@@ -626,6 +712,24 @@ public class SF100OverallTest {
 		EvoTestResult resultF = resultsF.get(0);
 		
 		System.currentTimeMillis();
+	}
+
+	@Test
+	public void testLlmExample() throws Exception {
+		String projectId = SF100Project.P69;
+		String targetMethod = "macaw.presentationLayer.VariableSearchPanel#hasSearchResults()Z";
+		String testSuiteStr = new String(Files.readAllBytes(Paths.get(
+				//"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationStr.txt"
+				//"/home/nbvannhi/repo/evosuite-plus-plus/client/src/test/data/populationInit.txt"
+
+				"D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationStr.txt"
+				//"D:\\repo\\evosuite-plus-plus\\client\\src\\test\\data\\populationInit.txt"
+			)));
+		int tries = 1;
+		List<TestChromosome> testChromosomes = CommonTestUtil.verifyLlmTests(projectId, targetMethod, testSuiteStr, tries);
+		for (TestChromosome tc : testChromosomes) {
+			System.out.println(tc.toString());
+		}
 	}
 	
 //	@Test

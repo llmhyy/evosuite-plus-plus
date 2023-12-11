@@ -98,6 +98,8 @@ public class SFBenchmarkUtils {
 					if (cp.length > 1) {
 						if (cp[1].contains(File.pathSeparator)) {
 							cp = cp[1].split(File.pathSeparator);
+						} else if (cp[1].contains(":") && System.getProperty("os.name").toLowerCase().contains("windows")) {
+							cp = cp[1].split(":");
 						} else {
 							cp = new String[] { cp[1] };
 						}
